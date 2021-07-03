@@ -82,6 +82,11 @@ namespace Helion.Geometry.Boxes
             Max = new(center.X + radius, center.Y + radius);
         }
 
+        public static implicit operator Box2D(ValueTuple<double, double, double, double> tuple)
+        {
+            return new((tuple.Item1, tuple.Item2), (tuple.Item3, tuple.Item4));
+        }
+
         public static implicit operator Box2D(ValueTuple<Vec2D, Vec2D> tuple)
         {
             return new(tuple.Item1, tuple.Item2);

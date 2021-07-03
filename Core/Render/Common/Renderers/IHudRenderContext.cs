@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
-using Helion.Resources;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -18,9 +16,9 @@ namespace Helion.Render.Common.Renderers
         /// The current (virtual) window dimension.
         /// </summary>
         Dimension Dimension { get; }
-
+        
         int Width => Dimension.Width;
-        int Height => Dimension.Width;
+        int Height => Dimension.Height;
         
         /// <summary>
         /// Checks if an image exists. If true, then it can be drawn from with
@@ -30,6 +28,13 @@ namespace Helion.Render.Common.Renderers
         /// <returns>True if such an image exists, false otherwise.</returns>
         bool ImageExists(string name);
         
+        /// <summary>
+        /// Equivalent to filling the viewport with the color provided.
+        /// </summary>
+        /// <remarks>
+        /// Does not clear the depth or stencil buffer, only does color filling.
+        /// </remarks>
+        /// <param name="color">The color to fill with.</param>
         void Clear(Color color);
         
         void Point(Vec2I point, Color color, Align window = Align.TopLeft);
@@ -40,19 +45,33 @@ namespace Helion.Render.Common.Renderers
         
         void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft);
 
-        void DrawBox(Box2I box, Color color, Align window = Align.TopLeft);
+        void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
         
-        void DrawBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft);
+        void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
 
-        void FillBox(Box2I box, Color color, Align window = Align.TopLeft);
+        void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
         
-        void FillBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft);
-        
-        void Image(string texture, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft, 
-            Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
+        void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
 
-        void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left, 
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
+        void Image(string texture, HudBox? area = null, Vec2I? origin = null, Align window = Align.TopLeft,
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
+        {
+            Image(texture, out _, area, origin, window, anchor, both, color, alpha);
+        }
+        
+        void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            float alpha = 1.0f);
+
+        void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
+            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f)
+        {
+            Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, alpha);
+        }
+        
+        void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
             int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f);
 
         /// <summary>

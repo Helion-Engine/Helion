@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 

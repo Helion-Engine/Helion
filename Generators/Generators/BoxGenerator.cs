@@ -186,6 +186,13 @@ namespace Generators.Generators
 
             if (m_isStruct)
             {
+                if (m_dimension == 2)
+                {
+                    w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{PrimitiveType}, {PrimitiveType}, {PrimitiveType}, {PrimitiveType}> tuple)",
+                        () => { w.WriteLine("return new((tuple.Item1, tuple.Item2), (tuple.Item3, tuple.Item4));"); });
+                    w.WriteLine();    
+                }
+                
                 foreach ((string first, string second) in classStructPairs)
                 {
                     w.WithCBlock($"public static implicit operator {ClassName}(ValueTuple<{first}, {second}> tuple)",
@@ -208,14 +215,10 @@ namespace Generators.Generators
 
         private void WriteOperators(CodegenTextWriter w)
         {
-            w.WriteLine(
-                $"public static {StructType} operator +({ClassName} self, {VecStruct} offset) => new(self.Min + offset, self.Max + offset);");
-            w.WriteLine(
-                $"public static {StructType} operator +({ClassName} self, {VecClass} offset) => new(self.Min + offset, self.Max + offset);");
-            w.WriteLine(
-                $"public static {StructType} operator -({ClassName} self, {VecStruct} offset) => new(self.Min - offset, self.Max - offset);");
-            w.WriteLine(
-                $"public static {StructType} operator -({ClassName} self, {VecClass} offset) => new(self.Min - offset, self.Max - offset);");
+            w.WriteLine($"public static {StructType} operator +({ClassName} self, {VecStruct} offset) => new(self.Min + offset, self.Max + offset);");
+            w.WriteLine($"public static {StructType} operator +({ClassName} self, {VecClass} offset) => new(self.Min + offset, self.Max + offset);");
+            w.WriteLine($"public static {StructType} operator -({ClassName} self, {VecStruct} offset) => new(self.Min - offset, self.Max - offset);");
+            w.WriteLine($"public static {StructType} operator -({ClassName} self, {VecClass} offset) => new(self.Min - offset, self.Max - offset);");
             w.WriteLine();
         }
 

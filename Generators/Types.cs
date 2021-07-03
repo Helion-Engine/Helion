@@ -75,12 +75,12 @@ namespace Generators
                 Types.Float => "float",
                 Types.Double => "double",
                 Types.Fixed => "Fixed",
-                Types.Byte => "Byte",
-                Types.Short => "Short",
-                Types.UShort => "UShort",
-                Types.UInt => "UInt",
-                Types.Long => "Long",
-                Types.ULong => "ULong",
+                Types.Byte => "byte",
+                Types.Short => "short",
+                Types.UShort => "ushort",
+                Types.UInt => "uint",
+                Types.Long => "long",
+                Types.ULong => "ulong",
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }

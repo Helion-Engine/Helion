@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
@@ -131,32 +130,39 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_elementsDrawn++;
         }
         
-        private void AddBox(Box2I box, ByteColor color, Align window)
+        private void AddBox(HudBox box, ByteColor color, Align window, Align anchor)
         {
-            Vec2I topLeftPos = m_currentResolutionInfo.Translate(box.TopLeft, window);
-            Vec2I bottomLeftPos = m_currentResolutionInfo.Translate(box.BottomLeft, window);
-            Vec2I topRightPos = m_currentResolutionInfo.Translate(box.TopRight, window);
-            Vec2I bottomRightPos = m_currentResolutionInfo.Translate(box.BottomRight, window);
+            Dimension dimension = box.Dimension;
             
-            AddSegment(topLeftPos, topRightPos, color, window);
-            AddSegment(topRightPos, bottomRightPos, color, window);
-            AddSegment(bottomRightPos, bottomLeftPos, color, window);
-            AddSegment(bottomLeftPos, topLeftPos, color, window);
+            Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
+            Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
+            Vec2I topRight = anchor.Translate(box.TopRight, dimension);
+            Vec2I bottomRight = anchor.Translate(box.TopLeft, dimension);
+            
+            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
+            bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
+            topRight = m_currentResolutionInfo.Translate(topRight, window);
+            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
+            
+            AddSegment(topLeft, topRight, color, window);
+            AddSegment(topRight, bottomRight, color, window);
+            AddSegment(bottomRight, bottomLeft, color, window);
+            AddSegment(bottomLeft, topLeft, color, window);
         }
 
-        public void DrawBox(Box2I box, Color color, Align window = Align.TopLeft)
+        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             ByteColor byteColor = new ByteColor(color);
-            AddBox(box, byteColor, window);
+            AddBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void DrawBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft)
+        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             ByteColor byteColor = new ByteColor(color);
             for (int i = 0; i < boxes.Length; i++)
-                AddBox(boxes[i], byteColor, window);
+                AddBox(boxes[i], byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
@@ -175,46 +181,59 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             }
         }
 
-        private void AddFillBox(Box2I box, ByteColor color, Align window)
+        private void AddFillBox(HudBox box, ByteColor color, Align window, Align anchor)
         {
-            Vec2I topLeft = m_currentResolutionInfo.Translate(box.TopLeft, window);
-            Vec2I bottomLeft = m_currentResolutionInfo.Translate(box.BottomLeft, window);
-            Vec2I topRight = m_currentResolutionInfo.Translate(box.TopRight, window);
-            Vec2I bottomRight = m_currentResolutionInfo.Translate(box.BottomRight, window);
+            Dimension dimension = box.Dimension;
+            
+            Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
+            Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
+            Vec2I topRight = anchor.Translate(box.TopRight, dimension);
+            Vec2I bottomRight = anchor.Translate(box.TopLeft, dimension);
+            
+            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
+            bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
+            topRight = m_currentResolutionInfo.Translate(topRight, window);
+            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
 
             AddTriangle(topLeft, bottomLeft, topRight, color);
             AddTriangle(topRight, bottomLeft, bottomRight, color);
         }
 
-        public void FillBox(Box2I box, Color color, Align window = Align.TopLeft)
+        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             ByteColor byteColor = new ByteColor(color);
-            AddFillBox(box, byteColor, window);
+            AddFillBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void FillBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft)
+        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             ByteColor byteColor = new ByteColor(color);
             for (int i = 0; i < boxes.Length; i++)
-                AddFillBox(boxes[i], byteColor, window);
+                AddFillBox(boxes[i], byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void Image(string texture, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft,
-            Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
+        public void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            float alpha = 1.0f)
         {
+            drawArea = default;
+            
             // TODO
             
             m_elementsDrawn++;
         }
 
-        public void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left, 
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
-            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f)
+        public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
+            TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null, 
+            float alpha = 1.0f)
         {
+            drawArea = default;
+            
             // TODO
             
             m_elementsDrawn++;

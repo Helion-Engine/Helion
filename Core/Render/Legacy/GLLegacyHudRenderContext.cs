@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.String;
+using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
@@ -43,7 +43,7 @@ namespace Helion.Render.Legacy
             if (m_context == null)
                 return;
 
-            Box2I screen = ((0, 0), m_commands.WindowDimension.Vector);
+            HudBox screen = ((0, 0), m_commands.WindowDimension.Vector);
             FillBox(screen, color);
         }
 
@@ -67,17 +67,17 @@ namespace Helion.Render.Legacy
             // Not implemented in the legacy renderer.
         }
 
-        public void DrawBox(Box2I box, Color color, Align window = Align.TopLeft)
+        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void DrawBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft)
+        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void FillBox(Box2I box, Color color, Align window = Align.TopLeft)
+        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             if (m_context == null)
                 return;
@@ -87,37 +87,47 @@ namespace Helion.Render.Legacy
             m_commands.DrawImage("NULL", pos.X, pos.Y, dim.Width, dim.Height, color);
         }
 
-        public void FillBoxes(Box2I[] boxes, Color color, Align window = Align.TopLeft)
+        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void Image(string texture, Vec2I origin, Dimension? dimension = null, Align window = Align.TopLeft,
-            Align image = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+        public void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            float alpha = 1.0f)
         {
+            drawArea = default;
+            
             if (m_context == null)
                 return;
-            
+
+            int x = origin?.X ?? area?.Left ?? 0;
+            int y = origin?.Y ?? area?.Bottom ?? 0;
             Dimension dim = m_commands.ImageDrawInfoProvider.GetImageDimension(texture);
-            m_commands.DrawImage(texture, origin.X, origin.Y, dim.Width, dim.Height, 
-                color ?? Color.White, alpha);
+            
+            m_commands.DrawImage(texture, x, y, dim.Width, dim.Height, color ?? Color.White, alpha);
         }
 
-        public void Text(string text, string fontName, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left, 
-            Align window = Align.TopLeft, Align image = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
-            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f)
+        public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
+            TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null, 
+            float alpha = 1.0f)
         {
+            drawArea = default;
+            
             if (m_context == null)
                 return;
 
-            Graphics.Fonts.Font? font = m_archiveCollection.GetFontDeprecated(fontName);
-            if (font == null)
+            Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
+            if (fontObject == null)
                 return;
             
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
             ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
-            RenderableString renderableString = new(coloredString, font, fontSize, legacyAlign, maxWidth);
+            RenderableString renderableString = new(coloredString, fontObject, fontSize, legacyAlign, maxWidth);
             m_commands.DrawText(renderableString, origin.X, origin.Y, 1.0f);
+            
+            drawArea = renderableString.DrawArea;
         }
 
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null)

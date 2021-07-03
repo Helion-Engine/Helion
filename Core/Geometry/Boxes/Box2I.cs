@@ -76,6 +76,11 @@ namespace Helion.Geometry.Boxes
             CoordinateSystem = CoordinateSystem.Cartesian;
         }
 
+        public static implicit operator Box2I(ValueTuple<int, int, int, int> tuple)
+        {
+            return new((tuple.Item1, tuple.Item2), (tuple.Item3, tuple.Item4));
+        }
+
         public static implicit operator Box2I(ValueTuple<Vec2I, Vec2I> tuple)
         {
             return new(tuple.Item1, tuple.Item2);
@@ -106,6 +111,5 @@ namespace Helion.Geometry.Boxes
         public static Box2I operator +(Box2I self, Vector2I offset) => new(self.Min + offset, self.Max + offset);
         public static Box2I operator -(Box2I self, Vec2I offset) => new(self.Min - offset, self.Max - offset);
         public static Box2I operator -(Box2I self, Vector2I offset) => new(self.Min - offset, self.Max - offset);
-
     }
 }

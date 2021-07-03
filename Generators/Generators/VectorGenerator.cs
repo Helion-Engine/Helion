@@ -65,6 +65,7 @@ namespace Generators.Generators
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using GlmSharp;");
+            w.WriteLine("using Helion.Geometry.Boxes;");
             w.WriteLine("using Helion.Geometry.Segments;");
             w.WriteLine("using Helion.Util.Extensions;");
             w.WriteLine();
@@ -139,6 +140,14 @@ namespace Generators.Generators
                 if (m_type != Types.Double)
                     w.WriteLine($"public {GetStructDimType(m_dimension, Types.Double)} Double => new({CommaSeparatePrefix("(double)", m_fields)});");
                 w.WriteLine($"public {GetStructDimType(m_dimension, Types.Fixed)} FixedPoint => new({CommaSeparateWrap("Fixed.From(", ")", m_fields)});");
+            }
+
+            if (m_type.IsFloatingPointPrimitive() || m_type == Types.Int)
+            {
+                if (m_dimension == 2)
+                    w.WriteLine($"public Box{m_dimension}{m_type.GetShorthand()} Box => new((0, 0), (X, Y));");
+                else if (m_dimension == 3)
+                    w.WriteLine($"public Box{m_dimension}{m_type.GetShorthand()} Box => new((0, 0, 0), (X, Y, Z));");
             }
 
             if (m_dimension == 3 && m_type == Types.Float)

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using GlmSharp;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
@@ -23,6 +24,7 @@ namespace Helion.Geometry.Vectors
         public Vec2I Int => new((int)X, (int)Y);
         public Vec2F Float => new((float)X, (float)Y);
         public Vec2Fixed FixedPoint => new(Fixed.From(X), Fixed.From(Y));
+        public Box2D Box => new((0, 0), (X, Y));
         public IEnumerable<double> Values => GetEnumerableValues();
 
         public Vec2D(double x, double y)
