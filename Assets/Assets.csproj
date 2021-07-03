@@ -72,6 +72,7 @@
     <Content Include="Assets\Actors\Doom\Monsters\Imp.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\LostSoul.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Mancubus.txt" />
+    <Content Include="Assets\Actors\Doom\Monsters\MBFHelperDog.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\PainElemental.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\Revenant.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\ShotgunGuy.txt" />

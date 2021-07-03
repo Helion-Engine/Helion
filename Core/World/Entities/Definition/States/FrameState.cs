@@ -76,6 +76,9 @@ namespace Helion.World.Entities.Definition.States
             return false;
         }
 
+        public void SetState(EntityFrame entityFrame) =>
+            SetFrameIndex(entityFrame.MasterFrameIndex, true);
+
         public bool IsState(string label)
         {
             if (m_definition.States.Labels.TryGetValue(label, out int index))

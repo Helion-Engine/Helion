@@ -317,6 +317,16 @@ namespace Helion.Util
         }
 
         /// <summary>
+        /// Converts fixed point integer 16.16 to dbouel.
+        /// </summary>
+        /// <param name="value">Fixed point value to convert.</param>
+        /// <returns>Converted double.</returns>
+        public static double FromFixed(int value)
+        {
+            return value / 65536.0;
+        }
+
+        /// <summary>
         /// Takes a radian angle and ensures the angle is between 0 and 2pi.
         /// E.g. -6 degrees would return 354 degrees.
         /// </summary>
@@ -328,6 +338,13 @@ namespace Helion.Util
             if (angleRadians < 0)
                 return TwoPi + angleRadians;
             return angleRadians;
+        }
+
+        public static double ApproximateDistance(int dx, int dy)
+        {
+            if (dx < dy)
+                return dx + dy - (dx / 2);
+            return dx + dy - (dy / 2);
         }
     }
 }

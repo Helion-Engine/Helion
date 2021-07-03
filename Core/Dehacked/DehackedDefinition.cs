@@ -373,12 +373,26 @@ namespace Helion.Dehacked
         private void ParseBexPointer(SimpleParser parser)
         {
             parser.ConsumeString();
-            parser.ConsumeString("Frame");
-            int frame = parser.ConsumeInteger();
-            parser.ConsumeString("=");
-            string name = parser.ConsumeString();
 
-            Pointers.Add(new DehackedPointer() { Frame = frame, CodePointerMnemonic = name });
+            while (!IsBexPointerBlockComplete(parser))
+            {
+                parser.ConsumeString("Frame");
+                int frame = parser.ConsumeInteger();
+                parser.ConsumeString("=");
+                string name = parser.ConsumeString();
+                Pointers.Add(new DehackedPointer() { Frame = frame, CodePointerMnemonic = name });
+            }
+        }
+
+        private bool IsBexPointerBlockComplete(SimpleParser parser)
+        {
+            if (parser.PeekString(0, out string? frame) && parser.PeekString(2, out string? equal)
+                && frame != null && equal != null)
+            {
+                return !frame.Equals("Frame", StringComparison.OrdinalIgnoreCase) || !equal.Equals("=");
+            }
+
+            return true;
         }
 
         private bool IsBlockComplete(SimpleParser parser)
@@ -411,9 +425,10 @@ namespace Helion.Dehacked
         private uint ParseThingStringBits(SimpleParser parser)
         {
             uint bits = 0;
-            while (!BaseTypes.Contains(parser.PeekString()))
+            string[] items = parser.ConsumeLine().Split(new string[] { "+", " | ", ", " }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var stringFlag in items)
             {
-                string stringFlag = parser.ConsumeString();
                 if (ThingPropertyStrings.TryGetValue(stringFlag, out uint flag))
                     bits |= flag;
                 else
