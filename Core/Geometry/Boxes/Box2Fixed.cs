@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
@@ -69,6 +68,7 @@ namespace Helion.Geometry.Boxes
         public Box2Fixed(Vec2Fixed center, Fixed radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+
             Min = new(center.X - radius, center.Y - radius);
             Max = new(center.X + radius, center.Y + radius);
         }
@@ -76,6 +76,7 @@ namespace Helion.Geometry.Boxes
         public Box2Fixed(Vector2Fixed center, Fixed radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+
             Min = new(center.X - radius, center.Y - radius);
             Max = new(center.X + radius, center.Y + radius);
         }

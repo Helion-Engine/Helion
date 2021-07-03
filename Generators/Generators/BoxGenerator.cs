@@ -9,7 +9,6 @@ namespace Generators.Generators
         private readonly int m_dimension;
         private readonly bool m_isStruct;
 
-        public bool UsesCoordinateField => m_dimension == 2 && m_type.GetShorthand() == "I";
         private string ClassName => m_isStruct ? StructType : InstanceType;
         private string PrimitiveType => m_type.PrimitiveType();
         private string StructType => $"Box{m_dimension}{m_type.GetShorthand()}";
@@ -38,7 +37,6 @@ namespace Generators.Generators
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using System.Linq;");
-            w.WriteLine("using Helion.Geometry;");
             w.WriteLine("using Helion.Geometry.Segments;");
             w.WriteLine("using Helion.Geometry.Vectors;");
             w.WriteLine("using Helion.Util.Extensions;");
@@ -84,9 +82,6 @@ namespace Generators.Generators
                 w.WriteLine($"protected {VecStruct} m_Max;");
             }
             
-            if (UsesCoordinateField)
-                w.WriteLine($"public readonly CoordinateSystem CoordinateSystem;");
-            
             w.WriteLine();
 
             if (!m_isStruct)
@@ -102,25 +97,12 @@ namespace Generators.Generators
                 w.WriteLine($"public {VecStruct} BottomRight => new(Max.X, Min.Y);");
                 w.WriteLine($"public {VecStruct} TopRight => Max;");
 
-                if (UsesCoordinateField)
-                {
-                    w.WriteLine($"public {PrimitiveType} Top => CoordinateSystem == CoordinateSystem.Cartesian ? Max.Y : Min.Y;");
-                    w.WriteLine($"public {PrimitiveType} Bottom => CoordinateSystem == CoordinateSystem.Cartesian ? Min.Y : Max.Y;");
-                }
-                else
-                {
-                    w.WriteLine($"public {PrimitiveType} Top => Max.Y;");
-                    w.WriteLine($"public {PrimitiveType} Bottom => Min.Y;");
-                }
-
+                w.WriteLine($"public {PrimitiveType} Top => Max.Y;");
+                w.WriteLine($"public {PrimitiveType} Bottom => Min.Y;");
                 w.WriteLine($"public {PrimitiveType} Left => Min.X;");
                 w.WriteLine($"public {PrimitiveType} Right => Max.X;");
                 w.WriteLine($"public {PrimitiveType} Width => Max.X - Min.X;");
-                
-                if (UsesCoordinateField)
-                    w.WriteLine($"public {PrimitiveType} Height => CoordinateSystem == CoordinateSystem.Cartesian ? Max.Y - Min.Y : Min.Y - Max.Y;");
-                else
-                    w.WriteLine($"public {PrimitiveType} Height => Max.Y - Min.Y;");
+                w.WriteLine($"public {PrimitiveType} Height => Max.Y - Min.Y;");
             }
 
             if (!m_isStruct)
@@ -128,11 +110,8 @@ namespace Generators.Generators
             
             if (m_dimension == 2 && m_type == Types.Int)
                 w.WriteLine($"public Dimension Dimension => new(Width, Height);");
-
-            if (UsesCoordinateField)
-                w.WriteLine($"public {VecStruct} Sides => new(Width, Height);");
-            else
-                w.WriteLine($"public {VecStruct} Sides => Max - Min;");
+            
+            w.WriteLine($"public {VecStruct} Sides => Max - Min;");
             
             w.WriteLine();
         }
@@ -149,18 +128,12 @@ namespace Generators.Generators
                 string secondStructExt = second == VecClass ? ".Struct" : "";
                 w.WithCBlock($"public {ClassName}({first} min, {second} max)", () =>
                 {
-                    if (!UsesCoordinateField)
-                    {
-                        w.WriteLine($@"Precondition(min.X <= max.X, ""Bounding box min X > max X"");");
-                        w.WriteLine($@"Precondition(min.Y <= max.Y, ""Bounding box min Y > max Y"");");
-                        w.WriteLine();
-                    }
+                    w.WriteLine($@"Precondition(min.X <= max.X, ""Bounding box min X > max X"");");
+                    w.WriteLine($@"Precondition(min.Y <= max.Y, ""Bounding box min Y > max Y"");");
+                    w.WriteLine();
                     
                     w.WriteLine($"{protectedPrefix}Min = min{firstStructExt};");
                     w.WriteLine($"{protectedPrefix}Max = max{secondStructExt};");
-
-                    if (UsesCoordinateField)
-                        w.WriteLine($"CoordinateSystem = min.Y <= max.Y ? CoordinateSystem.Cartesian : CoordinateSystem.Image;");
                 });
                 w.WriteLine();
             }
@@ -171,14 +144,11 @@ namespace Generators.Generators
                 {
                     w.WithCBlock($"public {ClassName}({vecType} center, {PrimitiveType} radius)", () =>
                     {
-                        if (!UsesCoordinateField)
-                            w.WriteLine($@"Precondition(radius >= 0, ""Bounding box radius yields min X > max X"");");
+                        w.WriteLine($@"Precondition(radius >= 0, ""Bounding box radius yields min X > max X"");");
+                        w.WriteLine();
                         
                         w.WriteLine($"{protectedPrefix}Min = new(center.X - radius, center.Y - radius);");
                         w.WriteLine($"{protectedPrefix}Max = new(center.X + radius, center.Y + radius);");
-                        
-                        if (UsesCoordinateField)
-                            w.WriteLine($"CoordinateSystem = CoordinateSystem.Cartesian;");
                     });
                     w.WriteLine();
                 }
@@ -224,9 +194,6 @@ namespace Generators.Generators
 
         private void WriteMethods(CodegenTextWriter w)
         {
-            if (UsesCoordinateField)
-                return;
-            
             string containsFunc = m_dimension == 2
                 ? "point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y"
                 : "point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y && point.Z > Min.Z && point.Z < Max.Z";
