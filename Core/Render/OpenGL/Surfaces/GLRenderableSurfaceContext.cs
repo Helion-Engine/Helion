@@ -39,6 +39,16 @@ namespace Helion.Render.OpenGL.Surfaces
             GL.Clear(mask);
         }
 
+        public void ClearDepth()
+        {
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+        }
+
+        public void ClearStencil()
+        {
+            GL.Clear(ClearBufferMask.StencilBufferBit);
+        }
+
         public void Viewport(Box2I area)
         {
             m_viewport = area;

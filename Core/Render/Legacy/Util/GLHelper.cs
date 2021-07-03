@@ -77,7 +77,7 @@ namespace Helion.Render.Legacy.Util
         public static void AssertNoGLError(IGLFunctions gl)
         {
             ErrorType error = gl.GetError();
-            Invariant(error == ErrorType.None, $"OpenGL error detected: ID {(int)error}");
+            Invariant(error == ErrorType.None, $"OpenGL error detected: ID {(int)error} ({error})");
         }
 
         /// <summary>

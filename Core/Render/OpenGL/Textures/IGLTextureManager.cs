@@ -31,7 +31,7 @@ namespace Helion.Render.OpenGL.Textures
         /// <param name="priority">The first namespace to look at.</param>
         /// <returns>The texture handle, or the <see cref="NullHandle"/> if it
         /// cannot be found.</returns>
-        GLTextureHandle Get(string name, ResourceNamespace priority);
+        GLTextureHandle Get(string name, ResourceNamespace priority = ResourceNamespace.Global);
         
         /// <summary>
         /// Looks up or creates a texture from an existing resource texture.

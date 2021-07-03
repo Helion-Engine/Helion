@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Helion.Graphics.Fonts;
 using Helion.Graphics.Fonts.TrueTypeFont;
+using Helion.Graphics.New.Fonts;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Entries;
 using NLog;
@@ -17,6 +17,7 @@ namespace Helion.Resources.Data
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly Dictionary<string, Font> TrueTypeFonts = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, Graphics.Fonts.Font> TrueTypeFontsDeprecated = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction;
         private readonly Dictionary<string, Action<Entry>> m_extensionToAction;
         private Palette? m_latestPalette;
@@ -69,12 +70,19 @@ namespace Helion.Resources.Data
         private void HandleTrueTypeFont(Entry entry)
         {
             string fontName = entry.Path.Name;
-            Font? font = TtfReader.ReadFont(fontName, entry.ReadData(), 0.4f);
 
+            Font? font = TrueTypeFont.From(fontName, entry.ReadData());
             if (font != null)
                 TrueTypeFonts[fontName] = font;
             else
                 Log.Warn("Unable to load font from entry {0}", entry.Path);
+            
+            // TODO: Remove me later!
+            Graphics.Fonts.Font? deprecatedFont = TtfReader.ReadFont(fontName, entry.ReadData(), 0.4f);
+            if (deprecatedFont != null)
+                TrueTypeFontsDeprecated[fontName] = deprecatedFont;
+            else
+                Log.Warn("Unable to load font [deprecated] from entry {0}", entry.Path);
         }
     }
 }

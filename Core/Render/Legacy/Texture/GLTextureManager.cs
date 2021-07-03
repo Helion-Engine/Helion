@@ -223,7 +223,7 @@ namespace Helion.Render.Legacy.Texture
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? existingFontTexture))
                 return existingFontTexture;
 
-            Font? font = ArchiveCollection.GetFont(name);
+            Font? font = ArchiveCollection.GetFontDeprecated(name);
             if (font != null)
                 return CreateNewFont(font, name);
 

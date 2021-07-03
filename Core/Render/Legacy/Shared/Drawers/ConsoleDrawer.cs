@@ -39,7 +39,7 @@ namespace Helion.Render.Legacy.Shared.Drawers
         public void Draw(HelionConsole console, Dimension viewport, RenderCommands renderCommands)
         {
             DrawHelper helper = new(renderCommands);
-            Font consoleFont = m_archiveCollection.Data.TrueTypeFonts[ConsoleFontName];
+            Font consoleFont = m_archiveCollection.Data.TrueTypeFontsDeprecated[ConsoleFontName];
 
             renderCommands.ClearDepth();
 

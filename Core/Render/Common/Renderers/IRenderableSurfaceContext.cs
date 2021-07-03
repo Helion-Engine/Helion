@@ -25,6 +25,16 @@ namespace Helion.Render.Common.Renderers
         /// <param name="depth">True to clear the depth buffer.</param>
         /// <param name="stencil">True to clear the stencil buffer.</param>
         void Clear(Color color, bool depth, bool stencil);
+        
+        /// <summary>
+        /// Clears the depth buffer only.
+        /// </summary>
+        void ClearDepth();
+        
+        /// <summary>
+        /// Clears the stencil buffer only.
+        /// </summary>
+        void ClearStencil();
 
         /// <summary>
         /// Sets the viewport to the area specified.

@@ -32,6 +32,7 @@ namespace Helion.Render.Legacy
         private static bool InfoPrinted;
 
         public IWindow Window { get; }
+        public IRenderableSurface DefaultSurface => Default;
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
         internal readonly Config m_config;
@@ -59,7 +60,7 @@ namespace Helion.Render.Legacy
             m_textureManager = CreateTextureManager(renderType, archiveCollection);
             m_worldRenderer = CreateWorldRenderer(renderType);
             m_hudRenderer = CreateHudRenderer(renderType);
-            
+
             Default = new GLLegacySurface(window, this);
 
             PrintGLInfo(m_capabilities);
