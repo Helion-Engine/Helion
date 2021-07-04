@@ -2,8 +2,13 @@
 
 namespace Helion.Layer.New.Worlds
 {
-    public class WorldLayer : IGameLayer
+    public class WorldLayer : IGameLayerParent
     {
+        public void Remove(object layer)
+        {
+            // TODO
+        }
+
         public void HandleInput(InputEvent input)
         {
             // TODO

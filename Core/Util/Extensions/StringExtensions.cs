@@ -1,3 +1,4 @@
+using System;
 using System.Text.RegularExpressions;
 
 namespace Helion.Util.Extensions
@@ -25,5 +26,16 @@ namespace Helion.Util.Extensions
         /// <returns>True if it's an MD5 hash string, false otherwise.
         /// </returns>
         public static bool IsMD5(this string text) => text.Length == 32 && MD5Regex.IsMatch(text);
+
+        /// <summary>
+        /// Checks two are equal, ignoring case sensitivity.
+        /// </summary>
+        /// <param name="text">The text to use.</param>
+        /// <param name="other">The text to compare against.</param>
+        /// <returns>True if so, false if not.</returns>
+        public static bool EqualsIgnoreCase(this string text, string other)
+        {
+            return text.Equals(other, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
