@@ -102,7 +102,17 @@ namespace Helion.Render.Common.Renderers
             PushVirtualDimension(dimension, scale);
             action();
             PopVirtualDimension();
-        }   
+        }
+
+        /// <summary>
+        /// Due to how common this is, this function pushes and pops a virtual
+        /// doom resolution.
+        /// </summary>
+        /// <param name="action">The actions to take in the new resolution.</param>
+        void DoomVirtualResolution(Action action)
+        {
+            VirtualDimension((320, 200), ResolutionScale.None, action);
+        } 
         
         /// <summary>
         /// Starts rendering at a virtual dimension. All subsequent rendering

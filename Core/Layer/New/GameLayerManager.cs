@@ -9,7 +9,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.New
 {
-    public class GameLayerManager : IDisposable
+    public class GameLayerManager : IGameLayer
     {
         private readonly IWindow m_window;
         private ConsoleLayerNew? m_consoleLayer;
