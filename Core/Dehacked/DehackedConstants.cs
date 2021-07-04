@@ -3218,10 +3218,10 @@ namespace Helion.Dehacked
             new ThingStateLookup("TLP2", 3),                 // TECH2LAMP4,
             // End Vanilla
             new ThingStateLookup("TNT1", 0),                 // TNT1
-            new ThingStateLookup("MISL", 5, "Grenade"),      // GRENADE
-            new ThingStateLookup("MISL", 6, "Grenade"),      // DETONATE
-            new ThingStateLookup("MISL", 7, "Grenade"),      // DETONATE2
-            new ThingStateLookup("MISL", 8, "Grenade"),      // DETONATE3
+            new ThingStateLookup("MISL", 4, "Grenade"),      // GRENADE
+            new ThingStateLookup("MISL", 5, "Grenade"),      // DETONATE
+            new ThingStateLookup("MISL", 6, "Grenade"),      // DETONATE2
+            new ThingStateLookup("MISL", 7, "Grenade"),      // DETONATE3
             new ThingStateLookup("DOGS", 0),                 // DOGS_STND
 	        new ThingStateLookup("DOGS", 1),                 // DOGS_STND2
             new ThingStateLookup("DOGS", 2),                 // DOGS_RUN1
@@ -3316,16 +3316,17 @@ namespace Helion.Dehacked
             new ThingStateLookup("SKUL", 7, "BetaSkull"),    // BSKUL_ATK3,
             new ThingStateLookup("SKUL", 8, "BetaSkull"),    // BSKUL_PAIN1,
             new ThingStateLookup("SKUL", 9, "BetaSkull"),    // BSKUL_PAIN2,
-            new ThingStateLookup("SKUL", 10, "BetaSkull"),    // BSKUL_PAIN3,
-            new ThingStateLookup("SKUL", 11, "BetaSkull"),    // BSKUL_DIE1,
-            new ThingStateLookup("SKUL", 12, "BetaSkull"),    // BSKUL_DIE2,
-            new ThingStateLookup("SKUL", 13, "BetaSkull"),    // BSKUL_DIE3,
-            new ThingStateLookup("SKUL", 14, "BetaSkull"),    // BSKUL_DIE4,
-            new ThingStateLookup("SKUL", 15, "BetaSkull"),    // BSKUL_DIE5,
-            new ThingStateLookup("SKUL", 16, "BetaSkull"),    // BSKUL_DIE6,
-            new ThingStateLookup("SKUL", 17, "BetaSkull"),    // BSKUL_DIE7,
-            new ThingStateLookup("SKUL", 18, "BetaSkull"),    // BSKUL_DIE8,
+            new ThingStateLookup("SKUL", 10, "BetaSkull"),   // BSKUL_PAIN3,
+            new ThingStateLookup("SKUL", 11, "BetaSkull"),   // BSKUL_DIE1,
+            new ThingStateLookup("SKUL", 12, "BetaSkull"),   // BSKUL_DIE2,
+            new ThingStateLookup("SKUL", 13, "BetaSkull"),   // BSKUL_DIE3,
+            new ThingStateLookup("SKUL", 14, "BetaSkull"),   // BSKUL_DIE4,
+            new ThingStateLookup("SKUL", 15, "BetaSkull"),   // BSKUL_DIE5,
+            new ThingStateLookup("SKUL", 16, "BetaSkull"),   // BSKUL_DIE6,
+            new ThingStateLookup("SKUL", 17, "BetaSkull"),   // BSKUL_DIE7,
+            new ThingStateLookup("SKUL", 18, "BetaSkull"),   // BSKUL_DIE8,
             new ThingStateLookup("MISL", 9, "Grenade"),      // MUSHROOM,
+            // End MBF
         };
 
         public enum ThingState
