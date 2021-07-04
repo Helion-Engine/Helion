@@ -108,6 +108,26 @@ namespace Helion.Render.Legacy
             m_commands.DrawImage(texture, x, y, dim.Width, dim.Height, color ?? Color.White, alpha);
         }
 
+        public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
+            TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
+            Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float alpha = 1)
+        {
+            drawArea = default;
+            
+            if (m_context == null)
+                return;
+
+            Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
+            if (fontObject == null)
+                return;
+            
+            Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
+            RenderableString renderableString = new(text, fontObject, fontSize, legacyAlign, maxWidth);
+            m_commands.DrawText(renderableString, origin.X, origin.Y, 1.0f);
+            
+            drawArea = renderableString.DrawArea;
+        }
+
         public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null, 
