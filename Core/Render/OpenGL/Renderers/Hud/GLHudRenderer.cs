@@ -5,6 +5,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -219,6 +220,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         public void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
             float alpha = 1.0f)
+        {
+            drawArea = default;
+            
+            // TODO
+            
+            m_elementsDrawn++;
+        }
+
+        public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
+            TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
+            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float alpha = 1)
         {
             drawArea = default;
             
