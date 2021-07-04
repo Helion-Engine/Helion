@@ -99,7 +99,7 @@ namespace Helion.World.Entities.Definition.Composer
             m_editorNumToDefinition[newID] = definition;
         }
 
-        private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, LinkedList<ActorDefinition> parents)
+        private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, IList<ActorDefinition> parents)
         {
             // This entire function is needed to support Skip_Super. Thanks
             // ZDoom! In short, skip super is designed to ignore its parent
@@ -129,9 +129,10 @@ namespace Helion.World.Entities.Definition.Composer
             DefinitionPropertyApplier.Apply(definition, actorDefinition.Properties);
         }
 
-        private bool CreateInheritanceOrderedList(ActorDefinition actorDef, out LinkedList<ActorDefinition> definitions)
+        private bool CreateInheritanceOrderedList(ActorDefinition actorDef, out IList<ActorDefinition> actorDefinitions)
         {
-            definitions = new LinkedList<ActorDefinition>();
+            actorDefinitions = Array.Empty<ActorDefinition>();
+            LinkedList<ActorDefinition> definitions = new LinkedList<ActorDefinition>();
             definitions.AddLast(actorDef);
 
             ActorDefinition current = actorDef;
@@ -161,7 +162,7 @@ namespace Helion.World.Entities.Definition.Composer
                 throw new HelionException($"Missing base decorate actor definition {Constants.BaseActorClass}");
             
             definitions.AddFirst(baseActorClass);
-            
+            actorDefinitions = definitions.ToArray();
             return true;
         }
 
@@ -171,7 +172,7 @@ namespace Helion.World.Entities.Definition.Composer
             // base definition, and each one after that is a child of the
             // previous until we reach the bottom level. This means if we have
             // A inherits from B inherits from C, the list is: [C, B, A]
-            if (!CreateInheritanceOrderedList(actorDefinition, out LinkedList<ActorDefinition> definitions))
+            if (!CreateInheritanceOrderedList(actorDefinition, out IList<ActorDefinition> definitions))
             {
                 Log.Warn("Unable to create entity '{0}' due to errors with the actor or parents", actorDefinition.Name);
                 return null;
