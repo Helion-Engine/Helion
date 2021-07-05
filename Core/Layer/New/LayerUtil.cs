@@ -17,7 +17,7 @@ namespace Helion.Layer.New
 
             foreach (string page in pages.Skip(1))
             {
-                if (!hud.ImageExists(page))
+                if (!hud.Textures.HasImage(page))
                 {
                     if (repeatIfNotExists)
                         newPages.Add(lastPage);

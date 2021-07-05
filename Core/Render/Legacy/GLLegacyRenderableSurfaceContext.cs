@@ -21,7 +21,8 @@ namespace Helion.Render.Legacy
             Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension, 
                 renderer.ImageDrawInfoProvider, renderer.m_fpsTracker);
             
-            m_hudRenderContext = new GLLegacyHudRenderContext(renderer.m_archiveCollection, Commands);
+            m_hudRenderContext = new GLLegacyHudRenderContext(renderer.m_archiveCollection, Commands,
+                renderer.Textures);
             m_worldRenderContext = new GLLegacyWorldRenderContext(Commands);
         }
 
