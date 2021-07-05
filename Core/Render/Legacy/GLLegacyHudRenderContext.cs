@@ -10,6 +10,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
 using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
@@ -24,11 +25,14 @@ namespace Helion.Render.Legacy
         private HudRenderContext? m_context;
 
         public Dimension Dimension => m_context?.Dimension ?? (800, 600);
+        public IRendererTextureManager Textures { get; }
 
-        public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands)
+        public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
+            IRendererTextureManager textureManager)
         {
             m_archiveCollection = archiveCollection;
             m_commands = commands;
+            Textures = textureManager;
         }
         
         internal void Begin(HudRenderContext context)

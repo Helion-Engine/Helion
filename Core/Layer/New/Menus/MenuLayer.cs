@@ -1,6 +1,6 @@
 ﻿using Helion.Input;
 
-namespace Helion.Layer.New.Menu
+namespace Helion.Layer.New.Menus
 {
     public class MenuLayer : IGameLayer
     {

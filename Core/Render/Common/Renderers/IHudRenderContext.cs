@@ -5,6 +5,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
 using Helion.Render.Common.Enums;
+using Helion.Render.Common.Textures;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -18,17 +19,14 @@ namespace Helion.Render.Common.Renderers
         /// </summary>
         Dimension Dimension { get; }
         
+        /// <summary>
+        /// The texture manager that this context uses.
+        /// </summary>
+        IRendererTextureManager Textures { get; }
+        
         int Width => Dimension.Width;
         int Height => Dimension.Height;
-        
-        /// <summary>
-        /// Checks if an image exists. If true, then it can be drawn from with
-        /// the image drawing commands.
-        /// </summary>
-        /// <param name="name">The case insensitive name.</param>
-        /// <returns>True if such an image exists, false otherwise.</returns>
-        bool ImageExists(string name);
-        
+
         /// <summary>
         /// Equivalent to filling the viewport with the color provided.
         /// </summary>

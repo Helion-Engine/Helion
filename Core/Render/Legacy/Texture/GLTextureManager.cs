@@ -82,6 +82,18 @@ namespace Helion.Render.Legacy.Texture
             return TryGet(name, specificNamespace ?? ResourceNamespace.Global, out _);
         }
 
+        public bool TryGetImageDimension(string name, out Dimension dimension, ResourceNamespace? specificNamespace = null)
+        {
+            if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out var texture))
+            {
+                dimension = texture.Dimension;
+                return true;
+            }
+
+            dimension = (1, 1);
+            return false;
+        }
+
         /// <summary>
         /// Checks if the texture manager contains the image.
         /// </summary>

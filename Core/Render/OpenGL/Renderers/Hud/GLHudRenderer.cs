@@ -10,6 +10,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Textures;
@@ -36,6 +37,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private bool m_disposed;
 
         public Dimension Dimension => m_currentResolutionInfo.Dimension;
+        public IRendererTextureManager Textures => m_glTextureManager;
 
         public GLHudRenderer(IGLTextureManager glTextureManager)
         {
@@ -67,7 +69,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             return m_glTextureManager.HasImage(name);
         }
-
+        
         public void Clear(Color color)
         {
             DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), color);
