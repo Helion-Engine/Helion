@@ -840,8 +840,8 @@ namespace Helion.World.Physics
 
             tryMove.SetIntersectionData(m_lineOpening);
 
-            // If blocking and monster, do not check step passing below. Monsters can't step onto other things.
-            if (overlapsZ && entity.Flags.IsMonster)
+            // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
+            if (overlapsZ && entity is not Player)
                 return true;
 
             if (!overlapsZ)
