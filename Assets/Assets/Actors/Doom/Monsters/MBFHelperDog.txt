@@ -1,4 +1,4 @@
-actor MBFHelperDog : Actor
+actor MBFHelperDog 888
 {
     Health 500
     Speed 10
