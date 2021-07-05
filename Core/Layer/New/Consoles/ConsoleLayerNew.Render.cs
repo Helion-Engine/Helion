@@ -43,9 +43,9 @@ namespace Helion.Layer.New.Consoles
 
             HudBox drawArea = (0, 0, hud.Width, hud.Height / 2);
             
-            if (hud.ImageExists(ConsoleBackingImage))
+            if (hud.Textures.HasImage(ConsoleBackingImage))
                 hud.Image(ConsoleBackingImage, drawArea, alpha: BackgroundAlpha);
-            else if (hud.ImageExists(TitlepicImage))
+            else if (hud.Textures.HasImage(TitlepicImage))
                 hud.Image(TitlepicImage, drawArea, alpha: BackgroundAlpha);
             else
                 hud.FillBox(drawArea, Color.Gray);
