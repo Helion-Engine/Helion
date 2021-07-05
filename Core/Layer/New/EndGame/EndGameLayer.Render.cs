@@ -48,8 +48,7 @@ namespace Helion.Layer.New.EndGame
                 {
                     hud.DoomVirtualResolution(() =>
                     {
-                        hud.Image(TheEndImages[m_theEndImageIndex], origin: (m_theEndOffset.X, m_theEndOffset.Y), 
-                            window: Align.Center);
+                        hud.Image(TheEndImages[m_theEndImageIndex], origin: m_theEndOffset, window: Align.Center);
                     });
                 }
             }
