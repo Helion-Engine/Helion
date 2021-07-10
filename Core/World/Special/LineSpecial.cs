@@ -123,10 +123,10 @@ namespace Helion.World.Special
                 else if (context == ActivationContext.PlayerPushesWall)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
 
-                if (contextSuccess && line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
+                if (contextSuccess && IsLockType(line, out int keyNumber))
                 {
-                    LockDef? lockDef = lockDefinitions.GetLockDef(line.Args.Arg3);
-                    if (lockDef == null || !player.Inventory.HasAnyItem(lockDef.KeyDefinitionNames))
+                    LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
+                    if (lockDef == null || !PlayerCanUnlock(player, lockDef))
                     {
                         lockFail = lockDef;
                         return false;
@@ -137,6 +137,41 @@ namespace Helion.World.Special
             }
 
             return false;
+        }
+
+        private static bool PlayerCanUnlock(Player player, LockDef lockDef)
+        {
+            foreach (var definitions in lockDef.AnyKeyDefinitionNames)
+            {
+                if (!player.Inventory.HasAnyItem(definitions))
+                    return false;
+            }
+
+            foreach (var key in lockDef.KeyDefinitionNames)
+            {
+                if (!player.Inventory.HasItem(key))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsLockType(Line line, out int keyNumber)
+        {
+            switch (line.Special.LineSpecialType)
+            {
+                case ZDoomLineSpecialType.DoorLockedRaise:
+                    keyNumber = line.Args.Arg3;
+                    return true;
+
+                case ZDoomLineSpecialType.DoorGeneric:
+                    keyNumber = line.Args.Arg4;
+                    return (ZDoomKeyType)keyNumber != ZDoomKeyType.None;
+
+                default:
+                    keyNumber = 0;
+                    return false;
+            }
         }
 
         public bool IsSectorMoveSpecial() => m_moveSpecial;
@@ -257,6 +292,12 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
                 case ZDoomLineSpecialType.CeilingRaiseToHighest:
                 case ZDoomLineSpecialType.DoorWaitClose:
+                case ZDoomLineSpecialType.DoorGeneric:
+                case ZDoomLineSpecialType.GenericCeiling:
+                case ZDoomLineSpecialType.GenericFloor:
+                case ZDoomLineSpecialType.GenericLift:
+                case ZDoomLineSpecialType.GenericCrusher:
+                case ZDoomLineSpecialType.StairsGeneric:
                     return true;
             }
 
