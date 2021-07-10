@@ -101,6 +101,7 @@ namespace Helion.World.Entities
         // Temporary storage variable for handling PhysicsManager.SectorMoveZ
         public double SaveZ;
         public double PrevSaveZ;
+        public bool WasCrushing;
 
         public double Height => Box.Height;
         public double Radius => Definition.Properties.Radius;

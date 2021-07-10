@@ -14,7 +14,6 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -120,6 +119,7 @@ namespace Helion.World.Physics
             {
                 entity.SaveZ = entity.Position.Z;
                 entity.PrevSaveZ = entity.PrevPosition.Z;
+                entity.WasCrushing = entity.IsCrushing();
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
@@ -189,7 +189,7 @@ namespace Helion.World.Physics
                         status = SectorMoveStatus.Crush;
                         crushEntities.Add(entity);
                     }
-                    else if (CheckSectorMoveBlock(entity, sector, moveType))
+                    else if (CheckSectorMoveBlock(entity, moveType))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -201,18 +201,23 @@ namespace Helion.World.Physics
             if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead)
             {
                 double diff = 0;
-                // This only works if the entity is not being crushed
-                if (!highestBlockEntity.IsCrushing())
+                double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
+                // Set the sector Z to the difference of the blocked height (only works if not being crushed)
+                // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
+                if (highestBlockEntity.WasCrushing)
                 {
-                    double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
-                    // Set the sector Z to the difference of the blocked height
+                    sectorPlane.Z = startZ;
+                    sectorPlane.Plane.MoveZ(startZ - destZ);
+                }
+                else
+                {
                     diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
                     if (speed < 0)
                         diff = -diff;
-                }
 
-                sectorPlane.Z = startZ + diff;
-                sectorPlane.Plane.MoveZ(startZ - destZ + diff);
+                    sectorPlane.Z = startZ + diff;
+                    sectorPlane.Plane.MoveZ(startZ - destZ + diff);
+                }
 
                 // Entity blocked movement, reset all entities in moving sector after resetting sector Z
                 foreach (var relinkEntity in entities)
@@ -232,33 +237,11 @@ namespace Helion.World.Physics
             return status;
         }
 
-        private bool CheckSectorMoveBlock(Entity entity, Sector sector, SectorPlaneType moveType)
+        private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneType moveType)
         {
-            if (moveType == SectorPlaneType.Ceiling)
+            // If the entity was pushed up by a floor and changed it's z pos then this floor is blocked
+            if (moveType == SectorPlaneType.Ceiling || entity.SaveZ != entity.Position.Z)
                 return true;
-
-            if (IsConnectedToFloor(entity, sector))
-                return true;
-
-            return false;
-        }
-
-        private bool IsConnectedToFloor(Entity entity, Sector sector)
-        {
-            if (!entity.OnGround)
-                return false;
-
-            Entity? currentEntity = entity;
-            while (currentEntity != null)
-            {
-                if (currentEntity.HighestFloorObject == sector)
-                    return true;
-
-                if (currentEntity.OnEntity != null)
-                    currentEntity = currentEntity.OnEntity;
-                else
-                    currentEntity = null;
-            }
 
             return false;
         }
