@@ -25,9 +25,9 @@ namespace Helion.World.Special
             // Unused
         }
 
-        public virtual void Use(Entity entity)
+        public virtual bool Use(Entity entity)
         {
-            // Unused
+            return false;
         }
 
         public virtual ISpecialModel? ToSpecialModel() => null;

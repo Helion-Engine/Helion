@@ -526,7 +526,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                 }
                 else if (flat.Sector.LightingChanged)
                 {
-                    SetLightToVertices(data, flat.Sector.LightLevel);
+                    SetLightToVertices(data, flat.LightLevel);
                 }
 
                 renderData.Vbo.Add(data);

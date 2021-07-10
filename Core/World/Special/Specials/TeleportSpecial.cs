@@ -25,7 +25,10 @@ namespace Helion.World.Special.Specials
         
         private readonly EntityActivateSpecialEventArgs m_args;
         private readonly IWorld m_world;
+        private readonly int m_tid;
+        private readonly int m_tag;
         private readonly TeleportFog m_fogFlags;
+        private readonly TeleportType m_type;
 
         public static TeleportFog GetTeleportFog(Line line)
         {
@@ -41,11 +44,15 @@ namespace Helion.World.Special.Specials
             return TeleportFog.None;
         }
 
-        public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, TeleportFog flags)
+        public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags, 
+            TeleportType type = TeleportType.Doom)
         {
             m_args = args;
             m_world = world;
+            m_tid = tid;
+            m_tag = tag;
             m_fogFlags = flags;
+            m_type = type;
         }
 
         public SpecialTickStatus Tick()
@@ -75,10 +82,33 @@ namespace Helion.World.Special.Specials
 
             entity.UnlinkFromWorld();
 
-            entity.FrozenTics = TeleportFreezeTicks;
-            entity.Velocity = Vec3D.Zero;
             entity.SetPosition(teleportSpot.Position);
-            entity.AngleRadians = teleportSpot.AngleRadians;
+
+            if (m_type == TeleportType.Doom)
+            {
+                entity.FrozenTics = TeleportFreezeTicks;
+                entity.Velocity = Vec3D.Zero;
+                entity.AngleRadians = teleportSpot.AngleRadians;
+            }
+            else if (m_type == TeleportType.BoomCompat || m_type == TeleportType.BoomFixed)
+            {
+                Line line = m_args.ActivateLineSpecial;
+                Vec2D pt = line.EndPosition - line.StartPosition;
+                double angle;
+                if (m_type == TeleportType.BoomFixed)
+                    angle = pt.Angle(Vec2D.Zero) - teleportSpot.AngleRadians + MathHelper.HalfPi;
+                else
+                    angle = Vec2D.Zero.Angle(pt) - teleportSpot.AngleRadians + MathHelper.HalfPi;
+
+                entity.AngleRadians += angle;
+
+                Vec2D velocity = entity.Velocity.XY;
+                Vec2D unit = Vec2D.UnitCircle(angle);
+
+                entity.Velocity.X = velocity.X * unit.X - velocity.Y * unit.Y;
+                entity.Velocity.Y = velocity.Y * unit.X + velocity.X * unit.Y;
+            }
+
             if (entity is Player player)
                 player.PitchRadians = 0;
 
@@ -99,37 +129,34 @@ namespace Helion.World.Special.Specials
             return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count == 0;
         }
 
-        public void Use(Entity entity)
+        public bool Use(Entity entity)
         {
+            return false;
         }
 
         private Entity? FindTeleportSpot()
         {
-            Line line = m_args.ActivateLineSpecial;
-            int tid = line.Args.Arg0;
-            int tag = line.Args.Arg1;
-
-            if (tid == EntityManager.NoTid && tag == Sector.NoTag)
+            if (m_tid == EntityManager.NoTid && m_tag == Sector.NoTag)
                 return null;
             
-            if (tid == EntityManager.NoTid)
+            if (m_tid == EntityManager.NoTid)
             {
-                foreach (Sector sector in m_world.FindBySectorTag(tag))
+                foreach (Sector sector in m_world.FindBySectorTag(m_tag))
                     foreach (Entity entity in sector.Entities)
                         if (entity.Flags.IsTeleportSpot)
                             return entity;
             } 
-            else if (tag == Sector.NoTag)
+            else if (m_tag == Sector.NoTag)
             {
-                foreach (Entity entity in m_world.FindByTid(tid))
+                foreach (Entity entity in m_world.FindByTid(m_tid))
                     if (entity.Flags.IsTeleportSpot)
                         return entity;
             }
             else
             {
-                foreach (Sector sector in m_world.FindBySectorTag(tag))
+                foreach (Sector sector in m_world.FindBySectorTag(m_tag))
                     foreach (Entity entity in sector.Entities)
-                        if (entity.ThingId == tid && entity.Flags.IsTeleportSpot)
+                        if (entity.ThingId == m_tid && entity.Flags.IsTeleportSpot)
                             return entity;
             }
             

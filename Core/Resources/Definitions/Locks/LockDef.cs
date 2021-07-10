@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 
 namespace Helion.Resources.Definitions.Locks
@@ -10,6 +9,7 @@ namespace Helion.Resources.Definitions.Locks
         public string Message { get; set; } = string.Empty;
         public string RemoteMessage { get; set; } = string.Empty;
         public Color MapColor { get; set; }
-        public List<string> KeyDefinitionNames { get; set; } = new List<string>();
+        public List<string> KeyDefinitionNames { get; set; } = new();
+        public List<List<string>> AnyKeyDefinitionNames { get; set; } = new();
     }
 }

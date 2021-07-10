@@ -122,7 +122,7 @@ namespace Helion.World
             SoundManager = new WorldSoundManager(this, audioSystem, archiveCollection);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
-            SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
+            SpecialManager = new SpecialManager(this, m_random);
 
             if (worldModel == null)
             {
@@ -965,8 +965,8 @@ namespace Helion.World
             => PhysicsManager.TryMoveXY(entity, position);
 
         public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
-            double speed, double destZ, CrushData? crush)
-             => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush);
+            double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
+             => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush, compatibilityBlockMovement);
 
         public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
         {

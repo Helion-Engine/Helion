@@ -1,3 +1,4 @@
+using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
@@ -11,14 +12,18 @@ namespace Helion.Maps.Specials.Vanilla
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, int tag,
-            ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
+            ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility? compatibility)
         {
             compatibility = null;
+            lineActivationType = GetLineTagActivation(type);
             if (type == VanillaLineSpecialType.None)
-            {
+            {                
                 lineFlags.ActivationType = ActivationType.None;
                 return ZDoomLineSpecialType.None;
             }
+
+            if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
+                return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility);
 
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
@@ -29,8 +34,19 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_Teleport:
                 case VanillaLineSpecialType.W1_MonsterTeleport:
                 case VanillaLineSpecialType.WR_MonsterTeleport:
+                case VanillaLineSpecialType.S1_Teleport:
+                case VanillaLineSpecialType.SR_Teleport:
                     argsToMutate.Arg1 = tag;
                     return ZDoomLineSpecialType.Teleport;
+
+                case VanillaLineSpecialType.W1_TeleportNoFog:
+                case VanillaLineSpecialType.WR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_TeleportNoFog:
+                case VanillaLineSpecialType.SR_TeleportNoFog:
+                    argsToMutate.Arg1 = (int)TeleportType.BoomCompat;
+                    argsToMutate.Arg2 = tag;
+                    argsToMutate.Arg3 = 1;
+                    return ZDoomLineSpecialType.TeleportNoFog;
 
                 case VanillaLineSpecialType.SR_LowerLiftRaise:
                 case VanillaLineSpecialType.SR_LowerLiftFastRaise:
@@ -89,6 +105,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = GetDelay(type);
+                    lineFlags.MonsterCanActivate = true;
                     return ZDoomLineSpecialType.DoorOpenClose;
 
                 case VanillaLineSpecialType.W1_CloseDoor:
@@ -121,6 +138,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.WR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloorChangeTexture:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     return ZDoomLineSpecialType.FloorLowerToLowestTxTy;
@@ -167,6 +186,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture:
                 case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorByShortestLowerTexture:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     return ZDoomLineSpecialType.FloorRaiseByTexture;
@@ -183,6 +204,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
                 case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
+                case VanillaLineSpecialType.S1_FastCrusherCeiling:
+                case VanillaLineSpecialType.SR_FastCrusherCeiling:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 8; // Distance above floor
                     argsToMutate.Arg2 = GetSectorMoveSpeed(type);
@@ -193,6 +216,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_SlowCrusherCeiling:
                 case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.S1_SlowCrusherCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_SlowCrusherCeiling:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 8; // Distance above floor
                     argsToMutate.Arg2 = GetSectorMoveSpeed(type);
@@ -201,6 +225,9 @@ namespace Helion.Maps.Specials.Vanilla
                     return ZDoomLineSpecialType.CeilingCrushAndRaiseDist;
 
                 case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.WR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.S1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.SR_QuietCrusherCeilingFastDamage:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 8; // Distance above floor
                     argsToMutate.Arg2 = GetSectorMoveSpeed(type);
@@ -210,28 +237,49 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFour:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 24;
                     return ZDoomLineSpecialType.FloorRaiseByValue;
 
-                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTexture:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                    argsToMutate.Arg2 = 24;
+                    return ZDoomLineSpecialType.PlatUpValueStayTx;
+
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoChangeTexture:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                    argsToMutate.Arg2 = 32;
+                    return ZDoomLineSpecialType.PlatUpValueStayTx;
+
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTextureType:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 24;
                     return ZDoomLineSpecialType.FloorRaiseByValueTxTy;
 
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.W1_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByThirtyTwoChangeTextureType:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 32;
                     return ZDoomLineSpecialType.FloorRaiseByValueTxTy;
 
                 case VanillaLineSpecialType.S1_RaiseFloor512:
+                case VanillaLineSpecialType.W1_RaiseFloor512:
+                case VanillaLineSpecialType.WR_RaiseFloor512:
+                case VanillaLineSpecialType.SR_RaiseFloor512:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 64;
@@ -239,10 +287,12 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
                 case VanillaLineSpecialType.W1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.S1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_LowerCeilingToEightAboveFloor:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 0;
-                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.Hexen;
+                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.DoomWithSlowDown;
                     return ZDoomLineSpecialType.CeilingCrushStayDown;
 
                 case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
@@ -253,6 +303,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
                 case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.S1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = GetDelay(type);
@@ -260,6 +312,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.W1_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 8;
@@ -267,6 +321,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_RaiseStairsFast:
                 case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 16;
@@ -274,6 +330,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_LowerCeilingToFloor:
                 case VanillaLineSpecialType.SR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_LowerCeilingToFloor:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     return ZDoomLineSpecialType.CeilingLowerToFloor;
@@ -281,6 +339,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LightOnMaxBrightness:
                 case VanillaLineSpecialType.WR_LightOnMaxBrightness:
                 case VanillaLineSpecialType.SR_LightOnMaxBrightness:
+                case VanillaLineSpecialType.S1_LightOnMaxBrightness:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 255; // Brightness
                     return ZDoomLineSpecialType.LightChangeToValue;
@@ -288,43 +347,61 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LightOffMinBrightness:
                 case VanillaLineSpecialType.WR_LightOffMinBrightness:
                 case VanillaLineSpecialType.SR_LightOffMinBrightness:
+                case VanillaLineSpecialType.S1_LightOffMinBrightness:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 35; // Brightness
                     return ZDoomLineSpecialType.LightChangeToValue;
 
                 case VanillaLineSpecialType.W1_LightLevelMatchBrightness:
                 case VanillaLineSpecialType.WR_LightLevelMatchBrightestAdjacent:
+                case VanillaLineSpecialType.S1_LightLevelMatchBrightness:
+                case VanillaLineSpecialType.SR_LightLevelMatchBrightness:
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.LightMaxNeighbor;
 
                 case VanillaLineSpecialType.W1_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.WR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.S1_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.SR_LightMatchDimmestAdjacent:
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.LightMinNeighbor;
 
                 case VanillaLineSpecialType.W1_StopMovingFloor:
                 case VanillaLineSpecialType.WR_StopMovingFloor:
+                case VanillaLineSpecialType.S1_StopMovingFloor:
+                case VanillaLineSpecialType.SR_StopMovingFloor:
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.PlatStop;
 
                 case VanillaLineSpecialType.W1_StopCrusherCeiling:
                 case VanillaLineSpecialType.WR_StopCrusherCeiling:
+                case VanillaLineSpecialType.S1_StopCrusherCeiling:
+                case VanillaLineSpecialType.SR_StopCrusherCeiling:
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.CeilingCrushStop;
 
                 case VanillaLineSpecialType.W1_CloseDoorOpenThirtySeconds:
                 case VanillaLineSpecialType.WR_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.S1_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.SR_CloseDoorOpenThirtySeconds:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 35 * 30; // Wait tics
                     return ZDoomLineSpecialType.DoorCloseWaitOpen;
 
                 case VanillaLineSpecialType.W1_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.WR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.S1_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.SR_BlinkLightStartEveryOneSecond:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 5; // Tics to stay at upper light level
                     argsToMutate.Arg2 = 35; // Tics to stay at lower light level
                     return ZDoomLineSpecialType.LightStrobeDoom;
 
                 case VanillaLineSpecialType.S1_Donut:
+                case VanillaLineSpecialType.W1_Donut:
+                case VanillaLineSpecialType.WR_Donut:
+                case VanillaLineSpecialType.SR_Donut:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = VanillaConstants.DonutSpeed; // Pillar speed
                     argsToMutate.Arg2 = VanillaConstants.DonutSpeed; // Surrounding speed
@@ -334,16 +411,106 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = 64; // Speed
                     return ZDoomLineSpecialType.ScrollTextureLeft;
 
+                case VanillaLineSpecialType.ScrollTextureRight:
+                    argsToMutate.Arg0 = 64;
+                    return ZDoomLineSpecialType.ScrollTextureRight;
+
+                case VanillaLineSpecialType.ScrollTextureOffsets:
+                    return ZDoomLineSpecialType.ScrollUsingTextureOffsets;
+
                 case VanillaLineSpecialType.S_EndLevel:
                 case VanillaLineSpecialType.W_EndLevel:
+                case VanillaLineSpecialType.G_EndLevel:
                     return ZDoomLineSpecialType.ExitNormal;
 
                 case VanillaLineSpecialType.S_EndLevelSecret:
                 case VanillaLineSpecialType.W_EndLevelSecret:
+                case VanillaLineSpecialType.G_EndLevelSecret:
                     return ZDoomLineSpecialType.ExitSecret;
 
-                case VanillaLineSpecialType.None:
-                    break;
+                case VanillaLineSpecialType.SR_FloorTransferNumeric:
+                case VanillaLineSpecialType.W1_FloorTransferNumeric:
+                case VanillaLineSpecialType.WR_FloorTransferNumeric:
+                case VanillaLineSpecialType.S1_FloorTransferNumeric:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.FloorTransferNumeric;
+
+                case VanillaLineSpecialType.W1_FloorTransferTrigger:
+                case VanillaLineSpecialType.WR_FloorTransferTrigger:
+                case VanillaLineSpecialType.S1_FloorTransferTrigger:
+                case VanillaLineSpecialType.SR_FloorTransferTrigger:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.FloorTransferTrigger;
+
+                case VanillaLineSpecialType.WR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.S1_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.SR_CeilingToHighestFloorToLowest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 8; // Floor speed
+                    argsToMutate.Arg2 = 8; // Ceiling speed
+                    argsToMutate.Arg3 = type == VanillaLineSpecialType.WR_CeilingToHighestFloorToLowest ? 0 : 1998;
+                    return ZDoomLineSpecialType.FloorAndCeilingLowerRaise;
+
+                case VanillaLineSpecialType.W1_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.WR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CeilingLowerToLowestAdjacentCeiling:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 8;
+                    return ZDoomLineSpecialType.CeilingLowerToLowest;
+
+                case VanillaLineSpecialType.W1_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 8;
+                    return ZDoomLineSpecialType.CeilingLowerToHighestFloor;
+
+                case VanillaLineSpecialType.W1_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 8;
+                    return ZDoomLineSpecialType.FloorLowerToNearest;
+
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.PlatToggleCeiling;
+
+                case VanillaLineSpecialType.TransferFloorLight:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.TransferFloorLight;
+
+                case VanillaLineSpecialType.TransferCeilingLight:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.TransferCeilingLight;
+
+                case VanillaLineSpecialType.W1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorRaiseToNearest;
+
+                case VanillaLineSpecialType.W1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorLowerToNearest;
+
+                case VanillaLineSpecialType.W1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorMoveToFloor;
 
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
@@ -377,7 +544,7 @@ namespace Helion.Maps.Specials.Vanilla
             argsToMutate.Arg3 = GetDoorKey(type);
         }
 
-        public static LineActivationType GetLineTagActivation(VanillaLineSpecialType type)
+        private static LineActivationType GetLineTagActivation(VanillaLineSpecialType type)
         {
             switch (type)
             {
@@ -395,8 +562,9 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.S1_Donut:
-                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
                 case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.S1_LowerLiftRaise:
@@ -428,8 +596,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_OpenDoorClose:
                 case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoChangeTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
                 case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
@@ -444,7 +612,62 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_LightOnMaxBrightness:
                 case VanillaLineSpecialType.SR_LightOffMinBrightness:
                 case VanillaLineSpecialType.W1_CloseDoor:
+                case VanillaLineSpecialType.SR_FloorTransferNumeric:
+                case VanillaLineSpecialType.S1_FloorTransferTrigger:
+                case VanillaLineSpecialType.SR_FloorTransferTrigger:
+                case VanillaLineSpecialType.S1_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.S1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.S1_StopMovingFloor:
+                case VanillaLineSpecialType.S1_FastCrusherCeiling:
+                case VanillaLineSpecialType.S1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.S1_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.S1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.S1_StopCrusherCeiling:
+                case VanillaLineSpecialType.S1_LightOffMinBrightness:
+                case VanillaLineSpecialType.S1_LightOnMaxBrightness:
+                case VanillaLineSpecialType.S1_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.S1_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.S1_Teleport:
+                case VanillaLineSpecialType.S1_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.SR_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloor512:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_StopMovingFloor:
+                case VanillaLineSpecialType.SR_FastCrusherCeiling:
+                case VanillaLineSpecialType.SR_SlowCrusherCeiling:
+                case VanillaLineSpecialType.SR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.SR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.SR_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_StopCrusherCeiling:
+                case VanillaLineSpecialType.SR_Donut:
+                case VanillaLineSpecialType.SR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.SR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.SR_Teleport:
+                case VanillaLineSpecialType.SR_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.S1_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_TeleportNoFog:
+                case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return LineActivationType.Tag;
+
+                default:
+                    break;
             }
 
             return LineActivationType.Any;
@@ -471,6 +694,9 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
                 case VanillaLineSpecialType.S1_OpenYellowKeyFastStay:
                     return (byte)ZDoomKeyType.YellowAny;
+
+                default:
+                    break;
             }
 
             return 0;
@@ -494,6 +720,9 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.WR_OpenDoorFastClose:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -512,6 +741,9 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LowerLiftFastRaise:
                 case VanillaLineSpecialType.S1_LowerLiftFastRaise:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -542,20 +774,38 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.S1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.S1_RaiseFloor512:
                 case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.SR_LowerCeilingToFloor:
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
+                case VanillaLineSpecialType.W1_RaiseFloor512:
+                case VanillaLineSpecialType.WR_RaiseFloor512:
+                case VanillaLineSpecialType.S1_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.S1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.S1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.SR_RaiseFloor512:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_SlowCrusherCeiling:
+                case VanillaLineSpecialType.SR_LowerCeilingToEightAboveFloor:
                     return VanillaConstants.SectorSlowSpeed;
 
                 case VanillaLineSpecialType.W1_FastCrusherCeiling:
                 case VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage:
                 case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
-                case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
                 case VanillaLineSpecialType.S1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.S1_FastCrusherCeiling:
+                case VanillaLineSpecialType.S1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.SR_FastCrusherCeiling:
+                case VanillaLineSpecialType.SR_QuietCrusherCeilingFastDamage:
                     return VanillaConstants.SectorFastSpeed;
 
                 case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
@@ -563,10 +813,17 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoChangeTexture:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.W1_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTextureType:
                     return VanillaConstants.FloorSlowSpeed;
 
                 case VanillaLineSpecialType.W1_LowerFloorToHighestAdjacentFloor:
@@ -579,6 +836,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloorChangeTexture:
                 case VanillaLineSpecialType.W1_LowerFloorToLowestAdjacentFloor:
                 case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloor:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloorChangeTexture:
                     return VanillaConstants.LiftSlowSpeed;
 
                 case VanillaLineSpecialType.W1_LowerLiftRaise:
@@ -624,6 +883,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_OpenDoorStay:
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.S1_OpenDoorStay:
+                case VanillaLineSpecialType.S1_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.SR_CloseDoorOpenThirtySeconds:
                     return VanillaConstants.DoorSlowSpeed;
 
                 case VanillaLineSpecialType.SR_OpenYellowKeyFastStay:
@@ -650,11 +911,18 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.W1_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
                     return VanillaConstants.StairSlowSpeed;
 
                 case VanillaLineSpecialType.W1_RaiseStairsFast:
                 case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     return VanillaConstants.StairFastSpeed;
+
+                default:
+                    break;
             }
 
             return 0;
@@ -671,7 +939,12 @@ namespace Helion.Maps.Specials.Vanilla
             {
                 case VanillaLineSpecialType.W1_StartMovingFloorPerpetual:
                 case VanillaLineSpecialType.WR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.S1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
                     return VanillaConstants.LiftDelay;
+
+                default:
+                    break;
             }
 
             return 0;
@@ -685,8 +958,9 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.S1_Donut:
                 case VanillaLineSpecialType.S_EndLevel:
-                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoMatchAdjacentChangeTexture:
-                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourMatchAdjacentChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorThirtyTwoChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.S1_RaiseFloorMatchNextHigherFloor:
                 case VanillaLineSpecialType.S1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.S1_LowerLiftRaise:
@@ -712,8 +986,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_OpenDoorClose:
                 case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoChangeTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
                 case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
@@ -744,6 +1018,63 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_LightOffMinBrightness:
                 case VanillaLineSpecialType.S1_RaiseFloor512:
                 case VanillaLineSpecialType.S1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.SR_FloorTransferNumeric:
+                case VanillaLineSpecialType.S1_FloorTransferNumeric:
+                case VanillaLineSpecialType.S1_FloorTransferTrigger:
+                case VanillaLineSpecialType.SR_FloorTransferTrigger:
+                case VanillaLineSpecialType.S1_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.S1_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.S1_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.S1_StopMovingFloor:
+                case VanillaLineSpecialType.S1_FastCrusherCeiling:
+                case VanillaLineSpecialType.S1_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.S1_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.S1_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.S1_StopCrusherCeiling:
+                case VanillaLineSpecialType.S1_LightLevelMatchBrightness:
+                case VanillaLineSpecialType.S1_LightOffMinBrightness:
+                case VanillaLineSpecialType.S1_LightOnMaxBrightness:
+                case VanillaLineSpecialType.S1_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.S1_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.S1_Teleport:
+                case VanillaLineSpecialType.S1_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.SR_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloor512:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_StopMovingFloor:
+                case VanillaLineSpecialType.SR_FastCrusherCeiling:
+                case VanillaLineSpecialType.SR_SlowCrusherCeiling:
+                case VanillaLineSpecialType.SR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.SR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.SR_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_StopCrusherCeiling:
+                case VanillaLineSpecialType.SR_Donut:
+                case VanillaLineSpecialType.SR_LightLevelMatchBrightness:
+                case VanillaLineSpecialType.SR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.SR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.SR_Teleport:
+                case VanillaLineSpecialType.SR_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.S1_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.S1_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.S1_TeleportNoFog:
+                case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -771,7 +1102,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VanillaLineSpecialType.W1_StopCrusherCeiling:
                 case VanillaLineSpecialType.W1_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourMatchTexture:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.WR_LowerCeilingToEightAboveFloor:
                 case VanillaLineSpecialType.WR_SlowCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.WR_StopCrusherCeiling:
@@ -790,7 +1121,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
@@ -811,14 +1142,52 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_RaiseFloorFastToNextHigherFloor:
                 case VanillaLineSpecialType.W1_QuietCrusherCeilingFastDamage:
                 case VanillaLineSpecialType.W1_RaiseFloorToNextHigherFloor:
+                case VanillaLineSpecialType.W1_FloorTransferNumeric:
+                case VanillaLineSpecialType.WR_FloorTransferNumeric:
+                case VanillaLineSpecialType.W1_FloorTransferTrigger:
+                case VanillaLineSpecialType.WR_FloorTransferTrigger:
+                case VanillaLineSpecialType.W1_RaiseFloor512:
+                case VanillaLineSpecialType.WR_RaiseFloor512:
+                case VanillaLineSpecialType.W1_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.W1_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.W1_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.W1_Donut:
+                case VanillaLineSpecialType.WR_Donut:
+                case VanillaLineSpecialType.WR_FloorRaiseByTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.WR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.WR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.WR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.WR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.W1_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.W1_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.WR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.W1_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.W1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.W1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.W1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
                     return ActivationType.PlayerLineCross;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.GR_OpenDoorStayOpen:
                 case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
+                case VanillaLineSpecialType.G_EndLevel:
+                case VanillaLineSpecialType.G_EndLevelSecret:
                     return ActivationType.ProjectileHitsWall;
 
                 case VanillaLineSpecialType.ScrollTextureLeft:
+                case VanillaLineSpecialType.TransferFloorLight:
+                case VanillaLineSpecialType.TransferCeilingLight:
+                case VanillaLineSpecialType.ScrollTextureOffsets:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:
@@ -826,11 +1195,16 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_LowerLiftRaise:
                 case VanillaLineSpecialType.W1_LowerLiftRaise:
                 case VanillaLineSpecialType.W1_DoorOpenClose:
+                case VanillaLineSpecialType.W1_TeleportNoFog:
+                case VanillaLineSpecialType.WR_TeleportNoFog:
                     return ActivationType.PlayerOrMonsterLineCross;
 
                 case VanillaLineSpecialType.W1_MonsterTeleport:
                 case VanillaLineSpecialType.WR_MonsterTeleport:
                     return ActivationType.MonsterLineCross;
+
+                default:
+                    break;
             }
 
             return ActivationType.None;
@@ -853,8 +1227,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_OpenDoorClose:
                 case VanillaLineSpecialType.SR_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.SR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
-                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourMatchTexture:
-                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoMatchTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloorThirtyTwoChangeTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigherMatchTexture:
                 case VanillaLineSpecialType.SR_RaiseFloorToNextHigher:
                 case VanillaLineSpecialType.SR_LowerFloorToEightAboveHighestAdjacentFloor:
@@ -888,7 +1262,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_OpenDoorClose:
                 case VanillaLineSpecialType.WR_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.WR_RaiseFloorTwentyFour:
-                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTexture:
+                case VanillaLineSpecialType.WR_RaiseFloorTwentyFourChangeTextureType:
                 case VanillaLineSpecialType.WR_CrusherFloorRaiseToEightBelowAdjacentCeiling:
                 case VanillaLineSpecialType.WR_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.WR_RaiseByShortestLowerTexture:
@@ -902,7 +1276,62 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_RaiseFloorToNextHigherFloor:
                 case VanillaLineSpecialType.WR_RaiseFloorFastToNextHigherFloor:
                 case VanillaLineSpecialType.GR_OpenDoorStayOpen:
+                case VanillaLineSpecialType.SR_FloorTransferNumeric:
+                case VanillaLineSpecialType.WR_FloorTransferNumeric:
+                case VanillaLineSpecialType.WR_FloorTransferTrigger:
+                case VanillaLineSpecialType.SR_FloorTransferTrigger:
+                case VanillaLineSpecialType.WR_LowerCeilingToFloor:
+                case VanillaLineSpecialType.WR_Donut:
+                case VanillaLineSpecialType.WR_RaiseFloor512:
+                case VanillaLineSpecialType.WR_FloorRaiseByTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.WR_FloorRaiseByThirtyTwoChangeTextureType:
+                case VanillaLineSpecialType.WR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.WR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.WR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.WR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.SR_RaiseFloorByShortestLowerTexture:
+                case VanillaLineSpecialType.SR_LowerFloorToLowestAdjacentFloorChangeTexture:
+                case VanillaLineSpecialType.SR_RaiseFloor512:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFourChangeTextureType:
+                case VanillaLineSpecialType.SR_RaiseFloorTwentyFour:
+                case VanillaLineSpecialType.SR_StartMovingFloorPerpetual:
+                case VanillaLineSpecialType.SR_StopMovingFloor:
+                case VanillaLineSpecialType.SR_FastCrusherCeiling:
+                case VanillaLineSpecialType.SR_SlowCrusherCeiling:
+                case VanillaLineSpecialType.SR_QuietCrusherCeilingFastDamage:
+                case VanillaLineSpecialType.SR_CeilingToHighestFloorToLowest:
+                case VanillaLineSpecialType.SR_LowerCeilingToEightAboveFloor:
+                case VanillaLineSpecialType.SR_StopCrusherCeiling:
+                case VanillaLineSpecialType.SR_Donut:
+                case VanillaLineSpecialType.SR_LightLevelMatchBrightness:
+                case VanillaLineSpecialType.SR_BlinkLightStartEveryOneSecond:
+                case VanillaLineSpecialType.SR_LightMatchDimmestAdjacent:
+                case VanillaLineSpecialType.SR_Teleport:
+                case VanillaLineSpecialType.SR_CloseDoorOpenThirtySeconds:
+                case VanillaLineSpecialType.WR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.WR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.SR_CeilingLowerToLowestAdjacentCeiling:
+                case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.WR_TeleportNoFog:
+                case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;

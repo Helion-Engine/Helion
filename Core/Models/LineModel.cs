@@ -1,4 +1,6 @@
-﻿namespace Helion.Models
+﻿using Helion.Maps.Specials;
+
+namespace Helion.Models
 {
     public class LineModel
     {
@@ -7,5 +9,6 @@
         public bool? Activated { get; set; }
         public SideModel? Front { get; set; }
         public SideModel? Back { get; set; }
+        public SpecialArgs? Args { get; set; }
     }
 }

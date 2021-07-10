@@ -24,10 +24,10 @@ namespace Helion.World.Special.Specials
             Key = model.Key;
         }
 
-        public override void Use(Entity entity)
+        public override bool Use(Entity entity)
         {
             if (MoveData.MoveRepetition == MoveRepetition.None || !(entity is Player))
-                return;
+                return false;
 
             // If the delay is zero then flip the door direction. Otherwise we
             // are in the wait delay and setting the delay back to 0 will
@@ -36,6 +36,7 @@ namespace Helion.World.Special.Specials
             if (DelayTics == 0)
                 FlipMovementDirection(false);
             DelayTics = 0;
+            return true;
         }
     }
 }

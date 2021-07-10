@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -12,7 +10,6 @@ using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
-using Helion.World.Sound;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -21,7 +18,7 @@ using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Geometry.Sectors
 {
-    public class Sector : ISoundSource
+    public class Sector
     {
         /// <summary>
         /// A value that indicates no tag is present.
@@ -78,19 +75,16 @@ namespace Helion.World.Geometry.Sectors
         /// The transfer heights applied to this sector, or null if none are.
         /// </summary>
         public TransferHeights? TransferHeights;
-        
-        /// <summary>
-        /// The currently active move special, or null if there's no active
-        /// movement happening on this sector.
-        /// </summary>
-        public ISectorSpecial? ActiveMoveSpecial;
+
+        public ISectorSpecial? ActiveFloorMove;
+        public ISectorSpecial? ActiveCeilingMove;
         
         /// <summary>
         /// The special sector type.
         /// </summary>
         public ZDoomSectorSpecialType SectorSpecialType;
         
-        public bool IsMoving => ActiveMoveSpecial != null;
+        public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
         public bool Has3DFloors => !Floors3D.Empty();
         public SectorDataTypes DataChanges;
         public bool DataChanged => DataChanges > 0;
@@ -224,6 +218,65 @@ namespace Helion.World.Geometry.Sectors
         // TODO implement when slopes exist
         public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
         public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
+        public int GetTexture(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
+        public double GetZ(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.Z : Ceiling.Z;
+
+        /// <summary>
+        /// The currently active move special, or null if there's no active
+        /// movement happening on this sector for the given SectorPlane.
+        /// </summary>
+        public ISectorSpecial? GetActiveMoveSpecial(SectorPlane sectorPlane)
+        {
+            if (!sectorPlane.Sector.Equals(this))
+                return null;
+
+            if (sectorPlane == Floor)
+                return ActiveFloorMove;
+
+            return ActiveCeilingMove;
+        }
+
+        /// <summary>
+        /// The currently active move special, or null if there's no active
+        /// movement happening on this sector.
+        /// </summary>
+        public ISectorSpecial? GetActiveMoveSpecial()
+        {
+            if (ActiveFloorMove == null)
+                return ActiveCeilingMove;
+
+            return ActiveFloorMove;
+        }
+
+        public void ClearActiveMoveSpecial()
+        {
+            ActiveFloorMove = null;
+            ActiveCeilingMove = null;
+        }
+
+        public void ClearActiveMoveSpecial(SectorPlaneType planeType)
+        {
+            if (planeType == SectorPlaneType.Floor)
+                ActiveFloorMove = null;
+            else
+                ActiveCeilingMove = null;
+        }
+
+        public void SetActiveMoveSpecial(SectorPlaneType planeType, ISectorSpecial? special)
+        {
+            if (planeType == SectorPlaneType.Floor)
+                ActiveFloorMove = special;
+            else
+                ActiveCeilingMove = special;
+        }
+
+        public void SetTexture(SectorPlaneType planeType, int texture)
+        {
+            if (planeType == SectorPlaneType.Floor)
+                Floor.SetTexture(texture);
+            else
+                Ceiling.SetTexture(texture);
+        }
 
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
@@ -457,7 +510,7 @@ namespace Helion.World.Geometry.Sectors
             return max;
         }
 
-        public double GetShortestLower(TextureManager textureManager)
+        public double GetShortestTexture(TextureManager textureManager, bool byLowerTx)
         {
             double min = double.MaxValue;
 
@@ -470,14 +523,16 @@ namespace Helion.World.Geometry.Sectors
                 if (line.TwoSided)
                 {
                     TwoSided twoSided = (TwoSided)line.Front;
-                    var texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                    var texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
+                        textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
                     if (texture.Image != null && texture.Image.Height < min)
                         min = texture.Image.Height;
 
                     if (line.Back != null)
                     {
                         twoSided = (TwoSided)line.Back;
-                        texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                        texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
+                            textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
                         if (texture.Image != null && texture.Image.Height < min)
                             min = texture.Image.Height;
                     }
@@ -487,103 +542,8 @@ namespace Helion.World.Geometry.Sectors
             return min;
         }
 
-        public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
-        {
-            Vec2D pos2D = listener.Position.XY;
-            if (listener.Sector.Equals(this))
-                return pos2D.To3D(type == SectorPlaneType.Floor ? ToFloorZ(pos2D) : ToCeilingZ(pos2D));
-
-            double z = listener.Position.Z;     
-            pos2D = GetClosestPointFrom(pos2D);
-
-            // Check if the player z is in line with the lower/upper of the moving sector
-            // This is set to the player z so the sound doesn't attenuate on z axis
-            if (type == SectorPlaneType.Floor)
-            {
-                double floorZ = ToFloorZ(pos2D);
-                if (floorZ < z)
-                    z = floorZ;
-            }
-            else
-            {
-                double ceilingZ = ToCeilingZ(pos2D);
-                if (ceilingZ > z)
-                    z = ceilingZ;
-            }
-
-            return new Vec3D(pos2D.X, pos2D.Y, z);
-        }
-
-        public Vec2D GetClosestPointFrom(in Vec2D point)
-        {
-            double minDist = double.MaxValue;
-            Line? minLine = null;
-
-            foreach (var line in Lines)
-            {
-                double dist = line.Segment.ClosestPoint(point).Distance(point);
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    minLine = line;
-                }
-            }
-
-            if (minLine != null)
-                return minLine.Segment.ClosestPoint(point);
-
-            return Vec2D.Zero;
-        }
-
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
 
         public override int GetHashCode() => Id.GetHashCode();
-
-        private IAudioSource? m_audio;
-
-        public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
-        {
-            m_audio = audioSource;
-        }
-
-        public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
-        {
-            if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
-            {
-                IAudioSource stopSource = m_audio;
-                m_audio = null;
-                return stopSource;
-            }
-
-            return null;
-        }
-
-        public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
-        {
-            m_audio = null;
-        }
-
-        public double GetDistanceFrom(Entity listenerEntity)
-        {
-            if (ActiveMoveSpecial is SectorMoveSpecial moveSpecial)
-                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType).Distance(listenerEntity.Position);
-
-            return 0.0;
-        }
-
-        public Vec3D? GetSoundPosition(Entity listenerEntity)
-        {
-            if (ActiveMoveSpecial is SectorMoveSpecial moveSpecial)
-                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType);
-
-            return null;
-        }
-
-        public Vec3D? GetSoundVelocity()
-        {
-            return Vec3D.Zero;
-        }
-
-        public bool CanAttenuate(SoundInfo soundInfo) => true;
     }
 }

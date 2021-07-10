@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
@@ -63,32 +62,60 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("red"),
-                KeyNumber = 129,
-                MapColor = Color.Red,
-                KeyDefinitionNames = new List<string>() { "RedCard", "RedSkull" }
+                Message = "all six keys",
+                KeyNumber = 101,
+                MapColor = Color.Purple,
+                KeyDefinitionNames = new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" }
             });
 
-            LockDefs.Add(new LockDef()
+            var anyRed = new LockDef()
+            {
+                Message = KeyMessage("red"),
+                KeyNumber = 129,
+                MapColor = Color.Red
+            };
+            anyRed.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull" });
+            LockDefs.Add(anyRed);
+
+            var anyBlue = new LockDef()
             {
                 Message = KeyMessage("blue"),
                 KeyNumber = 130,
-                MapColor = Color.Blue,
-                KeyDefinitionNames = new List<string>() { "BlueCard", "BlueSkull" }
-            });
+                MapColor = Color.Blue
+            };
+            anyBlue.AnyKeyDefinitionNames.Add(new List<string>() { "BlueCard", "BlueSkull" });
+            LockDefs.Add(anyBlue);
 
-            LockDefs.Add(new LockDef()
+            var anyYellow = new LockDef()
             {
                 Message = KeyMessage("yellow"),
                 KeyNumber = 131,
                 MapColor = Color.Yellow,
-                KeyDefinitionNames = new List<string>() { "YellowCard", "YellowSkull" }
-            });
+            };
+            anyYellow.AnyKeyDefinitionNames.Add(new List<string>() { "YellowCard", "YellowSkull" });
+            LockDefs.Add(anyYellow);
+
+            var any = new LockDef()
+            {
+                Message = KeyMessage("any"),
+                KeyNumber = 100,
+                MapColor = Color.Purple,
+            };
+            any.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" });
+            LockDefs.Add(any);
+
+            var allThreeColors = new LockDef()
+            {
+                Message = "all three colors",
+                KeyNumber = 229,
+                MapColor = Color.Purple,
+            };
+            allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull" });
+            allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "BlueCard", "BlueSkull" });
+            allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "YellowCard", "YellowSkull" });
+            LockDefs.Add(allThreeColors);
         }
 
-        public LockDef? GetLockDef(int keyNumber)
-        {
-            return LockDefs.FirstOrDefault(x => x.KeyNumber == keyNumber);
-        }
+        public LockDef? GetLockDef(int keyNumber) => LockDefs.FirstOrDefault(x => x.KeyNumber == keyNumber);
     }
 }

@@ -26,6 +26,7 @@ namespace Helion.World.Special
         private readonly bool m_moveSpecial;
         private readonly bool m_sectorStopMoveSpecial;
         private readonly bool m_lightSpecial;
+        private readonly bool m_sectorTriggerSpecial;
         private readonly LineActivationType m_lineActivationType;
 
         public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, null)
@@ -45,6 +46,7 @@ namespace Helion.World.Special
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
             m_lightSpecial = SetLightSpecial();
+            m_sectorTriggerSpecial = SetSectorTriggerSpecial();
         }
 
         public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
@@ -105,10 +107,11 @@ namespace Helion.World.Special
                     return false;
 
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
+                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross ||
+                        line.Flags.MonsterCanActivate;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
-                        line.Special.MonsterCanUse();
+                    return flags.ActivationType == ActivationType.PlayerUse && !line.Flags.Secret && 
+                        line.Flags.MonsterCanActivate;
             }
             else if (entity is Player player)
             {
@@ -123,10 +126,10 @@ namespace Helion.World.Special
                 else if (context == ActivationContext.PlayerPushesWall)
                     contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
 
-                if (contextSuccess && line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
+                if (contextSuccess && IsLockType(line, out int keyNumber))
                 {
-                    LockDef? lockDef = lockDefinitions.GetLockDef(line.Args.Arg3);
-                    if (lockDef == null || !player.Inventory.HasAnyItem(lockDef.KeyDefinitionNames))
+                    LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
+                    if (lockDef == null || !PlayerCanUnlock(player, lockDef))
                     {
                         lockFail = lockDef;
                         return false;
@@ -139,11 +142,46 @@ namespace Helion.World.Special
             return false;
         }
 
+        private static bool PlayerCanUnlock(Player player, LockDef lockDef)
+        {
+            foreach (var definitions in lockDef.AnyKeyDefinitionNames)
+            {
+                if (!player.Inventory.HasAnyItem(definitions))
+                    return false;
+            }
+
+            foreach (var key in lockDef.KeyDefinitionNames)
+            {
+                if (!player.Inventory.HasItem(key))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsLockType(Line line, out int keyNumber)
+        {
+            switch (line.Special.LineSpecialType)
+            {
+                case ZDoomLineSpecialType.DoorLockedRaise:
+                    keyNumber = line.Args.Arg3;
+                    return true;
+
+                case ZDoomLineSpecialType.DoorGeneric:
+                    keyNumber = line.Args.Arg4;
+                    return (ZDoomKeyType)keyNumber != ZDoomKeyType.None;
+
+                default:
+                    keyNumber = 0;
+                    return false;
+            }
+        }
+
         public bool IsSectorMoveSpecial() => m_moveSpecial;
         public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
         public bool IsSectorStopLightSpecial() => LineSpecialType == ZDoomLineSpecialType.LightStop;
-        public bool MonsterCanUse() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
+        public bool IsSectorTriggerSpecial() => m_sectorTriggerSpecial;
 
         public bool CanActivateDuringSectorMovement()
         {
@@ -152,6 +190,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.DoorOpenClose:
                 case ZDoomLineSpecialType.DoorLockedRaise:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -172,7 +213,12 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                 case ZDoomLineSpecialType.FloorRaiseCrush:
                 case ZDoomLineSpecialType.FloorCrushStop:
+                case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.GenericCrusher:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -185,6 +231,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ExitNormal:
                 case ZDoomLineSpecialType.ExitSecret:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -242,7 +291,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseByTexture:
                 case ZDoomLineSpecialType.DoorCloseWaitOpen:
                 case ZDoomLineSpecialType.FloorDonut:
-                case ZDoomLineSpecialType.FloorCeilingLowerRaise:
+                case ZDoomLineSpecialType.FloorAndCeilingLowerRaise:
                 case ZDoomLineSpecialType.CeilingRaiseToNearest:
                 case ZDoomLineSpecialType.CeilingLowerToLowest:
                 case ZDoomLineSpecialType.CeilingLowerToFloor:
@@ -257,7 +306,37 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
                 case ZDoomLineSpecialType.CeilingRaiseToHighest:
                 case ZDoomLineSpecialType.DoorWaitClose:
+                case ZDoomLineSpecialType.DoorGeneric:
+                case ZDoomLineSpecialType.GenericCeiling:
+                case ZDoomLineSpecialType.GenericFloor:
+                case ZDoomLineSpecialType.GenericLift:
+                case ZDoomLineSpecialType.GenericCrusher:
+                case ZDoomLineSpecialType.StairsGeneric:
+                case ZDoomLineSpecialType.PlatUpValueStayTx:
+                case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
+                case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.ElevatorRaiseToNearest:
+                case ZDoomLineSpecialType.ElevatorLowerToNearest:
+                case ZDoomLineSpecialType.ElevatorMoveToFloor:
                     return true;
+
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private bool SetSectorTriggerSpecial()
+        {
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.FloorTransferNumeric:
+                case ZDoomLineSpecialType.FloorTransferTrigger:
+                    return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -271,6 +350,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.CeilingCrushStop:
                 case ZDoomLineSpecialType.FloorCrushStop:
                 return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -291,7 +373,12 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.LightStrobeDoom:
                 case ZDoomLineSpecialType.LightMinNeighbor:
                 case ZDoomLineSpecialType.LightMaxNeighbor:
-                return true;
+                case ZDoomLineSpecialType.TransferFloorLight:
+                case ZDoomLineSpecialType.TransferCeilingLight:
+                    return true;
+
+                default:
+                    break;
             }
 
             return false;

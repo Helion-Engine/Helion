@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Helion.Audio;
 using Helion.Models;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
@@ -17,10 +16,11 @@ namespace Helion.World.Special.Specials
         private readonly bool m_crush;
         private int m_destroyCount;
         private int m_stairDelayTics;
+        private int m_resetTics;
 
         private class StairMove
         {
-            public StairMove (Sector sector, int height)
+            public StairMove(Sector sector, int height)
             {
                 Sector = sector;
                 Height = height;
@@ -30,25 +30,39 @@ namespace Helion.World.Special.Specials
             public int Height { get; private set; }
         }
 
-        public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) : 
-            base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), 
-                new SectorSoundData(null, null, Constants.PlatStopSound, null))
+        public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) :
+            this (world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
+        {
+
+        }
+
+        public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush, MoveDirection direction,
+            int resetTicks, bool ignoreTexture) : 
+            base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, direction, MoveRepetition.None, speed, 0), 
+                new SectorSoundData(null, null, Constants.PlatStopSound))
         {
             m_stairDelay = delay;
+            m_resetTics = resetTicks == 0 ? -1 : resetTicks;
             m_startZ = Sector.Floor.Z;
             m_crush = crush;
+
+            if (direction == MoveDirection.Down)
+                height = -height;
 
             StairMove? stairMove = new StairMove(sector, height);
 
             do
             {
-                if (stairMove.Sector.ActiveMoveSpecial == null || ReferenceEquals(stairMove.Sector.ActiveMoveSpecial, this))
+                if (stairMove.Sector.ActiveFloorMove == null || ReferenceEquals(stairMove.Sector.ActiveFloorMove, this))
                 {
-                    stairMove.Sector.ActiveMoveSpecial = this;
+                    stairMove.Sector.ActiveFloorMove = this;
                     CreateMovementSound(stairMove.Sector);
                     m_stairs.Add(stairMove);
+
+                    if (resetTicks > 0)
+                        stairMove.Sector.DataChanges |= SectorDataTypes.MovementLocked;
                 }
-                stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height);
+                stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height, ignoreTexture);
             }
             while (stairMove != null);
         }
@@ -60,6 +74,7 @@ namespace Helion.World.Special.Specials
             m_startZ = model.StartZ;
             m_destroyCount = model.Destroy;
             m_stairDelayTics = model.DelayTics;
+            m_resetTics = model.ResetTics;
             m_crush = model.Crush;
 
             for (int i = 0; i < model.SectorIds.Count && i < model.Heights.Count; i++)
@@ -71,7 +86,7 @@ namespace Helion.World.Special.Specials
 
                 if (i >= m_destroyCount)
                 {
-                    m_stairs[i].Sector.ActiveMoveSpecial = this;
+                    m_stairs[i].Sector.ActiveFloorMove = this;
                     CreateMovementSound(m_stairs[i].Sector);
                 }
             }
@@ -85,6 +100,7 @@ namespace Helion.World.Special.Specials
                 StartZ = m_startZ,
                 Destroy = m_destroyCount,
                 DelayTics = m_stairDelayTics,
+                ResetTics = m_resetTics,
                 Crush = m_crush,
                 MoveSpecial = (SectorMoveSpecialModel)base.ToSpecialModel()
             };
@@ -106,11 +122,26 @@ namespace Helion.World.Special.Specials
 
         public override SpecialTickStatus Tick()
         {
+            if (m_resetTics > 0)
+            {
+                m_resetTics--;
+                if (m_resetTics == 0)
+                {
+                    m_destroyCount = 0;
+                    FlipMovementDirection(false);
+                    for (int i = 0; i < m_stairs.Count; i++)
+                    {
+                        m_stairs[i].Sector.ActiveFloorMove = this;
+                        CreateMovementSound(m_stairs[i].Sector);
+                    }
+                }
+            }
+
             if (m_stairDelayTics > 0)
             {
                 for (int i = m_destroyCount - 1; i < m_stairs.Count; i++)
                 {
-                    if (!ReferenceEquals(m_stairs[i].Sector.ActiveMoveSpecial, this))
+                    if (!ReferenceEquals(m_stairs[i].Sector.ActiveFloorMove, this))
                         continue;
 
                     m_stairs[i].Sector.Floor.PrevZ = m_stairs[i].Sector.Floor.Z;
@@ -128,8 +159,11 @@ namespace Helion.World.Special.Specials
                 height += m_stairs[i].Height;
                 Sector = m_stairs[i].Sector;
                 SectorPlane = Sector.Floor;
-                DestZ = m_startZ + height;
-                if (ReferenceEquals(Sector.ActiveMoveSpecial, this))
+                if (m_resetTics == 0)
+                    DestZ = m_startZ;
+                else
+                    DestZ = m_startZ + height;
+                if (ReferenceEquals(Sector.ActiveFloorMove, this))
                     currentStatus = base.Tick();                    
 
                 if (currentStatus == SpecialTickStatus.Destroy)
@@ -139,11 +173,20 @@ namespace Helion.World.Special.Specials
                     m_stairDelayTics = m_stairDelay;
                 }
 
-                if (m_destroyCount == m_stairs.Count)
+                if (m_destroyCount == m_stairs.Count && m_resetTics <= 0)
+                {
+                    ClearMovementLock();
                     return SpecialTickStatus.Destroy;
+                }
             }
 
             return SpecialTickStatus.Continue;
+        }
+
+        private void ClearMovementLock()
+        {
+            for (int i = 0; i < m_stairs.Count; i ++)
+                m_stairs[i].Sector.DataChanges &= ~SectorDataTypes.MovementLocked;
         }
 
         public override void FinalizeDestroy()
@@ -155,17 +198,18 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        private static StairMove? GetNextStair(StairMove start, int floorpic, int stairHeight)
+        private static StairMove? GetNextStair(StairMove start, int floorpic, int stairHeight, bool ignoreTexture)
         {
             int height = 0;
             for (int i = 0; i < start.Sector.Lines.Count; i++)
             {
                 Line line = start.Sector.Lines[i];
-                if (line.Back != null && line.Front.Sector == start.Sector && line.Back.Sector.Floor.TextureHandle == floorpic)
+                if (line.Back != null && line.Front.Sector == start.Sector && 
+                    (ignoreTexture || line.Back.Sector.Floor.TextureHandle == floorpic))
                 {
                     // The original game had this bug where it would increment height before checking if th sector was already in motion
                     height += stairHeight;
-                    if (line.Back.Sector.ActiveMoveSpecial == null)
+                    if (!line.Back.Sector.IsMoving)
                         return new StairMove(line.Back.Sector, height);
                 }
             }
@@ -174,7 +218,7 @@ namespace Helion.World.Special.Specials
         }
 
         private void CreateMovementSound(Sector sector) =>
-            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, 
-                DataCache.Instance.GetSoundParams(sector, true));
+            m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(sector.Floor, true));
     }
 }
