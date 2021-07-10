@@ -43,6 +43,7 @@ namespace Helion.World.Special
 
         private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
         private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
+        private static SectorSoundData GetPlatUpSound() => new SectorSoundData(null, Constants.PlatStartSound, Constants.PlatStopSound, Constants.PlatMoveSound);
         private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
         private static SectorSoundData GetSilentCrusherSound() => new SectorSoundData(null, null, Constants.PlatStopSound);
 
@@ -196,9 +197,9 @@ namespace Helion.World.Special
             }
         }
 
-        public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay)
+        public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay, SectorDest dest = SectorDest.LowestAdjacentFloor)
         {
-            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
+            double destZ = GetDestZ(sector, dest);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
                 MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), GetLiftSound());
         }
@@ -635,6 +636,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.DoorGeneric:
                     return CreateGenericDoorSpecial(sector, line);
 
+                case ZDoomLineSpecialType.GenericLift:
+                    return CreateGenericLiftSpecial(sector, line);
+
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
 
@@ -790,35 +794,54 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.LightStrobeDoom:
                     return new LightStrobeSpecial(sector, m_random, sector.GetMinLightLevelNeighbor(), line.Args.Arg1, line.Args.Arg2, false);
+
+                case ZDoomLineSpecialType.PlatUpByValue:
+                    return CreatePlatUpByValue(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, line.Args.Arg3);
             }
 
             return null;
+        }
+
+        private ISpecial? CreatePlatUpByValue(Sector sector, double speed, int delay, int height)
+        {
+            double destZ = sector.Floor.Z + height * 8;
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
+                MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), GetPlatUpSound());
         }
 
         private ISpecial? CreateGenericDoorSpecial(Sector sector, Line line)
         {
             double speed = line.Args.Arg1 * SpeedFactor;
-            switch ((ZDoomDoorKind)line.Args.Arg2)
+            int delay = GetOtics(line.Args.Arg3);
+            return ((ZDoomDoorKind)line.Args.Arg2) switch
             {
-                case ZDoomDoorKind.OpenDelayClose:
-                    return CreateDoorOpenCloseSpecial(sector, speed, GetOtics(line.Args.Arg3));
-                case ZDoomDoorKind.OpenStay:
-                    return CreateDoorOpenStaySpecial(sector, speed);
-                case ZDoomDoorKind.CloseDelayOpen:
-                    return CreateDoorCloseOpenSpecial(sector, speed, GetOtics(line.Args.Arg3));
-                case ZDoomDoorKind.CloseStay:
-                    return CreateDoorCloseSpecial(sector, speed);
-            }
+                ZDoomDoorKind.OpenDelayClose => CreateDoorOpenCloseSpecial(sector, speed, delay),
+                ZDoomDoorKind.OpenStay => CreateDoorOpenStaySpecial(sector, speed),
+                ZDoomDoorKind.CloseDelayOpen => CreateDoorCloseOpenSpecial(sector, speed, delay),
+                ZDoomDoorKind.CloseStay => CreateDoorCloseSpecial(sector, speed),
+                _ => null,
+            };
+        }
 
-            return null;
+        private ISpecial? CreateGenericLiftSpecial(Sector sector, Line line)
+        {
+            double speed = line.Args.Arg1 * SpeedFactor;
+            int delay = GetOtics(line.Args.Arg2);
+            return ((ZDoomLiftType)line.Args.Arg3) switch
+            {
+                ZDoomLiftType.UpByValue => CreatePlatUpByValue(sector, speed, delay, line.Args.Arg4),
+                ZDoomLiftType.DownWaitUpStay => CreateLiftSpecial(sector, speed, delay),
+                ZDoomLiftType.DownToNearestFloor => CreateLiftSpecial(sector, speed, delay, SectorDest.NextLowestFloor),
+                ZDoomLiftType.DownToLowestCeiling => CreateLiftSpecial(sector, speed, delay, SectorDest.LowestAdjacentCeiling),
+                ZDoomLiftType.PerpetualRaise => CreatePerpetualMovingFloorSpecial(sector, speed, delay, 0),
+                _ => null,
+            };
         }
 
         private static int GetOtics(int value) => value * 35 / 8;
 
-        private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
-        {
-            return new LightChangeSpecial(sector, (short)lightLevel, fadeTics);
-        }
+        private static ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0) =>
+            new LightChangeSpecial(sector, (short)lightLevel, fadeTics);
 
         private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
         {
