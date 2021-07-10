@@ -1,3 +1,4 @@
+using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
@@ -19,6 +20,9 @@ namespace Helion.Maps.Specials.Vanilla
                 lineFlags.ActivationType = ActivationType.None;
                 return ZDoomLineSpecialType.None;
             }
+
+            if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
+                return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility);
 
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);

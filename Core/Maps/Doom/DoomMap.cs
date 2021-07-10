@@ -263,12 +263,6 @@ namespace Helion.Maps.Doom
                 if (leftSidedef != NoSidedef)
                     back = sides[leftSidedef];
 
-                if (type >= Enum.GetNames(typeof(VanillaLineSpecialType)).Length)
-                {
-                    Log.Warn("Line {0} has corrupt line value (type = {1}), setting line type to 'None'", id, type);
-                    lineType = VanillaLineSpecialType.None;
-                }
-
                 DoomLine line = new DoomLine(id, startVertex, endVertex, front, back, lineFlags, lineType, sectorTag);
                 lines[id] = line;
             }
