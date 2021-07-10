@@ -151,10 +151,12 @@ namespace Helion.World.Special.Specials
                 return SpecialTickStatus.Continue;
             }
 
+            CheckPlaySound();
+
             double destZ = CalculateDestination();
             PerformAndHandleMoveZ(destZ);
 
-            PlaySound();
+            CheckPlaySound();
 
             if (SectorPlane.Z == DestZ && IsNonRepeat)
             {
@@ -188,7 +190,7 @@ namespace Helion.World.Special.Specials
             SectorPlane.PrevZ = SectorPlane.Z;
         }
 
-        private void PlaySound()
+        private void CheckPlaySound()
         {
             if (SectorPlane.Z == DestZ)
             {
