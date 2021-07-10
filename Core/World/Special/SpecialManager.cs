@@ -632,6 +632,9 @@ namespace Helion.World.Special
 
             switch (special.LineSpecialType)
             {
+                case ZDoomLineSpecialType.DoorGeneric:
+                    return CreateGenericDoorSpecial(sector, line);
+
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
 
@@ -791,6 +794,26 @@ namespace Helion.World.Special
 
             return null;
         }
+
+        private ISpecial? CreateGenericDoorSpecial(Sector sector, Line line)
+        {
+            double speed = line.Args.Arg1 * SpeedFactor;
+            switch ((ZDoomDoorKind)line.Args.Arg2)
+            {
+                case ZDoomDoorKind.OpenDelayClose:
+                    return CreateDoorOpenCloseSpecial(sector, speed, GetOtics(line.Args.Arg3));
+                case ZDoomDoorKind.OpenStay:
+                    return CreateDoorOpenStaySpecial(sector, speed);
+                case ZDoomDoorKind.CloseDelayOpen:
+                    return CreateDoorCloseOpenSpecial(sector, speed, GetOtics(line.Args.Arg3));
+                case ZDoomDoorKind.CloseStay:
+                    return CreateDoorCloseSpecial(sector, speed);
+            }
+
+            return null;
+        }
+
+        private static int GetOtics(int value) => value * 35 / 8;
 
         private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
         {
