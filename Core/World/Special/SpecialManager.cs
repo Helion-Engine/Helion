@@ -130,7 +130,7 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
         {
-            double destZ = sector.Floor.Z + sector.GetShortestLower(TextureManager.Instance);
+            double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true);
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
         }
@@ -298,12 +298,13 @@ namespace Helion.World.Special
             return false;
         }
 
-        public ISpecial CreateFloorSpecial(Sector sector, Line line, MoveDirection start, SectorDest sectorDest, double amount, double speed,
-            ZDoomFloorFlags flags)
+        public ISpecial CreatePlaneSpecial(Sector sector, SectorPlaneType planeType, Line line, MoveDirection start, SectorDest sectorDest, 
+            double amount, double speed, ZDoomGenericFlags flags)
         {
+            double startZ = planeType == SectorPlaneType.Floor ? sector.Floor.Z : sector.Ceiling.Z;
             double destZ;
             if (sectorDest == SectorDest.None)
-                destZ = sector.Floor.Z + amount;
+                destZ = startZ + amount;
             else
                 destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
 
@@ -311,40 +312,49 @@ namespace Helion.World.Special
             if (start == MoveDirection.Down && sectorDest == SectorDest.HighestAdjacentFloor)
                 destZ -= amount;
 
-            int? floorChangeTexture = null;
+            int? changeTexture = null;
             SectorDamageSpecial? damageSpecial = null;
             CrushData? crush = null;
 
             // Can't use HasFlag, not really a flag
-            if ((flags & ZDoomFloorFlags.CopyFloorAndSpecial) != 0)
+            if ((flags & ZDoomGenericFlags.CopyTxAndSpecial) != 0)
             {
-                if (flags.HasFlag(ZDoomFloorFlags.TriggerNumericModel))
+                if (flags.HasFlag(ZDoomGenericFlags.TriggerNumericModel))
                 {
-                    if (GetNumericModelChange(sector, SectorPlaneType.Floor, destZ, out int changeTexture, out SectorDamageSpecial? changeSpecial))
+                    if (GetNumericModelChange(sector, planeType, destZ, out int numericChangeTexture, out SectorDamageSpecial? changeSpecial))
                     {
-                        floorChangeTexture = changeTexture;
+                        changeTexture = numericChangeTexture;
                         damageSpecial = changeSpecial;
                     }
                 }
                 else
                 {
-                    floorChangeTexture = line.Front.Sector.Floor.TextureHandle;
+                    changeTexture = line.Front.Sector.GetTexture(planeType);
                     damageSpecial = sector.SectorDamageSpecial;
                 }
 
-                ZDoomFloorFlags changeFlags = flags & ZDoomFloorFlags.CopyFloorAndSpecial;
-                if (changeFlags == ZDoomFloorFlags.CopyFloorRemoveSpecial)
+                ZDoomGenericFlags changeFlags = flags & ZDoomGenericFlags.CopyTxAndSpecial;
+                if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial)
                     damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
-                else if (changeFlags == ZDoomFloorFlags.CopyFloor)
+                else if (changeFlags == ZDoomGenericFlags.CopyTx)
                     damageSpecial = null;
             }
 
-            if (flags.HasFlag(ZDoomFloorFlags.Crush))
+            if (flags.HasFlag(ZDoomGenericFlags.Crush))
                 crush = CrushData.Default;
 
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                start, MoveRepetition.None, speed, 0, crush: crush, floorChangeTextureHandle: floorChangeTexture, 
-                damageSpecial: damageSpecial), 
+            int? floorChangeTexture = null;
+            int? ceilingChangeTexture = null;
+            if (planeType == SectorPlaneType.Floor)
+                floorChangeTexture = changeTexture;
+            else
+                ceilingChangeTexture = changeTexture;
+
+            return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(planeType,
+                start, MoveRepetition.None, speed, 0, crush: crush,
+                floorChangeTextureHandle: floorChangeTexture,
+                ceilingChangeTextureHandle: ceilingChangeTexture,
+                damageSpecial: damageSpecial),
                 GetDefaultSectorSound());
         }
 
@@ -713,7 +723,10 @@ namespace Helion.World.Special
                     return CreateGenericLiftSpecial(sector, line);
 
                 case ZDoomLineSpecialType.GenericFloor:
-                    return CreateGenericFloorSpecial(sector, line);
+                    return CreateGenericPlaneSpecial(sector, line, SectorPlaneType.Floor);
+
+                case ZDoomLineSpecialType.GenericCeiling:
+                    return CreateGenericPlaneSpecial(sector, line, SectorPlaneType.Ceiling);
 
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
@@ -914,26 +927,42 @@ namespace Helion.World.Special
             };
         }
 
-        private ISpecial? CreateGenericFloorSpecial(Sector sector, Line line)
+        private ISpecial? CreateGenericPlaneSpecial(Sector sector, Line line, SectorPlaneType planeType)
         {
             double speed = line.Args.Arg1 * SpeedFactor;
-            bool raise = (line.Args.Arg4 & (int)ZDoomFloorFlags.RaiseFloor) != 0;
+            bool raise = (line.Args.Arg4 & (int)ZDoomGenericFlags.Raise) != 0;
             double amount = raise ? line.Args.Arg2 : -line.Args.Arg2;
             MoveDirection start = raise ? MoveDirection.Up : MoveDirection.Down;
             SectorDest dest;
 
-            dest = ((ZDoomFloorType)line.Args.Arg3) switch
+            if (planeType == SectorPlaneType.Floor)
             {
-                ZDoomFloorType.HighestFloor => SectorDest.HighestAdjacentFloor,
-                ZDoomFloorType.LowestFloor => SectorDest.LowestAdjacentFloor,
-                ZDoomFloorType.NearestFloor => raise ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor,
-                ZDoomFloorType.LowestCeiling => SectorDest.LowestAdjacentCeiling,
-                ZDoomFloorType.Ceiling => SectorDest.Ceiling,
-                ZDoomFloorType.ShortestLowerTexture => SectorDest.ShortestLowerTexture,
-                _ => SectorDest.None,
-            };            
+                dest = ((ZDoomGenericDest)line.Args.Arg3) switch
+                {
+                    ZDoomGenericDest.HighestPlane => SectorDest.HighestAdjacentFloor,
+                    ZDoomGenericDest.LowestPlane => SectorDest.LowestAdjacentFloor,
+                    ZDoomGenericDest.NearestPlane => raise ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor,
+                    ZDoomGenericDest.AdjacentOpposingPlane => SectorDest.LowestAdjacentCeiling,
+                    ZDoomGenericDest.OpposingPlane => SectorDest.Ceiling,
+                    ZDoomGenericDest.ShortestTexture => SectorDest.ShortestLowerTexture,
+                    _ => SectorDest.None,
+                };
+            }
+            else
+            {
+                dest = ((ZDoomGenericDest)line.Args.Arg3) switch
+                {
+                    ZDoomGenericDest.HighestPlane => SectorDest.HighestAdjacentCeiling,
+                    ZDoomGenericDest.LowestPlane => SectorDest.LowestAdjacentCeiling,
+                    ZDoomGenericDest.NearestPlane => raise ? SectorDest.NextHighestCeiling : SectorDest.NextLowestCeiling,
+                    ZDoomGenericDest.AdjacentOpposingPlane => SectorDest.HighestAdjacentFloor,
+                    ZDoomGenericDest.OpposingPlane => SectorDest.Floor,
+                    ZDoomGenericDest.ShortestTexture => SectorDest.ShortestUpperTexture,
+                    _ => SectorDest.None,
+                };
+            }
 
-            return CreateFloorSpecial(sector, line, start, dest, amount, speed, (ZDoomFloorFlags)line.Args.Arg4);
+            return CreatePlaneSpecial(sector, planeType, line, start, dest, amount, speed, (ZDoomGenericFlags)line.Args.Arg4);
         }
 
         private static int GetOtics(int value) => value * 35 / 8;
@@ -1023,7 +1052,9 @@ namespace Helion.World.Special
                 case SectorDest.Ceiling:
                     return sector.Ceiling.Z;
                 case SectorDest.ShortestLowerTexture:
-                    return sector.GetShortestLower(TextureManager.Instance);
+                    return sector.GetShortestTexture(TextureManager.Instance, true);
+                case SectorDest.ShortestUpperTexture:
+                    return sector.GetShortestTexture(TextureManager.Instance, false);
                 case SectorDest.None:
                 default:
                     break;

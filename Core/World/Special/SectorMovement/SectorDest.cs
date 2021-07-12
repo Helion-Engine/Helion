@@ -14,5 +14,6 @@
         Floor,
         Ceiling,
         ShortestLowerTexture,
+        ShortestUpperTexture,
     }
 }

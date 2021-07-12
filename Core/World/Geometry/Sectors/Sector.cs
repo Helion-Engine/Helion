@@ -224,6 +224,7 @@ namespace Helion.World.Geometry.Sectors
         // TODO implement when slopes exist
         public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
         public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
+        public int GetTexture(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
 
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
@@ -457,7 +458,7 @@ namespace Helion.World.Geometry.Sectors
             return max;
         }
 
-        public double GetShortestLower(TextureManager textureManager)
+        public double GetShortestTexture(TextureManager textureManager, bool byLowerTx)
         {
             double min = double.MaxValue;
 
@@ -470,14 +471,16 @@ namespace Helion.World.Geometry.Sectors
                 if (line.TwoSided)
                 {
                     TwoSided twoSided = (TwoSided)line.Front;
-                    var texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                    var texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
+                        textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
                     if (texture.Image != null && texture.Image.Height < min)
                         min = texture.Image.Height;
 
                     if (line.Back != null)
                     {
                         twoSided = (TwoSided)line.Back;
-                        texture = textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle);
+                        texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
+                            textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
                         if (texture.Image != null && texture.Image.Height < min)
                             min = texture.Image.Height;
                     }
