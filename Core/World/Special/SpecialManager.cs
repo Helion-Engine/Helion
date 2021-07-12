@@ -248,14 +248,26 @@ namespace Helion.World.Special
         public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.None, speed, 0, null), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
         }
 
         public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
         {
-            int floorChangeTexture = sector.Floor.TextureHandle;
-            SectorDamageSpecial? damageSpecial = sector.SectorDamageSpecial;
             double destZ = GetDestZ(sector, sectorDest);
+            GetNumericModelChange(sector, SectorPlaneType.Floor, destZ, out int floorChangeTexture, out SectorDamageSpecial? damageSpecial);
+
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
+                MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, 
+                damageSpecial: damageSpecial), 
+                GetDefaultSectorSound());
+        }
+
+        private bool GetNumericModelChange(Sector sector, SectorPlaneType planeType, 
+            double destZ, out int changeTexture, out SectorDamageSpecial? damageSpecial)
+        {
+            changeTexture = planeType == SectorPlaneType.Floor ? sector.Floor.TextureHandle : sector.Ceiling.TextureHandle;
+            damageSpecial = sector.SectorDamageSpecial;
+            bool found = false;
             for (int i = 0; i < sector.Lines.Count; i++)
             {
                 Line line = sector.Lines[i];
@@ -263,16 +275,77 @@ namespace Helion.World.Special
                     continue;
 
                 Sector opposingSector = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
-                if (opposingSector.Floor.Z == destZ)
+                if (planeType == SectorPlaneType.Floor && opposingSector.Floor.Z == destZ)
                 {
-                    floorChangeTexture = opposingSector.Floor.TextureHandle;
-                    damageSpecial = opposingSector.SectorDamageSpecial;
-                    break;
+                    changeTexture = opposingSector.Floor.TextureHandle;
+                    found = true;
+                }
+                else if (planeType == SectorPlaneType.Ceiling && opposingSector.Ceiling.Z == destZ)
+                {
+                    changeTexture = opposingSector.Ceiling.TextureHandle;
+                    found = true;
+                }
+
+                if (found)
+                {
+                    damageSpecial = opposingSector.SectorDamageSpecial?.Copy(sector);
+                    if (damageSpecial == null)
+                        damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
+                    return true;
                 }
             }
 
+            return false;
+        }
+
+        public ISpecial CreateFloorSpecial(Sector sector, Line line, MoveDirection start, SectorDest sectorDest, double amount, double speed,
+            ZDoomFloorFlags flags)
+        {
+            double destZ;
+            if (sectorDest == SectorDest.None)
+                destZ = sector.Floor.Z + amount;
+            else
+                destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
+
+            // Ugh... why
+            if (start == MoveDirection.Down && sectorDest == SectorDest.HighestAdjacentFloor)
+                destZ -= amount;
+
+            int? floorChangeTexture = null;
+            SectorDamageSpecial? damageSpecial = null;
+            CrushData? crush = null;
+
+            // Can't use HasFlag, not really a flag
+            if ((flags & ZDoomFloorFlags.CopyFloorAndSpecial) != 0)
+            {
+                if (flags.HasFlag(ZDoomFloorFlags.TriggerNumericModel))
+                {
+                    if (GetNumericModelChange(sector, SectorPlaneType.Floor, destZ, out int changeTexture, out SectorDamageSpecial? changeSpecial))
+                    {
+                        floorChangeTexture = changeTexture;
+                        damageSpecial = changeSpecial;
+                    }
+                }
+                else
+                {
+                    floorChangeTexture = line.Front.Sector.Floor.TextureHandle;
+                    damageSpecial = sector.SectorDamageSpecial;
+                }
+
+                ZDoomFloorFlags changeFlags = flags & ZDoomFloorFlags.CopyFloorAndSpecial;
+                if (changeFlags == ZDoomFloorFlags.CopyFloorRemoveSpecial)
+                    damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
+                else if (changeFlags == ZDoomFloorFlags.CopyFloor)
+                    damageSpecial = null;
+            }
+
+            if (flags.HasFlag(ZDoomFloorFlags.Crush))
+                crush = CrushData.Default;
+
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.None, speed, 0, null, floorChangeTexture, damageSpecial), GetDefaultSectorSound());
+                start, MoveRepetition.None, speed, 0, crush: crush, floorChangeTextureHandle: floorChangeTexture, 
+                damageSpecial: damageSpecial), 
+                GetDefaultSectorSound());
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -287,7 +360,7 @@ namespace Helion.World.Special
         public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.None, speed, 0, null, floorChangeTexture), GetDefaultSectorSound());
+                MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture), GetDefaultSectorSound());
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -639,6 +712,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.GenericLift:
                     return CreateGenericLiftSpecial(sector, line);
 
+                case ZDoomLineSpecialType.GenericFloor:
+                    return CreateGenericFloorSpecial(sector, line);
+
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
 
@@ -838,6 +914,28 @@ namespace Helion.World.Special
             };
         }
 
+        private ISpecial? CreateGenericFloorSpecial(Sector sector, Line line)
+        {
+            double speed = line.Args.Arg1 * SpeedFactor;
+            bool raise = (line.Args.Arg4 & (int)ZDoomFloorFlags.RaiseFloor) != 0;
+            double amount = raise ? line.Args.Arg2 : -line.Args.Arg2;
+            MoveDirection start = raise ? MoveDirection.Up : MoveDirection.Down;
+            SectorDest dest;
+
+            dest = ((ZDoomFloorType)line.Args.Arg3) switch
+            {
+                ZDoomFloorType.HighestFloor => SectorDest.HighestAdjacentFloor,
+                ZDoomFloorType.LowestFloor => SectorDest.LowestAdjacentFloor,
+                ZDoomFloorType.NearestFloor => raise ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor,
+                ZDoomFloorType.LowestCeiling => SectorDest.LowestAdjacentCeiling,
+                ZDoomFloorType.Ceiling => SectorDest.Ceiling,
+                ZDoomFloorType.ShortestLowerTexture => SectorDest.ShortestLowerTexture,
+                _ => SectorDest.None,
+            };            
+
+            return CreateFloorSpecial(sector, line, start, dest, amount, speed, (ZDoomFloorFlags)line.Args.Arg4);
+        }
+
         private static int GetOtics(int value) => value * 35 / 8;
 
         private static ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0) =>
@@ -924,6 +1022,8 @@ namespace Helion.World.Special
                     return sector.Floor.Z;
                 case SectorDest.Ceiling:
                     return sector.Ceiling.Z;
+                case SectorDest.ShortestLowerTexture:
+                    return sector.GetShortestLower(TextureManager.Instance);
                 case SectorDest.None:
                 default:
                     break;

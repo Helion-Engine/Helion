@@ -63,8 +63,11 @@ namespace Helion.World.Special.Specials
             Sector = sector;
             m_world = world;
             MoveData = new SectorMoveData((SectorPlaneType)model.MoveType, (MoveDirection)model.StartDirection, 
-                (MoveRepetition)model.Repetion, model.Speed, model.Delay, FromCrushDataModel(model.Crush), model.FloorChange, 
-                model.DamageSpecial?.ToWorldSpecial(world));
+                (MoveRepetition)model.Repetion, model.Speed, model.Delay, 
+                crush: FromCrushDataModel(model.Crush), 
+                floorChangeTextureHandle: model.FloorChange, 
+                ceilingChangeTextureHandle: model.CeilingChange, 
+                damageSpecial: model.DamageSpecial?.ToWorldSpecial(world));
             SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
             SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = model.StartZ;
@@ -161,10 +164,10 @@ namespace Helion.World.Special.Specials
             if (SectorPlane.Z == DestZ && IsNonRepeat)
             {
                 if (MoveData.FloorChangeTextureHandle != null)
-                {
-                    Sector.SectorDamageSpecial = null;
                     Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value);
-                }
+
+                if (MoveData.CeilingChangeTextureHandle != null)
+                    Sector.Ceiling.SetTexture(MoveData.CeilingChangeTextureHandle.Value);
 
                 if (MoveData.DamageSpecial != null)
                     Sector.SectorDamageSpecial = MoveData.DamageSpecial;

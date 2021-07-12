@@ -6,7 +6,7 @@ namespace Helion.World.Special.Specials
 {
     public class SectorDamageEndSpecial : SectorDamageSpecial
     {
-        public SectorDamageEndSpecial(WorldBase world, Sector sector, int damage)
+        public SectorDamageEndSpecial(IWorld world, Sector sector, int damage)
             : base(world, sector, damage)
         {
         }
@@ -30,5 +30,8 @@ namespace Helion.World.Special.Specials
             if (player.Health <= 10)
                 m_world.ExitLevel(LevelChangeType.Next);
         }
+
+        public override SectorDamageSpecial Copy(Sector sector) =>
+            new SectorDamageEndSpecial(m_world, sector, m_damage);
     }
 }

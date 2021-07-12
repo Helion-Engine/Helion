@@ -32,7 +32,7 @@ namespace Helion.World.Special.Specials
 
         public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) : 
             base(world, sector, 0, 0, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), 
-                new SectorSoundData(null, null, Constants.PlatStopSound, null))
+                new SectorSoundData(null, null, Constants.PlatStopSound))
         {
             m_stairDelay = delay;
             m_startZ = Sector.Floor.Z;

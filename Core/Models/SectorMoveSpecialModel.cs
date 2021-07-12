@@ -15,6 +15,8 @@ namespace Helion.Models
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? FloorChange { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? CeilingChange { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SectorDamageSpecialModel? DamageSpecial { get; set; }
         public int StartDirection { get; set; }
 
