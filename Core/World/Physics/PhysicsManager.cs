@@ -180,7 +180,7 @@ namespace Helion.World.Physics
 
                     if (crush != null)
                     {
-                        if (crush.CrushMode == ZDoomCrushMode.Hexen)
+                        if (crush.CrushMode == ZDoomCrushMode.Hexen || crush.Damage == 0)
                         {
                             highestBlockEntity = entity;
                             highestBlockHeight = entity.Height;
