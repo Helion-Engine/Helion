@@ -242,7 +242,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 0;
-                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.Hexen;
+                    argsToMutate.Arg3 = (byte)ZDoomCrushMode.DoomWithSlowDown;
                     return ZDoomLineSpecialType.CeilingCrushStayDown;
 
                 case VanillaLineSpecialType.W1_RaiseCeilingToHighestAdjacentCeiling:
