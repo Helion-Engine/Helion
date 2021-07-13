@@ -11,6 +11,7 @@ namespace Helion.Models
         public int MoveType { get; set; }
         public int Repetion { get; set; }
         public double Speed { get; set; }
+        public double ReturnSpeed { get; set; }
         public int Delay { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? FloorChange { get; set; }

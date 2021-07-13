@@ -122,7 +122,7 @@ namespace Helion.World
             SoundManager = new WorldSoundManager(this, audioSystem, archiveCollection);
             EntityManager = new EntityManager(this, archiveCollection, SoundManager);
             PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
-            SpecialManager = new SpecialManager(this, archiveCollection.Definitions, m_random);
+            SpecialManager = new SpecialManager(this, m_random);
 
             if (worldModel == null)
             {

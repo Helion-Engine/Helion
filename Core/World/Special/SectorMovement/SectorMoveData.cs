@@ -7,6 +7,7 @@ namespace Helion.World.Special.SectorMovement
         public readonly SectorPlaneType SectorMoveType;
         public readonly MoveRepetition MoveRepetition;
         public readonly double Speed;
+        public readonly double ReturnSpeed;
         public readonly int Delay;
         public readonly CrushData? Crush;
         public readonly int? FloorChangeTextureHandle;
@@ -18,7 +19,8 @@ namespace Helion.World.Special.SectorMovement
             double speed, int delay, CrushData? crush = null,
             int? floorChangeTextureHandle = null,
             int? ceilingChangeTextureHandle = null,
-            SectorDamageSpecial? damageSpecial = null)
+            SectorDamageSpecial? damageSpecial = null,
+            double? returnSpeed = null)
         {
             SectorMoveType = moveType;
             StartDirection = startDirection;
@@ -29,6 +31,7 @@ namespace Helion.World.Special.SectorMovement
             FloorChangeTextureHandle = floorChangeTextureHandle;
             CeilingChangeTextureHandle = ceilingChangeTextureHandle;
             DamageSpecial = damageSpecial;
+            ReturnSpeed = returnSpeed ?? speed;
         }
     }
 }

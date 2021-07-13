@@ -6,12 +6,10 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
-using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -34,20 +32,26 @@ namespace Helion.World.Special
         {
             // This speed is already translated into map units - 64 * 0.125 = 8
             if (speed >= 8)
-                return new SectorSoundData(reverse ? Constants.DoorCloseFastSound : Constants.DoorOpenFastSound, 
-                    reverse ? Constants.DoorOpenFastSound : Constants.DoorCloseFastSound, null);
+                return reverse ? DoorFastSoundReverse : DoorFastSound;
             else
-                return new SectorSoundData(reverse ? Constants.DoorCloseSlowSound : Constants.DoorOpenSlowSound, 
-                    reverse ? Constants.DoorOpenSlowSound : Constants.DoorCloseSlowSound, null);
+                return reverse ? DoorSlowSoundReverse : DoorSlowSound;
         }
 
-        private static SectorSoundData GetDefaultSectorSound() => new SectorSoundData(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
-        private static SectorSoundData GetLiftSound() => new SectorSoundData(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
-        private static SectorSoundData GetPlatUpSound() => new SectorSoundData(null, Constants.PlatStartSound, Constants.PlatStopSound, Constants.PlatMoveSound);
-        private static SectorSoundData GetCrusherSound(bool repeat = true) => new SectorSoundData(null, null, repeat ? null : Constants.PlatStopSound, Constants.PlatMoveSound);
-        private static SectorSoundData GetSilentCrusherSound() => new SectorSoundData(null, null, Constants.PlatStopSound);
+        private static readonly SectorSoundData DoorFastSound = new(Constants.DoorOpenFastSound, Constants.DoorCloseFastSound, null);
+        private static readonly SectorSoundData DoorFastSoundReverse = new(Constants.DoorCloseFastSound, Constants.DoorOpenFastSound, null);
+        private static readonly SectorSoundData DoorSlowSound = new(Constants.DoorOpenSlowSound, Constants.DoorCloseSlowSound, null);
+        private static readonly SectorSoundData DoorSlowSoundReverse = new(Constants.DoorCloseSlowSound, Constants.DoorOpenSlowSound, null);
+        private static readonly SectorSoundData DefaultSound = new(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static readonly SectorSoundData LiftSound = new(Constants.PlatStartSound, Constants.PlatStartSound, Constants.PlatStopSound);
+        private static readonly SectorSoundData PlatSound = new(null, Constants.PlatStartSound, Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static readonly SectorSoundData CrusherSoundNoRepeat = new(null, null, Constants.PlatStopSound, Constants.PlatMoveSound);
+        private static readonly SectorSoundData CrusherSoundRepeat = new(null, null, null, Constants.PlatMoveSound);
+        private static readonly SectorSoundData SilentCrusherSound = new(null, null, Constants.PlatStopSound);
+        private static readonly SectorSoundData NoSound = new();
+        private const int DefaultCrushLip = 8;
+        private const double CrushReturnFactor = 0.5;
 
-        public SpecialManager(WorldBase world, DefinitionEntries definition, IRandom random)
+        public SpecialManager(WorldBase world, IRandom random)
         {
             m_world = world;
             m_random = random;
@@ -125,14 +129,14 @@ namespace Helion.World.Special
         {
             sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
-                new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
         {
             double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true);
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultSound);
         }
 
         public void Tick()
@@ -201,7 +205,7 @@ namespace Helion.World.Special
         {
             double destZ = GetDestZ(sector, dest);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), GetLiftSound());
+                MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), LiftSound);
         }
 
         public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
@@ -242,13 +246,13 @@ namespace Helion.World.Special
             if (adjust != 0)
                 destZ = destZ + adjust - 128;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
@@ -258,8 +262,8 @@ namespace Helion.World.Special
 
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, 
-                damageSpecial: damageSpecial), 
-                GetDefaultSectorSound());
+                damageSpecial: damageSpecial),
+                DefaultSound);
         }
 
         private bool GetNumericModelChange(Sector sector, SectorPlaneType planeType, 
@@ -355,7 +359,7 @@ namespace Helion.World.Special
                 floorChangeTextureHandle: floorChangeTexture,
                 ceilingChangeTextureHandle: ceilingChangeTexture,
                 damageSpecial: damageSpecial),
-                GetDefaultSectorSound());
+                DefaultSound);
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -364,39 +368,39 @@ namespace Helion.World.Special
             // Need to include this sector's height in the check so the floor doesn't run through the ceiling
             double destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture), GetDefaultSectorSound());
+                MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture), DefaultSound);
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateCeilingLowerSpecial(Sector sector, int amount, double speed)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Down, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateCeilingRaiseSpecial(Sector sector, int amount, double speed)
         {
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorPlaneType.Ceiling,
-                MoveDirection.Up, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
@@ -427,7 +431,7 @@ namespace Helion.World.Special
             }
 
             return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                dir, MoveRepetition.Perpetual, speed, delay), GetLiftSound());
+                dir, MoveRepetition.Perpetual, speed, delay), LiftSound);
         }
 
         public ISpecial CreateSectorMoveSpecial(Sector sector, SectorPlane plane, SectorPlaneType moveType, double speed, double destZ, int negative)
@@ -437,7 +441,7 @@ namespace Helion.World.Special
             
             MoveDirection dir = destZ > plane.Z ? MoveDirection.Up : MoveDirection.Down;
             return new SectorMoveSpecial(m_world, sector, plane.Z, destZ, new SectorMoveData(moveType,
-                dir, MoveRepetition.None, speed, 0), GetDefaultSectorSound());
+                dir, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
         public ISpecial CreateStairSpecial(Sector sector, double speed, int height, int delay, bool crush)
@@ -728,6 +732,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.GenericCeiling:
                     return CreateGenericPlaneSpecial(sector, line, SectorPlaneType.Ceiling);
 
+                case ZDoomLineSpecialType.GenericCrusher:
+                    return CreateGenericCrusherSpecial(sector, line);
+
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
 
@@ -835,15 +842,15 @@ namespace Helion.World.Special
                     return CreateCeilingCrusherSpecial(sector, line.Args.Arg1, line.Args.Arg2 * SpeedFactor, line.Args.Arg3, (ZDoomCrushMode)line.Args.Arg4);
 
                 case ZDoomLineSpecialType.CeilingCrushRaiseAndLower:
-                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg2, 0.5));
+                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2, CrushReturnFactor));
 
                 case ZDoomLineSpecialType.CeilingCrushStayDown:
-                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg2, 0.5), 
+                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2), 
                         MoveRepetition.None);
 
                 case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
-                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg2, 0.5), 
-                        silent: true);
+                    return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg3), 
+                        silent: true, returnSpeed: line.Args.Arg2 * SpeedFactor);
 
                 case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                     return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
@@ -895,7 +902,7 @@ namespace Helion.World.Special
         {
             double destZ = sector.Floor.Z + height * 8;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
-                MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), GetPlatUpSound());
+                MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), PlatSound);
         }
 
         private ISpecial? CreateGenericDoorSpecial(Sector sector, Line line)
@@ -965,6 +972,19 @@ namespace Helion.World.Special
             return CreatePlaneSpecial(sector, planeType, line, start, dest, amount, speed, (ZDoomGenericFlags)line.Args.Arg4);
         }
 
+        private ISpecial? CreateGenericCrusherSpecial(Sector sector, Line line)
+        {
+            double downSpeed = line.Args.Arg1 * SpeedFactor;
+            double upSpeed = line.Args.Arg2 * SpeedFactor;
+            bool silent = line.Args.Arg3 != 0;
+            double destZ = sector.Floor.Z + DefaultCrushLip;
+            // Note: The vanilla silent crusher still plays a stop sound when it hit it's dest, this is completely silent
+            SectorSoundData soundData = silent ? NoSound : CrusherSoundRepeat;
+            return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down,
+                MoveRepetition.Perpetual, downSpeed, 0, new CrushData(ZDoomCrushMode.DoomWithSlowDown, line.Args.Arg4), returnSpeed: upSpeed), 
+                soundData);
+        }
+
         private static int GetOtics(int value) => value * 35 / 8;
 
         private static ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0) =>
@@ -977,30 +997,30 @@ namespace Helion.World.Special
             sector.SectorDamageSpecial = null;
 
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, GetDefaultSectorSound());
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultSound);
         }
 
         private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZDoomCrushMode crushMode)
         {
             double destZ = sector.Floor.Z + dist;
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down, 
-                MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound());
+                MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)), CrusherSoundRepeat);
         }
 
         private ISpecial CreateCeilingCrusherSpecial(Sector sector, double speed, CrushData crushData, MoveRepetition repetition = MoveRepetition.Perpetual,
-            bool silent = false)
+            bool silent = false, double? returnSpeed = null)
         {
-            double destZ = sector.Floor.Z + 8;
-            SectorSoundData sectorSoundData = silent ? GetSilentCrusherSound() : GetCrusherSound();
+            double destZ = sector.Floor.Z + DefaultCrushLip;
+            SectorSoundData sectorSoundData = silent ? SilentCrusherSound : CrusherSoundRepeat;
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down,
-                repetition, speed, 0, crushData), sectorSoundData);
+                repetition, speed, 0, crushData, returnSpeed: returnSpeed), sectorSoundData);
         }
 
         private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
         {
-            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - 8;
+            double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DefaultCrushLip;
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, 
-                MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), GetCrusherSound(false));
+                MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), CrusherSoundNoRepeat);
         }
 
         private void HandleFloorDonut(Line line, Sector sector)
