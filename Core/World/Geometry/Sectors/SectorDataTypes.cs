@@ -10,6 +10,7 @@ namespace Helion.World.Geometry.Sectors
         Light = 4,
         FloorTexture = 8,
         CeilingTexture = 16,
-        SectorSpecialType = 32
+        SectorSpecialType = 32,
+        MovementLocked = 64
     }
 }

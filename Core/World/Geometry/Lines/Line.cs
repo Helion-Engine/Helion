@@ -19,7 +19,7 @@ namespace Helion.World.Geometry.Lines
         public readonly Side Front;
         public readonly Side? Back;
         public readonly Side[] Sides;
-        public SpecialArgs Args { get; set; }
+        public SpecialArgs Args;
         public LineFlags Flags { get; set; }
         public LineSpecial Special { get; set; }
         public bool Activated { get; private set; }
@@ -86,6 +86,9 @@ namespace Helion.World.Geometry.Lines
                     lineModel.Back = ToSideModel(Back);
             }
 
+            if (DataChanges.HasFlag(LineDataTypes.Args))
+                lineModel.Args = Args;
+
             return lineModel;
         }
 
@@ -102,6 +105,9 @@ namespace Helion.World.Geometry.Lines
                 if (Back != null && lineModel.Back != null && lineModel.Back.DataChanges > 0)
                     ApplySideModel(Back, lineModel.Back);
             }
+
+            if (DataChanges.HasFlag(LineDataTypes.Args) && lineModel.Args.HasValue)
+                Args = lineModel.Args.Value;
         }
 
         private static void ApplySideModel(Side side, SideModel sideModel)

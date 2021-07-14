@@ -618,7 +618,7 @@ namespace Helion.World.Special
                         continue;
                     }
 
-                    if (CreateSectorSpecial(args, special, sector))
+                    if (!sector.DataChanges.HasFlag(SectorDataTypes.MovementLocked) && CreateSectorSpecial(args, special, sector))
                         success = true;
                 }
             }
@@ -734,6 +734,9 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.GenericCrusher:
                     return CreateGenericCrusherSpecial(sector, line);
+
+                case ZDoomLineSpecialType.StairsGeneric:
+                    return CreateGenericStairsSpecial(sector, line);
 
                 case ZDoomLineSpecialType.DoorOpenClose:
                     return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
@@ -983,6 +986,26 @@ namespace Helion.World.Special
             return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Down,
                 MoveRepetition.Perpetual, downSpeed, 0, new CrushData(ZDoomCrushMode.DoomWithSlowDown, line.Args.Arg4), returnSpeed: upSpeed), 
                 soundData);
+        }
+
+        private ISpecial? CreateGenericStairsSpecial(Sector sector, Line line)
+        {
+            double speed = line.Args.Arg1 * SpeedFactor;
+            if (speed == 0)
+                return null;
+
+            MoveDirection direction = (line.Args.Arg3 & 1) == 0 ? MoveDirection.Down : MoveDirection.Up;
+            bool ignoreTexture = (line.Args.Arg3 & 2) != 0;
+
+            // Flip movement direction for next activation
+            if (line.Flags.Repeat)
+            {
+                line.Args.Arg3 ^= 1;
+                line.DataChanges |= LineDataTypes.Args;
+            }
+
+            return new StairSpecial(m_world, sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, 0, false,
+                    direction, line.Args.Arg4, ignoreTexture);
         }
 
         private static int GetOtics(int value) => value * 35 / 8;
