@@ -12,6 +12,7 @@ namespace Helion.Models
         public double StartZ { get; set; }
         public int Destroy { get; set; }
         public int DelayTics { get; set; }
+        public int ResetTics { get; set; }
         public bool Crush { get; set; }
         public IList<int> SectorIds { get; set; } = Array.Empty<int>();
         public IList<int> Heights { get; set; } = Array.Empty<int>();

@@ -9,6 +9,8 @@ namespace Helion.World.Special.SectorMovement
         public readonly int Damage;
         public readonly double ReturnFactor;
 
+        public static readonly CrushData Default = new(ZDoomCrushMode.DoomWithSlowDown, 10);
+
         public CrushData(ZDoomCrushMode crushMode, int damage, double returnFactor = 1.0)
         {
             CrushMode = crushMode;

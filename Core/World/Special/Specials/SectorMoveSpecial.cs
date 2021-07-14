@@ -1,5 +1,4 @@
 ﻿using System;
-using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
@@ -28,6 +27,7 @@ namespace Helion.World.Special.Specials
         private readonly double m_maxZ;
         private MoveDirection m_direction;
         private double m_speed;
+        private readonly double[] m_speeds = new double[2];
         private bool m_crushing;
         private bool m_playedReturnSound;
         private bool m_playedStartSound;
@@ -50,7 +50,8 @@ namespace Helion.World.Special.Specials
             DestZ = dest;
 
             m_direction = MoveData.StartDirection;
-            m_speed = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;
+            InitSpeeds();
+            m_speed = m_speeds[0];
 
             m_minZ = Math.Min(m_startZ, DestZ);
             m_maxZ = Math.Max(m_startZ, DestZ);
@@ -63,8 +64,12 @@ namespace Helion.World.Special.Specials
             Sector = sector;
             m_world = world;
             MoveData = new SectorMoveData((SectorPlaneType)model.MoveType, (MoveDirection)model.StartDirection, 
-                (MoveRepetition)model.Repetion, model.Speed, model.Delay, FromCrushDataModel(model.Crush), model.FloorChange, 
-                model.DamageSpecial?.ToWorldSpecial(world));
+                (MoveRepetition)model.Repetion, model.Speed, model.Delay, 
+                crush: FromCrushDataModel(model.Crush), 
+                floorChangeTextureHandle: model.FloorChange, 
+                ceilingChangeTextureHandle: model.CeilingChange, 
+                damageSpecial: model.DamageSpecial?.ToWorldSpecial(world),
+                returnSpeed: model.ReturnSpeed);
             SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
             SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = model.StartZ;
@@ -80,6 +85,18 @@ namespace Helion.World.Special.Specials
             IsPaused = model.Paused;
 
             Sector.ActiveMoveSpecial = this;
+            InitSpeeds();
+            if (SoundData.MovementSound != null)
+                CreateSound(SoundData.MovementSound, true);
+        }
+
+        private void InitSpeeds()
+        {
+            m_speeds[0] = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;
+            m_speeds[1] = MoveData.StartDirection == MoveDirection.Up ? -MoveData.ReturnSpeed : MoveData.ReturnSpeed;
+
+            if (MoveData.Crush != null)
+                m_speeds[1] *= MoveData.Crush.ReturnFactor;
         }
 
         public virtual ISpecialModel ToSpecialModel()
@@ -90,6 +107,7 @@ namespace Helion.World.Special.Specials
                 MoveType = (int)MoveData.SectorMoveType,
                 Repetion = (int)MoveData.MoveRepetition,
                 Speed = MoveData.Speed,
+                ReturnSpeed = MoveData.ReturnSpeed,
                 Delay = MoveData.Delay,
                 FloorChange = MoveData.FloorChangeTextureHandle,
                 StartDirection = (int)MoveData.StartDirection,
@@ -151,18 +169,20 @@ namespace Helion.World.Special.Specials
                 return SpecialTickStatus.Continue;
             }
 
+            CheckPlaySound();
+
             double destZ = CalculateDestination();
             PerformAndHandleMoveZ(destZ);
 
-            PlaySound();
+            CheckPlaySound();
 
             if (SectorPlane.Z == DestZ && IsNonRepeat)
             {
                 if (MoveData.FloorChangeTextureHandle != null)
-                {
-                    Sector.SectorDamageSpecial = null;
                     Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value);
-                }
+
+                if (MoveData.CeilingChangeTextureHandle != null)
+                    Sector.Ceiling.SetTexture(MoveData.CeilingChangeTextureHandle.Value);
 
                 if (MoveData.DamageSpecial != null)
                     Sector.SectorDamageSpecial = MoveData.DamageSpecial;
@@ -188,13 +208,12 @@ namespace Helion.World.Special.Specials
             SectorPlane.PrevZ = SectorPlane.Z;
         }
 
-        private void PlaySound()
+        private void CheckPlaySound()
         {
             if (SectorPlane.Z == DestZ)
             {
                 if (SoundData.StopSound != null)
-                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.StopSound, SoundChannelType.Auto, 
-                        DataCache.Instance.GetSoundParams(Sector));
+                    CreateSound(SoundData.StopSound);
                 return;
             }
 
@@ -202,27 +221,35 @@ namespace Helion.World.Special.Specials
             {
                 m_playedStartSound = true;
                 if (SoundData.StartSound != null)
-                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.StartSound, SoundChannelType.Auto, 
-                        DataCache.Instance.GetSoundParams(Sector));
+                    CreateSound(SoundData.StartSound);
                 if (SoundData.MovementSound != null)
-                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.MovementSound, SoundChannelType.Auto, 
-                        DataCache.Instance.GetSoundParams(Sector, true));
+                    CreateSound(SoundData.MovementSound, true);
             }
 
             if (m_direction != MoveData.StartDirection && !m_playedReturnSound)
             {
                 m_playedReturnSound = true;
                 if (SoundData.ReturnSound != null)
-                    m_world.SoundManager.CreateSoundOn(Sector, SoundData.ReturnSound, SoundChannelType.Auto, 
-                        DataCache.Instance.GetSoundParams(Sector));
+                    CreateSound(SoundData.ReturnSound);
             }
+        }
+
+        private void CreateSound(string sound, bool loop = false)
+        {
+            m_world.SoundManager.CreateSoundOn(Sector, sound, SoundChannelType.Auto,
+                DataCache.Instance.GetSoundParams(Sector, loop));
+        }
+
+        private void StopSound(string sound)
+        {
+            m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, sound);
         }
 
         public virtual void FinalizeDestroy()
         {
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
+                StopSound(SoundData.MovementSound);
         }
 
         public virtual void Use(Entity entity)
@@ -234,15 +261,14 @@ namespace Helion.World.Special.Specials
             IsPaused = true;
             SectorPlane.PrevZ = SectorPlane.Z;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, SoundData.MovementSound);
+                StopSound(SoundData.MovementSound);
         }
 
         public void Resume()
         {
             IsPaused = false;
             if (SoundData.MovementSound != null)
-                m_world.SoundManager.CreateSoundOn(Sector, SoundData.MovementSound, SoundChannelType.Auto, 
-                    DataCache.Instance.GetSoundParams(Sector, true));
+                CreateSound(SoundData.MovementSound, true);
         }
 
         public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Move;
@@ -256,27 +282,15 @@ namespace Helion.World.Special.Specials
 
             m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
             DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
+            int speedIndex = m_direction == MoveData.StartDirection ? 0 : 1;
 
             if (m_direction == MoveData.StartDirection && SoundData.StartSound != null)
                 m_playedStartSound = false;
 
-            if (MoveData.Crush != null)
-            {
-                if (m_direction == MoveDirection.Up)
-                    m_speed = -MoveData.Speed * MoveData.Crush.ReturnFactor;
-                else
-                    m_speed = MoveData.Speed;
-            }
-
             if (m_crushing)
-            {
-                m_speed = MoveData.Speed;
                 m_crushing = false;
-            }
-            else
-            {
-                m_speed = -m_speed;
-            }
+
+            m_speed = m_speeds[speedIndex];
         }
 
         private double CalculateDestination()
@@ -305,11 +319,8 @@ namespace Helion.World.Special.Specials
 
                 case SectorMoveStatus.Crush when IsInitCrush:
                     SetSectorDataChange();
-                    // TODO: Can we maybe make this into its own class to avoid the null issue?
-                    if (MoveData.Crush == null)
-                        throw new NullReferenceException("Should never have a null crush component when having a crushing sector");
                     m_crushing = true;
-                    if (MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
+                    if (MoveData.Crush != null && MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
                         m_speed = m_speed < 0 ? -0.1 : 0.1;
                     break;
 

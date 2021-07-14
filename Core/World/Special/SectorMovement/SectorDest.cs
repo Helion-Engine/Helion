@@ -13,5 +13,7 @@
         NextHighestCeiling,
         Floor,
         Ceiling,
+        ShortestLowerTexture,
+        ShortestUpperTexture,
     }
 }
