@@ -30,11 +30,8 @@ namespace Helion.Client
         private readonly Config m_config;
         private readonly bool IgnoreMouseEvents;
         private bool m_disposed;
-
-        /// <summary>
-        /// The window dimensions.
-        /// </summary>
         public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
+        public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
 
         public Window(Config config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(new GameWindowSettings(), MakeNativeWindowSettings(config))

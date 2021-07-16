@@ -1,9 +1,13 @@
-﻿using Helion.Input;
+﻿using System;
+using Helion.Input;
 
 namespace Helion.Layer.New.Worlds
 {
     public class WorldLayer : IGameLayerParent
     {
+        public IntermissionLayer? Intermission { get; private set; } = null;
+        private bool m_disposed;
+
         public void Remove(object layer)
         {
             // TODO
@@ -21,7 +25,19 @@ namespace Helion.Layer.New.Worlds
 
         public void Dispose()
         {
-            // Not used.
+            GC.SuppressFinalize(this);
+            PerformDispose();
+        }
+
+        private void PerformDispose()
+        {
+            if (m_disposed)
+                return;
+            
+            Intermission?.Dispose();
+            Intermission = null;
+
+            m_disposed = true;
         }
     }
 }

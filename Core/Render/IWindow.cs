@@ -12,16 +12,21 @@ namespace Helion.Render
         /// <summary>
         /// The input manager for all of the input on this window.
         /// </summary>
-        public InputManager InputManager { get; }
+        InputManager InputManager { get; }
         
         /// <summary>
         /// The renderer that draws to this window.
         /// </summary>
-        public IRenderer Renderer { get; }
+        IRenderer Renderer { get; }
         
         /// <summary>
         /// The current dimensions of this window.
         /// </summary>
-        public Dimension Dimension { get; }
+        Dimension Dimension { get; }
+
+        /// <summary>
+        /// The current dimension of the framebuffer for the window.
+        /// </summary>
+        Dimension FramebufferDimension { get; }
     }
 }
