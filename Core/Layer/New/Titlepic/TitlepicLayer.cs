@@ -20,7 +20,7 @@ namespace Helion.Layer.New.Titlepic
     public class TitlepicLayer : IGameLayer
     {
         private const string Titlepic = "TITLEPIC";
-        private static Color HalfAlphaBlack = Color.FromArgb(128, 0, 0, 0);
+        private static readonly Color HalfAlphaBlack = Color.FromArgb(128, 0, 0, 0);
         
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Config m_config;
@@ -151,9 +151,9 @@ namespace Helion.Layer.New.Titlepic
         {
             if (m_disposed)
                 return;
-
-            m_disposed = true;
+            
             m_stopwatch.Stop();
+            m_disposed = true;
         }
     }
 }
