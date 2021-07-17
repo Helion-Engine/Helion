@@ -39,9 +39,7 @@ namespace Helion.Render.Legacy
         {
             m_context = context;
         }
-
-        public bool ImageExists(string name) => m_commands.ImageDrawInfoProvider.ImageExists(name);
-
+        
         public void Clear(Color color)
         {
             if (m_context == null)
@@ -96,7 +94,19 @@ namespace Helion.Render.Legacy
             // Not implemented in the legacy renderer.
         }
 
-        public void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
+        public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+        {
+            Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
+        }
+
+        public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+        {
+            Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
+        }
+
+        private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
             float alpha = 1.0f)
         {

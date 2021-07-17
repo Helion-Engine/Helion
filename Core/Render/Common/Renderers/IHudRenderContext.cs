@@ -52,15 +52,23 @@ namespace Helion.Render.Common.Renderers
         
         void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
 
-        void Image(string texture, HudBox? area = null, Vec2I? origin = null, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
+        void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            Align? both = null, Color? color = null, float alpha = 1.0f)
         {
-            Image(texture, out _, area, origin, window, anchor, both, color, alpha);
+            Image(texture, origin, out _, window, anchor, both, color, alpha);
         }
         
-        void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
-            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
-            float alpha = 1.0f);
+        void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            Align? both = null, Color? color = null, float alpha = 1.0f)
+        {
+            Image(texture, area, out _, window, anchor, both, color, alpha);
+        }
+        
+        void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
+        
+        void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft, 
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
 
         void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,

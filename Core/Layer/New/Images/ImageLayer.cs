@@ -29,7 +29,7 @@ namespace Helion.Layer.New.Images
 
             hud.DoomVirtualResolution(() =>
             {
-                hud.Image(Image, origin: (0, 0));
+                hud.Image(Image, (0, 0));
             });
         }
 

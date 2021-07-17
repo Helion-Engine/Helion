@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Resources.Definitions.Intermission
 {
@@ -15,5 +16,7 @@ namespace Helion.Resources.Definitions.Intermission
         public IList<string> Items { get; set; } = Array.Empty<string>();
         public int ItemIndex { get; set; }
         public bool ShouldDraw { get; set; }
+
+        public Vec2I Vector => (X, Y);
     }
 }

@@ -67,7 +67,7 @@ namespace Helion.Render.Legacy.Texture
 
         private SpriteRotation CreateNullSpriteRotation()
         {
-            SpriteRotation spriteFrame = new SpriteRotation(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
+            SpriteRotation spriteFrame = new(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
             spriteFrame.Texture.RenderStore = NullTexture;
             return spriteFrame;
         }

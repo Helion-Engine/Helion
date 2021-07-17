@@ -48,7 +48,7 @@ namespace Helion.Layer.New.EndGame
                 {
                     hud.DoomVirtualResolution(() =>
                     {
-                        hud.Image(TheEndImages[m_theEndImageIndex], origin: m_theEndOffset, window: Align.Center);
+                        hud.Image(TheEndImages[m_theEndImageIndex], m_theEndOffset, Align.Center);
                     });
                 }
             }
@@ -111,7 +111,7 @@ namespace Helion.Layer.New.EndGame
                 if (!hud.Textures.TryGet(image, out var handle))
                     continue;
                 
-                hud.Image(image, origin: (xOffset, 0));
+                hud.Image(image, (xOffset, 0));
                 xOffset -= handle.Dimension.Width;
             }
         }
@@ -135,7 +135,7 @@ namespace Helion.Layer.New.EndGame
             {
                 for (int x = 0; x < repeatX; x++)
                 {
-                    hud.Image(flat, origin: drawCoordinate);
+                    hud.Image(flat, drawCoordinate);
                     drawCoordinate.X += width;
                 }
                 
