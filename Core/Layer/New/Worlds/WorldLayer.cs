@@ -29,6 +29,7 @@ namespace Helion.Layer.New.Worlds
         private readonly IAudioSystem m_audioSystem;
         private readonly GameLayerManager m_parent;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
+        private readonly FpsTracker m_fpsTracker;
         private (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys = {};
         private (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys = {};
         private TickerInfo m_lastTickInfo = new(0, 0);
@@ -36,14 +37,17 @@ namespace Helion.Layer.New.Worlds
         private bool m_drawAutomap;
         private bool m_disposed;
         
+        private Player Player => World.Player;
+        
         public WorldLayer(GameLayerManager parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef)
         {
             m_config = config;
             m_console = console;
             m_archiveCollection = archiveCollection;
             m_audioSystem = audioSystem;
             m_parent = parent;
+            m_fpsTracker = fpsTracker;
             World = world;
             CurrentMap = mapInfoDef;
 
