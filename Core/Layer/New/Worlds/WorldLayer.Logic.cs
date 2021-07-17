@@ -2,15 +2,41 @@
 {
     public partial class WorldLayer
     {
-        private bool AnyLayerObscuring => Parent.ConsoleLayer != null ||
-                                          Parent.MenuLayer != null ||
-                                          Parent.TitlepicLayer != null ||
-                                          Parent.IntermissionLayer != null;
+        private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
+                                          m_parent.MenuLayer != null ||
+                                          m_parent.TitlepicLayer != null ||
+                                          m_parent.IntermissionLayer != null;
         public void RunLogic()
         {
-            if (World == null)
+            TickWorld();
+            HandlePauseOrResume();
+        }
+
+        private void TickWorld()
+        {
+            m_lastTickInfo = m_ticker.GetTickerInfo();
+            int ticksToRun = m_lastTickInfo.Ticks;
+
+            if (ticksToRun <= 0)
                 return;
-            
+
+            World.SetTickCommand(m_tickCommand);
+
+            if (ticksToRun > TickOverflowThreshold)
+            {
+                Log.Warn("Large tick overflow detected (likely due to delays/lag), reducing ticking amount");
+                ticksToRun = 1;
+            }
+
+            while (ticksToRun > 0)
+            {
+                World.Tick();
+                ticksToRun--;
+            }
+        }
+
+        private void HandlePauseOrResume()
+        {
             // If something is on top of our world (such as a menu, or a
             // console) then we should pause it. Likewise, if we're at the
             // top layer, then we should make sure we're not paused (like

@@ -91,7 +91,7 @@ namespace Helion.Layer.New
                 ctx.Viewport(WindowBox);
                 ctx.Scissor(WindowBox);
                 
-                WorldLayer?.Render(renderer);
+                WorldLayer?.Render(ctx);
 
                 ctx.Hud(hudContext, hud =>
                 {

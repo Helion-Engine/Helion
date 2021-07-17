@@ -102,7 +102,7 @@ namespace Helion.Layer.New.Menus
             const int LeftOffset = 64;
             const int RowVerticalPadding = 4;
             const int SelectionOffsetX = 4;
-            const int RowOffsetY = 7; // Vanilla offsets by 7...
+            const int RowOffsetY = 7;
             const int FontSize = 8;
             const string FontName = "SmallFont";
             const string LeftBarName = "M_LSLEFT";
