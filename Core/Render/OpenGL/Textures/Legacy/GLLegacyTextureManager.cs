@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Helion.Geometry;
+using Helion.Render.Common.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using static Helion.Util.Assertion.Assert;
@@ -35,18 +35,11 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             PerformDispose();
         }
 
-        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
-        {
-            // TODO: This is not correct and is only temporary.
-            Texture texture = TextureManager.Instance.GetTexture(name, specificNamespace ?? ResourceNamespace.Global);
-            return texture.Image == null;
-        }
-
-        public bool TryGetImageDimension(string name, out Dimension dimension, ResourceNamespace? specificNamespace = null)
+        public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
             // TODO: This is not correct, and is temporary.
             GLTextureHandle texture = Get(name, specificNamespace ?? ResourceNamespace.Global);
-            dimension = texture.Dimension;
+            handle = texture;
             return true;
         }
 

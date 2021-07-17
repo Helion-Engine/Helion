@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Render.Common.Textures;
 
 namespace Helion.Render.OpenGL.Textures
@@ -13,15 +14,17 @@ namespace Helion.Render.OpenGL.Textures
         public int Index { get; }
         public Box2I Area { get; }
         public Box2F UV { get; }
+        public Vec2I Offset { get; }
         public Dimension Dimension => Area.Dimension;
         public readonly GLTexture Texture;
 
-        public GLTextureHandle(int index, Box2I area, Box2F uv, GLTexture texture)
+        public GLTextureHandle(int index, Box2I area, Box2F uv, Vec2I offset, GLTexture texture)
         {
             Index = index;
             Texture = texture;
             Area = area;
             UV = uv;
+            Offset = offset;
         }
     }
 }

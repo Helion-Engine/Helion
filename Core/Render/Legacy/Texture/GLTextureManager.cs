@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Shared;
 using Helion.Resources;
@@ -76,21 +77,11 @@ namespace Helion.Render.Legacy.Texture
             FailedToDispose(this);
             Dispose();
         }
-        
-        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
-        {
-            return TryGet(name, specificNamespace ?? ResourceNamespace.Global, out _);
-        }
 
-        public bool TryGetImageDimension(string name, out Dimension dimension, ResourceNamespace? specificNamespace = null)
+        public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
-            if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out var texture))
-            {
-                dimension = texture.Dimension;
-                return true;
-            }
-
-            dimension = (1, 1);
+            // TODO: Convert everything else to use this...
+            handle = null;
             return false;
         }
 

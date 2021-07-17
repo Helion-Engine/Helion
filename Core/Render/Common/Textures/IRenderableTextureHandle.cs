@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Common.Textures
 {
@@ -37,5 +38,10 @@ namespace Helion.Render.Common.Textures
         /// The dimension of the image. This is a shortcut for the area.
         /// </summary>
         Dimension Dimension { get; }
+
+        /// <summary>
+        /// The offset that was used in the image this was built from.
+        /// </summary>
+        Vec2I Offset { get; }
     }
 }

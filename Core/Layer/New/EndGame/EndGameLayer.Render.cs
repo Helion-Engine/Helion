@@ -30,8 +30,8 @@ namespace Helion.Layer.New.EndGame
                 
                 if (TheEndImages.Count > 0)
                 {
-                    if (hud.Textures.TryGetImageDimension(TheEndImages[0], out Dimension dim))
-                        m_theEndOffset.Y = -dim.Height;
+                    if (hud.Textures.TryGet(TheEndImages[0], out var handle))
+                        m_theEndOffset.Y = -handle.Dimension.Height;
                 }
             }
             
@@ -71,8 +71,8 @@ namespace Helion.Layer.New.EndGame
             {
                 m_images = new[] { "PFUB1", "PFUB2" };
                 m_shouldScroll = true;
-                if (hud.Textures.TryGetImageDimension(m_images[0], out Dimension dim))
-                    m_xOffsetStop = dim.Width;
+                if (hud.Textures.TryGet(m_images[0], out var handle))
+                    m_xOffsetStop = handle.Dimension.Width;
             }
             else if (next.EqualsIgnoreCase("EndGame4"))
             {
@@ -108,25 +108,26 @@ namespace Helion.Layer.New.EndGame
             for (int i = 0; i < images.Count; i++)
             {
                 string image = images[i];
-                if (!hud.Textures.TryGetImageDimension(image, out Dimension area))
+                if (!hud.Textures.TryGet(image, out var handle))
                     continue;
                 
                 hud.Image(image, origin: (xOffset, 0));
-                xOffset -= area.Width;
+                xOffset -= handle.Dimension.Width;
             }
         }
         
         private static void DrawBackground(string flat, IHudRenderContext hud)
         {
-            if (!hud.Textures.TryGetImageDimension(flat, out Dimension flatDim, ResourceNamespace.Flats))
+            if (!hud.Textures.TryGet(flat, out var flatHandle, ResourceNamespace.Flats))
                 return;
-            
-            int repeatX = hud.Dimension.Width / flatDim.Width;
-            int repeatY = hud.Dimension.Height / flatDim.Height;
+
+            var (width, height) = flatHandle.Dimension;
+            int repeatX = hud.Dimension.Width / width;
+            int repeatY = hud.Dimension.Height / height;
         
-            if (hud.Dimension.Width % flatDim.Width != 0)
+            if (hud.Dimension.Width % width != 0)
                 repeatX++;
-            if (hud.Dimension.Height % flatDim.Height != 0)
+            if (hud.Dimension.Height % height != 0)
                 repeatY++;
         
             Vec2I drawCoordinate = (0, 0);
@@ -135,11 +136,11 @@ namespace Helion.Layer.New.EndGame
                 for (int x = 0; x < repeatX; x++)
                 {
                     hud.Image(flat, origin: drawCoordinate);
-                    drawCoordinate.X += flatDim.Width;
+                    drawCoordinate.X += width;
                 }
                 
                 drawCoordinate.X = 0;
-                drawCoordinate.Y += flatDim.Height;
+                drawCoordinate.Y += height;
             }
         }
         
