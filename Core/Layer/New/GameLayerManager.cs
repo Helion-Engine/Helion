@@ -12,13 +12,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.New
 {
-    public class GameLayerManager : IGameLayer
+    public class GameLayerManager : IGameLayerParent
     {
-        internal ConsoleLayerNew? ConsoleLayer;
-        internal MenuLayerNew? MenuLayer;
-        internal TitlepicLayerNew? TitlepicLayer;
-        internal IntermissionLayerNew? IntermissionLayer;
-        internal WorldLayer? WorldLayer;
+        internal ConsoleLayerNew? ConsoleLayer { get; private set; }
+        internal MenuLayerNew? MenuLayer { get; private set; }
+        internal TitlepicLayerNew? TitlepicLayer { get; private set; }
+        internal IntermissionLayerNew? IntermissionLayer { get; private set; }
+        internal WorldLayer? WorldLayer { get; private set; }
         private readonly IWindow m_window;
         private bool m_disposed;
         
@@ -33,6 +33,35 @@ namespace Helion.Layer.New
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+        
+        public void Remove(object layer)
+        {
+            if (ReferenceEquals(layer, ConsoleLayer)) 
+            {
+                ConsoleLayer?.Dispose();
+                ConsoleLayer = null;
+            }
+            else if (ReferenceEquals(layer, MenuLayer)) 
+            {
+                MenuLayer?.Dispose();
+                MenuLayer = null;
+            }
+            else if (ReferenceEquals(layer, TitlepicLayer)) 
+            {
+                TitlepicLayer?.Dispose();
+                TitlepicLayer = null;
+            }
+            else if (ReferenceEquals(layer, IntermissionLayer)) 
+            {
+                IntermissionLayer?.Dispose();
+                IntermissionLayer = null;
+            }
+            else if (ReferenceEquals(layer, WorldLayer)) 
+            {
+                WorldLayer?.Dispose();
+                WorldLayer = null;
+            }
         }
         
         public void HandleInput(InputEvent input)
@@ -52,7 +81,7 @@ namespace Helion.Layer.New
             IntermissionLayer?.RunLogic();
             WorldLayer?.RunLogic();
         }
-        
+
         public void Render(IRenderer renderer)
         {
             renderer.DefaultSurface.Render(ctx =>

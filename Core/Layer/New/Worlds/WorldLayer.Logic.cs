@@ -8,7 +8,7 @@
                                           Parent.IntermissionLayer != null;
         public void RunLogic()
         {
-            if (World == null) 
+            if (World == null)
                 return;
             
             // If something is on top of our world (such as a menu, or a

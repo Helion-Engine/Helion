@@ -13,12 +13,12 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValueDouble MoveBob = new(1.0);
 
         [ConfigInfo("Amount to scale minimal hud.")]
-        public readonly ConfigValueDouble Scale = new ConfigValueDouble(2.0, 0.0);
+        public readonly ConfigValueDouble Scale = new(2.0, 0.0);
 
         [ConfigInfo("Amount to scale automap.", save: false)]
-        public readonly ConfigValueDouble AutoMapScale = new ConfigValueDouble(1.0, 0.1, 10.0);
+        public readonly ConfigValueDouble AutoMapScale = new(1.0, 0.1, 10.0);
 
-        public readonly ConfigValueInt AutoMapOffsetX = new ConfigValueInt(0);
-        public readonly ConfigValueInt AutoMapOffsetY = new ConfigValueInt(0);
+        public readonly ConfigValueInt AutoMapOffsetX = new();
+        public readonly ConfigValueInt AutoMapOffsetY = new();
     }
 }
