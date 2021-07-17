@@ -1,28 +1,50 @@
-﻿using Helion.Input;
-using Helion.Render.Common.Renderers;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using Helion.Audio.Sounds;
+using Helion.Menus;
+using Helion.Menus.Impl;
+using Helion.Resources.Archives.Collection;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
+using Helion.World.Save;
 
 namespace Helion.Layer.New.Menus
 {
-    public class MenuLayerNew : IGameLayer
+    public partial class MenuLayerNew : IGameLayer
     {
-        public void HandleInput(InputEvent input)
-        {
-            // TODO
-        }
+        private readonly GameLayerManager m_parent;
+        private readonly ArchiveCollection m_archiveCollection;
+        private readonly Stack<Menu> m_menus = new();
+        private readonly SoundManager m_soundManager;
+        private readonly Stopwatch m_stopwatch = new();
+        private bool m_disposed;
 
+        public MenuLayerNew(GameLayerManager parent, Config config, HelionConsole console, 
+            ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager)
+        {
+            m_parent = parent;
+            m_archiveCollection = archiveCollection;
+            m_soundManager = soundManager;
+            m_stopwatch.Start();
+
+            // TODO: This is going to be an invasive change for the first arg...
+            MainMenu mainMenu = new(null!, config, console, soundManager, archiveCollection, saveGameManager);
+            m_menus.Push(mainMenu);
+        }
+        
         public void RunLogic()
         {
-            // TODO
+            // No logic.
         }
-
-        public void Render(IHudRenderContext hud)
-        {
-            // TODO
-        }
-
+        
         public void Dispose()
         {
-            // Not used.
+            if (m_disposed)
+                return;
+            
+            m_menus.Clear();
+
+            m_disposed = true;
         }
     }
 }
