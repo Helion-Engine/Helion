@@ -1,26 +1,19 @@
 ﻿using System;
-using Helion.Input;
 
 namespace Helion.Layer.New.Worlds
 {
-    public class WorldLayer : IGameLayerParent
+    public partial class WorldLayer : IGameLayerParent
     {
-        public IntermissionLayer? Intermission { get; private set; } = null;
+        public IntermissionLayer? Intermission { get; private set; }
         private bool m_disposed;
 
         public void Remove(object layer)
         {
-            // TODO
-        }
-
-        public void HandleInput(InputEvent input)
-        {
-            // TODO
-        }
-
-        public void RunLogic()
-        {
-            // TODO
+            if (ReferenceEquals(layer, Intermission))
+            {
+                Intermission?.Dispose();
+                Intermission = null;
+            }
         }
 
         public void Dispose()
