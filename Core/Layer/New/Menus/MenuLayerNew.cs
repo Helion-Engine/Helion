@@ -1,8 +1,9 @@
 ﻿using Helion.Input;
+using Helion.Render.Common.Renderers;
 
 namespace Helion.Layer.New.Menus
 {
-    public class MenuLayer : IGameLayer
+    public class MenuLayerNew : IGameLayer
     {
         public void HandleInput(InputEvent input)
         {
@@ -10,6 +11,11 @@ namespace Helion.Layer.New.Menus
         }
 
         public void RunLogic()
+        {
+            // TODO
+        }
+
+        public void Render(IHudRenderContext hud)
         {
             // TODO
         }

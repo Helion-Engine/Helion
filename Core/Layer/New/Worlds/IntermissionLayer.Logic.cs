@@ -7,7 +7,7 @@ using Helion.Util.Extensions;
 
 namespace Helion.Layer.New.Worlds
 {
-    public partial class IntermissionLayer
+    public partial class IntermissionLayerNew
     {
         private bool m_exited;
 

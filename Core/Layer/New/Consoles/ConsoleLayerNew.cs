@@ -5,7 +5,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer.New.Consoles
 {
-    public partial class ConsoleLayerNew : IDisposable
+    public partial class ConsoleLayerNew : IGameLayer
     {
         private readonly HelionConsole m_console;
         private bool m_disposed;
@@ -21,6 +21,11 @@ namespace Helion.Layer.New.Consoles
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+        
+        public void RunLogic()
+        {
+            // Not used.
         }
 
         public void Dispose()

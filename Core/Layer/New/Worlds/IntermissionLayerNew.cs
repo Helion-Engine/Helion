@@ -17,17 +17,17 @@ using NLog;
 
 namespace Helion.Layer.New.Worlds
 {
-    public partial class IntermissionLayer : IGameLayer
+    public partial class IntermissionLayerNew : IGameLayer
     {
         private const int StatAddAmount = 2;
         private const int TimeAddAmount = 3;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly IWorld World;
+        public readonly MapInfoDef CurrentMapInfo;
+        public readonly MapInfoDef? NextMapInfo;
         public int LevelTimeSeconds { get; private set; }
         public int ParTimeSeconds { get; private set; }
-        public MapInfoDef CurrentMapInfo { get; private set; }
-        public MapInfoDef? NextMapInfo { get; private set; }
         public string IntermissionPic { get; private set; }
         public IntermissionDef? IntermissionDef { get; private set; }
         public IntermissionState IntermissionState { get; private set; } = IntermissionState.Started;
@@ -48,7 +48,7 @@ namespace Helion.Layer.New.Worlds
         public double SecretPercent => m_levelPercents.SecretCount;
         private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
         
-        public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, 
+        public IntermissionLayerNew(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer, 
             MapInfoDef currentMapInfo, MapInfoDef? nextMapInfo)
         {
             World = world;

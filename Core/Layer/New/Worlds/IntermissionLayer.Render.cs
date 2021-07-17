@@ -14,7 +14,7 @@ using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.New.Worlds
 {
-    public partial class IntermissionLayer
+    public partial class IntermissionLayerNew
     {
         private const int FontSize = 12;
         private const string Font = "IntermissionFont";

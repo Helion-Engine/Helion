@@ -17,7 +17,7 @@ using Helion.World.Save;
 
 namespace Helion.Layer.New.Titlepic
 {
-    public class TitlepicLayer : IGameLayer
+    public class TitlepicLayerNew : IGameLayer
     {
         private const string Titlepic = "TITLEPIC";
         private static readonly Color HalfAlphaBlack = Color.FromArgb(128, 0, 0, 0);
@@ -37,7 +37,7 @@ namespace Helion.Layer.New.Titlepic
 
         private bool ShouldDarken => false; // TODO: Parent != null && Parent.Contains<MenuLayer>();
         
-        public TitlepicLayer(Config config, HelionConsole console, SoundManager soundManager,
+        public TitlepicLayerNew(Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveGameManager, IAudioSystem audioSystem)
         {
             m_archiveCollection = archiveCollection;

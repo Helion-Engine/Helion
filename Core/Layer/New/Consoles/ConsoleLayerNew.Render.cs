@@ -17,13 +17,14 @@ namespace Helion.Layer.New.Consoles
         private const string FontName = "Console";
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
         private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
-        private static readonly Color BackgroundFade = Color.FromArgb(230, 0, 0, 0);
         private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
         private static bool IsCursorFlashTime => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
         
-        public void Render(IHudRenderContext hud)
+        public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
         {
+            ctx.ClearDepth();
+
             RenderBackground(hud);
             RenderInput(hud, out int inputHeight);
             RenderMessages(hud, inputHeight);

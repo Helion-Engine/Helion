@@ -3,6 +3,9 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Input;
 using Helion.Layer.New.Consoles;
+using Helion.Layer.New.Menus;
+using Helion.Layer.New.Titlepic;
+using Helion.Layer.New.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using static Helion.Util.Assertion.Assert;
@@ -11,8 +14,12 @@ namespace Helion.Layer.New
 {
     public class GameLayerManager : IGameLayer
     {
+        internal ConsoleLayerNew? ConsoleLayer;
+        internal MenuLayerNew? MenuLayer;
+        internal TitlepicLayerNew? TitlepicLayer;
+        internal IntermissionLayerNew? IntermissionLayer;
+        internal WorldLayer? WorldLayer;
         private readonly IWindow m_window;
-        private ConsoleLayerNew? m_consoleLayer;
         private bool m_disposed;
         
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -30,32 +37,39 @@ namespace Helion.Layer.New
         
         public void HandleInput(InputEvent input)
         {
-            m_consoleLayer?.HandleInput(input);
+            ConsoleLayer?.HandleInput(input);
+            MenuLayer?.HandleInput(input);
+            TitlepicLayer?.HandleInput(input);
+            IntermissionLayer?.HandleInput(input);
+            WorldLayer?.HandleInput(input);
         }
         
         public void RunLogic()
         {
-            // To be called when something needs to run logic.
+            ConsoleLayer?.RunLogic();
+            MenuLayer?.RunLogic();
+            TitlepicLayer?.RunLogic();
+            IntermissionLayer?.RunLogic();
+            WorldLayer?.RunLogic();
         }
         
         public void Render(IRenderer renderer)
         {
-            renderer.DefaultSurface.Render(s =>
+            renderer.DefaultSurface.Render(ctx =>
             {
-                // TODO: Stop adding GC pressure...
                 HudRenderContext hudContext = new(m_window.Dimension);
                 
-                s.Viewport(WindowBox);
-                s.Scissor(WindowBox);
+                ctx.Viewport(WindowBox);
+                ctx.Scissor(WindowBox);
                 
-                // TODO: Draw the world.
+                WorldLayer?.Render(renderer);
 
-                s.Hud(hudContext, hud =>
+                ctx.Hud(hudContext, hud =>
                 {
-                    // TODO: Draw the menu.
-                    
-                    s.ClearDepth();
-                    m_consoleLayer?.Render(hud);
+                    IntermissionLayer?.Render(ctx, hud);
+                    TitlepicLayer?.Render(hud);
+                    MenuLayer?.Render(hud);
+                    ConsoleLayer?.Render(ctx, hud);
                 });
             });
         }
@@ -71,8 +85,20 @@ namespace Helion.Layer.New
             if (m_disposed)
                 return;
 
-            m_consoleLayer?.Dispose();
-            m_consoleLayer = null;
+            ConsoleLayer?.Dispose();
+            ConsoleLayer = null;
+            
+            MenuLayer?.Dispose();
+            MenuLayer = null;
+            
+            TitlepicLayer?.Dispose();
+            TitlepicLayer = null;
+            
+            IntermissionLayer?.Dispose();
+            IntermissionLayer = null;
+            
+            WorldLayer?.Dispose();
+            WorldLayer = null;
 
             m_disposed = true;
         }

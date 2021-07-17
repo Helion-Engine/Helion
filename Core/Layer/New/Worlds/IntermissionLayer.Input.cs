@@ -4,7 +4,7 @@ using Helion.Util;
 
 namespace Helion.Layer.New.Worlds
 {
-    public partial class IntermissionLayer
+    public partial class IntermissionLayerNew
     {
         public void HandleInput(InputEvent input)
         {
