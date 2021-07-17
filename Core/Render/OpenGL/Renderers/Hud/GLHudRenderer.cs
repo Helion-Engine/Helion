@@ -215,13 +215,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
         {
             Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
         }
 
         public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f)
         {
             Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
         }
@@ -239,7 +239,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float alpha = 1)
+            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float alpha = 1.0f)
         {
             drawArea = default;
             
