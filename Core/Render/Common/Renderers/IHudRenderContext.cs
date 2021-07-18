@@ -53,44 +53,46 @@ namespace Helion.Render.Common.Renderers
         void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
 
         void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
-            Align? both = null, Color? color = null, float alpha = 1.0f)
+            Align? both = null, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, origin, out _, window, anchor, both, color, alpha);
+            Image(texture, origin, out _, window, anchor, both, color, scale, alpha);
         }
         
         void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
-            Align? both = null, Color? color = null, float alpha = 1.0f)
+            Align? both = null, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, area, out _, window, anchor, both, color, alpha);
+            Image(texture, area, out _, window, anchor, both, color, scale, alpha);
         }
         
         void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
+            float alpha = 1.0f);
         
         void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1.0f);
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
+            float alpha = 1.0f);
 
         void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
-            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f)
+            int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, alpha);
+            Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, scale, alpha);
         }
         
         void Text(ColoredString text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
-            int maxHeight = int.MaxValue, float alpha = 1.0f)
+            int maxHeight = int.MaxValue, float scale = 1.0f, float alpha = 1.0f)
         {
-            Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, alpha);
+            Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, scale, alpha);
         }
         
         void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
-            int maxHeight = int.MaxValue, float alpha = 1.0f);
+            int maxHeight = int.MaxValue, float scale = 1.0f, float alpha = 1.0f);
 
         void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
-            int maxHeight = int.MaxValue, Color? color = null, float alpha = 1.0f);
+            int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
         /// <summary>
         /// See <see cref="PushVirtualDimension"/>. Designed such that it will

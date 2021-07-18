@@ -95,20 +95,22 @@ namespace Helion.Render.Legacy
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null,  float scale = 1.0f, 
+            float alpha = 1.0f)
         {
             Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
         }
 
         public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float alpha = 1)
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null,  float scale = 1.0f,
+            float alpha = 1.0f)
         {
             Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
         }
 
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
-            float alpha = 1.0f)
+            float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
             
@@ -118,13 +120,15 @@ namespace Helion.Render.Legacy
             int x = origin?.X ?? area?.Left ?? 0;
             int y = origin?.Y ?? area?.Bottom ?? 0;
             Dimension dim = m_commands.ImageDrawInfoProvider.GetImageDimension(texture);
+            dim.Scale(scale);
             
             m_commands.DrawImage(texture, x, y, dim.Width, dim.Height, color ?? Color.White, alpha);
         }
 
         public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-            Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float alpha = 1)
+            Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float scale = 1.0f, 
+            float alpha = 1.0f)
         {
             drawArea = default;
             
@@ -145,7 +149,7 @@ namespace Helion.Render.Legacy
         public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null, 
-            float alpha = 1.0f)
+            float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
             
