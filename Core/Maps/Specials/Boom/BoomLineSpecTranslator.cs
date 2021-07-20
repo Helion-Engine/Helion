@@ -50,6 +50,7 @@ namespace Helion.Maps.Specials.Boom
             else if (special <= LockedBase)
             {
                 type = ZDoomLineSpecialType.GenericLift;
+                SetGenericLift(special, lineFlags, ref argsToMutate);
             }
             else if (special <= DoorBase)
             {
@@ -73,14 +74,70 @@ namespace Helion.Maps.Specials.Boom
                 }
 
                 // Arg1 = Speed, Arg2 = Height, Arg3 = Target, Arg4 = Flags
-                argsToMutate.Arg1 = GetPlatSpeed(special);
+                SetGenericPlat(special, ref argsToMutate);
             }
 
             return type;
         }
 
+        private static void SetGenericPlat(ushort special, ref SpecialArgs argsToMutate)
+        {
+            argsToMutate.Arg1 = GetPlatSpeed(special);
+            argsToMutate.Arg3 = ((special & 0x0380) >> 7) + 1;
+            if (argsToMutate.Arg3 > 6)
+            {
+                argsToMutate.Arg2 = 24 + (argsToMutate.Arg3 - 7) * 8;
+                argsToMutate.Arg3 = 0;
+            }
+            
+            argsToMutate.Arg4 = ((special & 0x0c00) >> 10) | ((special & 0x0060) >> 3) | ((special & 0x1000) >> 8);
+        }
+
+        private static void SetGenericLift(ushort special, LineFlags lineFlags, ref SpecialArgs argsToMutate)
+        {
+            // Allows monster activation
+            //if (special & 0x20 != 0)
+
+            switch (special & SpecialSpeedMask)
+            {
+                case 0:
+                    argsToMutate.Arg1 = 16;
+                    break;
+                case 8:
+                    argsToMutate.Arg1 = 32;
+                    break;
+                case 16:
+                    argsToMutate.Arg1 = 64;
+                    break;
+                case 32:
+                    argsToMutate.Arg1 = 128;
+                    break;
+            }
+
+            switch (special & 0xc0)
+            {
+                case 0:
+                    argsToMutate.Arg2 = 0;
+                    break;
+                case 64:
+                    argsToMutate.Arg2 = 24;
+                    break;
+                case 128:
+                    argsToMutate.Arg2 = 40;
+                    break;
+                case 192:
+                    argsToMutate.Arg2 = 80;
+                    break;
+            }
+
+            argsToMutate.Arg3 = ((special & 0x0300) >> 8) + 1;
+        }
+
         private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate)
         {
+            // Allows monster activation
+            //if (special & 0x80)
+
             // Arg1 = Speed, Arg2 = Kind, Arg3 = Delay
             argsToMutate.Arg1 = GetDoorSpeed(special);
             argsToMutate.Arg2 = (special & 0x0020) >> 5;
