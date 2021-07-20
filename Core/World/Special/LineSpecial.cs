@@ -26,6 +26,7 @@ namespace Helion.World.Special
         private readonly bool m_moveSpecial;
         private readonly bool m_sectorStopMoveSpecial;
         private readonly bool m_lightSpecial;
+        private readonly bool m_sectorTriggerSpecial;
         private readonly LineActivationType m_lineActivationType;
 
         public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, null)
@@ -45,6 +46,7 @@ namespace Helion.World.Special
             m_moveSpecial = SetMoveSpecial();
             m_sectorStopMoveSpecial = SetSectorStopSpecial();
             m_lightSpecial = SetLightSpecial();
+            m_sectorTriggerSpecial = SetSectorTriggerSpecial();
         }
 
         public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
@@ -179,6 +181,7 @@ namespace Helion.World.Special
         public bool IsSectorLightSpecial() => m_lightSpecial;
         public bool IsSectorStopLightSpecial() => LineSpecialType == ZDoomLineSpecialType.LightStop;
         public bool MonsterCanUse() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
+        public bool IsSectorTriggerSpecial() => m_sectorTriggerSpecial;
 
         public bool CanActivateDuringSectorMovement()
         {
@@ -298,6 +301,18 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.GenericLift:
                 case ZDoomLineSpecialType.GenericCrusher:
                 case ZDoomLineSpecialType.StairsGeneric:
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool SetSectorTriggerSpecial()
+        {
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.FloorTransferNumeric:
+                case ZDoomLineSpecialType.FloorTransferTrigger:
                     return true;
             }
 

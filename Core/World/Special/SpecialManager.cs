@@ -91,7 +91,8 @@ namespace Helion.World.Special
             var special = args.ActivateLineSpecial.Special;
             bool specialActivateSuccess;
 
-            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial() || special.IsSectorStopMoveSpecial() || special.IsSectorStopLightSpecial())
+            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial() || special.IsSectorStopMoveSpecial() || 
+                special.IsSectorStopLightSpecial() || special.IsSectorTriggerSpecial())
                 specialActivateSuccess = HandleSectorLineSpecial(args, special);
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
@@ -258,48 +259,13 @@ namespace Helion.World.Special
         public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
         {
             double destZ = GetDestZ(sector, sectorDest);
-            GetNumericModelChange(sector, SectorPlaneType.Floor, destZ, out int floorChangeTexture, out SectorDamageSpecial? damageSpecial);
+            TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneType.Floor, destZ, 
+                out int floorChangeTexture, out SectorDamageSpecial? damageSpecial);
 
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneType.Floor,
                 MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, 
                 damageSpecial: damageSpecial),
                 DefaultSound);
-        }
-
-        private bool GetNumericModelChange(Sector sector, SectorPlaneType planeType, 
-            double destZ, out int changeTexture, out SectorDamageSpecial? damageSpecial)
-        {
-            changeTexture = planeType == SectorPlaneType.Floor ? sector.Floor.TextureHandle : sector.Ceiling.TextureHandle;
-            damageSpecial = sector.SectorDamageSpecial;
-            bool found = false;
-            for (int i = 0; i < sector.Lines.Count; i++)
-            {
-                Line line = sector.Lines[i];
-                if (line.Back == null)
-                    continue;
-
-                Sector opposingSector = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
-                if (planeType == SectorPlaneType.Floor && opposingSector.Floor.Z == destZ)
-                {
-                    changeTexture = opposingSector.Floor.TextureHandle;
-                    found = true;
-                }
-                else if (planeType == SectorPlaneType.Ceiling && opposingSector.Ceiling.Z == destZ)
-                {
-                    changeTexture = opposingSector.Ceiling.TextureHandle;
-                    found = true;
-                }
-
-                if (found)
-                {
-                    damageSpecial = opposingSector.SectorDamageSpecial?.Copy(sector);
-                    if (damageSpecial == null)
-                        damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public ISpecial CreatePlaneSpecial(Sector sector, SectorPlaneType planeType, Line line, MoveDirection start, SectorDest sectorDest, 
@@ -325,7 +291,8 @@ namespace Helion.World.Special
             {
                 if (flags.HasFlag(ZDoomGenericFlags.TriggerNumericModel))
                 {
-                    if (GetNumericModelChange(sector, planeType, destZ, out int numericChangeTexture, out SectorDamageSpecial? changeSpecial))
+                    if (TriggerSpecials.GetNumericModelChange(m_world, sector, planeType, destZ, 
+                        out int numericChangeTexture, out SectorDamageSpecial? changeSpecial))
                     {
                         changeTexture = numericChangeTexture;
                         damageSpecial = changeSpecial;
@@ -603,7 +570,8 @@ namespace Helion.World.Special
                 else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
                     args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
                 {
-                    sector.ActiveMoveSpecial.Use(args.Entity);
+                    if (sector.ActiveMoveSpecial.Use(args.Entity))
+                        success = true;
                 }
                 else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
                 {
@@ -621,9 +589,32 @@ namespace Helion.World.Special
                     if (!sector.DataChanges.HasFlag(SectorDataTypes.MovementLocked) && CreateSectorSpecial(args, special, sector))
                         success = true;
                 }
+                else
+                {
+                    if (CreateSectorTriggerSpecial(args, special, sector))
+                        success = true;
+                }
             }
 
             return success;
+        }
+
+        private bool CreateSectorTriggerSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+        {
+            Line line = args.ActivateLineSpecial;
+
+            switch (special.LineSpecialType)
+            {
+                case ZDoomLineSpecialType.FloorTransferNumeric:
+                    TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneType.Floor, PlaneTransferType.Numeric);
+                    return true;
+
+                case ZDoomLineSpecialType.FloorTransferTrigger:
+                    TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneType.Floor, PlaneTransferType.Trigger);
+                    return true;
+            }
+
+            return false;
         }
 
         private bool StopSectorLightSpecials(Sector sector)

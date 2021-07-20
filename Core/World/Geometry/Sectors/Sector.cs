@@ -225,6 +225,15 @@ namespace Helion.World.Geometry.Sectors
         public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
         public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
         public int GetTexture(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
+        public double GetZ(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.Z : Ceiling.Z;
+
+        public void SetTexture(SectorPlaneType planeType, int texture)
+        {
+            if (planeType == SectorPlaneType.Floor)
+                Floor.SetTexture(texture);
+            else
+                Ceiling.SetTexture(texture);
+        }
 
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 

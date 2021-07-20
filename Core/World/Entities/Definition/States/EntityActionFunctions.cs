@@ -2753,12 +2753,12 @@ namespace Helion.World.Entities.Definition.States
             SpecialArgs specialArgs = new();
             var flags = new LineFlags(MapLineFlags.Doom(0));
             var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)entity.Frame.DehackedMisc1, 
-                entity.Frame.DehackedMisc2, ref specialArgs, out LineSpecialCompatibility? compat);
+                entity.Frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility? compat);
 
             if (specialType == ZDoomLineSpecialType.None)
                 return;
 
-            LineSpecial lineSpecial = new LineSpecial(specialType, LineActivationType.Any, compat);
+            LineSpecial lineSpecial = new LineSpecial(specialType, activationType, compat);
             // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
             // Because the same line was reused single activations will be broken with further calls of A_LineEffect
             if (m_dummyLine == null)
