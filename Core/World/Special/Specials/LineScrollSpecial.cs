@@ -127,9 +127,9 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        public void Use(Entity entity)
+        public bool Use(Entity entity)
         {
-            // Not used
+            return false;
         }
     }
 }

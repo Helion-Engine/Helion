@@ -252,8 +252,9 @@ namespace Helion.World.Special.Specials
                 StopSound(SoundData.MovementSound);
         }
 
-        public virtual void Use(Entity entity)
+        public virtual bool Use(Entity entity)
         {
+            return false;
         }
 
         public void Pause()

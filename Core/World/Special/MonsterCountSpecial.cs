@@ -65,9 +65,9 @@ namespace Helion.World.Special
             }
         }
 
-        public void Use(Entity entity)
+        public bool Use(Entity entity)
         {
-            // Not needed
+            return false;
         }
     }
 }

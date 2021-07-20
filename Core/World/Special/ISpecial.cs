@@ -6,7 +6,7 @@ namespace Helion.World.Special
     public interface ISpecial
     {
         SpecialTickStatus Tick();
-        void Use(Entity entity);
+        bool Use(Entity entity);
         void ResetInterpolation() { }
         SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
         ISpecialModel? ToSpecialModel() => null;

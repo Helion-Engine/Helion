@@ -99,8 +99,9 @@ namespace Helion.World.Special.Specials
             return teleportEntity.GetIntersectingEntities3D(teleportSpot.Position, BlockmapTraverseEntityFlags.Solid).Count == 0;
         }
 
-        public void Use(Entity entity)
+        public bool Use(Entity entity)
         {
+            return false;
         }
 
         private Entity? FindTeleportSpot()

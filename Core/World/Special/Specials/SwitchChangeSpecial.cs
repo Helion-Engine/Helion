@@ -78,8 +78,9 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Destroy;
         }
 
-        public void Use(Entity entity)
+        public bool Use(Entity entity)
         {
+            return false;
         }
 
         private static void PlaySwitchSound(WorldSoundManager soundManager, Line line)
