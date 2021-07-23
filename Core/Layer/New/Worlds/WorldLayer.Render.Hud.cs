@@ -175,10 +175,8 @@ namespace Helion.Layer.New.Worlds
                 if (powerup != null && powerup.DrawPowerupEffect)
                     alpha = 0.3f;
                 
-                bool drawInvul = Player.DrawInvulnerableColorMap();
                 offset = TranslateDoomOffset(offset, dimension);
 
-                // TODO: Invulnerability!
                 hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
             });
         }
