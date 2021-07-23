@@ -116,15 +116,26 @@ namespace Helion.Render.Legacy
             
             if (m_context == null)
                 return;
+            
+            window = both ?? window;
+            anchor = both ?? anchor;
 
-            int x = origin?.X ?? area?.Left ?? 0;
-            int y = origin?.Y ?? area?.Bottom ?? 0;
-            Dimension dim = m_commands.ImageDrawInfoProvider.GetImageDimension(texture);
-            dim.Scale(scale);
+            Vec2I location = (origin?.X ?? area?.Left ?? 0, origin?.Y ?? area?.Bottom ?? 0);
+            Dimension drawDim = (0, 0);
+            if (area != null)
+                drawDim = area.Value.Dimension;
+            else if (Textures.TryGet(texture, out var handle))
+                drawDim = handle.Dimension;
             
-            // TODO: What about window? anchor? both?
+            drawDim.Scale(scale);
             
-            m_commands.DrawImage(texture, x, y, dim.Width, dim.Height, color ?? Color.White, alpha);
+            Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawArea.Width, drawArea.Height,
+                window, anchor);
+            
+            m_commands.DrawImage(texture, pos.X, pos.Y, drawDim.Width, drawDim.Height, 
+                color ?? Color.White, alpha, m_context.DrawInvul);
+
+            drawArea = (location, location + drawDim.Vector);
         }
 
         public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
@@ -201,6 +212,44 @@ namespace Helion.Render.Legacy
         public void Dispose()
         {
             // Nothing to do
+        }
+        
+        private Vec2I GetDrawingCoordinateFromAlign(int xOffset, int yOffset, int width, int height,
+            Align windowAlign, Align imageAlign)
+        {
+            Vec2I offset = new Vec2I(xOffset, yOffset);
+            Dimension window = Dimension;
+
+            Vec2I windowPos = windowAlign switch
+            {
+                Align.TopLeft => new Vec2I(0, 0),
+                Align.TopMiddle => new Vec2I(window.Width / 2, 0),
+                Align.TopRight => new Vec2I(window.Width - 1, 0),
+                Align.MiddleLeft => new Vec2I(0, window.Height / 2),
+                Align.Center => new Vec2I(window.Width / 2, window.Height / 2),
+                Align.MiddleRight => new Vec2I(window.Width - 1, window.Height / 2),
+                Align.BottomLeft => new Vec2I(0, window.Height - 1),
+                Align.BottomMiddle => new Vec2I(window.Width / 2, window.Height - 1),
+                Align.BottomRight => new Vec2I(window.Width - 1, window.Height - 1),
+                _ => throw new Exception($"Unsupported window alignment: {windowAlign}")
+            };
+
+            // This is relative to the window position.
+            Vec2I imageOffset = imageAlign switch
+            {
+                Align.TopLeft => -new Vec2I(0, 0),
+                Align.TopMiddle => -new Vec2I(width / 2, 0),
+                Align.TopRight => -new Vec2I(width - 1, 0),
+                Align.MiddleLeft => -new Vec2I(0, height / 2),
+                Align.Center => -new Vec2I(width / 2, height / 2),
+                Align.MiddleRight => -new Vec2I(width - 1, height / 2),
+                Align.BottomLeft => -new Vec2I(0, height - 1),
+                Align.BottomMiddle => -new Vec2I(width / 2, height - 1),
+                Align.BottomRight => -new Vec2I(width - 1, height - 1),
+                _ => throw new Exception($"Unsupported image alignment: {imageAlign}")
+            };
+
+            return windowPos + imageOffset + offset;
         }
     }
 }

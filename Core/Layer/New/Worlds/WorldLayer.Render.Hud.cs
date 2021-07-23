@@ -27,16 +27,12 @@ namespace Helion.Layer.New.Worlds
     public partial class WorldLayer
     {
         private const int DebugFontSize = 16;
-        private const int MaxHudMessages = 4;
         private const int LeftOffset = 1;
         private const int TopOffset = 1;
         private const int MessageSpacing = 1;
         private const int FpsMessageSpacing = 2;
-        private const int FullHudFaceX = 149;
-        private const int FullHudFaceY = 170;
         private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
         private const long FadingNanoSpan = 350L * 1000L * 1000L;
-        private const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
         private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
         private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
         private static readonly string SmallHudFont = "SmallFont";
@@ -56,7 +52,7 @@ namespace Helion.Layer.New.Worlds
 
             DrawFPS(hud, out int topRightY);
             DrawPosition(hud, ref topRightY);
-            DrawBottomHud(hud, topRightY, hudContext.DrawAutomap);
+            DrawBottomHud(hud, topRightY, hudContext);
             DrawHudEffectsDeprecated(hud);
             DrawRecentConsoleMessages(hud);
         }
@@ -113,18 +109,22 @@ namespace Helion.Layer.New.Worlds
             }
         }
         
-        private void DrawBottomHud(IHudRenderContext hud, int topRightY, bool drawAutomap)
+        private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)
         {
-            if (Player.AnimationWeapon != null && !drawAutomap)
+            if (Player.AnimationWeapon != null && !hudContext.DrawAutomap)
             {
+                hudContext.DrawInvul = Player.IsInvulnerable;
+                
                 // Doom pushes the gun sprite up when the status bar is showing
                 int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
                 DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset);
                 if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                     DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset);
+
+                hudContext.DrawInvul = false;
             }
         
-            if (!drawAutomap)
+            if (!hudContext.DrawAutomap)
                 DrawCrosshair(hud);
         
             switch (m_config.Hud.StatusBarSize.Value)
@@ -284,6 +284,8 @@ namespace Helion.Layer.New.Worlds
         
         private void DrawFullStatusBar(IHudRenderContext hud)
         {
+            const int FullHudFaceX = 149;
+            const int FullHudFaceY = 170;
             const string StatusBar = "STBAR";
             const string StatusBackground = "W94_1";
             
@@ -413,6 +415,8 @@ namespace Helion.Layer.New.Worlds
         
         private void DrawRecentConsoleMessages(IHudRenderContext hud)
         {
+            const int MaxHudMessages = 4;
+        
             long currentNanos = Ticker.NanoTime();
             int messagesDrawn = 0;
             int offsetY = TopOffset;
@@ -452,6 +456,8 @@ namespace Helion.Layer.New.Worlds
         
         private static float CalculateFade(long timeSinceMessage)
         {
+            const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
+
             if (timeSinceMessage < OpaqueNanoRange)
                 return 1.0f;
 

@@ -39,7 +39,7 @@ namespace Helion.Layer.New.Worlds
             {
                 ctx.ClearDepth();
                 DrawAutomap(hud);
-                
+
                 ctx.ClearDepth();
                 DrawHud(hudContext, hud);
             });

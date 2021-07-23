@@ -1,4 +1,5 @@
-﻿using Helion.Geometry;
+﻿using System;
+using Helion.Geometry;
 
 namespace Helion.Render.Common.Context
 {
@@ -6,6 +7,9 @@ namespace Helion.Render.Common.Context
     {
         public readonly Dimension Dimension;
         public bool DrawAutomap { get; set; }
+        
+        [Obsolete("Only here as a hack for the old renderer")]
+        public bool DrawInvul { get; set; }
 
         public HudRenderContext(Dimension dimension)
         {
