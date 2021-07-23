@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -10,6 +11,10 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Legacy.Util;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
+using Helion.Util.Consoles;
+using Helion.Util.Extensions;
+using Helion.Util.Timing;
+using Helion.World;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
@@ -52,12 +57,24 @@ namespace Helion.Layer.New.Worlds
             DrawFPS(hud, out int topRightY);
             DrawPosition(hud, ref topRightY);
             DrawBottomHud(hud, topRightY, hudContext.DrawAutomap);
-            // DrawPowerupEffect();
-            // DrawPickupFlash();
-            // DrawDamage();
-            // DrawRecentConsoleMessages();
+            DrawHudEffectsDeprecated(hud);
+            DrawRecentConsoleMessages(hud);
         }
-        
+
+        [Obsolete("Will be moved to a post-processing step in a shader")]
+        private void DrawHudEffectsDeprecated(IHudRenderContext hud)
+        {
+            IPowerup? powerup = Player.Inventory.PowerupEffectColor;
+            if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)
+                hud.Clear(powerup.DrawColor.Value, powerup.DrawAlpha);
+            
+            if (Player.BonusCount > 0)
+                hud.Clear(PickupColor, 0.2f);
+
+            if (Player.DamageCount > 0)
+                hud.Clear(DamageColor, Player.DamageCount * 0.01f);
+        }
+
         private void DrawFPS(IHudRenderContext hud, out int topRightY)
         {
             topRightY = 0;
@@ -267,7 +284,179 @@ namespace Helion.Layer.New.Worlds
         
         private void DrawFullStatusBar(IHudRenderContext hud)
         {
-            // TODO
+            const string StatusBar = "STBAR";
+            const string StatusBackground = "W94_1";
+            
+            hud.DoomVirtualResolution(() =>
+            {
+                if (!hud.Textures.TryGet(StatusBackground, out var backgroundHandle) ||
+                    !hud.Textures.TryGet(StatusBar, out var barHandle))
+                {
+                    return;
+                }
+
+                int xOffset = 0;
+                int yOffset = backgroundHandle.Dimension.Height - barHandle.Dimension.Height;
+                int width = backgroundHandle.Dimension.Width;
+
+                while (xOffset < hud.Width)
+                {
+                    hud.Image(StatusBackground, (xOffset, yOffset), both: Align.BottomLeft);
+                    xOffset += width;
+                }
+            });
+
+            hud.DoomVirtualResolution(() =>
+            {
+                hud.Image(StatusBar, (0, 0), both: Align.BottomLeft);
+                DrawFullHudHealthArmorAmmo(hud);
+                DrawFullHudWeaponSlots(hud);
+                DrawFace(hud, (FullHudFaceX, FullHudFaceY));
+                DrawFullHudKeys(hud);
+                DrawFullTotalAmmo(hud);
+            }, ResolutionScale.Center);
+        }
+
+        private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)
+        {
+            const int OffsetY = 171;
+            const int FontSize = 15;
+            
+            if (Player.Weapon != null && Player.Weapon.Definition.Properties.Weapons.AmmoType == "")
+            {
+                int ammoAmount = Player.Inventory.Amount(Player.Weapon.Definition.Properties.Weapons.AmmoType);
+                string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
+                hud.Text(ammo, LargeHudFont, FontSize, (43, OffsetY), window: Align.TopRight);
+            }
+
+            string health = $"{Math.Clamp(Player.Health, 0, 999)}%";
+            hud.Text(health, LargeHudFont, FontSize, (102, OffsetY), both: Align.TopRight);
+            
+            string armor = $"{Math.Clamp(Player.Armor, 0, 999)}%";
+            hud.Text(armor, LargeHudFont, FontSize, (233, OffsetY), both: Align.TopRight);
+        }
+        
+        private void DrawFullHudWeaponSlots(IHudRenderContext hud)
+        {
+            hud.Image("STARMS", (104, 0), both: Align.BottomLeft);
+
+            for (int slot = 2; slot <= 7; slot++)
+                DrawWeaponNumber(hud, slot);
+        }
+        
+        private void DrawWeaponNumber(IHudRenderContext hud, int slot)
+        {
+            Weapon? weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 0);
+            if (slot == 3 && weapon == null)
+                weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 1);
+
+            string numberImage = (weapon != null ? "STYSNUM" : "STGNUM") + slot;
+
+            hud.Image(numberImage, slot switch
+            {
+                2 => (111, 172),
+                3 => (123, 172),
+                4 => (135, 172),
+                5 => (111, 182),
+                6 => (123, 182),
+                7 => (135, 182),
+                _ => throw new Exception($"Bad slot index: {slot}")
+            });
+        }
+        
+        private void DrawFullHudKeys(IHudRenderContext hud)
+        {
+            const int OffsetX = 239;
+
+            foreach (InventoryItem key in Player.Inventory.GetKeys())
+            {
+                DrawKeyIfOwned(hud, key, "BlueSkull", "BlueCard", OffsetX, 171);
+                DrawKeyIfOwned(hud, key, "YellowSkull", "YellowCard", OffsetX, 181);
+                DrawKeyIfOwned(hud, key, "RedSkull", "RedCard", OffsetX, 191);
+            }
+        }
+        
+        private void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName, 
+            string keyName, int x, int y)
+        {
+            string imageName = key.Definition.Properties.Inventory.Icon;
+
+            foreach (string name in new[] { skullKeyName, keyName })
+            {
+                if (key.Definition.Name.EqualsIgnoreCase(name) && hud.Textures.HasImage(imageName))
+                {
+                    hud.Image(imageName, (x, y));
+                    break;
+                }
+            }
+        }
+        
+        private void DrawFullTotalAmmo(IHudRenderContext hud)
+        {
+            const int FontSize = 6;
+            const string YellowFontName = "HudYellowNumbers";
+
+            bool backpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
+
+            DrawFullTotalAmmoText("Clip", backpack ? 400 : 200, 173);
+            DrawFullTotalAmmoText("Shell", backpack ? 100 : 50, 179);
+            DrawFullTotalAmmoText("RocketAmmo", backpack ? 100 : 50, 185);
+            DrawFullTotalAmmoText("Cell", backpack ? 600 : 300, 191);
+
+            void DrawFullTotalAmmoText(string ammoName, int maxAmmo, int y)
+            {
+                int ammo = Player.Inventory.Amount(ammoName);
+                hud.Text(ammo.ToString(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
+                hud.Text(maxAmmo.ToString(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
+            }
+        }
+        
+        private void DrawRecentConsoleMessages(IHudRenderContext hud)
+        {
+            long currentNanos = Ticker.NanoTime();
+            int messagesDrawn = 0;
+            int offsetY = TopOffset;
+
+            // We want to draw the ones that are less recent at the top first,
+            // so when we iterate and see most recent to least recent, pushing
+            // most recent onto the stack means when we iterate over this we
+            // will draw the later ones at the top. Otherwise if we were to do
+            // forward iteration without the stack, then they get drawn in the
+            // reverse order and fading begins at the wrong end.
+            Stack<(ColoredString message, float alpha)> messages = new();
+            foreach (ConsoleMessage msg in m_console.Messages)
+            {
+                if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, World, m_console))
+                    break;
+
+                long timeSinceMessage = currentNanos - msg.TimeNanos;
+                if (timeSinceMessage > MaxVisibleTimeNanos)
+                    break;
+
+                messages.Push((msg.Message, CalculateFade(timeSinceMessage)));
+                messagesDrawn++;
+            }
+
+            foreach ((ColoredString message, float alpha) in messages)
+            {
+                hud.Text(message, SmallHudFont, 16, (LeftOffset, offsetY),
+                    out Dimension drawArea, window: Align.TopLeft, alpha: alpha);
+                offsetY += drawArea.Height + MessageSpacing;
+            }
+        }
+        
+        private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console)
+        {
+            return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
+        }
+        
+        private static float CalculateFade(long timeSinceMessage)
+        {
+            if (timeSinceMessage < OpaqueNanoRange)
+                return 1.0f;
+
+            double fractionIntoFadeRange = (double)(timeSinceMessage - OpaqueNanoRange) / FadingNanoSpan;
+            return 1.0f - (float)fractionIntoFadeRange;
         }
     }
 }

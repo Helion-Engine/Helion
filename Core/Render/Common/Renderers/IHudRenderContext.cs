@@ -34,7 +34,8 @@ namespace Helion.Render.Common.Renderers
         /// Does not clear the depth or stencil buffer, only does color filling.
         /// </remarks>
         /// <param name="color">The color to fill with.</param>
-        void Clear(Color color);
+        /// <param name="alpha">The alpha value for the color.</param>
+        void Clear(Color color, float alpha = 1.0f);
         
         void Point(Vec2I point, Color color, Align window = Align.TopLeft);
         
@@ -129,9 +130,10 @@ namespace Helion.Render.Common.Renderers
         /// doom resolution.
         /// </summary>
         /// <param name="action">The actions to take in the new resolution.</param>
-        void DoomVirtualResolution(Action action)
+        /// <param name="resolutionScale">The scale to use, by default is none.</param>
+        void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.None)
         {
-            VirtualDimension((320, 200), ResolutionScale.None, action);
+            VirtualDimension((320, 200), resolutionScale, action);
         } 
         
         /// <summary>

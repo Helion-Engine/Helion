@@ -40,13 +40,13 @@ namespace Helion.Render.Legacy
             m_context = context;
         }
         
-        public void Clear(Color color)
+        public void Clear(Color color, float alpha)
         {
             if (m_context == null)
                 return;
 
-            HudBox screen = ((0, 0), m_commands.WindowDimension.Vector);
-            FillBox(screen, color);
+            Dimension dim = m_commands.WindowDimension;
+            m_commands.DrawImage("NULL", 0, 0, dim.Width, dim.Height, color, alpha);
         }
 
         public void Point(Vec2I point, Color color, Align window = Align.TopLeft)
@@ -121,6 +121,8 @@ namespace Helion.Render.Legacy
             int y = origin?.Y ?? area?.Bottom ?? 0;
             Dimension dim = m_commands.ImageDrawInfoProvider.GetImageDimension(texture);
             dim.Scale(scale);
+            
+            // TODO: What about window? anchor? both?
             
             m_commands.DrawImage(texture, x, y, dim.Width, dim.Height, color ?? Color.White, alpha);
         }

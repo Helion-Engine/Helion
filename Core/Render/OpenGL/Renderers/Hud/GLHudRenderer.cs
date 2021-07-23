@@ -65,9 +65,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_currentResolutionInfo = info;
         }
 
-        public void Clear(Color color)
+        public void Clear(Color color, float alpha)
         {
-            DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), color);
+            Color drawColor = Color.FromArgb((int)(alpha / 255.0f), color.R, color.G, color.B);
+            DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), drawColor);
         }
 
         private void AddPoint(Vec2I point, ByteColor color, Align window)
