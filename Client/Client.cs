@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -18,6 +17,7 @@ using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Util.Timing;
 using Helion.World.Save;
 using NLog;
 using OpenTK.Windowing.Common;
@@ -39,6 +39,7 @@ namespace Helion.Client
         private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
         private readonly Window m_window;
+        private readonly FpsTracker m_fpsTracker = new();
         private bool m_disposed;
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
@@ -50,9 +51,9 @@ namespace Helion.Client
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
             m_saveGameManager = new SaveGameManager(config);
-            m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
-            m_window = new Window(config, m_archiveCollection, m_fpsTracker);
-            m_layerManager = new GameLayerManager(m_config, m_window, m_console);
+            m_soundManager = new SoundManager(audioSystem, archiveCollection);
+            m_window = new Window(config, archiveCollection, m_fpsTracker);
+            m_layerManager = new GameLayerManager(config, m_window, console, archiveCollection, m_soundManager, m_saveGameManager);
 
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;

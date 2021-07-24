@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Input;
@@ -11,13 +12,19 @@ using Helion.Layer.Titlepic;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
 {
+    /// <summary>
+    /// Responsible for coordinating input, logic, and rendering calls in order
+    /// for different kinds of layers.
+    /// </summary>
     public class GameLayerManager : IGameLayerParent
     {
         public ConsoleLayer? ConsoleLayer { get; private set; }
@@ -29,6 +36,9 @@ namespace Helion.Layer
         private readonly Config m_config;
         private readonly IWindow m_window;
         private readonly HelionConsole m_console;
+        private readonly ArchiveCollection m_archiveCollection;
+        private readonly SoundManager m_soundManager;
+        private readonly SaveGameManager m_saveGameManager;
         private bool m_disposed;
 
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -37,11 +47,15 @@ namespace Helion.Layer
             ConsoleLayer, MenuLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
         }.WhereNotNull();
 
-        public GameLayerManager(Config config, IWindow window, HelionConsole console)
+        public GameLayerManager(Config config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
+            SoundManager soundManager, SaveGameManager saveGameManager)
         {
             m_config = config;
             m_window = window;
             m_console = console;
+            m_archiveCollection = archiveCollection;
+            m_soundManager = soundManager;
+            m_saveGameManager = saveGameManager;
         }
 
         ~GameLayerManager()
@@ -147,8 +161,11 @@ namespace Helion.Layer
         {
             if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
                 ToggleConsoleLayer(input);
-
             ConsoleLayer?.HandleInput(input);
+
+            if (MenuLayer == null && input.ConsumeKeyPressed(Key.Escape))
+                CreateMenuLayer();
+            
             MenuLayer?.HandleInput(input);
             EndGameLayer?.HandleInput(input);
             TitlepicLayer?.HandleInput(input);
@@ -164,6 +181,12 @@ namespace Helion.Layer
                 Add(new ConsoleLayer(m_console));
             else
                 Remove(ConsoleLayer);
+        }
+
+        private void CreateMenuLayer()
+        {
+            MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
+            Add(menuLayer);
         }
 
         public void RunLogic()
@@ -209,21 +232,14 @@ namespace Helion.Layer
         {
             if (m_disposed)
                 return;
-            
-            ConsoleLayer?.Dispose();
-            MenuLayer?.Dispose();
-            TitlepicLayer?.Dispose();
-            EndGameLayer?.Dispose();
-            IntermissionLayer?.Dispose();
-            WorldLayer?.Dispose();
-            
-            ConsoleLayer = null;
-            MenuLayer = null;
-            TitlepicLayer = null;
-            EndGameLayer = null;
-            IntermissionLayer = null;
-            WorldLayer = null;
-            
+
+            Remove(WorldLayer);
+            Remove(IntermissionLayer);
+            Remove(EndGameLayer);
+            Remove(TitlepicLayer);
+            Remove(MenuLayer);
+            Remove(ConsoleLayer);
+
             m_disposed = true;
         }
     }

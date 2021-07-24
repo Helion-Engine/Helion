@@ -6,7 +6,6 @@ using Helion.Layer.Titlepic;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
-using Helion.Util.Timing;
 using Helion.World.Util;
 
 namespace Helion.Client
@@ -15,7 +14,6 @@ namespace Helion.Client
     {
         private const int StopwatchFrequencyValue = 1000000;
 
-        private readonly FpsTracker m_fpsTracker = new();
         private readonly Stopwatch m_fpsLimit = new();
         private int m_fpsLimitValue;
 
