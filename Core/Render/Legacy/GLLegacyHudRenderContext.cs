@@ -159,9 +159,12 @@ namespace Helion.Render.Legacy
             
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
             RenderableString renderableString = new(text, fontObject, fontSize, legacyAlign, maxWidth);
-            m_commands.DrawText(renderableString, origin.X, origin.Y, 1.0f);
-            
             drawArea = renderableString.DrawArea;
+
+            Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
+                window, anchor);
+            
+            m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
         }
 
         public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
@@ -181,9 +184,12 @@ namespace Helion.Render.Legacy
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
             ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
             RenderableString renderableString = new(coloredString, fontObject, fontSize, legacyAlign, maxWidth);
-            m_commands.DrawText(renderableString, origin.X, origin.Y, 1.0f);
-            
             drawArea = renderableString.DrawArea;
+
+            Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
+                window, anchor);
+            
+            m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
         }
 
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null)
@@ -223,12 +229,7 @@ namespace Helion.Render.Legacy
 
             m_commands.SetVirtualResolution(resolutionInfo);
         }
-        
-        public void Dispose()
-        {
-            // Nothing to do
-        }
-        
+
         private Vec2I GetDrawingCoordinateFromAlign(int xOffset, int yOffset, int width, int height,
             Align windowAlign, Align imageAlign)
         {
@@ -265,6 +266,11 @@ namespace Helion.Render.Legacy
             };
 
             return windowPos + imageOffset + offset;
+        }
+
+        public void Dispose()
+        {
+            // Nothing to do
         }
     }
 }

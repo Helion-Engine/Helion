@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -147,7 +146,7 @@ namespace Helion.Layer
         public void HandleInput(InputEvent input)
         {
             if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
-                ToggleConsoleLayer();
+                ToggleConsoleLayer(input);
 
             ConsoleLayer?.HandleInput(input);
             MenuLayer?.HandleInput(input);
@@ -157,8 +156,10 @@ namespace Helion.Layer
             WorldLayer?.HandleInput(input);
         }
 
-        private void ToggleConsoleLayer()
+        private void ToggleConsoleLayer(InputEvent input)
         {
+            input.ConsumeAll();
+            
             if (ConsoleLayer == null)
                 Add(new ConsoleLayer(m_console));
             else

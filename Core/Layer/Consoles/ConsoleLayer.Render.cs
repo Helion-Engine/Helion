@@ -71,7 +71,12 @@ namespace Helion.Layer.Consoles
 
         private void RenderInput(IHudRenderContext hud, out int inputHeight)
         {
-            hud.Text(m_console.Input, FontName, FontSize, (4, -4), out Dimension drawArea, window: Align.MiddleLeft, anchor: Align.BottomLeft);
+            hud.Text(m_console.Input, FontName, FontSize, (4, -4), out Dimension drawArea, 
+                window: Align.MiddleLeft, anchor: Align.BottomLeft);
+
+            if (drawArea.Height == 0)
+                drawArea.Height = FontSize;
+            
             RenderInputCursorFlash(hud, drawArea);
 
             inputHeight = drawArea.Height;
@@ -83,9 +88,11 @@ namespace Helion.Layer.Consoles
 
             if (!IsCursorFlashTime)
                 return;
-            
-            Vec2I origin = (m_console.Input == "" ? 4 : 6, 0);
+
+            int offsetX = m_console.Input == "" ? 4 : 6;
+            Vec2I origin = (drawArea.Width + offsetX, -4);
             Vec2I dimension = (CaretWidth, drawArea.Height);
+            
             HudBox area = (origin, origin + dimension);
             hud.FillBox(area, InputFlashColor, Align.MiddleLeft, Align.BottomLeft);
         }
