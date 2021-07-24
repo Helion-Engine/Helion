@@ -40,16 +40,25 @@ namespace Helion.Layer.Consoles
         {
             const string ConsoleBackingImage = "CONBACK";
             const string TitlepicImage = "TITLEPIC";
-            const float BackgroundAlpha = 0.95f;
+            const float BackgroundAlpha = 0.65f;
 
-            HudBox drawArea = (0, 0, hud.Width, hud.Height / 2);
-            
+            int halfHeight = hud.Height / 2;
+            HudBox drawArea = (0, -halfHeight, hud.Width, halfHeight);
+
             if (hud.Textures.HasImage(ConsoleBackingImage))
-                hud.Image(ConsoleBackingImage, drawArea, alpha: BackgroundAlpha);
+            {
+                hud.Image(ConsoleBackingImage, drawArea);
+                hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
+            }
             else if (hud.Textures.HasImage(TitlepicImage))
-                hud.Image(TitlepicImage, drawArea, alpha: BackgroundAlpha);
+            {
+                hud.Image(TitlepicImage, drawArea);
+                hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
+            }
             else
-                hud.FillBox(drawArea, Color.Gray);
+            {
+                hud.FillBox((0, 0, hud.Width, hud.Height), Color.Gray);
+            }
         }
 
         private void RenderConsoleDivider(IHudRenderContext hud)

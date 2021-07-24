@@ -295,7 +295,7 @@ namespace Helion.Render.Legacy.Texture
 
         private GLTextureType CreateWhiteTexture()
         {
-            return GenerateTexture(ImageHelper.CreateWhiteImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(ImageHelper.CreateWhiteImage(), "NULLWHITE", ResourceNamespace.Global);
         }
 
         private GLFontTexture<GLTextureType> CreateNullFont()

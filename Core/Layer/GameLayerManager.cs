@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -183,9 +184,9 @@ namespace Helion.Layer
                 ctx.Viewport(WindowBox);
                 ctx.Scissor(WindowBox);
                 ctx.Clear(IRenderer.DefaultBackground, true, true);
-                
-                WorldLayer?.Render(ctx);
 
+                WorldLayer?.Render(ctx);
+                
                 ctx.Hud(hudContext, hud =>
                 {
                     IntermissionLayer?.Render(ctx, hud);

@@ -5,6 +5,7 @@ using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
@@ -47,7 +48,7 @@ namespace Helion.Render.Legacy
                 return;
 
             Dimension dim = m_commands.WindowDimension;
-            m_commands.DrawImage("NULL", 0, 0, dim.Width, dim.Height, color, alpha);
+            m_commands.DrawImage("NULLWHITE", 0, 0, dim.Width, dim.Height, color, alpha);
         }
 
         public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
@@ -85,9 +86,12 @@ namespace Helion.Render.Legacy
             if (m_context == null)
                 return;
             
-            Vec2I pos = box.Min;
+            Vec2I origin = box.Min;
             Dimension dim = box.Dimension;
-            m_commands.DrawImage("NULL", pos.X, pos.Y, dim.Width, dim.Height, color, alpha);
+            Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, dim.Width, dim.Height, window, anchor);
+
+            ImageBox2I imgBox = new(pos, pos + dim.Vector);
+            m_commands.FillRect(imgBox, color, alpha);
         }
 
         public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f)
@@ -96,14 +100,14 @@ namespace Helion.Render.Legacy
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null,  float scale = 1.0f, 
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
             float alpha = 1.0f)
         {
-            Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
+            Image(texture, out drawArea, area, null, window, anchor, both, color, scale, alpha);
         }
 
         public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null,  float scale = 1.0f,
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
             float alpha = 1.0f)
         {
             Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
