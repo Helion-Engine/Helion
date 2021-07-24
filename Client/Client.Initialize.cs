@@ -54,7 +54,7 @@ namespace Helion.Client
 
         private void AddTitlepicIfNoMap()
         {
-            if (m_layerManager.WorldLayer == null) 
+            if (m_layerManager.WorldLayer != null) 
                 return;
 
             TitlepicLayer layer = new(m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_audioSystem);
