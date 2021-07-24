@@ -168,8 +168,9 @@ namespace Helion.Render.Legacy
             if (fontObject == null)
                 return;
             
+            int scaledFontSize = (int)(fontSize * scale);
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
-            RenderableString renderableString = new(text, fontObject, fontSize, legacyAlign, maxWidth);
+            RenderableString renderableString = new(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
             drawArea = renderableString.DrawArea;
 
             Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -201,10 +202,11 @@ namespace Helion.Render.Legacy
                 Color c = color.Value;
                 colorPrefix = @$"\c[{c.R},{c.G},{c.B}]";
             }
-            
+
+            int scaledFontSize = (int)(fontSize * scale);
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
             ColoredString coloredString = RGBColoredStringDecoder.Decode($"{colorPrefix}{text}");
-            RenderableString renderableString = new(coloredString, fontObject, fontSize, legacyAlign, maxWidth);
+            RenderableString renderableString = new(coloredString, fontObject, scaledFontSize, legacyAlign, maxWidth);
             drawArea = renderableString.DrawArea;
 
             Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,

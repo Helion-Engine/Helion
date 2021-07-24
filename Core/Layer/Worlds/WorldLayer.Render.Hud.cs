@@ -296,7 +296,7 @@ namespace Helion.Layer.Worlds
                 }
 
                 int xOffset = 0;
-                int yOffset = -barHandle.Dimension.Height;
+                int yOffset = -barHandle.Dimension.Height + 1;
                 int width = backgroundHandle.Dimension.Width;
 
                 while (xOffset < hud.Width)
@@ -442,7 +442,7 @@ namespace Helion.Layer.Worlds
             foreach ((ColoredString message, float alpha) in messages)
             {
                 hud.Text(message, SmallHudFont, 8, (LeftOffset, offsetY),
-                    out Dimension drawArea, window: Align.TopLeft, alpha: alpha);
+                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: alpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }
         }
