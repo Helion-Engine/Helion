@@ -74,7 +74,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
             int textureId = gl.GenTexture();
             string textureName = $"{name} [{resourceNamespace}]";
 
-            GLLegacyTexture texture = new GLLegacyTexture(textureId, textureName, image.Dimension, image.Metadata, gl, TextureTargetType.Texture2D);
+            GLLegacyTexture texture = new(textureId, textureName, image.Dimension, image.Metadata, gl, TextureTargetType.Texture2D);
             UploadAndSetParameters(texture, image, name, resourceNamespace);
 
             return texture;

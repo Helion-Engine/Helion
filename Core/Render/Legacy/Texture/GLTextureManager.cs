@@ -25,7 +25,7 @@ namespace Helion.Render.Legacy.Texture
         protected readonly IGLFunctions gl;
         private readonly IImageRetriever m_imageRetriever;
         private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-        private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
+        private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
 
         public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
@@ -80,7 +80,13 @@ namespace Helion.Render.Legacy.Texture
 
         public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
-            // TODO: Convert everything else to use this...
+            GLTextureType? texture = m_textureTracker.Get(name, specificNamespace ?? ResourceNamespace.Global);
+            if (texture == null)
+            {
+                handle = texture;
+                return false;                
+            }
+
             handle = null;
             return false;
         }

@@ -48,7 +48,7 @@ namespace Helion.Client
             m_console = console;
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
-            m_saveGameManager = new(config);
+            m_saveGameManager = new SaveGameManager(config);
             m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
             m_window = new Window(config, m_archiveCollection, m_fpsTracker);
             m_layerManager = new GameLayerManager(m_window);
