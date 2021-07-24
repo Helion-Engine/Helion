@@ -151,6 +151,7 @@ namespace Helion.Layer
                 
                 ctx.Viewport(WindowBox);
                 ctx.Scissor(WindowBox);
+                ctx.Clear(IRenderer.DefaultBackground, true, true);
                 
                 WorldLayer?.Render(ctx);
 

@@ -120,7 +120,7 @@ namespace Helion.Render.Legacy
             window = both ?? window;
             anchor = both ?? anchor;
 
-            Vec2I location = (origin?.X ?? area?.Left ?? 0, origin?.Y ?? area?.Bottom ?? 0);
+            Vec2I location = (origin?.X ?? area?.Left ?? 0, origin?.Y ?? area?.Top ?? 0);
             Dimension drawDim = (0, 0);
             if (area != null)
                 drawDim = area.Value.Dimension;
@@ -129,7 +129,7 @@ namespace Helion.Render.Legacy
             
             drawDim.Scale(scale);
             
-            Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawArea.Width, drawArea.Height,
+            Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawDim.Width, drawDim.Height,
                 window, anchor);
             
             m_commands.DrawImage(texture, pos.X, pos.Y, drawDim.Width, drawDim.Height, 

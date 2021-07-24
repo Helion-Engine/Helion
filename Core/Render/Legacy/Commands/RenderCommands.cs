@@ -101,7 +101,12 @@ namespace Helion.Render.Legacy.Commands
         public void SetVirtualResolution(int width, int height, ResolutionScale scale = ResolutionScale.None)
         {
             Dimension dimension = new Dimension(width, height);
-            ResolutionInfo info = new() { VirtualDimensions = dimension, Scale = scale };
+            ResolutionInfo info = new()
+            {
+                VirtualDimensions = dimension, 
+                Scale = scale,
+                AspectRatio = dimension.AspectRatio
+            };
             SetVirtualResolution(info);
         }
 

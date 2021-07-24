@@ -80,11 +80,10 @@ namespace Helion.Render.Legacy.Texture
 
         public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
-            GLTextureType? texture = m_textureTracker.Get(name, specificNamespace ?? ResourceNamespace.Global);
-            if (texture == null)
+            if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out GLTextureType? texture))
             {
                 handle = texture;
-                return false;                
+                return true;    
             }
 
             handle = null;
