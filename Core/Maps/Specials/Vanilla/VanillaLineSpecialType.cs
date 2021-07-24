@@ -219,14 +219,16 @@ namespace Helion.Maps.Specials.Vanilla
         WR_ToggleFLoorToCeiling,
         TransferFloorLight,
         ScrollAccelTaggedCeiling,
-        ScrollAccelTaggedFloor,
-        ScrollAccelObjectsTaggedFloor,
-        ScrollAccelObjectsFloor,
-        ScrollAccellTaggedWall,
+        ScrollAccelTaggedFloorFirstSide,
+        ScrollAccelObjectsTaggedFloorFirstSide,
+        ScrollAccelObjectsFloorFirstSide,
+        ScrollAccellTaggedWallFirstSide,
+        // END TODO
         W1_LowerFloorToNearest,
         WR_LowerFloorToNearest,
         S1_LowerFloorToNearest,
         SR_LowerFloorToNearest,
+        // TODO
         SectorSetFriction,
         SectorSetWind,
         SectorSetCurrent,
@@ -245,7 +247,7 @@ namespace Helion.Maps.Specials.Vanilla
         SR_ElevatorMoveToActivatingFloor,
         // END TODO
 
-        W1_FloorTransferNumeric = 239,
+        W1_FloorTransferNumeric,
         WR_FloorTransferNumeric,
         S1_FloorTransferNumeric,
 
@@ -253,12 +255,37 @@ namespace Helion.Maps.Specials.Vanilla
         TransferHeights,
         W1_TeleportLine,
         WR_TeleportLine,
+        ScrollTaggedCeilingFirstSide,
+        ScrollTaggedFloorFirstSide,
+        PushObjectsTaggedFloorFirstSide,
+        PushObjectsAndFloorTaggedFirstSide,
+        ScrollTaggedWallFirstSide,
         ScrollTaggedCeiling,
         ScrollTaggedFloor,
-        ScrollObjectsTaggedFloor,
-        ScrollObjectsAndFloorTagged,
-        ScrollTaggedWall,
-        //ScrollTaggedCeiling,
+        CarryObjectsTaggedFloor,
+        ScrollTagedFloorAndCarryObjects,
+        ScrollTaggedWallSameAsFloorCeiling,
+        ScrollTextureOffsets,
+        // END TODO
 
+        WR_RaiseStairs8,
+        WR_RaiseStairsFast,
+        SR_RaiseStairs8,
+        SR_RaiseStairsFast,
+
+        // TODO
+        TranslucentLine,
+        TransferCeilingLight,
+        W1_TeleportLineReversed,
+        WR_TeleportLineReversed,
+        W1_MonsterTeleportLineReversed,
+        WR_MonsterTeleportLineReversed,
+        W1_MonsterTeleportLine,
+        WR_MonsterTeleportLine,
+        W1_MonsterTeleportNoFog,
+        WR_MonsterTeportNoFog,
+        Unused,
+        TransferSky,
+        TransferSkyFlipped
     }
 }

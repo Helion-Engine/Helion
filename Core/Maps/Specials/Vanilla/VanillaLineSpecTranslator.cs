@@ -311,6 +311,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.W1_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 8;
@@ -318,6 +320,8 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.W1_RaiseStairsFast:
                 case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = 16;
@@ -458,6 +462,14 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 8;
                     return ZDoomLineSpecialType.CeilingLowerToHighestFloor;
+
+                case VanillaLineSpecialType.W1_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 8;
+                    return ZDoomLineSpecialType.FloorLowerToNearest;
 
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
@@ -602,6 +614,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
                 case VanillaLineSpecialType.S1_TeleportNoFog:
                 case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
                     return LineActivationType.Tag;
 
                 default:
@@ -849,10 +863,14 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.S1_RaiseStairs8:
                 case VanillaLineSpecialType.W1_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
                     return VanillaConstants.StairSlowSpeed;
 
                 case VanillaLineSpecialType.W1_RaiseStairsFast:
                 case VanillaLineSpecialType.S1_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     return VanillaConstants.StairFastSpeed;
 
                 default:
@@ -998,6 +1016,10 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
                 case VanillaLineSpecialType.S1_TeleportNoFog:
                 case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -1087,6 +1109,10 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_CeilingLowerToHighestAdjacentFloor:
                 case VanillaLineSpecialType.WR_CeilingLowerToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.WR_CeilingLowerToHighestAdjacentFloor:
+                case VanillaLineSpecialType.W1_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
                     return ActivationType.PlayerLineCross;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
@@ -1223,6 +1249,12 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_CeilingLowerToHighestAdjacentFloor:
                 case VanillaLineSpecialType.WR_TeleportNoFog:
                 case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.WR_LowerFloorToNearest:
+                case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_RaiseStairs8:
+                case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_RaiseStairs8:
+                case VanillaLineSpecialType.SR_RaiseStairsFast:
                     return true;
 
                 default:
