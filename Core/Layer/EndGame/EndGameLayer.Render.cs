@@ -8,7 +8,6 @@ using Helion.Render.Common.Renderers;
 using Helion.Resources;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
-using Font = Helion.Graphics.New.Fonts.Font;
 
 namespace Helion.Layer.EndGame
 {
@@ -148,7 +147,7 @@ namespace Helion.Layer.EndGame
         {
             const int LineSpacing = 4;
 
-            Font? font = m_archiveCollection.GetFont(FontName);
+            Graphics.Fonts.Font? font = m_archiveCollection.GetFontDeprecated(FontName);
             if (font == null)
                 return;
 
