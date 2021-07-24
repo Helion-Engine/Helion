@@ -48,7 +48,7 @@ namespace Helion.Render.Legacy
                 return;
 
             Dimension dim = m_commands.WindowDimension;
-            m_commands.DrawImage("NULLWHITE", 0, 0, dim.Width, dim.Height, color, alpha);
+            m_commands.FillRect(new((0, 0), (dim.Vector)), color, alpha);
         }
 
         public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
