@@ -27,8 +27,7 @@ namespace Helion.Layer.Menus
             m_soundManager = soundManager;
             m_stopwatch.Start();
 
-            // TODO: This is going to be an invasive change for the first arg...
-            MainMenu mainMenu = new(null!, config, console, soundManager, archiveCollection, saveGameManager);
+            MainMenu mainMenu = new(parent, config, console, soundManager, archiveCollection, saveGameManager);
             m_menus.Push(mainMenu);
         }
         

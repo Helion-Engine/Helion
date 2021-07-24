@@ -118,8 +118,7 @@ namespace Helion.Render.Legacy.Commands
         {
             ResolutionInfo = resolutionInfo;
 
-            double viewWidth = WindowDimension.Height * resolutionInfo.AspectRatio;
-            double scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
+            double scaleWidth = WindowDimension.Width / (double)resolutionInfo.VirtualDimensions.Width;
             double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
             m_scale = new Vec2D(scaleWidth, scaleHeight);
             m_centeringOffsetX = 0;

@@ -6,6 +6,7 @@ using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Input;
+using Helion.Layer.Menus;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -21,7 +22,8 @@ namespace Helion.Layer.Titlepic
     {
         private const string Titlepic = "TITLEPIC";
         private static readonly Color HalfAlphaBlack = Color.FromArgb(128, 0, 0, 0);
-        
+
+        private readonly GameLayerManager m_parent;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Config m_config;
         private readonly HelionConsole m_console;
@@ -35,11 +37,13 @@ namespace Helion.Layer.Titlepic
         private bool m_initRenderPages;
         private bool m_disposed;
 
-        private bool ShouldDarken => false; // TODO: Parent != null && Parent.Contains<MenuLayer>();
+        private bool ShouldDarken => m_parent.MenuLayer != null;
+        private bool ShouldMakeMenu => m_parent.ConsoleLayer == null && m_parent.MenuLayer == null;
         
-        public TitlepicLayer(Config config, HelionConsole console, SoundManager soundManager,
+        public TitlepicLayer(GameLayerManager parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveGameManager, IAudioSystem audioSystem)
         {
+            m_parent = parent;
             m_archiveCollection = archiveCollection;
             m_config = config;
             m_console = console;
@@ -78,15 +82,12 @@ namespace Helion.Layer.Titlepic
             if (m_disposed)
                 return;
             
-            // TODO: && Parent?.Count == 1
-            if (input.HasAnyKeyPressed())
+            if (input.HasAnyKeyPressed() && ShouldMakeMenu)
             {
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-
-                // TODO:
-                // MainMenu mainMenu = new(Parent, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager);
-                // MenuLayer menuLayer = new(Parent, mainMenu, m_archiveCollection, m_soundManager);
-                // Parent.Add(menuLayer);
+                
+                MenuLayer menuLayer = new(m_parent, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
+                m_parent.Add(menuLayer);
             }
         }
 
