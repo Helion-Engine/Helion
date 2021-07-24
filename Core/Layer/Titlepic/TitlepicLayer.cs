@@ -83,10 +83,16 @@ namespace Helion.Layer.Titlepic
             
             if (input.HasAnyKeyPressed() && ShouldMakeMenu)
             {
-                m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+                // We want the user to be able to get to the menu from the
+                // 'Read This' menu, but we don't want any other keys making
+                // menus appear when someone might be trying to read it.
+                if (input.ConsumeKeyPressed(Key.Escape) || m_parent.ReadThisLayer == null)
+                {
+                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
                 
-                MenuLayer menuLayer = new(m_parent, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
-                m_parent.Add(menuLayer);
+                    MenuLayer menuLayer = new(m_parent, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
+                    m_parent.Add(menuLayer);
+                }
             }
         }
 

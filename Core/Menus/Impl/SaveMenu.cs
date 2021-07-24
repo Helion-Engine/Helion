@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Input;
-using Helion.Layer;
+using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
@@ -27,13 +27,13 @@ namespace Helion.Menus.Impl
 
         public bool IsTypingName { get; private set; }
 
-        private readonly IGameLayer m_parent;
+        private readonly MenuLayer m_parent;
         private readonly SaveGameManager m_saveGameManager;
         private readonly bool m_isSave;
         private readonly bool m_canSave;
         private SaveGame? m_deleteSave;
 
-        public SaveMenu(IGameLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
+        public SaveMenu(MenuLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
             ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave) 
             : base(config, console, soundManager, archiveCollection, 8, true)
         {
@@ -102,8 +102,7 @@ namespace Helion.Menus.Impl
 
             if (input.HasAnyKeyPressed() && m_isSave && !m_canSave)
             {
-                throw new NotImplementedException("TODO");
-                // m_parent.Remove<MenuLayer>();
+                m_parent.Dispose();
                 return;
             }
 
@@ -134,8 +133,7 @@ namespace Helion.Menus.Impl
                 if (GetWorld(out IWorld? world) && world != null)
                 {
                     m_saveGameManager.WriteSaveGame(world, save.Model.Text, save);
-                    throw new NotImplementedException("TODO");
-                    // m_parent.Remove<MenuLayer>();
+                    m_parent.Dispose();
                     DisplayMessage(world, SaveMessage);
                 }
                 else

@@ -17,7 +17,7 @@ namespace Helion.Layer.Menus
             if (playSound)
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
             
-            m_parent.Remove(this);
+            Manager.Remove(this);
         }
         
         public void HandleInput(InputEvent input)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
@@ -9,7 +10,6 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
-using SixLabors.ImageSharp;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Menus
@@ -106,7 +106,7 @@ namespace Helion.Layer.Menus
             const int FontSize = 8;
             const string FontName = "SmallFont";
             const string LeftBarName = "M_LSLEFT";
-            const string MiddleBarName = "M_LSLEFT";
+            const string MiddleBarName = "M_LSCNTR";
             const string RightBarName = "M_LSRGHT";
             
             if (isSelected)
@@ -145,9 +145,8 @@ namespace Helion.Layer.Menus
             hud.Image(RightBarName, (offsetX, offsetY + RowOffsetY));
             
             string saveText = saveRowComponent.Text.Length > blocks ? saveRowComponent.Text.Substring(0, blocks) : saveRowComponent.Text;
-            ColoredString text = ColoredStringBuilder.From(Color.Red, saveText);
             Vec2I origin = (LeftOffset + leftDim.Width + 4, offsetY + 3 + RowOffsetY);
-            hud.Text(text, FontName, FontSize, origin, out Dimension area);
+            hud.Text(saveText, FontName, FontSize, origin, out Dimension area);
 
             offsetY += MathHelper.Max(area.Height, leftDim.Height, midDim.Height, rightDim.Width) + RowVerticalPadding;
         }

@@ -7,12 +7,14 @@ using Helion.Geometry.Vectors;
 using Helion.Input;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
+using Helion.Layer.Images;
 using Helion.Layer.Menus;
 using Helion.Layer.Titlepic;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -29,6 +31,7 @@ namespace Helion.Layer
     {
         public ConsoleLayer? ConsoleLayer { get; private set; }
         public MenuLayer? MenuLayer { get; private set; }
+        public ReadThisLayer? ReadThisLayer { get; private set; }
         public TitlepicLayer? TitlepicLayer { get; private set; }
         public EndGameLayer? EndGameLayer { get; private set; }
         public IntermissionLayer? IntermissionLayer { get; private set; }
@@ -44,7 +47,7 @@ namespace Helion.Layer
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
         internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
         {
-            ConsoleLayer, MenuLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+            ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
         }.WhereNotNull();
 
         public GameLayerManager(Config config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
@@ -89,6 +92,10 @@ namespace Helion.Layer
             case MenuLayer layer:
                 Remove(MenuLayer);
                 MenuLayer = layer;
+                break;
+            case ReadThisLayer layer:
+                Remove(ReadThisLayer);
+                ReadThisLayer = layer;
                 break;
             case EndGameLayer layer:
                 Remove(EndGameLayer);
@@ -135,6 +142,11 @@ namespace Helion.Layer
                 MenuLayer?.Dispose();
                 MenuLayer = null;
             }
+            else if (ReferenceEquals(layer, ReadThisLayer)) 
+            {
+                ReadThisLayer?.Dispose();
+                ReadThisLayer = null;
+            }
             else if (ReferenceEquals(layer, EndGameLayer)) 
             {
                 EndGameLayer?.Dispose();
@@ -168,6 +180,7 @@ namespace Helion.Layer
             
             MenuLayer?.HandleInput(input);
             EndGameLayer?.HandleInput(input);
+            ReadThisLayer?.HandleInput(input);
             TitlepicLayer?.HandleInput(input);
             IntermissionLayer?.HandleInput(input);
             WorldLayer?.HandleInput(input);
@@ -185,6 +198,8 @@ namespace Helion.Layer
 
         private void CreateMenuLayer()
         {
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+            
             MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
             Add(menuLayer);
         }
@@ -193,6 +208,7 @@ namespace Helion.Layer
         {
             ConsoleLayer?.RunLogic();
             MenuLayer?.RunLogic();
+            ReadThisLayer?.RunLogic();
             EndGameLayer?.RunLogic();
             TitlepicLayer?.RunLogic();
             IntermissionLayer?.RunLogic();
@@ -216,6 +232,7 @@ namespace Helion.Layer
                     IntermissionLayer?.Render(ctx, hud);
                     TitlepicLayer?.Render(hud);
                     EndGameLayer?.Render(ctx, hud);
+                    ReadThisLayer?.Render(hud);
                     MenuLayer?.Render(hud);
                     ConsoleLayer?.Render(ctx, hud);
                 });
@@ -237,6 +254,7 @@ namespace Helion.Layer
             Remove(IntermissionLayer);
             Remove(EndGameLayer);
             Remove(TitlepicLayer);
+            Remove(ReadThisLayer);
             Remove(MenuLayer);
             Remove(ConsoleLayer);
 

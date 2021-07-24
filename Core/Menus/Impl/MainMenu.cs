@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
-using Helion.Layer;
+using Helion.Layer.Images;
+using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
@@ -19,20 +20,21 @@ namespace Helion.Menus.Impl
         private const int OffsetX = 97;
         private const int PaddingY = 1;
      
-        private readonly IGameLayer m_parent;
+        private readonly MenuLayer m_parent;
+        private readonly SoundManager m_soundManager;
 
-        public MainMenu(IGameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
+        public MainMenu(MenuLayer parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
-            : base(config, console, soundManager, archiveCollection, 0)
+            : base(config, console, soundManager, archiveCollection)
         {
             m_parent = parent;
+            m_soundManager = soundManager;
 
             int offsetY = 64;
             if (archiveCollection.IWadType != IWadBaseType.Doom1 && archiveCollection.IWadType != IWadBaseType.ChexQuest)
                 offsetY += 8;
 
             List<IMenuComponent> components = new();
-
             components.Add(new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false));
             components.Add(CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()));
             components.Add(CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)));
@@ -57,8 +59,9 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                throw new NotImplementedException("TODO");
-                // return GameLayerManager.CreateSaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, true);
+                bool hasWorld = m_parent.Manager.WorldLayer != null && m_parent.Manager.EndGameLayer == null;
+                return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, 
+                    hasWorld, true);
             };
         }
 
@@ -82,14 +85,15 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                throw new NotImplementedException("TODO");
-                // if (m_parent.Contains<ImageLayer>())
-                //     return null;
-                // if (ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
-                //     return null;
-                //
-                // m_parent.Add(new CycleImageLayer(m_parent, SoundManager, ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages));
-                // return null;
+                if (m_parent.Manager.ReadThisLayer == null)
+                {
+                    if (ReadThisLayer.TryCreate(m_parent.Manager, m_soundManager, ArchiveCollection, out var layer))
+                        m_parent.Manager.Add(layer);
+                    
+                    m_parent.Manager.Remove(m_parent.Manager.MenuLayer);
+                }
+
+                return null;
             };
         }
     }
