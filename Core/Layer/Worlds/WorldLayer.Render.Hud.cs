@@ -113,7 +113,7 @@ namespace Helion.Layer.Worlds
         {
             if (Player.AnimationWeapon != null && !hudContext.DrawAutomap)
             {
-                hudContext.DrawInvul = Player.IsInvulnerable;
+                hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
                 
                 // Doom pushes the gun sprite up when the status bar is showing
                 int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
