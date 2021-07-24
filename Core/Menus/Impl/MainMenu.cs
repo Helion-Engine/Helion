@@ -16,12 +16,12 @@ namespace Helion.Menus.Impl
 {
     public class MainMenu : Menu
     {
-        private readonly GameLayer m_parent;
+        private readonly IGameLayer m_parent;
 
         private const int OffsetX = 97;
         private const int PaddingY = 1;
         
-        public MainMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
+        public MainMenu(IGameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
             : base(config, console, soundManager, archiveCollection, 0)
         {
@@ -57,7 +57,8 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                return GameLayerManager.CreateSaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, true);
+                throw new NotImplementedException("TODO");
+                // return GameLayerManager.CreateSaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, true);
             };
         }
 
@@ -81,13 +82,14 @@ namespace Helion.Menus.Impl
         {
             return () =>
             {
-                if (m_parent.Contains<ImageLayer>())
-                    return null;
-                if (ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
-                    return null;
-
-                m_parent.Add(new CycleImageLayer(m_parent, SoundManager, ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages));
-                return null;
+                throw new NotImplementedException("TODO");
+                // if (m_parent.Contains<ImageLayer>())
+                //     return null;
+                // if (ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
+                //     return null;
+                //
+                // m_parent.Add(new CycleImageLayer(m_parent, SoundManager, ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages));
+                // return null;
             };
         }
     }

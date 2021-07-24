@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Helion.Render.Legacy.Shared.Drawers.Helper;
+using Helion.Render.Common.Renderers;
 
 namespace Helion.Layer
 {
     public static class LayerUtil
     {
-        public static IList<string> GetRenderPages(DrawHelper draw, IList<string> pages,
+        public static IList<string> GetRenderPages(IHudRenderContext hud, IList<string> pages,
             bool repeatIfNotExists)
         {
             if (pages.Count == 0)
@@ -17,7 +17,7 @@ namespace Helion.Layer
 
             foreach (string page in pages.Skip(1))
             {
-                if (!draw.DrawInfoProvider.ImageExists(page))
+                if (!hud.Textures.HasImage(page))
                 {
                     if (repeatIfNotExists)
                         newPages.Add(lastPage);

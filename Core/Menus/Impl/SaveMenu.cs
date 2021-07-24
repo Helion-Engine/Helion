@@ -4,11 +4,9 @@ using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Layer.WorldLayers;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Language;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -29,13 +27,13 @@ namespace Helion.Menus.Impl
 
         public bool IsTypingName { get; private set; }
 
-        private readonly GameLayer m_parent;
+        private readonly IGameLayer m_parent;
         private readonly SaveGameManager m_saveGameManager;
         private readonly bool m_isSave;
         private readonly bool m_canSave;
         private SaveGame? m_deleteSave;
 
-        public SaveMenu(GameLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
+        public SaveMenu(IGameLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
             ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave) 
             : base(config, console, soundManager, archiveCollection, 8, true)
         {
@@ -104,7 +102,8 @@ namespace Helion.Menus.Impl
 
             if (input.HasAnyKeyPressed() && m_isSave && !m_canSave)
             {
-                m_parent.Remove<MenuLayer>();
+                throw new NotImplementedException("TODO");
+                // m_parent.Remove<MenuLayer>();
                 return;
             }
 
@@ -135,7 +134,8 @@ namespace Helion.Menus.Impl
                 if (GetWorld(out IWorld? world) && world != null)
                 {
                     m_saveGameManager.WriteSaveGame(world, save.Model.Text, save);
-                    m_parent.Remove<MenuLayer>();
+                    throw new NotImplementedException("TODO");
+                    // m_parent.Remove<MenuLayer>();
                     DisplayMessage(world, SaveMessage);
                 }
                 else
@@ -154,7 +154,8 @@ namespace Helion.Menus.Impl
                 if (GetWorld(out IWorld? world) && world != null)
                 {
                     m_saveGameManager.WriteNewSaveGame(world, "new");
-                    m_parent.Remove<MenuLayer>();
+                    throw new NotImplementedException("TODO");
+                    // m_parent.Remove<MenuLayer>();
                     DisplayMessage(world, SaveMessage);
                 }
                 else
@@ -168,11 +169,12 @@ namespace Helion.Menus.Impl
 
         private bool GetWorld(out IWorld? world)
         {
-            if (m_parent.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
-            {
-                world = worldLayer.World;
-                return true;
-            }
+            throw new NotImplementedException("TODO");
+            // if (m_parent.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
+            // {
+            //     world = worldLayer.World;
+            //     return true;
+            // }
 
             world = null;
             return false;

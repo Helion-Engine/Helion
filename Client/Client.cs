@@ -8,11 +8,8 @@ using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
-using Helion.Geometry;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Render.Legacy;
-using Helion.Render.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -53,9 +50,9 @@ namespace Helion.Client
             m_archiveCollection = archiveCollection;
             m_saveGameManager = new(config);
             m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
-            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager, m_audioSystem, m_saveGameManager);
             m_window = new Window(config, m_archiveCollection, m_fpsTracker);
-            
+            m_layerManager = new GameLayerManager(m_window);
+
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;
 
@@ -95,17 +92,7 @@ namespace Helion.Client
 
         private void PerformRender()
         {
-            if (m_window.Renderer is not ILegacyRenderer renderer)
-                throw new NotImplementedException("Only rendering with the legacy renderer");
-
-            Dimension windowDimension = m_window.Dimension;
-            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
-            
-            renderCommands.Viewport(windowDimension);
-            renderCommands.Clear();
-            m_layerManager.Render(renderCommands);
-
-            renderer.Render(renderCommands);
+            m_layerManager.Render(m_window.Renderer);
         }
 
         private void Render()
@@ -128,7 +115,6 @@ namespace Helion.Client
             Render();
             
             m_soundManager.Update();
-            m_layerManager.PruneDisposed();
         }
 
         /// <summary>

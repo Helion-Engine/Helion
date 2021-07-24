@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Layer;
-using Helion.Layer.WorldLayers;
+using Helion.Layer.Consoles;
+using Helion.Layer.EndGame;
+using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Models;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Consoles;
@@ -71,10 +71,14 @@ namespace Helion.Client
 
         private void HandleDefault(ConsoleCommandEventArgs ccmdArgs)
         {
-            if (!m_layerManager.TryGetLayer(out SinglePlayerWorldLayer? layer) || layer.World.EntityManager.Players.Count == 0)
+            if (m_layerManager.WorldLayer == null)
+                return;
+            if (m_layerManager.WorldLayer.World.EntityManager.Players.Empty())
                 return;
             
-            if (!CheatManager.Instance.HandleCommand(layer.World.EntityManager.Players[0], ccmdArgs.Command))
+            Player player = m_layerManager.WorldLayer.World.EntityManager.Players[0];
+            
+            if (!CheatManager.Instance.HandleCommand(player, ccmdArgs.Command))
                 Log.Info($"Unknown command: {ccmdArgs.Command}");
         }   
 
@@ -226,8 +230,7 @@ namespace Helion.Client
                 return;
             }
 
-            m_layerManager.Remove<SinglePlayerWorldLayer>();
-            m_layerManager.PruneDisposed();
+            m_layerManager.Remove(m_layerManager.WorldLayer);
 
             if (map == null)
             {
@@ -235,8 +238,9 @@ namespace Helion.Client
                 return;
             }
 
-            SinglePlayerWorldLayer? newLayer = SinglePlayerWorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
-                m_audioSystem, m_archiveCollection, mapInfoDef, skillDef, map, players.FirstOrDefault(), worldModel);
+            WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
+                m_audioSystem, m_archiveCollection, m_fpsTracker, mapInfoDef, skillDef, map, 
+                players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;
 
@@ -245,7 +249,6 @@ namespace Helion.Client
             newLayer.World.LevelExit += World_LevelExit;
 
             m_layerManager.Add(newLayer);
-            m_layerManager.RemoveAllBut<WorldLayer>();
 
             newLayer.World.Start(worldModel);
         }     
@@ -327,7 +330,8 @@ namespace Helion.Client
         {
             if (sender is not IntermissionLayer intermissionLayer)
                 return;
-            m_layerManager.Remove<IntermissionLayer>();
+            
+            m_layerManager.Remove(m_layerManager.IntermissionLayer);
             EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
         }
 
@@ -349,6 +353,7 @@ namespace Helion.Client
 
             EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextMapInfo);
             endGameLayer.Exited += EndGameLayer_Exited;
+            
             m_layerManager.Add(endGameLayer);
         }
 
@@ -376,8 +381,8 @@ namespace Helion.Client
 
         private void ShowConsole()
         {
-            if (m_layerManager.Get<ConsoleLayer>() == null)
-                m_layerManager.Add(new ConsoleLayer(m_archiveCollection, m_console));
+            if (m_layerManager.ConsoleLayer == null)
+                m_layerManager.Add(new ConsoleLayer(m_console));
         }
 
         private void LogError(string error)

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Helion.Layer;
-using Helion.Layer.WorldLayers;
+using Helion.Layer.Consoles;
+using Helion.Layer.Titlepic;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -54,10 +54,10 @@ namespace Helion.Client
 
         private void AddTitlepicIfNoMap()
         {
-            if (!m_layerManager.Empty) 
+            if (m_layerManager.WorldLayer == null) 
                 return;
 
-            TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_audioSystem);
+            TitlepicLayer layer = new(m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_audioSystem);
             m_layerManager.Add(layer);
         }
 
@@ -138,11 +138,10 @@ namespace Helion.Client
             m_console.ClearInputText();
             m_console.AddInput($"map {mapName}\n");
 
-            // If the map is corrupt, go to the console.
-            if (!m_layerManager.Contains<WorldLayer>())
+            if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
             {
-                ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
-                m_layerManager.Add(consoleLayer);
+                ConsoleLayer layer = new(m_console);
+                m_layerManager.Add(layer);
             }
         }
     }
