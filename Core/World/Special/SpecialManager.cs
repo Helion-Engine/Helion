@@ -126,10 +126,17 @@ namespace Helion.World.Special
             return SwitchType.Default;
         }
 
+        public ISpecial CreateFloorRaiseSpecialMatchTextureAndType(Sector sector, Line line, double amount, double speed)
+        {
+            TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneType.Floor, PlaneTransferType.Trigger);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
+                new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
+        }
+
         public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
         {
-            sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
-            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, 
+            TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneType.Floor, PlaneTransferType.Trigger, transferSpecial: false);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount,
                 new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultSound);
         }
 
@@ -530,11 +537,17 @@ namespace Helion.World.Special
 
         private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special, WorldBase world)
         {
+            Line line = args.ActivateLineSpecial;
+
             switch (special.LineSpecialType)
             {
                 case ZDoomLineSpecialType.Teleport:
+                    AddSpecial(new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)));
+                    return true;
+
                 case ZDoomLineSpecialType.TeleportNoFog:
-                    AddSpecial(new TeleportSpecial(args, world, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)));
+                    AddSpecial(new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
+                        (TeleportType)line.Args.Arg1));
                     return true;
             
                 case ZDoomLineSpecialType.ExitNormal:
@@ -691,11 +704,17 @@ namespace Helion.World.Special
 
         private bool CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
         {
+            Line line = args.ActivateLineSpecial;
+
             switch (special.LineSpecialType)
             {
                 case ZDoomLineSpecialType.FloorDonut:
                     HandleFloorDonut(args.ActivateLineSpecial, sector);
                     return true;
+
+                case ZDoomLineSpecialType.FloorAndCeilingLowerRaise:
+                    // This is a lazy hack and not really correct. Should be wrapped in one special.
+                    return CreateFloorAndCeilingLowerRaise(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2 * SpeedFactor, line.Args.Arg3);
 
                 default:
                     ISpecial? sectorSpecial = CreateSingleSectorSpecial(args, special, sector);
@@ -844,7 +863,7 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
                     return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg3), 
-                        silent: true, returnSpeed: line.Args.Arg2 * SpeedFactor);
+                        silent: true);
 
                 case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                     return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
@@ -856,10 +875,13 @@ namespace Helion.World.Special
                     break;
 
                 case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
-                    return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+                    return CreateFloorRaiseSpecialMatchTextureAndType(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
 
                 case ZDoomLineSpecialType.FloorLowerToLowestTxTy:
                     return CreateFloorLowerSpecialChangeTextureAndType(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+
+                case ZDoomLineSpecialType.PlatUpValueStayTx:
+                    return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
 
                 case ZDoomLineSpecialType.PlatRaiseAndStay:
                     return CreateRaisePlatTxSpecial(sector, line, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
@@ -890,6 +912,24 @@ namespace Helion.World.Special
             }
 
             return null;
+        }
+
+        private bool CreateFloorAndCeilingLowerRaise(Sector sector, double floorSpeed, double ceilingSpeed, int boomEmulation)
+        {
+            ISpecial? ceiling = CreateCeilingRaiseSpecial(sector, SectorDest.HighestAdjacentCeiling, ceilingSpeed);
+            ISpecial? floor = null;
+
+            // According to zdoom.org this value should be 1998...
+            // Emulate boom bug causing only the floor to lower if the ceiling fails
+            if (boomEmulation != 1998 || (boomEmulation == 1998 && ceiling == null))
+                floor = CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, floorSpeed);
+
+            if (floor != null)
+                m_specials.AddLast(floor);
+            if (ceiling != null)
+                m_specials.AddLast(ceiling);
+
+            return floor != null || ceiling != null;
         }
 
         private ISpecial? CreatePlatUpByValue(Sector sector, double speed, int delay, int height)

@@ -1,11 +1,6 @@
 ﻿using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.World.Special.Specials
 {
@@ -19,18 +14,21 @@ namespace Helion.World.Special.Specials
 
     public static class TriggerSpecials
     {
-        public static void PlaneTransferChange(IWorld world, Sector sector, Line? line, SectorPlaneType planeType, PlaneTransferType type)
+        public static void PlaneTransferChange(IWorld world, Sector sector, Line? line, SectorPlaneType planeType, PlaneTransferType type,
+            bool transferSpecial = true)
         {
             if (type == PlaneTransferType.Numeric && GetNumericModelChange(world, sector, planeType, sector.GetZ(planeType), 
                 out int changeTexture, out SectorDamageSpecial? damageSpecial))
             {
                 sector.SetTexture(planeType, changeTexture);
-                sector.SectorDamageSpecial = damageSpecial?.Copy(sector);
+                if (transferSpecial)
+                    sector.SectorDamageSpecial = damageSpecial?.Copy(sector);
             }
             else if (type == PlaneTransferType.Trigger && line != null)
             {
                 sector.SetTexture(planeType, line.Front.Sector.GetTexture(planeType));
-                sector.SectorDamageSpecial = line.Front.Sector.SectorDamageSpecial?.Copy(sector);
+                if (transferSpecial)
+                    sector.SectorDamageSpecial = line.Front.Sector.SectorDamageSpecial?.Copy(sector);
             }
         }
 

@@ -280,7 +280,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseByTexture:
                 case ZDoomLineSpecialType.DoorCloseWaitOpen:
                 case ZDoomLineSpecialType.FloorDonut:
-                case ZDoomLineSpecialType.FloorCeilingLowerRaise:
+                case ZDoomLineSpecialType.FloorAndCeilingLowerRaise:
                 case ZDoomLineSpecialType.CeilingRaiseToNearest:
                 case ZDoomLineSpecialType.CeilingLowerToLowest:
                 case ZDoomLineSpecialType.CeilingLowerToFloor:
@@ -301,6 +301,8 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.GenericLift:
                 case ZDoomLineSpecialType.GenericCrusher:
                 case ZDoomLineSpecialType.StairsGeneric:
+                case ZDoomLineSpecialType.PlatUpValueStayTx:
+                case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
                     return true;
             }
 

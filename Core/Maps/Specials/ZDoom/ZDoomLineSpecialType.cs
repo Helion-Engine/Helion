@@ -253,7 +253,7 @@ namespace Helion.Maps.Specials.ZDoom
         HealThing,
         DoorCloseWaitOpen,
         FloorDonut,
-        FloorCeilingLowerRaise,
+        FloorAndCeilingLowerRaise,
         CeilingRaiseToNearest,
         CeilingLowerToLowest,
         CeilingLowerToFloor,

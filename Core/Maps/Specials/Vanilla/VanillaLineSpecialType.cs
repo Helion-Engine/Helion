@@ -16,8 +16,8 @@ namespace Helion.Maps.Specials.Vanilla
         S_EndLevel,
         W1_LightLevelMatchBrightness,
         W1_LightOnMaxBrightness,
-        S1_RaiseFloorThirtyTwoChangeTextureType,
-        S1_RaiseFloorTwentyFourChangeTextureType,
+        S1_RaiseFloorThirtyTwoChangeTexture,
+        S1_RaiseFloorTwentyFourChangeTexture,
         W1_CloseDoorOpenThirtySeconds,
         W1_BlinkLightStartEveryOneSecond,
         S1_RaiseFloorMatchNextHigherFloor,
@@ -68,8 +68,8 @@ namespace Helion.Maps.Specials.Vanilla
         SR_OpenDoorClose,
         SR_RaiseFloorToLowestAdjacentCeiling,
         SR_CrusherFloorRaiseToEightBelowAdjacentCeiling,
-        SR_RaiseFloorTwentyFourChangeTextureType,
-        SR_RaiseFloorThirtyTwoChangeTextureType,
+        SR_RaiseFloorTwentyFourChangeTexture,
+        SR_RaiseFloorThirtyTwoChangeTexture,
         SR_RaiseFloorToNextHigherMatchTexture,
         SR_RaiseFloorToNextHigher,
         SR_LowerFloorToEightAboveHighestAdjacentFloor,
@@ -151,30 +151,25 @@ namespace Helion.Maps.Specials.Vanilla
         W1_LowerCeilingToFloor,
         W1_Donut,
         WR_RaiseFloor512,
-        // TODO
-        WR_FloorRaiseByTwentyFourChangeTexture,
-        WR_FloorRaiseByThirtyTwoChangeTexture,
+        WR_FloorRaiseByTwentyFourChangeTextureType,
+        WR_FloorRaiseByThirtyTwoChangeTextureType,
         WR_QuietCrusherCeilingFastDamage,
-        WR_FloorAndCeiling_LowerRaise,
-        WR_LowerCeilingToFloor, // *DONE
-        // END TODO
-
+        WR_CeilingToHighestFloorToLowest,
+        WR_LowerCeilingToFloor,
         W1_FloorTransferTrigger,
-        WR_FloorTransferTrigger,
-
-        // TODO
-        WR_Donut, //*DONE
+        WR_FloorTransferTrigger,     
+        WR_Donut,
         WR_BlinkLightStartEveryOneSecond,
         WR_LightMatchDimmestAdjacent,
-        S1_FloorRaiseByTexture,
+        S1_RaiseFloorByShortestLowerTexture,
         S1_LowerFloorToLowestAdjacentFloorChangeTexture,
-        S1_RaiseFloorTwentyFourMatchTexture,
+        S1_RaiseFloorTwentyFourChangeTextureType,
         S1_RaiseFloorTwentyFour,
         S1_StartMovingFloorPerpetual,
         S1_StopMovingFloor,
-        S1_CrusherCeiling, // VERIFY NAME
-        S1_SlowCrusherCeiling,
-        S1_FloorAndCeiling_LowerRaise,
+        S1_FastCrusherCeiling,
+        S1_QuietCrusherCeilingFastDamage,
+        S1_CeilingToHighestFloorToLowest,
         S1_LowerCeilingToEightAboveFloor,
         S1_StopCrusherCeiling,
         S1_LightLevelMatchBrightness,
@@ -184,26 +179,21 @@ namespace Helion.Maps.Specials.Vanilla
         S1_LightMatchDimmestAdjacent,
         S1_Teleport, // Monster
         S1_CloseDoorOpenThirtySeconds,
-
-        SR_FloorRaiseByTexture,
+        SR_RaiseFloorByShortestLowerTexture,
         SR_LowerFloorToLowestAdjacentFloorChangeTexture,
         SR_RaiseFloor512,
+        SR_RaiseFloorTwentyFourChangeTextureType,
         SR_RaiseFloorTwentyFour,
-        SR_RaiseFloorTwentyFourMatchTextureBoom,
         SR_StartMovingFloorPerpetual,
         SR_StopMovingFloor,
-        SR_CrusherCeiling,  // VERIFY NAME
+        SR_FastCrusherCeiling,
         SR_SlowCrusherCeiling,
         SR_QuietCrusherCeilingFastDamage,
-        SR_FloorAndCeiling_LowerRaise,
+        SR_CeilingToHighestFloorToLowest,
         SR_LowerCeilingToEightAboveFloor,
         SR_StopCrusherCeiling,
-        // END TODO
-
         S1_FloorTransferTrigger,
         SR_FloorTransferTrigger,
-
-        // TODO
         SR_Donut,
         SR_LightLevelMatchBrightness,
         SR_BlinkLightStartEveryOneSecond,
@@ -224,6 +214,7 @@ namespace Helion.Maps.Specials.Vanilla
         WR_TeleportNoFog, // Monster
         S1_TeleportNoFog, // Monster
         SR_TeleportNoFog, // Monster
+        // TODO
         SR_ToggleFloorToCeiling,
         WR_ToggleFLoorToCeiling,
         TransferFloorLight,
