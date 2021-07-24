@@ -57,8 +57,10 @@ namespace Helion.Layer.Worlds
             m_fpsTracker = fpsTracker;
             World = world;
             CurrentMap = mapInfoDef;
-
+            
             SetupKeys(config);
+            
+            m_ticker.Start();
         }
         
         ~WorldLayer()

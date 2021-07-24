@@ -191,8 +191,8 @@ namespace Helion.Layer.Worlds
             Vec2I horizontal = center - new Vec2I(Length, HalfWidth);
             Vec2I vertical = center - new Vec2I(HalfWidth, Length);
 
-            hud.FillBox((horizontal.X, horizontal.Y, Length * 2, HalfWidth * 2), Color.LawnGreen);
-            hud.FillBox((vertical.X, vertical.Y, HalfWidth * 2, Length * 2), Color.LawnGreen);
+            hud.FillBox((horizontal.X, horizontal.Y, horizontal.X + (Length * 2), horizontal.Y + (HalfWidth * 2)), Color.LawnGreen);
+            hud.FillBox((vertical.X, vertical.Y, vertical.X + (HalfWidth * 2), vertical.Y + (Length * 2)), Color.LawnGreen);
         }
         
         private void DrawMinimalStatusBar(IHudRenderContext hud, int topRightY)

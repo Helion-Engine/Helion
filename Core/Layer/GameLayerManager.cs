@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Input;
@@ -9,6 +11,7 @@ using Helion.Layer.Titlepic;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
@@ -23,8 +26,12 @@ namespace Helion.Layer
         public WorldLayer? WorldLayer { get; private set; }
         private readonly IWindow m_window;
         private bool m_disposed;
-        
+
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
+        internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
+        {
+            ConsoleLayer, MenuLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+        }.WhereNotNull();
 
         public GameLayerManager(IWindow window)
         {
@@ -86,11 +93,18 @@ namespace Helion.Layer
             }
         }
         
+        public void ClearAllExcept(params IGameLayer[] layers)
+        {
+            foreach (IGameLayer existingLayer in Layers)
+                if (!layers.Contains(existingLayer))
+                    Remove(existingLayer);
+        }
+        
         public void Remove(object? layer)
         {
             if (layer == null)
                 return;
-            
+
             if (ReferenceEquals(layer, ConsoleLayer)) 
             {
                 ConsoleLayer?.Dispose();
@@ -176,25 +190,21 @@ namespace Helion.Layer
         {
             if (m_disposed)
                 return;
-
+            
             ConsoleLayer?.Dispose();
-            ConsoleLayer = null;
-            
             MenuLayer?.Dispose();
-            MenuLayer = null;
-            
             TitlepicLayer?.Dispose();
-            TitlepicLayer = null;
-            
             EndGameLayer?.Dispose();
-            EndGameLayer = null;
-            
             IntermissionLayer?.Dispose();
-            IntermissionLayer = null;
-            
             WorldLayer?.Dispose();
+            
+            ConsoleLayer = null;
+            MenuLayer = null;
+            TitlepicLayer = null;
+            EndGameLayer = null;
+            IntermissionLayer = null;
             WorldLayer = null;
-
+            
             m_disposed = true;
         }
     }
