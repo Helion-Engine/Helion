@@ -11,6 +11,8 @@ using Helion.Layer.Titlepic;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Util.Configs;
+using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -24,7 +26,9 @@ namespace Helion.Layer
         public EndGameLayer? EndGameLayer { get; private set; }
         public IntermissionLayer? IntermissionLayer { get; private set; }
         public WorldLayer? WorldLayer { get; private set; }
+        private readonly Config m_config;
         private readonly IWindow m_window;
+        private readonly HelionConsole m_console;
         private bool m_disposed;
 
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -33,9 +37,11 @@ namespace Helion.Layer
             ConsoleLayer, MenuLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
         }.WhereNotNull();
 
-        public GameLayerManager(IWindow window)
+        public GameLayerManager(Config config, IWindow window, HelionConsole console)
         {
+            m_config = config;
             m_window = window;
+            m_console = console;
         }
 
         ~GameLayerManager()
@@ -139,6 +145,9 @@ namespace Helion.Layer
         
         public void HandleInput(InputEvent input)
         {
+            if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
+                ToggleConsoleLayer();
+
             ConsoleLayer?.HandleInput(input);
             MenuLayer?.HandleInput(input);
             EndGameLayer?.HandleInput(input);
@@ -146,7 +155,15 @@ namespace Helion.Layer
             IntermissionLayer?.HandleInput(input);
             WorldLayer?.HandleInput(input);
         }
-        
+
+        private void ToggleConsoleLayer()
+        {
+            if (ConsoleLayer == null)
+                Add(new ConsoleLayer(m_console));
+            else
+                Remove(ConsoleLayer);
+        }
+
         public void RunLogic()
         {
             ConsoleLayer?.RunLogic();
