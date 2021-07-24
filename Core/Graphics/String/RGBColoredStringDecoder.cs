@@ -37,10 +37,9 @@ namespace Helion.Graphics.String
         {
             List<ColoredChar> coloredChars = new List<ColoredChar>();
 
-            // TODO: Convert second foreach Substring to hat notation in C# 8.
             foreach (ColorRange range in GetColorRanges(str))
-            foreach (char c in str.Substring(range.StartIndex, range.EndIndex - range.StartIndex))
-                coloredChars.Add(new ColoredChar(c, range.Color));
+                foreach (char c in str.Substring(range.StartIndex, range.EndIndex - range.StartIndex))
+                    coloredChars.Add(new ColoredChar(c, range.Color));
 
             return new ColoredString(coloredChars);
         }

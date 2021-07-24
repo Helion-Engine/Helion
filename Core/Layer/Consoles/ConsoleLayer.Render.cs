@@ -17,7 +17,6 @@ namespace Helion.Layer.Consoles
         private const string FontName = "Console";
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
         private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
-        private static readonly Color InputFlashColor = Color.FromArgb(0, 255, 0);
         
         private static bool IsCursorFlashTime => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
         
@@ -72,7 +71,7 @@ namespace Helion.Layer.Consoles
         private void RenderInput(IHudRenderContext hud, out int inputHeight)
         {
             hud.Text(m_console.Input, FontName, FontSize, (4, -4), out Dimension drawArea, 
-                window: Align.MiddleLeft, anchor: Align.BottomLeft);
+                window: Align.MiddleLeft, anchor: Align.BottomLeft, color: Color.Yellow);
 
             if (drawArea.Height == 0)
                 drawArea.Height = FontSize;
@@ -94,22 +93,22 @@ namespace Helion.Layer.Consoles
             Vec2I dimension = (CaretWidth, drawArea.Height);
             
             HudBox area = (origin, origin + dimension);
-            hud.FillBox(area, InputFlashColor, Align.MiddleLeft, Align.BottomLeft);
+            hud.FillBox(area, Color.LawnGreen, Align.MiddleLeft, Align.BottomLeft);
         }
 
         private void RenderMessages(IHudRenderContext hud, int inputHeight)
         {
             const int InputToMessagePadding = 8;
-            const int BetweenMessagePadding = 3;
+            const int BetweenMessagePadding = 7;
 
-            int bottomY = inputHeight - InputToMessagePadding;
+            int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
             
             foreach (ConsoleMessage message in m_console.Messages)
             {
                 if (bottomY <= 0)
                     break;
 
-                int offsetX = 0;
+                int offsetX = 4;
                 int maxDrawHeight = 0;
                 
                 foreach (ColoredChar coloredChar in message.Message)

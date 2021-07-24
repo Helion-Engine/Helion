@@ -180,9 +180,16 @@ namespace Helion.Render.Legacy
             Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
             if (fontObject == null)
                 return;
+
+            string colorPrefix = "";
+            if (color != null)
+            {
+                Color c = color.Value;
+                colorPrefix = @$"\c[{c.R},{c.G},{c.B}]";
+            }
             
             Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
-            ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
+            ColoredString coloredString = RGBColoredStringDecoder.Decode($"{colorPrefix}{text}");
             RenderableString renderableString = new(coloredString, fontObject, fontSize, legacyAlign, maxWidth);
             drawArea = renderableString.DrawArea;
 
