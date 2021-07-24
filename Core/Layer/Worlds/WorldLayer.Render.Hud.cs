@@ -212,16 +212,18 @@ namespace Helion.Layer.Worlds
             int y = -m_padding;
             
             hud.Image(Medkit, (x, y), out HudBox medkitArea, both: Align.BottomLeft, scale: m_scale);
+            x += medkitArea.Width + m_padding;
 
             string health = Math.Max(0, Player.Health).ToString();
-            hud.Text(health, LargeHudFont, m_fontHeight, (x + medkitArea.Width + m_padding, y), 
-                both: Align.BottomLeft);
+            hud.Text(health, LargeHudFont, m_fontHeight, (x, y), out Dimension healthArea, both: Align.BottomLeft);
+            x += healthArea.Width + (m_padding * 3);
             
-            DrawFace(hud, (x + medkitArea.Width + (m_padding * 3), y), Align.BottomLeft, true);
+            DrawFace(hud, (x, y), Align.BottomLeft, true);
             
             if (Player.Armor > 0)
             {
-                y -= medkitArea.Height + m_padding;
+                x = m_padding;
+                y -= medkitArea.Height + (m_padding * 2);
             
                 EntityProperties? armorProp = Player.ArmorProperties;
                 if (armorProp != null && hud.Textures.HasImage(armorProp.Inventory.Icon))

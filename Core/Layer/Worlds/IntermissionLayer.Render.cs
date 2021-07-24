@@ -40,7 +40,7 @@ namespace Helion.Layer.Worlds
                 DrawTitle(hud);
                 DrawStatistics(hud);
                 DrawTime(hud);
-            });
+            }, ResolutionScale.Center);
         }
 
         private void DrawAnimations(IHudRenderContext hud)
@@ -168,7 +168,7 @@ namespace Helion.Layer.Worlds
 
             void DrawNumber(double percent, int offsetY)
             {
-                hud.Text($"{percent}%", Font, FontSize, (RightOffsetX, offsetY), TextAlign.Right, color: Color.White);
+                hud.Text($"{percent}%", Font, FontSize, (RightOffsetX, offsetY), anchor: Align.TopRight);
             }
         }
 
@@ -208,7 +208,7 @@ namespace Helion.Layer.Worlds
             void RenderTime(int seconds, int rightOffsetX, int y)
             {
                 string levelTime = GetTimeString(seconds);
-                hud.Text(levelTime, Font, FontSize, (rightOffsetX, y), TextAlign.Right, Align.BottomLeft);
+                hud.Text(levelTime, Font, FontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
             }
         }
     }
