@@ -39,8 +39,9 @@ namespace Helion.Render.Legacy.Commands
         
         public void Begin()
         {
+            m_commands.Clear();
+            
             ResolutionInfo = new ResolutionInfo(m_windowDimensions, ResolutionScale.None, m_windowDimensions.AspectRatio);
-            m_commands.Clear(); 
             m_scale = Vec2D.One;
             m_centeringOffsetX = 0;
         }

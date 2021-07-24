@@ -296,12 +296,12 @@ namespace Helion.Layer.Worlds
                 }
 
                 int xOffset = 0;
-                int yOffset = backgroundHandle.Dimension.Height - barHandle.Dimension.Height;
+                int yOffset = -barHandle.Dimension.Height;
                 int width = backgroundHandle.Dimension.Width;
 
                 while (xOffset < hud.Width)
                 {
-                    hud.Image(StatusBackground, (xOffset, yOffset), both: Align.BottomLeft);
+                    hud.Image(StatusBackground, (xOffset, yOffset), Align.BottomLeft);
                     xOffset += width;
                 }
             });
@@ -322,18 +322,18 @@ namespace Helion.Layer.Worlds
             const int OffsetY = 171;
             const int FontSize = 15;
             
-            if (Player.Weapon != null && Player.Weapon.Definition.Properties.Weapons.AmmoType == "")
+            if (Player.Weapon != null && Player.Weapon.Definition.Properties.Weapons.AmmoType != "")
             {
                 int ammoAmount = Player.Inventory.Amount(Player.Weapon.Definition.Properties.Weapons.AmmoType);
                 string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
-                hud.Text(ammo, LargeHudFont, FontSize, (43, OffsetY), window: Align.TopRight);
+                hud.Text(ammo, LargeHudFont, FontSize, (43, OffsetY), anchor: Align.TopRight);
             }
 
             string health = $"{Math.Clamp(Player.Health, 0, 999)}%";
-            hud.Text(health, LargeHudFont, FontSize, (102, OffsetY), both: Align.TopRight);
+            hud.Text(health, LargeHudFont, FontSize, (102, OffsetY), anchor: Align.TopRight);
             
             string armor = $"{Math.Clamp(Player.Armor, 0, 999)}%";
-            hud.Text(armor, LargeHudFont, FontSize, (233, OffsetY), both: Align.TopRight);
+            hud.Text(armor, LargeHudFont, FontSize, (233, OffsetY), anchor: Align.TopRight);
         }
         
         private void DrawFullHudWeaponSlots(IHudRenderContext hud)
@@ -441,7 +441,7 @@ namespace Helion.Layer.Worlds
 
             foreach ((ColoredString message, float alpha) in messages)
             {
-                hud.Text(message, SmallHudFont, 16, (LeftOffset, offsetY),
+                hud.Text(message, SmallHudFont, 8, (LeftOffset, offsetY),
                     out Dimension drawArea, window: Align.TopLeft, alpha: alpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }

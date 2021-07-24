@@ -26,7 +26,15 @@ namespace Helion.Render.Legacy
         private readonly ArchiveCollection m_archiveCollection;
         private HudRenderContext? m_context;
 
-        public Dimension Dimension => m_context?.Dimension ?? (800, 600);
+        public Dimension Dimension
+        {
+            get
+            {
+                if (m_resolutionInfos.TryPeek(out var info))
+                    return info.VirtualDimensions;
+                return m_context?.Dimension ?? (800, 600);
+            }
+        }
         public IRendererTextureManager Textures { get; }
 
         public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
@@ -234,13 +242,18 @@ namespace Helion.Render.Legacy
 
         public void PopVirtualDimension()
         {
-            ResolutionInfo resolutionInfo = new(Dimension, Commands.ResolutionScale.None, Dimension.AspectRatio);
-
             if (m_resolutionInfos.TryPop(out _))
+            {
                 if (!m_resolutionInfos.Empty())
-                    resolutionInfo = m_resolutionInfos.Peek();
-
-            m_commands.SetVirtualResolution(resolutionInfo);
+                {
+                    ResolutionInfo resolutionInfo = m_resolutionInfos.Peek();
+                    m_commands.SetVirtualResolution(resolutionInfo);
+                    return;
+                } 
+            }
+            
+            ResolutionInfo windowResolutionInfo = new(Dimension, Commands.ResolutionScale.None, Dimension.AspectRatio);
+            m_commands.SetVirtualResolution(windowResolutionInfo);
         }
 
         private Vec2I GetDrawingCoordinateFromAlign(int xOffset, int yOffset, int width, int height,
