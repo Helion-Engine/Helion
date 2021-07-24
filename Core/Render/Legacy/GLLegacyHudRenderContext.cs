@@ -152,6 +152,9 @@ namespace Helion.Render.Legacy
             
             if (m_context == null)
                 return;
+            
+            window = both ?? window;
+            anchor = both ?? anchor;
 
             Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
             if (fontObject == null)
@@ -181,6 +184,9 @@ namespace Helion.Render.Legacy
             if (fontObject == null)
                 return;
 
+            window = both ?? window;
+            anchor = both ?? anchor;
+            
             string colorPrefix = "";
             if (color != null)
             {
