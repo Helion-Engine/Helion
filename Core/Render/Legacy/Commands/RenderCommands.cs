@@ -45,14 +45,9 @@ namespace Helion.Render.Legacy.Commands
             m_centeringOffsetX = 0;
         }
 
-        public void Clear()
+        public void Clear(Color color, bool depth = false, bool stencil = false)
         {
-            m_commands.Add(ClearRenderCommand.All());
-        }
-        
-        public void Clear(Color color)
-        {
-            m_commands.Add(new ClearRenderCommand(true, false, false, color));
+            m_commands.Add(new ClearRenderCommand(true, depth, stencil, color));
         }
 
         public void ClearDepth()

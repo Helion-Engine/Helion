@@ -37,21 +37,21 @@ namespace Helion.Render.Common.Renderers
         /// <param name="alpha">The alpha value for the color.</param>
         void Clear(Color color, float alpha = 1.0f);
         
-        void Point(Vec2I point, Color color, Align window = Align.TopLeft);
+        void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
         
-        void Points(Vec2I[] points, Color color, Align window = Align.TopLeft);
+        void Points(Vec2I[] points, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
         
-        void Line(Seg2D seg, Color color, Align window = Align.TopLeft);
+        void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
         
-        void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft);
+        void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
 
-        void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
+        void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
         
-        void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
+        void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
 
-        void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
+        void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
         
-        void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft);
+        void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
 
         void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             Align? both = null, Color? color = null, float scale = 1.0f, float alpha = 1.0f)

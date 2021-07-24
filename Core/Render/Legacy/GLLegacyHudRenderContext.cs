@@ -13,6 +13,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Extensions;
 using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
 namespace Helion.Render.Legacy
@@ -49,47 +50,47 @@ namespace Helion.Render.Legacy
             m_commands.DrawImage("NULL", 0, 0, dim.Width, dim.Height, color, alpha);
         }
 
-        public void Point(Vec2I point, Color color, Align window = Align.TopLeft)
+        public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft)
+        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft)
+        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft)
+        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f)
         {
             if (m_context == null)
                 return;
             
             Vec2I pos = box.Min;
             Dimension dim = box.Dimension;
-            m_commands.DrawImage("NULL", pos.X, pos.Y, dim.Width, dim.Height, color);
+            m_commands.DrawImage("NULL", pos.X, pos.Y, dim.Width, dim.Height, color, alpha);
         }
 
-        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f)
         {
             // Not implemented in the legacy renderer.
         }
@@ -210,7 +211,13 @@ namespace Helion.Render.Legacy
 
         public void PopVirtualDimension()
         {
-            m_resolutionInfos.TryPop(out _);
+            ResolutionInfo resolutionInfo = new(Dimension, Commands.ResolutionScale.None, Dimension.AspectRatio);
+
+            if (m_resolutionInfos.TryPop(out _))
+                if (!m_resolutionInfos.Empty())
+                    resolutionInfo = m_resolutionInfos.Peek();
+
+            m_commands.SetVirtualResolution(resolutionInfo);
         }
         
         public void Dispose()

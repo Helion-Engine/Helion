@@ -65,7 +65,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_currentResolutionInfo = info;
         }
 
-        public void Clear(Color color, float alpha)
+        public void Clear(Color color, float alpha = 1.0f)
         {
             Color drawColor = Color.FromArgb((int)(alpha / 255.0f), color.R, color.G, color.B);
             DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), drawColor);
@@ -80,17 +80,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_pointPrimitivePipeline.Vbo.Add(vertex);
         }
 
-        public void Point(Vec2I point, Color color, Align window = Align.TopLeft)
+        public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddPoint(point, byteColor, window);
 
             m_elementsDrawn++;
         }
 
-        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft)
+        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < points.Length; i++)
                 AddPoint(points[i], byteColor, window);
             
@@ -112,17 +112,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             }
         }
 
-        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft)
+        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddSegment(seg.Start.Int, seg.End.Int, byteColor, window);
             
             m_elementsDrawn++;
         }
 
-        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft)
+        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < segs.Length; i++)
                 AddSegment(segs[i].Start.Int, segs[i].End.Int, byteColor, window);
             
@@ -149,17 +149,19 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             AddSegment(bottomLeft, topLeft, color, window);
         }
 
-        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < boxes.Length; i++)
                 AddBox(boxes[i], byteColor, window, anchor);
             
@@ -198,17 +200,19 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             AddTriangle(topRight, bottomLeft, bottomRight, color);
         }
 
-        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddFillBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < boxes.Length; i++)
                 AddFillBox(boxes[i], byteColor, window, anchor);
             

@@ -21,7 +21,6 @@ namespace Helion.Layer.Titlepic
     public class TitlepicLayer : IGameLayer
     {
         private const string Titlepic = "TITLEPIC";
-        private static readonly Color HalfAlphaBlack = Color.FromArgb(128, 0, 0, 0);
 
         private readonly GameLayerManager m_parent;
         private readonly ArchiveCollection m_archiveCollection;
@@ -106,8 +105,6 @@ namespace Helion.Layer.Titlepic
                 m_initRenderPages = true;
                 m_pages = LayerUtil.GetRenderPages(hud, m_pages, true);
             }
-            
-            hud.Clear(Color.Black);
 
             string image = m_pages[m_pageIndex];
             if (hud.Textures.TryGet(image, out var handle))
@@ -121,7 +118,7 @@ namespace Helion.Layer.Titlepic
                 if (ShouldDarken)
                 {
                     (int width, int height) = hud.Dimension;
-                    hud.FillBox((0, 0, width, height), HalfAlphaBlack);
+                    hud.FillBox((0, 0, width, height), Color.Black, alpha: 0.5f);
                 }
             }
             

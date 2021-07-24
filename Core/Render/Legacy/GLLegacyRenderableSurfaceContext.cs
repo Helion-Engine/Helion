@@ -33,13 +33,7 @@ namespace Helion.Render.Legacy
 
         public void Clear(Color color, bool depth, bool stencil)
         {
-            Commands.Clear(color);
-
-            if (depth)
-                Commands.ClearDepth();
-            
-            if (depth && stencil)
-                Commands.Clear();
+            Commands.Clear(color, depth, stencil);
         }
 
         public void ClearDepth()
