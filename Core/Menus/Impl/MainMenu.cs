@@ -16,11 +16,11 @@ namespace Helion.Menus.Impl
 {
     public class MainMenu : Menu
     {
-        private readonly IGameLayer m_parent;
-
         private const int OffsetX = 97;
         private const int PaddingY = 1;
-        
+     
+        private readonly IGameLayer m_parent;
+
         public MainMenu(IGameLayer parent, Config config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
             : base(config, console, soundManager, archiveCollection, 0)

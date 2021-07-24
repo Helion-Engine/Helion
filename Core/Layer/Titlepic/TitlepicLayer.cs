@@ -106,8 +106,6 @@ namespace Helion.Layer.Titlepic
                 m_initRenderPages = true;
                 m_pages = LayerUtil.GetRenderPages(hud, m_pages, true);
             }
-
-            var (width, height) = hud.Dimension;
             
             hud.Clear(Color.Black);
 
@@ -121,7 +119,10 @@ namespace Helion.Layer.Titlepic
                 });
 
                 if (ShouldDarken)
+                {
+                    (int width, int height) = hud.Dimension;
                     hud.FillBox((0, 0, width, height), HalfAlphaBlack);
+                }
             }
             
             if (m_pages.Count > 1)

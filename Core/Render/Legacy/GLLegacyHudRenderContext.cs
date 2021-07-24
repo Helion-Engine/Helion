@@ -202,6 +202,10 @@ namespace Helion.Render.Legacy
             }
             
             m_commands.SetVirtualResolution(dimension.Width, dimension.Height, legacyScale);
+
+            float aspectRatio = m_context?.Dimension.AspectRatio ?? dimension.AspectRatio;
+            ResolutionInfo resolutionInfo = new(dimension, legacyScale, aspectRatio);
+            m_resolutionInfos.Push(resolutionInfo);
         }
 
         public void PopVirtualDimension()

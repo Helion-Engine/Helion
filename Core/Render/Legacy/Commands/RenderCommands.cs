@@ -31,7 +31,7 @@ namespace Helion.Render.Legacy.Commands
         {
             Config = config;
             WindowDimension = windowDimensions;
-            ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
+            ResolutionInfo = new ResolutionInfo(m_windowDimensions, ResolutionScale.None, windowDimensions.AspectRatio);
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
             m_windowDimensions = windowDimensions;
@@ -39,7 +39,7 @@ namespace Helion.Render.Legacy.Commands
         
         public void Begin()
         {
-            ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
+            ResolutionInfo = new ResolutionInfo(m_windowDimensions, ResolutionScale.None, m_windowDimensions.AspectRatio);
             m_commands.Clear(); 
             m_scale = Vec2D.One;
             m_centeringOffsetX = 0;
@@ -101,12 +101,7 @@ namespace Helion.Render.Legacy.Commands
         public void SetVirtualResolution(int width, int height, ResolutionScale scale = ResolutionScale.None)
         {
             Dimension dimension = new Dimension(width, height);
-            ResolutionInfo info = new()
-            {
-                VirtualDimensions = dimension, 
-                Scale = scale,
-                AspectRatio = dimension.AspectRatio
-            };
+            ResolutionInfo info = new(dimension, scale, m_windowDimensions.AspectRatio);
             SetVirtualResolution(info);
         }
 
@@ -134,19 +129,6 @@ namespace Helion.Render.Legacy.Commands
                 // it will cause weird overdrawing otherwise.
                 m_centeringOffsetX = (WindowDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
             }
-        }
-
-        /// <summary>
-        /// Restores drawing to the native resolution (viewport size, no scale
-        /// transformations).
-        /// </summary>
-        public void UseNativeResolution()
-        {
-            ResolutionInfo = new ResolutionInfo
-            {
-                VirtualDimensions = WindowDimension,
-                Scale = ResolutionScale.None
-            };
         }
 
         public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
