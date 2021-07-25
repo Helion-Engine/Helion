@@ -471,6 +471,11 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg1 = 8;
                     return ZDoomLineSpecialType.FloorLowerToNearest;
 
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.PlatToggleCeiling;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -616,6 +621,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_TeleportNoFog:
                 case VanillaLineSpecialType.S1_LowerFloorToNearest:
                 case VanillaLineSpecialType.SR_LowerFloorToNearest:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
                     return LineActivationType.Tag;
 
                 default:
@@ -1020,6 +1026,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_LowerFloorToNearest:
                 case VanillaLineSpecialType.SR_RaiseStairs8:
                 case VanillaLineSpecialType.SR_RaiseStairsFast:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -1113,6 +1120,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_LowerFloorToNearest:
                 case VanillaLineSpecialType.WR_RaiseStairs8:
                 case VanillaLineSpecialType.WR_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
                     return ActivationType.PlayerLineCross;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
@@ -1255,6 +1263,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_RaiseStairsFast:
                 case VanillaLineSpecialType.SR_RaiseStairs8:
                 case VanillaLineSpecialType.SR_RaiseStairsFast:
+                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
                     return true;
 
                 default:

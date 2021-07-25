@@ -214,9 +214,9 @@ namespace Helion.Maps.Specials.Vanilla
         WR_TeleportNoFog, // Monster
         S1_TeleportNoFog, // Monster
         SR_TeleportNoFog, // Monster
-        // TODO
         SR_ToggleFloorToCeiling,
-        WR_ToggleFLoorToCeiling,
+        WR_ToggleFloorToCeiling,
+        // TODO
         TransferFloorLight,
         ScrollAccelTaggedCeiling,
         ScrollAccelTaggedFloorFirstSide,

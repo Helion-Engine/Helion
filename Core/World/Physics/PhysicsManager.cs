@@ -99,7 +99,7 @@ namespace Helion.World.Physics
         }
 
         public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
-            double speed, double destZ, CrushData? crush)
+            double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
         {
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
@@ -123,7 +123,7 @@ namespace Helion.World.Physics
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (moveType == SectorPlaneType.Floor && startZ > destZ && -speed < SetEntityToFloorSpeedMax &&
+                if (moveType == SectorPlaneType.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
                     entity.OnGround && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
@@ -204,7 +204,7 @@ namespace Helion.World.Physics
                 double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
                 // Set the sector Z to the difference of the blocked height (only works if not being crushed)
                 // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-                if (highestBlockEntity.WasCrushing)
+                if (compatibilityBlockMovement || highestBlockEntity.WasCrushing)
                 {
                     sectorPlane.Z = startZ;
                     sectorPlane.Plane.MoveZ(startZ - destZ);
@@ -236,6 +236,9 @@ namespace Helion.World.Physics
 
             return status;
         }
+
+        private static bool SpeedShouldStickToFloor(double speed) =>
+            -speed < SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
         private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneType moveType)
         {

@@ -909,9 +909,19 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.PlatUpByValue:
                     return CreatePlatUpByValue(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, line.Args.Arg3);
+
+                case ZDoomLineSpecialType.PlatToggleCeiling:
+                    return CreatePlatToggleCeiling(sector);
             }
 
             return null;
+        }
+
+        private ISpecial? CreatePlatToggleCeiling(Sector sector)
+        {
+            double destZ = GetDestZ(sector, SectorDest.Ceiling);
+            return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneType.Floor, MoveDirection.Up, 
+                MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, compatibilityBlockMovement: true));
         }
 
         private bool CreateFloorAndCeilingLowerRaise(Sector sector, double floorSpeed, double ceilingSpeed, int boomEmulation)

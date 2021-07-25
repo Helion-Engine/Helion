@@ -33,5 +33,10 @@
         /// by an entity. Used with moving floor perpetual specials.
         /// </summary>
         Perpetual,
+
+        /// <summary>
+        /// Like Perpetual, but the move special will pause when it hits it's destination.
+        /// </summary>
+        PerpetualPause,
     }
 }

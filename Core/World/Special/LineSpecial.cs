@@ -190,6 +190,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.DoorOpenClose:
                 case ZDoomLineSpecialType.DoorLockedRaise:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -210,7 +213,11 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
                 case ZDoomLineSpecialType.FloorRaiseCrush:
                 case ZDoomLineSpecialType.FloorCrushStop:
+                case ZDoomLineSpecialType.PlatToggleCeiling:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -223,6 +230,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ExitNormal:
                 case ZDoomLineSpecialType.ExitSecret:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -303,7 +313,11 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.StairsGeneric:
                 case ZDoomLineSpecialType.PlatUpValueStayTx:
                 case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
+                case ZDoomLineSpecialType.PlatToggleCeiling:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -316,6 +330,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorTransferNumeric:
                 case ZDoomLineSpecialType.FloorTransferTrigger:
                     return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -329,6 +346,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.CeilingCrushStop:
                 case ZDoomLineSpecialType.FloorCrushStop:
                 return true;
+
+                default:
+                    break;
             }
 
             return false;
@@ -349,7 +369,10 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.LightStrobeDoom:
                 case ZDoomLineSpecialType.LightMinNeighbor:
                 case ZDoomLineSpecialType.LightMaxNeighbor:
-                return true;
+                    return true;
+
+                default:
+                    break;
             }
 
             return false;

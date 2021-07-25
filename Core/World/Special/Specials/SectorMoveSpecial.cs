@@ -69,7 +69,8 @@ namespace Helion.World.Special.Specials
                 floorChangeTextureHandle: model.FloorChange, 
                 ceilingChangeTextureHandle: model.CeilingChange, 
                 damageSpecial: model.DamageSpecial?.ToWorldSpecial(world),
-                returnSpeed: model.ReturnSpeed);
+                returnSpeed: model.ReturnSpeed,
+                compatibilityBlockMovement: model.CompatibilityBlockMovement);
             SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
             SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = model.StartZ;
@@ -111,6 +112,7 @@ namespace Helion.World.Special.Specials
                 Delay = MoveData.Delay,
                 FloorChange = MoveData.FloorChangeTextureHandle,
                 StartDirection = (int)MoveData.StartDirection,
+                CompatibilityBlockMovement = MoveData.CompatibilityBlockMovement,
                 StartSound = SoundData.StartSound,
                 ReturnSound = SoundData.ReturnSound,
                 StopSound = SoundData.StopSound,
@@ -127,7 +129,7 @@ namespace Helion.World.Special.Specials
                 PlayedStartSound = m_playedStartSound,
                 Paused = IsPaused,
                 DamageSpecial = CreateSectorDamageSpecialModel(),
-                Crush = CreateCrushDataModel()
+                Crush = CreateCrushDataModel(),
             };
         }
 
@@ -160,7 +162,10 @@ namespace Helion.World.Special.Specials
         public virtual SpecialTickStatus Tick()
         {
             if (IsPaused)
+            {
+                SectorPlane.PrevZ = SectorPlane.Z;
                 return SpecialTickStatus.Continue;
+            }
 
             if (DelayTics > 0)
             {
@@ -292,6 +297,9 @@ namespace Helion.World.Special.Specials
                 m_crushing = false;
 
             m_speed = m_speeds[speedIndex];
+
+            if (MoveData.MoveRepetition == MoveRepetition.PerpetualPause)
+                IsPaused = true;
         }
 
         private double CalculateDestination()
@@ -309,7 +317,7 @@ namespace Helion.World.Special.Specials
         private void PerformAndHandleMoveZ(double destZ)
         {
             SectorMoveStatus status = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
-                m_speed, destZ, MoveData.Crush);
+                m_speed, destZ, MoveData.Crush, MoveData.CompatibilityBlockMovement);
 
             switch (status)
             {
