@@ -369,6 +369,8 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.LightStrobeDoom:
                 case ZDoomLineSpecialType.LightMinNeighbor:
                 case ZDoomLineSpecialType.LightMaxNeighbor:
+                case ZDoomLineSpecialType.TransferFloorLight:
+                case ZDoomLineSpecialType.TransferCeilingLight:
                     return true;
 
                 default:

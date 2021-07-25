@@ -442,18 +442,24 @@ namespace Helion.World.Special
         {
             switch (line.Special.LineSpecialType)
             {
-            case ZDoomLineSpecialType.ScrollTextureLeft:
-                AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / 64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
-                break;
-            case ZDoomLineSpecialType.ScrollTextureRight:
-                AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / -64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
-                break;
-            case ZDoomLineSpecialType.ScrollTextureUp:
-                AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / 64.0, (ZDoomLineScroll)line.Args.Arg1));
-                break;
-            case ZDoomLineSpecialType.ScrollTextureDown:
-                AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -64.0, (ZDoomLineScroll)line.Args.Arg1));
-                break;
+                case ZDoomLineSpecialType.ScrollTextureLeft:
+                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / 64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    break;
+                case ZDoomLineSpecialType.ScrollTextureRight:
+                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / -64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    break;
+                case ZDoomLineSpecialType.ScrollTextureUp:
+                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / 64.0, (ZDoomLineScroll)line.Args.Arg1));
+                    break;
+                case ZDoomLineSpecialType.ScrollTextureDown:
+                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -64.0, (ZDoomLineScroll)line.Args.Arg1));
+                    break;
+                case ZDoomLineSpecialType.TransferFloorLight:
+                    SetFloorLight(line);
+                    break;
+                case ZDoomLineSpecialType.TransferCeilingLight:
+                    SetCeilingLight(line);
+                    break;
             }
         }
 
@@ -915,6 +921,20 @@ namespace Helion.World.Special
             }
 
             return null;
+        }
+
+        private void SetCeilingLight(Line line)
+        {
+            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            foreach (var sector in sectors)
+                sector.Ceiling.LightLevel = line.Front.Sector.LightLevel;
+        }
+
+        private void SetFloorLight(Line line)
+        {
+            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            foreach (var sector in sectors)
+                sector.Floor.LightLevel = line.Front.Sector.LightLevel;
         }
 
         private ISpecial? CreatePlatToggleCeiling(Sector sector)

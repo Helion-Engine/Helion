@@ -476,6 +476,14 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.PlatToggleCeiling;
 
+                case VanillaLineSpecialType.TransferFloorLight:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.TransferFloorLight;
+
+                case VanillaLineSpecialType.TransferCeilingLight:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.TransferCeilingLight;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -1131,6 +1139,8 @@ namespace Helion.Maps.Specials.Vanilla
                     return ActivationType.ProjectileHitsWall;
 
                 case VanillaLineSpecialType.ScrollTextureLeft:
+                case VanillaLineSpecialType.TransferFloorLight:
+                case VanillaLineSpecialType.TransferCeilingLight:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:
