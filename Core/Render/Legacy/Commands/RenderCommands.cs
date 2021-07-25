@@ -118,8 +118,11 @@ namespace Helion.Render.Legacy.Commands
             if (resolutionInfo.Scale == ResolutionScale.Stretch)
                 return;
 
-            double minScale = Math.Min(scaleWidth, scaleHeight);
-            m_scale = new Vec2D(minScale, minScale);
+            // Note that for now, we always stretch along the Y axis.
+            if (scaleHeight > scaleWidth)
+                return;
+            
+            m_scale = new Vec2D(scaleHeight, scaleHeight);
             
             // By default we're stretching, but if we're centering, our values
             // have to change to accomodate a gutter if the aspect ratios are

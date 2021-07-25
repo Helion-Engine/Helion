@@ -141,7 +141,7 @@ namespace Helion.Render.Common.Renderers
         void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.Center)
         {
             VirtualDimension((320, 200), resolutionScale, action);
-        } 
+        }
         
         /// <summary>
         /// Starts rendering at a virtual dimension. All subsequent rendering
