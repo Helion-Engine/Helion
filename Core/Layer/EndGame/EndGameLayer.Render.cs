@@ -41,15 +41,13 @@ namespace Helion.Layer.EndGame
             }
             else
             {
-                DrawBackgroundImages(m_images, m_xOffset, hud, ctx);
-                
-                if (m_drawState == EndGameDrawState.TheEnd)
+                hud.DoomVirtualResolution(() =>
                 {
-                    hud.DoomVirtualResolution(() =>
-                    {
+                    DrawBackgroundImages(m_images, m_xOffset, hud, ctx);
+
+                    if (m_drawState == EndGameDrawState.TheEnd)
                         hud.Image(TheEndImages[m_theEndImageIndex], m_theEndOffset, Align.Center);
-                    });
-                }
+                });
             }
         }
         
