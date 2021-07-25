@@ -20,6 +20,13 @@ namespace Helion.Render.Common.Renderers
         Dimension Dimension { get; }
         
         /// <summary>
+        /// The dimension of the window. This should not be used unless you
+        /// know what you are doing, since <see cref="Dimension"/> is what
+        /// hud drawings will be rendered according to.
+        /// </summary>
+        Dimension WindowDimension { get; }
+        
+        /// <summary>
         /// The texture manager that this context uses.
         /// </summary>
         IRendererTextureManager Textures { get; }
@@ -131,7 +138,7 @@ namespace Helion.Render.Common.Renderers
         /// </summary>
         /// <param name="action">The actions to take in the new resolution.</param>
         /// <param name="resolutionScale">The scale to use, by default is none.</param>
-        void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.None)
+        void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.Center)
         {
             VirtualDimension((320, 200), resolutionScale, action);
         } 

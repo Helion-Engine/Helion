@@ -24,7 +24,9 @@ namespace Helion.Render.Legacy
         private readonly RenderCommands m_commands;
         private readonly Stack<ResolutionInfo> m_resolutionInfos = new();
         private readonly ArchiveCollection m_archiveCollection;
+        public IRendererTextureManager Textures { get; }
         private HudRenderContext? m_context;
+        public Dimension WindowDimension { get; } = (800, 600);
 
         public Dimension Dimension
         {
@@ -35,8 +37,7 @@ namespace Helion.Render.Legacy
                 return m_context?.Dimension ?? (800, 600);
             }
         }
-        public IRendererTextureManager Textures { get; }
-
+        
         public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
             IRendererTextureManager textureManager)
         {

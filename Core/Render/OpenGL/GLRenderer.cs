@@ -37,7 +37,7 @@ namespace Helion.Render.OpenGL
             m_config = config;
             Window = window;
             m_textureManager = new GLLegacyTextureManager(archiveCollection);
-            m_hudRenderer = new GLHudRenderer(m_textureManager);
+            m_hudRenderer = new GLHudRenderer(this, m_textureManager);
             m_worldRenderer = new GLWorldRenderer();
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
 

@@ -40,7 +40,7 @@ namespace Helion.Layer.Worlds
                 DrawTitle(hud);
                 DrawStatistics(hud);
                 DrawTime(hud);
-            }, ResolutionScale.Center);
+            });
         }
 
         private void DrawAnimations(IHudRenderContext hud)

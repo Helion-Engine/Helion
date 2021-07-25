@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -114,16 +115,27 @@ namespace Helion.Render.Legacy.Commands
             m_scale = new Vec2D(scaleWidth, scaleHeight);
             m_centeringOffsetX = 0;
 
+            if (resolutionInfo.Scale == ResolutionScale.Stretch)
+                return;
+
+            double minScale = Math.Min(scaleWidth, scaleHeight);
+            m_scale = new Vec2D(minScale, minScale);
+            
             // By default we're stretching, but if we're centering, our values
             // have to change to accomodate a gutter if the aspect ratios are
             // different.
-            if (resolutionInfo.Scale == ResolutionScale.Center && WindowDimension.AspectRatio > resolutionInfo.AspectRatio)
+            if (resolutionInfo.Scale == ResolutionScale.Center)
             {
                 // We only want to do centering if we will end up with gutters
                 // on the side. This can only happen if the virtual dimension
                 // has a smaller aspect ratio. We have to exit out if not since
                 // it will cause weird overdrawing otherwise.
-                m_centeringOffsetX = (WindowDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
+                if (resolutionInfo.VirtualDimensions.AspectRatio < WindowDimension.AspectRatio)
+                {
+                    int scaledWidth = (int)(resolutionInfo.VirtualDimensions.Width * m_scale.Y);
+                    int gutter = WindowDimension.Width - scaledWidth;
+                    m_centeringOffsetX = gutter / 2;
+                }      
             }
         }
 

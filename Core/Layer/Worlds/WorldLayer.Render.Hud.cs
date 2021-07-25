@@ -296,16 +296,26 @@ namespace Helion.Layer.Worlds
                     return;
                 }
 
-                int xOffset = 0;
+                // NOTE: This is a terrible hack. The code to convert from 
+                // window space into the custom screen space, then figure out
+                // the gutter, then translate back into the window space, can
+                // be solved for all possible cases for the foreseeable future
+                // by overdrawing 1000 pixels (in 320x200 resolution) on each
+                // side. The only way this would become visible is if there
+                // was a widescreen that was like 9280x1280. If this ever is
+                // a thing, a proper fix can be added.
+                const int Overflow = 1000;
+                int xOffset = -Overflow;
                 int yOffset = -barHandle.Dimension.Height + 1;
                 int width = backgroundHandle.Dimension.Width;
-
-                while (xOffset < hud.Width)
+                int iterations = ((Overflow + 320 + Overflow) / backgroundHandle.Dimension.Width) + 1;
+                
+                for (int i = 0; i < iterations; i++)
                 {
                     hud.Image(StatusBackground, (xOffset, yOffset), Align.BottomLeft);
                     xOffset += width;
                 }
-            });
+            }, ResolutionScale.None);
 
             hud.DoomVirtualResolution(() =>
             {
@@ -315,7 +325,7 @@ namespace Helion.Layer.Worlds
                 DrawFace(hud, (FullHudFaceX, FullHudFaceY));
                 DrawFullHudKeys(hud);
                 DrawFullTotalAmmo(hud);
-            }, ResolutionScale.Center);
+            });
         }
 
         private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)
