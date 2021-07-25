@@ -16,7 +16,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
 using Helion.World.Save;
 
-namespace Helion.Layer.Titlepic
+namespace Helion.Layer.Images
 {
     public class TitlepicLayer : IGameLayer
     {

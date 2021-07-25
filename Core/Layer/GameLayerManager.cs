@@ -9,7 +9,6 @@ using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
 using Helion.Layer.Menus;
-using Helion.Layer.Titlepic;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;

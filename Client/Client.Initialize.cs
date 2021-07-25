@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using Helion.Layer.Consoles;
-using Helion.Layer.Titlepic;
+using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
