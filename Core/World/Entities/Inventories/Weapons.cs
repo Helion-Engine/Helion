@@ -30,7 +30,7 @@ namespace Helion.World.Entities.Inventories
                 foreach (string weapon in item.Value)
                 {
                     m_weaponNames.Add(weapon);
-                    m_weaponSlotLookup.Add(weapon, (item.Key, subslot++));
+                    m_weaponSlotLookup[weapon] = (item.Key, subslot++);
                 }
             }
         }
