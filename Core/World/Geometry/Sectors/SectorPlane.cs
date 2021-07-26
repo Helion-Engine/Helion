@@ -1,8 +1,17 @@
+using Helion.Audio;
 using Helion.Geometry.Planes;
+using Helion.Geometry.Vectors;
+using Helion.Resources.Definitions.SoundInfo;
+using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
+using Helion.World.Sound;
+using Helion.World.Special.SectorMovement;
+using Helion.World.Special.Specials;
+using System;
 
 namespace Helion.World.Geometry.Sectors
 {
-    public class SectorPlane
+    public class SectorPlane : ISoundSource
     {
         public readonly int Id;
         public readonly SectorPlaneFace Facing;
@@ -14,6 +23,8 @@ namespace Helion.World.Geometry.Sectors
         public short LightLevel;
 
         public bool Sloped => Plane != null;
+
+        private IAudioSource? m_audio;
 
         public SectorPlane(int id, SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
         {
@@ -39,5 +50,98 @@ namespace Helion.World.Geometry.Sectors
             TextureHandle = texture;
             Sector.PlaneTextureChange(this);
         }
+
+        public Vec3D GetSoundSource(Entity listener, SectorPlaneType type)
+        {
+            Vec2D pos2D = listener.Position.XY;
+            if (listener.Sector.Equals(this))
+                return pos2D.To3D(type == SectorPlaneType.Floor ? Sector.ToFloorZ(pos2D) : Sector.ToCeilingZ(pos2D));
+
+            double z = listener.Position.Z;
+            pos2D = GetClosestPointFrom(pos2D);
+
+            // Check if the player z is in line with the lower/upper of the moving sector
+            // This is set to the player z so the sound doesn't attenuate on z axis
+            if (type == SectorPlaneType.Floor)
+            {
+                double floorZ = Sector.ToFloorZ(pos2D);
+                if (floorZ < z)
+                    z = floorZ;
+            }
+            else
+            {
+                double ceilingZ = Sector.ToCeilingZ(pos2D);
+                if (ceilingZ > z)
+                    z = ceilingZ;
+            }
+
+            return new Vec3D(pos2D.X, pos2D.Y, z);
+        }
+
+        public Vec2D GetClosestPointFrom(in Vec2D point)
+        {
+            double minDist = double.MaxValue;
+            Line? minLine = null;
+
+            foreach (var line in Sector.Lines)
+            {
+                double dist = line.Segment.ClosestPoint(point).Distance(point);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    minLine = line;
+                }
+            }
+
+            if (minLine != null)
+                return minLine.Segment.ClosestPoint(point);
+
+            return Vec2D.Zero;
+        }
+
+        public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_audio = audioSource;
+        }
+
+        public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+        {
+            if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
+            {
+                IAudioSource stopSource = m_audio;
+                m_audio = null;
+                return stopSource;
+            }
+
+            return null;
+        }
+
+        public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+        {
+            m_audio = null;
+        }
+
+        public double GetDistanceFrom(Entity listenerEntity)
+        {
+            if (Sector.GetActiveMoveSpecial(this) is SectorMoveSpecial moveSpecial)
+                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType).Distance(listenerEntity.Position);
+
+            return 0.0;
+        }
+
+        public Vec3D? GetSoundPosition(Entity listenerEntity)
+        {
+            if (Sector.GetActiveMoveSpecial(this) is SectorMoveSpecial moveSpecial)
+                return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType);
+
+            return null;
+        }
+
+        public Vec3D? GetSoundVelocity()
+        {
+            return Vec3D.Zero;
+        }
+
+        public bool CanAttenuate(SoundInfo soundInfo) => true;
     }
 }

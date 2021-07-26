@@ -56,7 +56,7 @@ namespace Helion.World.Special.Specials
             m_minZ = Math.Min(m_startZ, DestZ);
             m_maxZ = Math.Max(m_startZ, DestZ);
 
-            Sector.ActiveMoveSpecial = this;
+            Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
         }
 
         public SectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
@@ -85,7 +85,7 @@ namespace Helion.World.Special.Specials
             m_playedReturnSound = model.PlayedReturnSound;
             IsPaused = model.Paused;
 
-            Sector.ActiveMoveSpecial = this;
+            Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
             InitSpeeds();
             if (SoundData.MovementSound != null)
                 CreateSound(SoundData.MovementSound, true);
@@ -192,13 +192,13 @@ namespace Helion.World.Special.Specials
                 if (MoveData.DamageSpecial != null)
                     Sector.SectorDamageSpecial = MoveData.DamageSpecial;
 
-                Sector.ActiveMoveSpecial = null;
+                Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
                 return SpecialTickStatus.Destroy;
             }
 
             if (IsDelayReturn && SectorPlane.Z == m_startZ)
             {
-                Sector.ActiveMoveSpecial = null;
+                Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
                 return SpecialTickStatus.Destroy;
             }
 
@@ -241,13 +241,13 @@ namespace Helion.World.Special.Specials
 
         private void CreateSound(string sound, bool loop = false)
         {
-            m_world.SoundManager.CreateSoundOn(Sector, sound, SoundChannelType.Auto,
-                DataCache.Instance.GetSoundParams(Sector, loop));
+            m_world.SoundManager.CreateSoundOn(SectorPlane, sound, SoundChannelType.Auto,
+                DataCache.Instance.GetSoundParams(SectorPlane, loop));
         }
 
         private void StopSound(string sound)
         {
-            m_world.SoundManager.StopSoundBySource(Sector, SoundChannelType.Auto, sound);
+            m_world.SoundManager.StopSoundBySource(SectorPlane, SoundChannelType.Auto, sound);
         }
 
         public virtual void FinalizeDestroy()

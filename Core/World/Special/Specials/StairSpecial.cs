@@ -53,9 +53,9 @@ namespace Helion.World.Special.Specials
 
             do
             {
-                if (stairMove.Sector.ActiveMoveSpecial == null || ReferenceEquals(stairMove.Sector.ActiveMoveSpecial, this))
+                if (stairMove.Sector.ActiveFloorMove == null || ReferenceEquals(stairMove.Sector.ActiveFloorMove, this))
                 {
-                    stairMove.Sector.ActiveMoveSpecial = this;
+                    stairMove.Sector.ActiveFloorMove = this;
                     CreateMovementSound(stairMove.Sector);
                     m_stairs.Add(stairMove);
 
@@ -86,7 +86,7 @@ namespace Helion.World.Special.Specials
 
                 if (i >= m_destroyCount)
                 {
-                    m_stairs[i].Sector.ActiveMoveSpecial = this;
+                    m_stairs[i].Sector.ActiveFloorMove = this;
                     CreateMovementSound(m_stairs[i].Sector);
                 }
             }
@@ -131,7 +131,7 @@ namespace Helion.World.Special.Specials
                     FlipMovementDirection(false);
                     for (int i = 0; i < m_stairs.Count; i++)
                     {
-                        m_stairs[i].Sector.ActiveMoveSpecial = this;
+                        m_stairs[i].Sector.ActiveFloorMove = this;
                         CreateMovementSound(m_stairs[i].Sector);
                     }
                 }
@@ -141,7 +141,7 @@ namespace Helion.World.Special.Specials
             {
                 for (int i = m_destroyCount - 1; i < m_stairs.Count; i++)
                 {
-                    if (!ReferenceEquals(m_stairs[i].Sector.ActiveMoveSpecial, this))
+                    if (!ReferenceEquals(m_stairs[i].Sector.ActiveFloorMove, this))
                         continue;
 
                     m_stairs[i].Sector.Floor.PrevZ = m_stairs[i].Sector.Floor.Z;
@@ -163,7 +163,7 @@ namespace Helion.World.Special.Specials
                     DestZ = m_startZ;
                 else
                     DestZ = m_startZ + height;
-                if (ReferenceEquals(Sector.ActiveMoveSpecial, this))
+                if (ReferenceEquals(Sector.ActiveFloorMove, this))
                     currentStatus = base.Tick();                    
 
                 if (currentStatus == SpecialTickStatus.Destroy)
@@ -209,7 +209,7 @@ namespace Helion.World.Special.Specials
                 {
                     // The original game had this bug where it would increment height before checking if th sector was already in motion
                     height += stairHeight;
-                    if (line.Back.Sector.ActiveMoveSpecial == null)
+                    if (!line.Back.Sector.IsMoving)
                         return new StairMove(line.Back.Sector, height);
                 }
             }
@@ -218,7 +218,7 @@ namespace Helion.World.Special.Specials
         }
 
         private void CreateMovementSound(Sector sector) =>
-            m_world.SoundManager.CreateSoundOn(sector, Constants.PlatMoveSound, SoundChannelType.Auto, 
-                DataCache.Instance.GetSoundParams(sector, true));
+            m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(sector.Floor, true));
     }
 }

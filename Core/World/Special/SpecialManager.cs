@@ -586,20 +586,20 @@ namespace Helion.World.Special
                     if (StopSectorMoveSpecials(lineSpecial, sector))
                         success = true;
                 }
-                else if (sector.ActiveMoveSpecial != null && args.ActivationContext == ActivationContext.UseLine &&
+                else if (sector.GetActiveMoveSpecial() is SectorMoveSpecial sectorMoveSpecial && args.ActivationContext == ActivationContext.UseLine &&
                     args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
                 {
-                    if (sector.ActiveMoveSpecial.Use(args.Entity))
+                    if (sectorMoveSpecial.Use(args.Entity))
                         success = true;
                 }
                 else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
                 {
-                    if (lineSpecial.IsSectorMoveSpecial() && sector.ActiveMoveSpecial is SectorMoveSpecial sectorMoveSpecial)
+                    if (lineSpecial.IsSectorMoveSpecial() && sector.GetActiveMoveSpecial() is SectorMoveSpecial sectorMoveSpecial2)
                     {
-                        if (lineSpecial.CanPause() && sectorMoveSpecial.IsPaused)
+                        if (lineSpecial.CanPause() && sectorMoveSpecial2.IsPaused)
                         {
                             success = true;
-                            sector.ActiveMoveSpecial.Resume();
+                            sectorMoveSpecial2.Resume();
                         }
                         
                         continue;
@@ -649,7 +649,7 @@ namespace Helion.World.Special
                 if (spec.SectorBaseSpecialType == SectorBaseSpecialType.Light && spec is ISectorSpecial sectorSpecial && 
                     sectorSpecial.Sector.Equals(sector))
                 {
-                    sector.ActiveMoveSpecial = null;
+                    sector.ClearActiveMoveSpecial();
                     m_specials.Remove(specNode);
                     m_destroyedMoveSpecials.Add((ISectorSpecial)specNode.Value);
                 }
@@ -683,7 +683,7 @@ namespace Helion.World.Special
                     else
                     {
                         success = true;
-                        sector.ActiveMoveSpecial = null;
+                        sector.ClearActiveMoveSpecial();
                         m_specials.Remove(specNode);
                         m_destroyedMoveSpecials.Add(sectorMoveSpecial);
                     }
