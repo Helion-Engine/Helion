@@ -198,7 +198,8 @@ namespace Helion.Util.Parser
             if (quotedString)
                 startIndex++;
 
-            if (startIndex != currentIndex)
+            // Always add empty string if in quotes
+            if (quotedString || startIndex != currentIndex)
                 m_tokens.Add(new ParserToken(lineCount, startIndex, currentIndex - startIndex));
         }
 
