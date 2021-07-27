@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -32,7 +31,7 @@ namespace Helion.Render.Legacy.Commands
         {
             Config = config;
             WindowDimension = windowDimensions;
-            ResolutionInfo = new ResolutionInfo(windowDimensions, ResolutionScale.None, windowDimensions.AspectRatio);
+            ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
             m_windowDimensions = windowDimensions;
@@ -42,7 +41,7 @@ namespace Helion.Render.Legacy.Commands
         {
             m_commands.Clear();
             
-            ResolutionInfo = new ResolutionInfo(m_windowDimensions, ResolutionScale.None, m_windowDimensions.AspectRatio);
+            ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
             m_scale = Vec2D.One;
             m_centeringOffsetX = 0;
         }
