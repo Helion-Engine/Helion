@@ -111,7 +111,7 @@ namespace Helion.Layer.Worlds
         
         private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)
         {
-            if (Player.AnimationWeapon != null && !hudContext.DrawAutomap)
+            if (Player.AnimationWeapon != null && !m_drawAutomap)
             {
                 hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
                 
@@ -124,7 +124,7 @@ namespace Helion.Layer.Worlds
                 hudContext.DrawInvul = false;
             }
         
-            if (!hudContext.DrawAutomap)
+            if (!m_drawAutomap)
                 DrawCrosshair(hud);
         
             switch (m_config.Hud.StatusBarSize.Value)
