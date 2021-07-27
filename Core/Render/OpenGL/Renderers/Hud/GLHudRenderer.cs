@@ -271,12 +271,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_elementsDrawn++;
         }
 
-        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null)
+        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
+            float? aspectRatio = null)
         {
             // This peek is safe to do because we never pop the last element,
             // and there always is one on the stack.
             ResolutionScale resolutionScale = scale ?? m_resolutionStack.Peek().Scale;
-            
+
             VirtualResolutionInfo info = new(dimension, resolutionScale, m_parentDimension);
             m_resolutionStack.Push(info);
             m_currentResolutionInfo = info;

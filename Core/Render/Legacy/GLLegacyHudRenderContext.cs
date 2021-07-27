@@ -216,7 +216,8 @@ namespace Helion.Render.Legacy
             m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
         }
 
-        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null)
+        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
+            float? aspectRatio = null)
         {
             Commands.ResolutionScale legacyScale = default;
                 
@@ -236,10 +237,9 @@ namespace Helion.Render.Legacy
                 throw new ArgumentOutOfRangeException(nameof(scale), scale, null);
             }
             
-            m_commands.SetVirtualResolution(dimension.Width, dimension.Height, legacyScale);
-
-            float aspectRatio = m_context?.Dimension.AspectRatio ?? dimension.AspectRatio;
-            ResolutionInfo resolutionInfo = new(dimension, legacyScale, aspectRatio);
+            float ratio = aspectRatio ?? dimension.AspectRatio;
+            ResolutionInfo resolutionInfo = new(dimension, legacyScale, ratio);
+            m_commands.SetVirtualResolution(resolutionInfo);
             m_resolutionInfos.Push(resolutionInfo);
         }
 

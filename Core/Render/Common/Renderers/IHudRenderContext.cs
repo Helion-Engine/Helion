@@ -123,11 +123,13 @@ namespace Helion.Render.Common.Renderers
         /// <param name="dimension">The dimension to render at.</param>
         /// <param name="scale">The scale to use. If null, uses the previous
         /// resolution scale, or if none exists, uses None.</param>
+        /// <param name="aspectRatio">The aspect ratio to use.</param>
         /// <param name="action">The actions to do with the virtual resolution.
         /// </param>
-        void VirtualDimension(Dimension dimension, ResolutionScale scale, Action action)
+        void VirtualDimension(Dimension dimension, ResolutionScale scale, float aspectRatio, 
+            Action action)
         {
-            PushVirtualDimension(dimension, scale);
+            PushVirtualDimension(dimension, scale, aspectRatio);
             action();
             PopVirtualDimension();
         }
@@ -140,7 +142,7 @@ namespace Helion.Render.Common.Renderers
         /// <param name="resolutionScale">The scale to use, by default is none.</param>
         void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.Center)
         {
-            VirtualDimension((320, 200), resolutionScale, action);
+            VirtualDimension((320, 200), resolutionScale, 1.33333337f, action);
         }
         
         /// <summary>
@@ -154,7 +156,9 @@ namespace Helion.Render.Common.Renderers
         /// <param name="dimension">The dimension to render at.</param>
         /// <param name="scale">The scale to use. If null, uses the previous
         /// resolution scale, or if none exists, uses None.</param>
-        void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null);
+        /// <param name="aspectRatio">The aspect ratio to use, or null if it
+        /// should be equal to the dimension.</param>
+        void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null, float? aspectRatio = null);
 
         /// <summary>
         /// Pops a previous <see cref="PushVirtualDimension"/>. Should be called

@@ -97,10 +97,10 @@ namespace Helion.Render.Legacy.Commands
         public void SetVirtualResolution(int width, int height, ResolutionScale scale = ResolutionScale.None)
         {
             Dimension dimension = new Dimension(width, height);
-            ResolutionInfo info = new(dimension, scale, m_windowDimensions.AspectRatio);
+            ResolutionInfo info = new() { VirtualDimensions = dimension, Scale = scale };
             SetVirtualResolution(info);
         }
-
+        
         /// <summary>
         /// Sets a virtual resolution to draw with.
         /// </summary>
@@ -109,37 +109,64 @@ namespace Helion.Render.Legacy.Commands
         {
             ResolutionInfo = resolutionInfo;
 
-            double scaleWidth = WindowDimension.Width / (double)resolutionInfo.VirtualDimensions.Width;
+            double viewWidth = WindowDimension.Height * resolutionInfo.AspectRatio;
+            double scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
             double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
             m_scale = new Vec2D(scaleWidth, scaleHeight);
             m_centeringOffsetX = 0;
 
-            if (resolutionInfo.Scale == ResolutionScale.Stretch)
-                return;
-
-            // Note that for now, we always stretch along the Y axis.
-            if (scaleHeight > scaleWidth)
-                return;
-            
-            m_scale = new Vec2D(scaleHeight, scaleHeight);
-            
             // By default we're stretching, but if we're centering, our values
             // have to change to accomodate a gutter if the aspect ratios are
             // different.
-            if (resolutionInfo.Scale == ResolutionScale.Center)
+            if (resolutionInfo.Scale == ResolutionScale.Center && WindowDimension.AspectRatio > resolutionInfo.AspectRatio)
             {
                 // We only want to do centering if we will end up with gutters
                 // on the side. This can only happen if the virtual dimension
                 // has a smaller aspect ratio. We have to exit out if not since
                 // it will cause weird overdrawing otherwise.
-                if (resolutionInfo.VirtualDimensions.AspectRatio < WindowDimension.AspectRatio)
-                {
-                    int scaledWidth = (int)(resolutionInfo.VirtualDimensions.Width * m_scale.Y);
-                    int gutter = WindowDimension.Width - scaledWidth;
-                    m_centeringOffsetX = gutter / 2;
-                }      
+                m_centeringOffsetX = (WindowDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
             }
         }
+
+        // /// <summary>
+        // /// Sets a virtual resolution to draw with.
+        // /// </summary>
+        // /// <param name="resolutionInfo">Resolution parameters.</param>
+        // public void SetVirtualResolution(ResolutionInfo resolutionInfo)
+        // {
+        //     ResolutionInfo = resolutionInfo;
+        //
+        //     double scaleWidth = WindowDimension.Width / (double)resolutionInfo.VirtualDimensions.Width;
+        //     double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
+        //     m_scale = new Vec2D(scaleWidth, scaleHeight);
+        //     m_centeringOffsetX = 0;
+        //
+        //     if (resolutionInfo.Scale == ResolutionScale.Stretch)
+        //         return;
+        //
+        //     // Note that for now, we always stretch along the Y axis.
+        //     if (scaleHeight > scaleWidth)
+        //         return;
+        //     
+        //     m_scale = new Vec2D(scaleHeight, scaleHeight);
+        //     
+        //     // By default we're stretching, but if we're centering, our values
+        //     // have to change to accomodate a gutter if the aspect ratios are
+        //     // different.
+        //     if (resolutionInfo.Scale == ResolutionScale.Center)
+        //     {
+        //         // We only want to do centering if we will end up with gutters
+        //         // on the side. This can only happen if the virtual dimension
+        //         // has a smaller aspect ratio. We have to exit out if not since
+        //         // it will cause weird overdrawing otherwise.
+        //         if (resolutionInfo.VirtualDimensions.AspectRatio < WindowDimension.AspectRatio)
+        //         {
+        //             int scaledWidth = (int)(resolutionInfo.VirtualDimensions.Width * m_scale.Y);
+        //             int gutter = WindowDimension.Width - scaledWidth;
+        //             m_centeringOffsetX = gutter / 2;
+        //         }      
+        //     }
+        // }
 
         public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
 
