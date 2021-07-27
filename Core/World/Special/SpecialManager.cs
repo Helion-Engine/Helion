@@ -924,9 +924,19 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.ElevatorLowerToNearest:
                     return CreateEleveatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
+
+                case ZDoomLineSpecialType.ElevatorMoveToFloor:
+                    return CreateEleveatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
             }
 
             return null;
+        }
+
+        private ISpecial? CreateEleveatorToFloor(Sector sector, Line line, double speed)
+        {
+            double destZ = line.Front.Sector.Floor.Z;
+            MoveDirection direction = destZ < sector.Floor.Z ? MoveDirection.Down : MoveDirection.Up;
+            return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
         }
 
         private ISpecial? CreateEleveatorToNearest(Sector sector, MoveDirection direction, double speed)

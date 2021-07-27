@@ -316,6 +316,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatToggleCeiling:
                 case ZDoomLineSpecialType.ElevatorRaiseToNearest:
                 case ZDoomLineSpecialType.ElevatorLowerToNearest:
+                case ZDoomLineSpecialType.ElevatorMoveToFloor:
                     return true;
 
                 default:

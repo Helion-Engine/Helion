@@ -500,6 +500,14 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg1 = 32;
                     return ZDoomLineSpecialType.ElevatorLowerToNearest;
 
+                case VanillaLineSpecialType.W1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorMoveToFloor;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -650,6 +658,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
                 case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return LineActivationType.Tag;
 
                 default:
@@ -1059,6 +1069,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
                 case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -1157,6 +1169,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
                 case VanillaLineSpecialType.W1_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.W1_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
                     return ActivationType.PlayerLineCross;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
@@ -1307,6 +1321,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return true;
 
                 default:
