@@ -233,6 +233,7 @@ namespace Helion.Maps.Specials.Vanilla
         SectorSetWind,
         SectorSetCurrent,
         SetPush,
+        // END TODO
         W1_ElevatorRaiseToNearest,
         WR_ElevatorRaiseToNearest,
         S1_ElevatorRaiseToNearest,
@@ -241,12 +242,12 @@ namespace Helion.Maps.Specials.Vanilla
         WR_ElevatorLowerToNearest,
         S1_ElevatorLowerToNearest,
         SR_ElevatorLowerToNearest,
+        // TODO
         W1_ElevatorMoveToActivatingFloor,
         WR_ElevatorMoveToActivatingFloor,
         S1_ElevatorMoveToActivatingFloor,
         SR_ElevatorMoveToActivatingFloor,
         // END TODO
-
         W1_FloorTransferNumeric,
         WR_FloorTransferNumeric,
         S1_FloorTransferNumeric,

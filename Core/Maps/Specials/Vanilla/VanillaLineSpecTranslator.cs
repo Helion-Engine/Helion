@@ -484,6 +484,22 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.TransferCeilingLight;
 
+                case VanillaLineSpecialType.W1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorRaiseToNearest;
+
+                case VanillaLineSpecialType.W1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 32;
+                    return ZDoomLineSpecialType.ElevatorLowerToNearest;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -629,7 +645,11 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_TeleportNoFog:
                 case VanillaLineSpecialType.S1_LowerFloorToNearest:
                 case VanillaLineSpecialType.SR_LowerFloorToNearest:
-                case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
                     return LineActivationType.Tag;
 
                 default:
@@ -1035,6 +1055,10 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_RaiseStairs8:
                 case VanillaLineSpecialType.SR_RaiseStairsFast:
                 case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.S1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.S1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
                     return ActivationType.PlayerUse;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
@@ -1129,6 +1153,10 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_RaiseStairs8:
                 case VanillaLineSpecialType.WR_RaiseStairsFast:
                 case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.W1_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.W1_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
                     return ActivationType.PlayerLineCross;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
@@ -1275,6 +1303,10 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_RaiseStairsFast:
                 case VanillaLineSpecialType.WR_ToggleFloorToCeiling:
                 case VanillaLineSpecialType.SR_ToggleFloorToCeiling:
+                case VanillaLineSpecialType.WR_ElevatorRaiseToNearest:
+                case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorLowerToNearest:
+                case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
                     return true;
 
                 default:

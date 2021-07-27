@@ -918,9 +918,21 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.PlatToggleCeiling:
                     return CreatePlatToggleCeiling(sector);
+
+                case ZDoomLineSpecialType.ElevatorRaiseToNearest:
+                    return CreateEleveatorToNearest(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor);
+
+                case ZDoomLineSpecialType.ElevatorLowerToNearest:
+                    return CreateEleveatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
             }
 
             return null;
+        }
+
+        private ISpecial? CreateEleveatorToNearest(Sector sector, MoveDirection direction, double speed)
+        {
+            double destZ = GetDestZ(sector, direction == MoveDirection.Up ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor);
+            return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
         }
 
         private void SetCeilingLight(Line line)

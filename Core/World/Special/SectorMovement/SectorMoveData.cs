@@ -4,7 +4,7 @@ namespace Helion.World.Special.SectorMovement
 {
     public class SectorMoveData
     {
-        public readonly SectorPlaneType SectorMoveType;
+        public SectorPlaneType SectorMoveType { get; set; }
         public readonly MoveRepetition MoveRepetition;
         public readonly double Speed;
         public readonly double ReturnSpeed;

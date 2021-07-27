@@ -17,6 +17,7 @@ namespace Helion.World.Special.Specials
         public SectorSoundData SoundData { get; protected set; }
         public SectorPlane SectorPlane { get; protected set; }
         public bool IsPaused { get; private set; }
+        public SectorMoveStatus MoveStatus { get; private set; }
 
         protected readonly IWorld m_world;
         protected double DestZ;
@@ -208,7 +209,7 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Continue;
         }
 
-        public void ResetInterpolation()
+        public virtual void ResetInterpolation()
         {
             SectorPlane.PrevZ = SectorPlane.Z;
         }
@@ -316,10 +317,10 @@ namespace Helion.World.Special.Specials
 
         private void PerformAndHandleMoveZ(double destZ)
         {
-            SectorMoveStatus status = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
+            MoveStatus = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
                 m_speed, destZ, MoveData.Crush, MoveData.CompatibilityBlockMovement);
 
-            switch (status)
+            switch (MoveStatus)
             {
                 case SectorMoveStatus.Blocked:
                     if (MoveData.MoveRepetition != MoveRepetition.None)
@@ -338,7 +339,7 @@ namespace Helion.World.Special.Specials
                     break;
             }
 
-            if (m_crushing && status == SectorMoveStatus.Success)
+            if (m_crushing && MoveStatus == SectorMoveStatus.Success)
                 m_crushing = false;
         }
 

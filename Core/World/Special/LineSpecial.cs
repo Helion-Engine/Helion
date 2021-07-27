@@ -314,6 +314,8 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatUpValueStayTx:
                 case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
                 case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.ElevatorRaiseToNearest:
+                case ZDoomLineSpecialType.ElevatorLowerToNearest:
                     return true;
 
                 default:
