@@ -414,6 +414,9 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = 64;
                     return ZDoomLineSpecialType.ScrollTextureRight;
 
+                case VanillaLineSpecialType.ScrollTextureOffsets:
+                    return ZDoomLineSpecialType.ScrollUsingTextureOffsets;
+
                 case VanillaLineSpecialType.S_EndLevel:
                 case VanillaLineSpecialType.W_EndLevel:
                 case VanillaLineSpecialType.G_EndLevel:
@@ -1183,6 +1186,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.ScrollTextureLeft:
                 case VanillaLineSpecialType.TransferFloorLight:
                 case VanillaLineSpecialType.TransferCeilingLight:
+                case VanillaLineSpecialType.ScrollTextureOffsets:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:

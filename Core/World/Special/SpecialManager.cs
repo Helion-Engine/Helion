@@ -454,6 +454,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ScrollTextureDown:
                     AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -64.0, (ZDoomLineScroll)line.Args.Arg1));
                     break;
+                case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
+                    AddSpecial(new LineScrollSpecial(line, -line.Front.Offset.X, line.Front.Offset.Y, ZDoomLineScroll.All));
+                    break;
                 case ZDoomLineSpecialType.TransferFloorLight:
                     SetFloorLight(line);
                     break;
