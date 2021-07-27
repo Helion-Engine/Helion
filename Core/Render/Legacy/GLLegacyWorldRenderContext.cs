@@ -44,7 +44,7 @@ namespace Helion.Render.Legacy
             // Note: We never draw the automap for this, that should be handled
             // elsewhere.
             m_commands.DrawWorld(singlePlayerWorld, oldCamera, world.Gametick, m_context.InterpolationFrac,
-                singlePlayerWorld.Player, false);
+                singlePlayerWorld.Player, m_context?.DrawAutomap ?? false);
         }
 
         public void DrawLine(Seg3D seg, Color color)

@@ -26,6 +26,11 @@ namespace Helion.Layer.Worlds
             Camera camera = new(position, yawRadians, pitchRadians);
             
             WorldRenderContext worldContext = new(camera, m_lastTickInfo.Fraction);
+            
+            // NOTE: This is temporary because of the old renderer. This will
+            // go away when it gets removed.
+            worldContext.DrawAutomap = m_drawAutomap;
+            
             ctx.World(worldContext, worldRenderer =>
             {
                 worldRenderer.Draw(World);
@@ -37,8 +42,11 @@ namespace Helion.Layer.Worlds
             HudRenderContext hudContext = new(ctx.Surface.Dimension);
             ctx.Hud(hudContext, hud =>
             {
-                ctx.ClearDepth();
-                DrawAutomap(hud);
+                if (m_drawAutomap)
+                {
+                    ctx.ClearDepth();
+                    DrawAutomap(hud);
+                }
 
                 ctx.ClearDepth();
                 DrawHud(hudContext, hud);
