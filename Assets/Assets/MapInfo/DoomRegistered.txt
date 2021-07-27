@@ -4,4 +4,6 @@ gameinfo
 {
 	infopage = "HELP1", "CREDIT"
 	drawreadthis = false
+	weaponslot = 6, "PlasmaRifle"
+	weaponslot = 7, "BFG9000"
 }

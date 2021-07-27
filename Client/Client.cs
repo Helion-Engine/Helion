@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -20,6 +22,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.World.Save;
 using NLog;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using static Helion.Util.Assertion.Assert;
 
@@ -41,6 +44,7 @@ namespace Helion.Client
         private readonly Window m_window;
         private readonly FpsTracker m_fpsTracker = new();
         private bool m_disposed;
+        private bool m_takeScreenshot;
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
@@ -79,6 +83,7 @@ namespace Helion.Client
         private void HandleInput()
         {
             InputEvent inputEvent = m_window.InputManager.PollInput();
+            m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
             m_layerManager.HandleInput(inputEvent);
         }
 
@@ -96,6 +101,27 @@ namespace Helion.Client
         {
             m_layerManager.Render(m_window.Renderer);
         }
+        
+        private void HandleScreenshot()
+        {
+            if (!m_takeScreenshot)
+                return;
+            
+            GL.Finish();
+            
+            // TODO: This should be delegated to the renderer, not done here.
+            (int w, int h) = m_window.Dimension;
+            Bitmap bmp = new(w, h);
+            Rectangle rect = new(0, 0, w, h);
+            BitmapData data = bmp.LockBits(rect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+
+            string path = $"helion_{DateTime.Now:yyyyMMdd_hh_mm_ss_FFFF}.png";
+            Log.Info($"Saving screenshot to {path}");
+            bmp.Save(path);
+        }
 
         private void Render()
         {
@@ -104,6 +130,7 @@ namespace Helion.Client
 
             m_fpsLimit.Restart();
             PerformRender();
+            HandleScreenshot();
             m_window.SwapBuffers();
             m_fpsTracker.FinishFrame();
         }
