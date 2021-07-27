@@ -119,7 +119,7 @@ namespace Helion.Render.Legacy
             Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
             float alpha = 1.0f)
         {
-            Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
+            Image(texture, out drawArea, null, origin, window, anchor, both, color, scale, alpha);
         }
 
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
