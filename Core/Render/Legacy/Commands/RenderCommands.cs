@@ -32,7 +32,7 @@ namespace Helion.Render.Legacy.Commands
         {
             Config = config;
             WindowDimension = windowDimensions;
-            ResolutionInfo = new ResolutionInfo(m_windowDimensions, ResolutionScale.None, windowDimensions.AspectRatio);
+            ResolutionInfo = new ResolutionInfo(windowDimensions, ResolutionScale.None, windowDimensions.AspectRatio);
             ImageDrawInfoProvider = imageDrawInfoProvider;
             FpsTracker = fpsTracker;
             m_windowDimensions = windowDimensions;
