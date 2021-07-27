@@ -27,7 +27,6 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using static Helion.Util.Assertion.Assert;
-using PixelFormat = OpenTK.Graphics.ES11.PixelFormat;
 
 namespace Helion.Client
 {
