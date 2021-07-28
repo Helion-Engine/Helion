@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures.Legacy
@@ -11,15 +10,15 @@ namespace Helion.Render.OpenGL.Textures.Legacy
     {
         public GLTextureHandle NullHandle { get; }
         public GLFontTexture NullFont { get; }
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly IResources m_resources;
         private readonly LegacyCubeGLTexture m_cubeTexture;
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
-        public GLLegacyTextureManager(ArchiveCollection archiveCollection)
+        public GLLegacyTextureManager(IResources resources)
         {
-            m_archiveCollection = archiveCollection;
+            m_resources = resources;
             m_cubeTexture = new LegacyCubeGLTexture();
             
             // TODO: Make null texture.

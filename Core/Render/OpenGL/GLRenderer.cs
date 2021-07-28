@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Surfaces;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Legacy;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
@@ -32,11 +33,11 @@ namespace Helion.Render.OpenGL
         private readonly GLWorldRenderer m_worldRenderer;
         private bool m_disposed;
 
-        public GLRenderer(Config config, IWindow window, ArchiveCollection archiveCollection)
+        public GLRenderer(Config config, IWindow window, IResources resources)
         {
             m_config = config;
             Window = window;
-            m_textureManager = new GLLegacyTextureManager(archiveCollection);
+            m_textureManager = new GLLegacyTextureManager(resources);
             m_hudRenderer = new GLHudRenderer(this, m_textureManager);
             m_worldRenderer = new GLWorldRenderer();
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
