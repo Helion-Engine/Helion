@@ -41,7 +41,6 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         internal void Upload(Image image)
         {
-            // TODO
         }
     }
 }
