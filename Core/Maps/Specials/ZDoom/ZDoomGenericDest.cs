@@ -8,6 +8,7 @@
         NearestPlane,
         AdjacentOpposingPlane,
         OpposingPlane,
-        ShortestTexture
+        ShortestTexture,
+        Max
     }
 }
