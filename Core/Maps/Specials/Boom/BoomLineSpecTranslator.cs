@@ -105,7 +105,7 @@ namespace Helion.Maps.Specials.Boom
             else if (special >= DoorBase)
             {
                 type = ZDoomLineSpecialType.DoorGeneric;
-                SetGenericDoor(special, ref argsToMutate);
+                SetGenericDoor(special, ref argsToMutate, lineFlags);
             }
             else if (special >= LockedBase)
             {
@@ -115,26 +115,26 @@ namespace Helion.Maps.Specials.Boom
             else if (special >= LiftBase)
             {
                 type = ZDoomLineSpecialType.GenericLift;
-                SetGenericLift(special, lineFlags, ref argsToMutate);
+                SetGenericLift(special, ref argsToMutate, lineFlags);
             }
             else if (special >= StairsBase)
             {
                 type = ZDoomLineSpecialType.StairsGeneric;
-                SetGenericStairs(special, ref argsToMutate);
+                SetGenericStairs(special, ref argsToMutate, lineFlags);
             }
             else if (special >= CrusherBase)
             {
                 type = ZDoomLineSpecialType.GenericCrusher;
-                SetGenericCrusher(special, ref argsToMutate);
+                SetGenericCrusher(special, ref argsToMutate, lineFlags);
             }
 
             return type;
         }
 
-        private static void SetGenericCrusher(ushort special, ref SpecialArgs argsToMutate)
+        private static void SetGenericCrusher(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
-            // Allows monster activation
-            //if (special & CrusherMonsterMask != 0)
+            if ((special & CrusherMonsterMask) != 0)
+                lineFlags.MonsterCanActivate = true;
 
             argsToMutate.Arg1 = GetCrusherSpeed(special);
             argsToMutate.Arg2 = argsToMutate.Arg1;
@@ -142,10 +142,10 @@ namespace Helion.Maps.Specials.Boom
             argsToMutate.Arg4 = 10;
         }
 
-        private static void SetGenericStairs(ushort special, ref SpecialArgs argsToMutate)
+        private static void SetGenericStairs(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
-            // Allows monster activation
-            //if (special & StairMonsterMask != 0)
+            if ((special & StairMonsterMask) != 0)
+                lineFlags.MonsterCanActivate = true;
 
             argsToMutate.Arg1 = GetStairSpeed(special);
             argsToMutate.Arg2 = GetStairHeight(special);
@@ -184,10 +184,10 @@ namespace Helion.Maps.Specials.Boom
                 argsToMutate.Arg4 |= (int)ZDoomGenericFlags.Crush;
         }
 
-        private static void SetGenericLift(ushort special, LineFlags lineFlags, ref SpecialArgs argsToMutate)
+        private static void SetGenericLift(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
-            // Allows monster activation
-            //if (special & LiftMonsterMask != 0)
+            if ((special & LiftMonsterMask) != 0)
+                lineFlags.MonsterCanActivate = true;
 
             argsToMutate.Arg1 = GetLiftSpeed(special);
             argsToMutate.Arg2 = GetLiftDelay(special);
@@ -196,10 +196,10 @@ namespace Helion.Maps.Specials.Boom
             argsToMutate.Arg3 = ((special & LiftTargetMask) >> LiftTargetShift) + 1;
         }
 
-        private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate)
+        private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
-            // Allows monster activation
-            //if (special & DoorMonsterMask)
+            if ((special & DoorMonsterMask) != 0)
+                lineFlags.MonsterCanActivate = true;
 
             // Arg1 = Speed, Arg2 = Kind, Arg3 = Delay
             argsToMutate.Arg1 = GetDoorSpeed(special);

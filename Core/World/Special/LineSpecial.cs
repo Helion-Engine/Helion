@@ -107,10 +107,11 @@ namespace Helion.World.Special
                     return false;
 
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
+                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross ||
+                        line.Flags.MonsterCanActivate;
                 else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && line.TagArg == 0 && !line.Flags.Secret && 
-                        line.Special.MonsterCanUse();
+                    return flags.ActivationType == ActivationType.PlayerUse && !line.Flags.Secret && 
+                        line.Flags.MonsterCanActivate;
             }
             else if (entity is Player player)
             {
@@ -180,7 +181,6 @@ namespace Helion.World.Special
         public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
         public bool IsSectorLightSpecial() => m_lightSpecial;
         public bool IsSectorStopLightSpecial() => LineSpecialType == ZDoomLineSpecialType.LightStop;
-        public bool MonsterCanUse() => LineSpecialType == ZDoomLineSpecialType.DoorOpenClose;
         public bool IsSectorTriggerSpecial() => m_sectorTriggerSpecial;
 
         public bool CanActivateDuringSectorMovement()
@@ -214,6 +214,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.FloorRaiseCrush:
                 case ZDoomLineSpecialType.FloorCrushStop:
                 case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.GenericCrusher:
                     return true;
 
                 default:

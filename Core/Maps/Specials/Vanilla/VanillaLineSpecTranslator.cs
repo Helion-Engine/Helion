@@ -105,6 +105,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = GetDelay(type);
+                    lineFlags.MonsterCanActivate = true;
                     return ZDoomLineSpecialType.DoorOpenClose;
 
                 case VanillaLineSpecialType.W1_CloseDoor:
