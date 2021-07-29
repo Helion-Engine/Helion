@@ -1,7 +1,6 @@
 font SmallFont
 {
     space = 4;
-    grayscale = true;
     characters
     {
         "!" STCFN033;
@@ -100,7 +99,6 @@ font SmallFont
 font LargeHudFont
 {
     space = 12;
-    grayscale = true;
     characters
     {
         "-" STTMINUS align center;

@@ -39,20 +39,16 @@ namespace Helion.Render.Legacy.Commands
         
         public void Begin()
         {
+            m_commands.Clear();
+            
             ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
-            m_commands.Clear(); 
             m_scale = Vec2D.One;
             m_centeringOffsetX = 0;
         }
 
-        public void Clear()
+        public void Clear(Color color, bool depth = false, bool stencil = false)
         {
-            m_commands.Add(ClearRenderCommand.All());
-        }
-        
-        public void Clear(Color color)
-        {
-            m_commands.Add(new ClearRenderCommand(true, false, false, color));
+            m_commands.Add(new ClearRenderCommand(true, depth, stencil, color));
         }
 
         public void ClearDepth()
@@ -104,7 +100,7 @@ namespace Helion.Render.Legacy.Commands
             ResolutionInfo info = new() { VirtualDimensions = dimension, Scale = scale };
             SetVirtualResolution(info);
         }
-
+        
         /// <summary>
         /// Sets a virtual resolution to draw with.
         /// </summary>
@@ -132,18 +128,45 @@ namespace Helion.Render.Legacy.Commands
             }
         }
 
-        /// <summary>
-        /// Restores drawing to the native resolution (viewport size, no scale
-        /// transformations).
-        /// </summary>
-        public void UseNativeResolution()
-        {
-            ResolutionInfo = new ResolutionInfo
-            {
-                VirtualDimensions = WindowDimension,
-                Scale = ResolutionScale.None
-            };
-        }
+        // /// <summary>
+        // /// Sets a virtual resolution to draw with.
+        // /// </summary>
+        // /// <param name="resolutionInfo">Resolution parameters.</param>
+        // public void SetVirtualResolution(ResolutionInfo resolutionInfo)
+        // {
+        //     ResolutionInfo = resolutionInfo;
+        //
+        //     double scaleWidth = WindowDimension.Width / (double)resolutionInfo.VirtualDimensions.Width;
+        //     double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
+        //     m_scale = new Vec2D(scaleWidth, scaleHeight);
+        //     m_centeringOffsetX = 0;
+        //
+        //     if (resolutionInfo.Scale == ResolutionScale.Stretch)
+        //         return;
+        //
+        //     // Note that for now, we always stretch along the Y axis.
+        //     if (scaleHeight > scaleWidth)
+        //         return;
+        //     
+        //     m_scale = new Vec2D(scaleHeight, scaleHeight);
+        //     
+        //     // By default we're stretching, but if we're centering, our values
+        //     // have to change to accomodate a gutter if the aspect ratios are
+        //     // different.
+        //     if (resolutionInfo.Scale == ResolutionScale.Center)
+        //     {
+        //         // We only want to do centering if we will end up with gutters
+        //         // on the side. This can only happen if the virtual dimension
+        //         // has a smaller aspect ratio. We have to exit out if not since
+        //         // it will cause weird overdrawing otherwise.
+        //         if (resolutionInfo.VirtualDimensions.AspectRatio < WindowDimension.AspectRatio)
+        //         {
+        //             int scaledWidth = (int)(resolutionInfo.VirtualDimensions.Width * m_scale.Y);
+        //             int gutter = WindowDimension.Width - scaledWidth;
+        //             m_centeringOffsetX = gutter / 2;
+        //         }      
+        //     }
+        // }
 
         public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
 

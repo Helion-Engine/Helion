@@ -50,7 +50,7 @@ namespace Helion.Render.OpenGL.Textures
             PerformDispose();
         }
 
-        private void PerformDispose()
+        protected virtual void PerformDispose()
         {
             if (m_disposed)
                 return;

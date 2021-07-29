@@ -1,169 +1,263 @@
-using Helion.Audio;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio.Sounds;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Input;
-using Helion.Layer.WorldLayers;
-using Helion.Menus.Impl;
+using Helion.Layer.Consoles;
+using Helion.Layer.EndGame;
+using Helion.Layer.Images;
+using Helion.Layer.Menus;
+using Helion.Layer.Worlds;
+using Helion.Render;
+using Helion.Render.Common.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Extensions;
 using Helion.World.Save;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer
 {
     /// <summary>
-    /// A top level concrete implementation of the game layer.
+    /// Responsible for coordinating input, logic, and rendering calls in order
+    /// for different kinds of layers.
     /// </summary>
-    /// <remarks>
-    /// This exists because we want to use the abstract method to force any
-    /// child classes to remember to implement priority (as it affects a lot!)
-    /// but that leaves us with no way to instantiate an instance of it. This
-    /// is meant to be the root in the tree of nodes, so the priority also does
-    /// not matter.
-    /// </remarks>
-    public class GameLayerManager : GameLayer
+    public class GameLayerManager : IGameLayerParent
     {
-        public readonly SoundManager SoundManager;
-
+        public ConsoleLayer? ConsoleLayer { get; private set; }
+        public MenuLayer? MenuLayer { get; private set; }
+        public ReadThisLayer? ReadThisLayer { get; private set; }
+        public TitlepicLayer? TitlepicLayer { get; private set; }
+        public EndGameLayer? EndGameLayer { get; private set; }
+        public IntermissionLayer? IntermissionLayer { get; private set; }
+        public WorldLayer? WorldLayer { get; private set; }
         private readonly Config m_config;
-        private readonly ArchiveCollection m_archiveCollection;
+        private readonly IWindow m_window;
         private readonly HelionConsole m_console;
-        private readonly IAudioSystem m_audioSystem;
+        private readonly ArchiveCollection m_archiveCollection;
+        private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
+        private bool m_disposed;
 
-        protected override double Priority => 0.5;
-
-        public GameLayerManager(Config config, ArchiveCollection archiveCollection, HelionConsole console,
-            SoundManager soundManager, IAudioSystem audioSystem, SaveGameManager saveGameManager)
+        private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
+        internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
         {
-            SoundManager = soundManager;
+            ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+        }.WhereNotNull();
+
+        public GameLayerManager(Config config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
+            SoundManager soundManager, SaveGameManager saveGameManager)
+        {
             m_config = config;
+            m_window = window;
             m_console = console;
             m_archiveCollection = archiveCollection;
-            m_audioSystem = audioSystem;
+            m_soundManager = soundManager;
             m_saveGameManager = saveGameManager;
+        }
+
+        ~GameLayerManager()
+        {
+            FailedToDispose(this);
+            PerformDispose();
         }
 
         public bool ShouldFocus()
         {
-            if (Contains<ConsoleLayer>())
+            if (ConsoleLayer != null)
                 return false;
 
-            if (Get<TitlepicLayer>() is TitlepicLayer)
-                return !Contains<MenuLayer>();
+            if (TitlepicLayer != null)
+                return MenuLayer != null;
 
-            if (Get<SinglePlayerWorldLayer>() is SinglePlayerWorldLayer worldLayer)
-                return worldLayer.ShouldFocus();
+            if (WorldLayer != null)
+                return WorldLayer.ShouldFocus;
 
             return true;
         }
 
-        public static SaveMenu CreateSaveMenu(GameLayer parent, Config config, HelionConsole console, 
-            SoundManager soundManager, ArchiveCollection archiveCollection, SaveGameManager saveManager, bool isSave)
+        public void Add(IGameLayer? gameLayer)
         {
-            bool hasWorld = parent.Contains<SinglePlayerWorldLayer>() && 
-                !parent.Contains<IntermissionLayer>() && !parent.Contains<EndGameLayer>();
-            return new(parent, config, console, soundManager, archiveCollection,
-                saveManager, hasWorld, isSave);
-        }
-
-        public override void Add(GameLayer layer)
-        {
-            if (layer is SinglePlayerWorldLayer)
+            switch (gameLayer)
             {
-                Layers.ForEach(l => l.Dispose());
-                OrderLayers();
-            }
-            
-            base.Add(layer);
-        }
-
-        public override void HandleInput(InputEvent input)
-        {
-            // We give special priority to the console.
-            if (input.ConsumeKeyPressed(m_config.Controls.Console))
-                HandleConsoleToggle(input);
-            
-            base.HandleInput(input);
-
-            if (input.ConsumeKeyPressed(m_config.Controls.Save))
-                OpenSaveGameMenu();
-            else if (input.ConsumeKeyPressed(m_config.Controls.Load))
-                OpenLoadGameMenu();
-            else if (HasOnlyTitlepicLayer() && input.HasAnyKeyPressed())
-            {
-                input.ConsumeAll();
-                CreateAndAddMenu();
-            }
-            
-            if (!ContainsEither<ConsoleLayer, ImageLayer>() && input.ConsumeKeyPressed(Key.F1))
-                CreateAndAddHelp();
-
-            if (Contains<ImageLayer>() && input.ConsumeKeyPressed(Key.Escape))
-            {
-                SoundManager.PlayStaticSound(Constants.MenuSounds.Clear);
-                Remove<ImageLayer>();
-            }
-
-            if (!Contains<MenuLayer>() && input.ConsumeKeyPressed(Key.Escape))
-                CreateAndAddMenu();
-
-            void CreateAndAddMenu()
-            {
-                SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-                
-                MainMenu mainMenu = new(this, m_config, m_console, SoundManager, m_archiveCollection, m_saveGameManager);
-                MenuLayer menuLayer = new(this, mainMenu, m_archiveCollection, SoundManager);
-                Add(menuLayer);
+            case ConsoleLayer layer:
+                Remove(ConsoleLayer);
+                ConsoleLayer = layer;
+                break;
+            case MenuLayer layer:
+                Remove(MenuLayer);
+                MenuLayer = layer;
+                break;
+            case ReadThisLayer layer:
+                Remove(ReadThisLayer);
+                ReadThisLayer = layer;
+                break;
+            case EndGameLayer layer:
+                Remove(EndGameLayer);
+                EndGameLayer = layer;
+                break;
+            case TitlepicLayer layer:
+                Remove(TitlepicLayer);
+                TitlepicLayer = layer;
+                break;
+            case IntermissionLayer layer:
+                Remove(IntermissionLayer);
+                IntermissionLayer = layer;
+                break;
+            case WorldLayer layer:
+                Remove(WorldLayer);
+                WorldLayer = layer;
+                break;
+            case null:
+                break;
+            default:
+                throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
             }
         }
-
-        private void OpenSaveGameMenu() =>
-            ShowSaveMenu(true);
-
-        private void OpenLoadGameMenu() =>
-            ShowSaveMenu(false);
-
-        private void ShowSaveMenu(bool isSave)
+        
+        public void ClearAllExcept(params IGameLayer[] layers)
         {
-            SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-            SaveMenu saveMenu = CreateSaveMenu(this, m_config, m_console, SoundManager, 
-                m_archiveCollection, new SaveGameManager(m_config), isSave);
-            MenuLayer menuLayer = new(this, saveMenu, m_archiveCollection, SoundManager);
+            foreach (IGameLayer existingLayer in Layers)
+                if (!layers.Contains(existingLayer))
+                    Remove(existingLayer);
+        }
+        
+        public void Remove(object? layer)
+        {
+            if (layer == null)
+                return;
+
+            if (ReferenceEquals(layer, ConsoleLayer)) 
+            {
+                ConsoleLayer?.Dispose();
+                ConsoleLayer = null;
+            }
+            else if (ReferenceEquals(layer, MenuLayer)) 
+            {
+                MenuLayer?.Dispose();
+                MenuLayer = null;
+            }
+            else if (ReferenceEquals(layer, ReadThisLayer)) 
+            {
+                ReadThisLayer?.Dispose();
+                ReadThisLayer = null;
+            }
+            else if (ReferenceEquals(layer, EndGameLayer)) 
+            {
+                EndGameLayer?.Dispose();
+                EndGameLayer = null;
+            }
+            else if (ReferenceEquals(layer, TitlepicLayer)) 
+            {
+                TitlepicLayer?.Dispose();
+                TitlepicLayer = null;
+            }
+            else if (ReferenceEquals(layer, IntermissionLayer)) 
+            {
+                IntermissionLayer?.Dispose();
+                IntermissionLayer = null;
+            }
+            else if (ReferenceEquals(layer, WorldLayer)) 
+            {
+                WorldLayer?.Dispose();
+                WorldLayer = null;
+            }
+        }
+        
+        public void HandleInput(InputEvent input)
+        {
+            if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
+                ToggleConsoleLayer(input);
+            ConsoleLayer?.HandleInput(input);
+
+            if (MenuLayer == null && input.ConsumeKeyPressed(Key.Escape))
+                CreateMenuLayer();
+            
+            MenuLayer?.HandleInput(input);
+            EndGameLayer?.HandleInput(input);
+            ReadThisLayer?.HandleInput(input);
+            TitlepicLayer?.HandleInput(input);
+            IntermissionLayer?.HandleInput(input);
+            WorldLayer?.HandleInput(input);
+        }
+
+        private void ToggleConsoleLayer(InputEvent input)
+        {
+            input.ConsumeAll();
+            
+            if (ConsoleLayer == null)
+                Add(new ConsoleLayer(m_console));
+            else
+                Remove(ConsoleLayer);
+        }
+
+        private void CreateMenuLayer()
+        {
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+            
+            MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
             Add(menuLayer);
         }
 
-        private bool HasOnlyTitlepicLayer() => Count == 1 && Contains<TitlepicLayer>();
-
-        private void CreateAndAddHelp()
+        public void RunLogic()
         {
-            if (m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages.Count == 0)
-                return;
-
-            SoundManager.PlayStaticSound(Constants.MenuSounds.Prompt);
-
-            CycleImageLayer helpLayer = new(this, SoundManager, m_archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages);
-            Add(helpLayer);
+            ConsoleLayer?.RunLogic();
+            MenuLayer?.RunLogic();
+            ReadThisLayer?.RunLogic();
+            EndGameLayer?.RunLogic();
+            TitlepicLayer?.RunLogic();
+            IntermissionLayer?.RunLogic();
+            WorldLayer?.RunLogic();
         }
 
-        private void HandleConsoleToggle(InputEvent input)
+        public void Render(IRenderer renderer)
         {
-            // Due to the workaround above, we also want to prune it from
-            // anyone else's visibility.
-            input.ConsumeKeyPressedOrDown(m_config.Controls.Console);
-
-            if (Contains<ConsoleLayer>())
+            renderer.DefaultSurface.Render(ctx =>
             {
-                Remove<ConsoleLayer>();
-                return;
-            }
-            
-            // Don't want input that opened the console to be something
-            // added to the console, so first we clear all characters.
-            input.ConsumeTypedCharacters();
+                HudRenderContext hudContext = new(m_window.Dimension);
+                
+                ctx.Viewport(WindowBox);
+                ctx.Scissor(WindowBox);
+                ctx.Clear(IRenderer.DefaultBackground, true, true);
 
-            ConsoleLayer consoleLayer = new(m_archiveCollection, m_console);
-            Add(consoleLayer);
+                WorldLayer?.Render(ctx);
+                
+                ctx.Hud(hudContext, hud =>
+                {
+                    IntermissionLayer?.Render(ctx, hud);
+                    TitlepicLayer?.Render(hud);
+                    EndGameLayer?.Render(ctx, hud);
+                    ReadThisLayer?.Render(hud);
+                    MenuLayer?.Render(hud);
+                    ConsoleLayer?.Render(ctx, hud);
+                });
+            });
+        }
+
+        public void Dispose()
+        {
+            PerformDispose();
+            GC.SuppressFinalize(this);
+        }
+
+        private void PerformDispose()
+        {
+            if (m_disposed)
+                return;
+
+            Remove(WorldLayer);
+            Remove(IntermissionLayer);
+            Remove(EndGameLayer);
+            Remove(TitlepicLayer);
+            Remove(ReadThisLayer);
+            Remove(MenuLayer);
+            Remove(ConsoleLayer);
+
+            m_disposed = true;
         }
     }
 }

@@ -25,6 +25,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     /// </summary>
     public class GLHudRenderer : IHudRenderContext
     {
+        private readonly GLRenderer m_renderer;
         private readonly IGLTextureManager m_glTextureManager;
         private readonly RenderPipeline<GLHudShader, GLHudVertex> m_pointPrimitivePipeline;
         private readonly RenderPipeline<GLHudShader, GLHudVertex> m_linePrimitivePipeline;
@@ -37,10 +38,12 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private bool m_disposed;
 
         public Dimension Dimension => m_currentResolutionInfo.Dimension;
+        public Dimension WindowDimension => m_renderer.Window.Dimension;
         public IRendererTextureManager Textures => m_glTextureManager;
 
-        public GLHudRenderer(IGLTextureManager glTextureManager)
+        public GLHudRenderer(GLRenderer renderer, IGLTextureManager glTextureManager)
         {
+            m_renderer = renderer;
             m_glTextureManager = glTextureManager;
             m_pointPrimitivePipeline = new("Hud shader points", BufferUsageHint.StreamDraw, PrimitiveType.Points);
             m_linePrimitivePipeline = new("Hud shader lines", BufferUsageHint.StreamDraw, PrimitiveType.Lines);
@@ -65,14 +68,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_currentResolutionInfo = info;
         }
 
-        public bool ImageExists(string name)
+        public void Clear(Color color, float alpha = 1.0f)
         {
-            return m_glTextureManager.HasImage(name);
-        }
-        
-        public void Clear(Color color)
-        {
-            DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), color);
+            Color drawColor = Color.FromArgb((int)(alpha / 255.0f), color.R, color.G, color.B);
+            DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), drawColor);
         }
 
         private void AddPoint(Vec2I point, ByteColor color, Align window)
@@ -84,17 +83,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_pointPrimitivePipeline.Vbo.Add(vertex);
         }
 
-        public void Point(Vec2I point, Color color, Align window = Align.TopLeft)
+        public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddPoint(point, byteColor, window);
 
             m_elementsDrawn++;
         }
 
-        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft)
+        public void Points(Vec2I[] points, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < points.Length; i++)
                 AddPoint(points[i], byteColor, window);
             
@@ -116,17 +115,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             }
         }
 
-        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft)
+        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddSegment(seg.Start.Int, seg.End.Int, byteColor, window);
             
             m_elementsDrawn++;
         }
 
-        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft)
+        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < segs.Length; i++)
                 AddSegment(segs[i].Start.Int, segs[i].End.Int, byteColor, window);
             
@@ -153,17 +152,19 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             AddSegment(bottomLeft, topLeft, color, window);
         }
 
-        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void DrawBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < boxes.Length; i++)
                 AddBox(boxes[i], byteColor, window, anchor);
             
@@ -202,26 +203,42 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             AddTriangle(topRight, bottomLeft, bottomRight, color);
         }
 
-        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             AddFillBox(box, byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft)
+        public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
+            float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color);
+            ByteColor byteColor = new ByteColor(color, alpha);
             for (int i = 0; i < boxes.Length; i++)
                 AddFillBox(boxes[i], byteColor, window, anchor);
             
             m_elementsDrawn++;
         }
 
-        public void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
-            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+        public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
             float alpha = 1.0f)
+        {
+            Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
+        }
+
+        public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
+            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
+            float alpha = 1.0f)
+        {
+            Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
+        }
+
+        private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
             
@@ -232,7 +249,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float alpha = 1)
+            Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float scale = 1.0f,
+            float alpha = 1.0f)
         {
             drawArea = default;
             
@@ -244,7 +262,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, 
             TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null, 
-            float alpha = 1.0f)
+            float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
             
@@ -253,12 +271,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_elementsDrawn++;
         }
 
-        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null)
+        public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
+            float? aspectRatio = null)
         {
             // This peek is safe to do because we never pop the last element,
             // and there always is one on the stack.
             ResolutionScale resolutionScale = scale ?? m_resolutionStack.Peek().Scale;
-            
+
             VirtualResolutionInfo info = new(dimension, resolutionScale, m_parentDimension);
             m_resolutionStack.Push(info);
             m_currentResolutionInfo = info;

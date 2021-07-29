@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Shared;
 using Helion.Resources;
@@ -24,7 +25,7 @@ namespace Helion.Render.Legacy.Texture
         protected readonly IGLFunctions gl;
         private readonly IImageRetriever m_imageRetriever;
         private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-        private readonly ResourceTracker<GLTextureType> m_textureTracker = new ResourceTracker<GLTextureType>();
+        private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
 
         public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
@@ -66,7 +67,7 @@ namespace Helion.Render.Legacy.Texture
 
         private SpriteRotation CreateNullSpriteRotation()
         {
-            SpriteRotation spriteFrame = new SpriteRotation(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
+            SpriteRotation spriteFrame = new(new Resources.Texture("NULL", ResourceNamespace.Sprites, 0), false);
             spriteFrame.Texture.RenderStore = NullTexture;
             return spriteFrame;
         }
@@ -76,21 +77,16 @@ namespace Helion.Render.Legacy.Texture
             FailedToDispose(this);
             Dispose();
         }
-        
-        public bool HasImage(string name, ResourceNamespace? specificNamespace = null)
-        {
-            return TryGet(name, specificNamespace ?? ResourceNamespace.Global, out _);
-        }
 
-        public bool TryGetImageDimension(string name, out Dimension dimension, ResourceNamespace? specificNamespace = null)
+        public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
-            if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out var texture))
+            if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out GLTextureType? texture))
             {
-                dimension = texture.Dimension;
-                return true;
+                handle = texture;
+                return true;    
             }
 
-            dimension = (1, 1);
+            handle = null;
             return false;
         }
 
@@ -299,7 +295,7 @@ namespace Helion.Render.Legacy.Texture
 
         private GLTextureType CreateWhiteTexture()
         {
-            return GenerateTexture(ImageHelper.CreateWhiteImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(ImageHelper.CreateWhiteImage(), "NULLWHITE", ResourceNamespace.Global);
         }
 
         private GLFontTexture<GLTextureType> CreateNullFont()

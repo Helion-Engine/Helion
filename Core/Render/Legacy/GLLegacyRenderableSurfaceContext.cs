@@ -11,6 +11,7 @@ namespace Helion.Render.Legacy
     {
         public IRenderableSurface Surface { get; }
         public readonly RenderCommands Commands;
+        private readonly IWindow m_window;
         private readonly GLLegacyHudRenderContext m_hudRenderContext;
         private readonly GLLegacyWorldRenderContext m_worldRenderContext;
         private Box2I m_viewport;
@@ -24,6 +25,7 @@ namespace Helion.Render.Legacy
             m_hudRenderContext = new GLLegacyHudRenderContext(renderer.m_archiveCollection, Commands,
                 renderer.Textures);
             m_worldRenderContext = new GLLegacyWorldRenderContext(Commands);
+            m_window = renderer.Window;
         }
 
         internal void Begin()
@@ -33,13 +35,7 @@ namespace Helion.Render.Legacy
 
         public void Clear(Color color, bool depth, bool stencil)
         {
-            Commands.Clear(color);
-
-            if (depth)
-                Commands.ClearDepth();
-            
-            if (depth && stencil)
-                Commands.Clear();
+            Commands.Clear(color, depth, stencil);
         }
 
         public void ClearDepth()

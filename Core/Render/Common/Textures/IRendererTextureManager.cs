@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.Geometry;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Resources;
 
 namespace Helion.Render.Common.Textures
@@ -16,17 +16,20 @@ namespace Helion.Render.Common.Textures
         /// <param name="specificNamespace">If null, will search all namespaces,
         /// otherwise will search only in the provided one.</param>
         /// <returns>True if such an image exists, false otherwise.</returns>
-        bool HasImage(string name, ResourceNamespace? specificNamespace = null);
-
+        bool HasImage(string name, ResourceNamespace? specificNamespace = null)
+        {
+            return TryGet(name, out _, specificNamespace);
+        }
+        
         /// <summary>
-        /// Gets the dimension of an image.
+        /// Tries to get a handle for an image.
         /// </summary>
         /// <param name="name">The image name.</param>
-        /// <param name="dimension">The resultant dimension.</param>
+        /// <param name="handle">The handle, which is not null if it returns true,
+        /// or null if it returns false.</param>
         /// <param name="specificNamespace">If null, will search all namespaces,
         /// otherwise will search only in the provided one.</param>
-        /// <returns>True if it was found (and the dimension value will be set
-        /// correctly), or false, and the dimension will be set to 1x1.</returns>
-        bool TryGetImageDimension(string name, out Dimension dimension, ResourceNamespace? specificNamespace = null);
+        /// <returns>True if found, false if not.</returns>
+        bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null);
     }
 }

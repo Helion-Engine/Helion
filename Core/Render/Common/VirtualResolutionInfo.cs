@@ -13,15 +13,18 @@ namespace Helion.Render.Common
     {
         public readonly Dimension Dimension;
         public readonly ResolutionScale Scale;
+        public readonly float AspectRatio;
         private readonly Vec2F m_scaling;
         private readonly Vec2F m_gutter;
 
-        public VirtualResolutionInfo(Dimension dimension, ResolutionScale scale, Dimension parentDimension)
+        public VirtualResolutionInfo(Dimension dimension, ResolutionScale scale, Dimension parentDimension,
+            float? aspectRatio = null)
         {
             Vec2F parent = parentDimension.Vector.Float;
 
             Dimension = dimension;
             Scale = scale;
+            AspectRatio = aspectRatio ?? dimension.AspectRatio;
             m_scaling = parent / dimension.Vector.Float;
             m_gutter = Vec2F.Zero;
 

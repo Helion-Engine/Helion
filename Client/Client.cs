@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -8,11 +10,8 @@ using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
-using Helion.Geometry;
 using Helion.Input;
 using Helion.Layer;
-using Helion.Render.Legacy;
-using Helion.Render.Legacy.Commands;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -20,8 +19,10 @@ using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Util.Timing;
 using Helion.World.Save;
 using NLog;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using static Helion.Util.Assertion.Assert;
 
@@ -41,7 +42,9 @@ namespace Helion.Client
         private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
         private readonly Window m_window;
+        private readonly FpsTracker m_fpsTracker = new();
         private bool m_disposed;
+        private bool m_takeScreenshot;
 
         private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
@@ -51,11 +54,11 @@ namespace Helion.Client
             m_console = console;
             m_audioSystem = audioSystem;
             m_archiveCollection = archiveCollection;
-            m_saveGameManager = new(config);
-            m_soundManager = new SoundManager(m_audioSystem, m_archiveCollection);
-            m_layerManager = new GameLayerManager(config, m_archiveCollection, m_console, m_soundManager, m_audioSystem, m_saveGameManager);
-            m_window = new Window(config, m_archiveCollection, m_fpsTracker);
-            
+            m_saveGameManager = new SaveGameManager(config);
+            m_soundManager = new SoundManager(audioSystem, archiveCollection);
+            m_window = new Window(config, archiveCollection, m_fpsTracker);
+            m_layerManager = new GameLayerManager(config, m_window, console, archiveCollection, m_soundManager, m_saveGameManager);
+
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;
 
@@ -80,6 +83,7 @@ namespace Helion.Client
         private void HandleInput()
         {
             InputEvent inputEvent = m_window.InputManager.PollInput();
+            m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
             m_layerManager.HandleInput(inputEvent);
         }
 
@@ -95,17 +99,28 @@ namespace Helion.Client
 
         private void PerformRender()
         {
-            if (m_window.Renderer is not ILegacyRenderer renderer)
-                throw new NotImplementedException("Only rendering with the legacy renderer");
-
-            Dimension windowDimension = m_window.Dimension;
-            RenderCommands renderCommands = new(m_config, windowDimension, renderer.ImageDrawInfoProvider, m_fpsTracker);
+            m_layerManager.Render(m_window.Renderer);
+        }
+        
+        private void HandleScreenshot()
+        {
+            if (!m_takeScreenshot)
+                return;
             
-            renderCommands.Viewport(windowDimension);
-            renderCommands.Clear();
-            m_layerManager.Render(renderCommands);
+            GL.Finish();
+            
+            // TODO: This should be delegated to the renderer, not done here.
+            (int w, int h) = m_window.Dimension;
+            Bitmap bmp = new(w, h);
+            Rectangle rect = new(0, 0, w, h);
+            BitmapData data = bmp.LockBits(rect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-            renderer.Render(renderCommands);
+            string path = $"helion_{DateTime.Now:yyyyMMdd_hh_mm_ss_FFFF}.png";
+            Log.Info($"Saving screenshot to {path}");
+            bmp.Save(path);
         }
 
         private void Render()
@@ -115,6 +130,7 @@ namespace Helion.Client
 
             m_fpsLimit.Restart();
             PerformRender();
+            HandleScreenshot();
             m_window.SwapBuffers();
             m_fpsTracker.FinishFrame();
         }
@@ -128,7 +144,6 @@ namespace Helion.Client
             Render();
             
             m_soundManager.Update();
-            m_layerManager.PruneDisposed();
         }
 
         /// <summary>

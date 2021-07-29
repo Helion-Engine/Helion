@@ -24,6 +24,10 @@ namespace Helion.Render.OpenGL.Primitives
         {
         }
         
+        public ByteColor(Color color, float alpha) : this(color.R, color.G, color.B, (byte)(alpha / 255.0f))
+        {
+        }
+        
         public static implicit operator ByteColor(ValueTuple<byte, byte, byte, byte> tuple)
         {
             return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);

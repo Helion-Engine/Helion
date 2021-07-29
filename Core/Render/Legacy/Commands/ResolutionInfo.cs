@@ -25,5 +25,12 @@ namespace Helion.Render.Legacy.Commands
         /// and not the aspect ratio of VirtualDimensions
         /// </summary>
         public float AspectRatio;
+
+        public ResolutionInfo(Dimension virtualDimensions, ResolutionScale scale, float aspectRatio)
+        {
+            VirtualDimensions = virtualDimensions;
+            Scale = scale;
+            AspectRatio = aspectRatio;
+        }
     }
 }

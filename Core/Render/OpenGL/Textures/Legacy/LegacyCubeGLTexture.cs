@@ -1,6 +1,5 @@
 ﻿using System;
 using Helion.Geometry.Vectors;
-using Helion.Graphics;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Util.Atlas;
 using OpenTK.Graphics.OpenGL;
@@ -37,11 +36,6 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
             });
-        }
-
-        internal void Upload(Image image)
-        {
-            // TODO
         }
     }
 }
