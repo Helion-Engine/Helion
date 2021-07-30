@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Graphics;
+using Helion.Graphics.New;
+using Helion.Graphics.New.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures.Legacy
@@ -17,6 +19,8 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         private readonly IResources m_resources;
         private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture() };
         private readonly List<GLTextureHandle> m_handles = new();
+        private readonly ResourceTracker<GLTextureHandle> m_handlesTable = new();
+        private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
@@ -24,11 +28,8 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         {
             m_resources = resources;
 
-            AddNullTexture();
-            NullHandle = m_handles[0];
-
-            AddNullFontTexture();
-            NullFont = m_fontHandles[0];
+            NullHandle = AddNullTexture();
+            NullFont = AddNullFontTexture();
         }
 
         ~GLLegacyTextureManager()
@@ -37,13 +38,13 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             PerformDispose();
         }
 
-        private void AddNullTexture()
+        private GLTextureHandle AddNullTexture()
         {
-            Image nullImage = ImageHelper.CreateNullImage();
-            AddImage(nullImage);
+            Image nullImage = Image.NullImage();
+            return AddImage("NULL", nullImage) ?? throw new Exception("Should never fail to allocate the null texture");
         }
 
-        private GLTextureHandle? AddImage(Image image)
+        private GLTextureHandle? AddImage(string name, Image image)
         {
             Dimension neededDim = image.Dimension;
             Dimension maxDim = m_textures[0].Dimension;
@@ -54,7 +55,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             {
                 AtlasGLTexture texture = m_textures[i];
                 if (texture.TryUpload(image, out Box2I box))
-                    return CreateHandle(i, box, image, texture);
+                    return CreateHandle(name, i, box, image, texture);
             }
 
             // Since we know it has to fit, but it didn't fit anywhere, then we
@@ -68,10 +69,10 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 return null;
             }
 
-            return CreateHandle(m_textures.Count - 1, newBox, image, newTexture);
+            return CreateHandle(name, m_textures.Count - 1, newBox, image, newTexture);
         }
 
-        private GLTextureHandle CreateHandle(int textureIndex, Box2I box, Image image, AtlasGLTexture glTexture)
+        private GLTextureHandle CreateHandle(string name, int layerIndex, Box2I box, Image image, AtlasGLTexture glTexture)
         {
             int index = m_handles.Count;
             Vec2F uvFactor = glTexture.Dimension.Vector.Float;
@@ -79,40 +80,58 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             Vec2F max = box.Max.Float / uvFactor;
             Box2F uvBox = new(min, max);
 
-            GLTextureHandle handle = new(index, box, uvBox, image.Metadata.Offset, glTexture);
+            GLTextureHandle handle = new(index, layerIndex, box, uvBox, image.Offset, glTexture);
             m_handles.Add(handle);
+            m_handlesTable.Insert(name, image.Namespace, handle);
 
             return handle;
         }
 
-        private void AddNullFontTexture()
+        private GLFontTexture AddNullFontTexture()
         {
-            // TODO
+            Image nullImage = Image.NullImage();
+            Glyph glyph = new Glyph('?', Box2F.UnitBox, new Box2I((0, 0), nullImage.Dimension.Vector));
+            Dictionary<char, Glyph> glyphs = new() { ['?'] = glyph };
+            Font font = new("Null font", glyphs, nullImage);
+
+            GLTexture texture = new(TextureTarget.Texture2D);
+            // TODO: Upload data
+            //throw new NotImplementedException();
+
+            GLFontTexture fontTexture = new(texture, font);
+            m_fontTextures["NULL"] = fontTexture;
+
+            return fontTexture;
         }
 
         public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
         {
-            // TODO: This is not correct, and is temporary.
             GLTextureHandle texture = Get(name, specificNamespace ?? ResourceNamespace.Global);
             handle = texture;
-            return true;
+            return ReferenceEquals(texture, NullHandle);
         }
 
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
             // TODO
+
             return NullHandle;
         }
 
         public GLTextureHandle Get(Texture texture)
         {
             // TODO
+
             return NullHandle;
         }
 
         public GLFontTexture GetFont(string name)
         {
-            // TODO
+            if (m_fontTextures.TryGetValue(name, out GLFontTexture? fontTexture))
+                return fontTexture;
+
+            // TODO: Try to create it from m_resources.
+
             return NullFont;
         }
 
@@ -128,6 +147,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 return;
 
             m_handles.Clear();
+            m_handlesTable.Clear();
 
             foreach (var texture in m_fontHandles)
                 texture.Dispose();
