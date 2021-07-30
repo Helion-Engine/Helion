@@ -14,7 +14,8 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public Dimension Dimension { get; private set; }
         private readonly Atlas2D m_atlas;
 
-        public AtlasGLTexture() : base(TextureTarget.Texture2D)
+        // TODO: OVERHAUL ME
+        public AtlasGLTexture(string debugName) : base(debugName, TextureTarget.Texture2D)
         {
             int dim = Math.Min(GLCapabilities.Limits.MaxTexture2DSize, 4096);
             Dimension = (dim, dim);

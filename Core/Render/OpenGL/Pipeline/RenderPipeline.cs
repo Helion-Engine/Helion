@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Render.OpenGL.Shaders;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Pipeline

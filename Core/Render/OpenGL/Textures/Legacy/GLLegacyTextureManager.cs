@@ -17,7 +17,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public GLTextureHandle NullHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
-        private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture() };
+        private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly ResourceTracker<GLTextureHandle> m_handlesTable = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
@@ -60,7 +60,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
             // Since we know it has to fit, but it didn't fit anywhere, then we
             // will make a new texture and use that, which must fit via precondition.
-            AtlasGLTexture newTexture = new();
+            AtlasGLTexture newTexture = new($"Atlas layer {m_textures.Count}");
             m_textures.Add(newTexture);
 
             if (!newTexture.TryUpload(image, out Box2I newBox))
@@ -94,7 +94,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             Dictionary<char, Glyph> glyphs = new() { ['?'] = glyph };
             Font font = new("Null font", glyphs, nullImage);
 
-            GLTexture texture = new(TextureTarget.Texture2D);
+            GLTexture texture = new("Null font", TextureTarget.Texture2D);
             // TODO: Upload data
             //throw new NotImplementedException();
 

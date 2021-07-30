@@ -15,7 +15,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public Vec3I Dimensions { get; private set; }
         private readonly Atlas3D m_atlas3D;
 
-        public LegacyCubeGLTexture(int depth = 64) : base(TextureTarget.Texture3D)
+        public LegacyCubeGLTexture(string debugName, int depth = 64) : base(debugName, TextureTarget.Texture3D)
         {
             int dim = GLCapabilities.Limits.MaxTexture3DSize;
             Precondition(depth > 0, "Legacy 3D GL texture needs a positive depth");

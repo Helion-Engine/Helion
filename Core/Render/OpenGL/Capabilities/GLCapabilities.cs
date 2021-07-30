@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Capabilities
         static GLCapabilities()
         {
             Version = DiscoverVersion();
-            Extensions = new GLExtensions();
+            Extensions = new GLExtensions(Version);
             Info = new GLInfo();
             Limits = new GLLimits(Version, Extensions);
         }

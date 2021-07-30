@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Geometry;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
