@@ -41,8 +41,6 @@ namespace Helion.World.Special.Specials
 
         public override SpecialTickStatus Tick()
         {
-            Sector.LightingChanged = true;
-
             if (m_delay > 0)
             {
                 m_delay--;

@@ -56,7 +56,6 @@ namespace Helion.World.Special.Specials
 
         public override SpecialTickStatus Tick()
         {
-            Sector.LightingChanged = true;
             int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
             Sector.SetLightLevel((short)set);
 

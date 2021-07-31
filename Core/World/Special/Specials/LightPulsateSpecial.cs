@@ -42,12 +42,11 @@ namespace Helion.World.Special.Specials
 
         public override SpecialTickStatus Tick()
         {
-            Sector.LightingChanged = true;
             int lightLevel = Sector.LightLevel + m_inc;
-            lightLevel = MathHelper.Clamp(lightLevel, m_minBright, m_maxBright);
+            lightLevel = MathHelper.Clamp(lightLevel, m_minBright, short.MaxValue);
             Sector.SetLightLevel((short)lightLevel);
 
-            if (Sector.LightLevel == m_minBright || Sector.LightLevel == m_maxBright)
+            if ((m_inc < 0 && Sector.LightLevel <= m_minBright) || (m_inc > 0 && Sector.LightLevel >= m_maxBright))
                 m_inc = -m_inc;
 
             return SpecialTickStatus.Continue;
