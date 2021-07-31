@@ -67,6 +67,7 @@ namespace Helion.Util
             config.AddRuleForOneLevel(LogLevel.Warn, target);
             config.AddRuleForOneLevel(LogLevel.Info, target);
 
+#if DEBUG
             string level = args.LogLevel ?? "";
             
             bool debugLevel = level.EqualsIgnoreCase("debug");
@@ -76,6 +77,7 @@ namespace Helion.Util
             bool traceLevel = level.EqualsIgnoreCase("trace") || debugLevel;
             if (traceLevel)
                 config.AddRuleForOneLevel(LogLevel.Trace, target);
+#endif
         }
     }
 }
