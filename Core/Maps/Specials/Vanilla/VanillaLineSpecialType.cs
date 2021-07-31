@@ -216,12 +216,12 @@ namespace Helion.Maps.Specials.Vanilla
         SR_TeleportNoFog, // Monster
         SR_ToggleFloorToCeiling,
         WR_ToggleFloorToCeiling,
-        // TODO
         TransferFloorLight,
         ScrollAccelTaggedCeiling,
         ScrollAccelTaggedFloorFirstSide,
         ScrollAccelObjectsTaggedFloorFirstSide,
         ScrollAccelObjectsFloorFirstSide,
+        // TODO
         ScrollAccellTaggedWallFirstSide,
         // END TODO
         W1_LowerFloorToNearest,
@@ -254,27 +254,31 @@ namespace Helion.Maps.Specials.Vanilla
         TransferHeights,
         W1_TeleportLine,
         WR_TeleportLine,
+        // END TODO
         ScrollTaggedCeilingFirstSide,
         ScrollTaggedFloorFirstSide,
         PushObjectsTaggedFloorFirstSide,
         PushObjectsAndFloorTaggedFirstSide,
+        // TODO
         ScrollTaggedWallFirstSide,
+        // END TODO
         ScrollTaggedCeiling,
         ScrollTaggedFloor,
         CarryObjectsTaggedFloor,
         ScrollTagedFloorAndCarryObjects,
+        // TODO
         ScrollTaggedWallSameAsFloorCeiling,
-        ScrollTextureOffsets,
         // END TODO
-
+        ScrollTextureOffsets,
         WR_RaiseStairs8,
         WR_RaiseStairsFast,
         SR_RaiseStairs8,
         SR_RaiseStairsFast,
-
         // TODO
         TranslucentLine,
+        // END TODO
         TransferCeilingLight,
+        // TODO
         W1_TeleportLineReversed,
         WR_TeleportLineReversed,
         W1_MonsterTeleportLineReversed,

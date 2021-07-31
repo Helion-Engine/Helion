@@ -27,6 +27,7 @@ namespace Helion.Maps.Specials.Vanilla
 
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
+            lineFlags.MonsterCanActivate = MonsterCanActivate(type);
 
             switch (type)
             {
@@ -511,6 +512,75 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = 32;
                     return ZDoomLineSpecialType.ElevatorMoveToFloor;
+
+                case VanillaLineSpecialType.ScrollAccelTaggedFloorFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollAccelObjectsTaggedFloorFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollAccelObjectsFloorFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollTaggedFloorFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.PushObjectsTaggedFloorFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.PushObjectsAndFloorTaggedFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollTaggedFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.CarryObjectsTaggedFloor:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollTagedFloorAndCarryObjects:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
+                    return ZDoomLineSpecialType.ScrollFloor;
+
+                case VanillaLineSpecialType.ScrollAccelTaggedCeiling:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    return ZDoomLineSpecialType.ScrollCeiling;
+
+                case VanillaLineSpecialType.ScrollTaggedCeilingFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    return ZDoomLineSpecialType.ScrollCeiling;
+
+                case VanillaLineSpecialType.ScrollTaggedCeiling:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    return ZDoomLineSpecialType.ScrollCeiling;
 
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
@@ -1188,6 +1258,18 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.TransferFloorLight:
                 case VanillaLineSpecialType.TransferCeilingLight:
                 case VanillaLineSpecialType.ScrollTextureOffsets:
+                case VanillaLineSpecialType.ScrollAccelTaggedFloorFirstSide:
+                case VanillaLineSpecialType.ScrollAccelObjectsTaggedFloorFirstSide:
+                case VanillaLineSpecialType.ScrollAccelObjectsFloorFirstSide:
+                case VanillaLineSpecialType.ScrollTaggedFloorFirstSide:
+                case VanillaLineSpecialType.PushObjectsTaggedFloorFirstSide:
+                case VanillaLineSpecialType.PushObjectsAndFloorTaggedFirstSide:
+                case VanillaLineSpecialType.ScrollTaggedFloor:
+                case VanillaLineSpecialType.CarryObjectsTaggedFloor:
+                case VanillaLineSpecialType.ScrollTagedFloorAndCarryObjects:
+                case VanillaLineSpecialType.ScrollAccelTaggedCeiling:
+                case VanillaLineSpecialType.ScrollTaggedCeilingFirstSide:
+                case VanillaLineSpecialType.ScrollTaggedCeiling:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:
@@ -1330,6 +1412,21 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
                     return true;
 
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private static bool MonsterCanActivate(VanillaLineSpecialType type)
+        {
+            switch (type)
+            {
+                case VanillaLineSpecialType.SR_Teleport:
+                case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.S1_Teleport:
+                    return true;
                 default:
                     break;
             }

@@ -220,6 +220,7 @@ namespace Helion.World.Geometry.Sectors
         public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
         public int GetTexture(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
         public double GetZ(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.Z : Ceiling.Z;
+        public SectorPlane GetSectorPlane(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor : Ceiling;
 
         /// <summary>
         /// The currently active move special, or null if there's no active

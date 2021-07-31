@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
@@ -22,6 +23,7 @@ namespace Helion.World.Special
     {
         // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
         public const double SpeedFactor = 0.125;
+        public const double VisualScrollFactor = 0.015625;
 
         private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
@@ -443,16 +445,16 @@ namespace Helion.World.Special
             switch (line.Special.LineSpecialType)
             {
                 case ZDoomLineSpecialType.ScrollTextureLeft:
-                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / 64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 * VisualScrollFactor, 0.0, (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureRight:
-                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / -64.0, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / -VisualScrollFactor, 0.0, (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureUp:
-                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / 64.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / VisualScrollFactor, (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureDown:
-                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -64.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -VisualScrollFactor, (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
                     AddSpecial(new LineScrollSpecial(line, -line.Front.Offset.X, line.Front.Offset.Y, ZDoomLineScroll.All));
@@ -463,6 +465,36 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.TransferCeilingLight:
                     SetCeilingLight(line);
                     break;
+                case ZDoomLineSpecialType.ScrollFloor:
+                    CreateScrollPlane(line, SectorPlaneType.Floor);
+                    break;
+                case ZDoomLineSpecialType.ScrollCeiling:
+                    CreateScrollPlane(line, SectorPlaneType.Ceiling);
+                    break;
+            }
+        }
+
+        private void CreateScrollPlane(Line line, SectorPlaneType planeType)
+        {
+            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            ZDoomPlaneScroll flags = (ZDoomPlaneScroll)line.Args.Arg1;
+            ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
+            if (planeType == SectorPlaneType.Floor)
+                scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
+
+            SectorScrollSpeeds speeds = SectorScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
+            Sector? changeScroll = null;
+
+            if (flags.HasFlag(ZDoomPlaneScroll.Accelerative) || flags.HasFlag(ZDoomPlaneScroll.Displacement))
+                changeScroll = line.Front.Sector;
+
+            foreach (Sector sector in sectors)
+            {
+                SectorPlane sectorPlane = sector.GetSectorPlane(planeType);
+                if (speeds.ScrollSpeed.HasValue)
+                    AddSpecial(new SectorScrollSpecial(SectorScrollType.Scroll, sectorPlane, speeds.ScrollSpeed.Value, changeScroll));
+                if (speeds.CarrySpeed.HasValue)
+                    AddSpecial(new SectorScrollSpecial(SectorScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll));
             }
         }
 

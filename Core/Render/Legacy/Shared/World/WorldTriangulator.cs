@@ -165,7 +165,7 @@ namespace Helion.Render.Legacy.Shared.World
                         z = overrideZ;
                     
                     Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                    Vec2F uv = CalculateFlatUV(vertex, textureDimension);
+                    Vec2F uv = CalculateFlatUV(sectorPlane, vertex, textureDimension, tickFraction);
                     
                     verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
@@ -186,7 +186,7 @@ namespace Helion.Render.Legacy.Shared.World
                         z = overrideZ;
 
                     Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                    Vec2F uv = CalculateFlatUV(vertex, textureDimension);
+                    Vec2F uv = CalculateFlatUV(sectorPlane, vertex, textureDimension, tickFraction);
                     
                     verticesToPopulate.Add(new WorldVertex(position, uv));
                 }
@@ -333,19 +333,20 @@ namespace Helion.Render.Legacy.Shared.World
 
         private static Vec2F GetScrollOffset(SideScrollData scrollData, int position, in Vec2F textureUVInverse, double tickFraction)
         {
-            Vec2F lastOffset = scrollData.LastOffset[position].Float;
-
-            Vec2F vec = scrollData.Offset[position].Float - lastOffset;
-            vec.X *= (float)tickFraction;
-            vec.Y *= (float)tickFraction;
-
-            return (lastOffset + vec) * textureUVInverse;
+            Vec2F scrollAmount = scrollData.LastOffset[position].Interpolate(scrollData.Offset[position], tickFraction).Float;
+            return scrollAmount * textureUVInverse;
         }
         
-        private static Vec2F CalculateFlatUV(in Vec2D vertex, in Dimension textureDimension)
+        private static Vec2F CalculateFlatUV(SectorPlane sectorPlane, in Vec2D vertex, in Dimension textureDimension, 
+            double tickFraction)
         {
-            // TODO: Sector offsets will go here eventually.
             Vec2F uv = vertex.Float / textureDimension.Vector.Float;
+            if (sectorPlane.SectorScrollData != null)
+            {
+                Vec2F scrollAmount = sectorPlane.SectorScrollData.LastOffset.Interpolate(sectorPlane.SectorScrollData.Offset, tickFraction).Float;
+                uv.X += scrollAmount.X;
+                uv.Y -= scrollAmount.Y;
+            }
             
             // When we map coordinates to their texture coordinates, because
             // we do division above, a coordinate with Y values of 16 to 32

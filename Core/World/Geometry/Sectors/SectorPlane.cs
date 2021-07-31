@@ -1,6 +1,7 @@
 using Helion.Audio;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -21,6 +22,8 @@ namespace Helion.World.Geometry.Sectors
         public double PrevZ;
         public int TextureHandle { get; private set; }
         public short LightLevel;
+
+        public SectorScrollData? SectorScrollData { get; set; }
 
         public bool Sloped => Plane != null;
 
