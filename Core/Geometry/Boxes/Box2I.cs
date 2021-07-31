@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
@@ -12,6 +13,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public readonly struct Box2I
     {
         public static readonly Box2I UnitBox = ((0, 0), (1, 1));

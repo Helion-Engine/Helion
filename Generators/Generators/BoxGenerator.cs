@@ -37,6 +37,7 @@ namespace Generators.Generators
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
             w.WriteLine("using System.Linq;");
+            w.WriteLine("using System.Runtime.InteropServices;");
             w.WriteLine("using Helion.Geometry.Segments;");
             w.WriteLine("using Helion.Geometry.Vectors;");
             w.WriteLine("using Helion.Util.Extensions;");
@@ -44,6 +45,9 @@ namespace Generators.Generators
             w.WriteLine();
             w.WriteNamespaceBlock("Geometry.Boxes", () =>
             {
+                if (m_isStruct)
+                    w.WriteLine($"[StructLayout(LayoutKind.Sequential, Pack = {m_type.SizeOf()})]");
+                
                 string classOrStruct = m_isStruct ? "readonly struct" : "class";
                 w.WithCBlock($"public {classOrStruct} {ClassName}", () =>
                 {

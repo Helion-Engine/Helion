@@ -22,6 +22,29 @@ namespace Generators
         {
             return type == Types.Float || type == Types.Double;
         }
+
+        public static int SizeOf(this Types type)
+        {
+            switch (type)
+            {
+            case Types.Byte:
+                return 1;
+            case Types.Short:
+            case Types.UShort:
+                return 2;
+            case Types.Int:
+            case Types.UInt:
+            case Types.Float:
+            case Types.Fixed:
+                return 4;
+            case Types.Long:
+            case Types.ULong:
+            case Types.Double:
+                return 8;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
         
         public static bool IsIntegralPrimitive(this Types type)
         {
