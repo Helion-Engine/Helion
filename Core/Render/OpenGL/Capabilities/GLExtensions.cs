@@ -7,6 +7,7 @@ namespace Helion.Render.OpenGL.Capabilities
     {
         public readonly FramebufferExtensions Framebuffers;
         public readonly bool BindlessTextures;
+        public readonly bool GenerateMipmapsFunction;
         public readonly bool GpuShader5;
         public readonly bool ShaderImageLoadStore;
         public readonly bool SeamlessCubeMap;
@@ -15,12 +16,13 @@ namespace Helion.Render.OpenGL.Capabilities
 
         public int Count => m_extensions.Count;
 
-        internal GLExtensions()
+        internal GLExtensions(GLVersion version)
         {
             PopulateExtensions();
 
             Framebuffers = new FramebufferExtensions(this);
             BindlessTextures = Supports("GL_ARB_bindless_texture");
+            GenerateMipmapsFunction = version.Supports(3, 0) || Framebuffers.FramebufferArb;
             GpuShader5 = Supports("GL_NV_gpu_shader5");
             SeamlessCubeMap = Supports("ARB_seamless_cube_map");
             ShaderImageLoadStore = Supports("GL_ARB_shader_image_load_store");

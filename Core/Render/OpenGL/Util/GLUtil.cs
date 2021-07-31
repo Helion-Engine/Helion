@@ -1,7 +1,7 @@
 ﻿using Helion.Render.OpenGL.Capabilities;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL
+namespace Helion.Render.OpenGL.Util
 {
     public static class GLUtil
     {

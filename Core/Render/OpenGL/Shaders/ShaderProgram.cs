@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Helion.Render.OpenGL.Shaders.Attributes;
 using Helion.Render.OpenGL.Shaders.Uniforms;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 

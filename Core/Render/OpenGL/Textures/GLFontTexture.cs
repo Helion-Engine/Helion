@@ -1,4 +1,4 @@
-﻿using Helion.Graphics.Fonts;
+﻿using Helion.Graphics.New.Fonts;
 using System;
 using static Helion.Util.Assertion.Assert;
 
@@ -10,13 +10,13 @@ namespace Helion.Render.OpenGL.Textures
     public class GLFontTexture : IDisposable
     {
         public readonly GLTexture Texture;
-        private readonly IFont m_font;
+        public readonly Font Font;
         private bool m_disposed;
         
-        public GLFontTexture(GLTexture texture, IFont font)
+        public GLFontTexture(GLTexture texture, Font font)
         {
             Texture = texture;
-            m_font = font;
+            Font = font;
         }
 
         ~GLFontTexture()

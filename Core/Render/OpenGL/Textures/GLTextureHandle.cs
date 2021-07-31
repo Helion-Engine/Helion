@@ -12,15 +12,17 @@ namespace Helion.Render.OpenGL.Textures
     public class GLTextureHandle : IRenderableTextureHandle
     {
         public int Index { get; }
+        public int LayerIndex { get; }
         public Box2I Area { get; }
         public Box2F UV { get; }
         public Vec2I Offset { get; }
         public Dimension Dimension => Area.Dimension;
         public readonly GLTexture Texture;
 
-        public GLTextureHandle(int index, Box2I area, Box2F uv, Vec2I offset, GLTexture texture)
+        public GLTextureHandle(int index, int layerIndex, Box2I area, Box2F uv, Vec2I offset, GLTexture texture)
         {
             Index = index;
+            LayerIndex = layerIndex;
             Texture = texture;
             Area = area;
             UV = uv;

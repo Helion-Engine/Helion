@@ -243,5 +243,26 @@ namespace Helion.Graphics.New
                 return false;
             }
         }
+
+        /// <summary>
+        /// Creates a checkered red/black null image.
+        /// </summary>
+        /// <returns>The 8x8 image that represents a null or missing image.</returns>
+        public static Image NullImage()
+        {
+            int dimension = 8;
+            int halfDimension = dimension / 2;
+            Bitmap bitmap = new(dimension, dimension, PixelFormat.Format32bppArgb);
+
+            for (int y = 0; y < halfDimension; y++)
+                for (int x = 0; x < halfDimension; x++)
+                    bitmap.SetPixel(x, y, Color.Red);
+
+            for (int y = halfDimension; y < dimension; y++)
+                for (int x = halfDimension; x < dimension; x++)
+                    bitmap.SetPixel(x, y, Color.Red);
+
+            return new(bitmap, ImageType.Argb);
+        }
     }
 }
