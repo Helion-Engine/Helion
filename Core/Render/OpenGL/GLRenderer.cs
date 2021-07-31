@@ -10,7 +10,6 @@ using Helion.Render.OpenGL.Surfaces;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Legacy;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
