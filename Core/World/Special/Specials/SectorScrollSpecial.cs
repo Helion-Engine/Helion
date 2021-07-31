@@ -59,7 +59,7 @@ namespace Helion.World.Special.Specials
             {
                 foreach (var entity in SectorPlane.Sector.Entities)
                 {
-                    if (entity.Flags.NoClip || !entity.OnGround || entity.HighestFloorSector != SectorPlane.Sector)
+                    if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround || entity.HighestFloorSector != SectorPlane.Sector)
                         continue;
 
                     entity.Velocity.X += speed.X;
