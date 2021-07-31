@@ -51,23 +51,23 @@ namespace Helion.Render.OpenGL.Textures
         {
             GL.BindTexture(Target, 0);
         }
-        
+
         public void BindAnd(Action action)
         {
             BindConditional(Binding.Bind, action);
         }
 
-        public void BindConditional(Binding bind, Action action)
+        public void BindConditional(Binding binding, Action action)
         {
-            if (bind == Binding.Bind)
+            if (binding == Binding.Bind)
                 Bind();
 
             action();
-
-            if (bind == Binding.Bind)
+            
+            if (binding == Binding.Bind)
                 Unbind();
         }
-
+        
         public void Dispose()
         {
             GC.SuppressFinalize(this);
@@ -89,6 +89,6 @@ namespace Helion.Render.OpenGL.Textures
 
         public override int GetHashCode() => TextureName.GetHashCode();
 
-        public override string ToString() => $"{TextureName} ({Target})";
+        public override string ToString() => $"{DebugName} (GLName: {TextureName}, Target: {Target})";
     }
 }

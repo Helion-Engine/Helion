@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Textures.Types
 
         public GLTexture2D(string debugName, Dimension dimension) : base(debugName, TextureTarget.Texture2D)
         {
-            Log.Debug("Creating {Type} ({Dim}, {Name}", nameof(GLTexture2D), dimension, debugName);
+            Log.Debug("Creating {Type} ({Dim}, {Name})", nameof(GLTexture2D), dimension, debugName);
 
             Dimension = dimension;
 
@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Textures.Types
 
         public GLTexture2D(string debugName, Image image) : base(debugName, TextureTarget.Texture2D)
         {
-            Log.Debug("Creating {Type} from image ({Dim}, {Name}", nameof(GLTexture2D), image.Dimension, debugName);
+            Log.Debug("Creating {Type} from image ({Dim}, {Name})", nameof(GLTexture2D), image.Dimension, debugName);
 
             Dimension = image.Dimension;
 
@@ -56,7 +56,7 @@ namespace Helion.Render.OpenGL.Textures.Types
             });
         }
 
-        public void Upload(Vec2I origin, Image image, bool generateMipmap, Binding bind)
+        public void Upload(Vec2I origin, Image image, Mipmap mipmap, Binding bind)
         {
             if (origin.X < 0 || origin.Y < 0 || origin.X >= Dimension.Width || origin.Y >= Dimension.Height)
             {
@@ -74,14 +74,14 @@ namespace Helion.Render.OpenGL.Textures.Types
 
             BindConditional(bind, () =>
             {
-                Log.Trace("Uploading data to {Type} {DebugName}, at {Origin} with {Dimension} pixels", nameof(GLTexture2D), origin, image.Dimension);
+                Log.Trace("Uploading data to {Type} {DebugName}, at {Origin} with {Dimension} pixels", nameof(GLTexture2D), DebugName, origin, image.Dimension);
 
                 image.Bitmap.WithLockedBits(data =>
                 {
                     GL.TexSubImage2D(TextureTarget.Texture2D, 0, origin.X, origin.Y, w, h, PixelFormat.Bgra,
                         PixelType.UnsignedInt8888Reversed, data);
 
-                    if (generateMipmap)
+                    if (mipmap == Mipmap.Generate)
                         GenerateMipmaps(Binding.DoNotBind);
                 });
             });

@@ -6,6 +6,8 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.New;
 using Helion.Graphics.New.Fonts;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Textures.Types;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -17,7 +19,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public GLTextureHandle NullHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
-        private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
+        private readonly List<AtlasGLTexture> m_textures = new();
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly ResourceTracker<GLTextureHandle> m_handlesTable = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
@@ -41,10 +43,11 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         private GLTextureHandle AddNullTexture()
         {
             Image nullImage = Image.NullImage();
-            return AddImage("NULL", nullImage) ?? throw new Exception("Should never fail to allocate the null texture");
+            GLTextureHandle? handle = AddImage("NULL", nullImage, Mipmap.Generate, Binding.Bind);
+            return handle ?? throw new Exception("Should never fail to allocate the null texture");
         }
 
-        private GLTextureHandle? AddImage(string name, Image image)
+        private GLTextureHandle? AddImage(string name, Image image, Mipmap mipmap, Binding bind)
         {
             Dimension neededDim = image.Dimension;
             Dimension maxDim = m_textures[0].Dimension;
@@ -54,7 +57,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             for (int i = 0; i < m_textures.Count; i++)
             {
                 AtlasGLTexture texture = m_textures[i];
-                if (texture.TryUpload(image, out Box2I box))
+                if (texture.TryUpload(image, out Box2I box, mipmap, bind))
                     return CreateHandle(name, i, box, image, texture);
             }
 
@@ -63,7 +66,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             AtlasGLTexture newTexture = new($"Atlas layer {m_textures.Count}");
             m_textures.Add(newTexture);
 
-            if (!newTexture.TryUpload(image, out Box2I newBox))
+            if (!newTexture.TryUpload(image, out Box2I newBox, mipmap, bind))
             {
                 Fail("Should never fail to upload an image when we allocated enough space for it (GL atlas texture)");
                 return null;
