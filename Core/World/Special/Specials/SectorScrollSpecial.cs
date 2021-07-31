@@ -72,10 +72,8 @@ namespace Helion.World.Special.Specials
 
         public void ResetInterpolation()
         {
-            Vec2D saveSpeed = m_speed;
-            m_speed = Vec2D.Zero;
-            Tick();
-            m_speed = saveSpeed;
+            if (m_type == SectorScrollType.Scroll)
+                SectorPlane.SectorScrollData!.LastOffset = SectorPlane.SectorScrollData!.Offset;
         }
 
         public bool Use(Entity entity)
