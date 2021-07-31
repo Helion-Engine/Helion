@@ -185,10 +185,13 @@ namespace Helion.Layer.Worlds
                 return;
             
             hud.Image("WITIME", (LeftOffsetTimeX, -OffsetY), Align.BottomLeft);
-            hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft);
-            
             RenderTime(LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
-            RenderTime(ParTimeSeconds, RightOffsetParTimeX, -OffsetY);
+
+            if (ParTimeSeconds != 0)
+            {
+                hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft);
+                RenderTime(ParTimeSeconds, RightOffsetParTimeX, -OffsetY);
+            }
             
             if (IntermissionState >= IntermissionState.ShowAllStats)
             {
