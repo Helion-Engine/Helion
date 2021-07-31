@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -9,13 +10,21 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures.Legacy
 {
+    // TODO: This is not going to save images properly. We want a failure to look up
+    //       for some namespace to only upload the texture once. For example, if we
+    //       look for texture A, but only find flat A, we shouldn't upon searching
+    //       for flat A do another upload. What we would do is write the same object
+    //       into the resource tracker.
     public class GLLegacyTextureManager : IGLTextureManager
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public GLTextureHandle NullHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
@@ -107,7 +116,8 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             return fontTexture;
         }
 
-        public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
+        public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, 
+            ResourceNamespace? specificNamespace = null)
         {
             GLTextureHandle texture = Get(name, specificNamespace ?? ResourceNamespace.Global);
             handle = texture;
@@ -122,9 +132,21 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         public GLTextureHandle Get(Texture texture)
         {
-            // TODO
+            if (texture.Image == null)
+            {
+                Log.Warn("Unable to load texture {Name}", texture.Name);
+                return NullHandle;
+            }
 
-            return NullHandle;
+            // Image image = texture.Image;
+            // GLTextureHandle? handle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);
+            // if (handle == null)
+            // {
+                // Log.Warn("Unable to allocate space for texture {Name} ({Dimension}, {Namespace})", texture.Name, image.Dimension, image.Namespace);
+                return NullHandle;
+            // }
+            
+            // return handle;
         }
 
         public GLFontTexture GetFont(string name)
@@ -155,7 +177,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 texture.Dispose();
             m_fontHandles.Clear();
 
-            foreach (GLTexture texture in m_textures)
+            foreach (AtlasGLTexture texture in m_textures)
                 texture.Dispose();
             m_textures.Clear();
 
