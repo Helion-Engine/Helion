@@ -152,8 +152,7 @@ namespace Helion.Menus.Impl
                 if (GetWorld(out IWorld? world) && world != null)
                 {
                     m_saveGameManager.WriteNewSaveGame(world, "new");
-                    throw new NotImplementedException("TODO");
-                    // m_parent.Remove<MenuLayer>();
+                    m_parent.Manager.Remove(m_parent);
                     DisplayMessage(world, SaveMessage);
                 }
                 else
@@ -167,15 +166,8 @@ namespace Helion.Menus.Impl
 
         private bool GetWorld(out IWorld? world)
         {
-            throw new NotImplementedException("TODO");
-            // if (m_parent.TryGetLayer(out SinglePlayerWorldLayer? worldLayer))
-            // {
-            //     world = worldLayer.World;
-            //     return true;
-            // }
-
-            world = null;
-            return false;
+            world = m_parent.Manager.WorldLayer?.World;
+            return world != null;
         }
 
         private static void DisplayMessage(IWorld world, string message)
