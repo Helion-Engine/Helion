@@ -20,19 +20,11 @@ namespace Helion.Resources.Definitions.Boom
                 AnimatedTextures.Add(new BoomAnimatedTexture()
                 {
                     IsTexture = (data[i] & 1) != 0,
-                    StartTexture = GetString(data, i + 10),
-                    EndTexture = GetString(data, i + 1),
+                    StartTexture = BoomParseUtil.GetString(data, i + 10, BoomParseUtil.NameLength),
+                    EndTexture = BoomParseUtil.GetString(data, i + 1, BoomParseUtil.NameLength),
                     Tics = data[i + 19] | data[i + 20] << 8 | data[i + 21] << 16 | data[i + 22] << 24
                 });
             }
-        }
-
-        private static string GetString(byte[] data, int index)
-        {
-            int countIndex = index;
-            while (countIndex < data.Length && data[countIndex] != 0)
-                countIndex++;
-            return Encoding.ASCII.GetString(data, index, countIndex - index);
         }
     }
 }

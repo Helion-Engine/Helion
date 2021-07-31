@@ -35,6 +35,7 @@ namespace Helion.Resources.Definitions
 
         public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
         public readonly BoomAnimatedDefinition BoomAnimated = new BoomAnimatedDefinition();
+        public readonly BoomSwitchDefinition BoomSwitches = new BoomSwitchDefinition();
         public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
         public readonly DecorateDefinitions Decorate;
         public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
@@ -64,6 +65,7 @@ namespace Helion.Resources.Definitions
             Decorate = new DecorateDefinitions(archiveCollection);
 
             m_entryNameToAction["ANIMATED"] = entry => BoomAnimated.Parse(entry);
+            m_entryNameToAction["SWITCHES"] = entry => BoomSwitches.Parse(entry);
             m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
             m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
             m_entryNameToAction["DECORATE"] = entry => ParseDecorate(entry);

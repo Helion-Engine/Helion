@@ -39,7 +39,7 @@ namespace Helion.Resources
 
             var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
             var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
-                .Select(x => x.Path.Name.Substring(0, 4))
+                .Select(x => x.Path.Name[0..^2])
                 .Distinct()
                 .ToList();
 
@@ -216,6 +216,15 @@ namespace Helion.Resources
                 foreach (var component in sw.Off)
                     component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
             }
+
+            foreach (var boomSwitch in m_archiveCollection.Definitions.BoomSwitches.Switches)
+            {
+                AnimatedSwitch sw = new AnimatedSwitch(boomSwitch.Off);
+                sw.StartTextureIndex = GetTexture(sw.Texture, ResourceNamespace.Global).Index;
+                sw.On.Add(new AnimatedTextureComponent(boomSwitch.On, 0, 0, GetTexture(boomSwitch.On, ResourceNamespace.Global).Index));
+                sw.Off.Add(new AnimatedTextureComponent(boomSwitch.Off, 0, 0, GetTexture(boomSwitch.Off, ResourceNamespace.Global).Index));
+                m_archiveCollection.Definitions.Animdefs.AnimatedSwitches.Add(sw);
+            }
         }
 
         private void InitAnimations()
@@ -269,7 +278,6 @@ namespace Helion.Resources
                 CreateComponentAnimations(animation);
             }
         }
-
         private void CreateComponentAnimations(Animation animation)
         {
             for (int i = 1; i < animation.AnimatedTexture.Components.Count; i++)
