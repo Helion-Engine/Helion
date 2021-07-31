@@ -1,62 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using Helion.Geometry;
+﻿using Helion.Geometry;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Capabilities;
-using Helion.Render.OpenGL.Renderers.Hud;
-using Helion.Render.OpenGL.Renderers.World;
-using Helion.Render.OpenGL.Surfaces;
-using Helion.Render.OpenGL.Textures;
-using Helion.Render.OpenGL.Textures.Legacy;
 using Helion.Resources;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
 {
     /// <summary>
     /// The main renderer for handling all OpenGL calls.
     /// </summary>
-    public class GLRenderer : IRenderer
+    public abstract class GLRenderer : IRenderer
     {
         public IWindow Window { get; }
-        public IRenderableSurface DefaultSurface => m_defaultSurface;
-        public IRendererTextureManager Textures => m_textureManager;
-        private readonly Config m_config;
-        private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
-        private readonly IGLTextureManager m_textureManager;
-        private readonly GLDefaultRenderableSurface m_defaultSurface;
-        private readonly GLHudRenderer m_hudRenderer;
-        private readonly GLWorldRenderer m_worldRenderer;
-        private bool m_disposed;
+        protected readonly Config Config;
+        protected readonly IResources Resources;
+        
+        public abstract IRendererTextureManager Textures { get; }
+        public abstract IRenderableSurface DefaultSurface { get; }
 
         public GLRenderer(Config config, IWindow window, IResources resources)
         {
-            m_config = config;
+            Config = config;
             Window = window;
-            m_textureManager = new GLLegacyTextureManager(resources);
-            m_hudRenderer = new GLHudRenderer(this, m_textureManager);
-            m_worldRenderer = new GLWorldRenderer();
-            m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
-
-            m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;
+            Resources = resources;
 
             InitializeStates();
         }
 
-        ~GLRenderer()
-        {
-            FailedToDispose(this);
-            PerformDispose();
-        }
+        public abstract IRenderableSurface GetOrCreateSurface(string name, Dimension dimension);
+        public abstract void Dispose();
 
-        private void InitializeStates()
+        protected void InitializeStates()
         {
             GL.Enable(EnableCap.DepthTest);
 
-            if (m_config.Render.Multisample.Enable)
+            if (Config.Render.Multisample.Enable)
                 GL.Enable(EnableCap.Multisample);
             
             if (GLCapabilities.SupportsSeamlessCubeMap)
@@ -69,49 +49,6 @@ namespace Helion.Render.OpenGL
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-        }
-
-        public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension)
-        {
-            if (m_surfaces.TryGetValue(name, out GLRenderableSurface? existingSurface))
-                return existingSurface;
-
-            var surface = GLRenderableFramebufferTextureSurface.Create(this, dimension, m_hudRenderer, m_worldRenderer);
-            if (surface == null)
-                return m_defaultSurface;
-            
-            m_surfaces[name] = surface;
-            return surface;
-        }
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            PerformDispose();
-        }
-
-        private void PerformDispose()
-        {
-            if (m_disposed)
-                return;
-            
-            // This is a bit of a hack until it is exposed in a more reasonable place.
-            GLDefaultRenderableSurface.ThrowIfGLError();
-            
-            m_hudRenderer.Dispose();
-            m_worldRenderer.Dispose();
-            m_textureManager.Dispose();
-            
-            foreach (GLRenderableSurface surface in m_surfaces.Values)
-                surface.Dispose();
-            m_surfaces.Clear();
-            
-            // Note: This technically gets disposed of twice, but that is okay
-            // because the API says it's okay to call it twice. This way if
-            // anything ever changes, a disposing issue won't be introduced.
-            m_defaultSurface.Dispose();
-            
-            m_disposed = true;
         }
     }
 }

@@ -3,7 +3,6 @@ using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Input;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Legacy.Context;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
@@ -57,8 +56,8 @@ namespace Helion.Client
         private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection, FpsTracker tracker)
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("newrenderer"), out bool result) && result)
-                return new GLRenderer(config, this, null!); //archiveCollection
-            return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
+                return new GLLegacyRenderer(config, this, null!); //archiveCollection
+            return new Render.Legacy.GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
         }
 
         ~Window()

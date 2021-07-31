@@ -116,9 +116,8 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
-            // TODO
-
-            return NullHandle;
+            Texture texture = m_resources.Textures.GetTexture(name, priority);
+            return Get(texture);
         }
 
         public GLTextureHandle Get(Texture texture)
