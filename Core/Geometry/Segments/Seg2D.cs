@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
     public struct Seg2D 
     {
         public Vec2D Start;

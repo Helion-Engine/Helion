@@ -23,6 +23,8 @@ namespace Helion.Layer.EndGame
 
         public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
         {
+            hud.Clear(Color.Black);
+
             if (!m_initRenderPages)
             {
                 SetPage(hud);

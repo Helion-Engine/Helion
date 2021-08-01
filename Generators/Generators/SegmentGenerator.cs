@@ -40,12 +40,16 @@ namespace Generators.Generators
             w.WriteCommentHeader();
             w.WriteLine("using System;");
             w.WriteLine("using System.Collections.Generic;");
+            w.WriteLine("using System.Runtime.InteropServices;");
             w.WriteLine("using Helion.Geometry.Boxes;");
             w.WriteLine("using Helion.Geometry.Vectors;");
             w.WriteLine("using Helion.Util.Extensions;");
             w.WriteLine();
             w.WriteNamespaceBlock("Geometry.Segments", () =>
             {
+                if (m_isStruct)
+                    w.WriteLine($"[StructLayout(LayoutKind.Sequential, Pack = {m_type.SizeOf()})]");
+                
                 string classOrStruct = m_isStruct ? "struct" : "class";
                 string className = m_isStruct || m_hasStructVecs ? ClassName : InstanceVName;
                 string whereSuffix = m_isStruct || m_hasStructVecs ? "" : WhereConstraintV;

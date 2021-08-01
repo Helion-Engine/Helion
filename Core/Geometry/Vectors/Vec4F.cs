@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
@@ -11,6 +12,7 @@ using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Vec4F
     {
         public static readonly Vec4F Zero = new(0, 0, 0, 0);

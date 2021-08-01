@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
