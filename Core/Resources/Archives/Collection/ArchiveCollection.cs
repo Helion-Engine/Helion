@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Helion.Dehacked;
 using Helion.Graphics.Fonts;
-using Helion.Graphics.New.Fonts;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Archives.Iterator;
@@ -13,7 +12,6 @@ using Helion.Resources.Data;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Fonts.Definition;
-using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Bytes;
@@ -21,7 +19,6 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Composer;
 using NLog;
-using Font = Helion.Graphics.New.Fonts.Font;
 
 namespace Helion.Resources.Archives.Collection
 {
@@ -37,12 +34,10 @@ namespace Helion.Resources.Archives.Collection
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
         public readonly EntityDefinitionComposer DefinitionComposer;
-
         public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();
         private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, Graphics.Fonts.Font?> m_fontsDeprecated = new(StringComparer.OrdinalIgnoreCase);
 
         public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
         {
@@ -216,30 +211,6 @@ namespace Helion.Resources.Archives.Collection
             if (Data.TrueTypeFonts.TryGetValue(name, out Font? ttfFont))
             {
                 m_fonts[name] = ttfFont;
-                return ttfFont;
-            }
-
-            return null;
-        }
-        
-        [Obsolete]
-        public Graphics.Fonts.Font? GetFontDeprecated(string name)
-        {
-            if (m_fontsDeprecated.TryGetValue(name, out Graphics.Fonts.Font? font))
-                return font;
-
-            FontDefinition? definition = Definitions.Fonts.Get(name);
-            if (definition != null)
-            {
-                IImageRetriever imageRetriever = new ArchiveImageRetriever(this);
-                Graphics.Fonts.Font? compiledFont = FontCompiler.From(definition, imageRetriever);
-                m_fontsDeprecated[name] = compiledFont;
-                return compiledFont;
-            }
-
-            if (Data.TrueTypeFontsDeprecated.TryGetValue(name, out Graphics.Fonts.Font? ttfFont))
-            {
-                m_fontsDeprecated[name] = ttfFont;
                 return ttfFont;
             }
 

@@ -4,8 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.New;
-using Helion.Graphics.New.Fonts;
+using Helion.Graphics;
+using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
@@ -58,6 +58,9 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         private GLTextureHandle? AddImage(string name, Image image, Mipmap mipmap, Binding bind)
         {
+            if (image.ImageType == ImageType.Palette)
+                throw new Exception($"Image {name} must be converted to ARGB first before uploading to the GPU");
+            
             Dimension neededDim = image.Dimension;
             Dimension maxDim = m_textures[0].Dimension;
             if (neededDim.Width > maxDim.Width || neededDim.Height > maxDim.Height)

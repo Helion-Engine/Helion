@@ -59,26 +59,25 @@ namespace Helion.Graphics.Palettes
         /// palette image to be created.</param>
         /// <returns>A palette image, or an empty optional if the data is not a
         /// flat palette image.</returns>
-        public static PaletteImage? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
+        public static Image? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
         {
-            int dimension = FlatDimension(data.Length);
-            if (dimension == 0)
+            int dim = FlatDimension(data.Length);
+            if (dim == 0)
                 return null;
 
-            ushort[] indices = new ushort[dimension * dimension];
+            ushort[] indices = new ushort[dim * dim];
 
             int offset = 0;
-            for (int y = 0; y < dimension; y++)
+            for (int y = 0; y < dim; y++)
             {
-                for (int x = 0; x < dimension; x++)
+                for (int x = 0; x < dim; x++)
                 {
                     indices[offset] = data[offset];
                     offset++;
                 }
             }
 
-            ImageMetadata metadata = new ImageMetadata(resourceNamespace);
-            return new PaletteImage(dimension, dimension, indices, metadata);
+            return Image.FromPaletteIndices((dim, dim), indices, (0, 0), resourceNamespace);
         }
 
         /// <summary>
@@ -89,11 +88,8 @@ namespace Helion.Graphics.Palettes
         /// palette image to be created.</param>
         /// <returns>A palette image, or an empty optional if the data is not a
         /// column palette image.</returns>
-        public static PaletteImage? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
+        public static Image? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
         {
-            // TODO: This could be improved probably dramatically if we:
-            //       1) Read it into a column-major image and then rotated
-            //       2) Use native/unsafe code 
             try
             {
                 ByteReader reader = new(data);
@@ -107,7 +103,7 @@ namespace Helion.Graphics.Palettes
                     offsets[i] = reader.ReadInt32();
 
                 ushort[] indices = new ushort[width * height];
-                indices.Fill(PaletteImage.TransparentIndex);
+                indices.Fill(Image.TransparentIndex);
 
                 for (int col = 0; col < width; col++)
                 {
@@ -144,8 +140,7 @@ namespace Helion.Graphics.Palettes
                     }
                 }
 
-                ImageMetadata metadata = new ImageMetadata(imageOffsets, resourceNamespace);
-                return new PaletteImage(width, height, indices, metadata);
+                return Image.FromPaletteIndices((width, height), indices, imageOffsets, resourceNamespace);
             }
             catch
             {

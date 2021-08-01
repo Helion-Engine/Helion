@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Capabilities;
 using Helion.Util.Atlas;
 using System;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
 

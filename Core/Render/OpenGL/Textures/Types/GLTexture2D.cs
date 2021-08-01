@@ -7,6 +7,7 @@ using Helion.Util.Extensions;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
+using Helion.Graphics;
 
 namespace Helion.Render.OpenGL.Textures.Types
 {

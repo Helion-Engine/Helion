@@ -149,8 +149,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             Vec2F entityCenterXY = entityCenterBottom.XY.Float;
 
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-            entityCenterXY.X += rightNormal.X * texture.Metadata.Offset.X;
-            entityCenterXY.Y += rightNormal.Y * texture.Metadata.Offset.X;
+            entityCenterXY += (rightNormal * texture.Offset.Float);
 
             Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
             Vec2F left = entityCenterXY - halfWidth;
@@ -185,8 +184,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
 
         private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
         {
-            offsetAmount = texture.Metadata.Offset.Y;
-            if (entity.Flags.Projectile || texture.Metadata.Offset.Y >= 0)
+            offsetAmount = texture.Offset.Y;
+            if (entity.Flags.Projectile || texture.Offset.Y >= 0)
                 return true;
 
             if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)
@@ -196,7 +195,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
                 (entity.Flags.Monster && !entity.Flags.Corpse))
                 return false;
 
-            if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Metadata.Offset.Y)
+            if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Offset.Y)
             {
                 if (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)
                 {

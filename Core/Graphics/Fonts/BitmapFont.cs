@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Graphics.New.Fonts
+namespace Helion.Graphics.Fonts
 {
     public static class BitmapFont
     {

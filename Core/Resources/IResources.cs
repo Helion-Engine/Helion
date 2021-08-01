@@ -1,5 +1,4 @@
 ﻿using Helion.Dehacked;
-using Helion.Graphics.New.Fonts;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
 using Helion.Resources.Archives;
@@ -17,6 +16,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using System;
 using System.Collections.Generic;
+using Helion.Graphics.Fonts;
 
 namespace Helion.Resources
 {
@@ -51,8 +51,6 @@ namespace Helion.Resources
         MapEntryCollection? GetMapEntryCollection(string mapName);
         IMap? GetMap(string mapName);
         Font? GetFont(string name);
-        [Obsolete("To be removed when the switch to the new fonts occurs soon")]
-        Graphics.Fonts.Font? GetFontDeprecated(string name);
         Archive? GetArchiveByFileName(string fileName);
     }
 }

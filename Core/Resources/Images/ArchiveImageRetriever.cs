@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.IO;
-using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
@@ -80,8 +79,8 @@ namespace Helion.Resources.Images
 
         private Image ImageFromDefinition(TextureDefinition definition)
         {
-            ImageMetadata imageMetadata = new ImageMetadata(definition.Namespace);
-            Image image = new Image(definition.Width, definition.Height, Color.Transparent, imageMetadata);
+            (int w, int h) = definition.Dimension;
+            Image image = new(w, h, ImageType.Argb, (0, 0), definition.Namespace);
 
             foreach (TextureDefinitionComponent component in definition.Components)
             {
@@ -125,7 +124,8 @@ namespace Helion.Resources.Images
             {
                 try
                 {
-                    image = new Image(new Bitmap(new MemoryStream(data), true), new ImageMetadata(Vec2I.Zero, entry.Namespace));
+                    Bitmap bitmap = new(new MemoryStream(data), true);
+                    image = new Image(bitmap, ImageType.Palette, (0, 0), entry.Namespace);
                 }
                 catch
                 {
@@ -136,15 +136,15 @@ namespace Helion.Resources.Images
             {
                 if (entry.Namespace == ResourceNamespace.Flats && PaletteReaders.LikelyFlat(data))
                 {
-                    PaletteImage? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
+                    Image? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
                     if (flatPaletteImage != null)
-                        image = flatPaletteImage.ToImage(m_archiveCollection.Data.Palette);
+                        image = flatPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette);
                 }
                 else
                 {
-                    PaletteImage? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
+                    Image? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
                     if (columnPaletteImage != null)
-                        image = columnPaletteImage.ToImage(m_archiveCollection.Data.Palette);
+                        image = columnPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette);
                 }
             }
 

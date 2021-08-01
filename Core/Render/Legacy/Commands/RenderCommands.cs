@@ -6,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Render.Legacy.Commands.Types;
+using Helion.Render.Legacy.Fonts;
 using Helion.Render.Legacy.Shared;
 using Helion.Util.Configs;
 using Helion.Util.Timing;

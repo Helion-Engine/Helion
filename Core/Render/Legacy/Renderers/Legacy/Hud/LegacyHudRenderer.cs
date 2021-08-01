@@ -9,6 +9,7 @@ using Helion.Graphics.Geometry;
 using Helion.Render.Legacy.Buffer.Array.Vertex;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
+using Helion.Render.Legacy.Fonts;
 using Helion.Render.Legacy.Shader;
 using Helion.Render.Legacy.Texture;
 using Helion.Render.Legacy.Texture.Legacy;

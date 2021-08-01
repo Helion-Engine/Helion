@@ -1,5 +1,5 @@
-﻿using Helion.Graphics.New.Fonts;
-using System;
+﻿using System;
+using Helion.Graphics.Fonts;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures

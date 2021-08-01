@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Fonts;
+using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Util.Extensions;
 
-namespace Helion.Graphics.Fonts.Renderable
+namespace Helion.Render.Legacy.Fonts
 {
     /// <summary>
     /// A collection of render information that can be used to draw a string.

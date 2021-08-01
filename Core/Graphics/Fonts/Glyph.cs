@@ -1,24 +1,34 @@
-﻿namespace Helion.Graphics.Fonts
+﻿using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
+
+namespace Helion.Graphics.Fonts
 {
     /// <summary>
-    /// An atomic element of a font, which is a character with an image.
+    /// Information for some character inside an image.
     /// </summary>
-    public class Glyph
+    public readonly struct Glyph
     {
-        /// <summary>
-        /// The character that makes up this glyph.
-        /// </summary>
-        public char Character { get; }
+        public readonly char Character;
+        public readonly Box2F UV;
+        public readonly Box2I Area;
 
-        /// <summary>
-        /// The image for this glyph.
-        /// </summary>
-        public Image Image { get; }
-
-        public Glyph(char c, Image image)
+        public Glyph(char character, Box2F uv, Box2I area)
         {
-            Character = c;
-            Image = image;
+            Character = character;
+            UV = uv;
+            Area = area;
+        }
+
+        public Glyph(char character, Vec2I topLeft, Dimension area, Dimension atlasArea)
+        {
+            Character = character;
+            Area = (topLeft, topLeft + (area.Width, area.Height));
+            
+            Vec2F totalArea = atlasArea.Vector.Float;
+            Vec2F uvStart = Area.Min.Float / totalArea;
+            Vec2F uvEnd = Area.Max.Float / totalArea;
+            UV = (uvStart, uvEnd);
         }
     }
 }

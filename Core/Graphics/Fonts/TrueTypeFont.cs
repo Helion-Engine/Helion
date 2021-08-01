@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Resources;
 using NLog;
 using SixLabors.Fonts;
@@ -11,26 +13,24 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
 
-namespace Helion.Graphics.Fonts.TrueTypeFont
+namespace Helion.Graphics.Fonts
 {
-    public static class TtfReader
+    public static class TrueTypeFont
     {
         private const int RenderFontSize = 64;
         private const char StartCharacter = (char)32;
         private const char EndCharacter = (char)126;
+        private const int CharCount = EndCharacter - StartCharacter + 1;
 
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
+        
         /// <summary>
-        /// A native font reading subsystem that leverages the standard library to
-        /// read fonts.
+        /// Reads a TTF from the data provided.
         /// </summary>
-        /// <param name="name">The font name.</param>
-        /// <param name="data">The data to read.</param>
-        /// <param name="alphaCutoff">The cutoff to which anything under it is
-        /// made transparent.</param>
-        /// <returns>The font, or null on failure.</returns>
-        public static Font? ReadFont(string name, byte[] data, float alphaCutoff)
+        /// <param name="name">The name of the font.</param>
+        /// <param name="data">The data for the font.</param>
+        /// <returns>The font, or null if it is not a TTF data set.</returns>
+        public static Font? From(string name, byte[] data)
         {
             // I have no idea if this can throw, or if nulls get returned (and
             // that would be an exception anyways...) so I'm playing it safe.
@@ -41,7 +41,7 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
                 {
                     FontFamily fontFamily = fontCollection.Install(stream);
                     SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
-                    RendererOptions rendererOptions = new RendererOptions(imageSharpFont);
+                    RendererOptions rendererOptions = new(imageSharpFont);
 
                     string text = ComposeRenderableCharacters();
 
@@ -55,7 +55,7 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
                     int height = (int)(h - y + 2 + 2);
                     PointF offset = new PointF(-x, -y + 2);
 
-                    using (Image<Rgba32> rgbaImage = new Image<Rgba32>(width, height))
+                    using (Image<Rgba32> rgbaImage = new(width, height))
                     {
                         rgbaImage.Mutate(ctx =>
                         {
@@ -63,10 +63,10 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
                             ctx.DrawText(text, imageSharpFont, Color.White, offset);
                         });
 
-                        List<Glyph> glyphs = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
+                        Dictionary<char, Image> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
 
-                        FontMetrics metrics = new FontMetrics(RenderFontSize, height, 0, 0, 0);
-                        return new Font(name, glyphs, metrics);
+                        var (glyphs, image) = ComposeFontGlyphs(charImages);
+                        return new Font(name, glyphs, image);
                     }
                 }
             }
@@ -79,17 +79,14 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
 
         private static string ComposeRenderableCharacters()
         {
-            StringBuilder sb = new StringBuilder();
-            for (char c = StartCharacter; c <= EndCharacter; c++)
-                sb.Append(c);
-
-            return sb.ToString();
+            var chars = Enumerable.Range(StartCharacter, CharCount).Select(char.ConvertFromUtf32);
+            return string.Join("", chars);
         }
 
-        private static List<Glyph> ExtractGlyphs(Image<Rgba32> rgbaImage, int height, PointF offset,
+        private static Dictionary<char, Image> ExtractGlyphs(Image<Rgba32> rgbaImage, int height, PointF offset,
             RendererOptions rendererOptions)
         {
-            List<Glyph> glyphs = new List<Glyph>();
+            Dictionary<char, Image> glyphs = new();
 
             for (char c = StartCharacter; c <= EndCharacter; c++)
             {
@@ -121,9 +118,8 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
 
                 ExtractFromRgbaImage(rgbaImage, startX, width, height, out byte[] argb);
 
-                Image image = new Image(width, height, argb, new ImageMetadata(ResourceNamespace.Fonts));
-                Glyph glyph = new Glyph(c, image);
-                glyphs.Add(glyph);
+                Image? image = Image.FromArgbBytes((width, height), argb, ImageType.Argb, Vec2I.Zero, ResourceNamespace.Fonts);
+                glyphs[c] = image ?? throw new Exception($"Unable to create TTF glyph character: {c}");
 
                 offset.X += size.Width;
             }
@@ -153,6 +149,34 @@ namespace Helion.Graphics.Fonts.TrueTypeFont
                     bytesOffset += 4;
                 }
             }
+        }
+        
+        private static (Dictionary<char, Glyph>, Image) ComposeFontGlyphs(Dictionary<char, Image> charImages)
+        {
+            Dictionary<char, Glyph> glyphs = new();
+
+            int width = charImages.Values.Select(i => i.Width).Sum();
+            int height = charImages.Values.Select(i => i.Height).Max();
+            Image image = new(width, height, ImageType.Argb, Vec2I.Zero, ResourceNamespace.Fonts);
+
+            int offsetX = 0;
+            Vec2F totalDimension = (width, height);
+            foreach ((char c, Image charImage) in charImages)
+            {
+                Vec2I start = (offsetX, 0);
+                Box2I location = (start, start + (charImage.Width, charImage.Height));
+                Vec2F uvStart = location.Min.Float / totalDimension;
+                Vec2F uvEnd = location.Max.Float / totalDimension;
+                Box2F uv = (uvStart, uvEnd);
+                Glyph glyph = new(c, uv, location);
+                glyphs[c] = glyph;
+                
+                charImage.DrawOnTopOf(image, (offsetX, 0));
+
+                offsetX += charImage.Width;
+            }
+
+            return (glyphs, image);
         }
     }
 }

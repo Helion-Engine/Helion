@@ -31,7 +31,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
         public Vec2I GetImageOffset(string image, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             m_textureManager.TryGet(image, resourceNamespace, out GLLegacyTexture texture);
-            return texture.Metadata.Offset;
+            return texture.Offset;
         }
 
         public int GetFontHeight(string font) => m_textureManager.GetFont(font).Height;

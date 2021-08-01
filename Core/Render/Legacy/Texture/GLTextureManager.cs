@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -13,6 +14,8 @@ using Helion.Util;
 using Helion.Util.Configs;
 using MoreLinq;
 using static Helion.Util.Assertion.Assert;
+using Font = Helion.Graphics.Fonts.Font;
+using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.Legacy.Texture
 {
@@ -154,7 +157,7 @@ namespace Helion.Render.Legacy.Texture
             if (image == null)
                 return false;
 
-            texture = CreateTexture(image, name, image.Metadata.Namespace);
+            texture = CreateTexture(image, name, image.Namespace);
             return true;
         }
 
@@ -171,7 +174,7 @@ namespace Helion.Render.Legacy.Texture
                 return (GLTextureType)texture.RenderStore;
             }
 
-            texture.RenderStore = CreateTexture(texture.Image, texture.Name, texture.Image.Metadata.Namespace);
+            texture.RenderStore = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace);
             return (GLTextureType)texture.RenderStore;
         }
 
@@ -231,7 +234,7 @@ namespace Helion.Render.Legacy.Texture
             if (m_fonts.TryGetValue(name, out GLFontTexture<GLTextureType>? existingFontTexture))
                 return existingFontTexture;
 
-            Font? font = ArchiveCollection.GetFontDeprecated(name);
+            Font? font = ArchiveCollection.GetFont(name);
             if (font != null)
                 return CreateNewFont(font, name);
 
@@ -290,23 +293,22 @@ namespace Helion.Render.Legacy.Texture
 
         private GLTextureType CreateNullTexture()
         {
-            return GenerateTexture(ImageHelper.CreateNullImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(Image.NullImage(), "NULL", ResourceNamespace.Global);
         }
 
         private GLTextureType CreateWhiteTexture()
         {
-            return GenerateTexture(ImageHelper.CreateWhiteImage(), "NULLWHITE", ResourceNamespace.Global);
+            Image whiteImage = new(1, 1, ImageType.Argb, fillColor: Color.White);
+            return GenerateTexture(whiteImage, "NULLWHITE", ResourceNamespace.Global);
         }
 
         private GLFontTexture<GLTextureType> CreateNullFont()
         {
             const string NullFontName = "NULL";
 
-            Image nullImage = ImageHelper.CreateNullImage();
+            Image nullImage = Image.NullImage();
             List<Glyph> glyphs = new() { new Glyph('?', nullImage) };
-            FontMetrics metrics = new FontMetrics(nullImage.Height, nullImage.Height, 0, 0, 0);
-
-            Font font = new Font(NullFontName, glyphs, metrics);
+            Font font = new Font(NullFontName, glyphs);
             return GenerateFont(font, NullFontName);
         }
 

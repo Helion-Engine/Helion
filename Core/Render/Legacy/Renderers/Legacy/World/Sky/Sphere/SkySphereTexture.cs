@@ -248,9 +248,9 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private GLLegacyTexture CreateTexture(Bitmap fadedSkyImage, string debugName = "")
         {
             int textureId = gl.GenTexture();
-            Dimension dimension = new Dimension(fadedSkyImage.Width, fadedSkyImage.Height);
-            Image image = new Image(fadedSkyImage, new ImageMetadata());
-            GLLegacyTexture texture = new GLLegacyTexture(textureId, debugName, dimension, image.Metadata, gl, TextureTargetType.Texture2D);
+            Dimension dim = new(fadedSkyImage.Width, fadedSkyImage.Height);
+            Image image = new(fadedSkyImage, ImageType.Argb);
+            GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, gl, TextureTargetType.Texture2D);
 
             m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global);
             

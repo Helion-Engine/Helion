@@ -1,4 +1,4 @@
-﻿namespace Helion.Graphics.New
+﻿namespace Helion.Graphics
 {
     public enum ImageType
     {

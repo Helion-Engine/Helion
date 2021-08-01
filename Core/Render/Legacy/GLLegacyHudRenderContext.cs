@@ -13,8 +13,10 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
+using Helion.Render.Legacy.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
+using Font = Helion.Graphics.Fonts.Font;
 using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
 namespace Helion.Render.Legacy
@@ -165,7 +167,7 @@ namespace Helion.Render.Legacy
             window = both ?? window;
             anchor = both ?? anchor;
 
-            Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
+            Font? fontObject = m_archiveCollection.GetFont(font);
             if (fontObject == null)
                 return;
             
@@ -190,7 +192,7 @@ namespace Helion.Render.Legacy
             if (m_context == null)
                 return;
 
-            Graphics.Fonts.Font? fontObject = m_archiveCollection.GetFontDeprecated(font);
+            Font? fontObject = m_archiveCollection.GetFont(font);
             if (fontObject == null)
                 return;
 
