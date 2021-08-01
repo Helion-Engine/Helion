@@ -4,21 +4,21 @@ using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Special.Specials
 {    
-    public struct SectorScrollSpeeds
+    public struct ScrollSpeeds
     {
         public Vec2D? ScrollSpeed;
         public Vec2D? CarrySpeed;
     }
 
-    public static class SectorScrollUtil
+    public static class ScrollUtil
     {
         // Scrolling speeds from WinMBF.
         // Credit to Lee Killough et al.
-        public static SectorScrollSpeeds GetScrollLineSpeed(Line line, ZDoomPlaneScroll flags, ZDoomPlaneScrollType type)
+        public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type)
         {
-            SectorScrollSpeeds scrollSpeeds = new();
+            ScrollSpeeds scrollSpeeds = new();
             Vec2D diff;
-            if (flags.HasFlag(ZDoomPlaneScroll.Line))
+            if (flags.HasFlag(ZDoomScroll.Line))
             {
                 diff = line.EndPosition - line.StartPosition;
                 diff /= 32;

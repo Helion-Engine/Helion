@@ -480,15 +480,15 @@ namespace Helion.World.Special
         private void CreateScrollPlane(Line line, SectorPlaneType planeType)
         {
             List<Sector> sectors = GetSectorsFromSpecialLine(line);
-            ZDoomPlaneScroll flags = (ZDoomPlaneScroll)line.Args.Arg1;
+            ZDoomScroll flags = (ZDoomScroll)line.Args.Arg1;
             ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
             if (planeType == SectorPlaneType.Floor)
                 scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
-            SectorScrollSpeeds speeds = SectorScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
+            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
             Sector? changeScroll = null;
 
-            if (flags.HasFlag(ZDoomPlaneScroll.Accelerative) || flags.HasFlag(ZDoomPlaneScroll.Displacement))
+            if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
                 changeScroll = line.Front.Sector;
 
             foreach (Sector sector in sectors)
