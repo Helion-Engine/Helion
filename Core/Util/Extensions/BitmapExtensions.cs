@@ -13,10 +13,11 @@ namespace Helion.Util.Extensions
         /// </summary>
         /// <param name="bitmap">The bitmap.</param>
         /// <param name="func">The action to take when locked.</param>
-        public static void WithLockedBits(this Bitmap bitmap, Action<IntPtr> func)
+        /// <param name="lockMode">The locking mode (default read/write).</param>
+        public static void WithLockedBits(this Bitmap bitmap, Action<IntPtr> func, ImageLockMode lockMode = ImageLockMode.ReadWrite)
         {
             Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
-            BitmapData metadata = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
+            BitmapData metadata = bitmap.LockBits(rect, lockMode, bitmap.PixelFormat);
             func(metadata.Scan0);
             bitmap.UnlockBits(metadata);
         }

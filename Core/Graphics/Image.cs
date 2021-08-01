@@ -6,6 +6,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics
@@ -76,7 +77,7 @@ namespace Helion.Graphics
             if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
                 return bitmap;
             
-            Bitmap copy = new(bitmap.Width, bitmap.Height, PixelFormat.Format32bppPArgb);
+            Bitmap copy = new(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
             
             using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(copy);
             g.DrawImage(bitmap, new Rectangle(0, 0, copy.Width, copy.Height));
@@ -95,14 +96,12 @@ namespace Helion.Graphics
         /// <param name="argb">The raw ARGB data. Due to little endianness, the
         /// lower byte may have to be blue and the highest order byte alpha.
         /// </param>
-        /// <param name="imageType">The image type these bytes should be
-        /// interpreted as.</param>
         /// <param name="offset">The offset (zero by default).</param>
         /// <param name="resourceNamespace">The resource namespace.</param>
         /// <returns>The image, or null if the image cannot be made due to data
         /// being of an incorrect size.</returns>
-        public static Image? FromArgbBytes(Dimension dimension, byte[] argb, ImageType imageType, 
-            Vec2I offset = default, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+        public static Image? FromArgbBytes(Dimension dimension, byte[] argb, Vec2I offset = default, 
+            ResourceNamespace resourceNamespace = ResourceNamespace.Global)
         {
             (int w, int h) = dimension;
             int numBytes = w * h * 4;
@@ -110,14 +109,13 @@ namespace Helion.Graphics
             if (argb.Length != numBytes || w <= 0 || h <= 0)
                 return null;
             
-            Bitmap bitmap = new(dimension.Width, dimension.Height, PixelFormat.Format32bppArgb);
-            
-            Rectangle rect = new Rectangle(0, 0, w, h);
-            BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            Marshal.Copy(argb, 0, bitmapData.Scan0, numBytes);
-            bitmap.UnlockBits(bitmapData);
+            Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
+            bitmap.WithLockedBits(bitmapDataPtr =>
+            {
+                Marshal.Copy(argb, 0, bitmapDataPtr, numBytes);
+            });
 
-            return new Image(bitmap, imageType, offset, resourceNamespace);
+            return new Image(bitmap, ImageType.Argb, offset, resourceNamespace);
         }
         
         public static Image? FromPaletteIndices(Dimension dimension, ushort[] indices, Vec2I offset = default,
@@ -129,7 +127,7 @@ namespace Helion.Graphics
                 return null;
 
             int numBytes = w * h * 4;
-            byte[] argb = new byte[numBytes];
+            byte[] paletteData = new byte[numBytes];
 
             // TODO: Perf: Save time and have the user pass in the AxxI format.
             int argbIndex = 0;
@@ -138,26 +136,25 @@ namespace Helion.Graphics
                 ushort index = indices[i];
                 
                 // To avoid branching: The index is either 0x0000 -> 0x00FF, but
-                // if it's transparent then it's 0xFF00. This means if there should
-                // be alpha, it's going to be a bit flip of the second byte, because
-                // all our valid indices from 0 - 255 need an alpha of 0xFF. The only
-                // valid marker for transparency is 0xFF00, which needs an alpha of
-                // 0x00.
+                // if it's transparent then it's 0xFF00. Since 0 -> 255 needs a
+                // 0xFF for the alpha (but the upper byte is 0x00), and since the
+                // translucent index is 0xFF00 (so the upper byte is 0xFF), then
+                // the alpha is equal to taking the top byte and flipping it.
                 //
                 // This is also stupid and will likely be removed when the to do
                 // comment above has the caller passing in an already allocated ARGB
                 // data buffer.
-                argb[argbIndex] = (byte)~(index >> 8);
-                argb[argbIndex + 2] = (byte)index;
+                paletteData[argbIndex] = (byte)~(index >> 8);
+                paletteData[argbIndex + 3] = (byte)index;
 
                 argbIndex += 4;
             }
             
-            Bitmap bitmap = new(dimension.Width, dimension.Height, PixelFormat.Format32bppArgb);
-            Rectangle rect = new(0, 0, w, h);
-            BitmapData bitmapData = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            Marshal.Copy(argb, 0, bitmapData.Scan0, numBytes);
-            bitmap.UnlockBits(bitmapData);
+            Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
+            bitmap.WithLockedBits(bitmapDataPtr =>
+            {
+                Marshal.Copy(paletteData, 0, bitmapDataPtr, numBytes);
+            });
 
             return new Image(bitmap, ImageType.Palette, offset, resourceNamespace);
         }
@@ -188,28 +185,6 @@ namespace Helion.Graphics
         }
 
         /// <summary>
-        /// Gets the underlying bitmap pointer by locking, performing the
-        /// provided action, and then unlocking.
-        /// </summary>
-        /// <remarks>
-        /// Intended for low level operations like uploading the data raw to
-        /// a rendering interface. The data may be read or written to as well.
-        /// </remarks>
-        /// <param name="action">The actions to carry out with the locked
-        /// bitmap pointer.</param>
-        /// <param name="lockMode">The mode of locking. By default, is read
-        /// and write.</param>
-        public void GetBitmapPointer(Action<IntPtr> action, ImageLockMode lockMode = ImageLockMode.ReadWrite)
-        {
-            Rectangle rect = new Rectangle(0, 0, Width, Height);
-            BitmapData bitmapData = Bitmap.LockBits(rect, lockMode, PixelFormat.Format32bppArgb);
-            
-            action(bitmapData.Scan0);
-            
-            Bitmap.UnlockBits(bitmapData);
-        }
-
-        /// <summary>
         /// Converts the palette image to an ARGB image. If this image is
         /// already in ARGB, it will return itself and nothing new will be
         /// allocated.
@@ -221,14 +196,14 @@ namespace Helion.Graphics
             if (ImageType == ImageType.Argb)
                 return this;
 
-            byte[] argbBytes = new byte[Width * Height * 4];
+            int numBytes = Width * Height * 4;
+            byte[] paletteBytes = new byte[numBytes];
+            byte[] argbBytes = new byte[numBytes];
             
-            Rectangle rect = new Rectangle(0, 0, Width, Height);
-            BitmapData bitmapData = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            int numBytes = bitmapData.Stride * Height;
-            byte[] bytes = new byte[numBytes];
-            Marshal.Copy(bitmapData.Scan0, bytes, 0, numBytes);
-            Bitmap.UnlockBits(bitmapData);
+            Bitmap.WithLockedBits(data =>
+            {
+                Marshal.Copy(data, paletteBytes, 0, numBytes);
+            });
 
             Color[] colors = palette[0];
             int offset = 0;
@@ -239,22 +214,24 @@ namespace Helion.Graphics
                     // The first of the four bytes is the alpha, and if we have
                     // alpha, then we have to write the RGB. Otherwise, it is
                     // already set to transparent so our job would be done.
-                    if (bytes[offset] != 0)
+                    if (paletteBytes[offset] != 0)
                     {
-                        int index = bytes[offset + 3];
+                        int index = paletteBytes[offset + 3];
                         Color color = colors[index];
 
-                        bytes[offset] = 255;
-                        bytes[offset + 1] = color.R;
-                        bytes[offset + 2] = color.G;
-                        bytes[offset + 3] = color.B;
+                        // Apparently since it reads it as a 32-bit word, then
+                        // we need to write it in BGRA format.
+                        argbBytes[offset] = color.B;
+                        argbBytes[offset + 1] = color.G;
+                        argbBytes[offset + 2] = color.R;
+                        argbBytes[offset + 3] = 255;
                     }
                     
                     offset += 4;
                 }
             }
 
-            Image? image = FromArgbBytes((Width, Height), argbBytes, ImageType.Argb, Offset, Namespace);
+            Image? image = FromArgbBytes((Width, Height), argbBytes, Offset, Namespace);
             if (image != null) 
                 return image;
             

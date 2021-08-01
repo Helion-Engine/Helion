@@ -118,7 +118,7 @@ namespace Helion.Graphics.Fonts
 
                 ExtractFromRgbaImage(rgbaImage, startX, width, height, out byte[] argb);
 
-                Image? image = Image.FromArgbBytes((width, height), argb, ImageType.Argb, Vec2I.Zero, ResourceNamespace.Fonts);
+                Image? image = Image.FromArgbBytes((width, height), argb, Vec2I.Zero, ResourceNamespace.Fonts);
                 glyphs[c] = image ?? throw new Exception($"Unable to create TTF glyph character: {c}");
 
                 offset.X += size.Width;
