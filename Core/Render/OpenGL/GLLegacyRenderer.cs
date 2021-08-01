@@ -8,8 +8,8 @@ using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Surfaces;
 using Helion.Render.OpenGL.Textures.Legacy;
 using Helion.Resources;
-using Helion.Util.Assertion;
 using Helion.Util.Configs;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL
 {
@@ -38,7 +38,7 @@ namespace Helion.Render.OpenGL
         
         ~GLLegacyRenderer()
         {
-            Assert.FailedToDispose(this);
+            FailedToDispose(this);
             PerformDispose();
         }
 
