@@ -21,7 +21,10 @@ namespace Helion.Graphics
     public class Image
     {
         public const ushort TransparentIndex = 0xFF00;
-        
+
+        public static Image NullImage => nullImage ??= CreateNullImage();
+        private static Image? nullImage;
+
         public readonly Bitmap Bitmap;
         public readonly Dimension Dimension;
         public readonly ImageType ImageType;
@@ -267,7 +270,7 @@ namespace Helion.Graphics
         /// Creates a checkered red/black null image.
         /// </summary>
         /// <returns>The 8x8 image that represents a null or missing image.</returns>
-        public static Image NullImage()
+        private static Image CreateNullImage()
         {
             int dimension = 8;
             int halfDimension = dimension / 2;
@@ -281,7 +284,7 @@ namespace Helion.Graphics
                 for (int x = halfDimension; x < dimension; x++)
                     bitmap.SetPixel(x, y, Color.Red);
 
-            return new(bitmap, ImageType.Argb);
+            return new Image(bitmap, ImageType.Argb);
         }
     }
 }

@@ -294,7 +294,7 @@ namespace Helion.Render.Legacy.Texture
 
         private GLTextureType CreateNullTexture()
         {
-            return GenerateTexture(Image.NullImage(), "NULL", ResourceNamespace.Global);
+            return GenerateTexture(Image.NullImage, "NULL", ResourceNamespace.Global);
         }
 
         private GLTextureType CreateWhiteTexture()
@@ -306,14 +306,13 @@ namespace Helion.Render.Legacy.Texture
         private GLFontTexture<GLTextureType> CreateNullFont()
         {
             const string NullFontName = "NULL";
-
-            Image nullImage = Image.NullImage();
+            
             Dictionary<char, Glyph> glyphs = new()
             {
                 ['?'] = new Glyph('?', Box2F.UnitBox, Box2I.UnitBox)
             };
             
-            Font font = new(NullFontName, glyphs, nullImage);
+            Font font = new(NullFontName, glyphs, Image.NullImage);
             return GenerateFont(font, NullFontName);
         }
 

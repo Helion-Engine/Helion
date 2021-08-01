@@ -16,11 +16,6 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures.Legacy
 {
-    // TODO: This is not going to save images properly. We want a failure to look up
-    //       for some namespace to only upload the texture once. For example, if we
-    //       look for texture A, but only find flat A, we shouldn't upon searching
-    //       for flat A do another upload. What we would do is write the same object
-    //       into the resource tracker.
     public class GLLegacyTextureManager : IGLTextureManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -51,8 +46,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         private GLTextureHandle AddNullTexture()
         {
-            Image nullImage = Image.NullImage();
-            GLTextureHandle? handle = AddImage("NULL", nullImage, Mipmap.Generate, Binding.Bind);
+            GLTextureHandle? handle = AddImage("NULL", Image.NullImage, Mipmap.Generate, Binding.Bind);
             return handle ?? throw new Exception("Should never fail to allocate the null texture");
         }
 
@@ -104,10 +98,9 @@ namespace Helion.Render.OpenGL.Textures.Legacy
 
         private GLFontTexture AddNullFontTexture()
         {
-            Image nullImage = Image.NullImage();
-            Glyph glyph = new Glyph('?', Box2F.UnitBox, new Box2I((0, 0), nullImage.Dimension.Vector));
+            Glyph glyph = new Glyph('?', Box2F.UnitBox, new Box2I((0, 0), Image.NullImage.Dimension.Vector));
             Dictionary<char, Glyph> glyphs = new() { ['?'] = glyph };
-            Font font = new("Null font", glyphs, nullImage);
+            Font font = new("Null font", glyphs, Image.NullImage);
 
             GLTexture texture = new("Null font", TextureTarget.Texture2D);
             // TODO: Upload data

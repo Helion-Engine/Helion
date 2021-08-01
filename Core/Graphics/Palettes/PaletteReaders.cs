@@ -17,15 +17,13 @@ namespace Helion.Graphics.Palettes
         /// <returns>True if it's likely a flat, false otherwise.</returns>
         public static bool LikelyFlat(byte[] data)
         {
-            switch (data.Length)
+            return data.Length switch
             {
-            case 64 * 64:
-            case 128 * 128:
-            case 256 * 256:
-                return true;
-            }
-
-            return false;
+                64 * 64 => true,
+                128 * 128 => true,
+                256 * 256 => true,
+                _ => false
+            };
         }
 
         /// <summary>
@@ -155,17 +153,13 @@ namespace Helion.Graphics.Palettes
         /// <returns>The dimension, or zero if the length is bad.</returns>
         private static int FlatDimension(int length)
         {
-            switch (length)
+            return length switch
             {
-            case 64 * 64:
-                return 64;
-            case 128 * 128:
-                return 128;
-            case 256 * 256:
-                return 256;
-            default:
-                return 0;
-            }
+                64 * 64 => 64,
+                128 * 128 => 128,
+                256 * 256 => 256,
+                _ => 0
+            };
         }
 
         /// <summary>
