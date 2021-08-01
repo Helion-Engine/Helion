@@ -208,7 +208,7 @@ namespace Helion.Graphics
                 Marshal.Copy(data, paletteBytes, 0, numBytes);
             });
 
-            Color[] colors = palette[0];
+            Color[] colors = palette.DefaultLayer;
             int offset = 0;
             for (int y = 0; y < Height; y++)
             {

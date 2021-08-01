@@ -21,6 +21,7 @@ namespace Helion.Graphics.Palettes
         private readonly List<Color[]> layers;
 
         public int Count => layers.Count;
+        public Color[] DefaultLayer => layers[0];
 
         private Palette(List<Color[]> paletteLayers)
         {
@@ -72,8 +73,8 @@ namespace Helion.Graphics.Palettes
         /// <param name="index">The palette index to get. This should be in the
         /// range of [0, Count).</param>
         /// <returns>The palette layer.</returns>
-        public Color[] this[int index] => layers[index];
-        
+        public Color[] Layer(int index) => layers[index];
+
         /// <summary>
         /// Gets a default palette if one doesn't exist.
         /// </summary>

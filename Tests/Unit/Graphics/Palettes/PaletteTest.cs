@@ -30,14 +30,14 @@ namespace Helion.Tests.Unit.Graphics.Palettes
 
             palette.Count.Should().Be(NumLayers);
 
-            Color[] topLayer = palette[0];
+            Color[] topLayer = palette.DefaultLayer;
             for (int i = 0; i < Palette.NumColors; i++)
             {
                 Color expected = Color.FromArgb(255 - i, 255 - i, 255 - i);
                 topLayer[i].Should().Be(expected);
             }
 
-            Color[] bottomLayer = palette[1];
+            Color[] bottomLayer = palette.Layer(1);
             Color bottomColor = Color.FromArgb(128, 128, 128);
             for (int i = 0; i < Palette.NumColors; i++)
                 bottomLayer[i].Should().Be(bottomColor);
