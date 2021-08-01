@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using Helion.Graphics.Geometry;
 
-namespace Helion.Render.Legacy.Fonts
+namespace Helion.Render.Legacy.Texture.Fonts
 {
     /// <summary>
     /// A glyph to be rendered.

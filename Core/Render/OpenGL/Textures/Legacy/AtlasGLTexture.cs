@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Boxes;
-using Helion.Graphics.New;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Util.Atlas;
 using System;

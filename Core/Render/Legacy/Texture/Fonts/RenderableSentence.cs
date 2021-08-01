@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Fonts;
 
-namespace Helion.Graphics.Fonts.Renderable
+namespace Helion.Render.Legacy.Texture.Fonts
 {
     /// <summary>
     /// A single sentence. We define a sentence as a single line of horizontal

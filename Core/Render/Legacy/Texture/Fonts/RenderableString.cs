@@ -4,13 +4,12 @@ using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
-using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Util.Extensions;
 
-namespace Helion.Render.Legacy.Fonts
+namespace Helion.Render.Legacy.Texture.Fonts
 {
     /// <summary>
     /// A collection of render information that can be used to draw a string.
@@ -60,6 +59,8 @@ namespace Helion.Render.Legacy.Fonts
             double scale = (double)fontSize / font.MaxHeight;
             int currentWidth = 0;
             int currentHeight = 0;
+            Dimension imgDim = font.Image.Dimension;
+            Vec2D uvScale = imgDim.Vector.Double;
             List<RenderableGlyph> currentSentence = new();
             List<RenderableSentence> sentences = new();
 
@@ -84,12 +85,11 @@ namespace Helion.Render.Legacy.Fonts
                 // properly (for code clarity reasons).
                 ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
                 
-                // Because I suck, this has to be OpenGL based from the bottom left.
-                (int w, int h) = font.Image.Dimension;
-                (double imgW, double imgH) = ((imgDim.Vecto).Double;
-                ImageBox2D drawUV = new(0, 0, 0, 0);
+                Vec2D topLeftUV = new Vec2D(currentWidth, 0) / uvScale;
+                Vec2D bottomRightUV = new Vec2D(currentWidth + imgDim.Width, imgDim.Height) / uvScale;
+                ImageBox2D uv = new ImageBox2D(topLeftUV, bottomRightUV);
                 
-                RenderableGlyph renderableGlyph = new(c.Char, drawLoc, ImageBox2D.ZeroToOne, drawUV, c.Color);
+                RenderableGlyph renderableGlyph = new(c.Char, drawLoc, ImageBox2D.ZeroToOne, uv, c.Color);
                 currentSentence.Add(renderableGlyph);
 
                 currentWidth = endX;

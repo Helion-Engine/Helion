@@ -48,7 +48,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
 
             foreach (ColoredChar c in str)
             {
-                int charWidth = (int)(fontTexture[c.Char].Image.Width * scaleFactor);
+                int charWidth = (int)(fontTexture.Font.Get(c.Char).Area.Width * scaleFactor);
 
                 if (notFirstChar && currentWidth + charWidth >= maxWidth)
                 {
@@ -73,7 +73,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
 
             int width = 0;
             foreach (var c in str)
-                width += fontTexture[c.Char].Image.Width;
+                width += fontTexture.Font.Get(c.Char).Area.Width;
             return new Rectangle(topLeft.X, topLeft.Y, width, fontTexture.Height);
         }
     }

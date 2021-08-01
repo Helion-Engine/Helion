@@ -1,9 +1,8 @@
 using System;
 using System.Drawing;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Fonts;
+using Helion.Render.Legacy.Texture.Fonts;
 
 namespace Helion.Render.Legacy.Renderers
 {

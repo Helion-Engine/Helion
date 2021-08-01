@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.New;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Extensions;

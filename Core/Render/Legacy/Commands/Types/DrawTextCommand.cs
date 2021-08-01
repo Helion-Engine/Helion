@@ -1,6 +1,5 @@
-using Helion.Graphics.Fonts.Renderable;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Fonts;
+using Helion.Render.Legacy.Texture.Fonts;
 
 namespace Helion.Render.Legacy.Commands.Types
 {
