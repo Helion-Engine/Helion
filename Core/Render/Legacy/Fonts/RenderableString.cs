@@ -65,16 +65,16 @@ namespace Helion.Render.Legacy.Fonts
 
             foreach (ColoredChar c in str)
             {
-                FontGlyph fontGlyph = font[c.Char];
+                Glyph glyph = font.Get(c.Char);
+                (int glyphW, int glyphH) = glyph.Area.Dimension;
 
-                int endX = currentWidth + (int)(fontGlyph.Location.Width * scale);
-                int endY = currentHeight + (int)(fontGlyph.Location.Height * scale);
-                Vec2I endLocation = new Vec2I(endX, endY);
+                int endX = currentWidth + (int)(glyphW * scale);
+                int endY = currentHeight + (int)(glyphH * scale);
 
                 // We want to make sure each sentence has one character. This
                 // also avoids infinite looping cases like a max width that is
                 // too small.
-                if (endLocation.X > maxWidth && !currentSentence.Empty())
+                if (endX > maxWidth && !currentSentence.Empty())
                 {
                     CreateAndAddSentenceIfPossible();
                     continue;
@@ -82,11 +82,17 @@ namespace Helion.Render.Legacy.Fonts
 
                 // We use a dummy box temporarily, and calculate it at the end
                 // properly (for code clarity reasons).
-                ImageBox2I drawLocation = new(currentWidth, currentHeight, endLocation.X, endLocation.Y);
-                RenderableGlyph glyph = new(c.Char, drawLocation, ImageBox2D.ZeroToOne, fontGlyph.UV, c.Color);
-                currentSentence.Add(glyph);
+                ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
+                
+                // Because I suck, this has to be OpenGL based from the bottom left.
+                (int w, int h) = font.Image.Dimension;
+                (double imgW, double imgH) = ((imgDim.Vecto).Double;
+                ImageBox2D drawUV = new(0, 0, 0, 0);
+                
+                RenderableGlyph renderableGlyph = new(c.Char, drawLoc, ImageBox2D.ZeroToOne, drawUV, c.Color);
+                currentSentence.Add(renderableGlyph);
 
-                currentWidth = endLocation.X;
+                currentWidth = endX;
             }
 
             CreateAndAddSentenceIfPossible();

@@ -23,8 +23,6 @@ namespace Helion.Render.Legacy.Texture
             Dispose();
         }
 
-        public FontGlyph this[char c] => Font[c];
-
         public void Dispose()
         {
             Texture.Dispose();

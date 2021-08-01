@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
@@ -307,8 +308,12 @@ namespace Helion.Render.Legacy.Texture
             const string NullFontName = "NULL";
 
             Image nullImage = Image.NullImage();
-            List<Glyph> glyphs = new() { new Glyph('?', nullImage) };
-            Font font = new Font(NullFontName, glyphs);
+            Dictionary<char, Glyph> glyphs = new()
+            {
+                ['?'] = new Glyph('?', Box2F.UnitBox, Box2I.UnitBox)
+            };
+            
+            Font font = new(NullFontName, glyphs, nullImage);
             return GenerateFont(font, NullFontName);
         }
 

@@ -10,6 +10,7 @@ namespace Helion.Graphics.Fonts
     public readonly struct Glyph
     {
         public readonly char Character;
+        // These are anchored at the top left in an image-based coordinate system.
         public readonly Box2F UV;
         public readonly Box2I Area;
 

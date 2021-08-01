@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Graphics.Geometry;
+using Helion.Render.Legacy.Fonts;
 
 namespace Helion.Graphics.Fonts.Renderable
 {

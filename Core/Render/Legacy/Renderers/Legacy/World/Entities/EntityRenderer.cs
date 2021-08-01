@@ -149,7 +149,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             Vec2F entityCenterXY = entityCenterBottom.XY.Float;
 
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-            entityCenterXY += (rightNormal * texture.Offset.Float);
+            entityCenterXY += rightNormal * texture.Offset.X;
 
             Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
             Vec2F left = entityCenterXY - halfWidth;

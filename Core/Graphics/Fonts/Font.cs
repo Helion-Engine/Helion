@@ -19,7 +19,7 @@ namespace Helion.Graphics.Fonts
         private readonly Dictionary<char, Glyph> m_glyphs;
         private readonly Glyph m_defaultGlyph;
 
-        internal Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar)
+        public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar)
         {
             Precondition(!glyphs.Empty(), "Cannot have an empty glyph set for a font");
             
