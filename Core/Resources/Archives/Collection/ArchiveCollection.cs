@@ -34,6 +34,7 @@ namespace Helion.Resources.Archives.Collection
         public readonly DataEntries Data = new();
         public readonly DefinitionEntries Definitions;
         public readonly EntityDefinitionComposer DefinitionComposer;
+        public readonly TextureManager Textures = TextureManager.Instance; 
         public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
         private readonly IArchiveLocator m_archiveLocator;
         private readonly List<Archive> m_archives = new();

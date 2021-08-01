@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -117,6 +118,20 @@ namespace Helion.Resources
             return texture == m_skyIndex;
         }
 
+        /// <summary>
+        /// Tries to get a texture by name and namespace.
+        /// </summary>
+        /// <param name="name">The texture name.</param>
+        /// <param name="resourceNamespace">The desired resource namespace.</param>
+        /// <param name="texture">The texture. If this returns false, this will
+        /// still be a valid object, but point to the 'null texture' reference.</param>
+        /// <returns>True if found, false if not.</returns>
+        public bool TryGet(string name, ResourceNamespace resourceNamespace, out Texture texture)
+        {
+            texture = GetTexture(name, resourceNamespace);
+            return texture.Index == Constants.NoTextureIndex;
+        }
+        
         /// <summary>
         /// Get a texture by name and resource namespace.
         /// </summary>

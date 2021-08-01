@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
-using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -34,8 +34,8 @@ namespace Helion.Graphics.Fonts
                 // For now, if we have all ARGB and get a Palette, or vice-versa,
                 // we will disallow this. In the future if we want, we can convert
                 // it all to ARGB.
+                // TODO?
 
-                
                 AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
                 
                 var (glyphs, image) = CreateGlyphs(charImages, maxHeight, imageType);
@@ -72,18 +72,20 @@ namespace Helion.Graphics.Fonts
         private static Dictionary<char, Image> GetCharacterImages(FontDefinition definition,
             ArchiveCollection archiveCollection, out int maxHeight, out ImageType imageType)
         {
+            imageType = ImageType.Argb;
+            maxHeight = 0;
+            
             Dictionary<char, Image> charImages = new();
-            IImageRetriever imageRetriever = new ArchiveImageRetriever(archiveCollection);
-
+            
             // Unfortunately we need to know the max height, and require all of
             // the images beforehand to make such a calculation.
             foreach ((char c, CharDefinition charDef) in definition.CharDefinitions)
-            {
-                // TODO:
-                // Image? image = imageRetriever.Get(charDef.ImageName, ResourceNamespace.Graphics);
-                // if (image != null)
-                //     charImages[c] = image;
-            }
+                if (archiveCollection.Textures.TryGet(charDef.ImageName, ResourceNamespace.Graphics, out var texture))
+                    if (texture.Image != null)
+                        charImages[c] = texture.Image;
+
+            if (charImages.Empty())
+                return new Dictionary<char, Image>();
 
             maxHeight = CalculateMaxHeight(charImages);
             
