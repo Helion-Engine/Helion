@@ -515,71 +515,71 @@ namespace Helion.Maps.Specials.Vanilla
 
                 case VanillaLineSpecialType.ScrollAccelTaggedFloorFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Accelerative;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollAccelObjectsTaggedFloorFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Accelerative;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollAccelObjectsFloorFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Accelerative;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollTaggedFloorFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Displacement;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.PushObjectsTaggedFloorFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Displacement;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.PushObjectsAndFloorTaggedFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Displacement;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollTaggedFloor:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Scroll;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.CarryObjectsTaggedFloor:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.Carry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollTagedFloorAndCarryObjects:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                     argsToMutate.Arg2 = (int)ZDoomPlaneScrollType.ScrollAndCarry;
                     return ZDoomLineSpecialType.ScrollFloor;
 
                 case VanillaLineSpecialType.ScrollAccelTaggedCeiling:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Accelerative;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Accelerative;
                     return ZDoomLineSpecialType.ScrollCeiling;
 
                 case VanillaLineSpecialType.ScrollTaggedCeilingFirstSide:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line | (int)ZDoomPlaneScroll.Displacement;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line | (int)ZDoomScroll.Displacement;
                     return ZDoomLineSpecialType.ScrollCeiling;
 
                 case VanillaLineSpecialType.ScrollTaggedCeiling:
                     argsToMutate.Arg0 = tag;
-                    argsToMutate.Arg1 = (int)ZDoomPlaneScroll.Line;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                     return ZDoomLineSpecialType.ScrollCeiling;
 
                 default:

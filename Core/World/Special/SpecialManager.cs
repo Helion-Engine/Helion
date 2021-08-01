@@ -81,8 +81,11 @@ namespace Helion.World.Special
 
         public void ResetInterpolation()
         {
-            foreach(ISpecial special in m_specials)
+            foreach (ISpecial special in m_specials)
                 special.ResetInterpolation();
+
+            for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+                m_destroyedMoveSpecials[i].ResetInterpolation();
         }
 
         public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
@@ -445,19 +448,19 @@ namespace Helion.World.Special
             switch (line.Special.LineSpecialType)
             {
                 case ZDoomLineSpecialType.ScrollTextureLeft:
-                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 * VisualScrollFactor, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 * VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureRight:
-                    AddSpecial(new LineScrollSpecial(line, line.Args.Arg0 / -VisualScrollFactor, 0.0, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 / -VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureUp:
-                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / VisualScrollFactor, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 / VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureDown:
-                    AddSpecial(new LineScrollSpecial(line, 0.0, line.Args.Arg0 / -VisualScrollFactor, (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 / -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
-                    AddSpecial(new LineScrollSpecial(line, -line.Front.Offset.X, line.Front.Offset.Y, ZDoomLineScroll.All));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All));
                     break;
                 case ZDoomLineSpecialType.TransferFloorLight:
                     SetFloorLight(line);
@@ -477,24 +480,24 @@ namespace Helion.World.Special
         private void CreateScrollPlane(Line line, SectorPlaneType planeType)
         {
             List<Sector> sectors = GetSectorsFromSpecialLine(line);
-            ZDoomPlaneScroll flags = (ZDoomPlaneScroll)line.Args.Arg1;
+            ZDoomScroll flags = (ZDoomScroll)line.Args.Arg1;
             ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
             if (planeType == SectorPlaneType.Floor)
                 scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
-            SectorScrollSpeeds speeds = SectorScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
+            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
             Sector? changeScroll = null;
 
-            if (flags.HasFlag(ZDoomPlaneScroll.Accelerative) || flags.HasFlag(ZDoomPlaneScroll.Displacement))
+            if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
                 changeScroll = line.Front.Sector;
 
             foreach (Sector sector in sectors)
             {
                 SectorPlane sectorPlane = sector.GetSectorPlane(planeType);
                 if (speeds.ScrollSpeed.HasValue)
-                    AddSpecial(new SectorScrollSpecial(SectorScrollType.Scroll, sectorPlane, speeds.ScrollSpeed.Value, changeScroll));
+                    AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, speeds.ScrollSpeed.Value, changeScroll));
                 if (speeds.CarrySpeed.HasValue)
-                    AddSpecial(new SectorScrollSpecial(SectorScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll));
+                    AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll));
             }
         }
 
