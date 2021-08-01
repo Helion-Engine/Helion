@@ -329,7 +329,7 @@ namespace Helion.Render.Legacy.Texture
 
             DeleteOldFontIfAny(name);
             m_fonts[name] = fontTexture;
-
+            
             return fontTexture;
         }
 

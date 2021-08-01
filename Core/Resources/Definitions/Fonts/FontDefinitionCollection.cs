@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Fonts.Definition;
-using MoreLinq;
 
 namespace Helion.Resources.Definitions.Fonts
 {
@@ -27,11 +25,13 @@ namespace Helion.Resources.Definitions.Fonts
 
         internal void AddFontDefinitions(Entry entry)
         {
-            FontDefinitionParser parser = new FontDefinitionParser();
+            FontDefinitionParser parser = new();
             if (!parser.Parse(entry))
                 return;
 
-            parser.Definitions.Where(def => def.IsValid()).ForEach(def => m_definitions.Add(def.Name, def));
+            foreach (FontDefinition fontDefinition in parser.Definitions)
+                if (fontDefinition.IsValid())
+                    m_definitions.Add(fontDefinition.Name, fontDefinition);
         }
     }
 }
