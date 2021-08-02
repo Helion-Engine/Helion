@@ -128,6 +128,12 @@ namespace Helion.Geometry.Vectors
             double cosPitch = Math.Cos(pitch);
             return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);
         }
+        public Vec3D Rotate2D(double yawRadians)
+        {
+            double sin = Math.Sin(yawRadians);
+            double cos = Math.Cos(yawRadians);
+            return new((X * cos) - (Y * sin), (X * sin) + (Y * cos), Z);
+        }
         public double Pitch(in Vec3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(Vector3D other, double length) => Math.Atan2(other.Z - Z, length);
         public double Pitch(double z, double length) => Math.Atan2(z - Z, length);

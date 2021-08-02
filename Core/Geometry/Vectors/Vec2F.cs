@@ -119,6 +119,12 @@ namespace Helion.Geometry.Vectors
         public Vec2F Projection(Vector2F onto) => Dot(onto) / onto.LengthSquared() * onto;
         public Vec2F RotateRight90() => new(Y, -X);
         public Vec2F RotateLeft90() => new(-Y, X);
+        public Vec2F Rotate(float radians)
+        {
+            float sin = MathF.Sin(radians);
+            float cos = MathF.Cos(radians);
+            return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
+        }
         public static Vec2F UnitCircle(float radians) => new(MathF.Cos(radians), MathF.Sin(radians));
         public float Angle(in Vec2F other) => MathF.Atan2(other.Y - Y, other.X - X);
         public float Angle(Vector2F other) => MathF.Atan2(other.Y - Y, other.X - X);
