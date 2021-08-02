@@ -21,9 +21,7 @@ namespace Helion.Graphics
     public class Image
     {
         public const ushort TransparentIndex = 0xFF00;
-
-        public static Image NullImage => nullImage ??= CreateNullImage();
-        private static Image? nullImage;
+        public static readonly Image NullImage = CreateNullImage();
 
         public readonly Bitmap Bitmap;
         public readonly Dimension Dimension;
