@@ -1,3 +1,4 @@
+using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
@@ -44,10 +45,29 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_TeleportNoFog:
                 case VanillaLineSpecialType.S1_TeleportNoFog:
                 case VanillaLineSpecialType.SR_TeleportNoFog:
+                case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
+                case VanillaLineSpecialType.WR_MonsterTeportNoFog:
                     argsToMutate.Arg1 = (int)TeleportType.BoomCompat;
                     argsToMutate.Arg2 = tag;
                     argsToMutate.Arg3 = 1;
                     return ZDoomLineSpecialType.TeleportNoFog;
+
+                case VanillaLineSpecialType.W1_TeleportLine:
+                case VanillaLineSpecialType.WR_TeleportLine:
+                case VanillaLineSpecialType.W1_MonsterTeleportLine:
+                case VanillaLineSpecialType.WR_MonsterTeleportLine:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = tag;
+                    return ZDoomLineSpecialType.TeleportLine;
+
+                case VanillaLineSpecialType.W1_TeleportLineReversed:
+                case VanillaLineSpecialType.WR_TeleportLineReversed:
+                case VanillaLineSpecialType.W1_MonsterTeleportLineReversed:
+                case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = tag;
+                    argsToMutate.Arg2 = 1;
+                    return ZDoomLineSpecialType.TeleportLine;
 
                 case VanillaLineSpecialType.SR_LowerLiftRaise:
                 case VanillaLineSpecialType.SR_LowerLiftFastRaise:
@@ -588,6 +608,26 @@ namespace Helion.Maps.Specials.Vanilla
             }
 
             return ZDoomLineSpecialType.None;
+        }
+
+        public static void FinalizeLine(DoomLine doomLine, Line line)
+        {
+            switch (doomLine.LineType)
+            {
+                case VanillaLineSpecialType.W1_TeleportLine:
+                case VanillaLineSpecialType.WR_TeleportLine:
+                case VanillaLineSpecialType.W1_TeleportLineReversed:
+                case VanillaLineSpecialType.WR_TeleportLineReversed:
+                case VanillaLineSpecialType.W1_MonsterTeleportLine:
+                case VanillaLineSpecialType.WR_MonsterTeleportLine:
+                case VanillaLineSpecialType.W1_MonsterTeleportLineReversed:
+                case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
+                    line.LineId = doomLine.SectorTag;
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         private static void HandleDoor(VanillaLineSpecialType type, int tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
@@ -1279,10 +1319,20 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.W1_DoorOpenClose:
                 case VanillaLineSpecialType.W1_TeleportNoFog:
                 case VanillaLineSpecialType.WR_TeleportNoFog:
+                case VanillaLineSpecialType.W1_TeleportLine:
+                case VanillaLineSpecialType.WR_TeleportLine:
+                case VanillaLineSpecialType.W1_TeleportLineReversed:
+                case VanillaLineSpecialType.WR_TeleportLineReversed:
                     return ActivationType.PlayerOrMonsterLineCross;
 
                 case VanillaLineSpecialType.W1_MonsterTeleport:
                 case VanillaLineSpecialType.WR_MonsterTeleport:
+                case VanillaLineSpecialType.W1_MonsterTeleportLine:
+                case VanillaLineSpecialType.WR_MonsterTeleportLine:
+                case VanillaLineSpecialType.W1_MonsterTeleportLineReversed:
+                case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
+                case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
+                case VanillaLineSpecialType.WR_MonsterTeportNoFog:
                     return ActivationType.MonsterLineCross;
 
                 default:
@@ -1410,6 +1460,11 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
                 case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
                 case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
+                case VanillaLineSpecialType.WR_TeleportLine:
+                case VanillaLineSpecialType.WR_TeleportLineReversed:
+                case VanillaLineSpecialType.WR_MonsterTeleportLine:
+                case VanillaLineSpecialType.WR_MonsterTeportNoFog:
+                case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
                     return true;
 
                 default:

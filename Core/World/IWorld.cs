@@ -63,6 +63,8 @@ namespace Helion.World
         void Resume();
         IEnumerable<Sector> FindBySectorTag(int tag);
         IEnumerable<Entity> FindByTid(int tid);
+        IEnumerable<Line> FindByLineId(int lineId);
+        void SetLineId(Line line, int lineId);
         void ExitLevel(LevelChangeType type);
         Entity[] GetBossTargets();
         int CurrentBossTarget { get; set; }

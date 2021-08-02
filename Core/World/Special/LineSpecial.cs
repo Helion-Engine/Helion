@@ -241,7 +241,15 @@ namespace Helion.World.Special
 
         public bool IsTeleport()
         {
-            return LineSpecialType == ZDoomLineSpecialType.Teleport;
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.Teleport:
+                case ZDoomLineSpecialType.TeleportNoFog:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private bool SetMoveSpecial()

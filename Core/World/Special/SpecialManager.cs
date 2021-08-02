@@ -479,7 +479,7 @@ namespace Helion.World.Special
 
         private void CreateScrollPlane(Line line, SectorPlaneType planeType)
         {
-            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
             ZDoomScroll flags = (ZDoomScroll)line.Args.Arg1;
             ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
             if (planeType == SectorPlaneType.Floor)
@@ -593,7 +593,11 @@ namespace Helion.World.Special
                     AddSpecial(new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
                         (TeleportType)line.Args.Arg1));
                     return true;
-            
+
+                case ZDoomLineSpecialType.TeleportLine:
+                    AddSpecial(new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0));
+                    return true;
+
                 case ZDoomLineSpecialType.ExitNormal:
                     m_world.ExitLevel(LevelChangeType.Next);
                     return true;
@@ -610,7 +614,7 @@ namespace Helion.World.Special
         {
             bool success = false;
 
-            List<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
+            IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
             var lineSpecial = args.ActivateLineSpecial.Special;
             foreach (var sector in sectors)
             {
@@ -985,14 +989,14 @@ namespace Helion.World.Special
 
         private void SetCeilingLight(Line line)
         {
-            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
             foreach (var sector in sectors)
                 sector.Ceiling.LightLevel = line.Front.Sector.LightLevel;
         }
 
         private void SetFloorLight(Line line)
         {
-            List<Sector> sectors = GetSectorsFromSpecialLine(line);
+            IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
             foreach (var sector in sectors)
                 sector.Floor.LightLevel = line.Front.Sector.LightLevel;
         }
@@ -1181,14 +1185,14 @@ namespace Helion.World.Special
             AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args.Arg2 * SpeedFactor, destSector.Floor.TextureHandle));
         }
 
-        private List<Sector> GetSectorsFromSpecialLine(Line line)
+        private IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
         {
             if (line.Special.CanActivateByTag && line.HasSectorTag)
-                return m_world.Sectors.Where(x => x.Tag == line.SectorTag).ToList();
+                return m_world.FindBySectorTag(line.SectorTag);
             else if (line.Special.CanActivateByBackSide && line.Back != null)
                 return new List<Sector> { line.Back.Sector };
 
-            return new List<Sector>();
+            return Enumerable.Empty<Sector>();
         }
 
         private static double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)

@@ -396,15 +396,17 @@ namespace Helion.World
                 .ToArray();
         }
 
-        public IEnumerable<Sector> FindBySectorTag(int tag)
-        {
-            return Geometry.FindBySectorTag(tag);
-        }
+        public IEnumerable<Sector> FindBySectorTag(int tag) =>
+            Geometry.FindBySectorTag(tag);
 
-        public IEnumerable<Entity> FindByTid(int tid)
-        {
-            return EntityManager.FindByTid(tid);
-        }
+        public IEnumerable<Entity> FindByTid(int tid) =>
+            EntityManager.FindByTid(tid);
+
+        public IEnumerable<Line> FindByLineId(int lineId) =>
+            Geometry.FindByLineId(lineId);
+
+        public void SetLineId(Line line, int lineId) =>
+            Geometry.SetLineId(line, lineId);
 
         public void Dispose()
         {

@@ -99,6 +99,7 @@ namespace Helion.Layer.Worlds
             DrawCoordinate('X', Player.Position.X, ref topRightY);
             DrawCoordinate('Y', Player.Position.Y, ref topRightY);
             DrawCoordinate('Z', Player.Position.Z, ref topRightY);
+            DrawCoordinate('A', Player.AngleRadians * 180 / Math.PI, ref topRightY);
             
             void DrawCoordinate(char axis, double position, ref int y)
             {

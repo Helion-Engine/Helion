@@ -252,9 +252,9 @@ namespace Helion.Maps.Specials.Vanilla
 
         // TODO
         TransferHeights,
+        // END TODO
         W1_TeleportLine,
         WR_TeleportLine,
-        // END TODO
         ScrollTaggedCeilingFirstSide,
         ScrollTaggedFloorFirstSide,
         PushObjectsTaggedFloorFirstSide,
@@ -278,7 +278,6 @@ namespace Helion.Maps.Specials.Vanilla
         TranslucentLine,
         // END TODO
         TransferCeilingLight,
-        // TODO
         W1_TeleportLineReversed,
         WR_TeleportLineReversed,
         W1_MonsterTeleportLineReversed,
@@ -287,6 +286,7 @@ namespace Helion.Maps.Specials.Vanilla
         WR_MonsterTeleportLine,
         W1_MonsterTeleportNoFog,
         WR_MonsterTeportNoFog,
+        // TODO
         Unused,
         TransferSky,
         TransferSkyFlipped
