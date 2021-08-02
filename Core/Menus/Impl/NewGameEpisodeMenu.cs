@@ -43,7 +43,7 @@ namespace Helion.Menus.Impl
 
             MenuImageComponent MakeMenuComponent(EpisodeDef episode)
             {
-                if (ArchiveCollection.GetIWadInfo().IWadType == IWadType.DoomShareware && 
+                if (ArchiveCollection.IWadInfo.IWadType == IWadType.DoomShareware && 
                     !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
                 {
                     string[] lines = archiveCollection.Definitions.Language.GetMessages("$SWSTRING");

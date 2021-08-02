@@ -58,7 +58,7 @@ namespace Helion.World.Entities
             World = world;
             m_soundManager = soundManager;
             SpawnLocations = new SpawnLocations(world);
-            DefinitionComposer = archiveCollection.DefinitionComposer;
+            DefinitionComposer = archiveCollection.EntityDefinitionComposer;
         }
 
         public static bool ZHeightSet(double z)

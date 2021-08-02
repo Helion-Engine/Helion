@@ -65,9 +65,9 @@ namespace Helion.Client
             if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad(), 
                 dehackedPatch: m_commandLineArgs.DehackedPatch))
             {
-                if (m_archiveCollection.GetAssets() == null)
+                if (m_archiveCollection.Assets == null)
                     ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-                else if (m_archiveCollection.GetIWad() == null)
+                else if (m_archiveCollection.IWad == null)
                     ShowFatalError("Failed to load IWAD.");
                 else
                     ShowFatalError("Failed to load files.");

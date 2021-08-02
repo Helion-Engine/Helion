@@ -56,7 +56,7 @@ namespace Helion.Client
         private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection, FpsTracker tracker)
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable("newrenderer"), out bool result) && result)
-                return new GLLegacyRenderer(config, this, null!); //archiveCollection
+                return new GLLegacyRenderer(config, this, archiveCollection);
             return new Render.Legacy.GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
         }
 

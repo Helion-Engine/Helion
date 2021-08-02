@@ -26,11 +26,11 @@ namespace Helion.Resources
     public interface IResources : IDisposable
     {
         IWadBaseType IWadType { get; }
-        Palette? Palette { get; }
+        Palette Palette { get; }
         IWadInfo IWadInfo { get; }
         Archive? Assets { get; }
         Archive? IWad { get; }
-        IEnumerable<Archive> Files { get; }
+        IEnumerable<Archive> Archives { get; }
         AnimatedDefinitions Animdefs { get; }
         BoomAnimatedDefinition BoomAnimated { get; }
         CompatibilityDefinitions Compatibility { get; }
@@ -49,7 +49,7 @@ namespace Helion.Resources
         Entry? FindEntryByPath(string path);
         IEnumerable<Entry> GetEntriesByNamespace(ResourceNamespace resourceNamespace);
         MapEntryCollection? GetMapEntryCollection(string mapName);
-        IMap? GetMap(string mapName);
+        IMap? FindMap(string mapName);
         Font? GetFont(string name);
         Archive? GetArchiveByFileName(string fileName);
     }

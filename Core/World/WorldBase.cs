@@ -46,6 +46,7 @@ using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
 using Helion.Dehacked;
+using Helion.Resources.Archives;
 
 namespace Helion.World
 {
@@ -832,7 +833,7 @@ namespace Helion.World
             if (!dehacked.PickupLookup.TryGetValue(item.Frame.Sprite, out string? def))
                 return null;
 
-            return ArchiveCollection.DefinitionComposer.GetByName(def);
+            return ArchiveCollection.EntityDefinitionComposer.GetByName(def);
         }
 
         public virtual void PerformItemPickup(Entity entity, Entity item)
@@ -1711,7 +1712,7 @@ namespace Helion.World
 
         private FileModel GetIWadFileModel()
         {
-            var archive = ArchiveCollection.GetIWad();
+            Archive? archive = ArchiveCollection.IWad;
             if (archive != null)
                 return archive.ToFileModel();
 
@@ -1721,7 +1722,7 @@ namespace Helion.World
         private IList<FileModel> GetFileModels()
         {
             List<FileModel> fileModels = new List<FileModel>();
-            var archives = ArchiveCollection.GetFiles();
+            var archives = ArchiveCollection.Archives;
             foreach (var archive in archives)
                 fileModels.Add(archive.ToFileModel());
 

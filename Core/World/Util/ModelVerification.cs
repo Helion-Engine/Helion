@@ -14,7 +14,7 @@ namespace Helion.World.Util
             if (!VerifyFileModel(archiveCollection, filesModel.IWad, log))
                 return false;
 
-            var fileArchives = archiveCollection.GetFiles();
+            var fileArchives = archiveCollection.Archives;
             if (fileArchives.Count() != filesModel.Files.Count)
             {
                 var extraArchive = fileArchives.FirstOrDefault(x => ContainsFileModel(x, filesModel));
