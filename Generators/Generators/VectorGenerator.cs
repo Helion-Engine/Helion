@@ -378,6 +378,12 @@ namespace Generators.Generators
                     w.WriteLine($"public {StructType} Projection({InstanceType} onto) => Dot(onto) / onto.LengthSquared() * onto;");
                     w.WriteLine($"public {StructType} RotateRight90() => new(Y, -X);");
                     w.WriteLine($"public {StructType} RotateLeft90() => new(-Y, X);");
+                    w.WithCBlock($"public {StructType} Rotate({m_type.PrimitiveType()} radians)", () =>
+                    {
+                        w.WriteLine($"{m_type.PrimitiveType()} sin = {MathClass}.Sin(radians);");
+                        w.WriteLine($"{m_type.PrimitiveType()} cos = {MathClass}.Cos(radians);");
+                        w.WriteLine("return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));");
+                    });
                     w.WriteLine($"public static {StructType} UnitCircle({m_type.PrimitiveType()} radians) => new({MathClass}.Cos(radians), {MathClass}.Sin(radians));");
                     w.WriteLine($"public {m_type.PrimitiveType()} Angle(in {StructType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
                     w.WriteLine($"public {m_type.PrimitiveType()} Angle({InstanceType} other) => {MathClass}.Atan2(other.Y - Y, other.X - X);");
@@ -395,7 +401,12 @@ namespace Generators.Generators
                         w.WriteLine($"{m_type.PrimitiveType()} cosPitch = {MathClass}.Cos(pitch);");
                         w.WriteLine("return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);");
                     });
-                    
+                    w.WithCBlock($"public {StructType} Rotate2D({m_type.PrimitiveType()} yawRadians)", () =>
+                    {
+                        w.WriteLine($"{m_type.PrimitiveType()} sin = {MathClass}.Sin(yawRadians);");
+                        w.WriteLine($"{m_type.PrimitiveType()} cos = {MathClass}.Cos(yawRadians);");
+                        w.WriteLine("return new((X * cos) - (Y * sin), (X * sin) + (Y * cos), Z);");
+                    });
                     w.WriteLine($"public {m_type.PrimitiveType()} Pitch(in {StructType} other, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(other.Z - Z, length);");
                     w.WriteLine($"public {m_type.PrimitiveType()} Pitch({InstanceType} other, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(other.Z - Z, length);");
                     w.WriteLine($"public {m_type.PrimitiveType()} Pitch({m_type.PrimitiveType()} z, {m_type.PrimitiveType()} length) => {MathClass}.Atan2(z - Z, length);");

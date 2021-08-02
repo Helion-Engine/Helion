@@ -117,6 +117,12 @@ namespace Helion.Geometry.Vectors
         public Vec2D Projection(Vector2D onto) => Dot(onto) / onto.LengthSquared() * onto;
         public Vec2D RotateRight90() => new(Y, -X);
         public Vec2D RotateLeft90() => new(-Y, X);
+        public Vec2D Rotate(double radians)
+        {
+            double sin = Math.Sin(radians);
+            double cos = Math.Cos(radians);
+            return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
+        }
         public static Vec2D UnitCircle(double radians) => new(Math.Cos(radians), Math.Sin(radians));
         public double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
         public double Angle(Vector2D other) => Math.Atan2(other.Y - Y, other.X - X);

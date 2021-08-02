@@ -129,6 +129,12 @@ namespace Helion.Geometry.Vectors
             float cosPitch = MathF.Cos(pitch);
             return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);
         }
+        public Vec3F Rotate2D(float yawRadians)
+        {
+            float sin = MathF.Sin(yawRadians);
+            float cos = MathF.Cos(yawRadians);
+            return new((X * cos) - (Y * sin), (X * sin) + (Y * cos), Z);
+        }
         public float Pitch(in Vec3F other, float length) => MathF.Atan2(other.Z - Z, length);
         public float Pitch(Vector3F other, float length) => MathF.Atan2(other.Z - Z, length);
         public float Pitch(float z, float length) => MathF.Atan2(z - Z, length);
