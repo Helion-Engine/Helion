@@ -5,6 +5,7 @@ using Helion.Geometry;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resources.Images;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -34,7 +35,7 @@ namespace Helion.Graphics.Fonts
                 // For now, if we have all ARGB and get a Palette, or vice-versa,
                 // we will disallow this. In the future if we want, we can convert
                 // it all to ARGB.
-                // TODO?
+                // TODO
 
                 AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
                 
@@ -54,7 +55,7 @@ namespace Helion.Graphics.Fonts
 
         private static bool NotAllSameImageType(ImageType type, Dictionary<char, Image> charImages)
         {
-            return charImages.Values.All(i => i.ImageType == type);
+            return charImages.Values.Any(i => i.ImageType != type);
         }
 
         private static void AddSpaceGlyphIfMissing(Dictionary<char, Image> charImages, FontDefinition definition,
@@ -77,12 +78,17 @@ namespace Helion.Graphics.Fonts
             
             Dictionary<char, Image> charImages = new();
             
+            // TODO: TEMPORARY: The texture manager should do all of this for us later on!
+            IImageRetriever imageRetriever = new ArchiveImageRetriever(archiveCollection);
+
             // Unfortunately we need to know the max height, and require all of
             // the images beforehand to make such a calculation.
             foreach ((char c, CharDefinition charDef) in definition.CharDefinitions)
-                if (archiveCollection.Textures.TryGet(charDef.ImageName, ResourceNamespace.Graphics, out var texture))
-                    if (texture.Image != null)
-                        charImages[c] = texture.Image;
+            {
+                Image? image = imageRetriever.Get(charDef.ImageName, ResourceNamespace.Graphics);
+                if (image != null)
+                    charImages[c] = image;
+            }
 
             if (charImages.Empty())
                 return new Dictionary<char, Image>();
