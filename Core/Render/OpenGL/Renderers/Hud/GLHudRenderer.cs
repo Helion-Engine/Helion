@@ -14,7 +14,6 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Textures;
-using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -306,7 +305,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         internal void Render(HudRenderContext context)
         {
-            Precondition(m_resolutionStack.Empty(), "Forgot to pop a resolution for hud resolution");
+            Precondition(m_resolutionStack.Count <= 1, "Forgot to pop a resolution for hud resolution");
             
             mat4 mvp = CreateMvp(context);
             

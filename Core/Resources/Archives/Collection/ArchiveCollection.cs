@@ -227,6 +227,9 @@ namespace Helion.Resources.Archives.Collection
                     return false;
                 }
             }
+            
+            // TODO: This hack will eventually go away shortly.
+            TextureManager.Init(this);
         
             return true;
         }
