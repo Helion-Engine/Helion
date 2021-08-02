@@ -60,7 +60,6 @@ namespace Helion.Render.Legacy.Texture.Fonts
             int currentWidth = 0;
             int currentHeight = 0;
             Dimension imgDim = font.Image.Dimension;
-            Vec2D uvScale = imgDim.Vector.Double;
             List<RenderableGlyph> currentSentence = new();
             List<RenderableSentence> sentences = new();
 
@@ -84,10 +83,7 @@ namespace Helion.Render.Legacy.Texture.Fonts
                 // We use a dummy box temporarily, and calculate it at the end
                 // properly (for code clarity reasons).
                 ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
-                
-                Vec2D topLeftUV = new Vec2D(currentWidth, 0) / uvScale;
-                Vec2D bottomRightUV = new Vec2D(currentWidth + imgDim.Width, imgDim.Height) / uvScale;
-                ImageBox2D uv = new ImageBox2D(topLeftUV, bottomRightUV);
+                ImageBox2D uv = new(glyph.UV.Min.Double, glyph.UV.Max.Double);
                 
                 RenderableGlyph renderableGlyph = new(c.Char, drawLoc, ImageBox2D.ZeroToOne, uv, c.Color);
                 currentSentence.Add(renderableGlyph);
@@ -123,7 +119,7 @@ namespace Helion.Render.Legacy.Texture.Fonts
                 .Select(s => s.DrawArea.Vector)
                 .Aggregate((acc, area) => new Vec2I(Math.Max(acc.X, area.X), acc.Y + area.Y));
 
-            return new(point.X, point.Y);
+            return (point.X, point.Y);
         }
 
         private void AlignTo(TextAlign align)
@@ -179,20 +175,20 @@ namespace Helion.Render.Legacy.Texture.Fonts
             // construction would require a ton of reading ahead, alignment,
             // and calculations which would complicate the code. Instead, we
             // do one final recalculation of the normalized coordinates here.
-            Vec2D inverse = new Vec2D(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
+            Vec2D inverse = new(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
 
             foreach (RenderableSentence sentence in Sentences)
             {
                 for (int i = 0; i < sentence.Glyphs.Count; i++)
                 {
-                    RenderableGlyph glyph = sentence.Glyphs[i];
+                    RenderableGlyph renderGlyph = sentence.Glyphs[i];
 
-                    ImageBox2I coordinates = glyph.Coordinates;
+                    ImageBox2I coordinates = renderGlyph.Coordinates;
                     Vec2D topLeft = coordinates.Min.Double * inverse;
                     Vec2D bottomRight = coordinates.Max.Double * inverse;
-                    ImageBox2D location = new ImageBox2D(topLeft, bottomRight);
+                    ImageBox2D location = new(topLeft, bottomRight);
 
-                    sentence.Glyphs[i] = new RenderableGlyph(glyph, location);
+                    sentence.Glyphs[i] = new RenderableGlyph(renderGlyph, location);
                 }
             }
         }
