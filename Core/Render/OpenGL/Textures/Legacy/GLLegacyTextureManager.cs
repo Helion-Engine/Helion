@@ -23,7 +23,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public GLTextureHandle NullHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
-        private readonly List<AtlasGLTexture> m_textures = new();
+        private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly ResourceTracker<GLTextureHandle> m_handlesTable = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
@@ -103,9 +103,6 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             Font font = new("Null font", glyphs, Image.NullImage);
 
             GLTexture texture = new("Null font", TextureTarget.Texture2D);
-            // TODO: Upload data
-            //throw new NotImplementedException();
-
             GLFontTexture fontTexture = new(texture, font);
             m_fontTextures["NULL"] = fontTexture;
 
@@ -123,10 +120,10 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
             Texture texture = m_resources.Textures.GetTexture(name, priority);
-            return Get(texture);
+            return Get(texture, priority);
         }
 
-        public GLTextureHandle Get(Texture texture)
+        public GLTextureHandle Get(Texture texture, ResourceNamespace? priority = null)
         {
             if (texture.Image == null)
             {
@@ -134,15 +131,21 @@ namespace Helion.Render.OpenGL.Textures.Legacy
                 return NullHandle;
             }
 
-            // Image image = texture.Image;
-            // GLTextureHandle? handle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);
-            // if (handle == null)
-            // {
-                // Log.Warn("Unable to allocate space for texture {Name} ({Dimension}, {Namespace})", texture.Name, image.Dimension, image.Namespace);
-                return NullHandle;
-            // }
+            Image image = texture.Image;
+            GLTextureHandle? handle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);
+            if (handle != null)
+            {
+                // If we grab it from another namespace, also track it in the
+                // requested namespace because we know it doesn't exist and
+                // instead can return hits quicker by caching the result.
+                if (priority != null && priority != image.Namespace)
+                    m_handlesTable.Insert(texture.Name, priority.Value, handle);
+                
+                return handle;
+            }
             
-            // return handle;
+            Log.Warn("Unable to allocate space for texture {Name} ({Dimension}, {Namespace})", texture.Name, image.Dimension, image.Namespace);
+            return NullHandle;
         }
 
         public GLFontTexture GetFont(string name)

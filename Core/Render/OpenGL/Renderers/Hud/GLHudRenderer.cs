@@ -27,10 +27,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     {
         private readonly GLRenderer m_renderer;
         private readonly IGLTextureManager m_glTextureManager;
-        private readonly RenderPipeline<GLHudShader, GLHudVertex> m_pointPrimitivePipeline;
-        private readonly RenderPipeline<GLHudShader, GLHudVertex> m_linePrimitivePipeline;
-        private readonly RenderPipeline<GLHudShader, GLHudVertex> m_trianglePrimitivePipeline;
-        private readonly RenderTexturePipeline<GLHudShader, GLHudVertex> m_texturePipeline;
+        private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_pointPrimitivePipeline;
+        private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_linePrimitivePipeline;
+        private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_trianglePrimitivePipeline;
+        private readonly RenderTexturePipeline<GLHudTextureShader, GLHudTextureVertex> m_texturePipeline;
         private readonly Stack<VirtualResolutionInfo> m_resolutionStack = new();
         private Dimension m_parentDimension = (800, 600);
         private VirtualResolutionInfo m_currentResolutionInfo = new((800, 600), ResolutionScale.None, (800, 600));
@@ -79,7 +79,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             (int x, int y) = m_currentResolutionInfo.Translate(point, window);
             Vec3F pos = (x, y, m_elementsDrawn);
             
-            GLHudVertex vertex = new(pos, color);
+            GLHudPrimitiveVertex vertex = new(pos, color);
             m_pointPrimitivePipeline.Vbo.Add(vertex);
         }
 
@@ -110,7 +110,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             void AddSegmentPoint(Vec2I point)
             {
                 Vec3F pos = (point.X, point.Y, m_elementsDrawn);
-                GLHudVertex vertex = new(pos, color);
+                GLHudPrimitiveVertex vertex = new(pos, color);
                 m_linePrimitivePipeline.Vbo.Add(vertex);
             }
         }
@@ -180,7 +180,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             void AddTriangleVertex(Vec2I position)
             {
                 Vec3F pos = (position.X, position.Y, m_elementsDrawn);
-                GLHudVertex vertex = new(pos, color);
+                GLHudPrimitiveVertex vertex = new(pos, color);
                 m_trianglePrimitivePipeline.Vbo.Add(vertex);
             }
         }
@@ -327,7 +327,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             
             m_texturePipeline.Draw(s =>
             {
+                GL.ActiveTexture(TextureUnit.Texture0);
                 s.Mvp.Set(mvp);
+                s.Tex.Set(0);
             });
         }
 

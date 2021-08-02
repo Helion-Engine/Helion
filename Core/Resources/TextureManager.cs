@@ -14,6 +14,8 @@ namespace Helion.Resources
 {
     public class TextureManager : ITickable
     {
+        public const int NoTextureIndex = 0;
+        
         private readonly List<Action<TextureManager>> m_notifyInitizalized = new List<Action<TextureManager>>();
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;

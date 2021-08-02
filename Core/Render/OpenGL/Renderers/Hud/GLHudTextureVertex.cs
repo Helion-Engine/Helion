@@ -1,19 +1,18 @@
 ﻿using System.Runtime.InteropServices;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Primitives;
 
 namespace Helion.Render.OpenGL.Renderers.Hud
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct GLHudVertex
+    public readonly struct GLHudTextureVertex
     {
         public readonly Vec3F Pos;
-        public readonly ByteColor Color;
+        public readonly Vec2F UV;
 
-        public GLHudVertex(Vec3F pos, ByteColor color)
+        public GLHudTextureVertex(Vec3F pos, Vec2F uv)
         {
             Pos = pos;
-            Color = color;
+            UV = uv;
         }
     }
 }

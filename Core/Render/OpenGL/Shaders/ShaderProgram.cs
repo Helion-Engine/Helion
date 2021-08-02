@@ -4,6 +4,7 @@ using System.Reflection;
 using Helion.Render.OpenGL.Shaders.Attributes;
 using Helion.Render.OpenGL.Shaders.Uniforms;
 using Helion.Render.OpenGL.Util;
+using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -120,7 +121,7 @@ namespace Helion.Render.OpenGL.Shaders
             
             foreach (FieldInfo field in GetType().GetFields())
             {
-                if (!HasUniformAttribute(field) || field.Name.ToLower() != lowerName) 
+                if (!HasUniformAttribute(field) || !field.Name.EqualsIgnoreCase(lowerName)) 
                     continue;
 
                 if (field.GetValue(this) is not Uniform uniform)

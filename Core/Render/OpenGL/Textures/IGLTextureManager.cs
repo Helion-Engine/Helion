@@ -32,13 +32,17 @@ namespace Helion.Render.OpenGL.Textures
         /// <returns>The texture handle, or the <see cref="NullHandle"/> if it
         /// cannot be found.</returns>
         GLTextureHandle Get(string name, ResourceNamespace priority = ResourceNamespace.Global);
-        
+
         /// <summary>
         /// Looks up or creates a texture from an existing resource texture.
         /// </summary>
         /// <param name="texture">The texture to look up (or upload).</param>
+        /// <param name="priority">The priority namespace to look up, or null
+        /// if it does not matter. This is used in caching results, if our
+        /// lookup fails and we pull from somewhere else. It is likely the
+        /// case that the same call will be made again.</param>
         /// <returns>A texture handle.</returns>
-        GLTextureHandle Get(Texture texture);
+        GLTextureHandle Get(Texture texture, ResourceNamespace? priority);
         
         /// <summary>
         /// Gets a font, or uploads it if it finds one and it has not been

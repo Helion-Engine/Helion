@@ -32,7 +32,7 @@ namespace Helion.Render.OpenGL
         public abstract IRenderableSurface GetOrCreateSurface(string name, Dimension dimension);
         public abstract void Dispose();
 
-        protected void InitializeStates()
+        private void InitializeStates()
         {
             GL.Enable(EnableCap.DepthTest);
 

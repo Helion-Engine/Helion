@@ -5,6 +5,7 @@ using System.Reflection;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffers;
+using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Shaders.Attributes;
 using NLog;
@@ -89,6 +90,8 @@ namespace Helion.Render.OpenGL.Attributes
                 return (3, sizeof(float), VertexAttribPointerType.Float);
             if (type == typeof(vec4) || type == typeof(Vec4F))
                 return (4, sizeof(float), VertexAttribPointerType.Float);
+            if (type == typeof(ByteColor))
+                return (4, sizeof(byte), VertexAttribPointerType.UnsignedByte);
 
             throw new Exception($"Unexpected vertex attribute type in struct: {fieldInfo.Name} ({type.FullName})");
         }
