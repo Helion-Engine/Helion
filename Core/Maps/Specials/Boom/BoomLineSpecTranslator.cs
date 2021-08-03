@@ -337,7 +337,7 @@ namespace Helion.Maps.Specials.Boom
         {
             return ((special & LiftDelayMask) >> LiftDelayShift) switch
             {
-                0 => 0,
+                0 => 8,
                 1 => 24,
                 2 => 40,
                 3 => 80,
