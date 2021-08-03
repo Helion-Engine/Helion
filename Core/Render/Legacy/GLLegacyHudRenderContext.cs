@@ -217,6 +217,21 @@ namespace Helion.Render.Legacy
             m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
         }
 
+        public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue, 
+            int maxHeight = int.MaxValue, float scale = 1.0f)
+        {
+            const Commands.Alignment.TextAlign align = Commands.Alignment.TextAlign.Left;
+            
+            Font? fontObject = m_archiveCollection.GetFont(font);
+            if (fontObject == null)
+                return default;
+            
+            int scaledFontSize = (int)(fontSize * scale);
+            ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
+            RenderableString renderableString = new(coloredString, fontObject, scaledFontSize, align, maxWidth);
+            return renderableString.DrawArea;
+        }
+
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
             float? aspectRatio = null)
         {

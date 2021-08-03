@@ -102,6 +102,9 @@ namespace Helion.Render.Common.Renderers
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue, 
             int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
+        Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue, 
+            int maxHeight = int.MaxValue, float scale = 1.0f);
+        
         /// <summary>
         /// See <see cref="PushVirtualDimension"/>. Designed such that it will
         /// not pop the virtual dimension.

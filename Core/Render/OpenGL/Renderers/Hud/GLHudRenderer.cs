@@ -270,6 +270,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_elementsDrawn++;
         }
 
+        public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
+            int maxHeight = int.MaxValue, float scale = 1.0f)
+        {
+            // TODO
+            return default;
+        }
+
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
             float? aspectRatio = null)
         {

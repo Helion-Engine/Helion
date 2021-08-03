@@ -216,9 +216,13 @@ namespace Helion.Layer.Worlds
             x += medkitArea.Width + m_padding;
 
             string health = Math.Max(0, Player.Health).ToString();
-            hud.Text(health, LargeHudFont, m_fontHeight, (x, y), out var healthArea, both: Align.BottomLeft);
-            int fourLetterSpacing = CalculateFourLetterSpacing(hud);
-            x += fourLetterSpacing;
+            hud.Text(health, LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
+
+            // We don't want the face moving, so we'll ask how much four digits
+            // are and use that. If by chance anyone ever does 5 digits, this
+            // will still work.
+            string paddedHealth = health.PadRight(4, '0');
+            x += hud.MeasureText(paddedHealth, LargeHudFont, m_fontHeight).Width;
 
             DrawFace(hud, (x, y), Align.BottomLeft, true);
             
@@ -236,13 +240,6 @@ namespace Helion.Layer.Worlds
             
                 hud.Text(Player.Armor.ToString(), LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
             }
-        }
-
-        private int CalculateFourLetterSpacing(IHudRenderContext hud)
-        {
-            // TODO: This is a hack until we expose the ability to calculate draw width.
-            hud.Text("9999", LargeHudFont, m_fontHeight, (0, 1), out var area, window: Align.BottomLeft);
-            return area.Width;
         }
 
         private void DrawFace(IHudRenderContext hud, Vec2I origin, Align? both = null, bool scaleDraw = false)
