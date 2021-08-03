@@ -602,6 +602,20 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                     return ZDoomLineSpecialType.ScrollCeiling;
 
+                case VanillaLineSpecialType.ScrollAccellTaggedWallFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative;
+                    return ZDoomLineSpecialType.ScrollTextureModel;
+
+                case VanillaLineSpecialType.ScrollTaggedWallFirstSide:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomScroll.Displacement;
+                    return ZDoomLineSpecialType.ScrollTextureModel;
+
+                case VanillaLineSpecialType.ScrollTaggedWallSameAsFloorCeiling:
+                    argsToMutate.Arg0 = tag;
+                    return ZDoomLineSpecialType.ScrollTextureModel;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -612,22 +626,8 @@ namespace Helion.Maps.Specials.Vanilla
 
         public static void FinalizeLine(DoomLine doomLine, Line line)
         {
-            switch (doomLine.LineType)
-            {
-                case VanillaLineSpecialType.W1_TeleportLine:
-                case VanillaLineSpecialType.WR_TeleportLine:
-                case VanillaLineSpecialType.W1_TeleportLineReversed:
-                case VanillaLineSpecialType.WR_TeleportLineReversed:
-                case VanillaLineSpecialType.W1_MonsterTeleportLine:
-                case VanillaLineSpecialType.WR_MonsterTeleportLine:
-                case VanillaLineSpecialType.W1_MonsterTeleportLineReversed:
-                case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
-                    line.LineId = doomLine.SectorTag;
-                    break;
-
-                default:
-                    break;
-            }
+            // Based on testing boom seems to do this for every line...
+            line.LineId = doomLine.SectorTag;
         }
 
         private static void HandleDoor(VanillaLineSpecialType type, int tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
@@ -1310,6 +1310,9 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.ScrollAccelTaggedCeiling:
                 case VanillaLineSpecialType.ScrollTaggedCeilingFirstSide:
                 case VanillaLineSpecialType.ScrollTaggedCeiling:
+                case VanillaLineSpecialType.ScrollAccellTaggedWallFirstSide:
+                case VanillaLineSpecialType.ScrollTaggedWallFirstSide:
+                case VanillaLineSpecialType.ScrollTaggedWallSameAsFloorCeiling:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:

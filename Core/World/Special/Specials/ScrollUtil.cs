@@ -14,7 +14,7 @@ namespace Helion.World.Special.Specials
     {
         // Scrolling speeds from WinMBF.
         // Credit to Lee Killough et al.
-        public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type)
+        public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type, double visualScrollFactor = 1.0)
         {
             ScrollSpeeds scrollSpeeds = new();
             Vec2D diff;
@@ -31,7 +31,7 @@ namespace Helion.World.Special.Specials
             }
 
             if (type == ZDoomPlaneScrollType.Scroll || type == ZDoomPlaneScrollType.ScrollAndCarry)
-                scrollSpeeds.ScrollSpeed = diff * SpecialManager.VisualScrollFactor;
+                scrollSpeeds.ScrollSpeed = diff * visualScrollFactor;
 
             if (type == ZDoomPlaneScrollType.Carry || type == ZDoomPlaneScrollType.ScrollAndCarry)
             {

@@ -462,6 +462,9 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
                     AddSpecial(new ScrollSpecial(line, new Vec2D(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All));
                     break;
+                case ZDoomLineSpecialType.ScrollTextureModel:
+                    CreateScrollTextureModel(line);
+                    break;
                 case ZDoomLineSpecialType.TransferFloorLight:
                     SetFloorLight(line);
                     break;
@@ -477,6 +480,30 @@ namespace Helion.World.Special
             }
         }
 
+        private void CreateScrollTextureModel(Line setLine)
+        {
+            IEnumerable<Line> lines = m_world.FindByLineId(setLine.Args.Arg0);
+            ZDoomScroll flags = (ZDoomScroll)setLine.Args.Arg1;
+            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
+            if (!speeds.ScrollSpeed.HasValue)
+                return;
+
+            Sector? changeScroll = null;
+            if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
+                changeScroll = setLine.Front.Sector;
+
+            Vec2D speed = speeds.ScrollSpeed.Value;
+            speed.Y = -speed.Y;
+
+            foreach (Line line in lines)
+            {
+                if (line.Id == setLine.Id)
+                    continue;
+
+                AddSpecial(new ScrollSpecial(line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
+            }
+        }
+
         private void CreateScrollPlane(Line line, SectorPlaneType planeType)
         {
             IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
@@ -485,7 +512,7 @@ namespace Helion.World.Special
             if (planeType == SectorPlaneType.Floor)
                 scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
-            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
+            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, VisualScrollFactor);
             Sector? changeScroll = null;
 
             if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
@@ -495,9 +522,14 @@ namespace Helion.World.Special
             {
                 SectorPlane sectorPlane = sector.GetSectorPlane(planeType);
                 if (speeds.ScrollSpeed.HasValue)
-                    AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, speeds.ScrollSpeed.Value, changeScroll));
+                {
+                    Vec2D scrollSpeed = speeds.ScrollSpeed.Value;
+                    scrollSpeed.X = -scrollSpeed.X;
+                    AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
+                }
+
                 if (speeds.CarrySpeed.HasValue)
-                    AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll));
+                    AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
             }
         }
 

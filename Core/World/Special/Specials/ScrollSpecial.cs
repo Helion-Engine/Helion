@@ -7,6 +7,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using System;
 using System.Linq;
 
 namespace Helion.World.Special.Specials
@@ -28,7 +29,8 @@ namespace Helion.World.Special.Specials
         private readonly bool m_scrollLineFront;
         private Vec2D m_speed;
 
-        public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null)
+        public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null,
+            ZDoomScroll scrollFlags = ZDoomScroll.None)
         {
             m_type = ScrollType.Scroll;
             m_speed = speed;
@@ -45,28 +47,29 @@ namespace Helion.World.Special.Specials
                 Line.Back.ScrollData = new();
 
             if (accelSector != null)
-                m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed);
+                m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
         }
 
-        public ScrollSpecial(ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null)
+        public ScrollSpecial(ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null, 
+            ZDoomScroll scrollFlags = ZDoomScroll.None)
         {
             m_type = type;
             SectorPlane = sectorPlane;
             m_speed = speed;
             if (accelSector != null)
-                m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed);
+                m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
 
             SectorPlane.SectorScrollData = new();
         }
 
         public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
-            : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, model.Front, accelSector)
+            : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, model.Front, accelSector, (ZDoomScroll)model.ScrollFlags)
         {
 
         }
 
         public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
-            : this ((ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector)
+            : this ((ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
         {
             if (m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
             {
@@ -90,7 +93,8 @@ namespace Helion.World.Special.Specials
                     AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                     AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                     AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
-                    AccelLastZ = m_accelScrollSpeed?.LastChangeZ
+                    AccelLastZ = m_accelScrollSpeed?.LastChangeZ,
+                    ScrollFlags = GetModelScrollFlags()
                 };
 
                 if (m_scrollLineFront && Line.Front.ScrollData != null)
@@ -124,6 +128,14 @@ namespace Helion.World.Special.Specials
             }
             
             throw new HelionException("Scroll special has neither line or sector plane set.");
+        }
+
+        private int GetModelScrollFlags()
+        {
+            if (m_accelScrollSpeed != null)
+                return (int)m_accelScrollSpeed.ScrollFlags;
+
+            return 0;
         }
 
         public SpecialTickStatus Tick()

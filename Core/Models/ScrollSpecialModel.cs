@@ -23,6 +23,7 @@ namespace Helion.Models
         public double[]? OffsetFrontY { get; set; }
         public double[]? OffsetBackX { get; set; }
         public double[]? OffsetBackY { get; set; }
+        public int ScrollFlags { get; set; }
 
         public ISpecial? ToWorldSpecial(IWorld world)
         {
