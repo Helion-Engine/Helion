@@ -451,13 +451,13 @@ namespace Helion.World.Special
                     AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 * VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureRight:
-                    AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 / -VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 * -VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureUp:
-                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 / VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 * VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollTextureDown:
-                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 / -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
+                    AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 * -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                     break;
                 case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
                     AddSpecial(new ScrollSpecial(line, new Vec2D(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All));

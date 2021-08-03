@@ -1295,6 +1295,7 @@ namespace Helion.Maps.Specials.Vanilla
                     return ActivationType.ProjectileHitsWall;
 
                 case VanillaLineSpecialType.ScrollTextureLeft:
+                case VanillaLineSpecialType.ScrollTextureRight:
                 case VanillaLineSpecialType.TransferFloorLight:
                 case VanillaLineSpecialType.TransferCeilingLight:
                 case VanillaLineSpecialType.ScrollTextureOffsets:
