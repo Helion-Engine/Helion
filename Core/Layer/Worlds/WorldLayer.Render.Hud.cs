@@ -217,8 +217,9 @@ namespace Helion.Layer.Worlds
 
             string health = Math.Max(0, Player.Health).ToString();
             hud.Text(health, LargeHudFont, m_fontHeight, (x, y), out var healthArea, both: Align.BottomLeft);
-            x += healthArea.Width + (m_padding * 3);
-            
+            int fourLetterSpacing = CalculateFourLetterSpacing(hud);
+            x += fourLetterSpacing;
+
             DrawFace(hud, (x, y), Align.BottomLeft, true);
             
             if (Player.Armor > 0)
@@ -236,7 +237,14 @@ namespace Helion.Layer.Worlds
                 hud.Text(Player.Armor.ToString(), LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
             }
         }
-        
+
+        private int CalculateFourLetterSpacing(IHudRenderContext hud)
+        {
+            // TODO: This is a hack until we expose the ability to calculate draw width.
+            hud.Text("9999", LargeHudFont, m_fontHeight, (0, 1), out var area, window: Align.BottomLeft);
+            return area.Width;
+        }
+
         private void DrawFace(IHudRenderContext hud, Vec2I origin, Align? both = null, bool scaleDraw = false)
         {
             hud.Image(Player.StatusBar.GetFacePatch(), origin, both: both, scale: scaleDraw ? m_scale : 1.0f);
