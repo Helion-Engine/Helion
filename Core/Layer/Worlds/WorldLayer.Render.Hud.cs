@@ -218,11 +218,8 @@ namespace Helion.Layer.Worlds
             string health = Math.Max(0, Player.Health).ToString();
             hud.Text(health, LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
 
-            // We don't want the face moving, so we'll ask how much four digits
-            // are and use that. If by chance anyone ever does 5 digits, this
-            // will still work.
-            string paddedHealth = health.PadRight(4, '0');
-            x += hud.MeasureText(paddedHealth, LargeHudFont, m_fontHeight).Width;
+            // This is to make sure the face never moves (even if the health changes).
+            x += hud.MeasureText("9999", LargeHudFont, m_fontHeight).Width;
 
             DrawFace(hud, (x, y), Align.BottomLeft, true);
             
