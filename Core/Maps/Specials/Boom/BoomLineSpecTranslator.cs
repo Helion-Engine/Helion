@@ -311,7 +311,7 @@ namespace Helion.Maps.Specials.Boom
 
         private static int GetStairHeight(ushort special)
         {
-            return ((special & StairStepShift) >> StairStepMask) switch
+            return ((special & StairStepMask) >> StairStepShift) switch
             {
                 0 => 4,
                 1 => 8,
