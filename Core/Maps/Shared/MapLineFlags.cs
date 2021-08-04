@@ -13,7 +13,7 @@ namespace Helion.Maps.Shared
         public const ushort BlockSoundMask = 0x0040;
         public const ushort NoDrawAutomapMask = 0x0080;
         public const ushort AlwaysDrawAutomapMask = 0x0100;
-        public const ushort PassUseMask = 0x0200;
+        public const ushort UseThroughMask = 0x0200;
         public const ushort RepeatSpecialMask = 0x0200;
         public const ushort BlockPlayersMask = 0x4000;
         public const ushort BlockEverythingMask = 0x8000;
@@ -26,7 +26,7 @@ namespace Helion.Maps.Shared
         public bool BlockSound;
         public bool NoDrawAutomap;
         public bool AlwaysDrawAutomap;
-        public bool PassUse;
+        public bool UseThrough;
         public bool RepeatSpecial;
         public bool BlockPlayers;
         public bool BlockEverything;
@@ -49,7 +49,7 @@ namespace Helion.Maps.Shared
         {
             return new MapLineFlags(flags)
             {
-                PassUse = (flags & PassUseMask) == PassUseMask,
+                UseThrough = (flags & UseThroughMask) == UseThroughMask,
             };
         }
         
