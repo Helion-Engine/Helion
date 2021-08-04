@@ -24,7 +24,7 @@ namespace Helion.Maps.Specials.Vanilla
             }
 
             if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
-                return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility);
+                return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
 
             lineFlags.ActivationType = GetSpecialActivationType(type);
             lineFlags.Repeat = GetRepeat(type);
