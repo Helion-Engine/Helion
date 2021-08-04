@@ -78,7 +78,6 @@ namespace Helion.World.Geometry.Sectors
 
         public SectorMoveSpecial? ActiveFloorMove;
         public SectorMoveSpecial? ActiveCeilingMove;
-        public ISectorSpecial? ActiveLightSpecial;
         
         /// <summary>
         /// The special sector type.
