@@ -25,7 +25,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     public class GLHudRenderer : IHudRenderContext
     {
         private readonly GLRenderer m_renderer;
-        private readonly IGLTextureManager m_glTextureManager;
+        private readonly GLTextureManager m_glTextureManager;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_pointPrimitivePipeline;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_linePrimitivePipeline;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_trianglePrimitivePipeline;
@@ -40,7 +40,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         public Dimension WindowDimension => m_renderer.Window.Dimension;
         public IRendererTextureManager Textures => m_glTextureManager;
 
-        public GLHudRenderer(GLRenderer renderer, IGLTextureManager glTextureManager)
+        public GLHudRenderer(GLRenderer renderer, GLTextureManager glTextureManager)
         {
             m_renderer = renderer;
             m_glTextureManager = glTextureManager;

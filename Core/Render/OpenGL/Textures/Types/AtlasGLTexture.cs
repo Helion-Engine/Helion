@@ -1,14 +1,13 @@
-﻿using Helion.Geometry;
+﻿using System;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
-using Helion.Render.OpenGL.Capabilities;
-using Helion.Util.Atlas;
-using System;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.OpenGL.Textures.Types;
+using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Util;
+using Helion.Util.Atlas;
 
-namespace Helion.Render.OpenGL.Textures.Legacy
+namespace Helion.Render.OpenGL.Textures.Types
 {
     public class AtlasGLTexture : GLTexture2D
     {

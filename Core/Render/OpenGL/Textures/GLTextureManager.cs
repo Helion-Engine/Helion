@@ -14,9 +14,9 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Textures.Legacy
+namespace Helion.Render.OpenGL.Textures
 {
-    public class GLLegacyTextureManager : IGLTextureManager
+    public class GLTextureManager : IRendererTextureManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -30,7 +30,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
         private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
-        public GLLegacyTextureManager(IResources resources)
+        public GLTextureManager(IResources resources)
         {
             m_resources = resources;
 
@@ -38,7 +38,7 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             NullFont = AddNullFontTexture();
         }
 
-        ~GLLegacyTextureManager()
+        ~GLTextureManager()
         {
             FailedToDispose(this);
             PerformDispose();
@@ -116,13 +116,33 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             handle = texture;
             return ReferenceEquals(texture, NullHandle);
         }
-
+        
+        /// <summary>
+        /// Gets a texture with a name and priority namespace. If it cannot
+        /// find one in the priority namespace, it will search others. If none
+        /// can be found, the <see cref="NullHandle"/> is returned. If data is
+        /// found for some existing texture in the resource texture manager, it
+        /// will upload the texture data.
+        /// </summary>
+        /// <param name="name">The texture name, case insensitive.</param>
+        /// <param name="priority">The first namespace to look at.</param>
+        /// <returns>The texture handle, or the <see cref="NullHandle"/> if it
+        /// cannot be found.</returns>
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
             Texture texture = m_resources.Textures.GetTexture(name, priority);
             return Get(texture, priority);
         }
 
+        /// <summary>
+        /// Looks up or creates a texture from an existing resource texture.
+        /// </summary>
+        /// <param name="texture">The texture to look up (or upload).</param>
+        /// <param name="priority">The priority namespace to look up, or null
+        /// if it does not matter. This is used in caching results, if our
+        /// lookup fails and we pull from somewhere else. It is likely the
+        /// case that the same call will be made again.</param>
+        /// <returns>A texture handle.</returns>
         public GLTextureHandle Get(Texture texture, ResourceNamespace? priority = null)
         {
             if (texture.Image == null)
@@ -147,7 +167,15 @@ namespace Helion.Render.OpenGL.Textures.Legacy
             Log.Warn("Unable to allocate space for texture {Name} ({Dimension}, {Namespace})", texture.Name, image.Dimension, image.Namespace);
             return NullHandle;
         }
-
+        
+        /// <summary>
+        /// Gets a font, or uploads it if it finds one and it has not been
+        /// uploaded yet. If none can be found, the <see cref="NullFont"/> is
+        /// returned.
+        /// </summary>
+        /// <param name="name">The font name, case insensitive.</param>
+        /// <returns>The font handle, or <see cref="NullFont"/> if no font
+        /// resource can be found.</returns>
         public GLFontTexture GetFont(string name)
         {
             if (m_fontTextures.TryGetValue(name, out GLFontTexture? fontTexture))
