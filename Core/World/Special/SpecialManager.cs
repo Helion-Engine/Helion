@@ -96,8 +96,7 @@ namespace Helion.World.Special
             var special = args.ActivateLineSpecial.Special;
             bool specialActivateSuccess;
 
-            if (special.IsSectorMoveSpecial() || special.IsSectorLightSpecial() || special.IsSectorStopMoveSpecial() || 
-                special.IsSectorStopLightSpecial() || special.IsSectorTriggerSpecial())
+            if (special.IsSectorSpecial())
                 specialActivateSuccess = HandleSectorLineSpecial(args, special);
             else
                 specialActivateSuccess = HandleDefault(args, special, m_world);
@@ -650,34 +649,30 @@ namespace Helion.World.Special
             var lineSpecial = args.ActivateLineSpecial.Special;
             foreach (var sector in sectors)
             {
-                if (lineSpecial.IsSectorStopLightSpecial())
+                if (lineSpecial.IsSectorStopLight())
                 {
                     if (StopSectorLightSpecials(sector))
                         success = true;
                 }
-                else if (lineSpecial.IsSectorStopMoveSpecial() && sector.IsMoving)
+                else if (lineSpecial.IsSectorStopMove() && sector.IsMoving)
                 {
                     if (StopSectorMoveSpecials(lineSpecial, sector))
                         success = true;
                 }
-                else if (sector.GetActiveMoveSpecial() is SectorMoveSpecial sectorMoveSpecial && args.ActivationContext == ActivationContext.UseLine &&
-                    args.ActivateLineSpecial.SectorTag == 0 && lineSpecial.CanActivateDuringSectorMovement())
+                else if (CheckUseActiveMoveSpecial(args, special, sector))
                 {
-                    if (sectorMoveSpecial.Use(args.Entity))
-                        success = true;
+                    success = true;
                 }
-                else if (lineSpecial.IsSectorMoveSpecial() || lineSpecial.IsSectorLightSpecial())
+                else if (lineSpecial.IsSectorMove() || lineSpecial.IsSectorLight())
                 {
-                    if (lineSpecial.IsSectorMoveSpecial() && sector.GetActiveMoveSpecial() is SectorMoveSpecial sectorMoveSpecial2)
+                    if (ResumeActiveMoveSpecial(lineSpecial, sector))
                     {
-                        if (lineSpecial.CanPause() && sectorMoveSpecial2.IsPaused)
-                        {
-                            success = true;
-                            sectorMoveSpecial2.Resume();
-                        }
-                        
+                        success = true;
                         continue;
                     }
+
+                    if (!CanActivateSectorSpecial(special, sector))
+                        continue;
 
                     if (!sector.DataChanges.HasFlag(SectorDataTypes.MovementLocked) && CreateSectorSpecial(args, special, sector))
                         success = true;
@@ -688,6 +683,58 @@ namespace Helion.World.Special
                         success = true;
                 }
             }
+
+            return success;
+        }
+
+        private bool CanActivateSectorSpecial(LineSpecial special, Sector sector)
+        {
+            if (m_world.Config.Compatibility.VanillaSectorPhysics)
+                return !sector.IsMoving;
+
+            if (sector.ActiveCeilingMove != null && special.IsCeilingMove())
+                return false;
+
+            if (sector.ActiveFloorMove != null && special.IsFloorMove())
+                return false;
+
+            return true;
+        }
+
+        private static bool ResumeActiveMoveSpecial(LineSpecial lineSpecial, Sector sector)
+        {
+            // TODO missing a check?
+            if (!lineSpecial.IsSectorMove() || !lineSpecial.CanPause())
+                return false;
+
+            bool success = false;
+            if (sector.ActiveCeilingMove != null && sector.ActiveCeilingMove.IsPaused)
+            {
+                sector.ActiveCeilingMove.Resume();
+                success = true;
+            }
+            if (sector.ActiveFloorMove != null && sector.ActiveFloorMove.IsPaused)
+            {
+                sector.ActiveFloorMove.Resume();
+                success = true;
+            }
+
+            return success;
+        }
+
+        private static bool CheckUseActiveMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial lineSpecial, Sector sector)
+        {
+            if (args.ActivationContext != ActivationContext.UseLine || args.ActivateLineSpecial.SectorTag == 0)
+                return false;
+
+            if (!lineSpecial.CanActivateDuringSectorMovement())
+                return false;
+
+            bool success = false;
+            if (sector.ActiveCeilingMove != null && sector.ActiveCeilingMove.Use(args.Entity))
+                success = true;
+            if (sector.ActiveFloorMove != null && sector.ActiveFloorMove.Use(args.Entity))
+                success = true;
 
             return success;
         }

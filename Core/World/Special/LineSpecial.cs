@@ -24,9 +24,11 @@ namespace Helion.World.Special
         public readonly LineSpecialCompatibility LineSpecialCompatibility;
         public bool Active { get; set; }
         private readonly bool m_moveSpecial;
-        private readonly bool m_sectorStopMoveSpecial;
+        private readonly bool m_sectorStopMove;
         private readonly bool m_lightSpecial;
-        private readonly bool m_sectorTriggerSpecial;
+        private readonly bool m_sectorTrigger;
+        private readonly bool m_floorMove;
+        private readonly bool m_ceilingMove;
         private readonly LineActivationType m_lineActivationType;
 
         public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, null)
@@ -44,9 +46,11 @@ namespace Helion.World.Special
 
             m_lineActivationType = lineActivationType;
             m_moveSpecial = SetMoveSpecial();
-            m_sectorStopMoveSpecial = SetSectorStopSpecial();
+            m_sectorStopMove = SetSectorStopSpecial();
             m_lightSpecial = SetLightSpecial();
-            m_sectorTriggerSpecial = SetSectorTriggerSpecial();
+            m_sectorTrigger = SetSectorTriggerSpecial();
+            m_floorMove = SetFloorMove();
+            m_ceilingMove = SetCeilingMove();
         }
 
         public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
@@ -177,11 +181,15 @@ namespace Helion.World.Special
             }
         }
 
-        public bool IsSectorMoveSpecial() => m_moveSpecial;
-        public bool IsSectorStopMoveSpecial() => m_sectorStopMoveSpecial;
-        public bool IsSectorLightSpecial() => m_lightSpecial;
-        public bool IsSectorStopLightSpecial() => LineSpecialType == ZDoomLineSpecialType.LightStop;
-        public bool IsSectorTriggerSpecial() => m_sectorTriggerSpecial;
+        public bool IsSectorMove() => m_moveSpecial;
+        public bool IsFloorMove() => m_floorMove;
+        public bool IsCeilingMove() => m_ceilingMove;
+        public bool IsSectorStopMove() => m_sectorStopMove;
+        public bool IsSectorLight() => m_lightSpecial;
+        public bool IsSectorStopLight() => LineSpecialType == ZDoomLineSpecialType.LightStop;
+        public bool IsSectorTrigger() => m_sectorTrigger;
+        public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
+            IsSectorStopLight() || IsSectorTrigger();
 
         public bool CanActivateDuringSectorMovement()
         {
@@ -323,6 +331,105 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.PlatUpValueStayTx:
                 case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
                 case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.ElevatorRaiseToNearest:
+                case ZDoomLineSpecialType.ElevatorLowerToNearest:
+                case ZDoomLineSpecialType.ElevatorMoveToFloor:
+                    return true;
+
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private bool SetFloorMove()
+        {
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.FloorLowerByValue:
+                case ZDoomLineSpecialType.FloorLowerToLowest:
+                case ZDoomLineSpecialType.FloorLowerToNearest:
+                case ZDoomLineSpecialType.FloorRaiseByValue:
+                case ZDoomLineSpecialType.FloorRaiseToHighest:
+                case ZDoomLineSpecialType.FloorRaiseToNearest:
+                case ZDoomLineSpecialType.BuildStairsDown:
+                case ZDoomLineSpecialType.BuildStairsUp:
+                case ZDoomLineSpecialType.FloorRaiseCrush:
+                case ZDoomLineSpecialType.PillarRaiseFloorToCeiling:
+                case ZDoomLineSpecialType.PillarRaiseFlorAndLowerCeiling:
+                case ZDoomLineSpecialType.BuildStairsDownSync:
+                case ZDoomLineSpecialType.BuildStairsUpSync:
+                case ZDoomLineSpecialType.FloorRaiseByValueTimes8:
+                case ZDoomLineSpecialType.FloorLowerByValueTimes8:
+                case ZDoomLineSpecialType.LiftPerpetual:
+                case ZDoomLineSpecialType.LiftDownWaitUpStay:
+                case ZDoomLineSpecialType.LiftDownValueTimes8:
+                case ZDoomLineSpecialType.LiftUpWaitDownStay:
+                case ZDoomLineSpecialType.PlatUpByValue:
+                case ZDoomLineSpecialType.FloorLowerNow:
+                case ZDoomLineSpecialType.FloorRaiseNow:
+                case ZDoomLineSpecialType.FloorMoveToValueTimes8:
+                case ZDoomLineSpecialType.PillarBuildCrush:
+                case ZDoomLineSpecialType.FloorAndCeilingLowerByValue:
+                case ZDoomLineSpecialType.FloorAndCeilingRaiseByValue:
+                case ZDoomLineSpecialType.FloorLowerToHighest:
+                case ZDoomLineSpecialType.FloorRaiseToLowestCeiling:
+                case ZDoomLineSpecialType.FloorLowerToLowestTxTy:
+                case ZDoomLineSpecialType.FloorRaiseToLowest:
+                case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
+                case ZDoomLineSpecialType.FloorRaiseByTexture:
+                case ZDoomLineSpecialType.FloorDonut:
+                case ZDoomLineSpecialType.FloorAndCeilingLowerRaise:
+                case ZDoomLineSpecialType.PlatPerpetualRaiseLip:
+                case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
+                case ZDoomLineSpecialType.StairsBuildUpDoom:
+                case ZDoomLineSpecialType.StairsBuildUpDoomCrush:
+                case ZDoomLineSpecialType.PlatRaiseAndStay:
+                case ZDoomLineSpecialType.GenericFloor:
+                case ZDoomLineSpecialType.GenericLift:
+                case ZDoomLineSpecialType.StairsGeneric:
+                case ZDoomLineSpecialType.PlatUpValueStayTx:
+                case ZDoomLineSpecialType.PlatToggleCeiling:
+                case ZDoomLineSpecialType.ElevatorRaiseToNearest:
+                case ZDoomLineSpecialType.ElevatorLowerToNearest:
+                case ZDoomLineSpecialType.ElevatorMoveToFloor:
+                    return true;
+
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private bool SetCeilingMove()
+        {
+            switch (LineSpecialType)
+            {
+                case ZDoomLineSpecialType.CeilingLowerByValue:
+                case ZDoomLineSpecialType.CeilingRaiseByValue:
+                case ZDoomLineSpecialType.CeilingCrushRaiseAndLower:
+                case ZDoomLineSpecialType.CeilingCrushStayDown:
+                case ZDoomLineSpecialType.CeilingCrushRaiseStay:
+                case ZDoomLineSpecialType.CeilingMoveToValueTimes8:
+                case ZDoomLineSpecialType.DoorClose:
+                case ZDoomLineSpecialType.DoorOpenStay:
+                case ZDoomLineSpecialType.DoorOpenClose:
+                case ZDoomLineSpecialType.DoorCloseWaitOpen:
+                case ZDoomLineSpecialType.FloorAndCeilingLowerRaise:
+                case ZDoomLineSpecialType.CeilingRaiseToNearest:
+                case ZDoomLineSpecialType.CeilingLowerToLowest:
+                case ZDoomLineSpecialType.CeilingLowerToFloor:
+                case ZDoomLineSpecialType.CeilingCrushRaiseStaySilent:
+                case ZDoomLineSpecialType.DoorLockedRaise:
+                case ZDoomLineSpecialType.CeilingCrushAndRaiseDist:
+                case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
+                case ZDoomLineSpecialType.CeilingRaiseToHighest:
+                case ZDoomLineSpecialType.DoorWaitClose:
+                case ZDoomLineSpecialType.DoorGeneric:
+                case ZDoomLineSpecialType.GenericCeiling:
+                case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
                 case ZDoomLineSpecialType.ElevatorRaiseToNearest:
                 case ZDoomLineSpecialType.ElevatorLowerToNearest:
                 case ZDoomLineSpecialType.ElevatorMoveToFloor:

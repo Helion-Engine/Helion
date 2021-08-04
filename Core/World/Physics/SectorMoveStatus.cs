@@ -5,5 +5,6 @@
         Blocked,
         Success,
         Crush,
+        BlockedAndStop
     }
 }

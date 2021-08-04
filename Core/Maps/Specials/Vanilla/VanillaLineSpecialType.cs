@@ -221,9 +221,7 @@ namespace Helion.Maps.Specials.Vanilla
         ScrollAccelTaggedFloorFirstSide,
         ScrollAccelObjectsTaggedFloorFirstSide,
         ScrollAccelObjectsFloorFirstSide,
-        // TODO
         ScrollAccellTaggedWallFirstSide,
-        // END TODO
         W1_LowerFloorToNearest,
         WR_LowerFloorToNearest,
         S1_LowerFloorToNearest,
@@ -259,9 +257,7 @@ namespace Helion.Maps.Specials.Vanilla
         ScrollTaggedFloorFirstSide,
         PushObjectsTaggedFloorFirstSide,
         PushObjectsAndFloorTaggedFirstSide,
-        // TODO
         ScrollTaggedWallFirstSide,
-        // END TODO
         ScrollTaggedCeiling,
         ScrollTaggedFloor,
         CarryObjectsTaggedFloor,

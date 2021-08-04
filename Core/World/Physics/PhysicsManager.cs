@@ -101,16 +101,25 @@ namespace Helion.World.Physics
         public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
             double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
         {
+            double startZ = sectorPlane.Z;
+            if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ))
+                return SectorMoveStatus.BlockedAndStop;
+
             // Save the Z value because we are only checking if the dest is valid
             // If the move is invalid because of a blocking entity then it will not be set to destZ
             List<Entity> crushEntities = new List<Entity>();
             Entity? highestBlockEntity = null;
             double? highestBlockHeight = 0.0;
             SectorMoveStatus status = SectorMoveStatus.Success;
-            double startZ = sectorPlane.Z;
             sectorPlane.PrevZ = startZ;
             sectorPlane.Z = destZ;
             sectorPlane.Plane.MoveZ(destZ - startZ);
+
+            if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ))
+            {
+                FixPlaneClip(sector, sectorPlane, moveType);
+                status = SectorMoveStatus.BlockedAndStop;
+            }
 
             // Move lower entities first to handle stacked entities
             // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
@@ -235,6 +244,31 @@ namespace Helion.World.Physics
                 CrushEntities(crushEntities, sector, crush);
 
             return status;
+        }
+
+        private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneType moveType, double startZ, double destZ)
+        {
+            if (moveType == SectorPlaneType.Floor && destZ < startZ)
+                return false;
+
+            if (moveType == SectorPlaneType.Ceiling && destZ > startZ)
+                return false;
+
+            return sector.Ceiling.Z < sector.Floor.Z;
+        }
+
+        private static void FixPlaneClip(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType)
+        {
+            if (moveType == SectorPlaneType.Floor)
+            {
+                sectorPlane.Plane.MoveZ(sectorPlane.Z - sector.Ceiling.Z);
+                sectorPlane.Z = sector.Ceiling.Z;
+            }
+            else
+            {
+                sectorPlane.Plane.MoveZ(sector.Floor.Z - sectorPlane.Z);
+                sectorPlane.Z = sector.Floor.Z;
+            }
         }
 
         private static bool SpeedShouldStickToFloor(double speed) =>

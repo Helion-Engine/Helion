@@ -76,8 +76,8 @@ namespace Helion.World.Geometry.Sectors
         /// </summary>
         public TransferHeights? TransferHeights;
 
-        public ISectorSpecial? ActiveFloorMove;
-        public ISectorSpecial? ActiveCeilingMove;
+        public SectorMoveSpecial? ActiveFloorMove;
+        public SectorMoveSpecial? ActiveCeilingMove;
         
         /// <summary>
         /// The special sector type.
@@ -237,18 +237,6 @@ namespace Helion.World.Geometry.Sectors
             return ActiveCeilingMove;
         }
 
-        /// <summary>
-        /// The currently active move special, or null if there's no active
-        /// movement happening on this sector.
-        /// </summary>
-        public ISectorSpecial? GetActiveMoveSpecial()
-        {
-            if (ActiveFloorMove == null)
-                return ActiveCeilingMove;
-
-            return ActiveFloorMove;
-        }
-
         public void ClearActiveMoveSpecial()
         {
             ActiveFloorMove = null;
@@ -263,7 +251,7 @@ namespace Helion.World.Geometry.Sectors
                 ActiveCeilingMove = null;
         }
 
-        public void SetActiveMoveSpecial(SectorPlaneType planeType, ISectorSpecial? special)
+        public void SetActiveMoveSpecial(SectorPlaneType planeType, SectorMoveSpecial? special)
         {
             if (planeType == SectorPlaneType.Floor)
                 ActiveFloorMove = special;
