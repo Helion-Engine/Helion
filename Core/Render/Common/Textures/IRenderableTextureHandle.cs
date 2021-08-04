@@ -28,10 +28,6 @@ namespace Helion.Render.Common.Textures
         /// <see cref="Area"/>'s location in the image. The numbers will be
         /// specific the renderer that implements it.
         /// </summary>
-        /// <remarks>
-        /// This means that for Vulkan, it will use the top left corner as (0, 0).
-        /// However for OpenGL, that means the bottom left corner will be (0, 0).
-        /// </remarks>
         Box2F UV { get; }
 
         /// <summary>
