@@ -20,5 +20,6 @@ namespace Helion.Maps.Specials.Vanilla
         Unused2,
         DamageFloor10_20,
         LightFlicker,
+        Max,
     }
 }

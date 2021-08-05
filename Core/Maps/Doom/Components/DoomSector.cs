@@ -1,5 +1,4 @@
 using Helion.Maps.Components;
-using Helion.Maps.Doom.Components.Types;
 using Helion.World.Special.Specials;
 
 namespace Helion.Maps.Doom.Components
@@ -13,11 +12,11 @@ namespace Helion.Maps.Doom.Components
         public string CeilingTexture { get; }
         public short LightLevel { get; }
         public ushort Tag { get; }
-        public readonly DoomSectorType SectorType;
+        public readonly int SectorType;
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
         internal DoomSector(int id, short floorZ, short ceilingZ, string floorTexture, string ceilingTexture, 
-            short lightLevel, DoomSectorType sectorType, ushort tag)
+            short lightLevel, int sectorType, ushort tag)
         {
             Id = id;
             FloorZ = floorZ;

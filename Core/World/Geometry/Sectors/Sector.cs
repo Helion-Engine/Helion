@@ -15,6 +15,7 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
+using Helion.Maps.Specials;
 
 namespace Helion.World.Geometry.Sectors
 {
@@ -82,7 +83,9 @@ namespace Helion.World.Geometry.Sectors
         /// <summary>
         /// The special sector type.
         /// </summary>
-        public ZDoomSectorSpecialType SectorSpecialType;
+        public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
+        public bool Secret { get; private set; }
+        public int DamageAmount { get; private set; }
         
         public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
         public bool Has3DFloors => !Floors3D.Empty();
@@ -95,7 +98,7 @@ namespace Helion.World.Geometry.Sectors
         public Entity? SoundTarget;
 
         public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
-            ZDoomSectorSpecialType sectorSpecial)
+            ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
         {
             Id = id;
             Tag = tag;
@@ -103,6 +106,8 @@ namespace Helion.World.Geometry.Sectors
             Floor = floor;
             Ceiling = ceiling;
             SectorSpecialType = sectorSpecial;
+            Secret = sectorData.Secret;
+            DamageAmount = sectorData.DamageAmount;
 
             floor.Sector = this;
             ceiling.Sector = this;
@@ -112,6 +117,12 @@ namespace Helion.World.Geometry.Sectors
         {
             SectorSpecialType = type;
             DataChanges |= SectorDataTypes.SectorSpecialType;
+        }
+
+        public void SetSecret(bool set)
+        {
+            Secret = set;
+            DataChanges |= SectorDataTypes.Secret;
         }
 
         public void PlaneTextureChange(SectorPlane sectorPlane)
@@ -130,6 +141,8 @@ namespace Helion.World.Geometry.Sectors
                 SoundValidationCount = SoundValidationCount,
                 SoundBlock = SoundBlock,
                 SoundTarget = SoundTarget?.Id,
+                Secret = Secret,
+                SectorSpecialType = (int)SectorSpecialType,
                 SectorDataChanges = (int)DataChanges
             };
 
@@ -147,6 +160,9 @@ namespace Helion.World.Geometry.Sectors
                     sectorModel.CeilingTexture = Ceiling.TextureHandle;
                 if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType))
                     sectorModel.SectorSpecialType = (int)SectorSpecialType;
+
+                sectorModel.Secret = Secret;
+                sectorModel.DamageAmount = DamageAmount;
             }
 
             return sectorModel;
@@ -190,6 +206,9 @@ namespace Helion.World.Geometry.Sectors
 
                 if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
                     SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
+
+                Secret = sectorModel.Secret;
+                DamageAmount = sectorModel.DamageAmount;
             }
         }
         

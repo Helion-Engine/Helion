@@ -433,10 +433,10 @@ namespace Helion.World.Special
             foreach (var line in lines)
                 HandleLineInitSpecial(line);
 
-            var sectors = m_world.Sectors.Where(sec => sec.SectorSpecialType != ZDoomSectorSpecialType.None);
-            foreach (var sector in sectors)
+            for (int i = 0; i < m_world.Sectors.Count; i++)
             {
-                if (sector.SectorSpecialType == ZDoomSectorSpecialType.Secret)
+                Sector sector = m_world.Sectors[i];
+                if (sector.Secret)
                     levelStats.TotalSecrets++;
                 HandleSectorSpecial(sector);
             }
@@ -591,6 +591,9 @@ namespace Helion.World.Special
                     sector.SectorDamageSpecial = new SectorDamageEndSpecial(m_world, sector, GetDamageAmount(sector.SectorSpecialType));
                     break;
             }
+
+            if (sector.DamageAmount > 0)
+                sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount);
         }
 
         private static int GetDamageAmount(ZDoomSectorSpecialType type)

@@ -23,7 +23,7 @@ namespace Helion.World.Geometry.Builder
     public static class HexenGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
         public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder)
         {
             GeometryBuilder builder = new GeometryBuilder();
@@ -67,15 +67,16 @@ namespace Helion.World.Geometry.Builder
         
         private static void PopulateSectorData(HexenMap map, GeometryBuilder builder)
         {
+            SectorData sectorData = new();
             foreach (DoomSector doomSector in map.Sectors)
             {
                 SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
-                // TODO: Is this right?
-                ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)doomSector.SectorType;
+                ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(doomSector.SectorType, SectorDataType.ZDoom);
+                SectorSpecialData.SetSectorData(doomSector.SectorType, sectorData, SectorDataType.ZDoom);
 
                 Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
-                    floorPlane, ceilingPlane, sectorSpecial);
+                    floorPlane, ceilingPlane, sectorSpecial, sectorData);
                 builder.Sectors.Add(sector);
             }
         }

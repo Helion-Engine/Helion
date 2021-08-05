@@ -7,7 +7,6 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom.Components;
-using Helion.Maps.Doom.Components.Types;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Resources.Archives;
@@ -146,8 +145,7 @@ namespace Helion.Maps.Doom
                 ushort special = reader.ReadUInt16();
                 ushort tag = reader.ReadUInt16();
 
-                DoomSectorType sectorType = (DoomSectorType)special;
-                DoomSector sector = new DoomSector(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, sectorType, tag);
+                DoomSector sector = new DoomSector(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, special, tag);
                 sectors[id] = sector;
             }
 

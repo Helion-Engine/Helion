@@ -253,6 +253,7 @@ namespace Helion.World.Special
             {
                 case ZDoomLineSpecialType.Teleport:
                 case ZDoomLineSpecialType.TeleportNoFog:
+                case ZDoomLineSpecialType.TeleportLine:
                     return true;
 
                 default:
