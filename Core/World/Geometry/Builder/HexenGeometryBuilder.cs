@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Bsp;
 using Helion.Geometry.Segments;
@@ -23,7 +24,14 @@ namespace Helion.World.Geometry.Builder
     public static class HexenGeometryBuilder
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
+        private const int SectorTypeMask = 0x6F;
+        private const int SectorDamageMask = 0x300;
+        private const int SectorDamageShift = 8;
+        private const int SecretFlag = 0x400;
+        private const int IceFlag = 0x800;
+        private const int WindFlag = 0x1000;
+
         public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder)
         {
             GeometryBuilder builder = new GeometryBuilder();
@@ -67,17 +75,42 @@ namespace Helion.World.Geometry.Builder
         
         private static void PopulateSectorData(HexenMap map, GeometryBuilder builder)
         {
+            SectorData sectorData = new();
             foreach (DoomSector doomSector in map.Sectors)
             {
                 SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
-                // TODO: Is this right?
-                ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)doomSector.SectorType;
+                ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)(doomSector.SectorType & SectorTypeMask);
+                sectorData.Secret = sectorSpecial == ZDoomSectorSpecialType.Secret || (doomSector.SectorType & SecretFlag) != 0;
+                sectorData.DamageAmount = GetDamageAmount(doomSector.SectorType);
+                sectorData.SectorEffect = GetSectorEffect(doomSector.SectorType);
 
                 Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
-                    floorPlane, ceilingPlane, sectorSpecial);
+                    floorPlane, ceilingPlane, sectorSpecial, sectorData);
                 builder.Sectors.Add(sector);
             }
+        }
+
+        private static int GetDamageAmount(int sectorType)
+        {
+            return ((sectorType & SectorDamageMask) >> SectorDamageShift) switch
+            {
+                1 => 5,
+                2 => 10,
+                3 => 20,
+                _ => 0,
+            };
+        }
+
+        private static SectorEffect GetSectorEffect(int sectorType)
+        {
+            SectorEffect sectorEffect = SectorEffect.None;
+            if ((sectorType & IceFlag) != 0)
+                sectorEffect |= SectorEffect.Ice;
+            if ((sectorType & WindFlag) != 0)
+                sectorEffect |= SectorEffect.Wind;
+
+            return sectorEffect;
         }
 
         private static TwoSided CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)

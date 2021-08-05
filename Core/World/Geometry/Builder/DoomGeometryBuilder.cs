@@ -61,14 +61,15 @@ namespace Helion.World.Geometry.Builder
         
         private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
         {
+            SectorData sectorData = new();
             foreach (DoomSector doomSector in map.Sectors)
             {
                 SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
-                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate((VanillaSectorSpecialType)doomSector.SectorType);
+                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, ref sectorData);
 
                 Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
-                    floorPlane, ceilingPlane, sectorSpecial);
+                    floorPlane, ceilingPlane, sectorSpecial, sectorData);
                 builder.Sectors.Add(sector);
             }
         }
