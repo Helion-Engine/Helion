@@ -2,6 +2,7 @@
 using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Shaders;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 

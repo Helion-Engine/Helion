@@ -6,7 +6,8 @@ using Helion.Util.Extensions;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using Helion.Graphics;
+using System.Drawing;
+using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.OpenGL.Textures.Types
 {
@@ -137,6 +138,21 @@ namespace Helion.Render.OpenGL.Textures.Types
                 Log.Trace("Generating mipmaps for {Type} {DebugName}", nameof(GLTexture2D), DebugName);
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             });
+        }
+
+        public Bitmap DownloadPixels()
+        {
+            Bitmap bitmap = new(Dimension.Width, Dimension.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            BindAnd(() =>
+            {
+                bitmap.WithLockedBits(data =>
+                {
+                    GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Bgra, PixelType.Byte, data);
+                }); 
+            });
+            
+            return bitmap;
         }
     }
 }

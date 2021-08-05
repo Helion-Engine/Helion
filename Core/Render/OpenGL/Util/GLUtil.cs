@@ -1,4 +1,6 @@
-﻿using Helion.Render.OpenGL.Capabilities;
+﻿using System;
+using System.Diagnostics;
+using Helion.Render.OpenGL.Capabilities;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Util
@@ -7,6 +9,14 @@ namespace Helion.Render.OpenGL.Util
     {
         public const int GLTrue = 1;
 
+        [Conditional("DEBUG")]
+        public static void ThrowIfGLError(string suffix = "")
+        {
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+                throw new Exception($"OpenGL error detected ({error}) {suffix}");
+        }
+        
         /// <summary>
         /// Attaches a label if the OpenGL version supports it.
         /// </summary>

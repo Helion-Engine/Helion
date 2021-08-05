@@ -14,6 +14,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -244,7 +245,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
             GLTextureHandle handle = m_textureManager.Get(texture, resourceNamespace);
-            
+
             Vec2I topLeft = origin ?? Vec2I.Zero;
             if (area != null)
                 topLeft = area.Value.TopLeft;
@@ -267,9 +268,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
             ByteColor byteColor = new(color ?? Color.White);
             GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
-            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
-            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
-            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
+            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), (1.0f, 0.0f), byteColor, alpha);
+            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), (0.0f, 1.0f), byteColor, alpha);
+            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), (1.0f, 1.0f), byteColor, alpha);
             m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
             
             m_elementsDrawn++;

@@ -270,14 +270,19 @@ namespace Helion.Graphics
         /// <returns>The 8x8 image that represents a null or missing image.</returns>
         private static Image CreateNullImage()
         {
-            int dimension = 8;
-            int halfDimension = dimension / 2;
+            const int dimension = 8;
+            const int halfDimension = dimension / 2;
+            
             Bitmap bitmap = new(dimension, dimension, PixelFormat.Format32bppArgb);
 
+            for (int y = 0; y < dimension; y++)
+                for (int x = 0; x < dimension; x++)
+                    bitmap.SetPixel(x, y, Color.Black);
+            
             for (int y = 0; y < halfDimension; y++)
                 for (int x = 0; x < halfDimension; x++)
                     bitmap.SetPixel(x, y, Color.Red);
-
+            
             for (int y = halfDimension; y < dimension; y++)
                 for (int x = halfDimension; x < dimension; x++)
                     bitmap.SetPixel(x, y, Color.Red);

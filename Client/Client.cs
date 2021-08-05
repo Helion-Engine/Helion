@@ -100,6 +100,7 @@ namespace Helion.Client
         private void PerformRender()
         {
             m_layerManager.Render(m_window.Renderer);
+            m_window.Renderer.PerformThrowableErrorChecks();
         }
         
         private void HandleScreenshot()
