@@ -40,6 +40,7 @@ namespace Helion.World.Entities.Players
 
         public readonly int PlayerNumber;
         public double PitchRadians;
+        public double PrevAngle;
         public int DamageCount;
         public int BonusCount;
         public TickCommand TickCommand = new();
@@ -53,7 +54,6 @@ namespace Helion.World.Entities.Players
         private bool m_hasNewWeapon;
         private int m_jumpTics;
         private int m_deathTics;
-        private double m_prevAngle;
         private double m_prevPitch;
         private double m_viewHeight;
         private double m_viewZ;
@@ -107,7 +107,7 @@ namespace Helion.World.Entities.Players
             MoveLinked = true;
             Inventory = new Inventory(this, entityManager.DefinitionComposer);
 
-            m_prevAngle = AngleRadians;
+            PrevAngle = AngleRadians;
             m_viewHeight = definition.Properties.Player.ViewHeight;
             m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
 
@@ -159,7 +159,7 @@ namespace Helion.World.Entities.Players
             if (playerModel.Killer.HasValue)
                 entities.TryGetValue(playerModel.Killer.Value, out m_killer);
 
-            m_prevAngle = AngleRadians;
+            PrevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
             m_prevViewZ = m_viewZ;
 
@@ -337,7 +337,7 @@ namespace Helion.World.Entities.Players
         {
             m_viewHeight = Definition.Properties.Player.ViewHeight;
             m_prevViewZ = m_viewZ;
-            m_prevAngle = AngleRadians;
+            PrevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
             m_deltaViewHeight = 0;
             PrevWeaponOffset = WeaponOffset;
@@ -391,7 +391,7 @@ namespace Helion.World.Entities.Players
 
             if (m_interpolateAngle)
             {
-                double prev = MathHelper.GetPositiveAngle(m_prevAngle);
+                double prev = MathHelper.GetPositiveAngle(PrevAngle);
                 double current = MathHelper.GetPositiveAngle(AngleRadians);
                 double diff = Math.Abs(prev - current);
 
@@ -424,7 +424,7 @@ namespace Helion.World.Entities.Players
             AnimationWeapon?.Tick();
 
             m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead;
-            m_prevAngle = AngleRadians;
+            PrevAngle = AngleRadians;
             m_prevPitch = PitchRadians;
             m_prevViewZ = m_viewZ;
 

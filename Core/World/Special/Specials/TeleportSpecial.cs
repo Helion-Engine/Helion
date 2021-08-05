@@ -71,11 +71,11 @@ namespace Helion.World.Special.Specials
         public SpecialTickStatus Tick()
         {
             Entity entity = m_args.Entity;
-            if (!FindTeleportSpot(entity, out Vec3D pos, out double angle))
+            if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
                 return SpecialTickStatus.Destroy;
 
             Vec3D oldPosition = entity.Position;
-            if (Teleport(entity, pos, angle))
+            if (Teleport(entity, pos, angle, offsetZ))
             {
                 if ((m_fogFlags & TeleportFog.Source) != 0)
                     m_world.CreateTeleportFog(oldPosition + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
@@ -87,13 +87,17 @@ namespace Helion.World.Special.Specials
             return SpecialTickStatus.Destroy;
         }
 
-        private bool Teleport(Entity entity, in Vec3D pos, double teleportAngle)
+        private bool Teleport(Entity entity, Vec3D pos, double teleportAngle, double offsetZ)
         {
+            pos.Z += offsetZ;
             if (!CanTeleport(entity, pos))
                 return false;
 
+            double oldAngle = entity.AngleRadians;
+            Vec3D oldPos = entity.Position;
             entity.UnlinkFromWorld();
             entity.SetPosition(pos);
+            Player? player = entity as Player;
 
             if (m_type == TeleportType.Doom)
             {
@@ -101,23 +105,25 @@ namespace Helion.World.Special.Specials
                 entity.Velocity = Vec3D.Zero;
                 entity.AngleRadians = teleportAngle;
 
-                if (entity is Player player)
+                if (player != null)
                     player.PitchRadians = 0;
             }
             else if (m_type == TeleportType.BoomCompat || m_type == TeleportType.BoomFixed)
             {
-                double oldAngle = entity.AngleRadians;
+
                 Line sourceLine = m_args.ActivateLineSpecial;
-                if (m_type == TeleportType.BoomFixed)
+
+                // Only use these calculations for Teleporting to a sector with teleport thing. For line teleport using the angle given. 
+                if (m_lineId == Line.NoLineId)
                 {
-                    double sourceCrossAngle = sourceLine.StartPosition.Angle(sourceLine.EndPosition) + entity.AngleRadians;
-                    entity.AngleRadians = teleportAngle + sourceCrossAngle;
+                    if (m_type == TeleportType.BoomFixed)
+                        entity.AngleRadians = teleportAngle + entity.AngleRadians - sourceLine.StartPosition.Angle(sourceLine.EndPosition) - MathHelper.HalfPi;
+                    else
+                        entity.AngleRadians += sourceLine.StartPosition.Angle(sourceLine.EndPosition) - teleportAngle + MathHelper.HalfPi;
                 }
                 else
                 {
-                    Vec2D pt = sourceLine.EndPosition - sourceLine.StartPosition;
-                    teleportAngle = Vec2D.Zero.Angle(pt) - teleportAngle + MathHelper.HalfPi;
-                    entity.AngleRadians += teleportAngle;
+                    entity.AngleRadians = teleportAngle;
                 }
 
                 Vec2D velocity = entity.Velocity.XY.Rotate(entity.AngleRadians - oldAngle);
@@ -125,13 +131,45 @@ namespace Helion.World.Special.Specials
                 entity.Velocity.Y = velocity.Y;
             }
 
-            entity.ResetInterpolation();
+            m_world.Link(entity, true);
+            if (entity.Position.Z - entity.HighestFloorZ != offsetZ)
+                OffsetTeleportZ(entity, offsetZ);
+
+            if (m_lineId == Line.NoLineId)
+                entity.ResetInterpolation();
+            else if (player != null)
+                TranslateTeleportInterpolation(player, oldPos, oldAngle);
+
             entity.CheckOnGround();
-
-            m_world.Link(entity);
             m_world.TelefragBlockingEntities(entity);
-
             return true;
+        }
+
+        private void OffsetTeleportZ(Entity entity, double offsetZ)
+        {
+            // Carry over the offset from the floor to the new teleport position.
+            // This floor can be different thant he previous.
+            // E.g. player z is 32 above a floor height of 0.
+            // Teleport moves player to a floor height of 64 so player z should now be 96.
+            Vec3D pos;
+            entity.UnlinkFromWorld();
+            pos = entity.Position;
+            pos.Z = entity.HighestFloorZ + offsetZ;
+            entity.SetPosition(pos);
+            m_world.Link(entity, true);
+        }
+
+        private static void TranslateTeleportInterpolation(Player player, in Vec3D oldPos, double oldAngle)
+        {
+            // Teleport line needs to translate interpolation values so the teleport is as seamless as possible.
+            Vec2D diffPos2D = oldPos.XY - player.PrevPosition.XY;
+            diffPos2D = diffPos2D.Rotate(player.AngleRadians - oldAngle);
+            double diffAngle = oldAngle - player.PrevAngle;
+
+            player.PrevAngle = player.AngleRadians - diffAngle;
+            player.PrevPosition.X = player.Position.X - diffPos2D.X;
+            player.PrevPosition.Y = player.Position.Y - diffPos2D.Y;
+            player.PrevPosition.Z = player.Position.Z - (oldPos.Z - player.PrevPosition.Z);
         }
 
         private static bool CanTeleport(Entity teleportEntity, in Vec3D pos)
@@ -147,10 +185,11 @@ namespace Helion.World.Special.Specials
             return false;
         }
 
-        private bool FindTeleportSpot(Entity teleportEntity, out Vec3D pos, out double angle)
+        private bool FindTeleportSpot(Entity teleportEntity, out Vec3D pos, out double angle, out double offsetZ)
         {
             pos = Vec3D.Zero;
             angle = 0;
+            offsetZ = 0;
 
             if (m_tid == EntityManager.NoTid && m_tag == Sector.NoTag && m_lineId == Line.NoLineId)
                 return false;
@@ -163,14 +202,17 @@ namespace Helion.World.Special.Specials
                     if (line.Id == sourceLine.Id)
                         continue;
 
+                    angle = line.StartPosition.Angle(line.EndPosition) - sourceLine.StartPosition.Angle(sourceLine.EndPosition);
+                    if (!m_teleportLineReverse)
+                        angle += MathHelper.Pi;
+
+                    angle += teleportEntity.AngleRadians;
+
                     // Exit position is proportional to the position on the source teleport line
-                    // TODO these line exit angles aren't correct
                     double time = sourceLine.Segment.ToTime(teleportEntity.Position.XY);
                     Vec2D destLinePos = line.Segment.FromTime(1.0 - time);
-                    pos = destLinePos.To3D(GetTeleportLineZ(line, destLinePos));
-                    angle = line.Segment.End.Angle(line.Segment.Start);
-                    if (m_teleportLineReverse)
-                        angle += MathHelper.Pi;
+                    pos = destLinePos.To3D(GetTeleportLineZ(teleportEntity, line, destLinePos, out offsetZ));
+
                     return true;
                 }
             }
@@ -210,8 +252,11 @@ namespace Helion.World.Special.Specials
             return false;
         }
 
-        private static double GetTeleportLineZ(Line line, in Vec2D lineCenter)
+        private static double GetTeleportLineZ(Entity teleportEntity, Line line, in Vec2D lineCenter, out double offsetZ)
         {
+            // This may not be the correct Z position but get the most valid position available.
+            // Teleport will check once the entity is teleported that the new offset is equal to the current.
+            offsetZ = teleportEntity.Position.Z - teleportEntity.HighestFloorZ;
             if (line.Back == null)
                 return line.Front.Sector.ToFloorZ(lineCenter);
 

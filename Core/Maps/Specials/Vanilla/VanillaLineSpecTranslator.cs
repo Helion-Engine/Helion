@@ -47,7 +47,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_TeleportNoFog:
                 case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
                 case VanillaLineSpecialType.WR_MonsterTeportNoFog:
-                    argsToMutate.Arg1 = (int)TeleportType.BoomCompat;
+                    argsToMutate.Arg1 = (int)TeleportType.BoomFixed;
                     argsToMutate.Arg2 = tag;
                     argsToMutate.Arg3 = 1;
                     return ZDoomLineSpecialType.TeleportNoFog;

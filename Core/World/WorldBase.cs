@@ -240,11 +240,11 @@ namespace Helion.World
             }
         }
 
-        public void Link(Entity entity)
+        public void Link(Entity entity, bool clampToLinkedSectors = false)
         {
             Precondition(entity.SectorNodes.Empty() && entity.BlockmapNodes.Empty(), "Forgot to unlink entity before linking");
 
-            PhysicsManager.LinkToWorld(entity, null, false);
+            PhysicsManager.LinkToWorld(entity, null, clampToLinkedSectors);
         }
 
         public void Tick()
