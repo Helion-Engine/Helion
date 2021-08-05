@@ -6,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
+using Helion.Resources;
 
 namespace Helion.Render.Common.Renderers
 {
@@ -61,24 +62,26 @@ namespace Helion.Render.Common.Renderers
         void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
 
         void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
-            Align? both = null, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
+            Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
+            float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, origin, out _, window, anchor, both, color, scale, alpha);
+            Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
         
         void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
-            Align? both = null, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
+            Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
+            float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, area, out _, window, anchor, both, color, scale, alpha);
+            Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
         
         void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
-            float alpha = 1.0f);
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f);
         
         void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
-            float alpha = 1.0f);
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
         void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,

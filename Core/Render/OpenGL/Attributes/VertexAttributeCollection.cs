@@ -44,7 +44,7 @@ namespace Helion.Render.OpenGL.Attributes
             }
 
             if (mapping.Count > attributes.Count)
-                throw new Exception($"Missing {typeof(T).FullName} is missing required GL attribute mappings");
+                throw new Exception($"{typeof(T).FullName} is missing required GL attribute mappings");
             
             return new VertexAttributeCollection(attributes);
         }

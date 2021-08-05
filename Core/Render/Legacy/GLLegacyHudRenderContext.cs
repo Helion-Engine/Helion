@@ -13,6 +13,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.Legacy.Commands;
 using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Font = Helion.Graphics.Fonts.Font;
@@ -110,21 +111,22 @@ namespace Helion.Render.Legacy
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f, 
-            float alpha = 1.0f)
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global, 
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, out drawArea, area, null, window, anchor, both, color, scale, alpha);
+            Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
 
         public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
-            float alpha = 1.0f)
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, out drawArea, null, origin, window, anchor, both, color, scale, alpha);
+            Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
 
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
-            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, 
+            ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
             float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;

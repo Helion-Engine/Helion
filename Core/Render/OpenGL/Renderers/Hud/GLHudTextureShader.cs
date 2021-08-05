@@ -15,14 +15,21 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
                 attribute vec3 pos;
                 attribute vec2 uv;
+                attribute vec4 scaleRgba;
+                attribute float alpha;
 
                 varying vec2 uvFrag;
+                varying vec4 scaleRgbaFrag;
+                varying float alphaFrag;
 
                 uniform mat4 mvp;
 
                 void main() {    
                     gl_Position = mvp * vec4(pos.x, pos.y, pos.z, 1.0);
+
                     uvFrag = uv;
+                    scaleRgbaFrag = scaleRgba;
+                    alphaFrag = alpha;
                 }
             ";
         }
@@ -33,11 +40,14 @@ namespace Helion.Render.OpenGL.Renderers.Hud
                 #version 110
 
                 varying vec2 uvFrag;
+                varying vec4 scaleRgbaFrag;
+                varying float alphaFrag;
 
                 uniform sampler2D tex;
 
                 void main() {
-                    gl_FragColor = texture2D(tex, uvFrag);
+                    gl_FragColor = texture2D(tex, uvFrag) * scaleRgbaFrag;
+                    gl_FragColor.w *= alphaFrag;
                 }
             ";
         }

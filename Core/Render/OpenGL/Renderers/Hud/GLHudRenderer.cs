@@ -14,6 +14,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Textures;
+using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,7 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     public class GLHudRenderer : IHudRenderContext
     {
         private readonly GLRenderer m_renderer;
-        private readonly GLTextureManager m_glTextureManager;
+        private readonly GLTextureManager m_textureManager;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_pointPrimitivePipeline;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_linePrimitivePipeline;
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_trianglePrimitivePipeline;
@@ -38,12 +39,12 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         public Dimension Dimension => m_currentResolutionInfo.Dimension;
         public Dimension WindowDimension => m_renderer.Window.Dimension;
-        public IRendererTextureManager Textures => m_glTextureManager;
+        public IRendererTextureManager Textures => m_textureManager;
 
-        public GLHudRenderer(GLRenderer renderer, GLTextureManager glTextureManager)
+        public GLHudRenderer(GLRenderer renderer, GLTextureManager textureManager)
         {
             m_renderer = renderer;
-            m_glTextureManager = glTextureManager;
+            m_textureManager = textureManager;
             m_pointPrimitivePipeline = new("Hud shader points", BufferUsageHint.StreamDraw, PrimitiveType.Points);
             m_linePrimitivePipeline = new("Hud shader lines", BufferUsageHint.StreamDraw, PrimitiveType.Lines);
             m_trianglePrimitivePipeline = new("Hud shader triangles", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
@@ -222,26 +223,54 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
-            float alpha = 1.0f)
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, out drawArea, area, null, window, anchor, both, color, alpha);
+            Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
 
         public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-            Align anchor = Align.TopLeft, Align? both = null, Color? color = null, float scale = 1.0f,
-            float alpha = 1.0f)
+            Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+            Color? color = null, float scale = 1.0f, float alpha = 1.0f)
         {
-            Image(texture, out drawArea, null, origin, window, anchor, both, color, alpha);
+            Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha);
         }
 
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
-            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, Color? color = null, 
+            Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, 
+            ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
             float scale = 1.0f, float alpha = 1.0f)
         {
-            drawArea = default;
+            Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
-            // TODO
+            GLTextureHandle handle = m_textureManager.Get(texture, resourceNamespace);
+            
+            Vec2I topLeft = origin ?? Vec2I.Zero;
+            if (area != null)
+                topLeft = area.Value.TopLeft;
+
+            Dimension dimension = handle.Dimension;
+            if (area != null)
+                dimension = area.Value.Dimension;
+            
+            dimension.Scale(scale);
+
+            window = both ?? window;
+            anchor = both ?? anchor;
+            topLeft = anchor.Translate(topLeft, dimension);
+            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
+
+            Vec2I topRight = topLeft + (dimension.Width, 0);
+            Vec2I bottomLeft = topLeft + (0, dimension.Height);
+            Vec2I bottomRight = topLeft + dimension;
+            drawArea = (topLeft, bottomRight);
+
+            ByteColor byteColor = new(color ?? Color.White);
+            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
+            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
+            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
+            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
+            m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
             
             m_elementsDrawn++;
         }
@@ -300,14 +329,18 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             m_currentResolutionInfo = m_resolutionStack.Peek();
         }
 
-        private static mat4 CreateMvp(HudRenderContext context)
+        private mat4 CreateMvp(HudRenderContext context)
         {
+            // There's a few things we do here:
+            //
+            // 1) We draw from the top downwards because we have the top left
+            // being our draw origin, and thus they are inverted.
+            //
+            // 2) We flip the Z depths so that we draw back-to-front, meaning
+            // the stuff we drew first should be drawn behind the stuff we drew
+            // later on. This gives us the Painters Algorithm approach we want.
             (int w, int h) = context.Dimension;
-            
-            // TODO: Properly handle near/far
-            mat4 mvp = mat4.Ortho(0, w, h, 0, 0, 1);
-            
-            return mvp;
+            return mat4.Ortho(0, w, h, 0, -(m_elementsDrawn + 1), 0);
         }
 
         internal void Render(HudRenderContext context)
