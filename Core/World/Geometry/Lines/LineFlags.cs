@@ -12,6 +12,7 @@ namespace Helion.World.Geometry.Lines
         public bool BlockSound;
         public bool Repeat;
         public bool MonsterCanActivate;
+        public bool UseThrough;
         public bool Secret => Automap.DrawAsOneSided;
 
         public LineFlags(MapLineFlags flags)
@@ -32,6 +33,7 @@ namespace Helion.World.Geometry.Lines
 
             ActivationType = flags.ActivationType;
             Repeat = flags.RepeatSpecial;
+            UseThrough = flags.UseThrough;
         }
     }
 }

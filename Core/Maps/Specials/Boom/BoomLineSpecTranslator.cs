@@ -1,6 +1,7 @@
 ﻿using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
+using Helion.World.Special;
 
 namespace Helion.Maps.Specials.Boom
 {
@@ -78,15 +79,16 @@ namespace Helion.Maps.Specials.Boom
         public static bool IsBoomLineSpecial(ushort special) => special > MaxVanilla;
 
         public static ZDoomLineSpecialType Translate(LineFlags lineFlags, ushort special, int tag,
-            ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility)
+            ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility, out LineActivationType lineActivationType)
         {
             compatibility = null;
+            lineActivationType = LineActivationType.Any;
 
             if (special <= CrusherBase || special >= GenericEnd)
                 return ZDoomLineSpecialType.None;
 
             ZDoomLineSpecialType type = ZDoomLineSpecialType.None;
-            lineFlags.ActivationType = GetSpecialActivationType(special, out bool repeat);
+            lineFlags.ActivationType = GetSpecialActivationType(special, out bool repeat, out lineActivationType);
             lineFlags.Repeat = repeat;
 
             if (lineFlags.ActivationType != ActivationType.PlayerPushesWall)
@@ -227,9 +229,10 @@ namespace Helion.Maps.Specials.Boom
                 argsToMutate.Arg4 = (int)ZDoomKeyType.AllSixKeys;
         }
 
-        private static ActivationType GetSpecialActivationType(ushort special, out bool repeat)
+        private static ActivationType GetSpecialActivationType(ushort special, out bool repeat, out LineActivationType lineActivationType)
         {
             repeat = false;
+            lineActivationType = LineActivationType.Any;
             BoomActivationType boomActivationType = (BoomActivationType)(special & SpecialActivationMask);
 
             switch (boomActivationType)
@@ -241,13 +244,22 @@ namespace Helion.Maps.Specials.Boom
                     repeat = true;
                     return ActivationType.PlayerOrMonsterLineCross;
 
-                case BoomActivationType.SwitchOnce:
                 case BoomActivationType.PushOnce:
+                    lineActivationType = LineActivationType.BackSide;
+                    return ActivationType.PlayerUse;
+
+                case BoomActivationType.SwitchOnce:
+                    lineActivationType = LineActivationType.Tag;
+                    return ActivationType.PlayerUse;
+
+                case BoomActivationType.PushRepeat:
+                    repeat = true;
+                    lineActivationType = LineActivationType.BackSide;
                     return ActivationType.PlayerUse;
 
                 case BoomActivationType.SwitchRepeat:
-                case BoomActivationType.PushRepeat:
                     repeat = true;
+                    lineActivationType = LineActivationType.Tag;
                     return ActivationType.PlayerUse;
 
                 case BoomActivationType.ShootOnce:

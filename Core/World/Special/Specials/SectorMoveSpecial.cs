@@ -180,9 +180,12 @@ namespace Helion.World.Special.Specials
             double destZ = CalculateDestination();
             PerformAndHandleMoveZ(destZ);
 
+            if (MoveStatus == SectorMoveStatus.BlockedAndStop)
+                DestZ = SectorPlane.Z;
+
             CheckPlaySound();
 
-            if (SectorPlane.Z == DestZ && IsNonRepeat)
+            if ((SectorPlane.Z == DestZ && IsNonRepeat) || MoveStatus == SectorMoveStatus.BlockedAndStop)
             {
                 if (MoveData.FloorChangeTextureHandle != null)
                     Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value);

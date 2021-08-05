@@ -478,6 +478,9 @@ namespace Helion.World
                         if (bi.Line.HasSpecial)
                             activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
+                        if (activateSuccess && !bi.Line.Flags.UseThrough)
+                            break;
+
                         if (bi.Line.Back == null)
                         {
                             hitBlockLine = true;
