@@ -34,6 +34,12 @@ namespace Helion.Geometry
             return new(tuple.Item1, tuple.Item2);
         }
 
+        public void Deconstruct(out int width, out int height)
+        {
+            width = Width;
+            height = Height;
+        }
+
         public static bool operator==(Dimension first, Dimension second)
         {
             return first.Width == second.Width && first.Height == second.Height;
@@ -43,11 +49,10 @@ namespace Helion.Geometry
         {
             return !(first == second);
         }
-
-        public void Deconstruct(out int width, out int height)
+        
+        public static Vec2I operator+(Vec2I vec, Dimension dim)
         {
-            width = Width;
-            height = Height;
+            return (vec.X + dim.Width, vec.Y + dim.Height);
         }
 
         public void Scale(float scale)
