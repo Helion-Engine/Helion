@@ -66,7 +66,7 @@ namespace Helion.World.Geometry.Builder
             {
                 SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
                 SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
-                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, ref sectorData);
+                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
 
                 Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
                     floorPlane, ceilingPlane, sectorSpecial, sectorData);

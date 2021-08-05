@@ -4,24 +4,16 @@ namespace Helion.Maps.Specials.Vanilla
 {
     public static class VanillaSectorSpecTranslator
     {
-        private const int SectorTypeMask = 0x1F;
-        private const int SectorDamageMask = 0x60;
-        private const int SectorDamageShift = 5;
-        private const int SecretFlag = 0x80;
-        private const int IceFlag = 0x100;
-        private const int WindFlag = 0x200;
-
-        public static ZDoomSectorSpecialType Translate(int sectorType, ref SectorData sectorData)
+        public static ZDoomSectorSpecialType Translate(int sectorType, SectorData sectorData)
         {
-            sectorData.Secret = (sectorType & SecretFlag) != 0;
-            sectorData.DamageAmount = 0;
-            sectorData.SectorEffect = SectorEffect.None;
             if (sectorType == 0)
+            {
+                sectorData.Clear();
                 return ZDoomSectorSpecialType.None;
+            }
 
-            VanillaSectorSpecialType type = (VanillaSectorSpecialType)(sectorType & SectorTypeMask);
-            sectorData.DamageAmount = GetDamageAmount(sectorType);
-            sectorData.SectorEffect = GetSectorEffect(sectorType);
+            VanillaSectorSpecialType type = (VanillaSectorSpecialType)SectorSpecialData.GetType(sectorType, SectorDataType.Boom);
+            SectorSpecialData.SetSectorData(sectorType, sectorData, SectorDataType.Boom);
 
             switch (type)
             {
@@ -61,28 +53,6 @@ namespace Helion.Maps.Specials.Vanilla
             }
 
             return ZDoomSectorSpecialType.None;
-        }
-
-        private static int GetDamageAmount(int sectorType)
-        {
-            return ((sectorType & SectorDamageMask) >> SectorDamageShift) switch
-            {
-                1 => 5,
-                2 => 10,
-                3 => 20,
-                _ => 0,
-            };
-        }
-
-        private static SectorEffect GetSectorEffect(int sectorType)
-        {
-            SectorEffect sectorEffect = SectorEffect.None;
-            if ((sectorType & IceFlag) != 0)
-                sectorEffect |= SectorEffect.Ice;
-            if ((sectorType & WindFlag) != 0)
-                sectorEffect |= SectorEffect.Wind;
-
-            return sectorEffect;
         }
     }
 }
