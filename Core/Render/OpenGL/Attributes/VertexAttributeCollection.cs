@@ -8,7 +8,6 @@ using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Shaders.Attributes;
-using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 
@@ -115,11 +114,14 @@ namespace Helion.Render.OpenGL.Attributes
             
             vbo.Unbind();
         }
-        
+
         public void Bind()
         {
             foreach (VertexAttributeElement attr in m_attributes)
+            {
                 GL.EnableVertexAttribArray(attr.Location);
+                GL.VertexAttribPointer(attr.Location, attr.Size, attr.Type, attr.Normalized, attr.Stride, attr.Offset);
+            }
         }
         
         public void Unbind()

@@ -369,7 +369,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
                 s.Mvp.Set(mvp);
-                s.Tex.Set(0);
+                s.Tex.Set(TextureUnit.Texture0);
             });
         }
 

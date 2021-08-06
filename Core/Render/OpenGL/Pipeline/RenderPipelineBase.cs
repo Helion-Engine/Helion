@@ -33,6 +33,7 @@ namespace Helion.Render.OpenGL.Pipeline
             Vbo = new VertexBufferObject<TVertex>(hint);
             Attributes = VertexAttributeCollection.CreateOrThrow<TVertex>(Shader);
 
+            // TODO: This might be pointless.
             Attributes.BindAttributesToVbo(Vbo);
             
             Vbo.SetDebugLabel(name);

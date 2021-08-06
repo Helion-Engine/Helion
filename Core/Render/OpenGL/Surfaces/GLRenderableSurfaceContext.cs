@@ -5,6 +5,7 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Surfaces
