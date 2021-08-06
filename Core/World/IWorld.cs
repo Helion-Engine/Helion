@@ -57,7 +57,7 @@ namespace Helion.World
         bool Paused { get; }
         public GlobalData GlobalData { get; }
 
-        void Link(Entity entity, bool clampToLinkedSectors = false);
+        void Link(Entity entity);
         void Tick();
         void Pause();
         void Resume();
