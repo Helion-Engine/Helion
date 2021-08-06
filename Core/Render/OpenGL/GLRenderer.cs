@@ -158,8 +158,9 @@ namespace Helion.Render.OpenGL
 
         public void PerformThrowableErrorChecks()
         {
-            if (m_config.Developer.RenderDebug)
-                GLUtil.ThrowIfGLError();
+#if DEBUG
+            GLUtil.ThrowIfGLError();
+#endif
         }
 
         public void Dispose()

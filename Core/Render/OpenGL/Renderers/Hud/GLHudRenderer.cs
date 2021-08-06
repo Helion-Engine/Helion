@@ -14,7 +14,6 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Textures;
-using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
