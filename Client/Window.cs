@@ -56,7 +56,7 @@ namespace Helion.Client
 
         private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection, FpsTracker tracker)
         {
-            if (bool.TryParse(Environment.GetEnvironmentVariable("newrenderer"), out bool result) && result)
+            if (Constants.UseNewRenderer)
                 return new GLRenderer(config, this, archiveCollection);
             return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
         }
@@ -69,8 +69,10 @@ namespace Helion.Client
 
         private static NativeWindowSettings MakeNativeWindowSettings(Config config)
         {
-            return new()
+            return new NativeWindowSettings
             {
+                Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
+                APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
                 Flags = config.Developer.RenderDebug ? ContextFlags.Debug : ContextFlags.Default,
                 IsFullscreen = config.Window.State == WindowState.Fullscreen,
                 NumberOfSamples = config.Render.Multisample.Enable ? config.Render.Multisample.Value : 0,

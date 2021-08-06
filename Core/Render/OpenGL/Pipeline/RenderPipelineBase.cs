@@ -2,6 +2,7 @@
 using Helion.Render.OpenGL.Attributes;
 using Helion.Render.OpenGL.Buffers;
 using Helion.Render.OpenGL.Shaders;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -32,6 +33,7 @@ namespace Helion.Render.OpenGL.Pipeline
             Vbo = new VertexBufferObject<TVertex>(hint);
             Attributes = VertexAttributeCollection.CreateOrThrow<TVertex>(Shader);
 
+            // TODO: This might be pointless.
             Attributes.BindAttributesToVbo(Vbo);
             
             Vbo.SetDebugLabel(name);

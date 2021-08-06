@@ -12,6 +12,7 @@ using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;

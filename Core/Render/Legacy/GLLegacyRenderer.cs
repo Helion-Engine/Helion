@@ -143,10 +143,14 @@ namespace Helion.Render.Legacy
             }
 
             DrawHudImagesIfAnyQueued(viewport);
-
-            GLHelper.AssertNoGLError(gl);
         }
 
+        public void PerformThrowableErrorChecks()
+        {
+            if (m_config.Developer.RenderDebug)
+                GLHelper.AssertNoGLError(gl);
+        }
+        
         public void Dispose()
         {
             ReleaseUnmanagedResources();

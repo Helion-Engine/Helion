@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 
@@ -64,8 +65,9 @@ namespace Helion.Render.OpenGL.Pipeline
             if (Vbo.Count > 0)
             {
                 Shader.Bind();
+                Vbo.Bind();
                 Attributes.Bind();
-            
+                
                 action(Shader);
 
                 for (int i = 0; i < m_bufferRenderInfos.Length; i++)
@@ -76,11 +78,12 @@ namespace Helion.Render.OpenGL.Pipeline
                     GL.DrawArrays(PrimitiveType.Triangles, info.Start, info.Count);
                     GL.BindTexture(info.Target, 0);
                 }
-            
+                
                 Attributes.Unbind();
+                Vbo.Unbind();
                 Shader.Unbind();
             }
-
+            
             Vbo.Clear();
             foreach (DynamicArray<TVertex> array in m_textureNameToData.Values)
                 array.Clear();

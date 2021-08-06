@@ -34,12 +34,14 @@ namespace Helion.Render.OpenGL.Pipeline
             if (Vbo.Count > 0)
             {
                 Shader.Bind();
+                Vbo.Bind();
                 Attributes.Bind();
             
                 action(Shader);
                 GL.DrawArrays(DrawType, 0, Vbo.Count);
             
                 Attributes.Unbind();
+                Vbo.Unbind();
                 Shader.Unbind();
             }
 

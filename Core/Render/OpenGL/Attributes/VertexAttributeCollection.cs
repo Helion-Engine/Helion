@@ -104,7 +104,7 @@ namespace Helion.Render.OpenGL.Attributes
         public void BindAttributesToVbo<T>(VertexBufferObject<T> vbo) where T : struct
         {
             vbo.Bind();
-            
+
             foreach (VertexAttributeElement attr in m_attributes)
             {
                 GL.EnableVertexAttribArray(attr.Location);
@@ -114,11 +114,14 @@ namespace Helion.Render.OpenGL.Attributes
             
             vbo.Unbind();
         }
-        
+
         public void Bind()
         {
             foreach (VertexAttributeElement attr in m_attributes)
+            {
                 GL.EnableVertexAttribArray(attr.Location);
+                GL.VertexAttribPointer(attr.Location, attr.Size, attr.Type, attr.Normalized, attr.Stride, attr.Offset);
+            }
         }
         
         public void Unbind()

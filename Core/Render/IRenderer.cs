@@ -58,5 +58,14 @@ namespace Helion.Render
         /// <returns>An existing surface with the same name, or a new one
         /// with the name.</returns>
         IRenderableSurface GetOrCreateSurface(string name, Dimension dimension);
+
+        /// <summary>
+        /// Performs any error checks that may throw if an error is found.
+        /// </summary>
+        /// <remarks>
+        /// If the config has render debugging on, this should throw if an error
+        /// exists.
+        /// </remarks>
+        void PerformThrowableErrorChecks();
     }
 }

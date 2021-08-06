@@ -146,10 +146,7 @@ namespace Helion.Render.OpenGL.Textures
         public GLTextureHandle Get(Texture texture, ResourceNamespace? priority = null)
         {
             if (texture.Image == null)
-            {
-                Log.Warn("Unable to load texture {Name}", texture.Name);
                 return NullHandle;
-            }
 
             Image image = texture.Image;
             GLTextureHandle? handle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);

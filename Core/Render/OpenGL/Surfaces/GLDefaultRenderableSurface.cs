@@ -20,14 +20,6 @@ namespace Helion.Render.OpenGL.Surfaces
         {
         }
 
-        [Conditional("DEBUG")]
-        public static void ThrowIfGLError()
-        {
-            ErrorCode error = GL.GetError();
-            if (error != ErrorCode.NoError)
-                throw new Exception($"OpenGL error detected; {error}");
-        }
-
         protected override void Bind()
         {
             GLFramebuffer.PerformBind(0);

@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
     public class GLHudTextureShader : ShaderProgram
     {
         public readonly UniformMatrix4 Mvp = new();
-        public readonly UniformInt Tex = new();
+        public readonly UniformTexture Tex = new();
         
         protected override string VertexShader()
         {
