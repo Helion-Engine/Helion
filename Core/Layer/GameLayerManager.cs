@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
@@ -175,8 +176,8 @@ namespace Helion.Layer
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
 
-            if (MenuLayer == null && input.ConsumeKeyPressed(Key.Escape))
-                CreateMenuLayer();
+            // if (MenuLayer == null && input.ConsumeKeyPressed(Key.Escape))
+            //     CreateMenuLayer();
             
             MenuLayer?.HandleInput(input);
             EndGameLayer?.HandleInput(input);

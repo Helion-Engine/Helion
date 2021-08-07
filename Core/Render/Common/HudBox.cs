@@ -13,7 +13,7 @@ namespace Helion.Render.Common
         public Vec2I TopLeft => Min;
         public Vec2I BottomLeft => (Min.X, Max.Y);
         public Vec2I BottomRight => Max;
-        public Vec2I TopRight => (Min.Y, Max.X);
+        public Vec2I TopRight => (Max.X, Min.Y);
         public int Top => Min.Y;
         public int Bottom => Max.Y;
         public int Left => Min.X;

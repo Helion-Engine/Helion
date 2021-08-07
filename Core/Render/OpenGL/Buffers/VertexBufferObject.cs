@@ -45,7 +45,7 @@ namespace Helion.Render.OpenGL.Buffers
             if (elements.Empty())
                 return;
             
-            Data.AddRange(elements.Data);
+            Data.AddRange(elements);
             m_uploaded = false;
         }
         

@@ -41,6 +41,7 @@ namespace Helion.Render.OpenGL.Pipeline
         {
             m_bufferRenderInfos.Clear();
 
+            // TODO: No foreach to prevent GC!
             foreach ((GLTexture texture, DynamicArray<TVertex> array) in m_textureNameToData)
             {
                 BufferRenderInfo info = new(texture, Vbo.Count, array.Length);

@@ -151,7 +151,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
             Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
             Vec2I topRight = anchor.Translate(box.TopRight, dimension);
-            Vec2I bottomRight = anchor.Translate(box.TopLeft, dimension);
+            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
             
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
             bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
@@ -207,7 +207,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
             Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
             Vec2I topRight = anchor.Translate(box.TopRight, dimension);
-            Vec2I bottomRight = anchor.Translate(box.TopLeft, dimension);
+            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
             
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
             bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
@@ -256,15 +256,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
             float scale = 1.0f, float alpha = 1.0f)
         {
-            drawArea = default;
-
             Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
             GLTextureHandle handle = m_textureManager.Get(texture, resourceNamespace);
-
-            Vec2I topLeft = origin ?? Vec2I.Zero;
+            
+            Vec2I newOrigin = origin ?? Vec2I.Zero;
             if (area != null)
-                topLeft = area.Value.TopLeft;
+                newOrigin = area.Value.TopLeft;
 
             Dimension dimension = handle.Dimension;
             if (area != null)
@@ -274,22 +272,29 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
             window = both ?? window;
             anchor = both ?? anchor;
-            topLeft = anchor.Translate(topLeft, dimension);
+            
+            Vec2I topLeft = anchor.Translate(newOrigin, dimension);
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
 
             if (PointOutsideBottomRightViewport(topLeft))
+            {
+                drawArea = default;
                 return;
+            }
 
-            Vec2I topRight = topLeft + (dimension.Width, 0);
-            Vec2I bottomLeft = topLeft + (0, dimension.Height);
-            Vec2I bottomRight = topLeft + dimension;
+            Vec2I bottomRight = topLeft + dimension; 
+            bottomRight = anchor.Translate(bottomRight, dimension);
+            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
+            
+            Vec2I topRight = (bottomRight.X, topLeft.Y);
+            Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
             drawArea = (topLeft, bottomRight);
 
             ByteColor byteColor = new(color ?? Color.White);
-            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), (0.0f, 0.0f), byteColor, alpha);
-            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), (1.0f, 0.0f), byteColor, alpha);
-            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), (0.0f, 1.0f), byteColor, alpha);
-            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), (1.0f, 1.0f), byteColor, alpha);
+            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), handle.UV.TopLeft, byteColor, alpha);
+            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), handle.UV.TopRight, byteColor, alpha);
+            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), handle.UV.BottomLeft, byteColor, alpha);
+            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), handle.UV.BottomRight, byteColor, alpha);
             m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
             
             m_elementsDrawn++;

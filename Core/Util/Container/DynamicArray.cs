@@ -120,6 +120,20 @@ namespace Helion.Util.Container
 
             Length += elements.Count;
         }
+        
+        /// <summary>
+        /// Adds elements to the array.
+        /// </summary>
+        /// <param name="elements">The elements to add.</param>
+        public void AddRange(DynamicArray<T> elements)
+        {
+            EnsureCapacity(Length + elements.Length);
+
+            for (int i = 0; i < elements.Length; i++)
+                Data[Length + i] = elements[i];
+
+            Length += elements.Length;
+        }
 
         /// <summary>
         /// Removes the last element, if any.

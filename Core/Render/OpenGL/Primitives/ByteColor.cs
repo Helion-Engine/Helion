@@ -24,7 +24,7 @@ namespace Helion.Render.OpenGL.Primitives
         {
         }
         
-        public ByteColor(Color color, float alpha) : this(color.R, color.G, color.B, (byte)(alpha / 255.0f))
+        public ByteColor(Color color, float alpha) : this(color.R, color.G, color.B, (byte)(alpha * 255))
         {
         }
         

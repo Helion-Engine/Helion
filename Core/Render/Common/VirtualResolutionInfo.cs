@@ -2,7 +2,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
-using Helion.Util.Extensions;
 
 namespace Helion.Render.Common
 {
@@ -13,36 +12,21 @@ namespace Helion.Render.Common
     {
         public readonly Dimension Dimension;
         public readonly ResolutionScale Scale;
-        public readonly float AspectRatio;
         private readonly Vec2F m_scaling;
         private readonly Vec2F m_gutter;
 
         public VirtualResolutionInfo(Dimension dimension, ResolutionScale scale, Dimension parentDimension,
-            float? aspectRatio = null)
+            float? aspectRatioOverride = null)
         {
             Vec2F parent = parentDimension.Vector.Float;
-
-            Dimension = dimension;
+            
+            Dimension = ((int)(dimension.Width * (aspectRatioOverride ?? 1.0f)), dimension.Height);
             Scale = scale;
-            AspectRatio = aspectRatio ?? dimension.AspectRatio;
-            m_scaling = parent / dimension.Vector.Float;
+            m_scaling = parent / Dimension.Vector.Float;
             m_gutter = Vec2F.Zero;
 
-            float minScale = m_scaling.X.Min(m_scaling.Y);
-            switch (scale)
-            {
-            case ResolutionScale.None:
-                m_scaling = (minScale, minScale);
-                break;
-            case ResolutionScale.Center:
-                m_scaling = (minScale, minScale);
-                m_gutter = (parent - (m_scaling * dimension.Vector.Float)) / 2;
-                break;
-            case ResolutionScale.Stretch:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(scale), scale, null);
-            }
+            int scaledX = (int)(Dimension.Width * m_scaling.Y);
+            m_gutter = (Math.Max(0, parent.X - scaledX), 0);
         }
 
         /// <summary>
