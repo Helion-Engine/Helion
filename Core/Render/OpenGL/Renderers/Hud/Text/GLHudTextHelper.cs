@@ -29,10 +29,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
         public ReadOnlySpan<RenderableCharacter> Calculate(ColoredString text, GLFontTexture fontTexture, 
             int fontSize, TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
         {
-            // TODO
-            
-            drawArea = default;
-            return ReadOnlySpan<RenderableCharacter>.Empty;
+            return Calculate(text.ToString(), fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
         }
 
         public ReadOnlySpan<RenderableCharacter> Calculate(string text, GLFontTexture fontTexture, int fontSize,
@@ -146,13 +143,37 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
         private void PerformTextAlignment(TextAlign textAlign)
         {
             if (textAlign == TextAlign.Right)
+                return;
+            
+            int maxWidth = CalculateMaxSentenceWidth();
+            
+            for (int sentenceIndex = 0; sentenceIndex < m_sentences.Length; sentenceIndex++)
             {
-                // TODO
+                RenderableSentence sentence = m_sentences[sentenceIndex];
+                int padding = maxWidth - sentence.Bounds.Width;
+                if (padding <= 0)
+                    continue;
+                
+                // We're either aligning right, or center. If it's right, we
+                // will pad the entire way. If it's centering, then only half.
+                if (textAlign == TextAlign.Center)
+                    padding /= 2;
+                
+                for (int i = sentence.StartIndex; i < sentence.StartIndex + sentence.Count; i++)
+                {
+                    RenderableCharacter oldChar = m_characters[i];
+                    RenderableCharacter newChar = new(oldChar.Area + (0, padding), oldChar.UV);
+                    m_characters[i] = newChar;
+                }
             }
-            else if (textAlign == TextAlign.Center)
-            {
-                // TODO
-            }
+        }
+
+        private int CalculateMaxSentenceWidth()
+        {
+            int width = 0;
+            for (int i = 0; i < m_sentences.Length; i++)
+                width = Math.Max(width, m_sentences[i].Bounds.Width);
+            return width;
         }
 
         private Dimension CalculateDrawArea()

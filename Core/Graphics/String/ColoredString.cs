@@ -19,40 +19,25 @@ namespace Helion.Graphics.String
         public static readonly Color DefaultColor = Color.White;
 
         private readonly List<ColoredChar> m_characters;
+        private readonly string m_string;
 
-        /// <summary>
-        /// How many characters the string has.
-        /// </summary>
         public int Length => m_characters.Count;
-
-        /// <summary>
-        /// Checks whether the string is empty of characters or not.
-        /// </summary>
         public bool Empty => Length == 0;
 
         public ColoredString(List<ColoredChar> characters)
         {
             m_characters = characters;
+            
+            StringBuilder builder = new(Length);
+            for (int i = 0; i < m_characters.Count; i++)
+                builder.Append(characters[i].Char);
+            m_string = builder.ToString();
         }
 
-        /// <summary>
-        /// Gets the character at the index provided. This is not bounds 
-        /// checked.
-        /// </summary>
-        /// <param name="index">The index to use.</param>
-        /// <returns>The colored character for the string.</returns>
-        /// <throws>An out of bounds exception if out of range.</throws>
         public ColoredChar this[int index] => m_characters[index];
 
-        public override string ToString()
-        {
-            StringBuilder builder = new(Length);
-            m_characters.Select(coloredChar => coloredChar.Char).ForEach(c => builder.Append(c));
-            return builder.ToString();
-        }
-
+        public override string ToString() => m_string;
         public IEnumerator<ColoredChar> GetEnumerator() => m_characters.GetEnumerator();
-
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
