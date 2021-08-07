@@ -20,7 +20,7 @@ namespace Generators
     {
         public static bool IsFloatingPointPrimitive(this Types type)
         {
-            return type == Types.Float || type == Types.Double;
+            return type is Types.Float or Types.Double;
         }
 
         public static int SizeOf(this Types type)
@@ -70,6 +70,9 @@ namespace Generators
             case Types.Short:
             case Types.Int:
             case Types.Long:
+            case Types.Fixed:
+            case Types.Float:
+            case Types.Double:
                 return true;
             default:
                 return false;
@@ -116,6 +119,18 @@ namespace Generators
                 Types.Float => "F",
                 Types.Double => "D",
                 Types.Fixed => "Fixed",
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+        
+        public static string CommonName(this Types type)
+        {
+            return type switch
+            {
+                Types.Int => "Int",
+                Types.Float => "Float",
+                Types.Double => "Double",
+                Types.Fixed => "FixedPoint",
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
