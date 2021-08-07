@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Common
@@ -22,6 +23,12 @@ namespace Helion.Render.Common
         public Dimension Dimension => new(Width, Height);
         public Vec2I Sides => new(Width, Height);
 
+        public HudBox(Box2I box)
+        {
+            Min = box.Min;
+            Max = box.Max;
+        }
+        
         public HudBox(Vec2I min, Vec2I max)
         {
             Min = min;
@@ -71,6 +78,11 @@ namespace Helion.Render.Common
             return new(tuple.Item1, tuple.Item2);
         }
 
+        public static HudBox operator +(HudBox box, Vec2I point) => (box.Min + point, box.Max + point);
+        public static HudBox operator -(HudBox box, Vec2I point) => (box.Min - point, box.Max - point);
+        public static HudBox operator *(HudBox box, int scale) => (box.Min * scale, box.Max * scale);
+        public static HudBox operator /(HudBox box, int divisor) => (box.Min / divisor, box.Max / divisor);
+        
         public void Deconstruct(out Vec2I min, out Vec2I max)
         {
             min = Min;

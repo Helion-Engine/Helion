@@ -1,4 +1,4 @@
-﻿using Helion.Geometry.Boxes;
+﻿using Helion.Render.Common;
 
 namespace Helion.Render.OpenGL.Renderers.Hud.Text
 {
@@ -6,9 +6,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
     {
         public readonly int StartIndex;
         public readonly int Count;
-        public readonly Box2I Bounds;
+        public readonly HudBox Bounds;
 
-        public RenderableSentence(int startIndex, int count, Box2I bounds)
+        public RenderableSentence(int startIndex, int count, HudBox bounds)
         {
             StartIndex = startIndex;
             Count = count;

@@ -1,9 +1,9 @@
 ﻿using System;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.String;
+using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util.Container;
@@ -63,7 +63,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             {
                 char c = text[i];
                 Glyph glyph = font.Get(c);
-                Box2I area = (glyph.Area.Float * scale).Int;
+                HudBox area = new((glyph.Area.Float * scale).Int);
 
                 // Always draw at least one character. If we want strict bound
                 // adherence in the future, then we could add a boolean that will
@@ -104,8 +104,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
 
             int i = 0;
             int sentenceY = -1;
-            int sentenceStartIndex = 0;
-            int sentenceCount = 0;
+            int startIndex = 0;
+            int count = 0;
             Vec2I topLeft = default;
             Vec2I bottomRight = default;
 
@@ -113,9 +113,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             {
                 RenderableCharacter c = m_characters[i];
                 i++;
-
-                // TODO: We should use a HudBox... (Top instead of Bottom)
-                if (sentenceY != c.Area.Bottom)
+                
+                if (sentenceY != c.Area.Top)
                 {
                     AddSentenceIfPossible();
                     StartNewSentence(c);
@@ -127,21 +126,18 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             
             void AddSentenceIfPossible()
             {
-                if (sentenceCount == 0)
+                if (count == 0)
                     return;
-
-                // TODO: We should use a HudBox... (Top instead of Bottom)
-                RenderableSentence sentence = new(sentenceStartIndex, sentenceCount, (topLeft, bottomRight));
+                
+                RenderableSentence sentence = new(startIndex, count, (topLeft, bottomRight));
                 m_sentences.Add(sentence);
-                sentenceCount++;
             }
             
             void StartNewSentence(in RenderableCharacter c)
             {
                 sentenceY = c.Area.Bottom;
-                sentenceStartIndex = i;
-                sentenceCount = 1;
-                // TODO: We should use a HudBox... (Top instead of Bottom)
+                startIndex = i;
+                count = 1;
                 topLeft = c.Area.TopLeft;
                 bottomRight = c.Area.BottomRight;
             }
@@ -165,7 +161,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             int h = 0;
             for (int i = 0; i < m_sentences.Length; i++)
             {
-                Box2I bounds = m_sentences[i].Bounds;
+                HudBox bounds = m_sentences[i].Bounds;
                 w = Math.Max(w, bounds.Right);
                 h += bounds.Height;
             }

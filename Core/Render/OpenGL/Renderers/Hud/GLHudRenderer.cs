@@ -319,16 +319,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             int numChars = Math.Min(text.Length, chars.Length);
             for (int i = 0; i < numChars; i++)
             {
-                RenderableCharacter c = chars[i];
-                Box2I area = c.Area + origin;
-                Box2F uv = c.UV;
                 ByteColor byteColor = new(text[i].Color);
-
-                GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
-                GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
-                GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
-                GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
-                m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
+                AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
             }
 
             m_elementsDrawn++;
@@ -358,19 +350,23 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             ByteColor byteColor = new(color ?? Color.White);
             int numChars = Math.Min(text.Length, chars.Length);
             for (int i = 0; i < numChars; i++)
-            {
-                RenderableCharacter c = chars[i];
-                Box2I area = c.Area + origin;
-                Box2F uv = c.UV;
-                
-                GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
-                GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
-                GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
-                GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
-                m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
-            }
+                AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
 
             m_elementsDrawn++;
+        }
+
+        private void AddTextCharacter(Vec2I origin, float alpha, RenderableCharacter c, ByteColor byteColor,
+            GLFontTexture fontHandle)
+        {
+            HudBox area = c.Area + origin;
+            Box2F uv = c.UV;
+            
+            GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
+            GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
+            GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
+            GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
+            
+            m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
         }
 
         public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
