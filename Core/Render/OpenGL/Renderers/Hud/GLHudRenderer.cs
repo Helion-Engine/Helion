@@ -290,11 +290,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
             drawArea = (topLeft, bottomRight);
 
+            // Note: Because UV's are inverted, we use the flipped version of the
+            // coordinates (so TopLeft <=> BottomLeft, and TopRight <=> BottomRight).
             ByteColor byteColor = new(color ?? Color.White);
-            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), handle.UV.TopLeft, byteColor, alpha);
-            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), handle.UV.TopRight, byteColor, alpha);
-            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), handle.UV.BottomLeft, byteColor, alpha);
-            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), handle.UV.BottomRight, byteColor, alpha);
+            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), handle.UV.BottomLeft, byteColor, alpha);
+            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), handle.UV.BottomRight, byteColor, alpha);
+            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), handle.UV.TopLeft, byteColor, alpha);
+            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), handle.UV.TopRight, byteColor, alpha);
             m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
             
             m_elementsDrawn++;
@@ -419,8 +421,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             // 2) We flip the Z depths so that we draw back-to-front, meaning
             // the stuff we drew first should be drawn behind the stuff we drew
             // later on. This gives us the Painters Algorithm approach we want.
+            //
+            // 3) Because we draw at index 0, we don't want the first drawn thing
+            // to be sitting on the far plane, so instead of using zFar = 0, we use
+            // zFar = 1. This way the range of [0, elementsDrawn] will fit in the
+            // depth defined by [-1, elementsDrawn + 1].
             (int w, int h) = context.Dimension;
-            return mat4.Ortho(0, w, h, 0, -(m_elementsDrawn + 1), 0);
+            return mat4.Ortho(0, w, h, 0, -(m_elementsDrawn + 1), 1);
         }
 
         internal void Render(HudRenderContext context)
