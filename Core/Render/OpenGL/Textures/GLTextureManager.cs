@@ -170,17 +170,23 @@ namespace Helion.Render.OpenGL.Textures
         /// uploaded yet. If none can be found, the <see cref="NullFont"/> is
         /// returned.
         /// </summary>
-        /// <param name="name">The font name, case insensitive.</param>
+        /// <param name="font">The font name, case insensitive.</param>
         /// <returns>The font handle, or <see cref="NullFont"/> if no font
         /// resource can be found.</returns>
-        public GLFontTexture GetFont(string name)
+        public GLFontTexture GetFont(string font)
         {
-            if (m_fontTextures.TryGetValue(name, out GLFontTexture? fontTexture))
+            if (m_fontTextures.TryGetValue(font, out GLFontTexture? fontTexture))
                 return fontTexture;
 
             // TODO: Try to create it from m_resources.
 
             return NullFont;
+        }
+
+        public bool TryGetFont(string font, out GLFontTexture fontTexture)
+        {
+            fontTexture = GetFont(font);
+            return !ReferenceEquals(fontTexture, NullFont);
         }
 
         public void Dispose()

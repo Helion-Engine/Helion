@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.String;
@@ -13,6 +14,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Primitives;
+using Helion.Render.OpenGL.Renderers.Hud.Text;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
@@ -32,6 +34,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private readonly RenderPipeline<GLHudPrimitiveShader, GLHudPrimitiveVertex> m_trianglePrimitivePipeline;
         private readonly RenderTexturePipeline<GLHudTextureShader, GLHudTextureVertex> m_texturePipeline;
         private readonly Stack<VirtualResolutionInfo> m_resolutionStack = new();
+        private readonly GLHudTextHelper m_hudTextHelper = new();
         private Dimension m_parentDimension = (800, 600);
         private VirtualResolutionInfo m_currentResolutionInfo = new((800, 600), ResolutionScale.None, (800, 600));
         private int m_elementsDrawn;
@@ -57,11 +60,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             PerformDispose();
         }
         
+        private bool PointOutsideBottomRightViewport(Vec2I point)
+        {
+            return point.X > m_parentDimension.Width || point.Y > m_parentDimension.Height;
+        }
+        
         internal void Begin(HudRenderContext context)
         {
             m_elementsDrawn = 0;
             m_resolutionStack.Clear();
             m_parentDimension = context.Dimension;
+            m_hudTextHelper.Reset();
 
             VirtualResolutionInfo info = new(context.Dimension, ResolutionScale.None, m_parentDimension);
             m_resolutionStack.Push(info);
@@ -134,6 +143,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         
         private void AddBox(HudBox box, ByteColor color, Align window, Align anchor)
         {
+            if (PointOutsideBottomRightViewport(box.TopLeft))
+                return;
+            
             Dimension dimension = box.Dimension;
             
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
@@ -187,6 +199,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         private void AddFillBox(HudBox box, ByteColor color, Align window, Align anchor)
         {
+            if (PointOutsideBottomRightViewport(box.TopLeft))
+                return;
+            
             Dimension dimension = box.Dimension;
             
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
@@ -241,6 +256,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
             float scale = 1.0f, float alpha = 1.0f)
         {
+            drawArea = default;
+
             Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
             GLTextureHandle handle = m_textureManager.Get(texture, resourceNamespace);
@@ -259,6 +276,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             anchor = both ?? anchor;
             topLeft = anchor.Translate(topLeft, dimension);
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
+
+            if (PointOutsideBottomRightViewport(topLeft))
+                return;
 
             Vec2I topRight = topLeft + (dimension.Width, 0);
             Vec2I bottomLeft = topLeft + (0, dimension.Height);
@@ -281,9 +301,36 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float alpha = 1.0f)
         {
             drawArea = default;
+
+            if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
+                return;
             
-            // TODO
+            ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
+                textAlign, maxWidth, maxHeight, scale, out drawArea);
             
+            window = both ?? window;
+            anchor = both ?? anchor;
+            origin = anchor.Translate(origin, drawArea);
+            origin = m_currentResolutionInfo.Translate(origin, window);
+            
+            if (PointOutsideBottomRightViewport(origin))
+                return;
+
+            int numChars = Math.Min(text.Length, chars.Length);
+            for (int i = 0; i < numChars; i++)
+            {
+                RenderableCharacter c = chars[i];
+                Box2I area = c.Area + origin;
+                Box2F uv = c.UV;
+                ByteColor byteColor = new(text[i].Color);
+
+                GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
+                GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
+                GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
+                GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
+                m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
+            }
+
             m_elementsDrawn++;
         }
 
@@ -293,17 +340,49 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
+
+            if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
+                return;
             
-            // TODO
+            ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
+                textAlign, maxWidth, maxHeight, scale, out drawArea);
             
+            window = both ?? window;
+            anchor = both ?? anchor;
+            origin = anchor.Translate(origin, drawArea);
+            origin = m_currentResolutionInfo.Translate(origin, window);
+
+            if (PointOutsideBottomRightViewport(origin))
+                return;
+
+            ByteColor byteColor = new(color ?? Color.White);
+            int numChars = Math.Min(text.Length, chars.Length);
+            for (int i = 0; i < numChars; i++)
+            {
+                RenderableCharacter c = chars[i];
+                Box2I area = c.Area + origin;
+                Box2F uv = c.UV;
+                
+                GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
+                GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
+                GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
+                GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
+                m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
+            }
+
             m_elementsDrawn++;
         }
 
         public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
             int maxHeight = int.MaxValue, float scale = 1.0f)
         {
-            // TODO
-            return default;
+            if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
+                return (0, 0);
+            
+            m_hudTextHelper.Calculate(text, fontHandle, fontSize, TextAlign.Left, maxWidth, maxHeight, scale, 
+                out Dimension drawArea);
+
+            return drawArea;
         }
 
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
