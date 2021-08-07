@@ -20,6 +20,8 @@ namespace Helion.Geometry.Boxes
 
         public Vec3I Min => m_Min;
         public Vec3I Max => m_Max;
+        public Box3F Float => new(Min.Float, Max.Float);
+        public Box3D Double => new(Min.Double, Max.Double);
         public Box3I Struct => new(Min, Max);
         public Vec3I Sides => Max - Min;
 
@@ -65,6 +67,8 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
+        public static Box3I operator *(BoundingBox3I self, int scale) => new(self.Min * scale, self.Max * scale);
+        public static Box3I operator /(BoundingBox3I self, int divisor) => new(self.Min / divisor, self.Max / divisor);
         public static Box3I operator +(BoundingBox3I self, Vec3I offset) => new(self.Min + offset, self.Max + offset);
         public static Box3I operator +(BoundingBox3I self, Vector3I offset) => new(self.Min + offset, self.Max + offset);
         public static Box3I operator -(BoundingBox3I self, Vec3I offset) => new(self.Min - offset, self.Max - offset);

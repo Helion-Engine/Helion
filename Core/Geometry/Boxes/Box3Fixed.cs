@@ -19,6 +19,9 @@ namespace Helion.Geometry.Boxes
         public readonly Vec3Fixed Min;
         public readonly Vec3Fixed Max;
 
+        public Box3I Int => new(Min.Int, Max.Int);
+        public Box3F Float => new(Min.Float, Max.Float);
+        public Box3D Double => new(Min.Double, Max.Double);
         public Vec3Fixed Sides => Max - Min;
 
         public Box3Fixed(Vec3Fixed min, Vec3Fixed max)
@@ -83,6 +86,8 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
+        public static Box3Fixed operator *(Box3Fixed self, Fixed scale) => new(self.Min * scale, self.Max * scale);
+        public static Box3Fixed operator /(Box3Fixed self, Fixed divisor) => new(self.Min / divisor, self.Max / divisor);
         public static Box3Fixed operator +(Box3Fixed self, Vec3Fixed offset) => new(self.Min + offset, self.Max + offset);
         public static Box3Fixed operator +(Box3Fixed self, Vector3Fixed offset) => new(self.Min + offset, self.Max + offset);
         public static Box3Fixed operator -(Box3Fixed self, Vec3Fixed offset) => new(self.Min - offset, self.Max - offset);

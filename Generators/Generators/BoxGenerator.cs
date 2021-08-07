@@ -28,6 +28,8 @@ namespace Generators.Generators
             m_dimension = dimension;
             m_isStruct = isStruct;
         }
+        
+        private string StructTypeDim(int dim, Types type) => $"Box{dim}{type.GetShorthand()}";
 
         private void PerformGeneration()
         {
@@ -109,6 +111,16 @@ namespace Generators.Generators
                 w.WriteLine($"public {PrimitiveType} Height => Max.Y - Min.Y;");
             }
 
+            foreach (Types type in new[] { Types.Int, Types.Float, Types.Double })
+            {
+                if (m_type == type)
+                    continue;
+                
+                string pascalType = type.ToString();
+                pascalType = char.ToUpper(pascalType[0]) + pascalType[1..];
+                w.WriteLine($"public {StructTypeDim(m_dimension, type)} {pascalType} => new(Min.{pascalType}, Max.{pascalType});");   
+            }    
+
             if (!m_isStruct)
                 w.WriteLine($"public {StructType} Struct => new(Min, Max);");
             
@@ -189,6 +201,8 @@ namespace Generators.Generators
 
         private void WriteOperators(CodegenTextWriter w)
         {
+            w.WriteLine($"public static {StructType} operator *({ClassName} self, {PrimitiveType} scale) => new(self.Min * scale, self.Max * scale);");
+            w.WriteLine($"public static {StructType} operator /({ClassName} self, {PrimitiveType} divisor) => new(self.Min / divisor, self.Max / divisor);");
             w.WriteLine($"public static {StructType} operator +({ClassName} self, {VecStruct} offset) => new(self.Min + offset, self.Max + offset);");
             w.WriteLine($"public static {StructType} operator +({ClassName} self, {VecClass} offset) => new(self.Min + offset, self.Max + offset);");
             w.WriteLine($"public static {StructType} operator -({ClassName} self, {VecStruct} offset) => new(self.Min - offset, self.Max - offset);");

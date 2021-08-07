@@ -30,6 +30,8 @@ namespace Helion.Geometry.Boxes
         public double Right => Max.X;
         public double Width => Max.X - Min.X;
         public double Height => Max.Y - Min.Y;
+        public Box2I Int => new(Min.Int, Max.Int);
+        public Box2F Float => new(Min.Float, Max.Float);
         public Box2D Struct => new(Min, Max);
         public Vec2D Sides => Max - Min;
 
@@ -91,6 +93,8 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
+        public static Box2D operator *(BoundingBox2D self, double scale) => new(self.Min * scale, self.Max * scale);
+        public static Box2D operator /(BoundingBox2D self, double divisor) => new(self.Min / divisor, self.Max / divisor);
         public static Box2D operator +(BoundingBox2D self, Vec2D offset) => new(self.Min + offset, self.Max + offset);
         public static Box2D operator +(BoundingBox2D self, Vector2D offset) => new(self.Min + offset, self.Max + offset);
         public static Box2D operator -(BoundingBox2D self, Vec2D offset) => new(self.Min - offset, self.Max - offset);

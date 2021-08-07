@@ -29,6 +29,9 @@ namespace Helion.Geometry.Boxes
         public Fixed Right => Max.X;
         public Fixed Width => Max.X - Min.X;
         public Fixed Height => Max.Y - Min.Y;
+        public Box2I Int => new(Min.Int, Max.Int);
+        public Box2F Float => new(Min.Float, Max.Float);
+        public Box2D Double => new(Min.Double, Max.Double);
         public Vec2Fixed Sides => Max - Min;
 
         public Box2Fixed(Vec2Fixed min, Vec2Fixed max)
@@ -114,6 +117,8 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
+        public static Box2Fixed operator *(Box2Fixed self, Fixed scale) => new(self.Min * scale, self.Max * scale);
+        public static Box2Fixed operator /(Box2Fixed self, Fixed divisor) => new(self.Min / divisor, self.Max / divisor);
         public static Box2Fixed operator +(Box2Fixed self, Vec2Fixed offset) => new(self.Min + offset, self.Max + offset);
         public static Box2Fixed operator +(Box2Fixed self, Vector2Fixed offset) => new(self.Min + offset, self.Max + offset);
         public static Box2Fixed operator -(Box2Fixed self, Vec2Fixed offset) => new(self.Min - offset, self.Max - offset);

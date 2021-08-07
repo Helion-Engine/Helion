@@ -1,17 +1,20 @@
 ﻿using System;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.String;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Hud.Text
 {
     public class GLHudTextHelper
     {
-        // If we don't call reset, this is our cutoff.
+        // If we don't call Reset(), this is our cutoff to warn the developer.
         private const int OverflowCount = 10000;
         
         private readonly DynamicArray<RenderableCharacter> m_characters = new();
@@ -42,37 +45,132 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             
             Precondition(m_characters.Length < OverflowCount, "Not clearing the GL hud text helper characters");
             Precondition(m_sentences.Length < OverflowCount, "Not clearing the GL hud text helper sentences");
-            
-            // The X and Y are the top left corners in the HUD coordinate system.
+
+            CalculateCharacters(text, fontSize, scale, fontTexture.Font, maxWidth, maxHeight);
+            CalculateSentences();
+            PerformTextAlignment(textAlign);
+            drawArea = CalculateDrawArea();
+            return new ReadOnlySpan<RenderableCharacter>(m_characters.Data, 0, m_characters.Data.Length);
+        }
+        
+        private void CalculateCharacters(ReadOnlySpan<char> text, int fontSize, float scale, Font font, int maxWidth, int maxHeight)
+        {
             int x = 0;
             int y = 0;
-            int textIndex = 0;
             int height = (int)(fontSize * scale);
-            Font font = fontTexture.Font;
-            bool drawnAtLeastOne = false;
 
-            // We always want at least one iteration to occur on both the X and Y
-            // directions, which forces at least one sentences, and at least one
-            // character per sentence to be drawn.
-            while (textIndex < text.Length)
+            for (int i = 0; i < text.Length; i++)
             {
-                char c = text[textIndex];
-                textIndex++;
+                char c = text[i];
                 Glyph glyph = font.Get(c);
-                
-                // Box2I area = (glyph.Area.Float * scale).Int;
-                // RenderableCharacter renderableChar = new(area, glyph.UV);
+                Box2I area = (glyph.Area.Float * scale).Int;
 
-                // if x overflows AND have drawn at least one character:
-                //     y += fontHeight
-                //     start new sentence
-                // if y overflows AND have drawn at least one character:
-                //     return
-                // Draw(x, y, c) 
+                // Always draw at least one character. If we want strict bound
+                // adherence in the future, then we could add a boolean that will
+                // respect that. It's probably better for the end user that we
+                // draw at least one character instead of drawing nothing, since
+                // poorly chosen bounds making nothing appear might be frustrating
+                // for users, especially given that we scaling is possible based on
+                // mutable config/console input, or have an entirely new font than
+                // what the caller intended it would be.
+                if (HasDrawnAtLeastOne())
+                {
+                    if (OverflowOnX(area.Width))
+                    {
+                        x = 0;
+                        y += height;
+                    }
+                    
+                    if (OverflowOnY())
+                        break;
+                }
+
+                // We always want to draw at least one character per line, unless
+                // it overflows on the Y.
+                RenderableCharacter renderableChar = new(area + (x, y), glyph.UV);
+                m_characters.Add(renderableChar);
+                x += area.Width;
             }
 
-            drawArea = default; // TODO
-            return new ReadOnlySpan<RenderableCharacter>(m_characters.Data, 0, m_characters.Data.Length);
+            bool HasDrawnAtLeastOne() => !m_characters.Empty();
+            bool OverflowOnX(int width) => x + width > maxWidth;
+            bool OverflowOnY() => y + height > maxHeight;
+        }
+
+        private void CalculateSentences()
+        {
+            if (m_characters.Length == 0)
+                return;
+
+            int i = 0;
+            int sentenceY = -1;
+            int sentenceStartIndex = 0;
+            int sentenceCount = 0;
+            Vec2I topLeft = default;
+            Vec2I bottomRight = default;
+
+            do
+            {
+                RenderableCharacter c = m_characters[i];
+                i++;
+
+                // TODO: We should use a HudBox... (Top instead of Bottom)
+                if (sentenceY != c.Area.Bottom)
+                {
+                    AddSentenceIfPossible();
+                    StartNewSentence(c);
+                }
+            } while (i < m_characters.Length);
+
+            // Add any trailing sentences that we did not handle.
+            AddSentenceIfPossible();
+            
+            void AddSentenceIfPossible()
+            {
+                if (sentenceCount == 0)
+                    return;
+
+                // TODO: We should use a HudBox... (Top instead of Bottom)
+                RenderableSentence sentence = new(sentenceStartIndex, sentenceCount, (topLeft, bottomRight));
+                m_sentences.Add(sentence);
+                sentenceCount++;
+            }
+            
+            void StartNewSentence(in RenderableCharacter c)
+            {
+                sentenceY = c.Area.Bottom;
+                sentenceStartIndex = i;
+                sentenceCount = 1;
+                // TODO: We should use a HudBox... (Top instead of Bottom)
+                topLeft = c.Area.TopLeft;
+                bottomRight = c.Area.BottomRight;
+            }
+        }
+
+        private void PerformTextAlignment(TextAlign textAlign)
+        {
+            if (textAlign == TextAlign.Right)
+            {
+                // TODO
+            }
+            else if (textAlign == TextAlign.Center)
+            {
+                // TODO
+            }
+        }
+
+        private Dimension CalculateDrawArea()
+        {
+            int w = 0;
+            int h = 0;
+            for (int i = 0; i < m_sentences.Length; i++)
+            {
+                Box2I bounds = m_sentences[i].Bounds;
+                w = Math.Max(w, bounds.Right);
+                h += bounds.Height;
+            }
+
+            return (w, h);
         }
     }
 }

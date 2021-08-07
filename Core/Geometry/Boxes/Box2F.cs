@@ -31,6 +31,8 @@ namespace Helion.Geometry.Boxes
         public float Right => Max.X;
         public float Width => Max.X - Min.X;
         public float Height => Max.Y - Min.Y;
+        public Box2I Int => new(Min.Int, Max.Int);
+        public Box2D Double => new(Min.Double, Max.Double);
         public Vec2F Sides => Max - Min;
 
         public Box2F(Vec2F min, Vec2F max)
@@ -116,6 +118,8 @@ namespace Helion.Geometry.Boxes
             max = Max;
         }
 
+        public static Box2F operator *(Box2F self, float scale) => new(self.Min * scale, self.Max * scale);
+        public static Box2F operator /(Box2F self, float divisor) => new(self.Min / divisor, self.Max / divisor);
         public static Box2F operator +(Box2F self, Vec2F offset) => new(self.Min + offset, self.Max + offset);
         public static Box2F operator +(Box2F self, Vector2F offset) => new(self.Min + offset, self.Max + offset);
         public static Box2F operator -(Box2F self, Vec2F offset) => new(self.Min - offset, self.Max - offset);
