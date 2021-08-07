@@ -368,10 +368,12 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             HudBox area = c.Area + origin;
             Box2F uv = c.UV;
             
-            GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
-            GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
-            GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
-            GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
+            // Note: Because UV's are inverted, we use the flipped version of the
+            // coordinates (so TopLeft <=> BottomLeft, and TopRight <=> BottomRight).
+            GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);
+            GLHudTextureVertex quadTR = new(area.TopRight.Float.To3D(m_elementsDrawn), uv.BottomRight, byteColor, alpha);
+            GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
+            GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
             
             m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
         }

@@ -80,8 +80,6 @@ namespace Helion.Layer.Images
         {
             if (m_disposed)
                 return;
-
-            return;
             
             if (input.HasAnyKeyPressed() && ShouldMakeMenu)
             {
