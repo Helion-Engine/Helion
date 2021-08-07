@@ -49,9 +49,9 @@ namespace Helion.Render.Common.Renderers
         
         void Points(Vec2I[] points, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
         
-        void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
+        void Line(Seg2D seg, Color color, Align window = Align.TopLeft);
         
-        void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f);
+        void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft);
 
         void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
         

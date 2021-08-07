@@ -42,5 +42,7 @@ namespace Helion.Graphics.Fonts
         public IEnumerator<Glyph> GetEnumerator() => m_glyphs.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public override string ToString() => $"{Name}, Glyphs: {m_glyphs.Count}, Atlas: {Image.Dimension}";
     }
 }

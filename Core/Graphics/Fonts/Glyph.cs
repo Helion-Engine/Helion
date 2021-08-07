@@ -31,5 +31,7 @@ namespace Helion.Graphics.Fonts
             Vec2F uvEnd = Area.Max.Float / totalArea;
             UV = (uvStart, uvEnd);
         }
+        
+        public override string ToString() => $"{Character}, Area: {Area}, UV: {UV}";
     }
 }

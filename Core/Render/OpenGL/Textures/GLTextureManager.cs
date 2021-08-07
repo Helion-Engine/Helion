@@ -12,7 +12,6 @@ using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using NLog;
-using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
@@ -32,7 +31,6 @@ namespace Helion.Render.OpenGL.Textures
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly ResourceTracker<GLTextureHandle> m_handlesTracker = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
-        private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
 
         public GLTextureManager(IResources resources)
@@ -115,14 +113,22 @@ namespace Helion.Render.OpenGL.Textures
 
         private GLFontTexture AddNullFontTexture()
         {
-            Glyph glyph = new Glyph('?', Box2F.UnitBox, new Box2I((0, 0), Image.NullImage.Dimension.Vector));
+            const string NullFontName = "Null font";
+            
+            Glyph glyph = new('?', Box2F.UnitBox, new Box2I((0, 0), Image.NullImage.Dimension.Vector));
             Dictionary<char, Glyph> glyphs = new() { ['?'] = glyph };
-            Font font = new("Null font", glyphs, Image.NullImage);
+            Font font = new(NullFontName, glyphs, Image.NullImage);
 
-            GLTexture texture = new("Null font", TextureTarget.Texture2D);
-            GLFontTexture fontTexture = new(texture, font);
+            GLFontTexture fontTexture = new(NullFontName, font);
             m_fontTextures["NULL"] = fontTexture;
 
+            return fontTexture;
+        }
+
+        private GLFontTexture AddFontTexture(string name, Font font)
+        {
+            GLFontTexture fontTexture = new(name, font);
+            m_fontTextures[name] = fontTexture;
             return fontTexture;
         }
 
@@ -191,17 +197,19 @@ namespace Helion.Render.OpenGL.Textures
         /// uploaded yet. If none can be found, the <see cref="NullFont"/> is
         /// returned.
         /// </summary>
-        /// <param name="font">The font name, case insensitive.</param>
+        /// <param name="fontName">The font name, case insensitive.</param>
         /// <returns>The font handle, or <see cref="NullFont"/> if no font
         /// resource can be found.</returns>
-        public GLFontTexture GetFont(string font)
+        public GLFontTexture GetFont(string fontName)
         {
-            if (m_fontTextures.TryGetValue(font, out GLFontTexture? fontTexture))
+            if (m_fontTextures.TryGetValue(fontName, out GLFontTexture? fontTexture))
                 return fontTexture;
 
-            // TODO: Try to create it from m_resources.
+            Font? font = m_resources.GetFont(fontName);
+            if (font == null)
+                return NullFont;
 
-            return NullFont;
+            return AddFontTexture(fontName, font);
         }
 
         public bool TryGetFont(string font, out GLFontTexture fontTexture)
@@ -224,9 +232,9 @@ namespace Helion.Render.OpenGL.Textures
             m_handles.Clear();
             m_handlesTracker.Clear();
 
-            foreach (var texture in m_fontHandles)
-                texture.Dispose();
-            m_fontHandles.Clear();
+            foreach (GLFontTexture fontTexture in m_fontTextures.Values)
+                fontTexture.Dispose();
+            m_fontTextures.Clear();
 
             foreach (AtlasGLTexture texture in m_textures)
                 texture.Dispose();

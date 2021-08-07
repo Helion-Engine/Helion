@@ -23,6 +23,7 @@ namespace Helion.Render.OpenGL.Textures.Types
             Log.Debug("Creating {Type} ({Dim}, {Name})", nameof(GLTexture2D), dimension, debugName);
 
             Dimension = dimension;
+            ThrowIfTooLarge(dimension);
 
             SetInitialData(dimension);
         }
@@ -32,11 +33,19 @@ namespace Helion.Render.OpenGL.Textures.Types
             Log.Debug("Creating {Type} from image ({Dim}, {Name})", nameof(GLTexture2D), image.Dimension, debugName);
 
             Dimension = image.Dimension;
+            ThrowIfTooLarge(image.Dimension);
 
             image.Bitmap.WithLockedBits(data =>
             {
                 SetInitialData(image.Dimension, data);
             });
+        }
+
+        private static void ThrowIfTooLarge(Dimension imageDim)
+        {
+            int max = GLCapabilities.Limits.MaxTexture2DSize;
+            if (imageDim.Width > max || imageDim.Height > max)
+                throw new Exception($"Trying to upload an image that is too large for this GPU: {imageDim} exceeds ({max}, {max})");
         }
 
         private void SetInitialData(Dimension dimension, IntPtr? data = null)
@@ -130,7 +139,7 @@ namespace Helion.Render.OpenGL.Textures.Types
 
         public void GenerateMipmaps(Binding bind)
         {
-            if (!UsesMipmapTexParameter)
+            if (UsesMipmapTexParameter)
                 return;
 
             BindConditional(bind, () =>

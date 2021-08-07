@@ -72,12 +72,12 @@ namespace Helion.Render.Legacy
             // Not implemented in the legacy renderer.
         }
 
-        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
+        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft)
         {
             // Not implemented in the legacy renderer.
         }
 
-        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
+        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft)
         {
             // Not implemented in the legacy renderer.
         }

@@ -14,5 +14,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             Count = count;
             Bounds = bounds;
         }
+
+        public override string ToString() => $"Index: {StartIndex}, Count: {Count}, Bounds: {Bounds}";
     }
 }

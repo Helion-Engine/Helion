@@ -125,17 +125,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             }
         }
 
-        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
+        public void Line(Seg2D seg, Color color, Align window = Align.TopLeft)
         {
-            ByteColor byteColor = new ByteColor(color, alpha);
+            ByteColor byteColor = new ByteColor(color);
             AddSegment(seg.Start.Int, seg.End.Int, byteColor, window);
             
             m_elementsDrawn++;
         }
 
-        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
+        public void Lines(Seg2D[] segs, Color color, Align window = Align.TopLeft)
         {
-            ByteColor byteColor = new ByteColor(color, alpha);
+            ByteColor byteColor = new ByteColor(color);
             for (int i = 0; i < segs.Length; i++)
                 AddSegment(segs[i].Start.Int, segs[i].End.Int, byteColor, window);
             
@@ -395,7 +395,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             GLHudTextureVertex quadBL = new(area.BottomLeft.Float.To3D(m_elementsDrawn), uv.TopLeft, byteColor, alpha);
             GLHudTextureVertex quadBR = new(area.BottomRight.Float.To3D(m_elementsDrawn), uv.TopRight, byteColor, alpha);
             
-            m_texturePipeline.Quad(fontHandle.Texture, quadTL, quadTR, quadBL, quadBR);
+            m_texturePipeline.Quad(fontHandle, quadTL, quadTR, quadBL, quadBR);
         }
 
         public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,

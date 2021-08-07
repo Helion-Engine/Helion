@@ -1,8 +1,6 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
@@ -108,22 +106,10 @@ namespace Helion.Layer.Consoles
                 if (bottomY <= 0)
                     break;
 
-                int offsetX = 4;
-                int maxDrawHeight = 0;
-                
-                foreach (ColoredChar coloredChar in message.Message)
-                {
-                    hud.Text(coloredChar.Char.ToString(), FontName, FontSize, (offsetX, bottomY), 
-                        out Dimension drawArea, anchor: Align.BottomLeft, color: coloredChar.Color);
-                    
-                    offsetX += drawArea.Width;
-                    maxDrawHeight = Math.Max(maxDrawHeight, drawArea.Height);
+                hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea, 
+                    anchor: Align.BottomLeft);
 
-                    if (offsetX > hud.Width)
-                        break;
-                }
-
-                bottomY -= maxDrawHeight + BetweenMessagePadding;
+                bottomY -= drawArea.Height + BetweenMessagePadding;
             }
         }
     }

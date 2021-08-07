@@ -88,5 +88,7 @@ namespace Helion.Render.Common
             min = Min;
             max = Max;
         }
+
+        public override string ToString() => $"({Min}), ({Max})";
     }
 }

@@ -7,7 +7,6 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Textures;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Hud.Text
@@ -72,26 +71,29 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 // what the caller intended it would be.
                 if (HasDrawnAtLeastOne())
                 {
-                    if (OverflowOnX(area.Width))
+                    if (OverflowsOnX(area.Width))
                     {
                         x = 0;
                         y += height;
                     }
                     
-                    if (OverflowOnY())
+                    if (OverflowsOnY())
                         break;
                 }
 
                 // We always want to draw at least one character per line, unless
                 // it overflows on the Y.
-                RenderableCharacter renderableChar = new(area + (x, y), glyph.UV);
+                Vec2I topLeft = (x, y);
+                Vec2I bottomRight = topLeft + area.Dimension;
+                RenderableCharacter renderableChar = new(c, (topLeft, bottomRight), glyph.UV);
                 m_characters.Add(renderableChar);
+                
                 x += area.Width;
             }
 
-            bool HasDrawnAtLeastOne() => !m_characters.Empty();
-            bool OverflowOnX(int width) => x + width > maxWidth;
-            bool OverflowOnY() => y + height > maxHeight;
+            bool HasDrawnAtLeastOne() => m_characters.Length != 0;
+            bool OverflowsOnX(int width) => x + width > maxWidth;
+            bool OverflowsOnY() => y + height > maxHeight;
         }
 
         private void CalculateSentences()
@@ -99,24 +101,36 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             if (m_characters.Length == 0)
                 return;
 
-            int i = 0;
+            // We track when the top of the character moves, as that indicates a
+            // new line has been found. This is what `sentenceY` tracks.
             int sentenceY = -1;
             int startIndex = 0;
             int count = 0;
             Vec2I topLeft = default;
             Vec2I bottomRight = default;
 
-            do
+            for (int i = 0; i < m_characters.Length; i++)
             {
                 RenderableCharacter c = m_characters[i];
-                i++;
-                
+
+                // If we find a character that has a different Y height, then
+                // we've reached the line under this.
                 if (sentenceY != c.Area.Top)
                 {
                     AddSentenceIfPossible();
-                    StartNewSentence(c);
+                    
+                    // This is the set up for the new sentence. We assume that
+                    // we're "adding" the character by tracking it as part of
+                    // the sentence.
+                    sentenceY = c.Area.Top;
+                    startIndex = i;
+                    count = 0; // Not set to 1 because the loop increments this.
+                    topLeft = c.Area.TopLeft;
+                    bottomRight = c.Area.BottomRight;
                 }
-            } while (i < m_characters.Length);
+                
+                count++;
+            }
 
             // Add any trailing sentences that we did not handle.
             AddSentenceIfPossible();
@@ -129,20 +143,11 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 RenderableSentence sentence = new(startIndex, count, (topLeft, bottomRight));
                 m_sentences.Add(sentence);
             }
-            
-            void StartNewSentence(in RenderableCharacter c)
-            {
-                sentenceY = c.Area.Bottom;
-                startIndex = i;
-                count = 1;
-                topLeft = c.Area.TopLeft;
-                bottomRight = c.Area.BottomRight;
-            }
         }
 
         private void PerformTextAlignment(TextAlign textAlign)
         {
-            if (textAlign == TextAlign.Right)
+            if (textAlign == TextAlign.Left)
                 return;
             
             int maxWidth = CalculateMaxSentenceWidth();
@@ -161,8 +166,12 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 
                 for (int i = sentence.StartIndex; i < sentence.StartIndex + sentence.Count; i++)
                 {
+                    // if (i >= m_characters.Length)
+                        // break;
+                    Precondition(i < m_characters.Length, "Renderable sentence index is out of bounds");
+                    
                     RenderableCharacter oldChar = m_characters[i];
-                    RenderableCharacter newChar = new(oldChar.Area + (0, padding), oldChar.UV);
+                    RenderableCharacter newChar = new(oldChar.Character, oldChar.Area + (0, padding), oldChar.UV);
                     m_characters[i] = newChar;
                 }
             }
