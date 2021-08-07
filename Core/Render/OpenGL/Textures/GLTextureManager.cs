@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -13,6 +14,8 @@ using Helion.Resources;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
+using Font = Helion.Graphics.Fonts.Font;
+using Image = Helion.Graphics.Image;
 using Texture = Helion.Resources.Textures.Texture;
 
 namespace Helion.Render.OpenGL.Textures
@@ -22,6 +25,7 @@ namespace Helion.Render.OpenGL.Textures
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public GLTextureHandle NullHandle { get; }
+        public GLTextureHandle WhiteHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
         private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
@@ -36,6 +40,7 @@ namespace Helion.Render.OpenGL.Textures
             m_resources = resources;
 
             NullHandle = AddNullTexture();
+            WhiteHandle = AddWhiteTexture();
             NullFont = AddNullFontTexture();
         }
 
@@ -47,8 +52,19 @@ namespace Helion.Render.OpenGL.Textures
 
         private GLTextureHandle AddNullTexture()
         {
-            GLTextureHandle? handle = AddImage("NULL", Image.NullImage, Mipmap.Generate, Binding.Bind);
+            const string NullHandleName = "__NULL";
+            
+            GLTextureHandle? handle = AddImage(NullHandleName, Image.NullImage, Mipmap.Generate, Binding.Bind);
             return handle ?? throw new Exception("Should never fail to allocate the null texture");
+        }
+
+        private GLTextureHandle AddWhiteTexture()
+        {
+            const string WhiteHandleName = "__WHITE";
+            
+            Image image = new(16, 16, ImageType.Argb, fillColor: Color.White);
+            GLTextureHandle? handle = AddImage(WhiteHandleName, image, Mipmap.Generate, Binding.Bind);
+            return handle ?? throw new Exception("Should never fail to allocate the white texture");
         }
 
         private GLTextureHandle? AddImage(string name, Image image, Mipmap mipmap, Binding bind)

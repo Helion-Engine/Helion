@@ -66,7 +66,7 @@ namespace Helion.Graphics.Fonts
                         Dictionary<char, Image> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
 
                         var (glyphs, image) = ComposeFontGlyphs(charImages);
-                        return new Font(name, glyphs, image);
+                        return new Font(name, glyphs, image, isTrueTypeFont: true);
                     }
                 }
             }

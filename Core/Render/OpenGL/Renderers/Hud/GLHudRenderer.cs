@@ -17,6 +17,7 @@ using Helion.Render.OpenGL.Primitives;
 using Helion.Render.OpenGL.Renderers.Hud.Text;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
+using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -79,8 +80,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         public void Clear(Color color, float alpha = 1.0f)
         {
-            Color drawColor = Color.FromArgb((int)(alpha / 255.0f), color.R, color.G, color.B);
-            DrawBox((Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector), drawColor);
+            HudBox area = (Vec2I.Zero, m_currentResolutionInfo.Dimension.Vector);
+            FillBox(area, color, alpha: alpha);
         }
 
         private void AddPoint(Vec2I point, ByteColor color, Align window)
@@ -221,20 +222,38 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color, alpha);
-            AddFillBox(box, byteColor, window, anchor);
+            if (alpha.ApproxEquals(1.0f))
+            {
+                ByteColor byteColor = new ByteColor(color, alpha);
+                AddFillBox(box, byteColor, window, anchor);
             
-            m_elementsDrawn++;
+                m_elementsDrawn++;
+            }
+            else
+            {
+                Image("", out _, box, color: color, alpha: alpha, handle: m_textureManager.WhiteHandle);
+            }
         }
 
         public void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
             float alpha = 1.0f)
         {
-            ByteColor byteColor = new ByteColor(color, alpha);
-            for (int i = 0; i < boxes.Length; i++)
-                AddFillBox(boxes[i], byteColor, window, anchor);
-            
-            m_elementsDrawn++;
+            bool callImage = !alpha.ApproxEquals(1.0f);
+
+            if (callImage)
+            {
+                ByteColor byteColor = new ByteColor(color, alpha);
+                for (int i = 0; i < boxes.Length; i++)
+                    AddFillBox(boxes[i], byteColor, window, anchor);
+            }
+            else
+            {
+                for (int i = 0; i < boxes.Length; i++)
+                    Image("", out _, boxes[i], color: color, alpha: alpha, handle: m_textureManager.WhiteHandle);
+            }
+
+            if (callImage)
+                m_elementsDrawn++;
         }
 
         public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft, 
@@ -254,15 +273,15 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, 
             ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
-            float scale = 1.0f, float alpha = 1.0f)
+            float scale = 1.0f, float alpha = 1.0f, GLTextureHandle? handle = null)
         {
             Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
-            GLTextureHandle handle = m_textureManager.Get(texture, resourceNamespace);
+            handle ??= m_textureManager.Get(texture, resourceNamespace);
             
-            Vec2I newOrigin = origin ?? Vec2I.Zero;
+            Vec2I topLeft = origin ?? Vec2I.Zero;
             if (area != null)
-                newOrigin = area.Value.TopLeft;
+                topLeft = area.Value.TopLeft;
 
             Dimension dimension = handle.Dimension;
             if (area != null)
@@ -273,7 +292,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             window = both ?? window;
             anchor = both ?? anchor;
             
-            Vec2I topLeft = anchor.Translate(newOrigin, dimension);
+            Vec2I bottomRight = topLeft + dimension;
+            drawArea = (topLeft, bottomRight);
+
+            topLeft = anchor.Translate(topLeft, dimension);
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
 
             if (PointOutsideBottomRightViewport(topLeft))
@@ -282,13 +304,11 @@ namespace Helion.Render.OpenGL.Renderers.Hud
                 return;
             }
 
-            Vec2I bottomRight = topLeft + dimension; 
             bottomRight = anchor.Translate(bottomRight, dimension);
             bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
             
             Vec2I topRight = (bottomRight.X, topLeft.Y);
             Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
-            drawArea = (topLeft, bottomRight);
 
             // Note: Because UV's are inverted, we use the flipped version of the
             // coordinates (so TopLeft <=> BottomLeft, and TopRight <=> BottomRight).
