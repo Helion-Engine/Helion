@@ -13,6 +13,7 @@ using Helion.Resources;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
+using Texture = Helion.Resources.Textures.Texture;
 
 namespace Helion.Render.OpenGL.Textures
 {
@@ -25,7 +26,7 @@ namespace Helion.Render.OpenGL.Textures
         private readonly IResources m_resources;
         private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
         private readonly List<GLTextureHandle> m_handles = new();
-        private readonly ResourceTracker<GLTextureHandle> m_handlesTable = new();
+        private readonly ResourceTracker<GLTextureHandle> m_handlesTracker = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<GLFontTexture> m_fontHandles = new();
         private bool m_disposed;
@@ -91,7 +92,7 @@ namespace Helion.Render.OpenGL.Textures
 
             GLTextureHandle handle = new(index, layerIndex, box, uvBox, image.Offset, glTexture);
             m_handles.Add(handle);
-            m_handlesTable.Insert(name, image.Namespace, handle);
+            m_handlesTracker.Insert(name, image.Namespace, handle);
 
             return handle;
         }
@@ -114,7 +115,7 @@ namespace Helion.Render.OpenGL.Textures
         {
             GLTextureHandle texture = Get(name, specificNamespace ?? ResourceNamespace.Global);
             handle = texture;
-            return ReferenceEquals(texture, NullHandle);
+            return !ReferenceEquals(texture, NullHandle);
         }
         
         /// <summary>
@@ -130,7 +131,7 @@ namespace Helion.Render.OpenGL.Textures
         /// cannot be found.</returns>
         public GLTextureHandle Get(string name, ResourceNamespace priority)
         {
-            Texture texture = m_resources.Textures.GetTexture(name, priority);
+            m_resources.Textures.TryGet(name, priority, out Texture? texture);
             return Get(texture, priority);
         }
 
@@ -143,22 +144,26 @@ namespace Helion.Render.OpenGL.Textures
         /// lookup fails and we pull from somewhere else. It is likely the
         /// case that the same call will be made again.</param>
         /// <returns>A texture handle.</returns>
-        public GLTextureHandle Get(Texture texture, ResourceNamespace? priority = null)
+        public GLTextureHandle Get(Texture? texture, ResourceNamespace? priority = null)
         {
-            if (texture.Image == null)
+            if (texture == null)
                 return NullHandle;
 
-            Image image = texture.Image;
-            GLTextureHandle? handle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);
+            GLTextureHandle? handle = m_handlesTracker.Get(texture.Name, texture.Namespace);
             if (handle != null)
+                return handle;
+
+            Image image = texture.Image;
+            GLTextureHandle? newHandle = AddImage(texture.Name, image, Mipmap.Generate, Binding.Bind);
+            if (newHandle != null)
             {
                 // If we grab it from another namespace, also track it in the
                 // requested namespace because we know it doesn't exist and
                 // instead can return hits quicker by caching the result.
                 if (priority != null && priority != image.Namespace)
-                    m_handlesTable.Insert(texture.Name, priority.Value, handle);
+                    m_handlesTracker.Insert(texture.Name, priority.Value, newHandle);
                 
-                return handle;
+                return newHandle;
             }
             
             Log.Warn("Unable to allocate space for texture {Name} ({Dimension}, {Namespace})", texture.Name, image.Dimension, image.Namespace);
@@ -201,7 +206,7 @@ namespace Helion.Render.OpenGL.Textures
                 return;
 
             m_handles.Clear();
-            m_handlesTable.Clear();
+            m_handlesTracker.Clear();
 
             foreach (var texture in m_fontHandles)
                 texture.Dispose();

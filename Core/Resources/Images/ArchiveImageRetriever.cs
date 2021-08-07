@@ -19,7 +19,7 @@ namespace Helion.Resources.Images
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly ResourceTracker<Image> m_compiledImages = new ResourceTracker<Image>();
+        private readonly ResourceTracker<Image> m_compiledImages = new();
 
         /// <summary>
         /// Creates an image reader that uses the archive collection for its

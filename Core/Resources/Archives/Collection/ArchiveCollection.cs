@@ -21,6 +21,7 @@ using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.IWad;
+using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
@@ -46,10 +47,11 @@ namespace Helion.Resources.Archives.Collection
         public IEnumerable<Archive> Archives => m_archives.Where(x => x.ArchiveType == ArchiveType.None);
         public AnimatedDefinitions Animdefs => Definitions.Animdefs;
         public BoomAnimatedDefinition BoomAnimated => Definitions.BoomAnimated;
+        public BoomSwitchDefinition BoomSwitches => Definitions.BoomSwitches;
         public CompatibilityDefinitions Compatibility => Definitions.Compatibility;
         public DecorateDefinitions Decorate => Definitions.Decorate;
         public FontManager Fonts { get; } = new();
-        public TextureManager Textures => TextureManager.Instance;
+        public ITextureManager Textures { get; }
         public SoundInfoDefinition SoundInfo => Definitions.SoundInfo;
         public LockDefinitions Locks => Definitions.LockDefininitions;
         public LanguageDefinition Language => Definitions.Language;
@@ -67,6 +69,7 @@ namespace Helion.Resources.Archives.Collection
         public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
         {
             m_archiveLocator = archiveLocator;
+            Textures = new Textures.TextureManager(this);
             Definitions = new DefinitionEntries(this, config);
             EntityDefinitionComposer = new EntityDefinitionComposer(this);
         }

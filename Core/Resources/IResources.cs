@@ -17,6 +17,7 @@ using Helion.World.Entities.Definition.Composer;
 using System;
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
+using Helion.Resources.Textures;
 
 namespace Helion.Resources
 {
@@ -33,10 +34,11 @@ namespace Helion.Resources
         IEnumerable<Archive> Archives { get; }
         AnimatedDefinitions Animdefs { get; }
         BoomAnimatedDefinition BoomAnimated { get; }
+        BoomSwitchDefinition BoomSwitches { get; }
         CompatibilityDefinitions Compatibility { get; }
         DecorateDefinitions Decorate { get; }
         FontManager Fonts { get; }
-        TextureManager Textures { get; }
+        ITextureManager Textures { get; }
         SoundInfoDefinition SoundInfo { get; }
         LockDefinitions Locks { get; }
         LanguageDefinition Language { get; }
