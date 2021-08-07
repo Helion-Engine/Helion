@@ -12,8 +12,7 @@ namespace Helion.Render.OpenGL.Textures
     {
         public readonly Font Font;
 
-        public GLFontTexture(string debugName, Font font) : 
-            base(debugName, font.Image)
+        public GLFontTexture(string debugName, Font font) : base(debugName, font.Image)
         {
             Font = font;
             

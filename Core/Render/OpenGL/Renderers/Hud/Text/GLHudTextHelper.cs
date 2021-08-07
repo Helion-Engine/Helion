@@ -51,15 +51,16 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
         
         private void CalculateCharacters(ReadOnlySpan<char> text, int fontSize, float scale, Font font, int maxWidth, int maxHeight)
         {
+            float totalScale = scale * ((float)fontSize / font.MaxHeight); 
             int x = 0;
             int y = 0;
-            int height = (int)(fontSize * scale);
+            int height = (int)(font.MaxHeight * totalScale);
 
             for (int i = 0; i < text.Length; i++)
             {
                 char c = text[i];
                 Glyph glyph = font.Get(c);
-                HudBox area = new((glyph.Area.Float * scale).Int);
+                HudBox area = new((glyph.Area.Float * totalScale).Int);
 
                 // Always draw at least one character. If we want strict bound
                 // adherence in the future, then we could add a boolean that will
