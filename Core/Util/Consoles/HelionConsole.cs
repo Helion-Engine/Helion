@@ -5,11 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Helion.Graphics.String;
+using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using NLog;
+using NLog.Config;
 using NLog.Targets;
 using static Helion.Util.Assertion.Assert;
 
@@ -78,7 +80,7 @@ namespace Helion.Util.Consoles
         private int m_capacity;
         private bool m_disposed;
 
-        public HelionConsole(Config? cfg = null)
+        public HelionConsole(Config? cfg = null, CommandLineArgs? args = null)
         {
             Name = TargetName;
             m_config = cfg;
@@ -87,7 +89,7 @@ namespace Helion.Util.Consoles
             if (m_config != null)
             {
                 m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
-                AddToLogger();
+                AddToLogger(args);
             }
         }
 
@@ -332,11 +334,19 @@ namespace Helion.Util.Consoles
             RemoveExcessMessagesIfAny();
         }
 
-        private void AddToLogger()
+        private void AddToLogger(CommandLineArgs? args)
         {
-            var rule = new NLog.Config.LoggingRule("*", LogLevel.Trace, this);
-            LogManager.Configuration.AddTarget(TargetName, this);
+            LoggingRule rule = new("*", LogLevel.Info, this);
+            if (args?.LogLevel != null)
+            {
+                if (args.LogLevel.EqualsIgnoreCase("trace"))
+                    rule = new LoggingRule("*", LogLevel.Trace, this);
+                else if (args.LogLevel.EqualsIgnoreCase("trace"))
+                    rule = new LoggingRule("*", LogLevel.Debug, this);
+            }
+
             LogManager.Configuration.LoggingRules.Add(rule);
+            LogManager.Configuration.AddTarget(TargetName, this);
             LogManager.ReconfigExistingLoggers();
         }
 

@@ -42,11 +42,17 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             Precondition(m_characters.Length < OverflowCount, "Not clearing the GL hud text helper characters");
             Precondition(m_sentences.Length < OverflowCount, "Not clearing the GL hud text helper sentences");
 
+            Reset();
+            
             CalculateCharacters(text, fontSize, scale, fontTexture.Font, maxWidth, maxHeight);
             CalculateSentences();
             PerformTextAlignment(textAlign);
             drawArea = CalculateDrawArea();
-            return new ReadOnlySpan<RenderableCharacter>(m_characters.Data, 0, m_characters.Data.Length);
+            
+            ReadOnlySpan<RenderableCharacter> span = new(m_characters.Data, 0, m_characters.Length);
+            Postcondition(span.Length == text.Length, "Lost characters when creating renderable character span");
+
+            return span;
         }
         
         private void CalculateCharacters(ReadOnlySpan<char> text, int fontSize, float scale, Font font, int maxWidth, int maxHeight)

@@ -328,13 +328,16 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float alpha = 1.0f)
         {
             drawArea = default;
+            
+            if (text.Length == 0)
+                return;
 
             if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
             
             ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
                 textAlign, maxWidth, maxHeight, scale, out drawArea);
-            
+
             window = both ?? window;
             anchor = both ?? anchor;
             origin = anchor.Translate(origin, drawArea);
@@ -343,8 +346,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (PointOutsideBottomRightViewport(origin))
                 return;
 
-            int numChars = Math.Min(text.Length, chars.Length);
-            for (int i = 0; i < numChars; i++)
+            for (int i = 0; i < chars.Length; i++)
             {
                 ByteColor byteColor = new(text[i].Color);
                 AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
@@ -359,6 +361,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
+
+            if (text == "")
+                return;
 
             if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
@@ -375,8 +380,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
                 return;
 
             ByteColor byteColor = new(color ?? Color.White);
-            int numChars = Math.Min(text.Length, chars.Length);
-            for (int i = 0; i < numChars; i++)
+            for (int i = 0; i < chars.Length; i++)
                 AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
 
             m_elementsDrawn++;

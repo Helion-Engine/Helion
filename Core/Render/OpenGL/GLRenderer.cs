@@ -13,6 +13,7 @@ using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Util.Configs;
 using NLog;
+using NLog.Fluent;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -139,7 +140,7 @@ namespace Helion.Render.OpenGL
                 }
             };
 
-            Log.Info("Registered GL debug callback handler");
+            Log.Debug("Registered OpenGL debug callback handler");
             GL.DebugMessageCallback(LastCallbackProcReference, IntPtr.Zero);
         }
 

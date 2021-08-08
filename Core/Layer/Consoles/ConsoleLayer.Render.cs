@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
@@ -101,7 +103,10 @@ namespace Helion.Layer.Consoles
 
             int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
             
-            foreach (ConsoleMessage message in m_console.Messages)
+            // Note: If we do something that triggers a message, that can modify
+            // the collection while iterating. A shallow copy is needed.
+            List<ConsoleMessage> shallowCopy = m_console.Messages.ToList();
+            foreach (ConsoleMessage message in shallowCopy)
             {
                 if (bottomY <= 0)
                     break;

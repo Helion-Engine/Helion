@@ -119,7 +119,7 @@ namespace Helion.Client
             bmp.UnlockBits(data);
             bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-            string path = $"helion_{DateTime.Now:yyyyMMdd_hh_mm_ss_FFFF}.png";
+            string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
             Log.Info($"Saving screenshot to {path}");
             bmp.Save(path);
         }
@@ -273,7 +273,7 @@ namespace Helion.Client
         {
             using Config config = new();
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
-            using HelionConsole console = new(config);
+            using HelionConsole console = new(config, commandLineArgs);
             using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);

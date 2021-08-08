@@ -104,7 +104,7 @@ namespace Helion.Render.Common.Enums
                 _ => throw new Exception($"Unsupported alignment: {align}")
             };
 
-            return anchor + point;
+            return point - anchor;
         }
     }
 }

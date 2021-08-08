@@ -31,8 +31,8 @@ namespace Helion.Util
             {
                 Layout = @"${message} ${exception}",
             };
-            config.AddTarget(consoleTarget);
             AddRuleForAppropriateLevels(config, consoleTarget, args);
+            config.AddTarget(consoleTarget);
         }
 
         private static void SetupDebugger(LoggingConfiguration config, CommandLineArgs args)
@@ -41,8 +41,8 @@ namespace Helion.Util
             {
                 Layout = "${message} ${exception}",
             };
-            config.AddTarget(debuggerTarget);
             AddRuleForAppropriateLevels(config, debuggerTarget, args);
+            config.AddTarget(debuggerTarget);
         }
 
         private static void SetupFileLogger(LoggingConfiguration config, CommandLineArgs args)
@@ -55,11 +55,11 @@ namespace Helion.Util
                 FileName = $"helion_{DateTime.Now:o}_{args.LogPath}",
                 Layout = "${time} [${level:uppercase=true}] ${message} ${exception}",
             };
-            config.AddTarget(fileTarget);
             AddRuleForAppropriateLevels(config, fileTarget, args);
+            config.AddTarget(fileTarget);
         }
 
-        private static void AddRuleForAppropriateLevels(LoggingConfiguration config, Target target, CommandLineArgs args)
+        public static void AddRuleForAppropriateLevels(LoggingConfiguration config, Target target, CommandLineArgs args)
         {
             config.AddRuleForOneLevel(LogLevel.Off, target);
             config.AddRuleForOneLevel(LogLevel.Fatal, target);
