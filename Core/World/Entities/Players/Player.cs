@@ -353,7 +353,7 @@ namespace Helion.World.Entities.Players
             m_killer = null;
         }
 
-        public override bool CanDamage(Entity source)
+        public override bool CanDamage(Entity source, bool isHitscan)
         {
             // Always return true for now - this will likely change with multiplayer options
             return true;
@@ -988,7 +988,7 @@ namespace Helion.World.Entities.Players
             Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, Weapon.Definition.Properties.Weapons.AmmoUse);
         }
 
-        public override bool Damage(Entity? source, int damage, bool setPainState)
+        public override bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
         {
             if (Inventory.IsPowerupActive(PowerupType.Invulnerable))
                 return false;
@@ -998,7 +998,7 @@ namespace Helion.World.Entities.Players
 
             damage = World.SkillDefinition.GetDamage(damage);
 
-            bool damageApplied = base.Damage(source, damage, setPainState);
+            bool damageApplied = base.Damage(source, damage, setPainState, isHitscan);
             if (damageApplied)
             {
                 Attacker = source?.Owner ?? source;

@@ -400,9 +400,12 @@ namespace Helion.World.Entities
         }
 
         public void ForceGib() =>
-            Damage(null, int.MaxValue, false);
+            Damage(null, int.MaxValue, false, false);
 
-        public void Kill(Entity? source)
+        public void Kill(Entity? source) =>
+            Damage(source, Health, false, false);
+
+        private void KillInternal(Entity? source)
         {
             if (Health > 0)
                 Health = 0;
@@ -516,7 +519,7 @@ namespace Helion.World.Entities
             return speciesDef.Name;
         }
 
-        public virtual bool CanDamage(Entity source)
+        public virtual bool CanDamage(Entity source, bool isHitscan)
         {
             Entity damageSource = source.Owner ?? source;
             if (damageSource is Player)
@@ -527,17 +530,16 @@ namespace Helion.World.Entities
             if (World.MapInfo.HasOption(MapOptions.NoInfighting))
                 return false;
 
-            // Not a projectile, always damage
-            if (source.Owner == null)
+            if (isHitscan)
                 return true;
 
             if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
-                return false;
+                return false;                
 
             return true;
         }
 
-        public virtual bool Damage(Entity? source, int damage, bool setPainState)
+        public virtual bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
         {
             if (damage <= 0 || Flags.Invulnerable)
                 return false;
@@ -545,7 +547,7 @@ namespace Helion.World.Entities
             if (source != null)
             {
                 Entity damageSource = source.Owner ?? source;
-                if (!CanDamage(source))
+                if (!CanDamage(source, isHitscan))
                     return false;
 
                 if (Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
@@ -566,7 +568,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                Kill(source);
+                KillInternal(source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
@@ -756,7 +758,7 @@ namespace Helion.World.Entities
                 if (BlockingEntity != null)
                 {
                     int damage = Properties.Damage.Get(World.Random);
-                    EntityManager.World.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
+                    EntityManager.World.DamageEntity(BlockingEntity, this, damage, false, Thrust.Horizontal);
                 }
 
                 // Bounce off plane if it's the only thing blocking

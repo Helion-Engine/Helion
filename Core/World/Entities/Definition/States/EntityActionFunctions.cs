@@ -454,7 +454,7 @@ namespace Helion.World.Entities.Definition.States
                     damage += (entity.World.Random.NextByte() & 7) + 1;
 
                 entity.World.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
-                entity.World.DamageEntity(hitEntity, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(hitEntity, entity, damage, false, Thrust.Horizontal);
             }
         }
 
@@ -623,7 +623,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
-                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 return;
             }
@@ -1266,7 +1266,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 6) + 1) * 10;
-                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
                 entity.PlayAttackSound();
                 return;
             }
@@ -1868,7 +1868,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
-                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
             }
         }
 
@@ -2193,7 +2193,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
-                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             }
         }
@@ -2457,7 +2457,7 @@ namespace Helion.World.Entities.Definition.States
             if (entity.InMeleeRange(entity.Target))
             {
                 int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
-                entity.World.DamageEntity(entity.Target, entity, damage, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
                 entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 return;
             }
@@ -2522,7 +2522,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
 
             entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
-            entity.World.DamageEntity(entity.Target, entity, 20, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, 20, false, Thrust.Horizontal);
             entity.Target.Velocity.Z = 1000.0 / entity.Target.Definition.Properties.Mass;
 
             if (entity.Tracer == null)
@@ -2703,7 +2703,7 @@ namespace Helion.World.Entities.Definition.States
                 if (dehacked != null)
                     PlayDehackedSound(dehacked, entity, entity.Frame.DehackedMisc2, Attenuation.Default);
 
-                entity.World.DamageEntity(entity.Target, entity, entity.Frame.DehackedMisc1, Thrust.Horizontal);
+                entity.World.DamageEntity(entity.Target, entity, entity.Frame.DehackedMisc1, false, Thrust.Horizontal);
             }
         }
 

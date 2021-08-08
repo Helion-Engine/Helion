@@ -38,7 +38,6 @@ using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Maps.Specials.ZDoom;
 using Helion.World.Cheats;
 using Helion.World.Stats;
 using Helion.World.Entities.Inventories.Powerups;
@@ -652,7 +651,7 @@ namespace Helion.World
 
                 if (bi.Value.Entity != null)
                 {
-                    DamageEntity(bi.Value.Entity, shooter, damage, Thrust.Horizontal);
+                    DamageEntity(bi.Value.Entity, shooter, damage, true, Thrust.Horizontal);
                     return bi.Value.Entity;
                 }
             }
@@ -737,7 +736,7 @@ namespace Helion.World
             return returnValue;
         }
 
-        public virtual bool DamageEntity(Entity target, Entity? source, int damage, 
+        public virtual bool DamageEntity(Entity target, Entity? source, int damage, bool isHitscan,
             Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
         {
             if (!target.Flags.Shootable || damage == 0)
@@ -805,7 +804,7 @@ namespace Helion.World
                     ApplyVooDooDamage(player, damage, setPainState);
             }
 
-            if (target.Damage(source, damage, setPainState) || target.IsInvulnerable)
+            if (target.Damage(source, damage, setPainState, isHitscan) || target.IsInvulnerable)
                 target.Velocity += thrustVelocity;
 
             return true;
@@ -884,7 +883,7 @@ namespace Helion.World
                 if (entity.BlockingEntity != null)
                 {
                     int damage = entity.Properties.Damage.Get(m_random);
-                    DamageEntity(entity.BlockingEntity, entity, damage);
+                    DamageEntity(entity.BlockingEntity, entity, damage, isHitscan: false);
                 }
 
                 bool skyClip = false;
@@ -912,11 +911,38 @@ namespace Helion.World
                 else
                     entity.SetDeathState(null);
             }
+            else if (entity.Flags.Touchy || (entity.BlockingEntity != null && entity.BlockingEntity.Flags.Touchy))
+            {
+                if (entity.BlockingEntity != null && ShouldDieFromTouch(entity, entity.BlockingEntity))
+                    entity.BlockingEntity.Kill(null);
+                else if (entity.IsCrushing())
+                    entity.Kill(null);
+            }
             else if (tryMove != null && entity is Player)
             {
                 for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
                     ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.PlayerPushesWall);
             }
+        }
+
+        private static bool ShouldDieFromTouch(Entity entity, Entity blockingEntity)
+        {
+            // The documentation on Touchy is horrible
+            // Based on testing crushers will kill it and it will only be killed if something walks into it
+            // But not the other way around...
+            // LostSouls will not kill PainElementals
+            const string painElemental = "PainElemental";
+            const string lostSoul = "LostSoul";
+            if (!blockingEntity.Flags.Touchy || !blockingEntity.CanDamage(entity, false))
+                return false;
+
+            if (entity.Definition.IsType(painElemental) && blockingEntity.Definition.IsType(lostSoul))
+                return false;
+
+            if (entity.Definition.IsType(lostSoul) && blockingEntity.Definition.IsType(painElemental))
+                return false;
+
+            return true;
         }
 
         public virtual bool CheckLineOfSight(Entity from, Entity to)
@@ -1081,12 +1107,14 @@ namespace Helion.World
             return blocked;
         }
 
+        private readonly TryMoveData EmtpyTryMove = new();
+
         public bool IsPositionBlocked(Entity entity)
-        {
+        {            
             if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
                 return true;
 
-            if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, new TryMoveData()))
+            if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmtpyTryMove))
                 return true;
 
             return false;
@@ -1124,7 +1152,7 @@ namespace Helion.World
 
             Entity? originalOwner = source.Owner;
             source.Owner = attackSource;
-            DamageEntity(entity, source, damage, thrust);
+            DamageEntity(entity, source, damage, false, thrust);
             source.Owner = originalOwner;
         }
 
@@ -1601,7 +1629,7 @@ namespace Helion.World
                 if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                     continue;
 
-                updatePlayer.Damage(null, damage, setPainState);
+                updatePlayer.Damage(null, damage, setPainState, false);
             }
         }
 
