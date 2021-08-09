@@ -50,12 +50,12 @@ namespace Helion.World.Entities
 
         public bool BlockFloating;
 
-        public bool ValidEnemyTarget(Entity? entity) => entity != null && !entity.IsDead;
+        public bool ValidEnemyTarget(Entity? entity) => entity != null && 
+            !entity.IsDead && (!IsFriend(entity) || Target == null);
 
         public bool SetNewTarget(bool allaround)
         {
             Entity? newTarget = null;
-
             if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
             {
                 if (Flags.Ambush)
@@ -75,7 +75,7 @@ namespace Helion.World.Entities
             }
             else
             {
-                newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+                newTarget = GetNewTarget(allaround);
             }
 
             if (newTarget != null)
@@ -91,6 +91,23 @@ namespace Helion.World.Entities
             }
 
             return false;
+        }
+
+        private Entity? GetNewTarget(bool allaround)
+        {
+            Entity? newTarget;
+            if (Flags.Friendly)
+            {
+                newTarget = EntityManager.World.GetLineOfSightEnemy(this, allaround);
+                if (newTarget == null)
+                    newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+            }
+            else
+            {
+                newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+            }
+
+            return newTarget;
         }
 
         public void SetNewChaseDirection()
@@ -266,9 +283,9 @@ namespace Helion.World.Entities
             return 0.0;
         }
 
-        public bool InMeleeRange(Entity entity)
+        public bool InMeleeRange(Entity? entity)
         {
-            if (entity == null || Properties.MeleeRange == 0)
+            if (entity == null || Properties.MeleeRange == 0 || entity.IsFriend(entity))
                 return false;
 
             double distance = Position.ApproximateDistance2D(entity.Position);
@@ -287,7 +304,7 @@ namespace Helion.World.Entities
 
         public bool CheckMissileRange()
         {
-            if (Target == null || !EntityManager.World.CheckLineOfSight(this, Target))
+            if (Target == null || IsFriend(Target) || !EntityManager.World.CheckLineOfSight(this, Target))
                 return false;
 
             if (Flags.JustHit)

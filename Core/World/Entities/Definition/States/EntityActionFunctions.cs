@@ -548,6 +548,7 @@ namespace Helion.World.Entities.Definition.States
 
             if (spawnShot != null)
             {
+                spawnShot.Flags.Friendly = entity.Flags.Friendly;
                 double distance = entity.Position.Distance(target.Position);
                 double speed = spawnShot.Definition.Properties.Speed;
                 double reactionTime = distance / speed;
@@ -581,6 +582,7 @@ namespace Helion.World.Entities.Definition.States
             Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Position);
             if (enemy != null)
             {
+                enemy.Flags.Friendly = entity.Flags.Friendly;
                 enemy.SetNewTarget(true);
                 entity.World.TelefragBlockingEntities(enemy);
             }
@@ -705,6 +707,9 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
+            if (entity.Target != null && entity.IsFriend(entity.Target))
+                entity.SetNewTarget(true);
+
             if (entity.Flags.JustAttacked)
             {
                 entity.Flags.JustAttacked = false;
@@ -713,7 +718,7 @@ namespace Helion.World.Entities.Definition.States
                 return;
             }
 
-            if (entity.HasMeleeState() && entity.InMeleeRange(entity.Target))
+            if (entity.Target != null && entity.HasMeleeState() && entity.InMeleeRange(entity.Target))
             {
                 // ATTACK SOUND?
                 entity.SetMeleeState();
@@ -1587,6 +1592,7 @@ namespace Helion.World.Entities.Definition.States
             if (skull == null)
                 return;
 
+            skull.Flags.Friendly = entity.Flags.Friendly;
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
             skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
             skull.SetPosition(skullPos);
@@ -2564,6 +2570,7 @@ namespace Helion.World.Entities.Definition.States
 
                 entity.SoundManager.CreateSoundOn(bi.Entity, "vile/raise", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 bi.Entity.SetRaiseState();
+                bi.Entity.Flags.Friendly = entity.Flags.Friendly;
                 break;
             }
 

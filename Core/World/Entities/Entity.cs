@@ -554,7 +554,7 @@ namespace Helion.World.Entities
                 {
                     if (!Flags.QuickToRetaliate)
                         Threshold = Properties.DefThreshold;
-                    if (!damageSource.Flags.NoTarget)
+                    if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
                         Target = damageSource;
                     if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                         SetSeeState();
@@ -613,6 +613,7 @@ namespace Helion.World.Entities
         public bool HasPainState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
+        public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
 
         /// <summary>
         /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.

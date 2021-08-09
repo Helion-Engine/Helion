@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Util.Configs;
-using Helion.Resources.Definitions.Language;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -97,6 +96,8 @@ namespace Helion.World
         int EntityAliveCount(int editorId, bool deathStateComplete);
         void NoiseAlert(Entity target);
         void BossDeath(Entity entity);
+        Player? GetLineOfSightPlayer(Entity entity, bool allaround);
+        Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();

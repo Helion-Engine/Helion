@@ -185,23 +185,51 @@ namespace Helion.World
                 if (player.IsDead)
                     continue;
 
-                double distance = entity.Position.ApproximateDistance2D(player.Position);
-
-                if (!allaround)
-                {
-                    Vec2D entityLookingVector = Vec2D.UnitCircle(entity.AngleRadians);
-                    Vec2D entityToTarget = player.Position.XY - entity.Position.XY;
-
-                    // Not in front 180 FOV
-                    if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
-                        continue;
-                }
+                if (!allaround && !InFieldOfView(entity, player))
+                    continue;
 
                 if (CheckLineOfSight(entity, player))
                     return player;
             }
 
             return null;
+        }
+
+        public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
+        {
+            Box2D box = new Box2D(entity.Position.XY, 1280);
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, 
+                BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
+            for (int i = 0; i < intersections.Count; i++)
+            {
+                Entity? checkEntity = intersections[i].Entity;
+                if (checkEntity == null)
+                    continue;                
+
+                if (ReferenceEquals(entity, checkEntity) || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity is Player)
+                    continue;
+
+                if (!allaround && !InFieldOfView(entity, checkEntity))
+                    continue;
+
+                if (CheckLineOfSight(entity, checkEntity))
+                    return checkEntity;
+            }
+
+            return null;
+        }
+
+        private static bool InFieldOfView(Entity from, Entity to)
+        {
+            double distance = from.Position.ApproximateDistance2D(to.Position);
+            Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
+            Vec2D entityToTarget = to.Position.XY - from.Position.XY;
+
+            // Not in front 180 FOV
+            if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
+                return false;
+
+            return true;
         }
 
         public void NoiseAlert(Entity target)
@@ -1005,7 +1033,7 @@ namespace Helion.World
             PhysicsManager.HandleEntityDeath(deathEntity);
             CheckDropItem(deathEntity);
 
-            if (deathEntity.Flags.CountKill)
+            if (deathEntity.Flags.CountKill && !deathEntity.Flags.Friendly)
                 LevelStats.KillCount++;
 
             if (deathEntity is Player player)
@@ -1082,6 +1110,7 @@ namespace Helion.World
                 CreateTeleportFog(entity.Position);
                 CreateTeleportFog(entity.SpawnPoint);
 
+                newEntity.Flags.Friendly = entity.Flags.Friendly;
                 newEntity.AngleRadians = entity.AngleRadians;
                 newEntity.ReactionTime = 18;
 
