@@ -300,7 +300,9 @@ namespace Helion.World.Physics
 
             foreach (Entity crushEntity in stackCrush)
             {
-                if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage) &&
+                m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
+
+                if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, false) &&
                     !crushEntity.Flags.NoBlood)
                 {
                     Vec3D pos = crushEntity.Position;
@@ -442,9 +444,7 @@ namespace Helion.World.Physics
 
             double lowestCeil = entity.LowestCeilingZ;
             double highestFloor = entity.HighestFloorZ;
-            double floorZ = entity.Sector.ToFloorZ(entity.Position);
 
-            //if (lowestCeil - entity.Height >= floorZ && entity.Box.Top > lowestCeil)
             if (entity.Box.Top > lowestCeil)
             {
                 entity.Velocity.Z = 0;
@@ -634,7 +634,7 @@ namespace Helion.World.Physics
             }
         }
 
-        private void ClearVelocityXY(Entity entity)
+        private static void ClearVelocityXY(Entity entity)
         {
             entity.Velocity.X = 0;
             entity.Velocity.Y = 0;
@@ -671,6 +671,7 @@ namespace Helion.World.Physics
             int numMoves = CalculateSteps(velocity, entity.Radius);
             Vec2D stepDelta = velocity / numMoves;
             bool success = true;
+            Vec3D saveVelocity = entity.Velocity;
 
             for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
             {
@@ -688,7 +689,13 @@ namespace Helion.World.Physics
 
                 if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
                 {
+                    // BlockingLine and BlockingEntity will get cleared on HandleSlide(IsPositionValid) calls.
+                    // Carry them over so other functions after TryMoveXY can use them for verification.
+                    var blockingLine = entity.BlockingLine;
+                    var blockingEntity = entity.BlockingEntity;
                     HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
+                    entity.BlockingLine = blockingLine;
+                    entity.BlockingEntity = blockingEntity;
                     slidesLeft--;
                     success = false;
                     continue;
@@ -701,6 +708,9 @@ namespace Helion.World.Physics
 
             if (success && entity.OverEntity != null)
                 HandleStackedEntityPhysics(entity);
+
+            if (!success)
+                m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
 
             m_tryMoveData.Success = success;
             return m_tryMoveData;
@@ -757,7 +767,6 @@ namespace Helion.World.Physics
             Box2D nextBox = new(position, entity.Radius);
             entity.BlockingLine = null;
             entity.BlockingEntity = null;
-            entity.BlockingSectorPlane = null;
             m_blockmap.Iterate(nextBox, CheckForBlockers);
 
             if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
@@ -920,21 +929,38 @@ namespace Helion.World.Physics
             movesLeft = 0;
         }
 
-        private BoxCornerTracers CalculateCornerTracers(Box2D currentBox, Vec2D stepDelta)
+        private static BoxCornerTracers CalculateCornerTracers(Box2D currentBox, Vec2D stepDelta)
         {
-            Vec2D[] corners;
-
+            Span<Vec2D> corners = stackalloc Vec2D[3];
             if (stepDelta.X >= 0)
             {
-                corners = stepDelta.Y >= 0 ?
-                    new[] { currentBox.TopLeft, currentBox.TopRight, currentBox.BottomRight } :
-                    new[] { currentBox.TopRight, currentBox.BottomRight, currentBox.BottomLeft };
+                if (stepDelta.Y >= 0)
+                {
+                    corners[0] = currentBox.TopLeft;
+                    corners[1] = currentBox.TopRight;
+                    corners[2] = currentBox.BottomRight;
+                }
+                else
+                {
+                    corners[0] = currentBox.TopRight;
+                    corners[1] = currentBox.BottomRight;
+                    corners[2] = currentBox.BottomLeft;
+                }
             }
             else
             {
-                corners = stepDelta.Y >= 0 ?
-                    new[] { currentBox.TopRight, currentBox.TopLeft, currentBox.BottomLeft } :
-                    new[] { currentBox.TopLeft, currentBox.BottomLeft, currentBox.BottomRight };
+                if (stepDelta.Y >= 0)
+                {
+                    corners[0] = currentBox.TopRight;
+                    corners[1] = currentBox.TopLeft;
+                    corners[2] = currentBox.BottomLeft;
+                }
+                else
+                {
+                    corners[0] = currentBox.TopLeft;
+                    corners[1] = currentBox.BottomLeft;
+                    corners[2] = currentBox.BottomRight;
+                }
             }
 
             Seg2D first = new Seg2D(corners[0], corners[0] + stepDelta);
@@ -1102,9 +1128,7 @@ namespace Helion.World.Physics
             if (entity.Velocity.XY == Vec2D.Zero)
                 return;
 
-            TryMoveData tryMove = TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
-            if (!tryMove.Success)
-                m_world.HandleEntityHit(entity, entity.Velocity, tryMove);
+            TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
             if (entity.ShouldApplyFriction())
                 ApplyFriction(entity);
             StopXYMovementIfSmall(entity);
@@ -1114,6 +1138,10 @@ namespace Helion.World.Physics
         {
             if (m_world.WorldState == WorldState.Exit)
                 return;
+
+            entity.BlockingEntity = null;
+            entity.BlockingLine = null;
+            entity.BlockingSectorPlane = null;
 
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;

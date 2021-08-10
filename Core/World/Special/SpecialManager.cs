@@ -727,7 +727,7 @@ namespace Helion.World.Special
 
         private static bool CheckUseActiveMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial lineSpecial, Sector sector)
         {
-            if (args.ActivationContext != ActivationContext.UseLine || args.ActivateLineSpecial.SectorTag == 0)
+            if (args.ActivationContext != ActivationContext.UseLine || args.ActivateLineSpecial.SectorTag != 0)
                 return false;
 
             if (!lineSpecial.CanActivateDuringSectorMovement())

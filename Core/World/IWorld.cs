@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Util.Configs;
-using Helion.Resources.Definitions.Language;
 using Helion.Util.RandomGenerators;
 using Helion.World.Bsp;
 using Helion.World.Entities;
@@ -76,7 +75,7 @@ namespace Helion.World
         Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
         void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
         Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
-        bool DamageEntity(Entity target, Entity? source, int damage, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
+        bool DamageEntity(Entity target, Entity? source, int damage, bool isHitscan, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
         bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
         void PerformItemPickup(Entity entity, Entity item);
         void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
@@ -97,6 +96,8 @@ namespace Helion.World
         int EntityAliveCount(int editorId, bool deathStateComplete);
         void NoiseAlert(Entity target);
         void BossDeath(Entity entity);
+        Player? GetLineOfSightPlayer(Entity entity, bool allaround);
+        Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
 
         WorldModel ToWorldModel();
         GameFilesModel GetGameFilesModel();

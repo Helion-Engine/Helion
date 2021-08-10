@@ -42,7 +42,7 @@ namespace Helion.World.Entities
 
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
         public readonly SpawnLocations SpawnLocations;
-        public readonly WorldBase World;
+        public readonly IWorld World;
 
         private readonly WorldSoundManager m_soundManager;
         private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();   
@@ -53,7 +53,7 @@ namespace Helion.World.Entities
 
         private int m_id;
 
-        public EntityManager(WorldBase world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
+        public EntityManager(IWorld world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
         {
             World = world;
             m_soundManager = soundManager;
@@ -155,7 +155,7 @@ namespace Helion.World.Entities
                 if (World.Config.Game.NoMonsters && definition.Flags.IsMonster)
                     continue;
 
-                if (definition.Flags.CountKill)
+                if (definition.Flags.CountKill && !definition.Flags.Friendly)
                     levelStats.TotalMonsters++;
                 if (definition.Flags.CountItem)
                     levelStats.TotalItems++;

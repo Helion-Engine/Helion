@@ -257,23 +257,18 @@ namespace Helion.Geometry.Grids
             // to the next row, we just add the `Width` to the base index and
             // we're on the next row. We avoid O(n) muliplication for this very
             // hot loop.
-            int baseIndex = (blockUnitStart.Y * Width) + blockUnitStart.X;
-
-            // baseIndex can be negative with no clip
-            if (baseIndex > -1)
+            int baseIndex = Math.Clamp((blockUnitStart.Y * Width) + blockUnitStart.X, 0, int.MaxValue);
+            for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
             {
-                for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
+                int currentIndex = baseIndex;
+                for (int x = blockUnitStart.X; x < blockUnitEnd.X && currentIndex < blocks.Length; x++)
                 {
-                    int currentIndex = baseIndex;
-                    for (int x = blockUnitStart.X; x < blockUnitEnd.X && currentIndex < blocks.Length; x++)
-                    {
-                        if (func(blocks[currentIndex]) == GridIterationStatus.Stop)
-                            return true;
-                        currentIndex++;
-                    }
-
-                    baseIndex += Width;
+                    if (func(blocks[currentIndex]) == GridIterationStatus.Stop)
+                        return true;
+                    currentIndex++;
                 }
+
+                baseIndex += Width;
             }
 
             return false;
