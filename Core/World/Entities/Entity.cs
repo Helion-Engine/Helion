@@ -20,6 +20,7 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Geometry.Segments;
 
 namespace Helion.World.Entities
 {
@@ -701,6 +702,9 @@ namespace Helion.World.Entities
 
         public bool ShouldApplyFriction()
         {
+            if (Flags.MbfBouncer && Flags.NoGravity)
+                return false;
+
             if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
                 return false;
 
@@ -775,6 +779,43 @@ namespace Helion.World.Entities
                     SetSpawnState();
                 }
             }
+            else if (Flags.MbfBouncer)
+            {
+                //MbfBouncer + Missile - bounce off plane only
+                //MbfBouncer + NoGravity - bounce of all surfaces
+                bool bouncePlane = BlockingSectorPlane != null;
+                bool bounceWall = Flags.NoGravity;
+                double zFactor = Flags.NoGravity ? 1.0 : 0.5;
+
+                if (bouncePlane || bounceWall)
+                    Velocity = velocity;
+
+                if (bouncePlane)
+                    Velocity.Z = -velocity.Z * zFactor;
+
+                if (bounceWall && BlockingLine  != null)
+                {
+                    double velocityAngle = Math.Atan2(Velocity.X, Velocity.Y);
+                    double lineAngle = BlockingLine.Segment.Start.Angle(BlockingLine.Segment.End);
+                    double newAngle = 2 * lineAngle - velocityAngle;
+                    if (MathHelper.GetPositiveAngle(newAngle) == MathHelper.GetPositiveAngle(velocityAngle))
+                        newAngle += MathHelper.Pi;
+                    Vec2D velocity2D = velocity.XY.Rotate(newAngle - velocityAngle);
+                    Velocity.X = velocity2D.X;
+                    Velocity.Y = velocity2D.Y;
+                }
+            }
+        }
+
+        public bool ShouldDieOnCollison()
+        {
+            if (Flags.MbfBouncer && Flags.Missile)
+                return BlockingEntity != null || BlockingLine != null;
+
+            if (Flags.Missile)
+                return true;
+
+            return false;
         }
 
         public void Dispose()

@@ -900,14 +900,14 @@ namespace Helion.World
         {
             entity.Hit(previousVelocity);
 
-            if (entity.Flags.Missile)
+            if (entity.Flags.Missile && tryMove != null)
             {
-                if (tryMove != null)
-                {
-                    for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                        ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.ProjectileHitLine);
-                }
+                for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
+                    ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.ProjectileHitLine);
+            }
 
+            if (entity.ShouldDieOnCollison())
+            {
                 if (entity.BlockingEntity != null)
                 {
                     int damage = entity.Properties.Damage.Get(m_random);

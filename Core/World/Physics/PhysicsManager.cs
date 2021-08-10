@@ -671,6 +671,7 @@ namespace Helion.World.Physics
             int numMoves = CalculateSteps(velocity, entity.Radius);
             Vec2D stepDelta = velocity / numMoves;
             bool success = true;
+            Vec3D saveVelocity = entity.Velocity;
 
             for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
             {
@@ -709,7 +710,7 @@ namespace Helion.World.Physics
                 HandleStackedEntityPhysics(entity);
 
             if (!success)
-                m_world.HandleEntityHit(entity, entity.Velocity, m_tryMoveData);
+                m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
 
             m_tryMoveData.Success = success;
             return m_tryMoveData;
@@ -1137,6 +1138,10 @@ namespace Helion.World.Physics
         {
             if (m_world.WorldState == WorldState.Exit)
                 return;
+
+            entity.BlockingEntity = null;
+            entity.BlockingLine = null;
+            entity.BlockingSectorPlane = null;
 
             if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
                 entity.Velocity.Z *= Friction;
