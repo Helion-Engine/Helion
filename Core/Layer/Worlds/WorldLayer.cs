@@ -113,8 +113,7 @@ namespace Helion.Layer.Worlds
             string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
             Log.Info(displayName);
             
-            TextureManager.Init(archiveCollection);
-            TextureManager.Instance.SkyTextureName = mapInfoDef.Sky1.Name;
+            TextureManager.Init(archiveCollection, mapInfoDef);
             
             SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, mapInfoDef, skillDef, 
                 map, existingPlayer, worldModel);

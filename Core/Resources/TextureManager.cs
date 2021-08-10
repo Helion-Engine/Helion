@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -25,12 +26,13 @@ namespace Helion.Resources
 
         public static TextureManager Instance { get; private set; } = null!;
 
-        public string SkyTextureName { get; set; } = "F_SKY1";
+        public string SkyTextureName { get; set; }
 
-        private TextureManager(ArchiveCollection archiveCollection)
+        private TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
         {
             m_archiveCollection = archiveCollection;
             m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
+            SkyTextureName = mapInfoDef?.Sky1.Name ?? "SKY1";
 
             var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
             int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
@@ -49,7 +51,7 @@ namespace Helion.Resources
             InitSprites(spriteNames, spriteEntries);
         }
 
-        public static void Init(ArchiveCollection archiveCollection)
+        public static void Init(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
         {
             // This whole notify thing kind of sucks.
             // This exists because the SkySphere exists before this instance is created.
@@ -59,7 +61,7 @@ namespace Helion.Resources
             if (Instance != null)
                 notify = Instance.m_notifyInitizalized;
 
-            Instance = new TextureManager(archiveCollection);
+            Instance = new TextureManager(archiveCollection, mapInfoDef);
             notify.ForEach(x => x.Invoke(Instance));
         }
 
