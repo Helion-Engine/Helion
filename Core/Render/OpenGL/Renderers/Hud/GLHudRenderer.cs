@@ -149,6 +149,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             
             Dimension dimension = box.Dimension;
             
+            // TODO: Only translate the TL/BR, then use that to make TR/BL corners.
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
             Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
             Vec2I topRight = anchor.Translate(box.TopRight, dimension);
@@ -206,14 +207,12 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             Dimension dimension = box.Dimension;
             
             Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
-            Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
-            Vec2I topRight = anchor.Translate(box.TopRight, dimension);
-            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
-            
             topLeft = m_currentResolutionInfo.Translate(topLeft, window);
-            bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
-            topRight = m_currentResolutionInfo.Translate(topRight, window);
+            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
             bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
+
+            Vec2I topRight = (bottomRight.X, topLeft.Y);
+            Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
 
             AddTriangle(topLeft, bottomLeft, topRight, color);
             AddTriangle(topRight, bottomLeft, bottomRight, color);

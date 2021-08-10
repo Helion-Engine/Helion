@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
@@ -12,6 +13,7 @@ using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;

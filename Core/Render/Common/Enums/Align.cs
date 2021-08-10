@@ -94,13 +94,13 @@ namespace Helion.Render.Common.Enums
             {
                 Align.TopLeft => (0, 0),
                 Align.TopMiddle => (w / 2, 0),
-                Align.TopRight => (w - 1, 0),
+                Align.TopRight => (w, 0),
                 Align.MiddleLeft => (0, h / 2),
                 Align.Center => (w / 2, h / 2),
-                Align.MiddleRight => (w - 1, h / 2),
-                Align.BottomLeft => (0, h - 1),
-                Align.BottomMiddle => (w / 2, h - 1),
-                Align.BottomRight => (w - 1, h - 1),
+                Align.MiddleRight => (w, h / 2),
+                Align.BottomLeft => (0, h),
+                Align.BottomMiddle => (w / 2, h),
+                Align.BottomRight => (w, h),
                 _ => throw new Exception($"Unsupported alignment: {align}")
             };
 
