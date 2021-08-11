@@ -3330,7 +3330,7 @@ namespace Helion.Dehacked
             new ThingStateLookup("SKUL", 16, "BetaSkull"),   // BSKUL_DIE6,
             new ThingStateLookup("SKUL", 17, "BetaSkull"),   // BSKUL_DIE7,
             new ThingStateLookup("SKUL", 18, "BetaSkull"),   // BSKUL_DIE8,
-            new ThingStateLookup("MISL", 9, "Grenade"),      // MUSHROOM,
+            new ThingStateLookup("MISL", 8, "Grenade"),      // MUSHROOM,
             // End MBF
         };
 
