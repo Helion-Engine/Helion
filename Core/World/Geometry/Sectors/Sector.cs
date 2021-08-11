@@ -387,20 +387,22 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextLowestFloor()
         {
-            double currentZ = Floor.Z;
+            double currentZ = double.MinValue;
+            double thisZ = Floor.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
             {
                 Line line = Lines[i];
-                if (line.Front.Sector != this && line.Front.Sector.Floor.Z < Floor.Z && line.Front.Sector.Floor.Z > currentZ)
+                if (line.Front.Sector != this && line.Front.Sector.Floor.Z < Floor.Z && line.Front.Sector.Floor.Z > currentZ &&
+                    line.Front.Sector.Floor.Z < thisZ)
                 {
                     currentSector = line.Front.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
 
                 if (line.Back != null && line.Back.Sector != this &&
-                    line.Back.Sector.Floor.Z < Floor.Z && line.Back.Sector.Floor.Z > currentZ)
+                    line.Back.Sector.Floor.Z < Floor.Z && line.Back.Sector.Floor.Z > currentZ && line.Back.Sector.Floor.Z < thisZ)
                 {
                     currentSector = line.Back.Sector;
                     currentZ = currentSector.Floor.Z;
@@ -412,20 +414,22 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextLowestCeiling()
         {
-            double currentZ = Ceiling.Z;
+            double currentZ = int.MinValue;
+            double thisZ = Ceiling.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
             {
                 Line line = Lines[i];
-                if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ)
+                if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ &&
+                    line.Front.Sector.Ceiling.Z < thisZ)
                 {
                     currentSector = line.Front.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
 
                 if (line.Back != null && line.Back.Sector != this &&
-                    line.Back.Sector.Ceiling.Z < Ceiling.Z && line.Back.Sector.Ceiling.Z > currentZ)
+                    line.Back.Sector.Ceiling.Z < Ceiling.Z && line.Back.Sector.Ceiling.Z > currentZ && line.Back.Sector.Ceiling.Z < thisZ)
                 {
                     currentSector = line.Back.Sector;
                     currentZ = currentSector.Ceiling.Z;
@@ -437,20 +441,22 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextHighestFloor()
         {
-            double currentZ = Floor.Z;
+            double currentZ = double.MaxValue;
+            double thisZ = Floor.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
             {
                 Line line = Lines[i];
-                if (line.Front.Sector != this && line.Front.Sector.Floor.Z > Floor.Z && line.Front.Sector.Floor.Z < currentZ)
+                if (line.Front.Sector != this && line.Front.Sector.Floor.Z > Floor.Z && line.Front.Sector.Floor.Z < currentZ &&
+                    line.Front.Sector.Floor.Z > thisZ)
                 {
                     currentSector = line.Front.Sector;
                     currentZ = currentSector.Floor.Z;
                 }
 
                 if (line.Back != null && line.Back.Sector != this &&
-                    line.Back.Sector.Floor.Z > Floor.Z && line.Back.Sector.Floor.Z < currentZ)
+                    line.Back.Sector.Floor.Z > Floor.Z && line.Back.Sector.Floor.Z < currentZ && line.Back.Sector.Floor.Z > thisZ)
                 {
                     currentSector = line.Back.Sector;
                     currentZ = currentSector.Floor.Z;
@@ -462,20 +468,22 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextHighestCeiling()
         {
-            double currentZ = Ceiling.Z;
+            double currentZ = double.MaxValue;
+            double thisZ = Ceiling.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
             {
                 Line line = Lines[i];
-                if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ)
+                if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ &&
+                    line.Front.Sector.Ceiling.Z > thisZ)
                 {
                     currentSector = line.Front.Sector;
                     currentZ = currentSector.Ceiling.Z;
                 }
 
                 if (line.Back != null && line.Back.Sector != this &&
-                    line.Back.Sector.Ceiling.Z > Ceiling.Z && line.Back.Sector.Ceiling.Z < currentZ)
+                    line.Back.Sector.Ceiling.Z > Ceiling.Z && line.Back.Sector.Ceiling.Z < currentZ && line.Back.Sector.Ceiling.Z > thisZ)
                 {
                     currentSector = line.Back.Sector;
                     currentZ = currentSector.Ceiling.Z;
