@@ -60,7 +60,7 @@ namespace Helion.Geometry.Planes
                 return false;
 
             double t = top / bottom;
-            intersect = p1 + ((p2 - p1) * t);
+            intersect = p1.Interpolate(p2, t);
 
             return true;
         }

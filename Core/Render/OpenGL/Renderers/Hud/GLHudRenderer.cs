@@ -85,6 +85,16 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             virtualBox = m_currentResolutionInfo.VirtualTranslate(box, window, anchor);
             return m_currentResolutionInfo.VirtualToParent(virtualBox);
         }
+        
+        private void TranslateCharactersFromVirtualToParent(Span<RenderableCharacter> chars, Align window, Align anchor)
+        {
+            for (int i = 0; i < chars.Length; i++)
+            {
+                RenderableCharacter c = chars[i];
+                HudBox newArea = CalculateDrawArea(c.Area, window, anchor);
+                chars[i] = new RenderableCharacter(c.Character, newArea, c.UV);
+            }
+        }
 
         internal void Begin(HudRenderContext context)
         {
@@ -323,26 +333,36 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float alpha = 1.0f)
         {
             drawArea = default;
+            window = both ?? window;
+            anchor = both ?? anchor;
             
             if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
-            
-            ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
-                textAlign, maxWidth, maxHeight, scale, out drawArea);
 
-            window = both ?? window;
-            anchor = both ?? anchor;
             Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
-            
             if (PointOutsideBottomRightViewport(topLeft))
                 return;
-
+            
+            Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
+                textAlign, maxWidth, maxHeight, scale, out drawArea);
+            
+            // Can happen for things like scaling being zero. We do this because
+            // we don't want to waste time calculating things if the user has
+            // given us junk that we cannot render anyways.
+            if (chars.Length == 0)
+                return;
+            
+            TranslateCharactersFromVirtualToParent(chars, window, anchor);
+            
+            CalculateDrawArea(((0, 0), drawArea.Vector), window, anchor, out HudBox virtualBox);
+            drawArea = virtualBox.Dimension;
+            
             for (int i = 0; i < chars.Length; i++)
             {
                 ByteColor byteColor = new(text[i].Color);
                 AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
             }
-
+            
             m_elementsDrawn++;
         }
 
@@ -352,22 +372,31 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             float scale = 1.0f, float alpha = 1.0f)
         {
             drawArea = default;
-
-            if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
-                return;
-
             window = both ?? window;
             anchor = both ?? anchor;
             
-            // TODO: Need to scale them based on the resolution, but return the virtual draw dimension.
-            ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
-                textAlign, maxWidth, maxHeight, scale, out drawArea);
-            
-            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
-            
-            if (PointOutsideBottomRightViewport(topLeft))
+            if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
 
+            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
+            if (PointOutsideBottomRightViewport(topLeft))
+                return;
+            
+            Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
+                textAlign, maxWidth, maxHeight, scale, out drawArea);
+            
+            // Can happen for things like scaling being zero. We do this because
+            // we don't want to waste time calculating things if the user has
+            // given us junk that we cannot render anyways.
+            if (chars.Length == 0)
+                return;
+            
+            TranslateCharactersFromVirtualToParent(chars, window, anchor);
+            
+            // TODO: This is not working the way I thought it would...
+            CalculateDrawArea(((0, 0), drawArea.Vector), window, anchor, out HudBox virtualBox);
+            drawArea = virtualBox.Dimension;
+            
             ByteColor byteColor = new(color ?? Color.White);
             for (int i = 0; i < chars.Length; i++)
                 AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
