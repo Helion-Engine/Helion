@@ -312,11 +312,11 @@ namespace Helion.World.Special
                 else
                 {
                     changeTexture = line.Front.Sector.GetTexture(planeType);
-                    damageSpecial = sector.SectorDamageSpecial;
+                    damageSpecial = line.Front.Sector.SectorDamageSpecial;
                 }
 
                 ZDoomGenericFlags changeFlags = flags & ZDoomGenericFlags.CopyTxAndSpecial;
-                if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial)
+                if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial || damageSpecial == null)
                     damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
                 else if (changeFlags == ZDoomGenericFlags.CopyTx)
                     damageSpecial = null;
