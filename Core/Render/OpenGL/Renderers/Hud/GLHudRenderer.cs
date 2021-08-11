@@ -66,6 +66,29 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             return point.X > m_parentDimension.Width || point.Y > m_parentDimension.Height;
         }
         
+        private Vec2I CalculateDrawPoint(Vec2I point, Align window, Align anchor)
+        {
+            // TODO: Not optimal, only want to calculate it for a point.
+            HudBox temp = (point, point);
+            HudBox virtualBox = m_currentResolutionInfo.VirtualTranslate(temp, window, anchor);
+            HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
+            return parentBox.TopLeft;
+        }
+
+        private HudBox CalculateDrawArea(HudBox box, Align window, Align anchor)
+        {
+            HudBox virtualBox = m_currentResolutionInfo.VirtualTranslate(box, window, anchor);
+            HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
+            return parentBox;
+        }
+        
+        private HudBox CalculateDrawArea(HudBox box, Align window, Align anchor, out HudBox virtualBox)
+        {
+            virtualBox = m_currentResolutionInfo.VirtualTranslate(box, window, anchor);
+            HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
+            return parentBox;
+        }
+
         internal void Begin(HudRenderContext context)
         {
             m_elementsDrawn = 0;
@@ -86,7 +109,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         private void AddPoint(Vec2I point, ByteColor color, Align window)
         {
-            (int x, int y) = m_currentResolutionInfo.Translate(point, window);
+            HudBox box = CalculateDrawArea((point, point + (1, 1)), window, Align.TopLeft);
+            (int x, int y) = box.TopLeft;
             Vec3F pos = (x, y, m_elementsDrawn);
             
             GLHudPrimitiveVertex vertex = new(pos, color);
@@ -112,8 +136,9 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         
         private void AddSegment(Vec2I start, Vec2I end, ByteColor color, Align window)
         {
-            Vec2I startPos = m_currentResolutionInfo.Translate(start, window);
-            Vec2I endPos = m_currentResolutionInfo.Translate(end, window);
+            Vec2I startPos = CalculateDrawPoint(start, window, Align.TopLeft);
+            Vec2I endPos = CalculateDrawPoint(end, window, Align.TopLeft);
+            
             AddSegmentPoint(startPos);
             AddSegmentPoint(endPos);
 
@@ -146,24 +171,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             if (PointOutsideBottomRightViewport(box.TopLeft))
                 return;
+
+            HudBox area = CalculateDrawArea(box, window, anchor);
             
-            Dimension dimension = box.Dimension;
-            
-            // TODO: Only translate the TL/BR, then use that to make TR/BL corners.
-            Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
-            Vec2I bottomLeft = anchor.Translate(box.BottomLeft, dimension);
-            Vec2I topRight = anchor.Translate(box.TopRight, dimension);
-            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
-            
-            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
-            bottomLeft = m_currentResolutionInfo.Translate(bottomLeft, window);
-            topRight = m_currentResolutionInfo.Translate(topRight, window);
-            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
-            
-            AddSegment(topLeft, topRight, color, window);
-            AddSegment(topRight, bottomRight, color, window);
-            AddSegment(bottomRight, bottomLeft, color, window);
-            AddSegment(bottomLeft, topLeft, color, window);
+            AddSegment(area.TopLeft, area.TopRight, color, window);
+            AddSegment(area.TopRight, area.BottomRight, color, window);
+            AddSegment(area.BottomRight, area.BottomLeft, color, window);
+            AddSegment(area.BottomLeft, area.TopLeft, color, window);
         }
 
         public void DrawBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
@@ -204,18 +218,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (PointOutsideBottomRightViewport(box.TopLeft))
                 return;
             
-            Dimension dimension = box.Dimension;
-            
-            Vec2I topLeft = anchor.Translate(box.TopLeft, dimension);
-            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
-            Vec2I bottomRight = anchor.Translate(box.BottomRight, dimension);
-            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
+            HudBox area = CalculateDrawArea(box, window, anchor);
 
-            Vec2I topRight = (bottomRight.X, topLeft.Y);
-            Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
-
-            AddTriangle(topLeft, bottomLeft, topRight, color);
-            AddTriangle(topRight, bottomLeft, bottomRight, color);
+            AddTriangle(area.TopLeft, area.BottomLeft, area.TopRight, color);
+            AddTriangle(area.TopRight, area.BottomLeft, area.BottomRight, color);
         }
 
         public void FillBox(HudBox box, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, 
@@ -230,7 +236,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             }
             else
             {
-                Image("", out _, box, color: color, alpha: alpha, handle: m_textureManager.WhiteHandle);
+                Image("", out _, box, color: color, alpha: alpha, overrideHandle: m_textureManager.WhiteHandle);
             }
         }
 
@@ -248,7 +254,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             else
             {
                 for (int i = 0; i < boxes.Length; i++)
-                    Image("", out _, boxes[i], color: color, alpha: alpha, handle: m_textureManager.WhiteHandle);
+                    Image("", out _, boxes[i], color: color, alpha: alpha, overrideHandle: m_textureManager.WhiteHandle);
             }
 
             if (callImage)
@@ -272,15 +278,15 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null, 
             Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, 
             ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null, 
-            float scale = 1.0f, float alpha = 1.0f, GLTextureHandle? handle = null)
+            float scale = 1.0f, float alpha = 1.0f, GLTextureHandle? overrideHandle = null)
         {
             Precondition(area != null || origin != null, "Did not specify an area or origin when drawing a hud image");
             
-            handle ??= m_textureManager.Get(texture, resourceNamespace);
+            GLTextureHandle handle = overrideHandle ?? m_textureManager.Get(texture, resourceNamespace);
             
-            Vec2I topLeft = origin ?? Vec2I.Zero;
+            Vec2I newOrigin = origin ?? Vec2I.Zero;
             if (area != null)
-                topLeft = area.Value.TopLeft;
+                newOrigin = area.Value.TopLeft;
 
             Dimension dimension = handle.Dimension;
             if (area != null)
@@ -291,31 +297,24 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             window = both ?? window;
             anchor = both ?? anchor;
             
-            Vec2I bottomRight = topLeft + dimension;
-            drawArea = (topLeft, bottomRight);
-
-            topLeft = anchor.Translate(topLeft, dimension);
-            topLeft = m_currentResolutionInfo.Translate(topLeft, window);
-
-            if (PointOutsideBottomRightViewport(topLeft))
-            {
-                drawArea = default;
-                return;
-            }
-
-            bottomRight = anchor.Translate(bottomRight, dimension);
-            bottomRight = m_currentResolutionInfo.Translate(bottomRight, window);
+            HudBox renderArea = (newOrigin, newOrigin + dimension);
+            renderArea = CalculateDrawArea(renderArea, window, anchor, out drawArea);
             
-            Vec2I topRight = (bottomRight.X, topLeft.Y);
-            Vec2I bottomLeft = (topLeft.X, bottomRight.Y);
+            if (PointOutsideBottomRightViewport(renderArea.TopLeft))
+                return;
+
+            ByteColor byteColor = new(color ?? Color.White);
+            Vec3F topLeft = renderArea.TopLeft.Float.To3D(m_elementsDrawn);
+            Vec3F topRight = renderArea.TopRight.Float.To3D(m_elementsDrawn);
+            Vec3F bottomLeft = renderArea.BottomLeft.Float.To3D(m_elementsDrawn);
+            Vec3F bottomRight = renderArea.BottomRight.Float.To3D(m_elementsDrawn);
 
             // Note: Because UV's are inverted, we use the flipped version of the
             // coordinates (so TopLeft <=> BottomLeft, and TopRight <=> BottomRight).
-            ByteColor byteColor = new(color ?? Color.White);
-            GLHudTextureVertex quadTL = new(topLeft.Float.To3D(m_elementsDrawn), handle.UV.BottomLeft, byteColor, alpha);
-            GLHudTextureVertex quadTR = new(topRight.Float.To3D(m_elementsDrawn), handle.UV.BottomRight, byteColor, alpha);
-            GLHudTextureVertex quadBL = new(bottomLeft.Float.To3D(m_elementsDrawn), handle.UV.TopLeft, byteColor, alpha);
-            GLHudTextureVertex quadBR = new(bottomRight.Float.To3D(m_elementsDrawn), handle.UV.TopRight, byteColor, alpha);
+            GLHudTextureVertex quadTL = new(topLeft, handle.UV.BottomLeft, byteColor, alpha);
+            GLHudTextureVertex quadTR = new(topRight, handle.UV.BottomRight, byteColor, alpha);
+            GLHudTextureVertex quadBL = new(bottomLeft, handle.UV.TopLeft, byteColor, alpha);
+            GLHudTextureVertex quadBR = new(bottomRight, handle.UV.TopRight, byteColor, alpha);
             m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
             
             m_elementsDrawn++;
@@ -328,10 +327,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             drawArea = default;
             
-            if (text.Length == 0)
-                return;
-
-            if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
+            if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
             
             ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
@@ -339,16 +335,15 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
             window = both ?? window;
             anchor = both ?? anchor;
-            origin = anchor.Translate(origin, drawArea);
-            origin = m_currentResolutionInfo.Translate(origin, window);
+            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
             
-            if (PointOutsideBottomRightViewport(origin))
+            if (PointOutsideBottomRightViewport(topLeft))
                 return;
 
             for (int i = 0; i < chars.Length; i++)
             {
                 ByteColor byteColor = new(text[i].Color);
-                AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
+                AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
             }
 
             m_elementsDrawn++;
@@ -361,26 +356,22 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             drawArea = default;
 
-            if (text == "")
+            if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
 
-            if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
-                return;
-            
             ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
                 textAlign, maxWidth, maxHeight, scale, out drawArea);
             
             window = both ?? window;
             anchor = both ?? anchor;
-            origin = anchor.Translate(origin, drawArea);
-            origin = m_currentResolutionInfo.Translate(origin, window);
-
-            if (PointOutsideBottomRightViewport(origin))
+            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
+            
+            if (PointOutsideBottomRightViewport(topLeft))
                 return;
 
             ByteColor byteColor = new(color ?? Color.White);
             for (int i = 0; i < chars.Length; i++)
-                AddTextCharacter(origin, alpha, chars[i], byteColor, fontHandle);
+                AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
 
             m_elementsDrawn++;
         }

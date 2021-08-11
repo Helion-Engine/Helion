@@ -83,10 +83,10 @@ namespace Helion.Render.Common.Enums
         ///              +-----------------------+
         /// </remarks>
         /// <param name="align">The offsets (positive is left, and down).</param>
-        /// <param name="point">The point to translate.</param>
         /// <param name="dimension">The dimensions to align to.</param>
-        /// <returns>The translated point.</returns>
-        public static Vec2I Translate(this Align align, Vec2I point, Dimension dimension)
+        /// <returns>The delta that the point should be moved based on the
+        /// provided dimension.</returns>
+        public static Vec2I Translate(this Align align, Dimension dimension)
         {
             (int w, int h) = dimension;
             
@@ -104,7 +104,12 @@ namespace Helion.Render.Common.Enums
                 _ => throw new Exception($"Unsupported alignment: {align}")
             };
 
-            return point - anchor;
+            return anchor;
+        }
+        
+        public static Vec2I AnchorDelta(this Align align, Dimension dimension)
+        {
+            return -Translate(align, dimension);
         }
     }
 }
