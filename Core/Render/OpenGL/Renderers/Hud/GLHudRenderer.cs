@@ -69,7 +69,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         private Vec2I CalculateDrawPoint(Vec2I point, Align window, Align anchor)
         {
             // TODO: Not optimal, only want to calculate it for a point.
-            HudBox temp = (point, point);
+            HudBox temp = (point, point + (1, 1));
             HudBox virtualBox = m_currentResolutionInfo.VirtualTranslate(temp, window, anchor);
             HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
             return parentBox.TopLeft;
@@ -77,16 +77,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
 
         private HudBox CalculateDrawArea(HudBox box, Align window, Align anchor)
         {
-            HudBox virtualBox = m_currentResolutionInfo.VirtualTranslate(box, window, anchor);
-            HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
-            return parentBox;
+            return CalculateDrawArea(box, window, anchor, out _);
         }
         
         private HudBox CalculateDrawArea(HudBox box, Align window, Align anchor, out HudBox virtualBox)
         {
             virtualBox = m_currentResolutionInfo.VirtualTranslate(box, window, anchor);
-            HudBox parentBox = m_currentResolutionInfo.VirtualToParent(virtualBox);
-            return parentBox;
+            return m_currentResolutionInfo.VirtualToParent(virtualBox);
         }
 
         internal void Begin(HudRenderContext context)
@@ -359,11 +356,13 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
 
+            window = both ?? window;
+            anchor = both ?? anchor;
+            
+            // TODO: Need to scale them based on the resolution, but return the virtual draw dimension.
             ReadOnlySpan<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
                 textAlign, maxWidth, maxHeight, scale, out drawArea);
             
-            window = both ?? window;
-            anchor = both ?? anchor;
             Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
             
             if (PointOutsideBottomRightViewport(topLeft))
@@ -381,7 +380,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             HudBox area = c.Area + origin;
             Box2F uv = c.UV;
-            
+
             // Note: Because UV's are inverted, we use the flipped version of the
             // coordinates (so TopLeft <=> BottomLeft, and TopRight <=> BottomRight).
             GLHudTextureVertex quadTL = new(area.TopLeft.Float.To3D(m_elementsDrawn), uv.BottomLeft, byteColor, alpha);

@@ -28,7 +28,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
         public ReadOnlySpan<RenderableCharacter> Calculate(ColoredString text, GLFontTexture fontTexture, 
             int fontSize, TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
         {
-            return Calculate(text.ToString(), fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
+            return Calculate(text.String, fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
         }
 
         public ReadOnlySpan<RenderableCharacter> Calculate(string text, GLFontTexture fontTexture, int fontSize,
@@ -173,8 +173,6 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 
                 for (int i = sentence.StartIndex; i < sentence.StartIndex + sentence.Count; i++)
                 {
-                    // if (i >= m_characters.Length)
-                        // break;
                     Precondition(i < m_characters.Length, "Renderable sentence index is out of bounds");
                     
                     RenderableCharacter oldChar = m_characters[i];

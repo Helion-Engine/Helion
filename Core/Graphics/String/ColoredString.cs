@@ -18,8 +18,8 @@ namespace Helion.Graphics.String
         /// </summary>
         public static readonly Color DefaultColor = Color.White;
 
+        public readonly string String;
         private readonly List<ColoredChar> m_characters;
-        private readonly string m_string;
 
         public int Length => m_characters.Count;
         public bool Empty => Length == 0;
@@ -31,12 +31,12 @@ namespace Helion.Graphics.String
             StringBuilder builder = new(Length);
             for (int i = 0; i < m_characters.Count; i++)
                 builder.Append(characters[i].Char);
-            m_string = builder.ToString();
+            String = builder.ToString();
         }
 
         public ColoredChar this[int index] => m_characters[index];
 
-        public override string ToString() => m_string;
+        public override string ToString() => String;
         public IEnumerator<ColoredChar> GetEnumerator() => m_characters.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
