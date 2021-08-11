@@ -20,6 +20,7 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Geometry.Segments;
 
 namespace Helion.World.Entities
 {
@@ -400,9 +401,12 @@ namespace Helion.World.Entities
         }
 
         public void ForceGib() =>
-            Damage(null, int.MaxValue, false);
+            Damage(null, int.MaxValue, false, false);
 
-        public void Kill(Entity? source)
+        public void Kill(Entity? source) =>
+            Damage(source, Health, false, false);
+
+        private void KillInternal(Entity? source)
         {
             if (Health > 0)
                 Health = 0;
@@ -516,7 +520,7 @@ namespace Helion.World.Entities
             return speciesDef.Name;
         }
 
-        public virtual bool CanDamage(Entity source)
+        public virtual bool CanDamage(Entity source, bool isHitscan)
         {
             Entity damageSource = source.Owner ?? source;
             if (damageSource is Player)
@@ -527,17 +531,16 @@ namespace Helion.World.Entities
             if (World.MapInfo.HasOption(MapOptions.NoInfighting))
                 return false;
 
-            // Not a projectile, always damage
-            if (source.Owner == null)
+            if (isHitscan)
                 return true;
 
             if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
-                return false;
+                return false;                
 
             return true;
         }
 
-        public virtual bool Damage(Entity? source, int damage, bool setPainState)
+        public virtual bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
         {
             if (damage <= 0 || Flags.Invulnerable)
                 return false;
@@ -545,14 +548,14 @@ namespace Helion.World.Entities
             if (source != null)
             {
                 Entity damageSource = source.Owner ?? source;
-                if (!CanDamage(source))
+                if (!CanDamage(source, isHitscan))
                     return false;
 
                 if (Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
                 {
                     if (!Flags.QuickToRetaliate)
                         Threshold = Properties.DefThreshold;
-                    if (!damageSource.Flags.NoTarget)
+                    if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
                         Target = damageSource;
                     if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                         SetSeeState();
@@ -566,7 +569,7 @@ namespace Helion.World.Entities
 
             if (Health <= 0)
             {
-                Kill(source);
+                KillInternal(source);
             }
             else if (setPainState && !Flags.Skullfly && HasPainState())
             {
@@ -611,6 +614,7 @@ namespace Helion.World.Entities
         public bool HasPainState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
         public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
         public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
+        public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
 
         /// <summary>
         /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
@@ -698,6 +702,9 @@ namespace Helion.World.Entities
 
         public bool ShouldApplyFriction()
         {
+            if (Flags.MbfBouncer && Flags.NoGravity)
+                return false;
+
             if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
                 return false;
 
@@ -756,7 +763,7 @@ namespace Helion.World.Entities
                 if (BlockingEntity != null)
                 {
                     int damage = Properties.Damage.Get(World.Random);
-                    EntityManager.World.DamageEntity(BlockingEntity, this, damage, Thrust.Horizontal);
+                    EntityManager.World.DamageEntity(BlockingEntity, this, damage, false, Thrust.Horizontal);
                 }
 
                 // Bounce off plane if it's the only thing blocking
@@ -772,6 +779,43 @@ namespace Helion.World.Entities
                     SetSpawnState();
                 }
             }
+            else if (Flags.MbfBouncer)
+            {
+                //MbfBouncer + Missile - bounce off plane only
+                //MbfBouncer + NoGravity - bounce of all surfaces
+                bool bouncePlane = BlockingSectorPlane != null;
+                bool bounceWall = Flags.NoGravity;
+                double zFactor = Flags.NoGravity ? 1.0 : 0.5;
+
+                if (bouncePlane || bounceWall)
+                    Velocity = velocity;
+
+                if (bouncePlane)
+                    Velocity.Z = -velocity.Z * zFactor;
+
+                if (bounceWall && BlockingLine  != null)
+                {
+                    double velocityAngle = Math.Atan2(Velocity.X, Velocity.Y);
+                    double lineAngle = BlockingLine.Segment.Start.Angle(BlockingLine.Segment.End);
+                    double newAngle = 2 * lineAngle - velocityAngle;
+                    if (MathHelper.GetPositiveAngle(newAngle) == MathHelper.GetPositiveAngle(velocityAngle))
+                        newAngle += MathHelper.Pi;
+                    Vec2D velocity2D = velocity.XY.Rotate(newAngle - velocityAngle);
+                    Velocity.X = velocity2D.X;
+                    Velocity.Y = velocity2D.Y;
+                }
+            }
+        }
+
+        public bool ShouldDieOnCollison()
+        {
+            if (Flags.MbfBouncer && Flags.Missile)
+                return BlockingEntity != null || BlockingLine != null;
+
+            if (Flags.Missile)
+                return true;
+
+            return false;
         }
 
         public void Dispose()

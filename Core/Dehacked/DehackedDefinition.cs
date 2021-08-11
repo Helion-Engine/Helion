@@ -425,10 +425,11 @@ namespace Helion.Dehacked
         private uint ParseThingStringBits(SimpleParser parser)
         {
             uint bits = 0;
-            string[] items = parser.ConsumeLine().Split(new string[] { "+", " | ", ", " }, StringSplitOptions.RemoveEmptyEntries);
+            string[] items = parser.ConsumeLine().Split(new string[] { "+", "|", "," }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (var stringFlag in items)
+            foreach (string item in items)
             {
+                string stringFlag = item.Trim();
                 if (ThingPropertyStrings.TryGetValue(stringFlag, out uint flag))
                     bits |= flag;
                 else
