@@ -77,21 +77,24 @@ namespace Helion.Resources.IWad
             { "25485721882b050afa96a56e5758dd52", IWadType.ChexQuest },
         };
 
-        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, "MapInfo/Doom2.txt", DoomDecorate);
+        public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, "MapInfo/Doom2.txt", DoomDecorate,
+            vanillaCompatibility : false);
 
         public readonly string Title;
         public readonly IWadBaseType IWadBaseType;
         public readonly IWadType IWadType; 
         public readonly string MapInfoResource;
         public readonly string DecorateResource;
+        public readonly bool VanillaCompatibility;
 
-        public IWadInfo(string title, IWadBaseType baseType, IWadType type, string mapInfo, string decorate)
+        public IWadInfo(string title, IWadBaseType baseType, IWadType type, string mapInfo, string decorate, bool vanillaCompatibility = true)
         {
             Title = title;
             IWadBaseType = baseType;
             IWadType = type;
             MapInfoResource = mapInfo;
             DecorateResource = decorate;
+            VanillaCompatibility = vanillaCompatibility;
         }
 
         public static IWadInfo GetIWadInfo(string fileName)

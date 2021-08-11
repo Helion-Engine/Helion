@@ -16,6 +16,7 @@ using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
+using Helion.Util.Configs.Components;
 
 namespace Helion.World.Geometry.Sectors
 {
@@ -288,11 +289,9 @@ namespace Helion.World.Geometry.Sectors
 
         public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
-        // TODO use plane values - can probably make these neater and more concise, they are all basically the same function
-        // TODO add function to handle WR_RaiseByShortestLowerTexture
         public Sector? GetLowestAdjacentFloor()
         {
-            double lowestZ = double.MaxValue;
+            double lowestZ = Floor.Z;
             Sector? lowestSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
@@ -388,7 +387,7 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextLowestFloor()
         {
-            double currentZ = double.MinValue;
+            double currentZ = Floor.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
@@ -413,7 +412,7 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextLowestCeiling()
         {
-            double currentZ = double.MinValue;
+            double currentZ = Ceiling.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
@@ -438,7 +437,7 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextHighestFloor()
         {
-            double currentZ = double.MaxValue;
+            double currentZ = Floor.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
@@ -463,7 +462,7 @@ namespace Helion.World.Geometry.Sectors
 
         public Sector? GetNextHighestCeiling()
         {
-            double currentZ = double.MaxValue;
+            double currentZ = Ceiling.Z;
             Sector? currentSector = null;
 
             for (int i = 0; i < Lines.Count; i++)
@@ -518,36 +517,51 @@ namespace Helion.World.Geometry.Sectors
             return max;
         }
 
-        public double GetShortestTexture(TextureManager textureManager, bool byLowerTx)
+        public double GetShortestTexture(TextureManager textureManager, bool byLowerTx, ConfigCompat config)
         {
             double min = double.MaxValue;
-
-            // Doom didn't check if there was actually a lower texture set
-            // It would use index zero which was AASHITTY with a 64 height causing it to max out at 64
-            // TODO compatibility option
             for (int i = 0; i < Lines.Count; i++)
             {
                 Line line = Lines[i];
                 if (line.TwoSided)
                 {
                     TwoSided twoSided = (TwoSided)line.Front;
-                    var texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
-                        textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
-                    if (texture.Image != null && texture.Image.Height < min)
-                        min = texture.Image.Height;
+                    min = GetShortestTextureHeight(textureManager, twoSided, byLowerTx, config.VanillaShortestTexture, min);
 
                     if (line.Back != null)
                     {
                         twoSided = (TwoSided)line.Back;
-                        texture = byLowerTx ? textureManager.GetNullCompatibilityTexture(twoSided.Lower.TextureHandle) :
-                            textureManager.GetNullCompatibilityTexture(twoSided.Upper.TextureHandle);
-                        if (texture.Image != null && texture.Image.Height < min)
-                            min = texture.Image.Height;
+                        min = GetShortestTextureHeight(textureManager, twoSided, byLowerTx, config.VanillaShortestTexture, min);
                     }
                 }
             }
 
+            if (min == double.MaxValue)
+            {
+                var image = textureManager.GetNullCompatibilityTexture(Constants.NoTextureIndex);
+                return image == null ? 0 : image.Height;
+            }
+
             return min;
+        }
+
+        private static double GetShortestTextureHeight(TextureManager textureManager, TwoSided twoSided, bool byLowerTx, 
+            bool compat, double currentHeight)
+        {
+            var wall = byLowerTx ? twoSided.Lower : twoSided.Upper;
+
+            if (wall.TextureHandle == Constants.NoTextureIndex && (!byLowerTx || !compat))
+                return currentHeight;
+
+            // Doom didn't check if there was actually a lower texture set
+            // It would use index zero which was AASHITTY with a 64 height causing it to max out at 64
+            // GetNullCompatibilityTexture emulates this functionality
+            var texture = compat ? textureManager.GetNullCompatibilityTexture(wall.TextureHandle) : 
+                textureManager.GetTexture(wall.TextureHandle);
+            if (texture.Image != null && texture.Image.Height < currentHeight)
+                return texture.Image.Height;
+
+            return currentHeight;
         }
 
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
