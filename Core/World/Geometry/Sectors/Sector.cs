@@ -538,7 +538,7 @@ namespace Helion.World.Geometry.Sectors
 
             if (min == double.MaxValue)
             {
-                var image = textureManager.GetNullCompatibilityTexture(Constants.NoTextureIndex);
+                var image = textureManager.GetNullCompatibilityTexture(Constants.NoTextureIndex).Image;
                 return image == null ? 0 : image.Height;
             }
 
