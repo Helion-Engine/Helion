@@ -30,16 +30,40 @@ namespace Helion.Render.Common
         }
 
         /// <summary>
-        /// Translates a point to a location based on this virtual dimension
-        /// with respect to a parent dimension.
+        /// Translates the box from it's local position into its view position.
+        /// The result of this function will be the correct area that it should
+        /// take up in the absolute coordinates of the virtual space.
         /// </summary>
-        /// <param name="point">The point to translate.</param>
-        /// <param name="window">The alignment to the window.</param>
-        /// <returns>The translated point.</returns>
-        public Vec2I Translate(Vec2I point, Align window)
+        /// <remarks>To map this into the parent space, use the function
+        /// <see cref="VirtualToParent"/>.</remarks>
+        /// <param name="box">The box in the virtual space to translate relative
+        /// to the given alignment parameters.</param>
+        /// <param name="window">The window alignment.</param>
+        /// <param name="anchor">The anchor alignment.</param>
+        /// <returns></returns>
+        public HudBox VirtualTranslate(HudBox box, Align window, Align anchor)
         {
-            Vec2F alignedPos = window.Translate(point, Dimension).Float;
-            return ((alignedPos * m_scaling) + m_gutter).Int;
+            Vec2I windowAnchor = window.Translate(Dimension);
+            Vec2I originDelta = anchor.AnchorDelta(box.Dimension);
+            Vec2I topLeft = windowAnchor + originDelta + box.TopLeft;
+            return (topLeft, topLeft + box.Dimension);
+        }
+
+        /// <summary>
+        /// Takes a box in the virtual space of this resolution, and transforms
+        /// it into the parent space. This is the second step, where the first
+        /// is <see cref="VirtualTranslate"/>.
+        /// </summary>
+        /// <remarks>The result from this can be used with the provided viewport
+        /// that one is translating to.</remarks>
+        /// <param name="virtualBox">The box to transform into the parent space.
+        /// </param>
+        /// <returns>The result that can be used.</returns>
+        public HudBox VirtualToParent(HudBox virtualBox)
+        {
+            Vec2I topLeft = ((virtualBox.TopLeft.Float * m_scaling) + m_gutter).Int;
+            Vec2I dimension = (virtualBox.Sides.Float * m_scaling).Int;
+            return (topLeft, topLeft + dimension);
         }
     }
 }

@@ -25,19 +25,19 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             m_sentences.Clear();
         }
         
-        public ReadOnlySpan<RenderableCharacter> Calculate(ColoredString text, GLFontTexture fontTexture, 
+        public Span<RenderableCharacter> Calculate(ColoredString text, GLFontTexture fontTexture, 
             int fontSize, TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
         {
-            return Calculate(text.ToString(), fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
+            return Calculate(text.String, fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
         }
 
-        public ReadOnlySpan<RenderableCharacter> Calculate(string text, GLFontTexture fontTexture, int fontSize,
+        public Span<RenderableCharacter> Calculate(string text, GLFontTexture fontTexture, int fontSize,
             TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
         {
             drawArea = default;
 
             if (scale <= 0.0f || text == "")
-                return ReadOnlySpan<RenderableCharacter>.Empty;
+                return Span<RenderableCharacter>.Empty;
             
             Precondition(m_characters.Length < OverflowCount, "Not clearing the GL hud text helper characters");
             Precondition(m_sentences.Length < OverflowCount, "Not clearing the GL hud text helper sentences");
@@ -49,7 +49,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             PerformTextAlignment(textAlign);
             drawArea = CalculateDrawArea();
             
-            ReadOnlySpan<RenderableCharacter> span = new(m_characters.Data, 0, m_characters.Length);
+            Span<RenderableCharacter> span = new(m_characters.Data, 0, m_characters.Length);
             Postcondition(span.Length == text.Length, "Lost characters when creating renderable character span");
 
             return span;
@@ -173,8 +173,6 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 
                 for (int i = sentence.StartIndex; i < sentence.StartIndex + sentence.Count; i++)
                 {
-                    // if (i >= m_characters.Length)
-                        // break;
                     Precondition(i < m_characters.Length, "Renderable sentence index is out of bounds");
                     
                     RenderableCharacter oldChar = m_characters[i];
