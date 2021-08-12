@@ -124,31 +124,24 @@ namespace Helion.World.Geometry.Lines
         private static void ApplySideModel(Side side, SideModel sideModel)
         {
             side.DataChanges = (SideDataTypes)sideModel.DataChanges;
-            if (side is TwoSided twoSided)
-            {
-                if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture) && sideModel.UpperTexture.HasValue)
-                    twoSided.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
-                if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture) && sideModel.LowerTexture.HasValue)
-                    twoSided.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
-            }
 
+            if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture) && sideModel.UpperTexture.HasValue)
+                side.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
             if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture) && sideModel.MiddleTexture.HasValue)
                 side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
+            if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture) && sideModel.LowerTexture.HasValue)
+                side.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
         }
 
-        private SideModel ToSideModel(Side side)
+        private static SideModel ToSideModel(Side side)
         {
             SideModel sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
-            if (side is TwoSided twoSided)
-            {
-                if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
-                    sideModel.UpperTexture = twoSided.Upper.TextureHandle;
-                if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
-                    sideModel.LowerTexture = twoSided.Lower.TextureHandle;
-            }
-
+            if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
+                sideModel.UpperTexture = side.Upper.TextureHandle;
             if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
                 sideModel.MiddleTexture = side.Middle.TextureHandle;
+            if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
+                sideModel.LowerTexture = side.Lower.TextureHandle;
 
             return sideModel;
         }

@@ -123,16 +123,24 @@ namespace Helion.World.Geometry.Builder
             // ordering very badly.
             Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
             Sector sector = builder.Sectors[doomSide.Sector.Id];
-            int textureHandle = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures).Index;
+            string middleTexture = doomSide.MiddleTexture;
+            int middleTextureHandle = TextureManager.Instance.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
+            Wall middle = new Wall(builder.Walls.Count, middleTextureHandle, WallLocation.Middle);
 
-            // When we get to 3D floors we're going to have to fix this...
-            Wall wall = new Wall(builder.Walls.Count, textureHandle, WallLocation.Middle);
-            builder.Walls.Add(wall);
-            
-            Side front = new Side(nextSideId, doomSide.Offset, wall, sector);
+            string upperTexture = doomSide.UpperTexture;
+            int upperTextureHandle = TextureManager.Instance.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
+            Wall upper = new Wall(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
+
+            string lowerTexture = doomSide.LowerTexture;
+            int lowerTextureHandle = TextureManager.Instance.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
+            Wall lower = new Wall(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
+
+            builder.Walls.Add(middle);
+            builder.Walls.Add(upper);
+            builder.Walls.Add(lower);
+
+            Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
             builder.Sides.Add(front);
-
-            wall.Side = front;
 
             nextSideId++;
             

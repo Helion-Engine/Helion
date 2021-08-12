@@ -11,7 +11,9 @@ namespace Helion.World.Geometry.Sides
     {
         public readonly int Id;
         public readonly Sector Sector;
+        public readonly Wall Upper;
         public readonly Wall Middle;
+        public readonly Wall Lower;
         public Vec2I Offset;
         public Line Line { get; internal set; }
         public Wall[] Walls { get; protected set; }
@@ -27,15 +29,19 @@ namespace Helion.World.Geometry.Sides
         public double RenderDistance { get; set; }
         public RenderObjectType Type => RenderObjectType.Side;
 
-        public Side(int id, Vec2I offset, Wall middle, Sector sector)
+        public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
         {
             Id = id;
             Sector = sector;
             Offset = offset;
+            Upper = upper;
             Middle = middle;
-            Walls = new[] { middle };
-            
+            Lower = lower;
+            Walls = new[] { middle, upper, lower };
+
+            upper.Side = this;
             middle.Side = this;
+            lower.Side = this;
             sector.Sides.Add(this);
             
             // We are okay with things blowing up violently if someone forgets

@@ -6,9 +6,6 @@ namespace Helion.World.Geometry.Sides
 {
     public class TwoSided : Side
     {
-        public readonly Wall Upper;
-        public readonly Wall Lower;
-
         public bool IsBack => !IsFront;
         public TwoSided PartnerSide => IsFront ? BackSide : (TwoSided)Line.Front;
 
@@ -17,14 +14,8 @@ namespace Helion.World.Geometry.Sides
         private TwoSided BackSide => (TwoSided)Line.Back !;
 
         public TwoSided(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector) : 
-            base(id, offset, middle, sector)
+            base(id, offset, upper, middle, lower,  sector)
         {
-            Upper = upper;
-            Lower = lower;
-            Walls = new[] { middle, upper, lower };
-
-            upper.Side = this;
-            lower.Side = this;
         }
     }
 }

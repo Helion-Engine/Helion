@@ -2781,7 +2781,7 @@ namespace Helion.World.Entities.Definition.States
         private static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
         {
             var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
-            var side = new Side(0, Vec2I.Zero, wall, sector);
+            var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
             var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
             return new Line(0, 0, seg, side, null, flags, special, args);
         }
