@@ -5,7 +5,6 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
@@ -74,13 +73,13 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
             gl.StencilMask(0xFF);
             gl.StencilOp(StencilOpType.Keep, StencilOpType.Keep, StencilOpType.Replace);
 
-            for (int i = 0; i < m_skyComponents.Count; i++)
+            int index = 1;
+            foreach (ISkyComponent sky in m_skyComponents.Values) 
             {
-                ISkyComponent sky = m_skyComponents[i];
                 if (!sky.HasGeometry)
                     continue;
 
-                int stencilIndex = i + 1;
+                int stencilIndex = index++;
 
                 gl.Clear(ClearType.StencilBufferBit);
                 gl.ColorMask(false, false, false, false);
