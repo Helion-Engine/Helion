@@ -26,7 +26,7 @@ namespace Helion.Resources.Archives
             ["FF_START"] = ResourceNamespace.Flats,
             ["FF_END"] = ResourceNamespace.Global,
             ["HI_START"] = ResourceNamespace.Textures,
-            ["HI_END"] = ResourceNamespace.Textures,
+            ["HI_END"] = ResourceNamespace.Global,
             ["P_START"] = ResourceNamespace.Textures,
             ["P_END"] = ResourceNamespace.Global,
             ["PP_START"] = ResourceNamespace.Textures,
