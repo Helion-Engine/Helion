@@ -621,6 +621,17 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg1 = 168;
                     return ZDoomLineSpecialType.TranslucentLine;
 
+                case VanillaLineSpecialType.TransferSky:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomStaticInit.Sky;
+                    return ZDoomLineSpecialType.StaticInit;
+
+                case VanillaLineSpecialType.TransferSkyFlipped:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = (int)ZDoomStaticInit.Sky;
+                    argsToMutate.Arg2 = 1;
+                    return ZDoomLineSpecialType.StaticInit;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -1320,6 +1331,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.ScrollTaggedWallFirstSide:
                 case VanillaLineSpecialType.ScrollTaggedWallSameAsFloorCeiling:
                 case VanillaLineSpecialType.TranslucentLine:
+                case VanillaLineSpecialType.TransferSky:
+                case VanillaLineSpecialType.TransferSkyFlipped:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:

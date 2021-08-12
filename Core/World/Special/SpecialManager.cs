@@ -29,6 +29,7 @@ namespace Helion.World.Special
         private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
         private readonly IRandom m_random;
         private readonly WorldBase m_world;
+        private readonly bool m_skyChanged;
 
         public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
         {
@@ -479,6 +480,21 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.TranslucentLine:
                     SetTranslucentLine(line, line.Args.Arg0, line.Args.Arg1);
                     break;
+                case ZDoomLineSpecialType.StaticInit:
+                    SetStaticInit(line);
+                    break;
+            }
+        }
+
+        private void SetStaticInit(Line line)
+        {
+            if (line.Front.Upper.TextureHandle == Constants.NoTextureIndex)
+                return;
+
+            if (line.Args.Arg1 == (int)ZDoomStaticInit.Sky)
+            {
+                foreach (Sector sector in m_world.FindBySectorTag(line.Args.Arg0))
+                    sector.SetSkyTexture(line.Front.Upper.TextureHandle);
             }
         }
 

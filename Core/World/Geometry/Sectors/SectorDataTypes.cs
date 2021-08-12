@@ -13,6 +13,7 @@ namespace Helion.World.Geometry.Sectors
         SectorSpecialType = 32,
         MovementLocked = 64,
         Offset = 128,
-        Secret = 256
+        Secret = 256,
+        SkyTexture = 512,
     }
 }

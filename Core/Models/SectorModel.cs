@@ -14,6 +14,7 @@
         public int? FloorTexture;
         public int? CeilingTexture;
         public int? SectorSpecialType;
+        public int? SkyTexture;
         public bool Secret;
         public int DamageAmount;
     }

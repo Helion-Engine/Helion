@@ -87,7 +87,8 @@ namespace Helion.World.Geometry.Sectors
         public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
         public bool Secret { get; private set; }
         public int DamageAmount { get; private set; }
-        
+        public int? SkyTextureHandle { get; private set; }
+
         public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
         public bool Has3DFloors => !Floors3D.Empty();
         public SectorDataTypes DataChanges;
@@ -134,6 +135,12 @@ namespace Helion.World.Geometry.Sectors
                 DataChanges |= SectorDataTypes.CeilingTexture;
         }
 
+        public void SetSkyTexture(int texture)
+        {
+            SkyTextureHandle = texture;
+            DataChanges |= SectorDataTypes.SkyTexture;
+        }
+
         public SectorModel ToSectorModel()
         {
             SectorModel sectorModel = new SectorModel()
@@ -144,7 +151,8 @@ namespace Helion.World.Geometry.Sectors
                 SoundTarget = SoundTarget?.Id,
                 Secret = Secret,
                 SectorSpecialType = (int)SectorSpecialType,
-                SectorDataChanges = (int)DataChanges
+                SectorDataChanges = (int)DataChanges,
+                SkyTexture  = SkyTextureHandle
             };
 
             if (DataChanged)
@@ -207,6 +215,9 @@ namespace Helion.World.Geometry.Sectors
 
                 if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
                     SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
+
+                if (DataChanges.HasFlag(SectorDataTypes.SkyTexture) && sectorModel.SkyTexture.HasValue)
+                    SkyTextureHandle = sectorModel.SkyTexture;
 
                 Secret = sectorModel.Secret;
                 DamageAmount = sectorModel.DamageAmount;
