@@ -11,22 +11,22 @@ namespace Helion.Render.Common
     public readonly struct VirtualResolutionInfo
     {
         public readonly Dimension Dimension;
-        public readonly ResolutionScale Scale;
-        private readonly Vec2F m_scaling;
-        private readonly Vec2F m_gutter;
+        public readonly ResolutionScale ResolutionScale;
+        public readonly Vec2F Scale;
+        public readonly Vec2F Gutter;
 
-        public VirtualResolutionInfo(Dimension dimension, ResolutionScale scale, Dimension parentDimension,
+        public VirtualResolutionInfo(Dimension dimension, ResolutionScale resolutionScale, Dimension parentDimension,
             float? aspectRatioOverride = null)
         {
             Vec2F parent = parentDimension.Vector.Float;
             
             Dimension = ((int)(dimension.Width * (aspectRatioOverride ?? 1.0f)), dimension.Height);
-            Scale = scale;
-            m_scaling = parent / Dimension.Vector.Float;
-            m_gutter = Vec2F.Zero;
+            ResolutionScale = resolutionScale;
+            Scale = parent / Dimension.Vector.Float;
+            Gutter = Vec2F.Zero;
 
-            int scaledX = (int)(Dimension.Width * m_scaling.Y);
-            m_gutter = (Math.Max(0, parent.X - scaledX), 0);
+            int scaledX = (int)(Dimension.Width * Scale.Y);
+            Gutter = (Math.Max(0, parent.X - scaledX), 0);
         }
 
         /// <summary>
@@ -61,8 +61,8 @@ namespace Helion.Render.Common
         /// <returns>The result that can be used.</returns>
         public HudBox VirtualToParent(HudBox virtualBox)
         {
-            Vec2I topLeft = ((virtualBox.TopLeft.Float * m_scaling) + m_gutter).Int;
-            Vec2I dimension = (virtualBox.Sides.Float * m_scaling).Int;
+            Vec2I topLeft = ((virtualBox.TopLeft.Float * Scale) + Gutter).Int;
+            Vec2I dimension = (virtualBox.Sides.Float * Scale).Int;
             return (topLeft, topLeft + dimension);
         }
     }
