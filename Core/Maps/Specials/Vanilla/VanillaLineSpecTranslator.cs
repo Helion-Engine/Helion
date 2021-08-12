@@ -616,6 +616,11 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     return ZDoomLineSpecialType.ScrollTextureModel;
 
+                case VanillaLineSpecialType.TranslucentLine:
+                    argsToMutate.Arg0 = tag;
+                    argsToMutate.Arg1 = 168;
+                    return ZDoomLineSpecialType.TranslucentLine;
+
                 default:
                     Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                     break;
@@ -1314,6 +1319,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.ScrollAccellTaggedWallFirstSide:
                 case VanillaLineSpecialType.ScrollTaggedWallFirstSide:
                 case VanillaLineSpecialType.ScrollTaggedWallSameAsFloorCeiling:
+                case VanillaLineSpecialType.TranslucentLine:
                     return ActivationType.LevelStart;
 
                 case VanillaLineSpecialType.W1_Teleport:

@@ -270,9 +270,7 @@ namespace Helion.Maps.Specials.Vanilla
         WR_RaiseStairsFast,
         SR_RaiseStairs8,
         SR_RaiseStairsFast,
-        // TODO
         TranslucentLine,
-        // END TODO
         TransferCeilingLight,
         W1_TeleportLineReversed,
         WR_TeleportLineReversed,

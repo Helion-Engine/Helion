@@ -8,6 +8,7 @@ namespace Helion.World.Geometry.Lines
         Activated = 1,
         Texture = 2,
         Automap = 4,
-        Args = 8
+        Args = 8,
+        Alpha = 16,
     }
 }

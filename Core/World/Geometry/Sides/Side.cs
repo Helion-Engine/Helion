@@ -1,12 +1,13 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Render.Legacy.Renderers.Legacy.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 
 namespace Helion.World.Geometry.Sides
 {
-    public class Side
+    public class Side : IRenderObject
     {
         public readonly int Id;
         public readonly Sector Sector;
@@ -22,6 +23,9 @@ namespace Helion.World.Geometry.Sides
         public bool IsFront => ReferenceEquals(this, Line.Front);
 
         public SideScrollData? ScrollData { get; set; }
+
+        public double RenderDistance { get; set; }
+        public RenderObjectType Type => RenderObjectType.Side;
 
         public Side(int id, Vec2I offset, Wall middle, Sector sector)
         {

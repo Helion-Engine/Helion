@@ -476,6 +476,24 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ScrollCeiling:
                     CreateScrollPlane(line, SectorPlaneType.Ceiling);
                     break;
+                case ZDoomLineSpecialType.TranslucentLine:
+                    SetTranslucentLine(line, line.Args.Arg0, line.Args.Arg1);
+                    break;
+            }
+        }
+
+        private void SetTranslucentLine(Line line, int lineId, int translucency)
+        {
+            float alpha = translucency / 255.0f;
+            if (lineId == Line.NoLineId)
+            {
+                line.SetAlpha(alpha);
+            }
+            else
+            {
+                IEnumerable<Line> lines = m_world.FindByLineId(lineId);
+                foreach (Line setLine in lines)
+                    setLine.SetAlpha(alpha);
             }
         }
 

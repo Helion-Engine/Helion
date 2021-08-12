@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
@@ -18,7 +19,9 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
+using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -89,7 +92,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World
             Clear(world, renderInfo);
 
             TraverseBsp(world, renderInfo);
-
             RenderWorldData(renderInfo);
             m_geometryRenderer.Render(renderInfo);
         }
@@ -110,7 +112,25 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World
 
             m_viewClipper.Center = position;
             RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
-            m_entityRenderer.RenderAlphaEntities(position, viewDirection);
+
+            // This will just render based on distance from their center point.
+            // Not really correct, but mostly correct enough for now.
+            List<IRenderObject> alphaObjects = m_entityRenderer.AlphaEntities;
+            alphaObjects.AddRange(m_geometryRenderer.AlphaSides);
+            alphaObjects.Sort((i1, i2) => i2.RenderDistance.CompareTo(i1.RenderDistance));
+            for (int i = 0; i < alphaObjects.Count; i++)
+            {
+                IRenderObject renderObject = alphaObjects[i];
+                if (renderObject.Type == RenderObjectType.Entity)
+                {
+                    m_entityRenderer.RenderEntity((Entity)renderObject, position, viewDirection);
+                }
+                else if (renderObject.Type == RenderObjectType.Side)
+                {
+                    Side side = (Side)renderObject;
+                    m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position));
+                }
+            }
         }
 
         private bool Occluded(in Box2D box, in Vec2D position)

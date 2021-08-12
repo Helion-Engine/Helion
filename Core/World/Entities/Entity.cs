@@ -20,14 +20,14 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Geometry.Segments;
+using Helion.Render.Legacy.Renderers.Legacy.World;
 
 namespace Helion.World.Entities
 {
     /// <summary>
     /// An actor in a world.
     /// </summary>
-    public partial class Entity : IDisposable, ITickable, ISoundSource
+    public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObject
     {
         private const double Speed = 47000 / 65536.0;
         public const double FloatSpeed = 4.0;
@@ -88,7 +88,8 @@ namespace Helion.World.Entities
         public bool MoveLinked;
         public bool Respawn;
 
-        public double RenderDistance;
+        public double RenderDistance { get; set; }
+        public RenderObjectType Type => RenderObjectType.Entity;
 
         public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
 

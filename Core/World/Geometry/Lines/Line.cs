@@ -27,6 +27,7 @@ namespace Helion.World.Geometry.Lines
         public LineSpecial Special { get; set; }
         public bool Activated { get; private set; }
         public LineDataTypes DataChanges { get; set; }
+        public float Alpha { get; private set; }
         public bool DataChanged => DataChanges > 0;
         // Rendering hax...
         public bool Sky;
@@ -59,6 +60,7 @@ namespace Helion.World.Geometry.Lines
             Flags = flags;
             Special = lineSpecial;
             Args = args;
+            Alpha = 1;
 
             front.Line = this;
             front.Sector.Lines.Add(this);
@@ -92,6 +94,9 @@ namespace Helion.World.Geometry.Lines
             if (DataChanges.HasFlag(LineDataTypes.Args))
                 lineModel.Args = Args;
 
+            if (DataChanges.HasFlag(LineDataTypes.Alpha))
+                lineModel.Alpha = Alpha;
+
             return lineModel;
         }
 
@@ -111,6 +116,9 @@ namespace Helion.World.Geometry.Lines
 
             if (DataChanges.HasFlag(LineDataTypes.Args) && lineModel.Args.HasValue)
                 Args = lineModel.Args.Value;
+
+            if (DataChanges.HasFlag(LineDataTypes.Alpha) && lineModel.Alpha.HasValue)
+                Alpha = lineModel.Alpha.Value;
         }
 
         private static void ApplySideModel(Side side, SideModel sideModel)
@@ -149,6 +157,12 @@ namespace Helion.World.Geometry.Lines
         {
             Activated = set;
             DataChanges |= LineDataTypes.Activated;
+        }
+
+        public void SetAlpha(float alpha)
+        {
+            Alpha = alpha;
+            DataChanges |= LineDataTypes.Alpha;
         }
 
         /// <summary>

@@ -36,6 +36,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
         private readonly ViewClipper m_viewClipper;
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly LegacySkyRenderer m_skyRenderer;
+        public readonly List<IRenderObject> AlphaSides = new List<IRenderObject>();
         private double m_tickFraction;
         private bool m_skyOverride;
 
@@ -89,6 +90,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             m_tickFraction = tickFraction;
             m_skyRenderer.Clear();
             m_lineDrawnTracker.ClearDrawnLines();
+            AlphaSides.Clear();
         }
 
         public void Render(RenderInfo renderInfo)
@@ -160,8 +162,13 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                 if (side == null)
                     throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
-                RenderSide(side, onFrontSide);
+                if (side.Line.Alpha < 1)
+                {
+                    side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(position);
+                    AlphaSides.Add(side);
+                }
 
+                RenderSide(side, onFrontSide);
                 m_lineDrawnTracker.MarkDrawn(edge.Line);
 
                 edge.Line.Sky = m_skyOverride;
@@ -178,7 +185,16 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                 m_viewClipper.AddLine(edge.Start, edge.End);
         }
 
-        private void RenderSide(Side side, bool isFrontSide)
+        public void RenderAlphaSide(Side side, bool isFrontSide)
+        {
+            if (side is not TwoSided twoSided)
+                return;
+
+            if (twoSided.Middle.TextureHandle != Constants.NoTextureIndex)
+                RenderTwoSidedMiddle(twoSided, twoSided.PartnerSide, isFrontSide);
+        }
+
+        public void RenderSide(Side side, bool isFrontSide)
         {
             m_skyOverride = false;
             if (side is not TwoSided twoSided)
@@ -237,7 +253,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
             if (LowerIsVisible(facingSector, otherSector))
                 RenderTwoSidedLower(facingSide, otherSide, isFrontSide);
-            if (facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
+            if (facingSide.Line.Alpha >= 1 && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
                 RenderTwoSidedMiddle(facingSide, otherSide, isFrontSide);
             if (UpperIsVisible(facingSide, facingSector, otherSector))
                 RenderTwoSidedUpper(facingSide, otherSide, isFrontSide);
@@ -415,7 +431,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
             Wall middleWall = facingSide.Middle;
             GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle);
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+
+            RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
             LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
             if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
@@ -430,7 +447,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                 if (nothingVisible)
                     data = Array.Empty<LegacyVertex>();
                 else
-                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
+                    data = GetWallVertices(wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
 
                 m_vertexLookup[facingSide.Id] = data;
             }
@@ -581,7 +598,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             return data;
         }
 
-        private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel)
+        private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel, float alpha = 1)
         {
             LegacyVertex[] data = new LegacyVertex[6];
             // Our triangle is added like:
@@ -596,7 +613,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[0].Z = wv.TopLeft.Z;
             data[0].U = wv.TopLeft.U;
             data[0].V = wv.TopLeft.V;
-            data[0].Alpha = 1.0f;
+            data[0].Alpha = alpha;
             data[0].R = 1.0f;
             data[0].G = 1.0f;
             data[0].B = 1.0f;
@@ -608,7 +625,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[1].Z = wv.BottomLeft.Z;
             data[1].U = wv.BottomLeft.U;
             data[1].V = wv.BottomLeft.V;
-            data[1].Alpha = 1.0f;
+            data[1].Alpha = alpha;
             data[1].R = 1.0f;
             data[1].G = 1.0f;
             data[1].B = 1.0f;
@@ -620,7 +637,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[2].Z = wv.TopRight.Z;
             data[2].U = wv.TopRight.U;
             data[2].V = wv.TopRight.V;
-            data[2].Alpha = 1.0f;
+            data[2].Alpha = alpha;
             data[2].R = 1.0f;
             data[2].G = 1.0f;
             data[2].B = 1.0f;
@@ -632,7 +649,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[3].Z = wv.TopRight.Z;
             data[3].U = wv.TopRight.U;
             data[3].V = wv.TopRight.V;
-            data[3].Alpha = 1.0f;
+            data[3].Alpha = alpha;
             data[3].R = 1.0f;
             data[3].G = 1.0f;
             data[3].B = 1.0f;
@@ -644,7 +661,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[4].Z = wv.BottomLeft.Z;
             data[4].U = wv.BottomLeft.U;
             data[4].V = wv.BottomLeft.V;
-            data[4].Alpha = 1.0f;
+            data[4].Alpha = alpha;
             data[4].R = 1.0f;
             data[4].G = 1.0f;
             data[4].B = 1.0f;
@@ -656,7 +673,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             data[5].Z = wv.BottomRight.Z;
             data[5].U = wv.BottomRight.U;
             data[5].V = wv.BottomRight.V;
-            data[5].Alpha = 1.0f;
+            data[5].Alpha = alpha;
             data[5].R = 1.0f;
             data[5].G = 1.0f;
             data[5].B = 1.0f;

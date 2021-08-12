@@ -10,5 +10,6 @@ namespace Helion.Models
         public SideModel? Front { get; set; }
         public SideModel? Back { get; set; }
         public SpecialArgs? Args { get; set; }
+        public float? Alpha { get; set; }
     }
 }

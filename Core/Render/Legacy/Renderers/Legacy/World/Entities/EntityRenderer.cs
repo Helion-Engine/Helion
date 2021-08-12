@@ -35,7 +35,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
         private GLLegacyTexture m_debugBoxTexture;
         private RenderWorldData m_debugBoxRenderWorldData;
 
-        private readonly List<Entity> m_alphaEntities = new();
+        public readonly List<IRenderObject> AlphaEntities = new();
         private readonly List<GLLegacyTexture> m_alphaEntityTextures = new();
 
         public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
@@ -66,7 +66,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             m_tickFraction = tickFraction;
             m_cameraEntity = cameraEntity;
             m_EntityDrawnTracker.Reset(world);
-            m_alphaEntities.Clear();
+            AlphaEntities.Clear();
             m_renderPositions.Clear();
         }
 
@@ -83,23 +83,13 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
                 if (entity.Definition.Properties.Alpha < 1)
                 {
                     entity.RenderDistance = entity.Position.XY.Distance(position);
-                    m_alphaEntities.Add(entity);
+                    AlphaEntities.Add(entity);
                     continue;
                 }
 
                 RenderEntity(entity, position, viewDirection);
                 m_EntityDrawnTracker.MarkDrawn(entity);
             }
-        }
-
-        public void RenderAlphaEntities(in Vec2D position, in Vec2D viewDirection)
-        {
-            // Entities with alpha need to be drawn last to draw correctly
-            // Sort from farthest to nearest
-            // This should work well enough since we are only dealing with sprites
-            m_alphaEntities.Sort((i1, i2) => i2.RenderDistance.CompareTo(i1.RenderDistance));
-            for (int i = 0; i < m_alphaEntities.Count; i++)
-                RenderEntity(m_alphaEntities[i], position, viewDirection);
         }
 
         private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -276,7 +266,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             }
         }
 
-        private void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
+        public void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
         {
             const double NudgeFactor = 0.0001;
             Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
