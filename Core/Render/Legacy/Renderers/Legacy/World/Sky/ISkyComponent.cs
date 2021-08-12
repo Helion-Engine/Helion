@@ -26,7 +26,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
         /// Adds the triangle in the world where a sky should be drawn. This
         /// should be counter-clockwise.
         /// </summary>
-        
         /// <param name="vertices">Sky vertices.</param>
         void Add(SkyGeometryVertex[] vertices);
 

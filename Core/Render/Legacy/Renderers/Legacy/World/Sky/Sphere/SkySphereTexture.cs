@@ -23,17 +23,19 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private readonly ArchiveCollection m_archiveCollection;
         private readonly IGLFunctions gl;
         private readonly LegacyGLTextureManager m_textureManager;
+        private readonly int m_textureHandleIndex;
         private GLLegacyTexture m_texture;
         private bool m_allocatedNewTexture;
         private bool m_generatedSky;
 
         public SkySphereTexture(ArchiveCollection archiveCollection, IGLFunctions functions,
-            LegacyGLTextureManager textureManager)
+            LegacyGLTextureManager textureManager, int textureHandle)
         {
             m_archiveCollection = archiveCollection;
             gl = functions;
             m_textureManager = textureManager;
             m_texture = textureManager.NullTexture;
+            m_textureHandleIndex = textureHandle;
         }
 
         private void NotifyTextureManagerChanged(TextureManager textureManager)
@@ -222,8 +224,9 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
 
         private Image? GetSkyImage()
         {
-            ArchiveImageRetriever imageRetriever = new ArchiveImageRetriever(m_archiveCollection);
-            return imageRetriever.Get(TextureManager.Instance.SkyTextureName, ResourceNamespace.Textures);
+            return TextureManager.Instance.GetTexture(m_textureHandleIndex).Image;
+            // ArchiveImageRetriever imageRetriever = new(m_archiveCollection);
+            // return imageRetriever.Get(TextureManager.Instance.SkyTextureName, ResourceNamespace.Textures);
         }
 
         private GLLegacyTexture CreateSkyTexture(Image skyImage)

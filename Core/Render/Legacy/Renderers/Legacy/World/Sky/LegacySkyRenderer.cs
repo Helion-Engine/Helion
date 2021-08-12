@@ -5,6 +5,7 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
@@ -13,18 +14,23 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
 {
     public class LegacySkyRenderer : IDisposable
     {
-        private const int StencilIndex = 1;
+        private const int MaxSkyTextures = 255;
 
-        public readonly ISkyComponent DefaultSky;
+        private readonly Config m_config;
+        private readonly ArchiveCollection m_archiveCollection;
+        private readonly GLCapabilities m_capabilities;
+        private readonly LegacyGLTextureManager m_textureManager;
         private readonly IGLFunctions gl;
-        private readonly List<ISkyComponent> m_skyComponents;
+        private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
 
         public LegacySkyRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
+            m_config = config;
+            m_archiveCollection = archiveCollection;
+            m_capabilities = capabilities;
+            m_textureManager = textureManager;
             gl = functions;
-            DefaultSky = new SkySphereComponent(config, archiveCollection, capabilities, functions, textureManager);
-            m_skyComponents = new List<ISkyComponent> { DefaultSky };
         }
 
         ~LegacySkyRenderer()
@@ -35,8 +41,31 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
 
         public void Clear()
         {
-            for (int i = 0; i < m_skyComponents.Count; i++)
-                m_skyComponents[i].Clear();
+            foreach (ISkyComponent skyComponent in m_skyComponents.Values)
+            {
+                skyComponent.Clear();
+                skyComponent.Dispose();
+            }
+            
+            m_skyComponents.Clear();
+        }
+
+        public void Add(SkyGeometryVertex[] data, int? textureHandle)
+        {
+            if (textureHandle is null or > MaxSkyTextures)
+                return;
+
+            if (m_skyComponents.TryGetValue(textureHandle.Value, out ISkyComponent? sky))
+            {
+                sky.Add(data);
+            }
+            else
+            {
+                ISkyComponent newSky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl, 
+                    m_textureManager, textureHandle.Value);
+                m_skyComponents[textureHandle.Value] = newSky;
+                newSky.Add(data);
+            }
         }
 
         public void Render(RenderInfo renderInfo)
@@ -51,14 +80,16 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
                 if (!sky.HasGeometry)
                     continue;
 
+                int stencilIndex = i + 1;
+
                 gl.Clear(ClearType.StencilBufferBit);
                 gl.ColorMask(false, false, false, false);
-                gl.StencilFunc(StencilFuncType.Always, StencilIndex, 0xFF);
+                gl.StencilFunc(StencilFuncType.Always, stencilIndex, 0xFF);
 
                 sky.RenderWorldGeometry(renderInfo);
 
                 gl.ColorMask(true, true, true, true);
-                gl.StencilFunc(StencilFuncType.Equal, StencilIndex, 0xFF);
+                gl.StencilFunc(StencilFuncType.Equal, stencilIndex, 0xFF);
                 gl.Disable(EnableType.DepthTest);
 
                 sky.RenderSky(renderInfo);
@@ -77,7 +108,10 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
 
         private void ReleaseUnmanagedResources()
         {
-            m_skyComponents.ForEach(sky => sky.Dispose());
+            foreach (ISkyComponent skyComponent in m_skyComponents.Values)
+                skyComponent.Dispose();
+            
+            m_skyComponents.Clear();
         }
     }
 }

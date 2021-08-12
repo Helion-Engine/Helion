@@ -14,7 +14,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
 {
     public class SkySphereComponent : ISkyComponent
     {
-        private static readonly VertexArrayAttributes GeometryAttributes = new VertexArrayAttributes(
+        private static readonly VertexArrayAttributes GeometryAttributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3));
 
         private readonly Config m_config;
@@ -27,11 +27,11 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         public bool HasGeometry => !m_geometryVbo.Empty;
 
         public SkySphereComponent(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
-            IGLFunctions functions, LegacyGLTextureManager textureManager)
+            IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle)
         {
             m_config = config;
             gl = functions;
-            m_skySphereRenderer = new SkySphereRenderer(archiveCollection, capabilities, functions, textureManager);
+            m_skySphereRenderer = new SkySphereRenderer(archiveCollection, capabilities, functions, textureManager, textureHandle);
 
             m_geometryVao = new VertexArrayObject(capabilities, functions, GeometryAttributes, "VAO: Sky sphere geometry");
             m_geometryVbo = new StreamVertexBuffer<SkyGeometryVertex>(capabilities, functions, m_geometryVao, "VBO: Sky sphere geometry");
@@ -52,7 +52,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
 
         public void Add(SkyGeometryVertex[] vertices)
         {
-            // TODO: Do some kind of triangle addition instead of one by one.
             m_geometryVbo.Add(vertices);
         }
 

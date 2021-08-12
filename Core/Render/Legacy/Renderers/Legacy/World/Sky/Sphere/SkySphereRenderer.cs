@@ -21,8 +21,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private const int HorizontalSpherePoints = 32;
         private const int VerticalSpherePoints = 32;
 
-        private static readonly vec3 UpOpenGL = new vec3(0, 1, 0);
-        private static readonly VertexArrayAttributes SphereAttributes = new VertexArrayAttributes(
+        private static readonly vec3 UpOpenGL = new(0, 1, 0);
+        private static readonly VertexArrayAttributes SphereAttributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3),
             new VertexPointerFloatAttribute("uv", 1, 2));
 
@@ -33,7 +33,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private readonly SkySphereTexture m_skyTexture;
 
         public SkySphereRenderer(ArchiveCollection archiveCollection, GLCapabilities capabilities,
-            IGLFunctions functions, LegacyGLTextureManager textureManager)
+            IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle)
         {
             gl = functions;
             m_sphereVao = new VertexArrayObject(capabilities, functions, SphereAttributes, "VAO: Sky sphere");
@@ -41,7 +41,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
             using (ShaderBuilder builder = SkySphereShader.MakeBuilder(functions))
                 m_sphereShaderProgram = new SkySphereShader(functions, builder, SphereAttributes);
 
-            m_skyTexture = new SkySphereTexture(archiveCollection, functions, textureManager);
+            m_skyTexture = new SkySphereTexture(archiveCollection, functions, textureManager, textureHandle);
 
             GenerateSphereVerticesAndUpload();
         }

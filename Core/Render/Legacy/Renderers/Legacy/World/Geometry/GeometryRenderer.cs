@@ -69,7 +69,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
         public void UpdateTo(WorldBase world)
         {
-            // TODO: We should create a new one from the ground up when making new sky renderers.
             m_skyRenderer.Clear();
             m_lineDrawnTracker.UpdateToWorld(world);
             PreloadAllTextures(world);
@@ -310,7 +309,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                     m_skyWallVertexLowerLookup[facingSide.Id] = data;
                 }
 
-                m_skyRenderer.DefaultSky.Add(data);
+                m_skyRenderer.Add(data, otherSide.Sector.SkyTextureHandle);
             }
             else
             {
@@ -370,7 +369,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                     m_skyWallVertexUpperLookup[facingSide.Id] = data;
                 }
 
-                m_skyRenderer.DefaultSky.Add(data);
+                m_skyRenderer.Add(data, plane.Sector.SkyTextureHandle);
             }
             else
             {
@@ -422,8 +421,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                     overrideFloor: facingSide.Sector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
             }
 
-            var skyData = CreateSkyWallVertices(wall);
-            m_skyRenderer.DefaultSky.Add(skyData);
+            SkyGeometryVertex[] skyData = CreateSkyWallVertices(wall);
+            m_skyRenderer.Add(skyData, facingSide.Sector.SkyTextureHandle);
         }
 
         private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, bool isFrontSide)
@@ -517,7 +516,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                         m_skyCeilingVertexLookup[subsector.Id] = data;
                 }
 
-                m_skyRenderer.DefaultSky.Add(data);
+                m_skyRenderer.Add(data, subsector.Sector.SkyTextureHandle);
             }
             else
             {
