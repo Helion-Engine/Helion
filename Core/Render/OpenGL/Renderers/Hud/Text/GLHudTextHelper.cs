@@ -2,7 +2,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
-using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Textures;
@@ -24,18 +23,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             m_characters.Clear();
             m_sentences.Clear();
         }
-        
-        public Span<RenderableCharacter> Calculate(ColoredString text, GLFontTexture fontTexture, 
-            int fontSize, TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
-        {
-            return Calculate(text.String, fontTexture, fontSize, textAlign, maxWidth, maxHeight, scale, out drawArea);
-        }
 
         public Span<RenderableCharacter> Calculate(string text, GLFontTexture fontTexture, int fontSize,
-            TextAlign textAlign, int maxWidth, int maxHeight, float scale, out Dimension drawArea)
+            TextAlign textAlign, int maxWidth, int maxHeight, float scale)
         {
-            drawArea = default;
-
             if (scale <= 0.0f || text == "")
                 return Span<RenderableCharacter>.Empty;
             
@@ -47,7 +38,6 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
             CalculateCharacters(text, fontSize, scale, fontTexture.Font, maxWidth, maxHeight);
             CalculateSentences();
             PerformTextAlignment(textAlign);
-            drawArea = CalculateDrawArea();
             
             Span<RenderableCharacter> span = new(m_characters.Data, 0, m_characters.Length);
             Postcondition(span.Length == text.Length, "Lost characters when creating renderable character span");
@@ -189,19 +179,33 @@ namespace Helion.Render.OpenGL.Renderers.Hud.Text
                 width = Math.Max(width, m_sentences[i].Bounds.Width);
             return width;
         }
-
-        private Dimension CalculateDrawArea()
+        
+        public static Dimension CalculateCharacterDrawArea(Span<RenderableCharacter> chars)
         {
-            int w = 0;
-            int h = 0;
-            for (int i = 0; i < m_sentences.Length; i++)
+            int minX = int.MaxValue;
+            int minY = int.MaxValue;
+            int maxX = int.MinValue;
+            int maxY = int.MinValue;
+            
+            for (int i = 0; i < chars.Length; i++)
             {
-                HudBox bounds = m_sentences[i].Bounds;
-                w = Math.Max(w, bounds.Right);
-                h += bounds.Height;
+                RenderableCharacter c = chars[i];
+                HudBox area = c.Area;
+            
+                Vec2I topLeft = area.TopLeft;
+                if (topLeft.X < minX)
+                    minX = topLeft.X;
+                if (topLeft.Y < minY)
+                    minY = topLeft.Y;
+            
+                Vec2I bottomRight = area.BottomRight;
+                if (bottomRight.X > maxX)
+                    maxX = bottomRight.X;
+                if (bottomRight.Y > maxY)
+                    maxY = bottomRight.Y;
             }
-
-            return (w, h);
+            
+            return (maxX - minX, maxY - minY);
         }
     }
 }

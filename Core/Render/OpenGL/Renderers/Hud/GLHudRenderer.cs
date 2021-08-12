@@ -86,12 +86,18 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             return m_currentResolutionInfo.VirtualToParent(virtualBox);
         }
         
-        private void TranslateCharactersFromVirtualToParent(Span<RenderableCharacter> chars, Align window, Align anchor)
+        private void TranslateCharactersFromVirtualToParent(Span<RenderableCharacter> chars)
         {
+            Vec2F scale = m_currentResolutionInfo.Scale;
+
             for (int i = 0; i < chars.Length; i++)
             {
                 RenderableCharacter c = chars[i];
-                HudBox newArea = CalculateDrawArea(c.Area, window, anchor);
+                HudBox area = c.Area;
+                Vec2I topLeft = (area.TopLeft.Float * scale).Int;
+                Vec2I bottomRight = (area.BottomRight.Float * scale).Int;
+                HudBox newArea = (topLeft, bottomRight);
+                
                 chars[i] = new RenderableCharacter(c.Character, newArea, c.UV);
             }
         }
@@ -339,12 +345,8 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
 
-            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
-            if (PointOutsideBottomRightViewport(topLeft))
-                return;
-            
-            Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
-                textAlign, maxWidth, maxHeight, scale, out drawArea);
+            Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text.String, fontHandle, fontSize, 
+                textAlign, maxWidth, maxHeight, scale);
             
             // Can happen for things like scaling being zero. We do this because
             // we don't want to waste time calculating things if the user has
@@ -352,11 +354,18 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (chars.Length == 0)
                 return;
             
-            TranslateCharactersFromVirtualToParent(chars, window, anchor);
+            // This has to come first because the translate from virtual to
+            // parent mutates the span.
+            drawArea = GLHudTextHelper.CalculateCharacterDrawArea(chars);
             
-            CalculateDrawArea(((0, 0), drawArea.Vector), window, anchor, out HudBox virtualBox);
-            drawArea = virtualBox.Dimension;
-            
+            TranslateCharactersFromVirtualToParent(chars);
+
+            HudBox area = (origin, origin + drawArea);
+            HudBox newArea = CalculateDrawArea(area, window, anchor);
+            Vec2I topLeft = newArea.TopLeft;
+            if (PointOutsideBottomRightViewport(topLeft))
+                return;
+
             for (int i = 0; i < chars.Length; i++)
             {
                 ByteColor byteColor = new(text[i].Color);
@@ -378,28 +387,30 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return;
 
-            Vec2I topLeft = CalculateDrawPoint(origin, window, anchor);
-            if (PointOutsideBottomRightViewport(topLeft))
-                return;
-            
             Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, fontSize, 
-                textAlign, maxWidth, maxHeight, scale, out drawArea);
+                textAlign, maxWidth, maxHeight, scale);
             
             // Can happen for things like scaling being zero. We do this because
             // we don't want to waste time calculating things if the user has
             // given us junk that we cannot render anyways.
             if (chars.Length == 0)
                 return;
+
+            // This has to come first because the translate from virtual to
+            // parent mutates the span.
+            drawArea = GLHudTextHelper.CalculateCharacterDrawArea(chars);
             
-            TranslateCharactersFromVirtualToParent(chars, window, anchor);
-            
-            // TODO: This is not working the way I thought it would...
-            CalculateDrawArea(((0, 0), drawArea.Vector), window, anchor, out HudBox virtualBox);
-            drawArea = virtualBox.Dimension;
+            TranslateCharactersFromVirtualToParent(chars);
+
+            HudBox area = (origin, origin + drawArea);
+            HudBox newArea = CalculateDrawArea(area, window, anchor);
+            Vec2I topLeft = newArea.TopLeft;
+            if (PointOutsideBottomRightViewport(topLeft))
+                return;
             
             ByteColor byteColor = new(color ?? Color.White);
             for (int i = 0; i < chars.Length; i++)
-                AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
+                AddTextCharacter(newArea.TopLeft, alpha, chars[i], byteColor, fontHandle);
 
             m_elementsDrawn++;
         }
@@ -426,10 +437,10 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             if (!m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
                 return (0, 0);
             
-            m_hudTextHelper.Calculate(text, fontHandle, fontSize, TextAlign.Left, maxWidth, maxHeight, scale, 
-                out Dimension drawArea);
+            Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text, fontHandle, 
+                fontSize, TextAlign.Left, maxWidth, maxHeight, scale);
 
-            return drawArea;
+            return GLHudTextHelper.CalculateCharacterDrawArea(chars);
         }
 
         public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
@@ -437,7 +448,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
         {
             // This peek is safe to do because we never pop the last element,
             // and there always is one on the stack.
-            ResolutionScale resolutionScale = scale ?? m_resolutionStack.Peek().Scale;
+            ResolutionScale resolutionScale = scale ?? m_resolutionStack.Peek().ResolutionScale;
 
             VirtualResolutionInfo info = new(dimension, resolutionScale, m_parentDimension);
             m_resolutionStack.Push(info);
