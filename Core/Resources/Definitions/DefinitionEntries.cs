@@ -44,12 +44,12 @@ namespace Helion.Resources.Definitions
         public readonly LockDefinitions LockDefininitions = new LockDefinitions();
         public readonly LanguageDefinition Language = new LanguageDefinition();
         public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
+        public readonly ConfigCompat ConfigCompatibility;
         public readonly EntityFrameTable EntityFrameTable = new();
         public DehackedDefinition? DehackedDefinition { get; set; }
 
         private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly ConfigCompat m_configCompat;
         private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
         private bool m_parseDehacked;
         private bool m_parseDecorate;
@@ -61,7 +61,7 @@ namespace Helion.Resources.Definitions
         public DefinitionEntries(ArchiveCollection archiveCollection, ConfigCompat config)
         {
             m_archiveCollection = archiveCollection;
-            m_configCompat = config;
+            ConfigCompatibility = config;
             Decorate = new DecorateDefinitions(archiveCollection);
 
             m_entryNameToAction["ANIMATED"] = entry => BoomAnimated.Parse(entry);
@@ -171,9 +171,9 @@ namespace Helion.Resources.Definitions
             m_parseDehacked = true;
 
             bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
-            if (m_configCompat.PreferDehacked && hasBoth)
+            if (ConfigCompatibility.PreferDehacked && hasBoth)
                 m_parseDecorate = false;
-            else if (!m_configCompat.PreferDehacked && hasBoth)
+            else if (!ConfigCompatibility.PreferDehacked && hasBoth)
                 m_parseDehacked = false;
 
             m_pnamesTextureXCollection = new PnamesTextureXCollection();
@@ -184,6 +184,9 @@ namespace Helion.Resources.Definitions
 
             if (m_pnamesTextureXCollection.Valid)
                 CreateImageDefinitionsFrom(m_pnamesTextureXCollection);
+
+            // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
+            ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
         }
 
         private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)

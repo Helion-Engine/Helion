@@ -285,7 +285,7 @@ namespace Helion.World.Entities
 
         public bool InMeleeRange(Entity? entity)
         {
-            if (entity == null || Properties.MeleeRange == 0 || entity.IsFriend(entity))
+            if (entity == null || Properties.MeleeRange == 0 || IsFriend(entity))
                 return false;
 
             double distance = Position.ApproximateDistance2D(entity.Position);

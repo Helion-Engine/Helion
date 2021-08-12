@@ -146,7 +146,7 @@ namespace Helion.World.Special
 
         public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
         {
-            double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true);
+            double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility);
             SectorMoveData moveData = new SectorMoveData(SectorPlaneType.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
             return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultSound);
         }
@@ -312,11 +312,11 @@ namespace Helion.World.Special
                 else
                 {
                     changeTexture = line.Front.Sector.GetTexture(planeType);
-                    damageSpecial = sector.SectorDamageSpecial;
+                    damageSpecial = line.Front.Sector.SectorDamageSpecial;
                 }
 
                 ZDoomGenericFlags changeFlags = flags & ZDoomGenericFlags.CopyTxAndSpecial;
-                if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial)
+                if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial || damageSpecial == null)
                     damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
                 else if (changeFlags == ZDoomGenericFlags.CopyTx)
                     damageSpecial = null;
@@ -1277,7 +1277,7 @@ namespace Helion.World.Special
             return Enumerable.Empty<Sector>();
         }
 
-        private static double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
+        private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
         {
             switch (destination)
             {
@@ -1302,9 +1302,9 @@ namespace Helion.World.Special
                 case SectorDest.Ceiling:
                     return sector.Ceiling.Z;
                 case SectorDest.ShortestLowerTexture:
-                    return sector.GetShortestTexture(TextureManager.Instance, true);
+                    return sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility);
                 case SectorDest.ShortestUpperTexture:
-                    return sector.GetShortestTexture(TextureManager.Instance, false);
+                    return sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, false, m_world.Config.Compatibility);
                 case SectorDest.None:
                 default:
                     break;
