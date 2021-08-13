@@ -58,7 +58,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
 
         public void Add(SkyGeometryVertex[] data, int? textureHandle)
         {
-            if (textureHandle > MaxSkyTextures)
+            if (m_skyComponents.Count >= MaxSkyTextures)
                 return;
 
             textureHandle ??= TextureManager.Instance.GetDefaultSkyTexture().Index;
