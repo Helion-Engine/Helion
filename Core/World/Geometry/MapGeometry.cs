@@ -53,9 +53,6 @@ namespace Helion.World.Geometry
         {
             foreach (Sector sector in Sectors)
             {
-                if (sector.Tag == Sector.NoTag)
-                    continue;
-
                 if (m_tagToSector.TryGetValue(sector.Tag, out IList<Sector>? sectors))
                     sectors.Add(sector);
                 else
