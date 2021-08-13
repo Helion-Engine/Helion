@@ -39,7 +39,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
             ReleaseUnmanagedResources();
         }
 
-        public void Clear()
+        public void Reset()
         {
             foreach (ISkyComponent skyComponent in m_skyComponents.Values)
             {
@@ -48,6 +48,12 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
             }
             
             m_skyComponents.Clear();
+        }
+
+        public void Clear()
+        {
+            foreach (ISkyComponent skyComponent in m_skyComponents.Values)
+                skyComponent.Clear();
         }
 
         public void Add(SkyGeometryVertex[] data, int? textureHandle)

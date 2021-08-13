@@ -69,7 +69,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
         public void UpdateTo(WorldBase world)
         {
-            m_skyRenderer.Clear();
+            m_skyRenderer.Reset();
             m_lineDrawnTracker.UpdateToWorld(world);
             PreloadAllTextures(world);
 
