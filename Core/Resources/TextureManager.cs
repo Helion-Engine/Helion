@@ -70,6 +70,15 @@ namespace Helion.Resources
             m_notifyInitizalized.Add(action);
         }
 
+        public Texture GetDefaultSkyTexture()
+        {
+            Texture texture = GetTexture(SkyTextureName, ResourceNamespace.Global);
+            if (texture.Image == null)
+                LoadTextureImage(texture.Index);
+
+            return texture;
+        }
+        
         /// <summary>
         /// Loads the texture images.
         /// </summary>

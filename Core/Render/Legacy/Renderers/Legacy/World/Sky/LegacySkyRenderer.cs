@@ -5,6 +5,7 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using static Helion.Util.Assertion.Assert;
@@ -51,8 +52,10 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
 
         public void Add(SkyGeometryVertex[] data, int? textureHandle)
         {
-            if (textureHandle is null or > MaxSkyTextures)
+            if (textureHandle > MaxSkyTextures)
                 return;
+
+            textureHandle ??= TextureManager.Instance.GetDefaultSkyTexture().Index;
 
             if (m_skyComponents.TryGetValue(textureHandle.Value, out ISkyComponent? sky))
             {
