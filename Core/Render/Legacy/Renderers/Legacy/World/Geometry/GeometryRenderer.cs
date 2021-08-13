@@ -214,7 +214,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
             RenderSkySide(side, null, texture);
 
-            if (side.OffsetChanged || side.Sector.DataChanged || data == null)
+            if (side.OffsetChanged || side.Sector.PlaneHeightChanged || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleOneSided(side, texture.UVInverse, m_tickFraction);
                 data = GetWallVertices(wall, GetRenderLightLevel(side));
@@ -305,7 +305,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = m_skyWallVertexLowerLookup[facingSide.Id];
 
-                if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+                if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -319,7 +319,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
-                if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+                if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -365,7 +365,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
                     return;
                 }
 
-                if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+                if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction, MaxSky);
@@ -379,7 +379,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
-                if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+                if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
                 {
                     WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSide, texture.UVInverse,
                         isFrontSide, m_tickFraction);
@@ -438,7 +438,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
             LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.DataChanged || otherSide.Sector.DataChanged || data == null)
+            if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
             {
                 (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector);
                 WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,

@@ -93,6 +93,7 @@ namespace Helion.World.Geometry.Sectors
         public bool Has3DFloors => !Floors3D.Empty();
         public SectorDataTypes DataChanges;
         public bool DataChanged => DataChanges > 0;
+        public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ);
         public bool LightingChanged => DataChanges.HasFlag(SectorDataTypes.Light);
 
         public int SoundValidationCount;
