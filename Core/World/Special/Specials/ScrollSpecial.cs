@@ -59,7 +59,7 @@ namespace Helion.World.Special.Specials
             if (accelSector != null)
                 m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
 
-            SectorPlane.SectorScrollData = new();
+            SectorPlane.CreateScrollData();
         }
 
         public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)

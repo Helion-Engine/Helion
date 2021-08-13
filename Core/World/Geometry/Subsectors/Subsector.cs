@@ -16,6 +16,9 @@ namespace Helion.World.Geometry.Subsectors
         public readonly List<SubsectorSegment> ClockwiseEdges;
         public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
 
+        private bool m_floorChanged;
+        private bool m_ceilingChanged;
+
         public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
         {
             Precondition(clockwiseEdges.Count >= 3, "Degenerate sector, must be at least a triangle");
@@ -26,8 +29,32 @@ namespace Helion.World.Geometry.Subsectors
             ClockwiseEdges = clockwiseEdges;
             
             clockwiseEdges.ForEach(edge => edge.Subsector = this);
+            sector.Floor.OnRenderingChanged += Floor_OnRenderingChanged;
+            sector.Ceiling.OnRenderingChanged += Ceiling_OnRenderingChanged;
         }
-        
+
+        public bool CheckFloorRenderingChanged()
+        {
+            if (!m_floorChanged)
+                return false;
+
+            m_floorChanged = Sector.Floor.CheckRenderingChanged();
+            return true;
+        }
+
+        public bool CheckCeilingRenderingChanged()
+        {
+            if (!m_ceilingChanged)
+                return false;
+
+            m_ceilingChanged = Sector.Ceiling.CheckRenderingChanged();
+            return true;
+        }
+
+        private void Ceiling_OnRenderingChanged(object? sender, System.EventArgs e) => m_ceilingChanged = true;
+
+        private void Floor_OnRenderingChanged(object? sender, System.EventArgs e) => m_floorChanged = true;
+
         public LinkableNode<Entity> Link(Entity entity)
         {
             Precondition(!Entities.Contains(entity), "Trying to link an entity to a sector twice");

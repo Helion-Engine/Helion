@@ -348,6 +348,7 @@ namespace Helion.World.Special.Specials
 
         private void SetSectorDataChange()
         {
+            SectorPlane.SetRenderingChanged();
             if (MoveData.SectorMoveType == SectorPlaneType.Floor)
                 Sector.DataChanges |= SectorDataTypes.FloorZ;
             else

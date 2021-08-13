@@ -21,9 +21,12 @@ namespace Helion.World.Geometry.Sectors
         public double Z;
         public double PrevZ;
         public int TextureHandle { get; private set; }
-        public short LightLevel;
+        public short LightLevel { get; set; }
+        public bool RenderingChanged { get; private set; }
 
-        public SectorScrollData? SectorScrollData { get; set; }
+        public event EventHandler? OnRenderingChanged;
+
+        public SectorScrollData? SectorScrollData { get; private set; }
 
         public bool Sloped => Plane != null;
 
@@ -46,6 +49,33 @@ namespace Helion.World.Geometry.Sectors
             // to a parent object, it will add itself for us. If this can be
             // fixed in the future with non-messy code, go for it.
             Sector = null !;
+        }
+
+        public void SetRenderingChanged()
+        {
+            RenderingChanged = true;
+            OnRenderingChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public bool CheckRenderingChanged()
+        {
+            if (SectorScrollData != null)
+                return true;
+
+            if (!RenderingChanged)
+                return false;
+
+            if (PrevZ != Z)
+                return true;
+
+            RenderingChanged = false;
+            return true;
+        }
+
+        public void CreateScrollData()
+        {
+            SetRenderingChanged();
+            SectorScrollData = new();
         }
 
         public void SetTexture(int texture)

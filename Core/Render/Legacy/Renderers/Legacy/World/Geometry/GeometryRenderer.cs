@@ -39,6 +39,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
         public readonly List<IRenderObject> AlphaSides = new List<IRenderObject>();
         private double m_tickFraction;
         private bool m_skyOverride;
+        private bool m_floorChanged;
+        private bool m_ceilingChanged;
 
         private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
         private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -99,6 +101,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
         public void RenderSubsector(Subsector subsector, in Vec2D position)
         {
+            m_floorChanged = subsector.CheckFloorRenderingChanged();
+            m_ceilingChanged = subsector.CheckCeilingRenderingChanged();
             RenderWalls(subsector, position);
             RenderFlat(subsector, subsector.Sector.Floor, true);
             RenderFlat(subsector, subsector.Sector.Ceiling, false);
@@ -492,7 +496,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             {
                 SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Id] : m_skyCeilingVertexLookup[subsector.Id];
 
-                if (flat.Sector.DataChanged || data == null)
+                if (FlatChanged(flat) || data == null)
                 {
                     // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
                     // Note that the subsector triangulator is supposed to realize when
@@ -522,7 +526,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
             {
                 LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
 
-                if (flat.Sector.DataChanged || data == null)
+                if (FlatChanged(flat) || data == null)
                 {
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
                     WorldVertex root = m_subsectorVertices[0];
@@ -547,6 +551,14 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
 
                 renderData.Vbo.Add(data);
             }
+        }
+
+        private bool FlatChanged(SectorPlane flat)
+        {
+            if (flat.Facing == SectorPlaneFace.Floor)
+                return m_floorChanged;
+            else
+                return m_ceilingChanged;
         }
 
         private static SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)

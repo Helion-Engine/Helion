@@ -115,6 +115,15 @@ namespace Helion.World.Geometry.Sectors
             ceiling.Sector = this;
         }
 
+        public void SetLightLevel(short lightLevel)
+        {
+            DataChanges |= SectorDataTypes.Light;
+            LightLevel = lightLevel;
+            Floor.LightLevel = lightLevel;
+            Ceiling.LightLevel = lightLevel;
+            SetRenderingChanged();
+        }
+
         public void SetSectorSpecialType(ZDoomSectorSpecialType type)
         {
             SectorSpecialType = type;
@@ -130,15 +139,22 @@ namespace Helion.World.Geometry.Sectors
         public void PlaneTextureChange(SectorPlane sectorPlane)
         {
             if (sectorPlane == Floor)
+            {
                 DataChanges |= SectorDataTypes.FloorTexture;
+                Floor.SetRenderingChanged();
+            }
             else
+            {
                 DataChanges |= SectorDataTypes.CeilingTexture;
+                Ceiling.SetRenderingChanged();
+            }
         }
 
         public void SetSkyTexture(int texture)
         {
             SkyTextureHandle = texture;
             DataChanges |= SectorDataTypes.SkyTexture;
+            SetRenderingChanged();
         }
 
         public SectorModel ToSectorModel()
@@ -231,14 +247,6 @@ namespace Helion.World.Geometry.Sectors
             LinkableNode<Entity> node = DataCache.Instance.GetLinkableNodeEntity(entity);
             Entities.Add(node);
             return node;
-        }
-
-        public void SetLightLevel(short lightLevel)
-        {
-            DataChanges |= SectorDataTypes.Light;
-            LightLevel = lightLevel;
-            Floor.LightLevel = lightLevel;
-            Ceiling.LightLevel = lightLevel;
         }
 
         public double ToFloorZ(in Vec2D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
@@ -581,6 +589,12 @@ namespace Helion.World.Geometry.Sectors
                 return texture.Image.Height;
 
             return currentHeight;
+        }
+
+        private void SetRenderingChanged()
+        {
+            Floor.SetRenderingChanged();
+            Ceiling.SetRenderingChanged();
         }
 
         public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
