@@ -3144,7 +3144,7 @@ namespace Helion.Dehacked
             new ThingStateLookup("SHOT", 0),                 // SHOT,
             new ThingStateLookup("SGN2", 0),                 // SHOT2,
             new ThingStateLookup("COLU", 0),                 // COLU,
-            new ThingStateLookup("SMIT", 0),                 // STALAG,
+            new ThingStateLookup("SMT2", 0),                 // STALAG,
             new ThingStateLookup("GOR1", 0),                 // BLOODYTWITCH,
             new ThingStateLookup("GOR1", 1),                 // BLOODYTWITCH2,
             new ThingStateLookup("GOR1", 2),                 // BLOODYTWITCH3,

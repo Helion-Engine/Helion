@@ -340,6 +340,21 @@ actor Stalagtite 47
     }
 }
 
+ACTOR Stalagmite
+{
+    Radius 16
+    Height 48
+
+    +SOLID
+
+    States
+    {
+        Spawn:
+        SMT2 A -1
+        Stop
+    }
+}
+
 actor TechPillar 48
 {
     Height 128
