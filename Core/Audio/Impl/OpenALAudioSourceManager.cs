@@ -20,6 +20,7 @@ namespace Helion.Audio.Impl
     public class OpenALAudioSourceManager : IAudioSourceManager
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private const int MaxSounds = 256;
 
         private readonly ArchiveCollection m_archiveCollection;
         private readonly OpenALAudioSystem m_owner;
@@ -71,6 +72,9 @@ namespace Helion.Audio.Impl
 
         public IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams)
         {
+            if (m_sources.Count >= MaxSounds)
+                return null;
+
             OpenALBuffer? buffer = GetBuffer(sound);
             if (buffer == null)
                 return null;
