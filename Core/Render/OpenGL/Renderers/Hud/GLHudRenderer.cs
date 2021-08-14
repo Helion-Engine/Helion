@@ -450,7 +450,7 @@ namespace Helion.Render.OpenGL.Renderers.Hud
             // and there always is one on the stack.
             ResolutionScale resolutionScale = scale ?? m_resolutionStack.Peek().ResolutionScale;
 
-            VirtualResolutionInfo info = new(dimension, resolutionScale, m_parentDimension);
+            VirtualResolutionInfo info = new(dimension, resolutionScale, m_parentDimension, aspectRatio);
             m_resolutionStack.Push(info);
             m_currentResolutionInfo = info;
         }
