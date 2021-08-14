@@ -1,0 +1,37 @@
+ACTOR EvilSceptre : ScoreItem
+{
+  Inventory.PickupMessage "$BETA_BONUS3"
+  States
+  {
+  Spawn:
+    BON3 A 6
+    Loop
+  }
+}
+
+ACTOR UnholyBible : ScoreItem
+{
+  Inventory.PickupMessage "$BETA_BONUS4"
+  States
+  {
+  Spawn:
+    BON4 A 6
+    Loop
+  }
+}
+
+ACTOR PointPusher
+{
+  +NOBLOCKMAP
+  +INVISIBLE
+  +NOCLIP
+}
+
+ACTOR PointPuller
+{
+  +NOBLOCKMAP
+  +INVISIBLE
+  +NOCLIP
+}
+
+ACTOR MusicChanger {}

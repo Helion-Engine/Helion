@@ -227,3 +227,11 @@ actor Unknown
         Stop
     }
 }
+
+ACTOR ScoreItem : Inventory
+{
+  Height 10
+  +COUNTITEM
+  Inventory.Amount 1
+  +INVENTORY.ALWAYSPICKUP
+}

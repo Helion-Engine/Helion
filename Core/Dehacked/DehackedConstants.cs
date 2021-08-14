@@ -160,12 +160,15 @@ namespace Helion.Dehacked
 			"ColonGibs",				// MT_MISC84      
 			"SmallBloodPool",			// MT_MISC85      
 			"BrainStem",				// MT_MISC86
-            string.Empty,               // MT_PUSH
-	        string.Empty,               // MT_PULL
+            "PointPusher",              // MT_PUSH
+	        "PointPuller",              // MT_PULL
 	        "MBFHelperDog",             // MT_DOGS
 	        "PlasmaBall1",              // MT_PLASMA1
             "PlasmaBall2",              // MT_PLASMA2
-		};
+            "EvilSceptre",              // MT_SCEPTRE
+            "UnholyBible",              // MT_BIBLE
+            "MusicChanger",             // MT_MUSICSOURCE
+        };
 
         public readonly Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
         {

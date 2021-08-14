@@ -81,6 +81,7 @@
     <Content Include="Assets\Actors\Chex\Flemoid1.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\WolfensteinSS.txt" />
     <Content Include="Assets\Actors\Doom\Monsters\ZombieMan.txt" />
+    <Content Include="Assets\Actors\Doom\Misc.txt" />
     <Content Include="Assets\Actors\Doom\Weapons.txt" />
     <Content Include="Assets\Actors\Gibs.txt" />
     <Content Include="Assets\Actors\Items.txt" />
