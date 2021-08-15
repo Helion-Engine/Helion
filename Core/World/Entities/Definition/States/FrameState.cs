@@ -117,8 +117,7 @@ namespace Helion.World.Entities.Definition.States
                 frame.ActionFunction?.Invoke(m_entity);
             }
 
-            // IsInvisible = TNT1 (This functionality was added later and removed the object entirely)
-            if (m_destroyOnStop && frame.IsInvisible)
+            if (m_destroyOnStop && frame.IsNullFrame)
                 m_entityManager.Destroy(m_entity);
         }
 
