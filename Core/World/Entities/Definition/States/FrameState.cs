@@ -105,6 +105,7 @@ namespace Helion.World.Entities.Definition.States
             if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
                 m_tics *= 2;
 
+            EntityFrame frame = Frame;
             if (executeActionFunction)
             {
                 m_stackCount++;
@@ -113,8 +114,12 @@ namespace Helion.World.Entities.Definition.States
                     LogStackError();
                     return;
                 }
-                Frame.ActionFunction?.Invoke(m_entity);
+                frame.ActionFunction?.Invoke(m_entity);
             }
+
+            // IsInvisible = TNT1 (This functionality was added later and removed the object entirely)
+            if (m_destroyOnStop && frame.IsInvisible)
+                m_entityManager.Destroy(m_entity);
         }
 
         private void LogStackError()
@@ -138,7 +143,6 @@ namespace Helion.World.Entities.Definition.States
             while (frameCounter < InfiniteLoopLimit)
             {
                 EntityFrame frame = Frame;
-
                 m_tics--;
                 if (m_tics <= 0)
                 {
