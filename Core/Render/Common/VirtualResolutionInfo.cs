@@ -1,5 +1,4 @@
-﻿using System;
-using Helion.Geometry;
+﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
 
@@ -18,15 +17,31 @@ namespace Helion.Render.Common
         public VirtualResolutionInfo(Dimension dimension, ResolutionScale resolutionScale, Dimension parentDimension,
             float? aspectRatioOverride = null)
         {
-            Vec2F parent = parentDimension.Vector.Float;
-            
-            Dimension = ((int)(dimension.Width * (aspectRatioOverride ?? 1.0f)), dimension.Height);
+            Dimension = dimension;
             ResolutionScale = resolutionScale;
-            Scale = parent / Dimension.Vector.Float;
-            Gutter = Vec2F.Zero;
 
-            int scaledX = (int)(Dimension.Width * Scale.Y);
-            Gutter = (Math.Max(0, parent.X - scaledX), 0);
+            // The aspect ratio override is used to stretch the size of the parent
+            // viewport along its X axis, to which we use for the rest of the
+            // calculations. Otherwise if it's not set, then using the dimension's
+            // aspect ratio changes nothing.
+            float aspectRatio = (aspectRatioOverride ?? dimension.AspectRatio);
+            float viewWidth = parentDimension.Height * aspectRatio;
+            float scaleWidth = viewWidth / dimension.Width;
+            float scaleHeight = parentDimension.Height / (float)dimension.Height;
+            Scale = (scaleWidth, scaleHeight);
+            Gutter = (0, 0);
+
+            // By default we're stretching, but if we're centering, our values
+            // have to change to accomodate a gutter if the aspect ratios are
+            // different.
+            if (resolutionScale == ResolutionScale.Center && parentDimension.AspectRatio > aspectRatio)
+            {
+                // We only want to do centering if we will end up with gutters
+                // on the side. This can only happen if the virtual dimension
+                // has a smaller aspect ratio. We have to exit out if not since
+                // it will cause weird overdrawing otherwise.
+                Gutter.X = (parentDimension.Width - (int)(dimension.Width * Scale.X)) / 2.0f;
+            }
         }
 
         /// <summary>
