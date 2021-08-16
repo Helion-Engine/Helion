@@ -76,6 +76,8 @@ namespace Helion.World.Entities.Players
         public PlayerCheats Cheats { get; } = new PlayerCheats();
         public PlayerInfo Info { get; set; } = new PlayerInfo();
         public bool IsVooDooDoll { get; set; }
+        public override Player? PlayerObj => this;
+        public override bool IsPlayer => true;
 
         public bool DrawFullBright()
         {
@@ -230,8 +232,9 @@ namespace Helion.World.Entities.Players
 
         public override void CopyProperties(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
+                Player player = entity.PlayerObj;
                 foreach (InventoryItem item in player.Inventory.GetInventoryItems())
                 {
                     if (!Inventory.IsPowerup(item.Definition))

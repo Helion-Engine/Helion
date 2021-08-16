@@ -117,7 +117,7 @@ namespace Helion.World.Special
                     return flags.ActivationType == ActivationType.PlayerUse && !line.Flags.Secret && 
                         line.Flags.MonsterCanActivate;
             }
-            else if (entity is Player player)
+            else if (entity.PlayerObj != null)
             {
                 bool contextSuccess = false;
 
@@ -133,7 +133,7 @@ namespace Helion.World.Special
                 if (contextSuccess && IsLockType(line, out int keyNumber))
                 {
                     LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
-                    if (lockDef == null || !PlayerCanUnlock(player, lockDef))
+                    if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
                     {
                         lockFail = lockDef;
                         return false;

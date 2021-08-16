@@ -248,7 +248,7 @@ namespace Helion.World.Impl.SinglePlayer
 
         public override bool EntityUse(Entity entity)
         {
-            if (entity is Player && entity.IsDead)
+            if (entity.IsPlayer && entity.IsDead)
                 ResetLevel();
 
             return base.EntityUse(entity);

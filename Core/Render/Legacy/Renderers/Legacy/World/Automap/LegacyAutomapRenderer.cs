@@ -301,7 +301,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 if (entity.World.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
                     AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
             }
-            else if (entity is Player)
+            else if (entity.IsPlayer)
             {
                 color = AutomapColor.Green;
                 // Main arrow from middle left to middle right

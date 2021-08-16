@@ -206,7 +206,7 @@ namespace Helion.World
                 if (checkEntity == null)
                     continue;                
 
-                if (ReferenceEquals(entity, checkEntity) || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity is Player)
+                if (ReferenceEquals(entity, checkEntity) || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
                     continue;
 
                 if (!allaround && !InFieldOfView(entity, checkEntity))
@@ -533,8 +533,8 @@ namespace Helion.World
 
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
 
-            if (!activateSuccess && hitBlockLine && entity is Player player)
-                player.PlayUseFailSound();
+            if (!activateSuccess && hitBlockLine && entity.PlayerObj != null)
+                entity.PlayerObj.PlayUseFailSound();
 
             return activateSuccess;
         }
@@ -543,10 +543,10 @@ namespace Helion.World
         {
             bool success = line.Special.CanActivate(entity, line, context,
                 ArchiveCollection.Definitions.LockDefininitions, out LockDef? lockFail);
-            if (entity is Player player && lockFail != null)
+            if (entity.PlayerObj != null && lockFail != null)
             {
-                player.PlayUseFailSound();
-                DisplayMessage(player, null, GetLockFailMessage(line, lockFail));
+                entity.PlayerObj.PlayUseFailSound();
+                DisplayMessage(entity.PlayerObj, null, GetLockFailMessage(line, lockFail));
             }
             return success;
         }
@@ -631,8 +631,8 @@ namespace Helion.World
 
         public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
         {
-            if (shooter is Player player)
-                player.DescreaseAmmo();
+            if (shooter.PlayerObj != null)
+                shooter.PlayerObj.DescreaseAmmo();
 
             if (autoAim)
             {
@@ -794,7 +794,7 @@ namespace Helion.World
                 {
                     // Player rocket jumping check, back up the source Z to get a valid pitch
                     // Only done for players, otherwise blowing up enemies will launch them in the air
-                    if (zEqual && target is Player && source.Owner == target)
+                    if (zEqual && target.IsPlayer && source.Owner == target)
                     {
                         Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
                         pitch = sourcePos.Pitch(target.Position, 0.0);
@@ -822,14 +822,14 @@ namespace Helion.World
             }
 
             bool setPainState = m_random.NextByte() < target.Properties.PainChance;
-            if (target is Player player)
+            if (target.PlayerObj != null)
             {
                 // Voodoo dolls did not take sector damage in the original
-                if (player.IsVooDooDoll && sectorSource != null)
+                if (target.PlayerObj.IsVooDooDoll && sectorSource != null)
                     return false;
                 // Sector damage is applied to real players, but not their voodoo dolls
                 if (sectorSource == null)
-                    ApplyVooDooDamage(player, damage, setPainState);
+                    ApplyVooDooDamage(target.PlayerObj, damage, setPainState);
             }
 
             if (target.Damage(source, damage, setPainState, isHitscan) || target.IsInvulnerable)
@@ -868,17 +868,17 @@ namespace Helion.World
 
         public virtual void PerformItemPickup(Entity entity, Entity item)
         {
-            if (entity is not Player player)
+            if (entity.PlayerObj == null)
                 return;
 
-            int health = player.Health;
-            if (!GiveItem(player, item, item.Flags, out EntityDefinition definition))
+            int health = entity.PlayerObj.Health;
+            if (!GiveItem(entity.PlayerObj, item, item.Flags, out EntityDefinition definition))
                 return;
 
             if (item.Flags.CountItem)
             {
                 LevelStats.ItemCount++;
-                player.ItemCount++;
+                entity.PlayerObj.ItemCount++;
             }
 
             string message = definition.Properties.Inventory.PickupMessage;
@@ -886,7 +886,7 @@ namespace Helion.World
             if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
                 message = healthProperty.Value.LowMessage;
 
-            DisplayMessage(player, null, message);
+            DisplayMessage(entity.PlayerObj, null, message);
             EntityManager.Destroy(item);
 
             if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
@@ -946,7 +946,7 @@ namespace Helion.World
                 else if (entity.IsCrushing())
                     entity.Kill(null);
             }
-            else if (tryMove != null && entity is Player)
+            else if (tryMove != null && entity.IsPlayer)
             {
                 for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
                     ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.PlayerPushesWall);
@@ -1036,12 +1036,12 @@ namespace Helion.World
             if (deathEntity.Flags.CountKill && !deathEntity.Flags.Friendly)
                 LevelStats.KillCount++;
 
-            if (deathEntity is Player player)
+            if (deathEntity.PlayerObj != null)
             {
                 if (deathSource != null)
-                    HandleObituary(player, deathSource);
+                    HandleObituary(deathEntity.PlayerObj, deathSource);
 
-                ApplyVooDooKill(player, deathSource, gibbed);
+                ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
             }            
         }
 
@@ -1078,7 +1078,7 @@ namespace Helion.World
 
             // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
             Entity obituarySource = killer;
-            if (killer is Player)
+            if (killer.IsPlayer)
                 obituarySource = deathSource;
 
             string? obituary;
@@ -1794,7 +1794,7 @@ namespace Helion.World
             List<EntityModel> entityModels = new List<EntityModel>();
             EntityManager.Entities.ForEach(entity =>
             {
-                if (entity is not Player)
+                if (!entity.IsPlayer)
                     entityModels.Add(entity.ToEntityModel(new EntityModel()));
             });
             return entityModels;

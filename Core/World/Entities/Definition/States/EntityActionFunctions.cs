@@ -433,8 +433,8 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_BFGSound(Entity entity)
         {
-            if (entity is Player player)
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            if (entity.IsPlayer)
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
         }
 
         private static void A_BFGSpray(Entity entity)
@@ -1103,11 +1103,11 @@ namespace Helion.World.Entities.Definition.States
         private static void A_FireBFG(Entity entity)
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
-                    player.World.Config.Game.AutoAim, "BFGBall");
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.PlayerObj.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+                    entity.World.Config.Game.AutoAim, "BFGBall");
             }
         }
 
@@ -1118,13 +1118,13 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireCGun(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
-                int offset = player.Weapon == null ? 0 : Math.Clamp(player.Weapon.FrameState.Frame.Frame, 0, 1);
-                player.Weapon?.SetFlashState(offset);
-                player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
+                entity.PlayerObj.Weapon?.SetFlashState(offset);
+                entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+                    entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
             }
         }
 
@@ -1140,42 +1140,42 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireMissile(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
-                    player.World.Config.Game.AutoAim, "Rocket");
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+                    entity.World.Config.Game.AutoAim, "Rocket");
             }
         }
 
         private static void A_FireOldBFG(Entity entity)
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.Weapon?.SetFlashState();
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
             }
         }
 
         private static void A_FirePistol(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
-                player.Weapon?.SetFlashState();
-                player.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+                    entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
             }
         }
 
         private static void A_FirePlasma(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
-                player.World.FireProjectile(player, player.PitchRadians, Constants.EntityShootDistance,
-                    player.World.Config.Game.AutoAim, "PlasmaBall");
+                entity.PlayerObj.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
+                entity.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+                    entity.World.Config.Game.AutoAim, "PlasmaBall");
             }
         }
 
@@ -1191,23 +1191,23 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_FireShotgun(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
-                player.Weapon?.SetFlashState();
-                player.World.FireHitscanBullets(player, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.World.FireHitscanBullets(entity, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
+                    entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
             }
         }
 
         private static void A_FireShotgun2(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                player.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
-                player.Weapon?.SetFlashState();
-                player.World.FireHitscanBullets(player, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
-                    player.PitchRadians, Constants.EntityShootDistance, player.World.Config.Game.AutoAim);
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                entity.PlayerObj.Weapon?.SetFlashState();
+                entity.World.FireHitscanBullets(entity, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
+                    entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
             }
         }
 
@@ -1427,20 +1427,20 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Light0(Entity entity)
         {
-            if (entity is Player player)
-                player.ExtraLight = 0;
+            if (entity.PlayerObj != null)
+                entity.PlayerObj.ExtraLight = 0;
         }
 
         private static void A_Light1(Entity entity)
         {
-            if (entity is Player player)
-                player.ExtraLight = 1;
+            if (entity.PlayerObj != null)
+                entity.PlayerObj.ExtraLight = 1;
         }
 
         private static void A_Light2(Entity entity)
         {
-            if (entity is Player player)
-                player.ExtraLight = 2;
+            if (entity.PlayerObj != null)
+                entity.PlayerObj.PlayerObj.ExtraLight = 2;
         }
 
         private static void A_LightInverse(Entity entity)
@@ -1657,19 +1657,19 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Punch(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
-                if (player.Inventory.IsPowerupActive(PowerupType.Strength))
+                int damage = ((2 * entity.World.Random.NextByte()) % 10) + 1;
+                if (entity.PlayerObj.Inventory.IsPowerupActive(PowerupType.Strength))
                     damage *= 10;
 
-                double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-                Entity? hitEntity = player.World.FireHitscan(player, player.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
+                double angle = entity.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
+                Entity? hitEntity = entity.World.FireHitscan(entity, entity.AngleRadians, 0, Constants.EntityMeleeDistance, damage);
                 if (hitEntity != null)
                 {
-                    player.AngleRadians = angle;
-                    player.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
-                    player.AngleRadians = player.Position.Angle(hitEntity.Position);
+                    entity.AngleRadians = angle;
+                    entity.World.SoundManager.CreateSoundOn(entity, "player/male/fist", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+                    entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
                 }
             }
         }
@@ -1711,50 +1711,50 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Lower(Entity entity)
         {
-            if (entity is Player player && player.AnimationWeapon != null)
+            if (entity.PlayerObj != null && entity.PlayerObj.AnimationWeapon != null)
             {
-                player.WeaponOffset.Y += Constants.WeaponLowerSpeed;
-                if (player.WeaponOffset.Y < Constants.WeaponBottom)
+                entity.PlayerObj.WeaponOffset.Y += Constants.WeaponLowerSpeed;
+                if (entity.PlayerObj.WeaponOffset.Y < Constants.WeaponBottom)
                     return;
 
-                if (player.IsDead)
+                if (entity.PlayerObj.IsDead)
                 {
-                    player.WeaponOffset.Y = Constants.WeaponBottom;
-                    player.AnimationWeapon.FrameState.SetState("NULL");
+                    entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
+                    entity.PlayerObj.AnimationWeapon.FrameState.SetState("NULL");
                     return;
                 }
 
-                player.BringupWeapon();
+                entity.PlayerObj.BringupWeapon();
             }
         }
 
         private static void A_Raise(Entity entity)
         {
-            if (entity is Player player && player.AnimationWeapon != null)
+            if (entity.PlayerObj != null && entity.PlayerObj.AnimationWeapon != null)
             {
-                player.WeaponOffset.Y -= Constants.WeaponRaiseSpeed;
-                if (player.WeaponOffset.Y > Constants.WeaponTop)
+                entity.PlayerObj.WeaponOffset.Y -= Constants.WeaponRaiseSpeed;
+                if (entity.PlayerObj.WeaponOffset.Y > Constants.WeaponTop)
                     return;
 
-                player.SetWeaponUp();
-                player.WeaponOffset.Y = Constants.WeaponTop;
-                player.AnimationWeapon.SetReadyState();
+                entity.PlayerObj.SetWeaponUp();
+                entity.PlayerObj.WeaponOffset.Y = Constants.WeaponTop;
+                entity.PlayerObj.AnimationWeapon.SetReadyState();
             }
         }
 
         private static void A_WeaponReady(Entity entity)
         {
-            if (entity is Player player && player.Weapon != null)
+            if (entity.PlayerObj != null && entity.PlayerObj.Weapon != null)
             {
-                player.Weapon.ReadyToFire = true;
+                entity.PlayerObj.Weapon.ReadyToFire = true;
 
-                if (player.PendingWeapon != null || player.IsDead)
-                    player.LowerWeapon();
+                if (entity.PlayerObj.PendingWeapon != null || entity.PlayerObj.IsDead)
+                    entity.PlayerObj.LowerWeapon();
 
-                if (player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-                    player.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+                if (entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
+                    entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
-                    player.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
+                    entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
                         SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
                 }
             }
@@ -1782,24 +1782,24 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_ReFire(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.PlayerObj != null)
             {
-                if (player.PendingWeapon != null)
+                if (entity.PlayerObj.PendingWeapon != null)
                 {
-                    player.Refire = false;
+                    entity.PlayerObj.Refire = false;
                     return;
                 }
 
-                if (player.CanFireWeapon())
+                if (entity.PlayerObj.CanFireWeapon())
                 {
-                    player.Refire = true;
-                    player.Weapon?.SetFireState();
+                    entity.PlayerObj.Refire = true;
+                    entity.PlayerObj.Weapon?.SetFireState();
                 }
                 else
                 {
-                    if (!player.CheckAmmo())
-                        player.TrySwitchWeapon();
-                    player.Refire = false;
+                    if (!entity.PlayerObj.CheckAmmo())
+                        entity.PlayerObj.TrySwitchWeapon();
+                    entity.PlayerObj.Refire = false;
                 }
             }
         }
@@ -1880,21 +1880,21 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_Saw(Entity entity)
         {
-            if (entity is Player player)
+            if (entity.IsPlayer)
             {
-                int damage = ((2 * player.World.Random.NextByte()) % 10) + 1;
-                double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
+                int damage = ((2 * entity.World.Random.NextByte()) % 10) + 1;
+                double angle = entity.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
                 // Doom added + 1 so the bulletpuff would include the spark state
-                Entity? hitEntity = player.World.FireHitscan(player, angle, 0, Constants.EntityMeleeDistance + 1, damage);
+                Entity? hitEntity = entity.World.FireHitscan(entity, angle, 0, Constants.EntityMeleeDistance + 1, damage);
                 if (hitEntity == null)
                 {
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                    entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
                 }
                 else
                 {
-                    player.AngleRadians = angle;
-                    player.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
-                    player.AngleRadians = player.Position.Angle(hitEntity.Position);
+                    entity.AngleRadians = angle;
+                    entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                    entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
                 }
             }
         }
@@ -1915,7 +1915,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_PlayerScream(Entity entity)
         {
-            if (entity is not Player || entity.Definition.Properties.DeathSound.Length > 0)
+            if (!entity.IsPlayer || entity.Definition.Properties.DeathSound.Length > 0)
             {
                 A_Scream(entity);
                 return;
@@ -1937,7 +1937,7 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_XScream(Entity entity)
         {
-            if (entity is Player)
+            if (entity.IsPlayer)
                 entity.SoundManager.CreateSoundOn(entity, "*gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             else
                 entity.SoundManager.CreateSoundOn(entity, "misc/gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));

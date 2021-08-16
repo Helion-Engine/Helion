@@ -160,7 +160,7 @@ namespace Helion.World.Physics
                 ClampBetweenFloorAndCeiling(entity);
                 entity.PrevPosition.Z = entity.PrevSaveZ;
                 // This allows the player to pickup items like the original
-                if (entity is Player)
+                if (entity.IsPlayer)
                     IsPositionValid(entity, entity.Position.XY, m_tryMoveData);
 
                 if ((moveType == SectorPlaneType.Ceiling && startZ < destZ) || 
@@ -748,7 +748,7 @@ namespace Helion.World.Physics
 
         public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
         {
-            if (!entity.Flags.Float && !(entity is Player) && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
+            if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
                 return false;
 
             tryMove.Success = true;
@@ -870,7 +870,7 @@ namespace Helion.World.Physics
             tryMove.SetIntersectionData(m_lineOpening);
 
             // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
-            if (overlapsZ && entity is not Player)
+            if (overlapsZ && !entity.IsPlayer)
                 return true;
 
             if (!overlapsZ)

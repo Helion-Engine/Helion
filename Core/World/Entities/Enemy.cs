@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World.Entities.Players;
 using Helion.World.Physics;
 
 namespace Helion.World.Entities
@@ -269,7 +270,7 @@ namespace Helion.World.Entities
 
         public double GetEnemyFloatMove()
         {
-            if (IsDead || Target == null || !Flags.IsMonster || !Flags.Float || Flags.Skullfly || BlockFloating || OnGround)
+            if (IsPlayer || IsDead || Target == null || !Flags.Float || Flags.Skullfly || BlockFloating || OnGround)
                 return 0.0;
 
             double distance = Position.ApproximateDistance2D(Target.Position);

@@ -202,14 +202,14 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World
             int extraLight = 0;
             float mix = 0.0f;
 
-            if (renderInfo.ViewerEntity is Player player)
+            if (renderInfo.ViewerEntity.PlayerObj != null)
             {
-                if (player.DrawFullBright())
+                if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
                     mix = 1.0f;
-                if (player.DrawInvulnerableColorMap())
+                if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
                     drawInvulnerability = 1;
 
-                extraLight = player.ExtraLight * Constants.ExtraLightFactor;
+                extraLight = renderInfo.ViewerEntity.PlayerObj.ExtraLight * Constants.ExtraLightFactor;
             }
 
             m_shaderProgram.BoundTexture.Set(gl, 0);

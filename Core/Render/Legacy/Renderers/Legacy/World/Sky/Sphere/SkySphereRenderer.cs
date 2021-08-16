@@ -144,8 +144,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private void SetUniforms(RenderInfo renderInfo)
         {
             bool invulnerability = false;
-            if (renderInfo.ViewerEntity is Player player)
-                invulnerability = player.DrawInvulnerableColorMap();
+            if (renderInfo.ViewerEntity.PlayerObj != null)
+                invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
             m_sphereShaderProgram.Mvp.Set(gl, CalculateMvp(renderInfo));
             m_sphereShaderProgram.ScaleU.Set(gl, m_skyTexture.ScaleU);

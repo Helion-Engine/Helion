@@ -160,7 +160,7 @@ namespace Helion.World.Special.Specials
 
         private static bool CanTeleport(Entity teleportEntity, in Vec3D pos)
         {
-            if (teleportEntity is Player)
+            if (teleportEntity.IsPlayer)
                 return true;
 
             return teleportEntity.GetIntersectingEntities3D(pos, BlockmapTraverseEntityFlags.Solid).Count == 0;

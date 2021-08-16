@@ -113,6 +113,8 @@ namespace Helion.World.Entities
         public virtual double ViewZ => 8.0;
         public bool IsDeathStateFinished => IsDead && Frame.Ticks == -1;
         public virtual bool IsInvulnerable => Flags.Invulnerable;
+        public virtual Player? PlayerObj => null;
+        public virtual bool IsPlayer => false;
 
         private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 
@@ -524,7 +526,7 @@ namespace Helion.World.Entities
         public virtual bool CanDamage(Entity source, bool isHitscan)
         {
             Entity damageSource = source.Owner ?? source;
-            if (damageSource is Player)
+            if (damageSource.IsPlayer)
                 return true;
 
             if (World.MapInfo.HasOption(MapOptions.TotalInfighting))

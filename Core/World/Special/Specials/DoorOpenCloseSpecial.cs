@@ -26,7 +26,7 @@ namespace Helion.World.Special.Specials
 
         public override bool Use(Entity entity)
         {
-            if (MoveData.MoveRepetition == MoveRepetition.None || !(entity is Player))
+            if (MoveData.MoveRepetition == MoveRepetition.None || !entity.IsPlayer)
                 return false;
 
             // If the delay is zero then flip the door direction. Otherwise we

@@ -95,7 +95,7 @@ namespace Helion.World.Entities.Spawn
         }
 
         private static bool PlayerBlock(Entity spawn) =>
-            spawn.GetIntersectingEntities2D(Physics.Blockmap.BlockmapTraverseEntityFlags.Solid).Any(x => x is Player);
+            spawn.GetIntersectingEntities2D(Physics.Blockmap.BlockmapTraverseEntityFlags.Solid).Any(x => x.IsPlayer);
 
         private void AddPlayerSpawn(Entity entity, int playerIndex)
         {
