@@ -113,6 +113,10 @@ namespace Helion.World.Entities
 
         public void SetNewChaseDirection()
         {
+            // All monsters normally have CanPass set.
+            // Dehacked can modify things into enemies that can move but this flag doesn't exist in the originalg game.
+            // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
+            Flags.CanPass = true;
             Assert.Precondition(Target != null, "Target is null");
 
             MoveDir[] dir = new MoveDir[2];
