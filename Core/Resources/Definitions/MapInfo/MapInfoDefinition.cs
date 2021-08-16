@@ -2,6 +2,7 @@
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Parser;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,6 +11,8 @@ namespace Helion.Resources.Definitions.MapInfo
 {
     public partial class MapInfoDefinition
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public MapInfo MapInfo { get; private set; } = new();
         public GameInfoDef GameDefinition { get; private set; } = new();
 
@@ -82,8 +85,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, true))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (MapNames.Contains(item))
                 {
                     ConsumeEquals(parser);
@@ -160,14 +163,18 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
                 else
                 {
-                    // Warn we do not know what this is
-                    parser.ConsumeLine();
+                    WarnMissing("map", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
             ConsumeBrace(parser, false);
             return mapDef;
         }
+
+        private static void WarnMissing(string def, string item, int line) =>
+            Log.Warn($"MapInfo: Unknown {def} item: {item} line:{line}");
 
         private static string ParseEndPic(SimpleParser parser)
         {
@@ -182,8 +189,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, false))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (EndGameNames.Contains(item))
                 {
                     if (item.Equals(EndGame_PicName, StringComparison.OrdinalIgnoreCase))
@@ -213,7 +220,9 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
                 else
                 {
-                    parser.ConsumeLine();
+                    WarnMissing("endgame", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
@@ -261,8 +270,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, false))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (ClusterNames.Contains(item))
                 {
                     ConsumeEquals(parser);
@@ -286,8 +295,9 @@ namespace Helion.Resources.Definitions.MapInfo
                     clusterDef.AllowIntermission = true;
                 else
                 {
-                    // Warn we do not know what this is
-                    parser.ConsumeLine();
+                    WarnMissing("cluster", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
@@ -329,8 +339,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, false))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (EpisodeNames.Contains(item))
                 {
                     ConsumeEquals(parser);
@@ -345,8 +355,9 @@ namespace Helion.Resources.Definitions.MapInfo
                     episodeDef.Optional = true;
                 else
                 {
-                    // Warn we do not know what this is
-                    parser.ConsumeLine();
+                    WarnMissing("episode", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
@@ -360,8 +371,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, false))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (GameInfoNames.Contains(item))
                 {
                     ConsumeEquals(parser);
@@ -397,15 +408,16 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
                 else
                 {
-                    // Warn we do not know what this is
-                    parser.ConsumeLine();
+                    WarnMissing("gameinfo", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
             ConsumeBrace(parser, false);
         }
 
-        private void ParseWeaponSlot(GameInfoDef gameDef, SimpleParser parser)
+        private static void ParseWeaponSlot(GameInfoDef gameDef, SimpleParser parser)
         {
             int slot = parser.ConsumeInteger();
             if (gameDef.WeaponSlots.ContainsKey(slot))
@@ -425,8 +437,8 @@ namespace Helion.Resources.Definitions.MapInfo
 
             while (!IsBlockComplete(parser, false))
             {
+                int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
-
                 if (SkillNames.Contains(item))
                 {
                     if (item.Equals(Skill_AmmoFactorName, StringComparison.OrdinalIgnoreCase))
@@ -544,8 +556,9 @@ namespace Helion.Resources.Definitions.MapInfo
                 }
                 else
                 {
-                    // Warn we do not know what this is
-                    parser.ConsumeLine();
+                    WarnMissing("skill", item, line);
+                    if (line == parser.GetCurrentLine())
+                        parser.ConsumeLine();
                 }
             }
 
@@ -554,7 +567,7 @@ namespace Helion.Resources.Definitions.MapInfo
             return skillDef;
         }
 
-        private int ParseSpawnFilter(SimpleParser parser)
+        private static int ParseSpawnFilter(SimpleParser parser)
         {
             string filter = parser.ConsumeString();
             if (int.TryParse(filter.ToString(), out int i))
@@ -613,7 +626,7 @@ namespace Helion.Resources.Definitions.MapInfo
             parser.ConsumeString("=");
         }
 
-        private IList<string> GetStringList(SimpleParser parser)
+        private static IList<string> GetStringList(SimpleParser parser)
         {
             List<string> items = new List<string>();
             
