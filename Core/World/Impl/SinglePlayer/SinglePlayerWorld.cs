@@ -167,19 +167,20 @@ namespace Helion.World.Impl.SinglePlayer
         public override void Start(WorldModel? worldModel)
         {
             base.Start(worldModel);
-            PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection);
+            if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
+                AudioSystem.Music.Stop();
         }
 
-        public static void PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
+        public static bool PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
         {
             if (string.IsNullOrWhiteSpace(entryName))
-                return;
+                return false;
 
             Entry? entry = archiveCollection.Entries.FindByName(entryName);
             if (entry == null)
             {
                 Log.Warn("Cannot find music track: {0}", entryName);
-                return;
+                return false;
             }
 
             byte[] data = entry.ReadData();
@@ -187,12 +188,13 @@ namespace Helion.World.Impl.SinglePlayer
             if (midiData == null)
             {
                 Log.Warn("Unable to play music, cannot convert from MUS to MIDI");
-                return;
+                return false;
             }
 
             bool playingSuccess = audioSystem.Music.Play(midiData);
             if (!playingSuccess)
                 Log.Warn("Unable to play MIDI track through device");
+            return playingSuccess;
         }
 
         public void HandleFrameInput(InputEvent input)
