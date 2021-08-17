@@ -221,6 +221,9 @@ namespace Helion.World.Entities.Players
         {
             base.CopyProperties(player);
 
+            // NoClip did not apply to the player
+            Flags.NoClip = false;
+
             foreach (InventoryItem item in player.Inventory.GetInventoryItems())
             {
                 if (!Inventory.HasItem(item.Definition.Name))
