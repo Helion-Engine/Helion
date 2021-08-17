@@ -117,7 +117,8 @@ namespace Helion.World.Entities.Definition.States
                 frame.ActionFunction?.Invoke(m_entity);
             }
 
-            if (m_destroyOnStop && frame.IsNullFrame)
+            // Vanilla just forced the state, if executeActionFunction is false then don't check to remove the entity.
+            if (executeActionFunction && m_destroyOnStop && frame.IsNullFrame)
                 m_entityManager.Destroy(m_entity);
         }
 
