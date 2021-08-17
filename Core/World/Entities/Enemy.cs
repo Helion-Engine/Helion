@@ -2,7 +2,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.World.Entities.Players;
 using Helion.World.Physics;
 
 namespace Helion.World.Entities
@@ -17,7 +16,7 @@ namespace Helion.World.Entities
             North,
             NorthWest,
             West,
-            SoutWest,
+            SouthWest,
             South,
             SouthEast,
             None
@@ -38,11 +37,11 @@ namespace Helion.World.Entities
 
         private static readonly MoveDir[] OppositeDirections = new[]
         {
-            MoveDir.West, MoveDir.SoutWest, MoveDir.South, MoveDir.SouthEast,
+            MoveDir.West, MoveDir.SouthWest, MoveDir.South, MoveDir.SouthEast,
             MoveDir.East, MoveDir.NorthEast, MoveDir.North, MoveDir.NorthWest, MoveDir.None
         };
 
-        private static readonly MoveDir[] Diagnals = new[] { MoveDir.NorthWest, MoveDir.NorthEast, MoveDir.SoutWest, MoveDir.SouthEast };
+        private static readonly MoveDir[] Diagnals = new[] { MoveDir.NorthWest, MoveDir.NorthEast, MoveDir.SouthWest, MoveDir.SouthEast };
 
         private static readonly double[] SpeedX = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed };
         private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
@@ -257,16 +256,25 @@ namespace Helion.World.Entities
                 BlockFloating = false;
             }
 
-            if (tryMove.Success && !Flags.Float)
-            {
-                Vec3D newPos = (Position.X, Position.Y, tryMove.HighestFloorZ);
-                SetPosition(newPos);
-            }
-            
             if (tryMove.Success)
             {
-                // TODO Doom has 'turn towards movement direction if not there yet'
-                AngleRadians = MoveAngles[(int)m_direction];
+                if (!Flags.Float)
+                {
+                    Vec3D newPos = (Position.X, Position.Y, tryMove.HighestFloorZ);
+                    SetPosition(newPos);
+                }
+
+                AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
+                double delta = AngleRadians - MoveAngles[(int)m_direction];
+                if (delta != 0)
+                {
+                    if (Math.Abs(delta) > MathHelper.Pi)
+                        delta = -delta;
+                    if (delta > 0)
+                        AngleRadians -= MathHelper.QuarterPi;
+                    else if (delta < 0)
+                        AngleRadians += MathHelper.QuarterPi;
+                }
             }
 
             return tryMove.Success;
@@ -337,7 +345,6 @@ namespace Helion.World.Entities
             if (Definition.Properties.MaxTargetRange > 0 && distance > Definition.Properties.MaxTargetRange)
                 return false;
 
-            // TODO use game skill when implemented, changes this chance
             distance = Math.Min(distance, Definition.Properties.MinMissileChance);
             return World.Random.NextByte() >= distance;
         }
