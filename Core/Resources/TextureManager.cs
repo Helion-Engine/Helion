@@ -15,13 +15,12 @@ namespace Helion.Resources
     {
         public const int NoTextureIndex = 0;
         
-        private readonly List<Action<TextureManager>> m_notifyInitizalized = new List<Action<TextureManager>>();
         private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Texture[] m_textures;
         private readonly int[] m_translations;
-        private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new Dictionary<string, SpriteDefinition>();
-        private readonly List<Animation> m_animations = new List<Animation>();
+        private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
+        private readonly List<Animation> m_animations = new();
         private int m_skyIndex;
 
         public static TextureManager Instance { get; private set; } = null!;
@@ -53,21 +52,7 @@ namespace Helion.Resources
 
         public static void Init(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
         {
-            // This whole notify thing kind of sucks.
-            // This exists because the SkySphere exists before this instance is created.
-            // Since this gets recreated on a new map the SkySphereTexture needs to be 
-            // notified that this is initializing for a new texture.
-            List<Action<TextureManager>> notify = new();
-            if (Instance != null)
-                notify = Instance.m_notifyInitizalized;
-
             Instance = new TextureManager(archiveCollection, mapInfoDef);
-            notify.ForEach(x => x.Invoke(Instance));
-        }
-
-        public void AddNotifyInitialized(Action<TextureManager> action)
-        {
-            m_notifyInitizalized.Add(action);
         }
 
         public Texture GetDefaultSkyTexture()

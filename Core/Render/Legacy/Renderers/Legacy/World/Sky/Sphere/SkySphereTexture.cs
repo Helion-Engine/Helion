@@ -8,7 +8,6 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Images;
 using static Helion.Util.Assertion.Assert;
 using Image = Helion.Graphics.Image;
 
@@ -36,12 +35,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
             m_textureManager = textureManager;
             m_texture = textureManager.NullTexture;
             m_textureHandleIndex = textureHandle;
-        }
-
-        private void NotifyTextureManagerChanged(TextureManager textureManager)
-        {
-            m_generatedSky = false;
-            GenerateSkyIfNeeded();
         }
 
         ~SkySphereTexture()
@@ -198,8 +191,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         {
             if (m_generatedSky)
                 return;
-
-            TextureManager.Instance.AddNotifyInitialized(NotifyTextureManagerChanged);
 
             // This sucks, but we need the archive to be populated before we
             // can draw the sky. This has to be lazily loaded when we request
