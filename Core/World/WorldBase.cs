@@ -1095,7 +1095,7 @@ namespace Helion.World
         {
             message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
             if (message.Length > 0)
-                Log.Error(message);
+                Log.Info(message);
         }
 
         private void HandleRespawn(Entity entity)
