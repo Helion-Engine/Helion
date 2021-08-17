@@ -6,13 +6,18 @@ namespace Helion.Render.OpenGL.Capabilities
     {
         public readonly int MaxTexture2DSize;
         public readonly int MaxTexture3DSize;
+        public readonly int MaxTextureUnits;
+        public readonly int MaxVertexShaderTextures;
+        public readonly int MaxFragmentShaderTextures;
         public readonly AnisotropicFiltering Anisotropy;
 
         internal GLLimits(GLVersion version, GLExtensions extensions)
         {
             GL.GetInteger(GetPName.MaxTextureSize, out MaxTexture2DSize);
             GL.GetInteger(GetPName.Max3DTextureSize, out MaxTexture3DSize);
-            // Source: https://github.com/opentk/opentk/issues/212
+            GL.GetInteger(GetPName.MaxTextureUnits, out MaxTextureUnits);
+            GL.GetInteger(GetPName.MaxVertexTextureImageUnits, out MaxVertexShaderTextures);
+            GL.GetInteger(GetPName.MaxTextureImageUnits, out MaxFragmentShaderTextures);
 
             Anisotropy = new(version, extensions);
         }
@@ -30,6 +35,7 @@ namespace Helion.Render.OpenGL.Capabilities
                 IsCore = version.Supports(4, 6);
                 IsExtension = extensions.TextureFilterAnisotropic;
                 
+                // Source: https://github.com/opentk/opentk/issues/212
                 if (IsExtension)
                     GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out Max);
                 if (IsCore)

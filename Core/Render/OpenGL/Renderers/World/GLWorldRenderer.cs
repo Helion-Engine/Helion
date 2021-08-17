@@ -10,7 +10,7 @@ using Helion.Geometry.Triangles;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Renderers.World.Bsp;
+using Helion.Render.OpenGL.Renderers.World.Geometry;
 using Helion.Render.OpenGL.Renderers.World.Images;
 using Helion.Render.OpenGL.Renderers.World.Primitives;
 using Helion.World;
@@ -26,21 +26,16 @@ namespace Helion.Render.OpenGL.Renderers.World
     {
         private readonly GLPrimitiveWorldRenderer m_primitiveRenderer = new();
         private readonly GLImageWorldRenderer m_imageRenderer = new();
-        private readonly IGLWorldRenderer m_worldRenderer;
+        private readonly GLGeometryRenderer m_geometryRenderer = new();
         private bool m_disposed;
 
-        public GLWorldRenderer()
-        {
-            m_worldRenderer = new GLBspWorldRenderer();
-        }
-        
         ~GLWorldRenderer()
         {
             FailedToDispose(this);
             PerformDispose();
         }
 
-        public void Draw(IWorld world) => m_worldRenderer.Draw(world);
+        public void Draw(IWorld world) => m_geometryRenderer.Draw(world);
         public void DrawLine(Seg3D seg, Color color) => m_primitiveRenderer.DrawLine(seg, color);
         public void DrawLines(Seg3D[] segs, Color color) => m_primitiveRenderer.DrawLines(segs, color);
         public void DrawRay(Ray3D ray, Color color) => m_primitiveRenderer.DrawRay(ray, color);
@@ -67,7 +62,7 @@ namespace Helion.Render.OpenGL.Renderers.World
 
         internal virtual void Render(WorldRenderContext context)
         {
-            m_worldRenderer.Render(context);
+            m_geometryRenderer.Render(context);
             m_primitiveRenderer.Render(context);
             m_imageRenderer.Render(context);
         }
@@ -83,7 +78,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             if (m_disposed)
                 return;
             
-            m_worldRenderer.Dispose();
+            m_geometryRenderer.Dispose();
             m_primitiveRenderer.Dispose();
             m_imageRenderer.Dispose();
 

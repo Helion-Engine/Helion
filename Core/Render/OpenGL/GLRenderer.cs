@@ -9,11 +9,11 @@ using Helion.Render.OpenGL.Renderers.Hud;
 using Helion.Render.OpenGL.Renderers.World;
 using Helion.Render.OpenGL.Surfaces;
 using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Util.Configs;
 using NLog;
-using NLog.Fluent;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -39,6 +39,7 @@ namespace Helion.Render.OpenGL
         private readonly GLHudRenderer m_hudRenderer;
         private readonly GLWorldRenderer m_worldRenderer;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
+        private readonly GLTextureDataBuffer m_textureDataBuffer = new();
         private bool m_disposed;
         
         public IRendererTextureManager Textures => m_textureManager;
@@ -46,6 +47,8 @@ namespace Helion.Render.OpenGL
         
         public GLRenderer(Config config, IWindow window, IResources resources)
         {
+            ThrowIfNotCapable();
+
             m_config = config;
             Window = window;
             m_resources = resources;
@@ -62,11 +65,32 @@ namespace Helion.Render.OpenGL
             
             m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;
         }
-        
+
         ~GLRenderer()
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+
+        private static void ThrowIfNotCapable()
+        {
+            if (GLCapabilities.Limits.MaxVertexShaderTextures < 1)
+            {
+                Log.Error($"Expected 1 vertex shader texture slots, got {GLCapabilities.Limits.MaxVertexShaderTextures}, GPU insufficient");
+                throw new Exception("Insufficient number of vertex shader textures");
+            }
+
+            if (GLCapabilities.Limits.MaxFragmentShaderTextures < 2)
+            {
+                Log.Error($"Expected 2 fragment shader texture slots, got {GLCapabilities.Limits.MaxFragmentShaderTextures}, GPU insufficient");
+                throw new Exception("Insufficient number of fragment shader textures");
+            }
+
+            if (GLCapabilities.Limits.MaxTextureUnits < 2)
+            {
+                Log.Error($"Expected 2 texture units, got {GLCapabilities.Limits.MaxTextureUnits}, GPU insufficient");
+                throw new Exception("Insufficient number of total texture units");
+            }
         }
 
         private static void InitializeStates(Config config)
