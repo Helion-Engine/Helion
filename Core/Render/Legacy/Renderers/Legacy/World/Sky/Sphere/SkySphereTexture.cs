@@ -216,8 +216,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private Image? GetSkyImage()
         {
             return TextureManager.Instance.GetTexture(m_textureHandleIndex).Image;
-            // ArchiveImageRetriever imageRetriever = new(m_archiveCollection);
-            // return imageRetriever.Get(TextureManager.Instance.SkyTextureName, ResourceNamespace.Textures);
         }
 
         private GLLegacyTexture CreateSkyTexture(Image skyImage)

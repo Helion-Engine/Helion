@@ -39,7 +39,7 @@ namespace Helion.Render.OpenGL
         private readonly GLHudRenderer m_hudRenderer;
         private readonly GLWorldRenderer m_worldRenderer;
         private readonly Dictionary<string, GLRenderableSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
-        private readonly GLTextureDataBuffer m_textureDataBuffer = new();
+        private readonly GLTextureDataBuffer m_textureDataBuffer;
         private bool m_disposed;
         
         public IRendererTextureManager Textures => m_textureManager;
@@ -57,7 +57,8 @@ namespace Helion.Render.OpenGL
             // want that to be active in case something goes wrong on any of
             // the initializations of the following fields.
             InitializeStates(config);
-            
+
+            m_textureDataBuffer = new GLTextureDataBuffer(resources);
             m_textureManager = new GLTextureManager(resources);
             m_hudRenderer = new GLHudRenderer(this, m_textureManager);
             m_worldRenderer = new GLWorldRenderer();

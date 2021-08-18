@@ -34,6 +34,12 @@ namespace Helion.Resources.Textures
                 GetTexture(entry.Path.Name, ResourceNamespace.Sprites);
         }
 
+        public int CalculateTotalTextureCount()
+        {
+            // TODO: This is not correct, and is only a placeholder.
+            return m_textures.Count;
+        }
+
         /// <summary>
         /// Tries to get a texture by name and namespace.
         /// </summary>
