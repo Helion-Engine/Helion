@@ -19,8 +19,8 @@ namespace Helion.Resources
         private readonly Texture[] m_textures;
         private readonly int[] m_translations;
         private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
-        private readonly Dictionary<string, Texture> m_textureLookup = new();
-        private readonly Dictionary<string, Texture> m_flatLookup = new();
+        private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<Animation> m_animations = new();
         private int m_skyIndex;
 
@@ -319,13 +319,13 @@ namespace Helion.Resources
                 m_translations[i] = i;
 
             m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
-            m_textureLookup.Add(Constants.NoTexture, m_textures[Constants.NoTextureIndex]);
+            m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
 
             int index = Constants.NoTextureIndex + 1;
             foreach (TextureDefinition texture in textures)
             {
                 m_textures[index] = new Texture(texture.Name, texture.Namespace, index);
-                m_textureLookup.Add(texture.Name, m_textures[index]);
+                m_textureLookup[texture.Name] = m_textures[index];
                 index++;
             }
 
@@ -340,7 +340,7 @@ namespace Helion.Resources
             foreach (Entry flat in flatEntries)
             {
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
-                m_flatLookup.Add(flat.Path.Name, m_textures[index]);
+                m_flatLookup[flat.Path.Name] = m_textures[index];
 
                 // TODO fix with MapInfo when implemented
                 if (flat.Path.Name.Equals(Constants.SkyTexture, StringComparison.OrdinalIgnoreCase))
