@@ -746,6 +746,9 @@ namespace Helion.World.Physics
             LinkToWorld(entity);
         }
 
+        public bool IsPositionValid(Entity entity, Vec2D position) =>
+            IsPositionValid(entity, position, m_tryMoveData);
+
         public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
         {
             if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)

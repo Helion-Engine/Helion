@@ -1587,23 +1587,35 @@ namespace Helion.World.Entities.Definition.States
         private static void A_PainShootSkull(Entity entity, double angle)
         {
             Vec3D skullPos = entity.Position;
+            Vec3D startPos = entity.Position;
             skullPos.Z += 8;
-            Entity? skull = entity.EntityManager.Create("LostSoul", skullPos);
+
+            Entity? skull = entity.EntityManager.Create("LostSoul", startPos);
             if (skull == null)
                 return;
 
             skull.Flags.Friendly = entity.Flags.Friendly;
             double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
             skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
-            skull.SetPosition(skullPos);
+            startPos += Vec3D.UnitSphere(angle, 0.0) * (entity.Radius + skull.Radius - 2);
+            skull.SetPosition(startPos);
             skull.Flags.CountKill = false;
 
-            if (!entity.World.TryMoveXY(skull, skullPos.XY).Success)
+            // Ignore parent for clip checking
+            bool wasSolid = entity.Flags.Solid;
+            entity.Flags.Solid = false;
+
+            // Add some better checking from the original
+            // Set the skull barely clipped into the parent
+            // Then check if it can move to it's final position (TryMoveXY does step checking and won't skip lines/entities)
+            if (!entity.World.IsPositionValid(skull, startPos.XY) || !entity.World.TryMoveXY(skull, skullPos.XY).Success)
             {
                 skull.Kill(null);
+                entity.Flags.Solid = wasSolid;
                 return;
             }
 
+            entity.Flags.Solid = wasSolid;
             skull.Target = entity.Target;
             A_SkullAttack(skull);
         }
