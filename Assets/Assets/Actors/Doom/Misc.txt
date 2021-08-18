@@ -1,4 +1,4 @@
-ACTOR EvilSceptre : ScoreItem
+ACTOR EvilSceptre : ScoreItem 2016
 {
   Inventory.PickupMessage "$BETA_BONUS3"
   States
@@ -9,7 +9,7 @@ ACTOR EvilSceptre : ScoreItem
   }
 }
 
-ACTOR UnholyBible : ScoreItem
+ACTOR UnholyBible : ScoreItem 2017
 {
   Inventory.PickupMessage "$BETA_BONUS4"
   States
@@ -20,18 +20,18 @@ ACTOR UnholyBible : ScoreItem
   }
 }
 
-ACTOR PointPusher
+ACTOR PointPusher 5001
 {
   +NOBLOCKMAP
   +INVISIBLE
   +NOCLIP
 }
 
-ACTOR PointPuller
+ACTOR PointPuller 5002
 {
   +NOBLOCKMAP
   +INVISIBLE
   +NOCLIP
 }
 
-ACTOR MusicChanger {}
+ACTOR MusicChanger 14165 {}
