@@ -239,10 +239,10 @@ namespace Generators.Generators
                 
                 w.WriteLine($"public double PerpDot({VecStruct3D()} point) => PerpDot(point.XY);");
                 w.WriteLine($"public double PerpDot({VecClass3D()} point) => PerpDot(point.XY);");
-                w.WriteLine($"public bool OnRight({VecStruct} point) => PerpDot(point) <= 0;");
-                w.WriteLine($"public bool OnRight({VecClass} point) => PerpDot(point) <= 0;");
-                w.WriteLine($"public bool OnRight({VecStruct3D()} point) => PerpDot(point.XY) <= 0;");
-                w.WriteLine($"public bool OnRight({VecClass3D()} point) => PerpDot(point.XY) <= 0;");
+                w.WriteLine($"public bool OnRight({VecStruct} point) => PerpDot(point) < 0;");
+                w.WriteLine($"public bool OnRight({VecClass} point) => PerpDot(point) < 0;");
+                w.WriteLine($"public bool OnRight({VecStruct3D()} point) => PerpDot(point.XY) < 0;");
+                w.WriteLine($"public bool OnRight({VecClass3D()} point) => PerpDot(point.XY) < 0;");
                 w.WriteLine($"public bool OnRight({StructType} seg) => OnRight(seg.Start) && OnRight(seg.End);");
                 w.WriteLine($"public bool OnRight({InstanceStructName} seg) => OnRight(seg.Start) && OnRight(seg.End);");
                 w.WriteLine($"public bool OnRight<T>({InstanceTName} seg) {WhereConstraintT} => OnRight(seg.Start) && OnRight(seg.End);");

@@ -94,10 +94,10 @@ namespace Helion.Geometry.Segments
         }
         public double PerpDot(Vec3F point) => PerpDot(point.XY);
         public double PerpDot(Vector3F point) => PerpDot(point.XY);
-        public bool OnRight(Vec2F point) => PerpDot(point) <= 0;
-        public bool OnRight(Vector2F point) => PerpDot(point) <= 0;
-        public bool OnRight(Vec3F point) => PerpDot(point.XY) <= 0;
-        public bool OnRight(Vector3F point) => PerpDot(point.XY) <= 0;
+        public bool OnRight(Vec2F point) => PerpDot(point) < 0;
+        public bool OnRight(Vector2F point) => PerpDot(point) < 0;
+        public bool OnRight(Vec3F point) => PerpDot(point.XY) < 0;
+        public bool OnRight(Vector3F point) => PerpDot(point.XY) < 0;
         public bool OnRight(Seg2F seg) => OnRight(seg.Start) && OnRight(seg.End);
         public bool OnRight(Segment2F seg) => OnRight(seg.Start) && OnRight(seg.End);
         public bool OnRight<T>(SegmentT2F<T> seg) where T : Vector2F => OnRight(seg.Start) && OnRight(seg.End);
