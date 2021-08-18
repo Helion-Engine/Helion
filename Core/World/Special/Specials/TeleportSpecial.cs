@@ -55,6 +55,7 @@ namespace Helion.World.Special.Specials
             m_tag = tag;
             m_fogFlags = flags;
             m_type = type;
+            args.Entity.Flags.Teleport = true;
         }
 
         public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
@@ -66,17 +67,19 @@ namespace Helion.World.Special.Specials
             m_teleportLineReverse = reverseLine;
             m_fogFlags = flags;
             m_type = type;
+            args.Entity.Flags.Teleport = true;
         }
 
         public SpecialTickStatus Tick()
         {
             Entity entity = m_args.Entity;
+            entity.Flags.Teleport = false;
             if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
                 return SpecialTickStatus.Destroy;
 
             Vec3D oldPosition = entity.Position;
             if (Teleport(entity, pos, angle, offsetZ))
-            {
+            {       
                 if ((m_fogFlags & TeleportFog.Source) != 0)
                     m_world.CreateTeleportFog(oldPosition + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
 

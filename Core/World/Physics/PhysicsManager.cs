@@ -684,6 +684,8 @@ namespace Helion.World.Physics
                 {
                     entity.MoveLinked = true;
                     MoveTo(entity, nextPosition, m_tryMoveData);
+                    if (entity.Flags.Teleport)
+                        break;
                     continue;
                 }
 
@@ -892,7 +894,11 @@ namespace Helion.World.Physics
             LinkToWorld(entity, tryMove);
 
             for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
+            {
                 CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
+                if (entity.Flags.Teleport)
+                    break;
+            }
         }
 
         private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
