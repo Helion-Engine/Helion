@@ -14,12 +14,13 @@ namespace Helion.Resources
     public class TextureManager : ITickable
     {
         public const int NoTextureIndex = 0;
-        
-        private readonly ArchiveImageRetriever m_imageRetriever;
+
         private readonly ArchiveCollection m_archiveCollection;
         private readonly Texture[] m_textures;
         private readonly int[] m_translations;
         private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
+        private readonly Dictionary<string, Texture> m_textureLookup = new();
+        private readonly Dictionary<string, Texture> m_flatLookup = new();
         private readonly List<Animation> m_animations = new();
         private int m_skyIndex;
 
@@ -30,7 +31,6 @@ namespace Helion.Resources
         private TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
         {
             m_archiveCollection = archiveCollection;
-            m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
             SkyTextureName = mapInfoDef?.Sky1.Name ?? "SKY1";
 
             var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
@@ -63,7 +63,7 @@ namespace Helion.Resources
 
             return texture;
         }
-        
+
         /// <summary>
         /// Loads the texture images.
         /// </summary>
@@ -126,7 +126,7 @@ namespace Helion.Resources
             texture = GetTexture(name, resourceNamespace);
             return texture.Index == Constants.NoTextureIndex;
         }
-        
+
         /// <summary>
         /// Get a texture by name and resource namespace.
         /// </summary>
@@ -141,14 +141,21 @@ namespace Helion.Resources
 
             Texture? texture;
             if (resourceNamespace == ResourceNamespace.Global)
-                texture = m_textures.FirstOrDefault(tex => tex.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            {
+                if (m_textureLookup.TryGetValue(name, out texture))
+                    return texture;
+                if (m_flatLookup.TryGetValue(name, out texture))
+                    return texture;
+            }
             else
-                texture = m_textures.FirstOrDefault(tex => tex.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && tex.Namespace == resourceNamespace);
+            {
+                if (resourceNamespace == ResourceNamespace.Textures && m_textureLookup.TryGetValue(name, out texture))
+                    return texture;
+                else if (resourceNamespace == ResourceNamespace.Flats && m_flatLookup.TryGetValue(name, out texture))
+                    return texture;
+            }
 
-            if (texture == null)
-                return m_textures[Constants.NoTextureIndex];
-
-            return texture;
+            return m_textures[Constants.NoTextureIndex];
         }
 
         /// <summary>
@@ -212,7 +219,7 @@ namespace Helion.Resources
             foreach (var spriteName in spriteNames)
             {
                 var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
-                m_spriteDefinitions.Add(spriteName, new SpriteDefinition(spriteName, spriteDefEntries, m_imageRetriever));
+                m_spriteDefinitions.Add(spriteName, new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever));
             }
         }
 
@@ -293,7 +300,7 @@ namespace Helion.Resources
             for (int i = 1; i < animation.AnimatedTexture.Components.Count; i++)
             {
                 int nextAnimIndex = animation.AnimatedTexture.Components[i].TextureIndex;
-                Animation nextAnim = new Animation(new AnimatedTexture(GetTexture(nextAnimIndex).Name.ToString(), false, 
+                Animation nextAnim = new Animation(new AnimatedTexture(GetTexture(nextAnimIndex).Name.ToString(), false,
                     animation.AnimatedTexture.Namespace), nextAnimIndex);
                 m_animations.Add(nextAnim);
 
@@ -312,11 +319,13 @@ namespace Helion.Resources
                 m_translations[i] = i;
 
             m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
+            m_textureLookup.Add(Constants.NoTexture, m_textures[Constants.NoTextureIndex]);
 
             int index = Constants.NoTextureIndex + 1;
             foreach (TextureDefinition texture in textures)
             {
                 m_textures[index] = new Texture(texture.Name, texture.Namespace, index);
+                m_textureLookup.Add(texture.Name, m_textures[index]);
                 index++;
             }
 
@@ -324,13 +333,14 @@ namespace Helion.Resources
             if (m_textures.Length > 1)
             {
                 Texture shitty = m_textures[1];
-                shitty.Image = m_imageRetriever.GetOnly(shitty.Name, shitty.Namespace);
+                shitty.Image = m_archiveCollection.ImageRetriever.GetOnly(shitty.Name, shitty.Namespace);
             }
 
             // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
             foreach (Entry flat in flatEntries)
             {
                 m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
+                m_flatLookup.Add(flat.Path.Name, m_textures[index]);
 
                 // TODO fix with MapInfo when implemented
                 if (flat.Path.Name.Equals(Constants.SkyTexture, StringComparison.OrdinalIgnoreCase))
@@ -344,7 +354,7 @@ namespace Helion.Resources
         {
             var texture = m_textures[textureIndex];
             if (texture.Image == null)
-                texture.Image = m_imageRetriever.GetOnly(texture.Name, texture.Namespace);
+                texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace);
         }
     }
 }

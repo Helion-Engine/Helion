@@ -1,3 +1,4 @@
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 
 namespace Helion.Maps
@@ -17,28 +18,28 @@ namespace Helion.Maps
         public string Name = string.Empty;
 
         // The following are a list of all the components that may be present.
-        public byte[]? Vertices { get; set; }
-        public byte[]? Sectors { get; set; }
-        public byte[]? Sidedefs { get; set; }
-        public byte[]? Linedefs { get; set; }
-        public byte[]? Segments { get; set; }
-        public byte[]? Subsectors { get; set; }
-        public byte[]? Nodes { get; set; }
-        public byte[]? Things { get; set; }
-        public byte[]? Blockmap { get; set; }
-        public byte[]? Reject { get; set; }
-        public byte[]? Scripts { get; set; }
-        public byte[]? Behavior { get; set; }
-        public byte[]? Dialogue { get; set; }
-        public byte[]? Textmap { get; set; }
-        public byte[]? Znodes { get; set; }
-        public byte[]? Endmap { get; set; }
-        public byte[]? GLMap { get; set; }
-        public byte[]? GLVertices { get; set; }
-        public byte[]? GLSegments { get; set; }
-        public byte[]? GLSubsectors { get; set; }
-        public byte[]? GLNodes { get; set; }
-        public byte[]? GLPVS { get; set; }
+        public Entry? Vertices { get; set; }
+        public Entry? Sectors { get; set; }
+        public Entry? Sidedefs { get; set; }
+        public Entry? Linedefs { get; set; }
+        public Entry? Segments { get; set; }
+        public Entry? Subsectors { get; set; }
+        public Entry? Nodes { get; set; }
+        public Entry? Things { get; set; }
+        public Entry? Blockmap { get; set; }
+        public Entry? Reject { get; set; }
+        public Entry? Scripts { get; set; }
+        public Entry? Behavior { get; set; }
+        public Entry? Dialogue { get; set; }
+        public Entry? Textmap { get; set; }
+        public Entry? Znodes { get; set; }
+        public Entry? Endmap { get; set; }
+        public Entry? GLMap { get; set; }
+        public Entry? GLVertices { get; set; }
+        public Entry? GLSegments { get; set; }
+        public Entry? GLSubsectors { get; set; }
+        public Entry? GLNodes { get; set; }
+        public Entry? GLPVS { get; set; }
 
         /// <summary>
         /// True if all the GL components from GLBSP/ZDBSP are present, false

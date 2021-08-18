@@ -34,10 +34,10 @@ public class GLComponents
 
         private GLComponents(MapEntryCollection entryCollection)
         {
-            ReadVertices(entryCollection.GLVertices!);
-            ReadSegments(entryCollection.GLSegments!);
-            ReadSubsectors(entryCollection.GLSubsectors!);
-            ReadNodes(entryCollection.GLNodes!);
+            ReadVertices(entryCollection.GLVertices!.ReadData());
+            ReadSegments(entryCollection.GLSegments!.ReadData());
+            ReadSubsectors(entryCollection.GLSubsectors!.ReadData());
+            ReadNodes(entryCollection.GLNodes!.ReadData());
         }
 
         public static GLComponents? Read(MapEntryCollection entryCollection)

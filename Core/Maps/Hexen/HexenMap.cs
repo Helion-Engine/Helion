@@ -65,27 +65,27 @@ namespace Helion.Maps.Hexen
         /// missing or bad data.</returns>
         public static HexenMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
         {
-            ReadOnlyDictionary<int, DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices);
+            ReadOnlyDictionary<int, DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices?.ReadData());
             if (vertices == null)
                 return null;
 
-            ReadOnlyDictionary<int, DoomSector>? sectors = DoomMap.CreateSectors(map.Sectors);
+            ReadOnlyDictionary<int, DoomSector>? sectors = DoomMap.CreateSectors(map.Sectors?.ReadData());
             if (sectors == null)
                 return null;
 
-            ReadOnlyDictionary<int, DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs, sectors, compatibility);
+            ReadOnlyDictionary<int, DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
             if (sides == null)
                 return null;
 
-            ReadOnlyDictionary<int, HexenLine>? lines = CreateLines(map.Linedefs, vertices, sides, compatibility);
+            ReadOnlyDictionary<int, HexenLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
             if (lines == null)
                 return null;
 
-            ReadOnlyDictionary<int, HexenThing>? things = CreateThings(map.Things);
+            ReadOnlyDictionary<int, HexenThing>? things = CreateThings(map.Things?.ReadData());
             if (things == null)
                 return null;
 
-            IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes);
+            IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes?.ReadData());
 
             GLComponents? gl = GLComponents.Read(map);
             return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);

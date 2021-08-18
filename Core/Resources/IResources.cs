@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
 using Helion.Resources.Textures;
+using Helion.Resources.Images;
 
 namespace Helion.Resources
 {
@@ -46,6 +47,7 @@ namespace Helion.Resources
         EntityFrameTable EntityFrameTable { get; }
         EntityDefinitionComposer EntityDefinitionComposer { get; }
         DehackedDefinition? Dehacked { get; }
+        ArchiveImageRetriever ImageRetriever { get; }
 
         Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null);
         Entry? FindEntryByPath(string path);

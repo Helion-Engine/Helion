@@ -20,6 +20,7 @@ using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
@@ -58,6 +59,7 @@ namespace Helion.Resources.Archives.Collection
         public MapInfoDefinition MapInfo => Definitions.MapInfoDefinition;
         public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
         public EntityDefinitionComposer EntityDefinitionComposer { get; }
+        public ArchiveImageRetriever ImageRetriever { get; }
         public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
@@ -72,6 +74,7 @@ namespace Helion.Resources.Archives.Collection
             Textures = new Textures.TextureManager(this);
             Definitions = new DefinitionEntries(this, config);
             EntityDefinitionComposer = new EntityDefinitionComposer(this);
+            ImageRetriever = new ArchiveImageRetriever(this);
         }
         
         public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)

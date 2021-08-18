@@ -27,7 +27,6 @@ namespace Helion.Render.Legacy.Texture
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
-        private readonly IImageRetriever m_imageRetriever;
         private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
         private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
 
@@ -60,7 +59,6 @@ namespace Helion.Render.Legacy.Texture
         {
             Config = config;
             ArchiveCollection = archiveCollection;
-            m_imageRetriever = new ArchiveImageRetriever(ArchiveCollection);
             Capabilities = capabilities;
             gl = functions;
             NullTexture = CreateNullTexture();
@@ -135,7 +133,7 @@ namespace Helion.Render.Legacy.Texture
             // we check the GL texture cache first, we will find the texture
             // and miss the flat and then never know that there is a specific
             // flat that should have been used.
-            Image? imageForNamespace = m_imageRetriever.GetOnly(name, priorityNamespace);
+            Image? imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
             if (imageForNamespace != null)
             {
                 texture = CreateTexture(imageForNamespace, name, priorityNamespace);
@@ -154,7 +152,7 @@ namespace Helion.Render.Legacy.Texture
             // Note that because we are getting any texture, we don't want to
             // use the provided namespace since if we ask for a flat, but get a
             // texture, and then index it as a flat... things probably go bad.
-            Image? image = m_imageRetriever.Get(name, priorityNamespace);
+            Image? image = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
             if (image == null)
                 return false;
 

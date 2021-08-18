@@ -118,12 +118,12 @@ namespace Helion.Resources.Archives.Iterator
         {
             if (IsGLBSPMapHeader(entryName))
             {
-                m_currentMap.GLMap = entry.ReadData();
+                m_currentMap.GLMap = entry;
                 return;
             }
 
             if (MapEntryLookup.ContainsKey(entryName))
-                MapEntryLookup[entryName].SetValue(m_currentMap, entry.ReadData());
+                MapEntryLookup[entryName].SetValue(m_currentMap, entry);
             else
                 Fail("Unexpected map entry name (not a map entry)");         
         }

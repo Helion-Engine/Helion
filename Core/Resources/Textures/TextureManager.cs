@@ -11,7 +11,6 @@ namespace Helion.Resources.Textures
     {
         public const int NoTextureIndex = 0;
         
-        private readonly ArchiveImageRetriever m_imageRetriever;
         private readonly IResources m_resources;
         private readonly ResourceTracker<Texture> m_textureTracker = new();
         private readonly List<Texture> m_textures = new();
@@ -24,7 +23,6 @@ namespace Helion.Resources.Textures
 
         public TextureManager(ArchiveCollection archiveCollection)
         {
-            m_imageRetriever = new ArchiveImageRetriever(archiveCollection);
             m_resources = archiveCollection;
         }
 
@@ -75,7 +73,7 @@ namespace Helion.Resources.Textures
                 return texture;
             }
             
-            Image? image = m_imageRetriever.Get(name, resourceNamespace);
+            Image? image = m_resources.ImageRetriever.Get(name, resourceNamespace);
             if (image == null)
                 return null;
 
