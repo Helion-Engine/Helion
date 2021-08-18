@@ -13,7 +13,7 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValueBoolean AlwaysRun = new(true);
 
         [ConfigInfo("The skill level to use when starting a map.", save: false)]
-        public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.None);
+        public readonly ConfigValueEnum<SkillLevel> Skill = new(SkillLevel.Medium);
 
         [ConfigInfo("Whether no monsters should be spawned.", save: false)]
         public readonly ConfigValueBoolean NoMonsters = new();
