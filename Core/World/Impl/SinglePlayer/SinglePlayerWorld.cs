@@ -59,7 +59,7 @@ namespace Helion.World.Impl.SinglePlayer
                     player.SetDefaultInventory();
                 }
 
-                if (existingPlayer != null)
+                if (existingPlayer != null && !existingPlayer.IsDead)
                 {
                     Player.CopyProperties(existingPlayer);
                     Player.Inventory.ClearKeys();
