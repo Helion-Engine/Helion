@@ -370,6 +370,11 @@ brain/cube			dsboscub
 brain/cubeboom			dsfirxpl
 $alias brain/spawn		misc/teleport
 
+dog/active	DSDGACT
+dog/attack	DSDGATK
+dog/death	DSDGDTH
+dog/pain	DSDGPAIN
+dog/sight	DSDGSIT
 
 //============================================================================
 //
