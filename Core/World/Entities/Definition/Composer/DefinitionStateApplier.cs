@@ -104,6 +104,8 @@ namespace Helion.World.Entities.Definition.Composer
             masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
         }
 
+        private static string GetProcessedFrameKey(string name, int frame) =>  $"{name}::{frame}";
+
         private static void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
             IList<UnresolvedGotoFrame> unresolvedGotoFrames, Dictionary<string, FrameLabel> masterLabelTable, int offset,
             string vanillaActorName)
@@ -120,7 +122,7 @@ namespace Helion.World.Entities.Definition.Composer
             for (int localFrameOffset = 0; localFrameOffset < current.States.Frames.Count; localFrameOffset++)
             {
                 int currentFrameOffset = localFrameOffset + offset;
-                string key = $"{current.Name}::{currentFrameOffset}";
+                string key = GetProcessedFrameKey(current.Name, currentFrameOffset);
                 if (ProcessedFrames.TryGetValue(key, out EntityFrame? existingFrame))
                 {
                     if (indicesWithLabels.Contains(currentFrameOffset))
@@ -250,16 +252,31 @@ namespace Helion.World.Entities.Definition.Composer
                 return 0;
             }
 
+            string key;
             int offset = flowOverride.Offset ?? 0;
-
-            if (flowOverride.Parent == null) 
-                return masterLabelTable[$"{flowOverride.Label}"].Index + offset;
+            if (flowOverride.Parent == null)
+            {
+                key = GetProcessedFrameKey(upperImmediateParentName, masterLabelTable[$"{flowOverride.Label}"].Index);
+                return GetProcessedFrameMasterIndex(key) + offset;
+            }
             
             string label = $"{flowOverride.Parent}::{flowOverride.Label}";
             if (flowOverride.Parent.Equals("SUPER", StringComparison.OrdinalIgnoreCase))
                 label = $"{upperImmediateParentName}::{flowOverride.Label}";
-            
-            return masterLabelTable[label].Index + offset;
+
+            key = GetProcessedFrameKey(upperImmediateParentName, masterLabelTable[label].Index);
+            return GetProcessedFrameMasterIndex(key) + offset;
+        }
+
+        private static int GetProcessedFrameMasterIndex(string key)
+        {
+            if (!ProcessedFrames.TryGetValue(key, out EntityFrame? entityFrame))
+            {
+                Log.Error($"Bad processed frame key: {key}");
+                return 0;
+            }
+
+            return entityFrame.MasterFrameIndex;
         }
 
         private static void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
@@ -270,9 +287,9 @@ namespace Helion.World.Entities.Definition.Composer
                 if (flowOverride.BranchType != ActorStateBranch.Goto)
                     continue;
 
-                int overrideOffset = FindGotoOverrideOffset(masterLabelTable, flowOverride, upperImmediateParentName);
-                masterLabelTable[label].Index = overrideOffset;
-                masterLabelTable[$"{current.Name}::{label}"].Index = overrideOffset;
+                int index = FindGotoOverrideOffset(masterLabelTable, flowOverride, upperImmediateParentName);
+                masterLabelTable[label].Index = index;
+                masterLabelTable[$"{current.Name}::{label}"].Index = index;
             }
         }
         
