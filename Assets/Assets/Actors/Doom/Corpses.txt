@@ -31,14 +31,14 @@ actor GibbedMarineExtra 12
     }
 }
 
-actor DeadMarine 15
+actor DeadMarine : DoomPlayer 15
 {
     +CORPSE
+    Skip_Super
     States
     {
     Spawn:
-        PLAY N -1
-        Stop
+        Goto Super::Death+4
     }
 }
 
