@@ -4,17 +4,31 @@ actor GibbedMarine
     States
     {
     Spawn:
-    PLAY W -1
-    Stop
+        PLAY W -1
+        Stop
     }
 }
 
-actor GibbedCorpse : GibbedMarine 10
+actor GibbedCorpse 10
 {
+    +CORPSE
+    States
+    {
+    Spawn:
+        PLAY W -1
+        Stop
+    }
 }
 
-actor GibbedMarineExtra : GibbedMarine 12
+actor GibbedMarineExtra 12
 {
+    +CORPSE
+    States
+    {
+    Spawn:
+        PLAY W -1
+        Stop
+    }
 }
 
 actor DeadMarine 15
