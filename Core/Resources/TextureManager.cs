@@ -6,7 +6,6 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
-using Helion.Resources.Images;
 using Helion.Util;
 
 namespace Helion.Resources

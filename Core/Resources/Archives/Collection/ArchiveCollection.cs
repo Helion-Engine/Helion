@@ -20,6 +20,7 @@ using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Resources.Textures;
@@ -53,13 +54,14 @@ namespace Helion.Resources.Archives.Collection
         public DecorateDefinitions Decorate => Definitions.Decorate;
         public FontManager Fonts { get; } = new();
         public ITextureManager Textures { get; }
+        public ResourceTracker<TextureDefinition> TextureDefinitions => Definitions.Textures;
         public SoundInfoDefinition SoundInfo => Definitions.SoundInfo;
         public LockDefinitions Locks => Definitions.LockDefininitions;
         public LanguageDefinition Language => Definitions.Language;
         public MapInfoDefinition MapInfo => Definitions.MapInfoDefinition;
         public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
         public EntityDefinitionComposer EntityDefinitionComposer { get; }
-        public ArchiveImageRetriever ImageRetriever { get; }
+        public IImageRetriever ImageRetriever { get; }
         public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
         public readonly ArchiveCollectionEntries Entries = new();
         public readonly DataEntries Data = new();
@@ -71,8 +73,8 @@ namespace Helion.Resources.Archives.Collection
         public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
         {
             m_archiveLocator = archiveLocator;
-            Textures = new Textures.TextureManager(this);
             Definitions = new DefinitionEntries(this, config);
+            Textures = new Textures.TextureManager(this);
             EntityDefinitionComposer = new EntityDefinitionComposer(this);
             ImageRetriever = new ArchiveImageRetriever(this);
         }

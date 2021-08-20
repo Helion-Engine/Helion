@@ -14,7 +14,7 @@ namespace Helion.Resources
 
         private readonly SpriteRotation?[,] m_spriteRotations = new SpriteRotation[MaxFrames, MaxRotations];
 
-        public SpriteDefinition(string name, List<Entry> entries, ArchiveImageRetriever imageRetriever)
+        public SpriteDefinition(string name, List<Entry> entries, IImageRetriever imageRetriever)
         {
             Name = name;
 
@@ -40,7 +40,7 @@ namespace Helion.Resources
         public SpriteRotation? GetSpriteRotation(int frame, uint rotation) =>
             m_spriteRotations[frame, rotation];
 
-        private void CreateRotations(Entry entry, ArchiveImageRetriever imageRetriever, int frame, int rotation, bool mirror)
+        private void CreateRotations(Entry entry, IImageRetriever imageRetriever, int frame, int rotation, bool mirror)
         {
             if (frame >= MaxFrames)
                 return;
