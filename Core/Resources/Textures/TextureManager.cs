@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Helion.Graphics;
-using Helion.Util;
 
 namespace Helion.Resources.Textures
 {
@@ -9,6 +8,7 @@ namespace Helion.Resources.Textures
     {
         public const int NoTextureIndex = 0;
         
+        public Texture NullTexture { get; }
         public int EstimatedTextureCount { get; }
         private readonly IResources m_resources;
         private readonly ResourceTracker<Texture> m_textureTracker = new();
@@ -23,14 +23,16 @@ namespace Helion.Resources.Textures
         public TextureManager(IResources resources)
         {
             m_resources = resources;
+            NullTexture = CreateAndTrackTexture("Null", ResourceNamespace.Global, Image.NullImage);
             EstimatedTextureCount = CalculateEstimatedTextureCount(resources);
         }
 
-        private static int CalculateEstimatedTextureCount(IResources resources)
+        private int CalculateEstimatedTextureCount(IResources resources)
         {
             return resources.GetEntriesByNamespace(ResourceNamespace.Sprites).Count() +
                    resources.GetEntriesByNamespace(ResourceNamespace.Flats).Count() +
-                   resources.TextureDefinitions.CountAll();
+                   resources.TextureDefinitions.CountAll() +
+                   m_textures.Count;
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace Helion.Resources.Textures
         public bool TryGet(string name, ResourceNamespace resourceNamespace, out Texture? texture)
         {
             texture = GetTexture(name, resourceNamespace); 
-            return texture != null;
+            return !texture.IsNullTexture;
         }
         
         /// <summary>
@@ -54,24 +56,32 @@ namespace Helion.Resources.Textures
         /// <param name="resourceNamespace">The resource namespace to search by.</param>
         /// <returns>Returns the texture given the name and resource namespace.
         /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
-        public Texture? GetTexture(string name, ResourceNamespace resourceNamespace)
+        public Texture GetTexture(string name, ResourceNamespace resourceNamespace)
         {
-            Texture? texture = m_textureTracker.GetOnly(name, resourceNamespace);
-            if (texture != null)
-                return texture;
-            
-            texture = m_textureTracker.Get(name, resourceNamespace);
+            Texture? texture = m_textureTracker.Get(name, resourceNamespace);
             if (texture != null)
             {
                 // Cache the value so we don't return to it later on.
-                m_textureTracker.Insert(name, resourceNamespace, texture);
+                if (texture.Namespace != resourceNamespace)
+                    m_textureTracker.Insert(name, resourceNamespace, texture);
+                
                 return texture;
             }
             
             Image? image = m_resources.ImageRetriever.Get(name, resourceNamespace);
             if (image == null)
-                return null;
+            {
+                // If there is no image for it, we should instead insert the null
+                // texture so that lookups short-circuit.
+                m_textureTracker.Insert(name, resourceNamespace, NullTexture);
+                return NullTexture;
+            }
 
+            return CreateAndTrackTexture(name, resourceNamespace, image);
+        }
+
+        private Texture CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Image image)
+        {
             int index = m_textures.Count;
             Texture newTexture = new(index, name, image, resourceNamespace);
             m_textures.Add(newTexture);
@@ -82,7 +92,7 @@ namespace Helion.Resources.Textures
             // one as well as to save lookup time later on.
             if (resourceNamespace != image.Namespace)
                 m_textureTracker.Insert(name, image.Namespace, newTexture);
-
+            
             return newTexture;
         }
 
@@ -106,7 +116,7 @@ namespace Helion.Resources.Textures
         /// animated it's current animation texture will be returned.</returns>
         public Texture GetNullCompatibilityTexture(int index)
         {
-            int targetIndex = index != Constants.NoTextureIndex ? index : 1;
+            int targetIndex = index != NoTextureIndex ? index : 1;
             int translatedIndex = m_translations[targetIndex];
             return m_textures[translatedIndex];
         }
