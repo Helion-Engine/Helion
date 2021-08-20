@@ -14,5 +14,6 @@ namespace Helion.World.Sound
         Vec3D? GetSoundPosition(Entity listenerEntity);
         Vec3D? GetSoundVelocity();
         bool CanAttenuate(SoundInfo soundInfo);
+        bool CanMakeSound();
     }
 }

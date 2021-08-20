@@ -54,5 +54,6 @@ namespace Helion.World.Sound
         }
 
         public bool CanAttenuate(SoundInfo soundInfo) => m_attenuate;
+        public bool CanMakeSound() => true;
     }
 }

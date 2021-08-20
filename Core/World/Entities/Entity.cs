@@ -907,5 +907,7 @@ namespace Helion.World.Entities
 
             return true;
         }
+
+        public virtual bool CanMakeSound() => true;
     }
 }

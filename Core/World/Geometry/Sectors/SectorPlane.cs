@@ -176,5 +176,6 @@ namespace Helion.World.Geometry.Sectors
         }
 
         public bool CanAttenuate(SoundInfo soundInfo) => true;
+        public bool CanMakeSound() => true;
     }
 }

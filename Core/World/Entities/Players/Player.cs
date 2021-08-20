@@ -96,6 +96,7 @@ namespace Helion.World.Entities.Players
         public override double ViewZ => m_viewZ;
         public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
         public override bool IsInvulnerable => Flags.Invulnerable || Inventory.IsPowerupActive(PowerupType.Invulnerable);
+        public override bool CanMakeSound() => !IsVooDooDoll;
 
         public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
             Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world, int playerNumber)
@@ -972,7 +973,7 @@ namespace Helion.World.Entities.Players
                 return;
 
             if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
-                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Auto, 
+                World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Weapon, 
                     DataCache.Instance.GetSoundParams(this));
 
             AnimationWeapon = PendingWeapon;

@@ -1767,7 +1767,7 @@ namespace Helion.World.Entities.Definition.States
                     entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
                     entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
-                        SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+                        SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(entity));
                 }
             }
         }

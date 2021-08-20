@@ -37,6 +37,9 @@ namespace Helion.World.Sound
         
         public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
         {
+            if (!soundSource.CanMakeSound())
+                return null;
+
             return CreateSound(soundSource, soundSource.GetSoundPosition(m_world.ListenerEntity), soundSource.GetSoundVelocity(), sound, channel, soundParams);
         }
         
