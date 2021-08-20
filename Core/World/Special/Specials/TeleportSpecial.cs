@@ -100,7 +100,7 @@ namespace Helion.World.Special.Specials
             Vec3D oldPos = entity.Position;
             entity.UnlinkFromWorld();
             entity.SetPosition(pos);
-            Player? player = entity as Player;
+            Player? player = entity.PlayerObj;
 
             if (m_type == TeleportType.Doom)
             {

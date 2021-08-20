@@ -584,7 +584,7 @@ namespace Helion.World
 
         public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
         {
-            Player? player = shooter as Player;
+            Player? player = shooter.PlayerObj;
             if (player != null)
                 player.DescreaseAmmo();
 
@@ -1091,7 +1091,7 @@ namespace Helion.World
                 obituary = obituarySource.Definition.Properties.Obituary;
 
             if (!string.IsNullOrEmpty(obituary))
-                DisplayMessage(player, killer as Player, obituary);
+                DisplayMessage(player, killer.PlayerObj, obituary);
         }
 
         public virtual void DisplayMessage(Player player, Player? other, string message)

@@ -150,7 +150,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
 
         private void PopulateData(IWorld world, RenderInfo renderInfo, out Box2F box2F)
         {
-            Player? player = renderInfo.ViewerEntity as Player;
+            Player? player = renderInfo.ViewerEntity.PlayerObj;
             
             m_vbo.Clear();
             PopulateColoredLines(world, player);
