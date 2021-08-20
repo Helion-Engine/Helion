@@ -1696,9 +1696,8 @@ namespace Helion.World
                 if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                     continue;
 
-                updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
-
-                if (!string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+                bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
+                if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
                 {
                     SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
                         DataCache.Instance.GetSoundParams(updatePlayer));

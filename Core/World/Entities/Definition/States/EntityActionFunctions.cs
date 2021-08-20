@@ -1763,7 +1763,7 @@ namespace Helion.World.Entities.Definition.States
                 if (entity.PlayerObj.PendingWeapon != null || entity.PlayerObj.IsDead)
                     entity.PlayerObj.LowerWeapon();
 
-                if (entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
+                if (!entity.PlayerObj.IsVooDooDoll && entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
                     entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
                     entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
