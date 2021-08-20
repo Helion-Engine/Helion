@@ -123,7 +123,8 @@ namespace Helion.World.Special.Specials
                     AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                     AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                     AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
-                    AccelLastZ = m_accelScrollSpeed?.LastChangeZ
+                    AccelLastZ = m_accelScrollSpeed?.LastChangeZ,
+                    ScrollFlags = GetModelScrollFlags()
                 };
             }
             
