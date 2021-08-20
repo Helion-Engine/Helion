@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Helion.Graphics;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
-using Helion.Resources.Images;
 using Helion.Util;
 
 namespace Helion.Resources.Textures
@@ -11,6 +9,7 @@ namespace Helion.Resources.Textures
     {
         public const int NoTextureIndex = 0;
         
+        public int EstimatedTextureCount { get; }
         private readonly IResources m_resources;
         private readonly ResourceTracker<Texture> m_textureTracker = new();
         private readonly List<Texture> m_textures = new();
@@ -21,21 +20,17 @@ namespace Helion.Resources.Textures
 
         public string SkyTextureName { get; set; } = "F_SKY1";
 
-        public TextureManager(ArchiveCollection archiveCollection)
+        public TextureManager(IResources resources)
         {
-            m_resources = archiveCollection;
+            m_resources = resources;
+            EstimatedTextureCount = CalculateEstimatedTextureCount(resources);
         }
 
-        public void PreloadSprites()
+        private static int CalculateEstimatedTextureCount(IResources resources)
         {
-            foreach (Entry entry in m_resources.GetEntriesByNamespace(ResourceNamespace.Sprites))
-                GetTexture(entry.Path.Name, ResourceNamespace.Sprites);
-        }
-
-        public int CalculateTotalTextureCount()
-        {
-            // TODO: This is not correct, and is only a placeholder.
-            return m_textures.Count;
+            return resources.GetEntriesByNamespace(ResourceNamespace.Sprites).Count() +
+                   resources.GetEntriesByNamespace(ResourceNamespace.Flats).Count() +
+                   resources.TextureDefinitions.CountAll();
         }
 
         /// <summary>

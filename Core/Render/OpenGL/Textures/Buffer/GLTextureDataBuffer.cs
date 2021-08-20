@@ -41,7 +41,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         private void UploadTextures()
         {
             // We want a buffer of 2x, since more might get loaded in.
-            int expectedSize =  m_resources.Textures.CalculateTotalTextureCount() * 2;
+            int expectedSize =  m_resources.Textures.EstimatedTextureCount * 2;
             
             // TODO
         }

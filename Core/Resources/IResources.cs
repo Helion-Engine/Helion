@@ -17,6 +17,7 @@ using Helion.World.Entities.Definition.Composer;
 using System;
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
+using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Textures;
 using Helion.Resources.Images;
 
@@ -40,6 +41,7 @@ namespace Helion.Resources
         DecorateDefinitions Decorate { get; }
         FontManager Fonts { get; }
         ITextureManager Textures { get; }
+        ResourceTracker<TextureDefinition> TextureDefinitions { get; }
         SoundInfoDefinition SoundInfo { get; }
         LockDefinitions Locks { get; }
         LanguageDefinition Language { get; }
@@ -47,7 +49,7 @@ namespace Helion.Resources
         EntityFrameTable EntityFrameTable { get; }
         EntityDefinitionComposer EntityDefinitionComposer { get; }
         DehackedDefinition? Dehacked { get; }
-        ArchiveImageRetriever ImageRetriever { get; }
+        IImageRetriever ImageRetriever { get; }
 
         Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null);
         Entry? FindEntryByPath(string path);
