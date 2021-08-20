@@ -204,7 +204,8 @@ namespace Helion.World.Special.Specials
             {
                 foreach (var entity in sectorPlane.Sector.Entities)
                 {
-                    if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround || entity.HighestFloorSector != sectorPlane.Sector)
+                    if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround || 
+                        entity.Position.Z != sectorPlane.Sector.ToFloorZ(entity.Position))
                         continue;
 
                     entity.Velocity.X += speed.X;
