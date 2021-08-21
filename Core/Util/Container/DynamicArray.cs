@@ -46,6 +46,27 @@ namespace Helion.Util.Container
 
             Data = new T[Math.Max(1, capacity)];
         }
+        
+        /// <summary>
+        /// Fills the array with the value provided.
+        /// </summary>
+        /// <param name="capacity">The predetermined max amount of space before
+        /// it would resize when adding more.</param>
+        /// <param name="fillSize">How many items to fill. This will be capped
+        /// to the capacity.</param>
+        /// <param name="fillItem">The item to fill from index zero up until
+        /// fillSize.</param>
+        public DynamicArray(int capacity, int fillSize, T fillItem)
+        {
+            Precondition(capacity > 0, "Must have a positive capacity");
+            Precondition(fillSize > 0, "Must have a positive fill size");
+
+            Data = new T[Math.Max(1, capacity)];
+
+            int amount = Math.Min(fillSize, capacity);
+            for (int i = 0; i < amount; i++)
+                Data[i] = fillItem;
+        }
 
         /// <summary>
         /// Accesses the element at the provided index.
