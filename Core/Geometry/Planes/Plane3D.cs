@@ -16,6 +16,8 @@ namespace Helion.Geometry.Planes
         public readonly double D;
         private readonly double m_inverseC;
 
+        public Vec4F Vec => new((float)A, (float)B, (float)C, (float)D);
+
         public Plane3D(double a, double b, double c, double d)
         {
             Precondition(!c.ApproxZero(), "A plane cannot have a zero Z coefficient");

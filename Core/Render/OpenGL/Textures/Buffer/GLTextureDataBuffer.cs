@@ -5,6 +5,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Capabilities;
+using Helion.Render.OpenGL.Textures.Buffer.Data;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Resources;
 using Helion.Util;
@@ -38,7 +39,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             Texture = new GLTexture2D("Texture buffer data", m_dimension);
             m_resources = resources;
             m_textureOffset = CalculateTextureOffset();
-            m_entityOffset = CalculateEntityOffset(m_textureOffset.RowStart + m_textureOffset.RowCount);
+            m_entityOffset = CalculateFrameOffset(m_textureOffset.RowStart + m_textureOffset.RowCount);
             m_sectorOffset = CalculateSectorOffset(m_entityOffset.RowStart + m_entityOffset.RowCount);
         }
         
@@ -66,8 +67,8 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             // We want a buffer of 2x, since more might get loaded in.
             int expectedSize =  m_resources.Textures.EstimatedTextureCount * 2;
             
-            // Each texture is a [u1, v1, u2, v2], so we'll store it all in one texel.
-            int numTexels = expectedSize;
+            // Each texture is a [float x1, y1, x2, y2; u1, v1, u2, v2], so 2 texels.
+            int numTexels = expectedSize * 2;
             
             // Calculate equal or next largest power of two.
             bool exactFit = numTexels % TexelPitch == 0;
@@ -77,11 +78,11 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             return new BufferOffset(0, numRows);
         }
         
-        private BufferOffset CalculateEntityOffset(int rowStart)
+        private BufferOffset CalculateFrameOffset(int rowStart)
         {
             int frameCount = m_resources.EntityFrameTable.Frames.Count;
             
-            // Each frame is: [texureIndex, offset x, offset y, flags], which goes in one texel.
+            // Each frame is: [int textureIndex, int flags, vec2 offset], which goes in one texel.
             int numTexels = frameCount;
             
             bool exactFit = numTexels % TexelPitch == 0;
@@ -93,8 +94,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         private BufferOffset CalculateSectorOffset(int rowStart)
         {
             // TODO: [vec4 planeStart; vec4 planeEnd; vec4 rgba; int textureIndex, float lightLevel]
-            // 4 texels
-            
+
             // It's up to someone else to populate this.
             return new BufferOffset(rowStart, 0);
         }
@@ -109,22 +109,21 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             // TODO
         }
 
-        public void SetTexture(int index, Box2F textureBounds)
+        public void SetTexture(int index, TextureData data)
         {
             // TODO: Check if out of range.
             
             // TODO
         }
         
-        public void SetFrame(int index, int textureIndex, Vec2F offset, int flags)
+        public void SetFrame(int index, FrameData data)
         {
             // TODO: Check if out of range.
             
             // TODO
         }
         
-        public void SetFrame(int index, Plane3D startPlane, Plane3D endPlane, Color color, int textureIndex, 
-            float lightLevel)
+        public void SetSector(int index, SectorData data)
         {
             // TODO: Check if out of range.
             
