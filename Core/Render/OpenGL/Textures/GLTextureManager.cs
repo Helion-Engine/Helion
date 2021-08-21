@@ -136,6 +136,11 @@ namespace Helion.Render.OpenGL.Textures
             m_fontTextures[name] = fontTexture;
             return fontTexture;
         }
+        
+        public AtlasGLTexture GetAtlas(int index)
+        {
+            return m_textures[index];
+        }
 
         public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, 
             ResourceNamespace? specificNamespace = null)

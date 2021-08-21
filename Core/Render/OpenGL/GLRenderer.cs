@@ -61,7 +61,7 @@ namespace Helion.Render.OpenGL
             m_textureDataBuffer = new GLTextureDataBuffer(resources);
             m_textureManager = new GLTextureManager(resources, m_textureDataBuffer);
             m_hudRenderer = new GLHudRenderer(this, m_textureManager);
-            m_worldRenderer = new GLWorldRenderer(m_textureDataBuffer);
+            m_worldRenderer = new GLWorldRenderer(m_textureManager, m_textureDataBuffer);
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
             
             m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;

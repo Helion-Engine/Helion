@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Render.Common.Context;
 using Helion.Render.OpenGL.Renderers.World.Geometry.Static;
+using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.World;
 using static Helion.Util.Assertion.Assert;
@@ -13,9 +14,9 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         private WeakReference<IWorld>? m_world;
         private bool m_disposed;
 
-        public GLGeometryRenderer(GLTextureDataBuffer textureDataBuffer)
+        public GLGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
-            m_staticGeometry = new GLStaticGeometryRenderer(textureDataBuffer);
+            m_staticGeometry = new GLStaticGeometryRenderer(textureManager, textureDataBuffer);
         }
 
         ~GLGeometryRenderer()
@@ -26,6 +27,9 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
 
         private bool IsNewOrDifferentWorld(IWorld world)
         {
+            if (m_world == null)
+                return true;
+            
             return m_world != null && 
                    m_world.TryGetTarget(out IWorld? oldWorld) && 
                    ReferenceEquals(world, oldWorld);
@@ -44,8 +48,8 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry
         {
             if (m_world == null)
                 return;
-            
-            // TODO
+
+            m_staticGeometry.Render(context);
         }
 
         public void Dispose()

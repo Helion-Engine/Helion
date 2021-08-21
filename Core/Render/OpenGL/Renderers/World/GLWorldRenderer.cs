@@ -13,6 +13,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.World.Geometry;
 using Helion.Render.OpenGL.Renderers.World.Images;
 using Helion.Render.OpenGL.Renderers.World.Primitives;
+using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.World;
 using static Helion.Util.Assertion.Assert;
@@ -30,9 +31,9 @@ namespace Helion.Render.OpenGL.Renderers.World
         private readonly GLGeometryRenderer m_geometryRenderer;
         private bool m_disposed;
 
-        public GLWorldRenderer(GLTextureDataBuffer textureDataBuffer)
+        public GLWorldRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
-            m_geometryRenderer = new GLGeometryRenderer(textureDataBuffer);
+            m_geometryRenderer = new GLGeometryRenderer(textureManager, textureDataBuffer);
         }
 
         ~GLWorldRenderer()

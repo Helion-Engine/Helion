@@ -39,7 +39,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_dimension = CalculateDimension();
             Log.Debug($"Creating texture buffer of size {m_dimension}");
             
-            Texture = new GLTextureBuffer2D("Texture buffer: Data", m_dimension);
+            Texture = new GLTextureBuffer2D("Data buffer", m_dimension);
             m_resources = resources;
             m_textureData = CreateTextureData();
             m_frameData = CreateFrameData();
