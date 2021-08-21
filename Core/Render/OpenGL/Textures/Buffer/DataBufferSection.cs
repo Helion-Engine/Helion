@@ -39,6 +39,13 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_maxElementsAllowed = rowCount * m_elementsPerRow;
             m_data = new DynamicArray<T>(m_maxElementsAllowed);
         }
+        
+        public DataBufferSection(int rowStart, int rowCount, int rowTexelPitch, T fillValue) :
+            this(rowStart, rowCount, rowTexelPitch)
+        {
+            for (int i = 0; i < m_maxElementsAllowed; i++)
+                m_data.Add(fillValue);
+        }
 
         private static int GetSizeOrThrowIfNotPow2()
         {

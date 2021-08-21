@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Render.OpenGL.Textures.Buffer.GLTextureDataBuffer;
@@ -35,7 +36,7 @@ namespace Helion.Render.OpenGL.Textures.Types
             });
         }
 
-        public void Write<T>(Vec2I coordinate, T data, int texelWidth) where T : struct
+        public void Write<T>(Vec2I coordinate, T data, int texelWidth, Binding binding) where T : struct
         {
             Precondition(Marshal.SizeOf<T>() == texelWidth * BytesPerTexel, "Texel width of struct is incorrect");
             
@@ -47,9 +48,15 @@ namespace Helion.Render.OpenGL.Textures.Types
                 Fail(errorMsg);
                 return;
             }
-            
+
+            if (binding == Binding.Bind)
+                Bind();
+
             GL.TexSubImage2D(TextureTarget.Texture2D, 0, x, y, texelWidth, 1, PixelFormat.Rgba, 
-                PixelType.Float, ref data);
+                PixelType.Float, ref data);    
+            
+            if (binding == Binding.Bind)
+                Unbind();
         }
     }
 }

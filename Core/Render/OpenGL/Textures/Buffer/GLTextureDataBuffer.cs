@@ -6,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Textures.Buffer.Data;
 using Helion.Render.OpenGL.Textures.Types;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Util;
 using Helion.World.Entities.Definition.States;
@@ -38,7 +39,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_dimension = CalculateDimension();
             Log.Debug($"Creating texture buffer of size {m_dimension}");
             
-            Texture = new GLTextureBuffer2D("Texture buffer data", m_dimension);
+            Texture = new GLTextureBuffer2D("Texture buffer: Data", m_dimension);
             m_resources = resources;
             m_textureData = CreateTextureData();
             m_frameData = CreateFrameData();
@@ -70,10 +71,10 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             int texelsNeeded = texelsPerTexture * expectedTextures;
 
             int rowsNeeded = texelsNeeded / TexelPitch;
-            if (texelsNeeded % TexelPitch != 0)
+            if (rowsNeeded == 0 || texelsNeeded % TexelPitch != 0)
                 rowsNeeded++;
             
-            return new DataBufferSection<TextureData>(0, rowsNeeded, TexelPitch);
+            return new DataBufferSection<TextureData>(0, rowsNeeded, TexelPitch, default);
         }
         
         private DataBufferSection<FrameData> CreateFrameData()
@@ -84,11 +85,11 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             int texelsNeeded = texelsPerFrame * frames.Count;
 
             int rowsNeeded = texelsNeeded / TexelPitch;
-            if (texelsNeeded % TexelPitch != 0)
+            if (rowsNeeded == 0 || texelsNeeded % TexelPitch != 0)
                 rowsNeeded++;
 
             int rowStart = m_textureData.RowStart + m_textureData.RowCount;
-            return new DataBufferSection<FrameData>(rowStart, rowsNeeded, TexelPitch);
+            return new DataBufferSection<FrameData>(rowStart, rowsNeeded, TexelPitch, default);
         }
         
         private DataBufferSection<SectorPlaneData> CreateSectorPlaneData()
@@ -100,7 +101,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             int texelsPerFrame = TexelPitch / SectorPlaneData.TexelSize;
             int texelsNeeded = texelsPerFrame * count;
             int rowsNeeded = texelsNeeded / TexelPitch;
-            if (texelsNeeded % TexelPitch != 0)
+            if (rowsNeeded == 0 || texelsNeeded % TexelPitch != 0)
                 rowsNeeded++;
             
             int rowStart = m_frameData.RowStart + m_frameData.RowCount;
@@ -138,7 +139,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_textureData.Set(index, data);
 
             Vec2I coordinate = GetCoordinateForTexture(index);
-            Texture.Write(coordinate, data, TextureData.TexelSize);
+            Texture.Write(coordinate, data, TextureData.TexelSize, Binding.Bind);
         }
 
         public void SetFrame(int index, FrameData data)

@@ -108,7 +108,7 @@ namespace Helion.Render.OpenGL.Textures
             Vec2F max = box.Max.Float / uvFactor;
             Box2F uvBox = new(min, max);
 
-            GLTextureHandle handle = new(index, layerIndex, box, uvBox, image.Offset, atlasTexture);
+            GLTextureHandle handle = new(name, index, layerIndex, box, uvBox, image.Offset, atlasTexture);
             m_handles.Add(handle);
             m_handlesTracker.Insert(name, image.Namespace, handle);
             m_textureDataBuffer.SetTexture(handle);
