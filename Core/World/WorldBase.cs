@@ -771,9 +771,16 @@ namespace Helion.World
                 return false;
 
             Vec3D thrustVelocity = Vec3D.Zero;
-
             if (source != null && thrust != Thrust.None)
             {
+                Vec3D savePos = source.Position;
+                // Check if the souce is owned by this target and the same position and move to get a valid thrust angle. (player shot missile against wall)
+                if (source.Owner == target && source.Position.XY == target.Position.XY)
+                {
+                    Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
+                    source.SetPosition(move);
+                }
+
                 Vec2D xyDiff = source.Position.XY - target.Position.XY;
                 bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
                 bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
@@ -819,6 +826,8 @@ namespace Helion.World
                 }
 
                 thrustVelocity *= thrustAmount;
+                if (savePos != source.Position)
+                    source.SetPosition(savePos);
             }
 
             bool setPainState = m_random.NextByte() < target.Properties.PainChance;
