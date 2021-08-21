@@ -360,5 +360,21 @@ namespace Helion.Util
                     return i;
             return -1;
         }
+
+        /// <summary>
+        /// Checks if a number is a power of two. Will return false on zero or
+        /// negative numbers.
+        /// </summary>
+        /// <param name="n">The bits to check</param>
+        /// <returns>True if it's a power of two (one bit set), false otherwise.
+        /// </returns>
+        public static bool IsPow2(int n)
+        {
+            // Minus one to make the lower bits all 1, then xor it to get a mask for
+            // the lowest bits, then and by the complement to find out if there's any
+            // bits that are set higher than the rightmost bit we found. If so, then
+            // it's not a power of two. Classic bit twiddling trick.
+            return n > 0 && (n & ~(n ^ (n - 1))) == 0; 
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Textures.Buffer.Data;
@@ -11,21 +12,25 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Textures.Buffer
 {
+    /// <summary>
+    /// A texture buffer that shaders can reference for
+    /// </summary>
     public class GLTextureDataBuffer : IDisposable
     {
+        public const int FloatsPerTexel = 4;
+        public const int BytesPerTexel = FloatsPerTexel * sizeof(float);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly GLTexture2D Texture;
         private readonly IResources m_resources;
         private readonly Dimension m_dimension;
+        private readonly DataBufferSection<TextureData> m_textureData;
+        private readonly DataBufferSection<FrameData> m_frameData;
+        private readonly DataBufferSection<SectorPlaneData> m_sectorData;
         private bool m_disposed;
         private int m_rowMask;
-        private BufferOffset m_textureOffset;
-        private BufferOffset m_entityOffset;
-        private BufferOffset m_sectorPlaneOffset;
 
         private int TexelPitch => m_dimension.Width;
-        private int TexelPitchFloats => TexelPitch * 4;
 
         public GLTextureDataBuffer(IResources resources)
         {
@@ -34,15 +39,20 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             
             m_rowMask = CalculateRowMask(m_dimension.Width);
             Texture = new GLTexture2D("Texture buffer data", m_dimension);
+            Log.Error("ERROR: Using a mipmapped texture buffer");
             m_resources = resources;
-            m_textureOffset = CalculateTextureOffset();
-            m_entityOffset = CalculateFrameOffset(m_textureOffset.RowStart + m_textureOffset.RowCount);
-            m_sectorPlaneOffset = CalculateSectorPlaneOffset(m_entityOffset.RowStart + m_entityOffset.RowCount);
-            
-            UploadAllFrames();
+            m_textureData = CreateTextureData();
+            m_frameData = CreateFrameData();
+            m_sectorData = CreateSectorPlaneData();
         }
-        
-        private static int CalculateRowMask(int widthTexelsPow2) => widthTexelsPow2 - 1; 
+
+        ~GLTextureDataBuffer()
+        {
+            FailedToDispose(this);
+            PerformDispose();
+        }
+
+        private static int CalculateRowMask(int widthTexelsPow2) => widthTexelsPow2 - 1;
 
         private static Dimension CalculateDimension()
         {
@@ -55,79 +65,86 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             return (dim, dim);
         }
         
-        ~GLTextureDataBuffer()
-        {
-            FailedToDispose(this);
-            PerformDispose();
-        }
-
-        private BufferOffset CalculateTextureOffset()
+        private DataBufferSection<TextureData> CreateTextureData()
         {
             // We want a buffer of 2x, since more might get loaded in.
-            int expectedSize =  m_resources.Textures.EstimatedTextureCount * 2;
-            
-            // Each texture is a [float x1, y1, x2, y2; u1, v1, u2, v2], so 2 texels.
-            int numTexels = expectedSize * 2;
-            
-            // Calculate equal or next largest power of two.
-            bool exactFit = numTexels % TexelPitch == 0;
-            int numRows = (numTexels / TexelPitch) + (exactFit ? 0 : 1);
-            
-            // The textures come first, so we start at the first row.
-            return new BufferOffset(0, numRows);
-        }
-        
-        private BufferOffset CalculateFrameOffset(int rowStart)
-        {
-            int frameCount = m_resources.EntityFrameTable.Frames.Count;
-            
-            // Each frame is: [int flags, vec2 offset, float _; vec4 rotTex1234; vec4 rotTex5678], 3 texels.
-            int numTexels = frameCount * 3;
-            
-            bool exactFit = numTexels % TexelPitch == 0;
-            int numRows = (numTexels / TexelPitch) + (exactFit ? 0 : 1);
-            
-            return new BufferOffset(rowStart, numRows);
-        }
-        
-        private BufferOffset CalculateSectorPlaneOffset(int rowStart)
-        {
-            // TODO: [vec4 planeStart; vec4 planeEnd; vec4 rgba; int textureIndex, float lightLevel]
+            int expectedTextures =  m_resources.Textures.EstimatedTextureCount * 2;
+            int texelsPerTexture = TexelPitch / DataBufferSection<TextureData>.TexelSize;
+            int texelsNeeded = texelsPerTexture * expectedTextures;
 
-            // It's up to someone else to populate this.
-            return new BufferOffset(rowStart, 0);
+            int rowsNeeded = texelsNeeded / TexelPitch;
+            if (texelsNeeded % TexelPitch != 0)
+                rowsNeeded++;
+            
+            return new DataBufferSection<TextureData>(0, rowsNeeded, TexelPitch);
         }
         
-        private void UploadAllTextures()
+        private DataBufferSection<FrameData> CreateFrameData()
         {
-            // TODO
+            List<EntityFrame> frames = m_resources.EntityFrameTable.Frames;
+            
+            int texelsPerFrame = TexelPitch / DataBufferSection<FrameData>.TexelSize;
+            int texelsNeeded = texelsPerFrame * frames.Count;
+
+            int rowsNeeded = texelsNeeded / TexelPitch;
+            if (texelsNeeded % TexelPitch != 0)
+                rowsNeeded++;
+
+            int rowStart = m_textureData.RowStart + m_textureData.RowCount;
+            return new DataBufferSection<FrameData>(rowStart, rowsNeeded, TexelPitch);
         }
         
-        private void UploadAllFrames()
+        private DataBufferSection<SectorPlaneData> CreateSectorPlaneData()
         {
-            foreach (EntityFrame frame in m_resources.EntityFrameTable.Frames)
-            {
-                // TODO
-            }
+            // We don't store any right now, we'll make space for a single one
+            // so we allocate at least one row.
+            const int count = 1;
+            
+            int texelsPerFrame = TexelPitch / DataBufferSection<SectorPlaneData>.TexelSize;
+            int texelsNeeded = texelsPerFrame * count;
+            int rowsNeeded = texelsNeeded / TexelPitch;
+            if (texelsNeeded % TexelPitch != 0)
+                rowsNeeded++;
+            
+            int rowStart = m_frameData.RowStart + m_frameData.RowCount;
+            return new DataBufferSection<SectorPlaneData>(rowStart, rowsNeeded, TexelPitch);
         }
 
         public void SetTexture(int index, TextureData data)
         {
-            // TODO: Check if out of range.
+            if (index < 0 || index >= m_textureData.Count)
+            {
+                string errorMsg = $"Trying to write texture out of range of texture buffer: {index} / {m_textureData.Count}";
+                Log.Error(errorMsg);
+                Fail(errorMsg);
+                return;
+            }
             
             // TODO
         }
         
         public void SetFrame(int index, FrameData data)
         {
-            // TODO: Check if out of range.
+            if (index < 0 || index >= m_frameData.Count)
+            {
+                string errorMsg = $"Trying to write frame out of range of texture buffer: {index} / {m_frameData.Count}";
+                Log.Error(errorMsg);
+                Fail(errorMsg);
+                return;
+            }
             
             // TODO
         }
         
-        public void SetSector(int index, SectorData data)
+        public void SetSectorPlane(int index, SectorPlaneData planeData)
         {
-            // TODO: Check if out of range.
+            if (index < 0 || index >= m_sectorData.Count)
+            {
+                string errorMsg = $"Trying to write sector plane out of range of texture buffer: {index} / {m_sectorData.Count}";
+                Log.Error(errorMsg);
+                Fail(errorMsg);
+                return;
+            }
             
             // TODO
         }
