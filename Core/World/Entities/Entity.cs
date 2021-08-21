@@ -30,6 +30,8 @@ namespace Helion.World.Entities
     public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObject
     {
         private const double Speed = 47000 / 65536.0;
+        private const int ForceGibDamage = int.MaxValue;
+        private const int KillDamage = int.MaxValue - 1;
         public const double FloatSpeed = 4.0;
         public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannelType)).Length;
 
@@ -404,7 +406,7 @@ namespace Helion.World.Entities
         }
 
         public void ForceGib() =>
-            Damage(null, int.MaxValue, false, false);
+            Damage(null, ForceGibDamage, false, false);
 
         public void Kill(Entity? source) =>
             Damage(source, Health, false, false);
@@ -565,9 +567,20 @@ namespace Helion.World.Entities
                 }
             }
 
-            damage = ApplyArmorDamage(damage);
+            if (damage == ForceGibDamage)
+            {
+                Health = -Properties.Health - 1;
+            }
+            else if (damage == KillDamage)
+            {
+                Health = 0;
+            }
+            else
+            {
+                damage = ApplyArmorDamage(damage);
+                Health -= damage;
+            }
 
-            Health -= damage;
             ReactionTime = 0;
 
             if (Health <= 0)
