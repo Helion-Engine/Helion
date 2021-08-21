@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Textures.Buffer.Data;
 using Helion.Render.OpenGL.Textures.Types;
@@ -21,14 +23,13 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         public const int BytesPerTexel = FloatsPerTexel * sizeof(float);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly GLTexture2D Texture;
+        public readonly GLTextureBuffer2D Texture;
         private readonly IResources m_resources;
         private readonly Dimension m_dimension;
         private readonly DataBufferSection<TextureData> m_textureData;
         private readonly DataBufferSection<FrameData> m_frameData;
         private readonly DataBufferSection<SectorPlaneData> m_sectorData;
         private bool m_disposed;
-        private int m_rowMask;
 
         private int TexelPitch => m_dimension.Width;
 
@@ -37,9 +38,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_dimension = CalculateDimension();
             Log.Debug($"Creating texture buffer of size {m_dimension}");
             
-            m_rowMask = CalculateRowMask(m_dimension.Width);
-            Texture = new GLTexture2D("Texture buffer data", m_dimension);
-            Log.Error("ERROR: Using a mipmapped texture buffer");
+            Texture = new GLTextureBuffer2D("Texture buffer data", m_dimension);
             m_resources = resources;
             m_textureData = CreateTextureData();
             m_frameData = CreateFrameData();
@@ -51,8 +50,6 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             FailedToDispose(this);
             PerformDispose();
         }
-
-        private static int CalculateRowMask(int widthTexelsPow2) => widthTexelsPow2 - 1;
 
         private static Dimension CalculateDimension()
         {
@@ -69,7 +66,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         {
             // We want a buffer of 2x, since more might get loaded in.
             int expectedTextures =  m_resources.Textures.EstimatedTextureCount * 2;
-            int texelsPerTexture = TexelPitch / DataBufferSection<TextureData>.TexelSize;
+            int texelsPerTexture = TexelPitch / TextureData.TexelSize;
             int texelsNeeded = texelsPerTexture * expectedTextures;
 
             int rowsNeeded = texelsNeeded / TexelPitch;
@@ -83,7 +80,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         {
             List<EntityFrame> frames = m_resources.EntityFrameTable.Frames;
             
-            int texelsPerFrame = TexelPitch / DataBufferSection<FrameData>.TexelSize;
+            int texelsPerFrame = TexelPitch / FrameData.TexelSize;
             int texelsNeeded = texelsPerFrame * frames.Count;
 
             int rowsNeeded = texelsNeeded / TexelPitch;
@@ -98,9 +95,9 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         {
             // We don't store any right now, we'll make space for a single one
             // so we allocate at least one row.
-            const int count = 1;
+            const int count = 1; // TODO
             
-            int texelsPerFrame = TexelPitch / DataBufferSection<SectorPlaneData>.TexelSize;
+            int texelsPerFrame = TexelPitch / SectorPlaneData.TexelSize;
             int texelsNeeded = texelsPerFrame * count;
             int rowsNeeded = texelsNeeded / TexelPitch;
             if (texelsNeeded % TexelPitch != 0)
@@ -109,40 +106,61 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             int rowStart = m_frameData.RowStart + m_frameData.RowCount;
             return new DataBufferSection<SectorPlaneData>(rowStart, rowsNeeded, TexelPitch);
         }
-
-        public void SetTexture(int index, TextureData data)
+        
+        private Vec2I GetCoordinateForTexture(int index)
         {
+            int texelOffset = index * TextureData.TexelSize;
+            int x = texelOffset % TexelPitch;
+            int y = texelOffset / TexelPitch;
+            return (x, y);
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogAndAssertIndexFailure(string dataType, int index, int count)
+        {
+            string errorMsg = $"Trying to write texture out of range of {dataType} buffer: {index} / {count}";
+            Log.Error(errorMsg);
+            Fail(errorMsg);
+        }
+        
+        public void SetTexture(GLTextureHandle handle)
+        {
+            int index = handle.Index;
+            Log.ConditionalTrace("Setting texture buffer with texture {Index}", index);
+            
             if (index < 0 || index >= m_textureData.Count)
             {
-                string errorMsg = $"Trying to write texture out of range of texture buffer: {index} / {m_textureData.Count}";
-                Log.Error(errorMsg);
-                Fail(errorMsg);
+                LogAndAssertIndexFailure("texture", index, m_textureData.Count);
                 return;
             }
             
-            // TODO
+            TextureData data = new(handle.Area.Float, handle.UV);
+            m_textureData.Set(index, data);
+
+            Vec2I coordinate = GetCoordinateForTexture(index);
+            Texture.Write(coordinate, data, TextureData.TexelSize);
         }
-        
+
         public void SetFrame(int index, FrameData data)
         {
+            Log.ConditionalTrace("Setting texture buffer with frame {Index}", index);
+            
             if (index < 0 || index >= m_frameData.Count)
             {
-                string errorMsg = $"Trying to write frame out of range of texture buffer: {index} / {m_frameData.Count}";
-                Log.Error(errorMsg);
-                Fail(errorMsg);
+                LogAndAssertIndexFailure("frame", index, m_frameData.Count);
                 return;
             }
             
             // TODO
         }
         
-        public void SetSectorPlane(int index, SectorPlaneData planeData)
+        public void SetSectorPlane(int index, SectorPlaneData data)
         {
+            Log.ConditionalTrace("Setting texture buffer with sector plane {Index}", index);
+            
             if (index < 0 || index >= m_sectorData.Count)
             {
-                string errorMsg = $"Trying to write sector plane out of range of texture buffer: {index} / {m_sectorData.Count}";
-                Log.Error(errorMsg);
-                Fail(errorMsg);
+                LogAndAssertIndexFailure("sector plane", index, m_sectorData.Count);
                 return;
             }
             

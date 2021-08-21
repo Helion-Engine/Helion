@@ -6,6 +6,8 @@ namespace Helion.Render.OpenGL.Textures.Buffer.Data
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public readonly struct FrameData
     {
+        public static readonly int TexelSize = Marshal.SizeOf<FrameData>() / (sizeof(float) * GLTextureDataBuffer.FloatsPerTexel);
+        
         public readonly float Flags;
         public readonly Vec2F Offset;
         public readonly float Unused3; // Required to align to a power of two and for texels.

@@ -6,6 +6,8 @@ namespace Helion.Render.OpenGL.Textures.Buffer.Data
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public readonly struct TextureData
     {
+        public static readonly int TexelSize = Marshal.SizeOf<TextureData>() / (sizeof(float) * GLTextureDataBuffer.FloatsPerTexel);
+        
         public readonly Box2F Bounds;
         public readonly Box2F UV;
 

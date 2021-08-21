@@ -28,15 +28,17 @@ namespace Helion.Render.OpenGL.Textures
         public GLTextureHandle WhiteHandle { get; }
         public GLFontTexture NullFont { get; }
         private readonly IResources m_resources;
+        private readonly GLTextureDataBuffer m_textureDataBuffer;
         private readonly List<AtlasGLTexture> m_textures = new() { new AtlasGLTexture("Atlas layer 0") };
         private readonly List<GLTextureHandle> m_handles = new();
         private readonly ResourceTracker<GLTextureHandle> m_handlesTracker = new();
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
 
-        public GLTextureManager(IResources resources, GLTextureDataBuffer glTextureDataBuffer)
+        public GLTextureManager(IResources resources, GLTextureDataBuffer textureDataBuffer)
         {
             m_resources = resources;
+            m_textureDataBuffer = textureDataBuffer;
 
             NullHandle = AddNullTexture();
             WhiteHandle = AddWhiteTexture();
@@ -97,17 +99,19 @@ namespace Helion.Render.OpenGL.Textures
             return CreateHandle(name, m_textures.Count - 1, newBox, image, newTexture);
         }
 
-        private GLTextureHandle CreateHandle(string name, int layerIndex, Box2I box, Image image, AtlasGLTexture glTexture)
+        private GLTextureHandle CreateHandle(string name, int layerIndex, Box2I box, Image image, 
+            AtlasGLTexture atlasTexture)
         {
             int index = m_handles.Count;
-            Vec2F uvFactor = glTexture.Dimension.Vector.Float;
+            Vec2F uvFactor = atlasTexture.Dimension.Vector.Float;
             Vec2F min = box.Min.Float / uvFactor;
             Vec2F max = box.Max.Float / uvFactor;
             Box2F uvBox = new(min, max);
 
-            GLTextureHandle handle = new(index, layerIndex, box, uvBox, image.Offset, glTexture);
+            GLTextureHandle handle = new(index, layerIndex, box, uvBox, image.Offset, atlasTexture);
             m_handles.Add(handle);
             m_handlesTracker.Insert(name, image.Namespace, handle);
+            m_textureDataBuffer.SetTexture(handle);
 
             return handle;
         }
@@ -208,7 +212,12 @@ namespace Helion.Render.OpenGL.Textures
 
             Font? font = m_resources.GetFont(fontName);
             if (font == null)
+            {
+                // Cache the null font for the font name provided so lookups
+                // end earlier.
+                m_fontTextures[fontName] = NullFont;
                 return NullFont;
+            }
 
             return AddFontTexture(fontName, font);
         }
@@ -236,6 +245,7 @@ namespace Helion.Render.OpenGL.Textures
             foreach (GLFontTexture fontTexture in m_fontTextures.Values)
                 fontTexture.Dispose();
             m_fontTextures.Clear();
+            NullFont.Dispose();
 
             foreach (AtlasGLTexture texture in m_textures)
                 texture.Dispose();

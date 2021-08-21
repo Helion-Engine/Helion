@@ -56,5 +56,10 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             
             return size;
         }
+
+        public void Set(int index, T data)
+        {
+            m_data[index] = data;
+        }
     }
 }

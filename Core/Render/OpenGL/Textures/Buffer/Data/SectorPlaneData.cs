@@ -8,6 +8,8 @@ namespace Helion.Render.OpenGL.Textures.Buffer.Data
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public readonly struct SectorPlaneData
     {
+        public static readonly int TexelSize = Marshal.SizeOf<SectorPlaneData>() / (sizeof(float) * GLTextureDataBuffer.FloatsPerTexel);
+
         public readonly Vec4F Plane;
         public readonly Vec4F Color;
         public readonly float TextureIndex;
