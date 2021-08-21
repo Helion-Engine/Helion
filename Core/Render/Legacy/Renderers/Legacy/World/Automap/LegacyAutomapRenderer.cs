@@ -211,15 +211,12 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 Vec2D start = line.StartPosition;
                 Vec2D end = line.EndPosition;
 
-                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
-                {
-                    LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(line.Args.Arg3);
-                    if (lockDef != null && FromColor(lockDef.MapColor, out AutomapColor? color))
-                    {
-                        AddLine(color!.Value, start, end);
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
+                    AddLockedLine(line.Args.Arg3, start, end))
                         continue;
-                    }
-                }
+                else if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric && 
+                    AddLockedLine(line.Args.Arg4, start, end))
+                        continue;
                 
                 if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
                 {
@@ -230,13 +227,28 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
                 AddLine((line.HasSpecial && line.Special.IsTeleport()) ? AutomapColor.Green : AutomapColor.Gray, start, end);
             }
+        }
 
-            void AddLine(AutomapColor color, Vec2D start, Vec2D end)
+        private bool AddLockedLine(int keyNumber, in Vec2D start, in Vec2D end)
+        {
+            if (keyNumber == 0)
+                return false;
+
+            LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(keyNumber);
+            if (lockDef != null && FromColor(lockDef.MapColor, out AutomapColor? color))
             {
-                DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
-                array.Add(new vec2((float)start.X, (float)start.Y));
-                array.Add(new vec2((float)end.X, (float)end.Y));
+                AddLine(color!.Value, start, end);
+                return true;
             }
+
+            return false;
+        }
+
+        void AddLine(AutomapColor color, Vec2D start, Vec2D end)
+        {
+            DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
+            array.Add(new vec2((float)start.X, (float)start.Y));
+            array.Add(new vec2((float)end.X, (float)end.Y));
         }
 
         private static bool FromColor(Color color, out AutomapColor? automapColor)
@@ -248,6 +260,10 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 automapColor = AutomapColor.Blue;
             else if (color == Color.Yellow)
                 automapColor = AutomapColor.Yellow;
+            else if (color == Color.Purple)
+                automapColor = AutomapColor.Purple;
+            else if (color == Color.LightBlue)
+                automapColor = AutomapColor.LightBlue;
 
             return automapColor != null;
         }

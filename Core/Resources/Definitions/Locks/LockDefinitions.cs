@@ -99,7 +99,7 @@ namespace Helion.Resources.Definitions.Locks
             {
                 Message = KeyMessage("any"),
                 KeyNumber = 100,
-                MapColor = Color.Purple,
+                MapColor = Color.LightBlue,
             };
             any.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" });
             LockDefs.Add(any);
