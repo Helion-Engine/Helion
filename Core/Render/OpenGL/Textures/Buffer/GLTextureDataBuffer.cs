@@ -41,8 +41,8 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_entityOffset = CalculateEntityOffset(m_textureOffset.RowStart + m_textureOffset.RowCount);
             m_sectorOffset = CalculateSectorOffset(m_entityOffset.RowStart + m_entityOffset.RowCount);
         }
-
-        private static int CalculateRowMask(int widthTexels) => widthTexels - 1; 
+        
+        private static int CalculateRowMask(int widthTexelsPow2) => widthTexelsPow2 - 1; 
 
         private static Dimension CalculateDimension()
         {
