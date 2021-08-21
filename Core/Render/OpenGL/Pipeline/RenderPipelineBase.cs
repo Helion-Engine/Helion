@@ -47,6 +47,14 @@ namespace Helion.Render.OpenGL.Pipeline
         }
 
         /// <summary>
+        /// Clears any state so that it can start from a blank slate.
+        /// </summary>
+        public virtual void Clear()
+        {
+            Vbo.Clear();
+        }
+
+        /// <summary>
         /// Will upload any data that hasn't been uploaded, bind, pass you the
         /// shader so you can set uniforms, and draw. If it's a stream buffer,
         /// the buffer will be cleared afterwards.

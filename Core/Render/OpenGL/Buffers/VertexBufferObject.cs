@@ -40,6 +40,14 @@ namespace Helion.Render.OpenGL.Buffers
             m_uploaded = false;
         }
         
+        public void AddTriangle(TVertex first, TVertex second, TVertex third)
+        {
+            Data.Add(first);
+            Data.Add(second);
+            Data.Add(third);
+            m_uploaded = false;
+        }
+        
         public void AddRange(DynamicArray<TVertex> elements)
         {
             if (elements.Empty())

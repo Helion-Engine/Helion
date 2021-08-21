@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using GlmSharp;
 using Helion.Render.Common.Context;
-using Helion.Render.OpenGL.Buffers;
+using Helion.Render.Common.World;
+using Helion.Render.Common.World.Triangulation;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.World;
+using Helion.World.Geometry.Walls;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -16,6 +19,7 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static.Walls
         private readonly GLTextureManager m_textureManager;
         private readonly GLTextureDataBuffer m_textureDataBuffer;
         private readonly RenderPipeline<GLStaticWallGeometryShader, GLStaticWallGeometryVertex> m_pipeline;
+        private readonly Dictionary<Wall, int> m_wallToVboOffset = new();
         private bool m_disposed;
 
         public GLStaticWallGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
@@ -33,23 +37,39 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static.Walls
         
         public void UpdateTo(IWorld world)
         {
-            VertexBufferObject<GLStaticWallGeometryVertex> vbo = m_pipeline.Vbo;
-            vbo.Clear();
-            
-            // TODO
+            m_pipeline.Clear();
+            m_wallToVboOffset.Clear();
+
+            foreach (Wall wall in world.Walls)
+                AddWall(wall);
         }
-        
+
+        private void AddWall(Wall wall)
+        {
+            var vbo = m_pipeline.Vbo;
+            m_wallToVboOffset[wall] = vbo.Count;
+
+            WallTriangulation wallTriangulation = WallTriangulation.From(wall);
+            StaticWallQuad wallQuad = new(wallTriangulation);
+            
+            vbo.AddTriangle(wallQuad.TopLeft, wallQuad.BottomLeft, wallQuad.TopRight);
+            vbo.AddTriangle(wallQuad.TopRight, wallQuad.BottomLeft, wallQuad.BottomRight);
+        }
+
         public void Render(WorldRenderContext context)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
+            // Note: For now we assume everything is on one texture atlas.
             m_textureManager.GetAtlas(0).Bind();
             
             GL.ActiveTexture(TextureUnit.Texture1);
             m_textureDataBuffer.Texture.Bind();
 
-            m_pipeline.Draw(shader => 
+            m_pipeline.Draw(shader =>
             {
-                shader.Mvp.Set(mat4.Identity);
+                mat4 mvp = ViewMath.Mvp(context);
+                
+                shader.Mvp.Set(mvp);
                 shader.Tex.Set(TextureUnit.Texture0);
                 shader.Data.Set(TextureUnit.Texture1);
             });
