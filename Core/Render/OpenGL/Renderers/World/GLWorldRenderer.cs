@@ -13,6 +13,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.World.Geometry;
 using Helion.Render.OpenGL.Renderers.World.Images;
 using Helion.Render.OpenGL.Renderers.World.Primitives;
+using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.World;
 using static Helion.Util.Assertion.Assert;
 
@@ -26,8 +27,13 @@ namespace Helion.Render.OpenGL.Renderers.World
     {
         private readonly GLPrimitiveWorldRenderer m_primitiveRenderer = new();
         private readonly GLImageWorldRenderer m_imageRenderer = new();
-        private readonly GLGeometryRenderer m_geometryRenderer = new();
+        private readonly GLGeometryRenderer m_geometryRenderer;
         private bool m_disposed;
+
+        public GLWorldRenderer(GLTextureDataBuffer textureDataBuffer)
+        {
+            m_geometryRenderer = new GLGeometryRenderer(textureDataBuffer);
+        }
 
         ~GLWorldRenderer()
         {
@@ -60,7 +66,7 @@ namespace Helion.Render.OpenGL.Renderers.World
         public void FillSpheres(Sphere3D[] spheres, Color color) => m_primitiveRenderer.FillSpheres(spheres, color);
         public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color) => m_imageRenderer.DrawImage(textureHandle, quad, color);
 
-        internal virtual void Render(WorldRenderContext context)
+        internal void Render(WorldRenderContext context)
         {
             m_geometryRenderer.Render(context);
             m_primitiveRenderer.Render(context);
@@ -73,7 +79,7 @@ namespace Helion.Render.OpenGL.Renderers.World
             PerformDispose();
         }
         
-        protected virtual void PerformDispose()
+        private void PerformDispose()
         {
             if (m_disposed)
                 return;

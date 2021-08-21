@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Drawing;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Planes;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Capabilities;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Resources;
+using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -14,34 +19,114 @@ namespace Helion.Render.OpenGL.Textures.Buffer
 
         private readonly GLTexture2D Texture;
         private readonly IResources m_resources;
+        private readonly Dimension m_dimension;
         private bool m_disposed;
+        private int m_rowMask;
+        private BufferOffset m_textureOffset;
+        private BufferOffset m_entityOffset;
+        private BufferOffset m_sectorOffset;
+
+        private int TexelPitch => m_dimension.Width;
+        private int TexelPitchFloats => TexelPitch * 4;
 
         public GLTextureDataBuffer(IResources resources)
         {
-            int dim = Math.Min(4096, GLCapabilities.Limits.MaxTexture2DSize);
-            Dimension dimension = (dim, dim);
+            m_dimension = CalculateDimension();
+            Log.Debug($"Creating texture buffer of size {m_dimension}");
             
-            Texture = new GLTexture2D("Texture buffer data", dimension);
+            m_rowMask = CalculateRowMask(m_dimension.Width);
+            Texture = new GLTexture2D("Texture buffer data", m_dimension);
             m_resources = resources;
-
-            UploadResourceData();
+            m_textureOffset = CalculateTextureOffset();
+            m_entityOffset = CalculateEntityOffset(m_textureOffset.RowStart + m_textureOffset.RowCount);
+            m_sectorOffset = CalculateSectorOffset(m_entityOffset.RowStart + m_entityOffset.RowCount);
         }
 
+        private static int CalculateRowMask(int widthTexels) => widthTexels - 1; 
+
+        private static Dimension CalculateDimension()
+        {
+            int dim = Math.Min(4096, GLCapabilities.Limits.MaxTexture2DSize);
+            Invariant(dim > 0, "Should never have a zero width max size GL texture");
+
+            // Floor to the largest power of two.
+            int highestBit = MathHelper.HighestBitIndex(dim);
+            dim = 1 << highestBit;
+            return (dim, dim);
+        }
+        
         ~GLTextureDataBuffer()
         {
             FailedToDispose(this);
             PerformDispose();
         }
-        
-        private void UploadResourceData()
-        {
-            UploadTextures();
-        }
 
-        private void UploadTextures()
+        private BufferOffset CalculateTextureOffset()
         {
             // We want a buffer of 2x, since more might get loaded in.
             int expectedSize =  m_resources.Textures.EstimatedTextureCount * 2;
+            
+            // Each texture is a [u1, v1, u2, v2], so we'll store it all in one texel.
+            int numTexels = expectedSize;
+            
+            // Calculate equal or next largest power of two.
+            bool exactFit = numTexels % TexelPitch == 0;
+            int numRows = (numTexels / TexelPitch) + (exactFit ? 0 : 1);
+            
+            // The textures come first, so we start at the first row.
+            return new BufferOffset(0, numRows);
+        }
+        
+        private BufferOffset CalculateEntityOffset(int rowStart)
+        {
+            int frameCount = m_resources.EntityFrameTable.Frames.Count;
+            
+            // Each frame is: [texureIndex, offset x, offset y, flags], which goes in one texel.
+            int numTexels = frameCount;
+            
+            bool exactFit = numTexels % TexelPitch == 0;
+            int numRows = (numTexels / TexelPitch) + (exactFit ? 0 : 1);
+            
+            return new BufferOffset(rowStart, numRows);
+        }
+        
+        private BufferOffset CalculateSectorOffset(int rowStart)
+        {
+            // TODO: [vec4 planeStart; vec4 planeEnd; vec4 rgba; int textureIndex, float lightLevel]
+            // 4 texels
+            
+            // It's up to someone else to populate this.
+            return new BufferOffset(rowStart, 0);
+        }
+        
+        private void UploadAllTextures()
+        {
+            // TODO
+        }
+        
+        private void UploadAllFrames()
+        {
+            // TODO
+        }
+
+        public void SetTexture(int index, Box2F textureBounds)
+        {
+            // TODO: Check if out of range.
+            
+            // TODO
+        }
+        
+        public void SetFrame(int index, int textureIndex, Vec2F offset, int flags)
+        {
+            // TODO: Check if out of range.
+            
+            // TODO
+        }
+        
+        public void SetFrame(int index, Plane3D startPlane, Plane3D endPlane, Color color, int textureIndex, 
+            float lightLevel)
+        {
+            // TODO: Check if out of range.
             
             // TODO
         }

@@ -59,9 +59,9 @@ namespace Helion.Render.OpenGL
             InitializeStates(config);
 
             m_textureDataBuffer = new GLTextureDataBuffer(resources);
-            m_textureManager = new GLTextureManager(resources);
+            m_textureManager = new GLTextureManager(resources, m_textureDataBuffer);
             m_hudRenderer = new GLHudRenderer(this, m_textureManager);
-            m_worldRenderer = new GLWorldRenderer();
+            m_worldRenderer = new GLWorldRenderer(m_textureDataBuffer);
             m_defaultSurface = new GLDefaultRenderableSurface(this, m_hudRenderer, m_worldRenderer);
             
             m_surfaces[IRenderableSurface.DefaultName] = m_defaultSurface;
@@ -207,6 +207,8 @@ namespace Helion.Render.OpenGL
             foreach (GLRenderableSurface surface in m_surfaces.Values)
                 surface.Dispose();
             m_surfaces.Clear();
+            
+            m_textureDataBuffer.Dispose();
             
             // Note: This technically gets disposed of twice, but that is okay
             // because the API says it's okay to call it twice. This way if

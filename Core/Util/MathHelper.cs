@@ -346,5 +346,19 @@ namespace Helion.Util
                 return dx + dy - (dx / 2);
             return dx + dy - (dy / 2);
         }
+
+        /// <summary>
+        /// Gets the highest bit index. If there are no bits set (as in n = 0)
+        /// then this returns -1. For example, 0x00000010 would return 4.
+        /// </summary>
+        /// <param name="n">The number to evaluate.</param>
+        /// <returns>The index of the highest bit.</returns>
+        public static int HighestBitIndex(int n)
+        {
+            for (int i = 31; i >= 0; i--)
+                if ((n & (1 << i)) != 0)
+                    return i;
+            return -1;
+        }
     }
 }

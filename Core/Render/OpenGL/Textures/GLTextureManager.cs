@@ -8,6 +8,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -33,7 +34,7 @@ namespace Helion.Render.OpenGL.Textures
         private readonly Dictionary<string, GLFontTexture> m_fontTextures = new(StringComparer.OrdinalIgnoreCase);
         private bool m_disposed;
 
-        public GLTextureManager(IResources resources)
+        public GLTextureManager(IResources resources, GLTextureDataBuffer glTextureDataBuffer)
         {
             m_resources = resources;
 
@@ -51,7 +52,7 @@ namespace Helion.Render.OpenGL.Textures
         private GLTextureHandle AddNullTexture()
         {
             const string NullHandleName = "__NULL";
-            
+
             GLTextureHandle? handle = AddImage(NullHandleName, Image.NullImage, Mipmap.Generate, Binding.Bind);
             return handle ?? throw new Exception("Should never fail to allocate the null texture");
         }
