@@ -78,7 +78,7 @@ namespace Helion.Layer.Worlds
                     m_tickCommand.Add(command, true);
 
             foreach (var (inputKey, command) in m_consumePressedKeys)
-                if (input.ConsumeKeyPressed(inputKey))
+                if (!input.WasPreviouslyPressed(inputKey) && input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command, false);
         }
         

@@ -25,11 +25,12 @@ namespace Helion.Input
 
         private readonly HashSet<Key> m_keysDown;
         private readonly HashSet<Key> m_keysPressed;
+        private readonly HashSet<Key> m_previouslyPressed;
         private string m_typedCharacters;
         private Vec2I m_mouseDelta;
         private int m_mouseScroll;
 
-        internal InputEvent(InputManager manager, IEnumerable<Key> down, IEnumerable<Key> pressed)
+        internal InputEvent(InputManager manager, IEnumerable<Key> down, IEnumerable<Key> pressed, IEnumerable<Key> previouslyPressed)
         {
             Manager = manager;
             m_typedCharacters = manager.TypedCharacters;
@@ -37,7 +38,10 @@ namespace Helion.Input
             m_mouseScroll = manager.MouseScroll;
             m_keysDown = new HashSet<Key>(down);
             m_keysPressed = new HashSet<Key>(pressed);
+            m_previouslyPressed = new HashSet<Key>(previouslyPressed);
         }
+
+        public bool WasPreviouslyPressed(Key key) => m_previouslyPressed.Contains(key);
 
         /// <summary>
         /// Consumes all the input so no later consumer sees anything.
