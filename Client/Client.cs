@@ -83,7 +83,8 @@ namespace Helion.Client
         private void HandleInput()
         {
             InputEvent inputEvent = m_window.InputManager.PollInput();
-            m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
+            if (!m_takeScreenshot)
+                m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
             m_layerManager.HandleInput(inputEvent);
         }
 
@@ -107,7 +108,8 @@ namespace Helion.Client
         {
             if (!m_takeScreenshot)
                 return;
-            
+
+            m_takeScreenshot = false;
             GL.Finish();
             
             // TODO: This should be delegated to the renderer, not done here.
