@@ -72,6 +72,7 @@ namespace Helion.Layer.Worlds
         
         private void HandleMovementInput(InputEvent input)
         {
+            m_tickCommand.Clear();
             foreach (var (inputKey, command) in m_consumeDownKeys)
                 if (input.ConsumeKeyPressedOrDown(inputKey))
                     m_tickCommand.Add(command);
