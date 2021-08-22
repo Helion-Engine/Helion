@@ -20,8 +20,9 @@ namespace Helion.Layer.Consoles
                 AddClipboardToConsole();
             }
 
-            foreach (char c in input.ConsumeTypedCharacters())
+            foreach (char c in input.GetTypedCharacters())
                 m_console.AddInput(c);
+            input.ConsumeTypedCharacters();
 
             if (input.ConsumeKeyPressed(Key.Backspace))
                 m_console.RemoveInputCharacter();

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using Helion.Geometry.Vectors;
 
 namespace Helion.Input
@@ -11,12 +10,18 @@ namespace Helion.Input
     /// </summary>
     public class InputManager
     {
-        private readonly StringBuilder m_typedCharacters = new();
-        private HashSet<Key> m_inputDown = new();
-        private HashSet<Key> m_inputPrevDown = new();
-        private HashSet<Key> m_inputPressed = new();
+        private readonly List<char> m_typedCharacters = new();
+        private readonly InputEvent m_inputEvent;
+        private readonly HashSet<Key> m_inputDown = new();
+        private readonly HashSet<Key> m_inputPrevDown = new();
+        private readonly HashSet<Key> m_inputPressed = new();
         private Vec2D m_mouseMove = Vec2D.Zero;
         private double m_mouseScroll;
+
+        public InputManager()
+        {
+            m_inputEvent = new(this);
+        }
 
         /// <summary>
         /// The mouse scrolling since the last update.
@@ -31,7 +36,7 @@ namespace Helion.Input
         /// <summary>
         /// The characters typed on the keyboard since the last update.
         /// </summary>
-        public string TypedCharacters => m_typedCharacters.ToString();
+        public IEnumerable<char> TypedCharacters => m_typedCharacters;
 
         /// <summary>
         /// Gets a read-only view of all the keys that are down.
@@ -75,8 +80,10 @@ namespace Helion.Input
         {
             m_typedCharacters.Clear();
             m_inputPressed.Clear();
-            m_inputPrevDown = m_inputDown;
-            m_inputDown = new HashSet<Key>(m_inputDown);
+            m_inputPrevDown.Clear();
+            foreach (var key in m_inputDown)
+                m_inputPrevDown.Add(key);
+
             m_mouseMove = Vec2D.Zero;
             m_mouseScroll = 0;
         }
@@ -88,8 +95,8 @@ namespace Helion.Input
             // NOTE: We could avoid allocations from ToString() (since we can't
             // reach inside StringBuilder to check it's contents), but I am not
             // sure if this is called so infrequently that we do not care.
-            if (!m_typedCharacters.ToString().Contains(c) || repeat)
-                m_typedCharacters.Append(c);
+            if (repeat || !m_typedCharacters.Contains(c))
+                m_typedCharacters.Add(c);
         }
 
         private void HandleTypedCharacter(Key key, bool shift, bool repeat)
@@ -355,9 +362,9 @@ namespace Helion.Input
         /// <returns>The event to be consumed.</returns>
         public InputEvent PollInput()
         {
-            InputEvent inputEvent = new(this, m_inputDown, m_inputPressed, m_inputPrevDown);
+            m_inputEvent.Set(m_mouseScroll, m_inputDown, m_inputPressed, m_inputPrevDown);
             ClearStates();
-            return inputEvent;
+            return m_inputEvent;
         }
     }
 }

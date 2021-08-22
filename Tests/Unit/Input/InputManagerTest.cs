@@ -17,12 +17,12 @@ namespace Helion.Tests.Unit.Input
             
             inputManager.IsKeyDown(Key.Hash).Should().BeTrue();
             inputManager.IsKeyUp(Key.Hash).Should().BeFalse();
-            inputManager.TypedCharacters.Should().Be("#");
+            inputManager.TypedCharacters.Should().Equal(new char[] { '#' });
             inputManager.KeysDown.Should().Contain(Key.Hash);
 
             InputEvent inputEvent = inputManager.PollInput();
             inputEvent.ConsumeKeyPressed(Key.Hash).Should().BeTrue();
-            inputEvent.ConsumeTypedCharacters().Should().Be("#");
+            inputEvent.GetTypedCharacters().Should().Equal(new char[] { '#' });
         }
      
         [Fact(DisplayName = "Set key up (same as clearing)")]
@@ -52,9 +52,9 @@ namespace Helion.Tests.Unit.Input
             inputManager.SetKeyDown(Key.One);
             
             inputManager.IsKeyDown(Key.One).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("1");
+            inputManager.TypedCharacters.Should().Equal(new char[] { '1' });
             inputManager.KeysDown.Should().Contain(Key.One);
-            inputManager.PollInput().ConsumeTypedCharacters().Should().Be("1");
+            inputManager.PollInput().GetTypedCharacters().Should().Equal(new char[] { '1' });
         }
 
         [Fact(DisplayName = "Set key down with character")]
@@ -65,9 +65,9 @@ namespace Helion.Tests.Unit.Input
             inputManager.SetKeyDown(Key.B);
             
             inputManager.IsKeyDown(Key.B).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("b");
+            inputManager.TypedCharacters.Should().Equal(new char[] { 'b' });
             inputManager.KeysDown.Should().Contain(Key.B);
-            inputManager.PollInput().ConsumeTypedCharacters().Should().Be("b");
+            inputManager.PollInput().GetTypedCharacters().Should().Equal(new char[] { 'b' });
         }
 
         [Fact(DisplayName = "Set key down with capital character")]
@@ -78,9 +78,9 @@ namespace Helion.Tests.Unit.Input
             inputManager.SetKeyDown(Key.B, true);
             
             inputManager.IsKeyDown(Key.B).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("B");
+            inputManager.TypedCharacters.Should().Equal(new char[] { 'B' });
             inputManager.KeysDown.Should().Contain(Key.B);
-            inputManager.PollInput().ConsumeTypedCharacters().Should().Be("B");
+            inputManager.PollInput().GetTypedCharacters().Should().Equal(new char[] { 'B' });
         }
 
         [Fact(DisplayName = "Set key down with character and repeating")]
@@ -90,17 +90,17 @@ namespace Helion.Tests.Unit.Input
             
             inputManager.SetKeyDown(Key.A);
             inputManager.IsKeyDown(Key.A).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("a");
+            inputManager.TypedCharacters.Should().Equal(new char[] { 'a' });
             
             // This should not add any characters since it's not 'repeat'.
             inputManager.SetKeyDown(Key.A);
             inputManager.IsKeyDown(Key.A).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("a");
-            
+            inputManager.TypedCharacters.Should().Equal(new char[] { 'a' });
+
             // Now we repeat, so it should appear twice.
             inputManager.SetKeyDown(Key.A, false, true);
             inputManager.IsKeyDown(Key.A).Should().BeTrue();
-            inputManager.TypedCharacters.Should().Be("aa");
+            inputManager.TypedCharacters.Should().Equal(new char[] { 'a', 'a' });
         }
         
         [Fact(DisplayName = "Checks for pressed keys")]

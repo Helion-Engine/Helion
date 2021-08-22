@@ -23,22 +23,36 @@ namespace Helion.Input
         /// </summary>
         public readonly InputManager Manager;
 
-        private readonly HashSet<Key> m_keysDown;
-        private readonly HashSet<Key> m_keysPressed;
-        private readonly HashSet<Key> m_previouslyPressed;
-        private string m_typedCharacters;
+        private readonly HashSet<Key> m_keysDown = new();
+        private readonly HashSet<Key> m_keysPressed = new();
+        private readonly HashSet<Key> m_previouslyPressed = new();
+        private readonly List<char> m_typedCharacters = new();
         private Vec2I m_mouseDelta;
-        private int m_mouseScroll;
+        private double m_mouseScroll;
 
-        internal InputEvent(InputManager manager, IEnumerable<Key> down, IEnumerable<Key> pressed, IEnumerable<Key> previouslyPressed)
+        internal InputEvent(InputManager manager)
         {
             Manager = manager;
-            m_typedCharacters = manager.TypedCharacters;
-            m_mouseDelta = manager.MouseMove;
-            m_mouseScroll = manager.MouseScroll;
-            m_keysDown = new HashSet<Key>(down);
-            m_keysPressed = new HashSet<Key>(pressed);
-            m_previouslyPressed = new HashSet<Key>(previouslyPressed);
+        }
+
+        public void Set(double mouseScroll, IEnumerable<Key> down, IEnumerable<Key> pressed, IEnumerable<Key> previouslyPressed)
+        {
+            m_mouseDelta = Manager.MouseMove;
+            m_mouseScroll = mouseScroll;
+
+            m_typedCharacters.Clear();
+            m_keysDown.Clear();
+            m_keysPressed.Clear();
+            m_previouslyPressed.Clear();
+
+            foreach (char c in Manager.TypedCharacters)
+                m_typedCharacters.Add(c);
+            foreach (var key in down)
+                m_keysDown.Add(key);
+            foreach (var key in pressed)
+                m_keysPressed.Add(key);
+            foreach (var key in previouslyPressed)
+                m_previouslyPressed.Add(key);
         }
 
         public bool WasPreviouslyPressed(Key key) => m_previouslyPressed.Contains(key);
@@ -50,7 +64,7 @@ namespace Helion.Input
         {
             m_keysDown.Clear();
             m_keysPressed.Clear();
-            m_typedCharacters = "";
+            m_typedCharacters.Clear();
             m_mouseDelta = Vec2I.Zero;
             m_mouseScroll = 0;
         }
@@ -101,9 +115,9 @@ namespace Helion.Input
         /// </summary>
         /// <returns>The mouse scroll movement, or an zero value result if it
         /// was already consumed.</returns>
-        public int ConsumeMouseScroll()
+        public double ConsumeMouseScroll()
         {
-            int scroll = m_mouseScroll;
+            double scroll = m_mouseScroll;
             m_mouseScroll = 0;
             return scroll;
         }
@@ -111,19 +125,16 @@ namespace Helion.Input
         /// <summary>
         /// Consumes the typed characters.
         /// </summary>
-        /// <returns>The typed characters, or null if there are none.</returns>
-        public string ConsumeTypedCharacters()
+        public void ConsumeTypedCharacters()
         {
-            string typedChars = m_typedCharacters;
-            m_typedCharacters = "";
-            return typedChars;
+            m_typedCharacters.Clear();
         }
 
         /// <summary>
         /// Gets the typed characters.
         /// </summary>
         /// <returns>The typed characters, or null if there are none.</returns>
-        public string GetTypedCharacters() =>  m_typedCharacters;
+        public List<char> GetTypedCharacters() =>  m_typedCharacters;
 
         /// <summary>
         /// Consumes all letters provided. Intended so that capitals can be
@@ -141,7 +152,7 @@ namespace Helion.Input
                 if (!m_typedCharacters.Contains(letter))
                     continue;
 
-                m_typedCharacters = m_typedCharacters.Trim(letter);
+                m_typedCharacters.RemoveAll(x => x == letter);
                 found = true;
             }
 
