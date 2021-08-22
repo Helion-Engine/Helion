@@ -46,34 +46,7 @@ namespace Helion.Util.Container
 
             Data = new T[Math.Max(1, capacity)];
         }
-        
-        /// <summary>
-        /// Fills the array with the value provided.
-        /// </summary>
-        /// <param name="capacity">The predetermined max amount of space before
-        /// it would resize when adding more.</param>
-        /// <param name="fillSize">How many items to fill. This will be capped
-        /// to the capacity.</param>
-        /// <param name="fillItem">The item to fill from index zero up until
-        /// fillSize.</param>
-        public DynamicArray(int capacity, int fillSize, T fillItem)
-        {
-            Precondition(capacity > 0, "Must have a positive capacity");
-            Precondition(fillSize > 0, "Must have a positive fill size");
 
-            Data = new T[Math.Max(1, capacity)];
-
-            int amount = Math.Min(fillSize, capacity);
-            for (int i = 0; i < amount; i++)
-                Data[i] = fillItem;
-        }
-
-        /// <summary>
-        /// Accesses the element at the provided index.
-        /// </summary>
-        /// <param name="index">The index to get/set.</param>
-        /// <exception cref="IndexOutOfRangeException">If the index is out of
-        /// range.</exception>
         public T this[int index]
         {
             get => Data[index];
@@ -94,23 +67,14 @@ namespace Helion.Util.Container
             Length = 0;
         }
 
-        /// <summary>
-        /// Adds a new element to the array, and resizes if full. Amortized
-        /// insertion time is O(1).
-        /// </summary>
-        /// <param name="element">The element to add.</param>
         public void Add(T element)
         {
             if (Length == Capacity)
-                Resize(Capacity * 2);
+                SetCapacity(Capacity * 2);
 
             Data[Length++] = element;
         }
 
-        /// <summary>
-        /// Adds a series of elements efficiently to the dynamic array.
-        /// </summary>
-        /// <param name="elements">The elements to add.</param>
         public void Add(params T[] elements)
         {
             EnsureCapacity(Length + elements.Length);
@@ -128,10 +92,6 @@ namespace Helion.Util.Container
             Length += elements.Length;
         }
         
-        /// <summary>
-        /// Adds elements to the array.
-        /// </summary>
-        /// <param name="elements">The elements to add.</param>
         public void AddRange(IList<T> elements)
         {
             EnsureCapacity(Length + elements.Count);
@@ -141,11 +101,7 @@ namespace Helion.Util.Container
 
             Length += elements.Count;
         }
-        
-        /// <summary>
-        /// Adds elements to the array.
-        /// </summary>
-        /// <param name="elements">The elements to add.</param>
+
         public void AddRange(DynamicArray<T> elements)
         {
             EnsureCapacity(Length + elements.Length);
@@ -157,8 +113,18 @@ namespace Helion.Util.Container
         }
 
         /// <summary>
-        /// Removes the last element, if any.
+        /// Resizes to fit the exact size given. Will copy the elements over and
+        /// fill the remaining with default values. If smaller, will shrink the
+        /// array and lose any values that are beyond the size.
         /// </summary>
+        /// <param name="size">The new size to use. Should never be negative.
+        /// </param>
+        public void Resize(int size)
+        {
+            SetCapacity(size);
+            Length = size;
+        }
+        
         public void RemoveLast()
         {
             if (Length > 0)
@@ -172,7 +138,7 @@ namespace Helion.Util.Container
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         private void EnsureCapacity(int desiredCapacity)
         {
             Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");
@@ -191,10 +157,10 @@ namespace Helion.Util.Container
                 while (newCapacity < desiredCapacity)
                     newCapacity *= 2;
 
-            Resize(newCapacity);
+            SetCapacity(newCapacity);
         }
         
-        private void Resize(int newCapacity)
+        private void SetCapacity(int newCapacity)
         {
             T[] newData = new T[newCapacity];
             Array.Copy(Data, newData, Data.Length);

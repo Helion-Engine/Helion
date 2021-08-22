@@ -77,7 +77,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             if (rowsNeeded == 0 || texelsNeeded % TexelPitch != 0)
                 rowsNeeded++;
             
-            return new DataBufferSection<TextureData>(0, rowsNeeded, TexelPitch, default);
+            return new DataBufferSection<TextureData>(0, rowsNeeded, TexelPitch, true);
         }
         
         private DataBufferSection<FrameData> CreateFrameData()
@@ -92,7 +92,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
                 rowsNeeded++;
 
             int rowStart = m_textureData.RowStart + m_textureData.RowCount;
-            return new DataBufferSection<FrameData>(rowStart, rowsNeeded, TexelPitch, default);
+            return new DataBufferSection<FrameData>(rowStart, rowsNeeded, TexelPitch, true);
         }
         
         private DataBufferSection<SectorPlaneData> CreateSectorPlaneData()

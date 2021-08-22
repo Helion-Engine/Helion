@@ -8,7 +8,6 @@ namespace Helion.Resources.Textures
         public const int NoTextureIndex = 0;
         
         public Texture NullTexture { get; }
-        public int EstimatedTextureCount { get; }
         private readonly IResources m_resources;
         private readonly ResourceTracker<Texture> m_textureTracker = new();
         private readonly List<Texture> m_textures = new();

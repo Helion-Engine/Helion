@@ -27,7 +27,7 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         public int Count => m_data.Length;
         public T[] Data => m_data.Data;
 
-        public DataBufferSection(int rowStart, int rowCount, int rowTexelPitch)
+        public DataBufferSection(int rowStart, int rowCount, int rowTexelPitch, bool resizeInitial = false)
         {
             Precondition(IsPow2(rowTexelPitch), "Row texel pitch must be a power of two");
 
@@ -38,13 +38,9 @@ namespace Helion.Render.OpenGL.Textures.Buffer
             m_texelsPerElement = StructSize / BytesPerTexel;
             m_maxElementsAllowed = rowCount * m_elementsPerRow;
             m_data = new DynamicArray<T>(m_maxElementsAllowed);
-        }
-        
-        public DataBufferSection(int rowStart, int rowCount, int rowTexelPitch, T fillValue) :
-            this(rowStart, rowCount, rowTexelPitch)
-        {
-            for (int i = 0; i < m_maxElementsAllowed; i++)
-                m_data.Add(fillValue);
+            
+            if (resizeInitial)
+                m_data.Resize(m_maxElementsAllowed);
         }
 
         private static int GetSizeOrThrowIfNotPow2()
