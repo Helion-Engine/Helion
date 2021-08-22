@@ -355,7 +355,7 @@ namespace Helion.Input
         /// <returns>The event to be consumed.</returns>
         public InputEvent PollInput()
         {
-            InputEvent inputEvent = new(this, m_inputDown, m_inputPressed);
+            InputEvent inputEvent = new(this, m_inputDown, m_inputPressed, m_inputPrevDown);
             ClearStates();
             return inputEvent;
         }
