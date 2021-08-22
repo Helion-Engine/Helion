@@ -9,7 +9,6 @@ using Helion.Geometry.Triangles;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
-using Helion.Render.Common.Textures;
 using Helion.Render.Common.World;
 using Helion.Render.Legacy.Commands;
 using Helion.World;
@@ -157,7 +156,12 @@ namespace Helion.Render.Legacy
             // Not implemented in the legacy renderer.
         }
 
-        public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color)
+        public void DrawImage(string texture, Quad3D quad, Color? color = null)
+        {
+            // Not implemented in the legacy renderer.
+        }
+        
+        public void DrawSurface(string surfaceName, Quad3D quad, Color? color = null)
         {
             // Not implemented in the legacy renderer.
         }

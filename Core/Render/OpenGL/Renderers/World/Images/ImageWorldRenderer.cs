@@ -27,7 +27,12 @@ namespace Helion.Render.OpenGL.Renderers.World.Images
             PerformDispose();
         }
 
-        public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color)
+        public void DrawImage(string texture, Quad3D quad, Color? color = null)
+        {
+            // TODO
+        }
+        
+        public void DrawSurface(string surfaceName, Quad3D quad, Color? color = null)
         {
             // TODO
         }
