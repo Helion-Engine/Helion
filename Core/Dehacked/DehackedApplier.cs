@@ -1,6 +1,7 @@
 ﻿using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.Language;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
@@ -32,6 +33,7 @@ namespace Helion.Dehacked
             ApplyCheats(dehacked);
 
             ApplyBexText(dehacked, definitionEntries.Language);
+            ApplyBexPars(dehacked, definitionEntries.MapInfoDefinition);
 
             RemoveLabels.Clear();
         }
@@ -535,6 +537,24 @@ namespace Helion.Dehacked
             {
                 if (!language.SetValue(text.Mnemonic, text.Value))
                     Log.Warn($"Unknown bex string mnemonic:{text.Mnemonic}");
+            }
+        }
+
+        private static void ApplyBexPars(DehackedDefinition dehacked, MapInfoDefinition mapInfoDefinition)
+        {
+            foreach (var par in dehacked.BexPars)
+            {
+                string mapName;
+                if (par.Episode.HasValue)
+                    mapName = $"e{par.Episode.Value}m{par.Map}";
+                else
+                    mapName = $"map{par.Map.ToString().PadLeft(2, '0')}";
+
+                MapInfoDef? mapInfo = mapInfoDefinition.MapInfo.GetMap(mapName);
+                if (mapInfo == null)
+                    Log.Warn($"Failed to find map{mapName} for par.");
+                else
+                    mapInfo.ParTime = par.Par;
             }
         }
 

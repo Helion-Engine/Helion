@@ -19,6 +19,7 @@ namespace Helion.Dehacked
         public readonly List<DehackedPointer> Pointers = new();
 
         public readonly List<BexString> BexStrings = new();
+        public readonly List<BexPar> BexPars = new();
 
         public DehackedCheat? Cheat { get; private set; }
         public int DoomVersion { get; private set; }
@@ -62,6 +63,8 @@ namespace Helion.Dehacked
                     ParseBexText(parser);
                 else if (item.Equals(BexPointerName, StringComparison.OrdinalIgnoreCase))
                     ParseBexPointer(parser);
+                else if (item.Equals(BexParName, StringComparison.OrdinalIgnoreCase))
+                    ParseBexPar(parser);
                 else
                     UnknownWarning(parser, "type");
             }
@@ -355,11 +358,8 @@ namespace Helion.Dehacked
             parser.ConsumeString();
             StringBuilder sb = new();
 
-            while (!IsBlockComplete(parser))
+            while (!IsBlockComplete(parser, isBex: true))
             {
-                if (string.IsNullOrEmpty(parser.PeekString()))
-                    break;
-
                 BexString bexString = new();
                 sb.Length = 0;
 
@@ -384,6 +384,28 @@ namespace Helion.Dehacked
             }
         }
 
+        private void ParseBexPar(SimpleParser parser)
+        {
+            parser.ConsumeString();
+
+            while (!IsBlockComplete(parser, isBex: true))
+            {
+                parser.ConsumeString("par");
+                int line = parser.GetCurrentLine();
+                int item1 = parser.ConsumeInteger();
+                int item2 = parser.ConsumeInteger();
+                int? item3 = null;
+
+                if (parser.GetCurrentLine() == line)
+                    item3 = parser.ConsumeInteger();
+
+                if (item3.HasValue)
+                    BexPars.Add(new BexPar() { Episode = item1, Map = item2, Par = item3.Value });
+                else
+                    BexPars.Add(new BexPar() { Map = item1, Par = item2 });
+            }
+        }
+
         private bool IsBexPointerBlockComplete(SimpleParser parser)
         {
             if (parser.PeekString(0, out string? frame) && parser.PeekString(2, out string? equal)
@@ -395,16 +417,20 @@ namespace Helion.Dehacked
             return true;
         }
 
-        private bool IsBlockComplete(SimpleParser parser)
+        private bool IsBlockComplete(SimpleParser parser, bool isBex = false)
         {
             if (parser.IsDone())
                 return true;
 
-            if (BexBaseTypes.Contains(parser.PeekString()))
+            string peek = parser.PeekString();
+            if (isBex && string.IsNullOrEmpty(peek))
+                return true;
+
+            if (BexBaseTypes.Contains(peek))
                 return true;
 
             // Dehacked base types are all proceeded by a number, check to not confuse with random text
-            if (BaseTypes.Contains(parser.PeekString()) && parser.PeekString(1, out string? data) &&
+            if (BaseTypes.Contains(peek) && parser.PeekString(1, out string? data) &&
                 int.TryParse(data, out _))
                 return true;
 
