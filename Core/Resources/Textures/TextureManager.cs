@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Helion.Graphics;
 
 namespace Helion.Resources.Textures
@@ -24,15 +23,6 @@ namespace Helion.Resources.Textures
         {
             m_resources = resources;
             NullTexture = CreateAndTrackTexture("Null", ResourceNamespace.Global, Image.NullImage);
-            EstimatedTextureCount = CalculateEstimatedTextureCount(resources);
-        }
-
-        private int CalculateEstimatedTextureCount(IResources resources)
-        {
-            return resources.GetEntriesByNamespace(ResourceNamespace.Sprites).Count() +
-                   resources.GetEntriesByNamespace(ResourceNamespace.Flats).Count() +
-                   resources.TextureDefinitions.CountAll() +
-                   m_textures.Count;
         }
 
         /// <summary>

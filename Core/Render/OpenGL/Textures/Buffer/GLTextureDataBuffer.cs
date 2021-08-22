@@ -65,8 +65,11 @@ namespace Helion.Render.OpenGL.Textures.Buffer
         
         private DataBufferSection<TextureData> CreateTextureData()
         {
-            // We want a buffer of 2x, since more might get loaded in.
-            int expectedTextures =  m_resources.Textures.EstimatedTextureCount * 2;
+            // Because texture counts are not loaded when we create this, and
+            // because we know we have at least 2048^2 texels at a minimum, we
+            // can assume 32k textures safely. In the future we can make this
+            // dynamic, but this will be sufficient for now.
+            const int expectedTextures =  32 * 1024;
             int texelsPerTexture = TexelPitch / TextureData.TexelSize;
             int texelsNeeded = texelsPerTexture * expectedTextures;
 
