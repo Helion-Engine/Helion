@@ -1,13 +1,14 @@
 ﻿using Helion.Render.OpenGL.Shaders;
 using Helion.Render.OpenGL.Shaders.Uniforms;
 
-namespace Helion.Render.OpenGL.Renderers.World.Images
+namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static.Walls
 {
-    public class GLImageWorldShader : ShaderProgram
+    public class StaticWallShader : ShaderProgram
     {
-        public readonly UniformInt Tex = new();
         public readonly UniformMatrix4 Mvp = new();
-        
+        public readonly UniformTexture Tex = new();
+        public readonly UniformTexture Data = new();
+
         protected override string VertexShader()
         {
             return @"
@@ -15,17 +16,14 @@ namespace Helion.Render.OpenGL.Renderers.World.Images
 
                 attribute vec3 pos;
                 attribute vec2 uv;
-                attribute vec4 color;
 
                 varying vec2 uvFrag;
-                varying vec4 colorFrag;
 
                 uniform mat4 mvp;
 
-                void main() {
+                void main() {    
                     gl_Position = mvp * vec4(pos.x, pos.y, pos.z, 1.0);
                     uvFrag = uv;
-                    colorFrag = color;
                 }
             ";
         }
@@ -36,12 +34,13 @@ namespace Helion.Render.OpenGL.Renderers.World.Images
                 #version 110
 
                 varying vec2 uvFrag;
-                varying vec4 colorFrag;
 
                 uniform sampler2D tex;
+                uniform sampler2D data;
 
                 void main() {
-                    gl_FragColor = texture2D(tex, uvFrag) * colorFrag;
+                    gl_FragColor = texture2D(tex, uvFrag);
+                    gl_FragColor += texture2D(data, uvFrag);
                 }
             ";
         }

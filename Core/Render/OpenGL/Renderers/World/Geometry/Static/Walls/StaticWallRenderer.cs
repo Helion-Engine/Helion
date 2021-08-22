@@ -14,22 +14,22 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static.Walls
 {
-    public class GLStaticWallGeometryRenderer : IDisposable
+    public class StaticWallRenderer : IDisposable
     {
         private readonly GLTextureManager m_textureManager;
         private readonly GLTextureDataBuffer m_textureDataBuffer;
-        private readonly RenderPipeline<GLStaticWallGeometryShader, GLStaticWallGeometryVertex> m_pipeline;
+        private readonly RenderPipeline<StaticWallShader, StaticWallVertex> m_pipeline;
         private readonly Dictionary<Wall, int> m_wallToVboOffset = new();
         private bool m_disposed;
 
-        public GLStaticWallGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
+        public StaticWallRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
             m_textureManager = textureManager;
             m_textureDataBuffer = textureDataBuffer;
             m_pipeline = new("Static geometry (walls)", BufferUsageHint.DynamicDraw, PrimitiveType.Triangles);
         }
         
-        ~GLStaticWallGeometryRenderer()
+        ~StaticWallRenderer()
         {
             FailedToDispose(this);
             PerformDispose();

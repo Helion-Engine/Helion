@@ -4,10 +4,10 @@ namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static.Walls
 {
     public readonly struct StaticWallQuad
     {
-        public readonly GLStaticWallGeometryVertex TopLeft;
-        public readonly GLStaticWallGeometryVertex TopRight;
-        public readonly GLStaticWallGeometryVertex BottomLeft;
-        public readonly GLStaticWallGeometryVertex BottomRight;
+        public readonly StaticWallVertex TopLeft;
+        public readonly StaticWallVertex TopRight;
+        public readonly StaticWallVertex BottomLeft;
+        public readonly StaticWallVertex BottomRight;
 
         public StaticWallQuad(WallTriangulation triangulation)
         {

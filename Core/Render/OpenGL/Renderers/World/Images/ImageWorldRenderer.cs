@@ -10,24 +10,29 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Images
 {
-    public class GLImageWorldRenderer : IDisposable
+    public class ImageWorldRenderer : IDisposable
     {
-        private readonly RenderPipeline<GLImageWorldShader, GLImageWorldVertex> m_pipeline;
+        private readonly RenderPipeline<ImageWorldShader, ImageWorldVertex> m_pipeline;
         private bool m_disposed;
 
-        public GLImageWorldRenderer()
+        public ImageWorldRenderer()
         {
-            m_pipeline = new RenderPipeline<GLImageWorldShader, GLImageWorldVertex>(
+            m_pipeline = new RenderPipeline<ImageWorldShader, ImageWorldVertex>(
                 "World image primitives", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
         }
 
-        ~GLImageWorldRenderer()
+        ~ImageWorldRenderer()
         {
             FailedToDispose(this);
             PerformDispose();
         }
 
-        public void DrawImage(IRenderableTextureHandle textureHandle, Quad3D quad, Color? color)
+        public void DrawImage(string texture, Quad3D quad, Color? color = null)
+        {
+            // TODO
+        }
+        
+        public void DrawSurface(string surfaceName, Quad3D quad, Color? color = null)
         {
             // TODO
         }

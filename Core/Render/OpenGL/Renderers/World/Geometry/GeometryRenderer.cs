@@ -8,18 +8,18 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Geometry
 {
-    public class GLGeometryRenderer : IGLWorldRenderer
+    public class GeometryRenderer : IGLWorldRenderer
     {
-        private readonly GLStaticGeometryRenderer m_staticGeometry;
+        private readonly StaticGeometryRenderer m_staticGeometry;
         private WeakReference<IWorld>? m_world;
         private bool m_disposed;
 
-        public GLGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
+        public GeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
-            m_staticGeometry = new GLStaticGeometryRenderer(textureManager, textureDataBuffer);
+            m_staticGeometry = new StaticGeometryRenderer(textureManager, textureDataBuffer);
         }
 
-        ~GLGeometryRenderer()
+        ~GeometryRenderer()
         {
             FailedToDispose(this);
             PerformDispose();
