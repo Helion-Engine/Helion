@@ -1,6 +1,5 @@
 ﻿using GlmSharp;
 using Helion.Render.Common.Context;
-using Helion.Render.Legacy.Shared;
 using Helion.Util;
 
 namespace Helion.Render.Common.World
