@@ -313,6 +313,7 @@ namespace Helion.World
                         continue;
 
                     player.HandleTickCommand();
+                    player.TickCommand.TickHandled();
 
                     if (player.Sector.SectorDamageSpecial != null)
                         player.Sector.SectorDamageSpecial.Tick(player);

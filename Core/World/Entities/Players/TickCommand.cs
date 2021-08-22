@@ -5,6 +5,8 @@ namespace Helion.World.Entities.Players
     public class TickCommand
     {
         private readonly HashSet<TickCommands> m_commands = new();
+        private readonly List<TickCommands> m_tickCommands = new();
+        private readonly List<TickCommands> m_instantCommands = new();
 
         public double AngleTurn { get; set; }
         public double PitchTurn { get; set; }
@@ -15,18 +17,31 @@ namespace Helion.World.Entities.Players
 
         public void Clear()
         {
+            for (int i = 0; i < m_instantCommands.Count; i++)
+                m_commands.Remove(m_instantCommands[i]);
+        }
+
+        public void TickHandled()
+        {
             AngleTurn = 0;
             PitchTurn = 0;
             MouseAngle = 0;
             MousePitch = 0;
             ForwardMoveSpeed = 0;
             SideMoveSpeed = 0;
-            m_commands.Clear();
+
+            for (int i = 0; i < m_tickCommands.Count; i++)
+                m_commands.Remove(m_tickCommands[i]);
         }
 
-        public void Add(TickCommands command)
+        public void Add(TickCommands command, bool isInstant)
         {
             m_commands.Add(command);
+
+            if (isInstant)
+                m_instantCommands.Add(command);
+            else
+                m_tickCommands.Add(command);
         }
 
         public bool Has(TickCommands command) => m_commands.Contains(command);
