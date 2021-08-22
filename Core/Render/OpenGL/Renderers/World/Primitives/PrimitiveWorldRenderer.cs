@@ -14,21 +14,21 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Primitives
 {
-    public class GLPrimitiveWorldRenderer : IDisposable
+    public class PrimitiveWorldRenderer : IDisposable
     {
-        private readonly RenderPipeline<GLPrimitiveWorldShader, GLPrimitiveWorldVertex> m_linePipeline;
-        private readonly RenderPipeline<GLPrimitiveWorldShader, GLPrimitiveWorldVertex> m_trianglePipeline;
+        private readonly RenderPipeline<PrimitiveWorldShader, PrimitiveWorldVertex> m_linePipeline;
+        private readonly RenderPipeline<PrimitiveWorldShader, PrimitiveWorldVertex> m_trianglePipeline;
         private bool m_disposed;
 
-        public GLPrimitiveWorldRenderer()
+        public PrimitiveWorldRenderer()
         {
-            m_linePipeline = new RenderPipeline<GLPrimitiveWorldShader, GLPrimitiveWorldVertex>(
+            m_linePipeline = new RenderPipeline<PrimitiveWorldShader, PrimitiveWorldVertex>(
                 "World line primitives", BufferUsageHint.StreamDraw, PrimitiveType.Lines);
-            m_trianglePipeline = new RenderPipeline<GLPrimitiveWorldShader, GLPrimitiveWorldVertex>(
+            m_trianglePipeline = new RenderPipeline<PrimitiveWorldShader, PrimitiveWorldVertex>(
                 "World triangle primitives", BufferUsageHint.StreamDraw, PrimitiveType.Triangles);
         }
 
-        ~GLPrimitiveWorldRenderer()
+        ~PrimitiveWorldRenderer()
         {
             FailedToDispose(this);
             PerformDispose();

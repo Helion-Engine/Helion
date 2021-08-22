@@ -26,14 +26,14 @@ namespace Helion.Render.OpenGL.Renderers.World
     /// </summary>
     public class GLWorldRenderer : IWorldRenderContext
     {
-        private readonly GLPrimitiveWorldRenderer m_primitiveRenderer = new();
-        private readonly GLImageWorldRenderer m_imageRenderer = new();
-        private readonly GLGeometryRenderer m_geometryRenderer;
+        private readonly PrimitiveWorldRenderer m_primitiveRenderer = new();
+        private readonly ImageWorldRenderer m_imageRenderer = new();
+        private readonly GeometryRenderer m_geometryRenderer;
         private bool m_disposed;
 
         public GLWorldRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
-            m_geometryRenderer = new GLGeometryRenderer(textureManager, textureDataBuffer);
+            m_geometryRenderer = new GeometryRenderer(textureManager, textureDataBuffer);
         }
 
         ~GLWorldRenderer()

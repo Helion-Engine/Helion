@@ -8,17 +8,17 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.World.Geometry.Static
 {
-    public class GLStaticGeometryRenderer : IDisposable
+    public class StaticGeometryRenderer : IDisposable
     {
-        private readonly GLStaticWallGeometryRenderer m_wallRenderer;
+        private readonly StaticWallRenderer m_wallRenderer;
         private bool m_disposed;
 
-        public GLStaticGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
+        public StaticGeometryRenderer(GLTextureManager textureManager, GLTextureDataBuffer textureDataBuffer)
         {
-            m_wallRenderer = new GLStaticWallGeometryRenderer(textureManager, textureDataBuffer);
+            m_wallRenderer = new StaticWallRenderer(textureManager, textureDataBuffer);
         }
 
-        ~GLStaticGeometryRenderer()
+        ~StaticGeometryRenderer()
         {
             FailedToDispose(this);
             PerformDispose();

@@ -3,7 +3,7 @@ using Helion.Render.OpenGL.Shaders.Uniforms;
 
 namespace Helion.Render.OpenGL.Renderers.World.Primitives
 {
-    public class GLPrimitiveWorldShader : ShaderProgram
+    public class PrimitiveWorldShader : ShaderProgram
     {
         public readonly UniformMatrix4 mvp = new();
         
