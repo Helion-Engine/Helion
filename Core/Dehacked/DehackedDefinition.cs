@@ -20,6 +20,8 @@ namespace Helion.Dehacked
 
         public readonly List<BexString> BexStrings = new();
         public readonly List<BexPar> BexPars = new();
+        public readonly List<BexItem> BexSounds = new();
+        public readonly List<BexItem> BexSprites = new();
 
         public DehackedCheat? Cheat { get; private set; }
         public int DoomVersion { get; private set; }
@@ -65,6 +67,10 @@ namespace Helion.Dehacked
                     ParseBexPointer(parser);
                 else if (item.Equals(BexParName, StringComparison.OrdinalIgnoreCase))
                     ParseBexPar(parser);
+                else if (item.Equals(BexSoundName, StringComparison.OrdinalIgnoreCase))
+                    ParseBexItem(parser, BexSounds);
+                else if (item.Equals(BexSpriteName, StringComparison.OrdinalIgnoreCase))
+                    ParseBexItem(parser, BexSprites);
                 else
                     UnknownWarning(parser, "type");
             }
@@ -406,7 +412,23 @@ namespace Helion.Dehacked
             }
         }
 
-        private bool IsBexPointerBlockComplete(SimpleParser parser)
+        private void ParseBexItem(SimpleParser parser, List<BexItem> items)
+        {
+            parser.ConsumeString();
+
+            while (!IsBlockComplete(parser, isBex: true))
+            {
+                string? mnemonic = null;
+                int? index = parser.ConsumeIfInt();
+                if (index == null)
+                    mnemonic = parser.ConsumeString();
+
+                string entry = parser.ConsumeString();
+                items.Add(new BexItem() { Mnemonic = mnemonic, Index = index, EntryName = entry });
+            }
+        }
+
+        private static bool IsBexPointerBlockComplete(SimpleParser parser)
         {
             if (parser.PeekString(0, out string? frame) && parser.PeekString(2, out string? equal)
                 && frame != null && equal != null)

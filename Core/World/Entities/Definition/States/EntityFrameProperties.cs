@@ -5,6 +5,8 @@ namespace Helion.World.Entities.Definition.States
 {
     public class EntityFrameProperties
     {
+        public static readonly EntityFrameProperties Default = new EntityFrameProperties(new ActorFrameProperties());
+
         public bool Bright;
         public bool CanRaise;
         public bool Fast;

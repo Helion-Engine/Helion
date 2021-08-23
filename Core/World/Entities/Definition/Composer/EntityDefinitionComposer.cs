@@ -82,6 +82,14 @@ namespace Helion.World.Entities.Definition.Composer
             return actorDefinition != null ? ComposeNewDefinition(actorDefinition) : null;
         }
 
+        public void Add(EntityDefinition definition)
+        {
+            definition.Id = m_indexTracker.Next();
+            m_definitions[definition.Name] = definition;
+            if (definition.EditorId != null)
+                m_editorNumToDefinition[definition.EditorId.Value] = definition;
+        }
+
         public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions.AsReadOnly();
 
         public EntityDefinition? GetByID(int id)

@@ -9,7 +9,7 @@ namespace Helion.World.Entities.Definition
 {
     public class EntityDefinition
     {
-        public readonly int Id;
+        public int Id { get; set; }
         public int? EditorId { get; set; }
         public readonly string Name;
         public EntityFlags Flags;

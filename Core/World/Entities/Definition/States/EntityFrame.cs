@@ -24,7 +24,7 @@ namespace Helion.World.Entities.Definition.States
         public int MasterFrameIndex { get; set; }
         public int VanillaIndex { get; set; }
         public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
-        public bool IsNullFrame => MasterFrameIndex == 0;
+        public bool IsNullFrame => MasterFrameIndex == Constants.NullFrameIndex;
 
         private readonly EntityFrameTable m_table;
 

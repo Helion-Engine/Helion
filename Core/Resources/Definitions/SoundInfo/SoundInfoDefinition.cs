@@ -21,6 +21,9 @@ namespace Helion.Resources.Definitions.SoundInfo
             return sound;
         }
 
+        public void Add(string name, SoundInfo soundInfo) =>
+            m_lookup[name] = soundInfo;
+
         public SoundInfo? Lookup(string name, IRandom random)
         {
             if (m_randomLookup.TryGetValue(name, out List<string>? sounds))
