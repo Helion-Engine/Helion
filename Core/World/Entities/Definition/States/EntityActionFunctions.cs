@@ -1258,7 +1258,11 @@ namespace Helion.World.Entities.Definition.States
 
         private static void A_GunFlash(Entity entity)
         {
-             // TODO
+            if (entity.PlayerObj != null)
+            {
+                entity.SetMissileState();
+                entity.PlayerObj.Weapon?.SetFlashState();
+            }
         }
 
         private static void A_HeadAttack(Entity entity)
@@ -1440,7 +1444,7 @@ namespace Helion.World.Entities.Definition.States
         private static void A_Light2(Entity entity)
         {
             if (entity.PlayerObj != null)
-                entity.PlayerObj.PlayerObj.ExtraLight = 2;
+                entity.PlayerObj.ExtraLight = 2;
         }
 
         private static void A_LightInverse(Entity entity)
@@ -1754,7 +1758,7 @@ namespace Helion.World.Entities.Definition.States
             }
         }
 
-        private static void A_WeaponReady(Entity entity)
+        public static void A_WeaponReady(Entity entity)
         {
             if (entity.PlayerObj != null && entity.PlayerObj.Weapon != null)
             {
@@ -1764,7 +1768,7 @@ namespace Helion.World.Entities.Definition.States
                     entity.PlayerObj.LowerWeapon();
 
                 if (!entity.PlayerObj.IsVooDooDoll && entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-                    entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+                    entity.PlayerObj.Weapon.ReadyToFire)
                 {
                     entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
                         SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(entity));

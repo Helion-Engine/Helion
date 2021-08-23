@@ -271,7 +271,10 @@ namespace Helion.World.Entities.Players
 
             var weapon = Inventory.Weapons.GetWeapon("PISTOL");
             if (weapon != null)
+            {
                 ChangeWeapon(weapon);
+                ForceLowerWeapon(false);
+            }
 
             m_hasNewWeapon = false;
         }
@@ -643,7 +646,7 @@ namespace Helion.World.Entities.Players
         private void SetBob()
         {
             m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
-            if (Weapon != null && Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+            if (Weapon != null && Weapon.ReadyToFire)
             {
                 double value = 0.1 * World.LevelTime;
                 WeaponOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
@@ -907,7 +910,7 @@ namespace Helion.World.Entities.Players
 
         public bool FireWeapon()
         {
-            if (!CheckAmmo() || PendingWeapon != null ||Weapon == null || !Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+            if (!CheckAmmo() || PendingWeapon != null || Weapon == null || !Weapon.ReadyToFire)
                 return false;
 
             SetWeaponTop();
@@ -947,7 +950,7 @@ namespace Helion.World.Entities.Players
             if (Weapon == null)
                 return;
 
-            if (Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+            if (Weapon.ReadyToFire)
                 ForceLowerWeapon(setTop);
         }
 
