@@ -105,7 +105,7 @@ namespace Helion.World.Special
                 else if (context == ActivationContext.CrossLine)
                     return flags.ActivationType == ActivationType.ProjectileCrossesLine || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
             }
-            else if (entity.Flags.IsMonster)
+            else if (!entity.IsPlayer)
             {
                 if (line.Flags.Secret)
                     return false;
