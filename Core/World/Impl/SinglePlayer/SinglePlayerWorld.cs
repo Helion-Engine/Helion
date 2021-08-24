@@ -63,6 +63,7 @@ namespace Helion.World.Impl.SinglePlayer
                 {
                     Player.CopyProperties(existingPlayer);
                     Player.Inventory.ClearKeys();
+                    Player.ForceLowerWeapon(false);
                 }
                 else
                 {
