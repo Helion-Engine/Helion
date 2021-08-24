@@ -76,13 +76,10 @@ namespace Helion.World.Entities.Inventories
                 FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
 
             AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-            if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue("SPAWN", out int frame))
+            if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))
                 AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
             else
                 AmmoSprite = string.Empty;
-
-            if (frameStateModel == null && !FrameState.SetState(Constants.FrameStates.Ready))
-                Log.Warn("Unable to find Ready state for weapon {0}", definition.Name);
         }
 
         /// <summary>
