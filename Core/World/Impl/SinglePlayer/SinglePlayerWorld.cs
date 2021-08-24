@@ -260,6 +260,9 @@ namespace Helion.World.Impl.SinglePlayer
             CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
             EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
 
+            Config.Player.Name.OnChanged -= PlayerName_OnChanged;
+            Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
+
             base.PerformDispose();
         }
 

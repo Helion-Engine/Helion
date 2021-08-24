@@ -23,6 +23,7 @@ namespace Helion.Audio.Sounds
         public readonly IAudioSourceManager AudioManager;
         protected readonly ArchiveCollection ArchiveCollection;
         private readonly IRandom m_random = new TrueRandom();
+        private readonly IAudioSystem m_audioSystem;
 
         // The sounds that are currently playing
         protected readonly LinkedList<IAudioSource> PlayingSounds = new();
@@ -39,6 +40,7 @@ namespace Helion.Audio.Sounds
         {
             AudioManager = audioSystem.CreateContext();
             ArchiveCollection = archiveCollection;
+            m_audioSystem = audioSystem;
 
             audioSystem.DeviceChanging += AudioSystem_DeviceChanging;
         }
@@ -59,6 +61,9 @@ namespace Helion.Audio.Sounds
         {
             ClearSounds();
             ReleaseUnmanagedResources();
+
+            m_audioSystem.DeviceChanging -= AudioSystem_DeviceChanging;
+
             GC.SuppressFinalize(this);
         }
         

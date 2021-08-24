@@ -230,6 +230,8 @@ namespace Helion.Client
                 return;
             }
 
+            if (m_layerManager.WorldLayer != null)
+                m_layerManager.WorldLayer.World.LevelExit -= World_LevelExit;
             m_layerManager.Remove(m_layerManager.WorldLayer);
 
             if (map == null)
