@@ -247,7 +247,10 @@ namespace Helion.Resources.Archives.Collection
         private void ApplyDehackedPatch()
         {
             if (Definitions.DehackedDefinition != null)
-                DehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
+            {
+                DehackedApplier dehackedApplier = new(Definitions);
+                dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
+            }
         }
         
         private Archive? LoadSpecial(string file, ArchiveType archiveType)

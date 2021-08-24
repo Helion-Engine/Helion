@@ -72,13 +72,15 @@ namespace Helion.Dehacked
                 else if (item.Equals(BexSpriteName, StringComparison.OrdinalIgnoreCase))
                     ParseBexItem(parser, BexSprites);
                 else
-                    UnknownWarning(parser, "type");
+                    UnknownWarning(parser, "type", item);
             }
         }
 
-        private static void UnknownWarning(SimpleParser parser, string type)
+        private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
         {
             string line = parser.ConsumeLine();
+            if (prefix != null)
+                line = prefix + " " + line;
             if (string.IsNullOrWhiteSpace(line))
                 return;
             int lineNumber = parser.GetCurrentLine();

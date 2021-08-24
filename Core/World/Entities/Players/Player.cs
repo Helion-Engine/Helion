@@ -954,7 +954,7 @@ namespace Helion.World.Entities.Players
                 ForceLowerWeapon(setTop);
         }
 
-        private void ForceLowerWeapon(bool setTop)
+        public void ForceLowerWeapon(bool setTop)
         {
             if (Weapon != null)
             {

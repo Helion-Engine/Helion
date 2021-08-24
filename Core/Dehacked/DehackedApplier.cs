@@ -16,16 +16,32 @@ using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.Dehacked
 {
-    public static class DehackedApplier
+    public class DehackedApplier
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static readonly List<string> RemoveLabels = new();
-        private static readonly Dictionary<int, string> NewSoundLookup = new();
-        private static readonly Dictionary<int, string> NewSpriteLookup = new();
-        private static readonly Dictionary<int, EntityDefinition> NewThingLookup = new();
-        private static readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
+        private readonly List<string> RemoveLabels = new();
+        private readonly Dictionary<int, string> NewSoundLookup = new();
+        private readonly Dictionary<int, string> NewSpriteLookup = new();
+        private readonly Dictionary<int, EntityDefinition> NewThingLookup = new();
+        private readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
 
-        public static void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
+        private const int DehExtraSpriteStart = 145;
+        private const int DehExtraSoundStart = 500;
+
+        public DehackedApplier(DefinitionEntries definitionEntries)
+        {
+            for (int i = 0; i < 100; i++)
+                NewSpriteLookup[DehExtraSpriteStart + i] = $"SP{i.ToString().PadLeft(2, '0')}";
+
+            for (int i = 0; i < 200; i++)
+            {
+                string name = $"deh/{i}";
+                NewSoundLookup[DehExtraSoundStart + i] = name;
+                definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"free{i.ToString().PadLeft(3, '0')}", 0));
+            }
+        }
+
+        public void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
         {
             ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
 
@@ -48,7 +64,7 @@ namespace Helion.Dehacked
             NewSpriteLookup.Clear();
         }
 
-        private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
+        private void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
         {
             for (int i = 0; i < (int)ThingState.Count; i++)
             {
@@ -60,7 +76,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
+        private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
         {
             foreach (var weapon in dehacked.Weapons)
             {
@@ -103,9 +119,11 @@ namespace Helion.Dehacked
                 case 5:
                     weaponDef.Properties.Weapons.AmmoType = string.Empty;
                     break;
-            }
+                default:
+                    Warning($"Invalid ammo type {ammoType}");
+                    break;
 
-            Warning($"Invalid ammo type {ammoType}");
+            }
         }
 
         private static EntityDefinition? GetWeaponDefinition(int weaponNumber, EntityDefinitionComposer composer)
@@ -136,7 +154,7 @@ namespace Helion.Dehacked
             return null;
         }
 
-        private static void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
+        private void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var pointer in dehacked.Pointers)
             {
@@ -174,7 +192,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void ApplyFrames(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
+        private void ApplyFrames(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
         {
             foreach (var frame in dehacked.Frames)
             {
@@ -217,17 +235,17 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void SetSprite(EntityFrame entityFrame, DehackedDefinition dehacked, int spriteNumber)
+        private void SetSprite(EntityFrame entityFrame, DehackedDefinition dehacked, int spriteNumber)
         {
             if (spriteNumber < dehacked.Sprites.Length)
                 entityFrame.SetSprite(dehacked.Sprites[spriteNumber]);
             else if (NewSpriteLookup.TryGetValue(spriteNumber, out string? sprite))
                 entityFrame.SetSprite(sprite);
-
-            Warning($"Invalid sprite number {spriteNumber}");
+            else
+                Warning($"Invalid sprite number {spriteNumber}");
         }
 
-        private static bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
+        private bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
         {
             frameIndex = -1;
             if (frame < 0)
@@ -274,14 +292,14 @@ namespace Helion.Dehacked
                 EntityFrameProperties.Default, null, Constants.NullFrameIndex, string.Empty);
             NewEntityFrameLookup[frame] = newFrame;
             newFrame.VanillaIndex = frame;
-            newFrame.MasterFrameIndex = frameIndex;
             newFrame.NextFrameIndex = frameIndex;
-            entityFrameTable.Frames.Add(newFrame);
+
+            entityFrameTable.AddFrame(newFrame);
 
             return true;
         }
 
-        private static void ApplyThings(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
+        private void ApplyThings(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
         {
             foreach (var thing in dehacked.Things)
             {
@@ -351,7 +369,7 @@ namespace Helion.Dehacked
             return speed;
         }
 
-        private static void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, 
+        private void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, 
             EntityDefinition definition, int frame, string actionLabel)
         {
             int frameIndex;
@@ -387,7 +405,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void RemoveActionLabels(EntityDefinition definition, string actionLabel)
+        private void RemoveActionLabels(EntityDefinition definition, string actionLabel)
         {
             RemoveLabels.Clear();
             foreach (var pair in definition.States.Labels)
@@ -403,7 +421,7 @@ namespace Helion.Dehacked
             RemoveLabels.ForEach(x => definition.States.Labels.Remove(x));
         }
 
-        private static EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, int thingNumber, EntityDefinitionComposer composer)
+        private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, int thingNumber, EntityDefinitionComposer composer)
         {
             int index = thingNumber - 1;
             if (index < 0)
@@ -419,7 +437,7 @@ namespace Helion.Dehacked
             return composer.GetByName(actorName);
         }
 
-        private static string GetNewActorName(int index, EntityDefinitionComposer composer)
+        private string GetNewActorName(int index, EntityDefinitionComposer composer)
         {
             if (NewThingLookup.TryGetValue(index, out EntityDefinition? def))
                 return def.Name;
@@ -629,7 +647,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void ApplyBexSounds(DehackedDefinition dehacked, SoundInfoDefinition soundInfoDef)
+        private void ApplyBexSounds(DehackedDefinition dehacked, SoundInfoDefinition soundInfoDef)
         {
             foreach (var sound in dehacked.BexSounds)
             {
@@ -642,7 +660,7 @@ namespace Helion.Dehacked
             }
         }
 
-        private static void ApplyBexSprites(DehackedDefinition dehacked)
+        private void ApplyBexSprites(DehackedDefinition dehacked)
         {
             foreach (var sprite in dehacked.BexSprites)
             {
@@ -655,7 +673,7 @@ namespace Helion.Dehacked
 
         private static double GetDouble(int value) => value / 65536.0;
 
-        private static string GetSound(DehackedDefinition dehacked, int sound)
+        private string GetSound(DehackedDefinition dehacked, int sound)
         {
             if (sound < 0)
             {

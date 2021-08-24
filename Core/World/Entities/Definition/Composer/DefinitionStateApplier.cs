@@ -142,9 +142,8 @@ namespace Helion.World.Entities.Definition.Composer
 
                 HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
 
-                entityFrame.MasterFrameIndex = entityFrameTable.Frames.Count;
                 ProcessedFrames[key] = entityFrame;
-                entityFrameTable.Frames.Add(entityFrame);
+                entityFrameTable.AddFrame(entityFrame);
                 definition.States.FrameCount++;
 
                 if (indicesWithLabels.Contains(currentFrameOffset))
