@@ -39,7 +39,7 @@ namespace Helion.Resources
 
             var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
             var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
-                .Select(x => x.Path.Name[0..^2])
+                .Select(x => x.Path.Name[0..4])
                 .Distinct()
                 .ToList();
 
