@@ -69,7 +69,7 @@ namespace Helion.Dehacked
         {
             for (int i = 0; i < (int)ThingState.Count; i++)
             {
-                if (!GetFrameIndex(dehacked, table, i, out int frameIndex))
+                if (!GetVanillaFrameIndex(dehacked, table, i, out int frameIndex))
                 {
                     Warning($"Failed to find vanilla index for: {i}");
                     continue;
@@ -249,7 +249,7 @@ namespace Helion.Dehacked
                 Warning($"Invalid sprite number {spriteNumber}");
         }
 
-        private static bool LookupFrameIndex(EntityFrameTable entityFrameTable, int frame, out int frameIndex)
+        private bool LookupFrameIndex(EntityFrameTable entityFrameTable, int frame, out int frameIndex)
         {
             if (entityFrameTable.VanillaFrameMap.TryGetValue(frame, out EntityFrame? entityFrame))
             {
@@ -257,45 +257,7 @@ namespace Helion.Dehacked
                 return true;
             }
 
-            frameIndex = -1;
-            return false;
-        }
-
-        private bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
-        {
-            frameIndex = -1;
-            if (frame < 0)
-                return false;
-
-            if (frame < dehacked.ThingStateLookups.Length)
-            {
-                var lookup = dehacked.ThingStateLookups[frame];
-                int baseFrame = -1;
-
-                for (int i = 0; i < entityFrameTable.Frames.Count; i++)
-                {
-                    var frameItem = entityFrameTable.Frames[i];
-                    if (lookup.Frame != null && lookup.Frame != frameItem.Frame)
-                        continue;
-
-                    if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName))
-                        continue;
-
-                    if (frameItem.OriginalSprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
-                    {
-                        baseFrame = i;
-                        break;
-                    }
-                }
-
-                if (baseFrame == -1)
-                    return false;
-
-                frameIndex = baseFrame + lookup.Offset;
-                return true;
-            }
-
-            if (NewEntityFrameLookup.TryGetValue(frame, out EntityFrame? entityFrame))
+            if (NewEntityFrameLookup.TryGetValue(frame, out entityFrame))
             {
                 frameIndex = entityFrame.MasterFrameIndex;
                 return true;
@@ -304,14 +266,45 @@ namespace Helion.Dehacked
             // Null frame that loops to itself
             frameIndex = entityFrameTable.Frames.Count;
 
-            EntityFrame newFrame = new EntityFrame(entityFrameTable, Constants.InvisibleSprite, 0, -1, 
+            EntityFrame newFrame = new EntityFrame(entityFrameTable, Constants.InvisibleSprite, 0, -1,
                 EntityFrameProperties.Default, null, Constants.NullFrameIndex, string.Empty);
             NewEntityFrameLookup[frame] = newFrame;
             newFrame.VanillaIndex = frame;
             newFrame.NextFrameIndex = frameIndex;
 
             entityFrameTable.AddFrame(newFrame);
+            return true;
+        }
 
+        private static bool GetVanillaFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
+        {
+            frameIndex = -1;
+            if (frame < 0 || frame >= dehacked.ThingStateLookups.Length)
+                return false;
+
+            var lookup = dehacked.ThingStateLookups[frame];
+            int baseFrame = -1;
+
+            for (int i = 0; i < entityFrameTable.Frames.Count; i++)
+            {
+                var frameItem = entityFrameTable.Frames[i];
+                if (lookup.Frame != null && lookup.Frame != frameItem.Frame)
+                    continue;
+
+                if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName))
+                    continue;
+
+                if (frameItem.OriginalSprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
+                {
+                    baseFrame = i;
+                    break;
+                }
+            }
+
+            if (baseFrame == -1)
+                return false;
+
+            frameIndex = baseFrame + lookup.Offset;
             return true;
         }
 
@@ -390,7 +383,7 @@ namespace Helion.Dehacked
         {
             int frameIndex;
             bool isNull = false;
-            if (frame >= (int)ThingState.Count && !LookupFrameIndex(entityFrameTable, frame, out int newFrameIndex))
+            if (frame >= (int)ThingState.Count && LookupFrameIndex(entityFrameTable, frame, out int newFrameIndex))
             {
                 frameIndex = newFrameIndex;
             }
