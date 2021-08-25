@@ -16,6 +16,10 @@ namespace Helion.Util.ConfigsNew
 {
     public record ConfigComponent(string Path, ConfigInfoAttribute Attribute, IConfigValue Value);
 
+    /// <summary>
+    /// A configuration file that contains various settings, which are also
+    /// accessible for enumeration.
+    /// </summary>
     public class ConfigNew : IEnumerable<ConfigComponent>
     {
         private const string EngineSectionName = "engine";
@@ -43,7 +47,9 @@ namespace Helion.Util.ConfigsNew
         public readonly ConfigVariableAliasMapping VariableAliasMapping; 
 
         private readonly Dictionary<string, ConfigComponent> m_components = new(StringComparer.OrdinalIgnoreCase);
-        private readonly string? m_filePath;
+        private bool m_noFileExistedWhenRead;
+        
+        public bool Changed => Keys.Changed || m_components.Values.Any(c => c.Value.Changed);
         
         public ConfigNew()
         {
@@ -53,8 +59,7 @@ namespace Helion.Util.ConfigsNew
 
         public ConfigNew(string filePath) : this()
         {
-            m_filePath = filePath;
-
+            Log.Info($"Reading config from {filePath}");
             ReadConfigFrom(filePath);
 
             // If we read things in, we're going to very likely change things from
@@ -73,16 +78,20 @@ namespace Helion.Util.ConfigsNew
 
         public void ApplyQueuedChanges(ConfigSetFlags setFlags)
         {
-            Log.ConditionalTrace("Applying queued config changes for {Flags}", setFlags);
+            Log.Trace("Applying queued config changes for {Flags}", setFlags);
             
             foreach (ConfigComponent component in m_components.Values)
                 component.Value.ApplyQueuedChange(setFlags);
         }
 
-        public bool Write(string? filePath = null)
+        public bool Write(string filePath, bool alwaysWrite = false)
         {
-            filePath ??= m_filePath;
-
+            // If a file existed, and it didn't change after we loaded it, then
+            // we don't want to force a pointless write. However if desired, this
+            // can be forcefully overridden.
+            if (!m_noFileExistedWhenRead && !Changed && !alwaysWrite)
+                return true;
+            
             try
             {
                 FileIniDataParser parser = new();
@@ -95,10 +104,13 @@ namespace Helion.Util.ConfigsNew
                 if (success)
                     parser.WriteFile(filePath, iniData);
 
+                Log.Info($"Wrote config file to {filePath}");
                 return success;
             }
-            catch
+            catch (Exception e)
             {
+                Log.Error($"Unable to write config file to {filePath}");
+                Log.Debug($"Config write failure reason: {e.Message}");
                 return false;
             }
 
@@ -127,7 +139,7 @@ namespace Helion.Util.ConfigsNew
 
                 KeyDataCollection section = data[KeysSectionName];
                 foreach ((Key key, IEnumerable<string> commands) in Keys)
-                    section[key.ToString()] = commands.Select(cmd => $"\"{cmd}\"").Join(", ");;
+                    section[key.ToString()] = commands.Select(cmd => $"\"{cmd}\"").Join(", ");
 
                 return true;
             }
@@ -167,6 +179,7 @@ namespace Helion.Util.ConfigsNew
             if (!File.Exists(path))
             {
                 Log.Info($"Config file not found, will generate new config file at {path}");
+                m_noFileExistedWhenRead = true;
                 return;
             }
 

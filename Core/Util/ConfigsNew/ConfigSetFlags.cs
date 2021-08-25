@@ -2,6 +2,11 @@
 
 namespace Helion.Util.ConfigsNew
 {
+    /// <summary>
+    /// Flags that indicate when setting should occur. If a field is set with
+    /// this flag, then whenever such a flag is propagated as a request to
+    /// update values, such changes will be applied.
+    /// </summary>
     [Flags]
     public enum ConfigSetFlags
     {
