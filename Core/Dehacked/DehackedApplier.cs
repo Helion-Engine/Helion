@@ -11,6 +11,7 @@ using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
 
@@ -69,7 +70,10 @@ namespace Helion.Dehacked
             for (int i = 0; i < (int)ThingState.Count; i++)
             {
                 if (!GetFrameIndex(dehacked, table, i, out int frameIndex))
+                {
+                    Warning($"Failed to find vanilla index for: {i}");
                     continue;
+                }
 
                 table.Frames[frameIndex].VanillaIndex = i;
                 table.VanillaFrameMap[i] = table.Frames[frameIndex];
@@ -158,7 +162,7 @@ namespace Helion.Dehacked
         {
             foreach (var pointer in dehacked.Pointers)
             {
-                if (!GetFrameIndex(dehacked, entityFrameTable, pointer.Frame, out int frameIndex))
+                if (!LookupFrameIndex(entityFrameTable, pointer.Frame, out int frameIndex))
                 {
                     Warning($"Invalid pointer frame {pointer.Frame}");
                     continue;
@@ -196,7 +200,7 @@ namespace Helion.Dehacked
         {
             foreach (var frame in dehacked.Frames)
             {
-                if (!GetFrameIndex(dehacked, entityFrameTable, frame.Frame, out int frameIndex))
+                if (!LookupFrameIndex(entityFrameTable, frame.Frame, out int frameIndex))
                 {
                     Warning($"Invalid frame {frame.Frame}");
                     continue;
@@ -217,7 +221,7 @@ namespace Helion.Dehacked
 
                 if (frame.NextFrame.HasValue)
                 {
-                    if (GetFrameIndex(dehacked, entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
+                    if (LookupFrameIndex(entityFrameTable, frame.NextFrame.Value, out int nextFrameIndex))
                     {
                         entityFrame.NextFrameIndex = nextFrameIndex;
                         entityFrame.BranchType = ActorStateBranch.None;
@@ -243,6 +247,18 @@ namespace Helion.Dehacked
                 entityFrame.SetSprite(sprite);
             else
                 Warning($"Invalid sprite number {spriteNumber}");
+        }
+
+        private static bool LookupFrameIndex(EntityFrameTable entityFrameTable, int frame, out int frameIndex)
+        {
+            if (entityFrameTable.VanillaFrameMap.TryGetValue(frame, out EntityFrame? entityFrame))
+            {
+                frameIndex = entityFrame.MasterFrameIndex;
+                return true;
+            }
+
+            frameIndex = -1;
+            return false;
         }
 
         private bool GetFrameIndex(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, int frame, out int frameIndex)
@@ -374,7 +390,7 @@ namespace Helion.Dehacked
         {
             int frameIndex;
             bool isNull = false;
-            if (frame >= (int)ThingState.Count && GetFrameIndex(dehacked, entityFrameTable, frame, out int newFrameIndex))
+            if (frame >= (int)ThingState.Count && !LookupFrameIndex(entityFrameTable, frame, out int newFrameIndex))
             {
                 frameIndex = newFrameIndex;
             }
