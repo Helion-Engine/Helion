@@ -1,15 +1,23 @@
 ﻿using System;
 using static Helion.Util.Assertion.Assert;
+using static Helion.Util.ConfigsNew.Values.ConfigConverters;
 
 namespace Helion.Util.ConfigsNew.Values
 {
     public class ConfigValue<T> : IConfigValue where T : notnull
     {
-        public object Value => m_value;
-        public bool Changed { get; private set; }
-        public ConfigSetFlags SetFlags { get; }
-        private T m_value;
+        // This value could be passed any type. To avoid many creations, this
+        // is cached between different generic types.
+        private static readonly Func<object, T> ObjectToTypeConverterOrThrow = MakeObjectToTypeConverterOrThrow<T>();
         
+        // The type may need help in conversion to a string.
+        private static readonly Func<T, string>? ToStringHelper = MakeToStringHelper<T>();
+
+        public object ObjectValue => Value;
+        public T Value { get; private set; }
+        public bool Changed { get; set; }
+        public ConfigSetFlags SetFlags { get; }
+
         // Given a <previousValue, newValue>, returns true if the value should
         // be accepted, or false if it is an unacceptable value and should not
         // be set. If not null, this is always run first before the transformer
@@ -24,7 +32,7 @@ namespace Helion.Util.ConfigsNew.Values
         // For example, if we want this to only update on a world change, then
         // we stash away the change until then.
         private T? m_queuedChange;
-        
+
         public event EventHandler<(T Before, T After)>? OnChanged;
 
         public ConfigValue(T initialValue, Func<T, T, bool> filter) : 
@@ -45,29 +53,35 @@ namespace Helion.Util.ConfigsNew.Values
         public ConfigValue(T initialValue, ConfigSetFlags setFlags = ConfigSetFlags.Normal, Func<T, T, bool>? filter = null,
             Func<T, T>? transformer = null)
         {
-            m_value = transformer != null ? transformer(initialValue) : initialValue;
+            Value = transformer != null ? transformer(initialValue) : initialValue;
             m_filter = filter;
             m_transformer = transformer;
             SetFlags = setFlags;
             
             Postcondition(filter == null || filter(initialValue, initialValue), $"Initial config value of '{initialValue}' is filtered");
         }
-        
-        public static implicit operator T(ConfigValue<T> val) => val.m_value;
+
+        public static implicit operator T(ConfigValue<T> val) => val.Value;
 
         public ConfigSetResult Set(object newValue)
         {
-            return ConfigConverter.TryConvert(newValue, out T? converted) ? 
-                Set(converted) : 
-                ConfigSetResult.NotSetByBadConversion;
+            try
+            {
+                T converted = ObjectToTypeConverterOrThrow(newValue);
+                return Set(converted);
+            }
+            catch
+            {
+                return ConfigSetResult.NotSetByBadConversion;
+            }
         }
         
         public ConfigSetResult Set(T newValue)
         {
-            if (Equals(newValue, m_value))
+            if (Equals(newValue, Value))
                 return ConfigSetResult.Unchanged;
 
-            if (m_filter != null && !m_filter(m_value, newValue))
+            if (m_filter != null && !m_filter(Value, newValue))
                 return ConfigSetResult.NotSetByFilter;
 
             if (m_transformer != null)
@@ -79,8 +93,8 @@ namespace Helion.Util.ConfigsNew.Values
                 return ConfigSetResult.Queued;
             }
             
-            T oldValue = m_value;
-            m_value = newValue;
+            T oldValue = Value;
+            Value = newValue;
             Changed = true;
             OnChanged?.Invoke(this, (oldValue, newValue));
             
@@ -96,6 +110,9 @@ namespace Helion.Util.ConfigsNew.Values
                 Set(m_queuedChange);
         }
 
-        public override string ToString() => Value.ToString() ?? "";
+        public override string ToString()
+        {
+            return ToStringHelper != null ? ToStringHelper(Value) : (Value.ToString() ?? "");
+        }
     }
 }

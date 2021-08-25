@@ -19,7 +19,7 @@ namespace Helion.Util.ConfigsNew.Components
         public readonly ConfigValue<bool> LevelStat = new(false);
         
         [ConfigInfo("Whether no monsters should be spawned.", save: false)]
-        public readonly ConfigValue<bool> SV_NoMonsters = new(false);
+        public readonly ConfigValue<bool> NoMonsters = new(false);
         
         [ConfigInfo("The skill level to use when starting a map.", save: false)]
         public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, OnlyValidEnums<SkillLevel>());

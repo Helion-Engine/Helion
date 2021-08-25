@@ -14,6 +14,7 @@ namespace Helion.Util.ConfigsNew
         private static readonly IReadOnlySet<Key> EmptyKeySet = new HashSet<Key>();
         private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
 
+        public bool Changed { get; internal set; }
         private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
         private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
 
@@ -64,7 +65,6 @@ namespace Helion.Util.ConfigsNew
                 commands : 
                 EmptyStringSet;
 
-
         public IReadOnlySet<Key> this[string command] => 
             m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ? 
                 keys : 
@@ -78,14 +78,26 @@ namespace Helion.Util.ConfigsNew
         public void Add(Key key, string command)
         {
             if (m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
+            {
+                Changed |= !commands.Contains(command);
                 commands.Add(command);
+            }
             else
+            {
+                Changed = true;
                 m_keyToCommands[key] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { command };
-            
+            }
+
             if (m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys))
+            {
+                Changed |= !keys.Contains(key);
                 keys.Add(key);
+            }
             else
-                m_commandsToKey[command] = new HashSet<Key>() { key };
+            {
+                Changed = true;
+                m_commandsToKey[command] = new HashSet<Key> { key };
+            }
         }
 
         /// <summary>
@@ -108,6 +120,7 @@ namespace Helion.Util.ConfigsNew
                     m_commandsToKey.Remove(command);
             }
 
+            Changed |= m_keyToCommands.ContainsKey(key);
             m_keyToCommands.Remove(key);
         }
 

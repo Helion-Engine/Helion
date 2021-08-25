@@ -1,12 +1,15 @@
 ﻿namespace Helion.Util.ConfigsNew.Values
 {
+    /// <summary>
+    /// A result where non-zero means failure.
+    /// </summary>
     public enum ConfigSetResult
     {
         /// <summary>
         /// If the config value was set, replacing an old value with a new one
         /// that is different.
         /// </summary>
-        Set,
+        Set = 0,
         
         /// <summary>
         /// If the value trying to be set is equivalent to what is already in

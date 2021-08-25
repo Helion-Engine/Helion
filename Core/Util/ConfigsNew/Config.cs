@@ -30,25 +30,45 @@ namespace Helion.Util.ConfigsNew
         public readonly ConfigFiles Files = new();
         public readonly ConfigGame Game = new();
         public readonly ConfigHud Hud = new();
-        public readonly ConfigKeyMapping Keys = new();
         public readonly ConfigMouse Mouse = new();
         public readonly ConfigPlayer Player = new();
         public readonly ConfigRender Render = new();
         public readonly ConfigWindow Window = new();
         
+        // Keys are handled specially since they are a multi-bi-directional mapping.
+        public readonly ConfigKeyMapping Keys = new();
+
+        // To be compatible with other ports, this is a list of all the variables
+        // with other known names.
+        public readonly ConfigVariableAliasMapping VariableAliasMapping; 
+
         private readonly Dictionary<string, ConfigComponent> m_components = new(StringComparer.OrdinalIgnoreCase);
-        private readonly string? m_path;
+        private readonly string? m_filePath;
         
         public ConfigNew()
         {
             PopulateComponentsRecursively(this, "");
+            VariableAliasMapping = new ConfigVariableAliasMapping(this);
         }
 
-        public ConfigNew(string path) : this()
+        public ConfigNew(string filePath) : this()
         {
-            m_path = path;
+            m_filePath = filePath;
 
-            ReadConfigFrom(path);
+            ReadConfigFrom(filePath);
+
+            // If we read things in, we're going to very likely change things from
+            // their default state. This is okay and should not be considered as
+            // "changed".
+            UnsetChangedFlag();
+        }
+
+        private void UnsetChangedFlag()
+        {
+            foreach (ConfigComponent configComponent in m_components.Values)
+                configComponent.Value.Changed = false;
+
+            Keys.Changed = false;
         }
 
         public void ApplyQueuedChanges(ConfigSetFlags setFlags)
@@ -61,7 +81,7 @@ namespace Helion.Util.ConfigsNew
 
         public bool Write(string? filePath = null)
         {
-            filePath ??= m_path;
+            filePath ??= m_filePath;
 
             try
             {

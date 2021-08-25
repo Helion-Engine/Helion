@@ -8,12 +8,12 @@
         /// <summary>
         /// The value that backs this config value.
         /// </summary>
-        object Value { get; }
+        object ObjectValue { get; }
         
         /// <summary>
         /// True if this value has changed since loading.
         /// </summary>
-        bool Changed { get; }
+        bool Changed { get; set; }
         
         /// <summary>
         /// The flags on when this value should be changed.
@@ -26,12 +26,11 @@
         /// version will convert it to the integer 5 and then try to set it).
         /// </summary>
         /// <remarks>
-        /// Some conversion information:
+        /// Some examples of conversion information:
         ///     numeric  -> bool:     0 = false, anything else = true
         ///     bool     -> numeric:  false = 0, true = 1
         ///     string   -> bool:     "" = false, anything else = true
         ///     string   -> numeric:  attempts a TryParse
-        ///     anything -> string:   Jsonification, or ToString()
         /// </remarks>
         /// <param name="newValue">The new value.</param>
         /// <returns>The set result.</returns>
