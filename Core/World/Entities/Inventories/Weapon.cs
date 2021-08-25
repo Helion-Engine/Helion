@@ -102,7 +102,7 @@ namespace Helion.World.Entities.Inventories
 
         public void SetFlashState(int offset = 0)
         {
-            FlashState.SetState(Constants.FrameStates.Flash, offset);
+            FlashState.SetState(Constants.FrameStates.Flash, offset, false);
         }
 
         public void SetReadyState()
