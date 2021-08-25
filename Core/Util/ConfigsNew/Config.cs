@@ -7,6 +7,7 @@ using System.Reflection;
 using Helion.Input;
 using Helion.Util.ConfigsNew.Components;
 using Helion.Util.ConfigsNew.Values;
+using Helion.Util.Extensions;
 using IniParser;
 using IniParser.Model;
 using NLog;
@@ -21,11 +22,23 @@ namespace Helion.Util.ConfigsNew
         private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public readonly ConfigPlayer Player = new();
+        // Public fields in this class recursed upon by reflection to find config values.
+        public readonly ConfigAudio Audio = new();
+        public readonly ConfigCompat Compatibility = new();
+        public readonly ConfigConsole Console = new();
+        public readonly ConfigDeveloper Developer = new();
+        public readonly ConfigFiles Files = new();
+        public readonly ConfigGame Game = new();
+        public readonly ConfigHud Hud = new();
         public readonly ConfigKeyMapping Keys = new();
+        public readonly ConfigMouse Mouse = new();
+        public readonly ConfigPlayer Player = new();
+        public readonly ConfigRender Render = new();
+        public readonly ConfigWindow Window = new();
+        
         private readonly Dictionary<string, ConfigComponent> m_components = new(StringComparer.OrdinalIgnoreCase);
         private readonly string? m_path;
-            
+        
         public ConfigNew()
         {
             PopulateComponentsRecursively(this, "");
@@ -94,10 +107,7 @@ namespace Helion.Util.ConfigsNew
 
                 KeyDataCollection section = data[KeysSectionName];
                 foreach ((Key key, IEnumerable<string> commands) in Keys)
-                {
-                    IEnumerable<string> quotedCommands = commands.Select(c => $"\"{c}\"");
-                    section[key.ToString()] = $"[{string.Join(", ", quotedCommands)}]";
-                }
+                    section[key.ToString()] = commands.Select(cmd => $"\"{cmd}\"").Join(", ");;
 
                 return true;
             }

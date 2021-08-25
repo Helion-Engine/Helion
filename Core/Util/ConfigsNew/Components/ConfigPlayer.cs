@@ -7,9 +7,9 @@ namespace Helion.Util.ConfigsNew.Components
     public class ConfigPlayer
     {
         [ConfigInfo("The name of the player.")]
-        public readonly ConfigValue<string> Name = new("Player", IfEmptyThenSetTo("Player"));
+        public readonly ConfigValue<string> Name = new("Player", IfEmptyDefaultTo("Player"));
 
         [ConfigInfo("The gender of the player.")]
-        public readonly ConfigValue<PlayerGender> Gender = new(default);
+        public readonly ConfigValue<PlayerGender> Gender = new(default, OnlyValidEnums<PlayerGender>());
     }
 }

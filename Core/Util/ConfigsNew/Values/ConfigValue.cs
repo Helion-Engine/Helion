@@ -10,11 +10,15 @@ namespace Helion.Util.ConfigsNew.Values
         public ConfigSetFlags SetFlags { get; }
         private T m_value;
         
-        // Parameters are <Before, After, Result?>. If the return value is null,
-        // that means nothing should be set. Whatever is returned that is not null
-        // will be set. This allows a function to transform the value to also be
-        // transformed (ex: clamped), while also allowing for rejection.
-        private readonly Func<T, T, T?>? m_filter;
+        // Given a <previousValue, newValue>, returns true if the value should
+        // be accepted, or false if it is an unacceptable value and should not
+        // be set. If not null, this is always run first before the transformer
+        // function.
+        private readonly Func<T, T, bool>? m_filter;
+        
+        // Transforms a new incoming value into something usable if it is not
+        // acceptable. If not null, this is always run after the filter function.
+        private readonly Func<T, T>? m_transformer;
 
         // This is for a change when the config set flags want it to be delayed.
         // For example, if we want this to only update on a world change, then
@@ -23,18 +27,30 @@ namespace Helion.Util.ConfigsNew.Values
         
         public event EventHandler<(T Before, T After)>? OnChanged;
 
-        public ConfigValue(T initialValue, Func<T, T, T?> filter) : 
+        public ConfigValue(T initialValue, Func<T, T, bool> filter) : 
             this(initialValue, ConfigSetFlags.Normal, filter)
         {
         }
         
-        public ConfigValue(T initialValue, ConfigSetFlags setFlags = ConfigSetFlags.Normal, Func<T, T, T?>? filter = null)
+        public ConfigValue(T initialValue, Func<T, T> transformer) : 
+            this(initialValue, ConfigSetFlags.Normal, null, transformer)
         {
-            Invariant(filter == null || (filter(initialValue, initialValue) != null), $"Initial config value of '{initialValue}' is filtered");
-            
-            m_value = initialValue;
+        }
+        
+        public ConfigValue(T initialValue, Func<T, T, bool> filter, Func<T, T> transformer) : 
+            this(initialValue, ConfigSetFlags.Normal, filter, transformer)
+        {
+        }
+        
+        public ConfigValue(T initialValue, ConfigSetFlags setFlags = ConfigSetFlags.Normal, Func<T, T, bool>? filter = null,
+            Func<T, T>? transformer = null)
+        {
+            m_value = transformer != null ? transformer(initialValue) : initialValue;
             m_filter = filter;
+            m_transformer = transformer;
             SetFlags = setFlags;
+            
+            Postcondition(filter == null || filter(initialValue, initialValue), $"Initial config value of '{initialValue}' is filtered");
         }
         
         public static implicit operator T(ConfigValue<T> val) => val.m_value;
@@ -51,14 +67,11 @@ namespace Helion.Util.ConfigsNew.Values
             if (Equals(newValue, m_value))
                 return ConfigSetResult.Unchanged;
 
-            if (m_filter != null)
-            {
-                T? filtered = m_filter(m_value, newValue);
-                if (filtered == null)
-                    return ConfigSetResult.NotSetByFilter;
-                
-                newValue = filtered;
-            }
+            if (m_filter != null && !m_filter(m_value, newValue))
+                return ConfigSetResult.NotSetByFilter;
+
+            if (m_transformer != null)
+                newValue = m_transformer(newValue);
 
             if (SetFlags != ConfigSetFlags.Normal)
             {

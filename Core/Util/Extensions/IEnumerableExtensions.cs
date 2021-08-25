@@ -31,5 +31,16 @@ namespace Helion.Util.Extensions
                 if (element != null)
                     yield return element;
         }
+
+        /// <summary>
+        /// Joins a collection together with a token.
+        /// </summary>
+        /// <param name="strings">The strings to join.</param>
+        /// <param name="joinToken">The token to join with.</param>
+        /// <returns>The resulting string from joining.</returns>
+        public static string Join(this IEnumerable<string> strings, string joinToken)
+        {
+            return string.Join(joinToken, strings);
+        }
     }
 }
