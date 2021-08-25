@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Helion.Util.ConfigsNew.Values;
+using Helion.Util.Configs.Values;
 
-namespace Helion.Util.ConfigsNew
+namespace Helion.Util.Configs
 {
     public class ConfigVariableAliasMapping : IEnumerable<(string name, IConfigValue value)>
     {
         private readonly Dictionary<string, IConfigValue> m_nameToComponent;
         
-        public ConfigVariableAliasMapping(ConfigNew config)
+        public ConfigVariableAliasMapping(Config config)
         {
             m_nameToComponent = new Dictionary<string, IConfigValue>(StringComparer.OrdinalIgnoreCase)
             {

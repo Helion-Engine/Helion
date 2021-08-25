@@ -1,4 +1,4 @@
-﻿namespace Helion.Util.ConfigsNew.Values
+﻿namespace Helion.Util.Configs.Values
 {
     /// <summary>
     /// A value that can be read and written to in a config.

@@ -31,7 +31,7 @@ namespace Helion.Layer.Consoles
             if (input.ConsumeKeyPressed(Key.Down))
                 SetToMoreRecentInput();
             if (input.ConsumeKeyPressed(Key.Tab))
-                m_console.ApplyAutocomplete();
+                ApplyAutocomplete();
 
             if (input.ConsumeKeyPressed(Key.Enter))
             {
@@ -41,7 +41,12 @@ namespace Helion.Layer.Consoles
 
             input.ConsumeAll();
         }
-        
+
+        private void ApplyAutocomplete()
+        {
+            // TODO
+        }
+
         private static bool ConsumeControlV(InputEvent input)
         {
             // MacOS is going to have problems with this probably!

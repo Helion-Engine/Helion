@@ -1,4 +1,4 @@
-﻿namespace Helion.Util.ConfigsNew.Values
+﻿namespace Helion.Util.Configs.Values
 {
     /// <summary>
     /// A result where non-zero means failure.

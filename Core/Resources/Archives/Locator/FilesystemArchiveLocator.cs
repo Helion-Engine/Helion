@@ -16,7 +16,6 @@ namespace Helion.Resources.Archives.Locator
     /// </summary>
     public class FilesystemArchiveLocator : IArchiveLocator
     {
-        private const char Separator = ';';
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace Helion.Resources.Archives.Locator
         /// from.</param>
         public FilesystemArchiveLocator(Config config)
         {
-            config.Files.Directories.Value.Split(Separator)
+            config.Files.Directories.Value
                 .Where(p => !p.Empty())
                 .Select(EnsureEndsWithDirectorySeparator)
                 .ForEach(m_paths.Add);

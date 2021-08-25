@@ -1,6 +1,7 @@
-﻿using System;
-using Helion.Input;
+﻿using Helion.Input;
 using Helion.Util;
+using Helion.Util.Configs.Values;
+using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 
 namespace Helion.Layer.Worlds
@@ -18,85 +19,69 @@ namespace Helion.Layer.Worlds
                 World.HandleFrameInput(input);
             }
 
-            if (input.ConsumeKeyPressed(m_config.Controls.HudDecrease))
+            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.HudDecrease, input))
                 ChangeHudSize(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.HudIncrease))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.HudIncrease, input))
                 ChangeHudSize(true);
             else if (input.ConsumeKeyPressed(Key.Tab))
             {
                 m_drawAutomap = !m_drawAutomap;
-                m_config.Hud.AutoMapOffsetX.Set(0);
-                m_config.Hud.AutoMapOffsetY.Set(0);
+                m_autoMapOffset = (0, 0);
+                m_autoMapScale = m_config.Hud.AutoMap.Scale;
             }
         }
         
         private void HandleAutoMapInput(InputEvent input)
         {
-            if (input.ConsumeKeyPressed(m_config.Controls.AutoMapDecrease))
+            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapDecrease, input))
                 ChangeAutoMapSize(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapIncrease))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapIncrease, input))
                 ChangeAutoMapSize(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapUp))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapUp, input))
                 ChangeAutoMapOffsetY(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapDown))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapDown, input))
                 ChangeAutoMapOffsetY(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapRight))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapRight, input))
                 ChangeAutoMapOffsetX(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapLeft))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.AutoMapLeft, input))
                 ChangeAutoMapOffsetX(false);
         }
         
         private void ChangeAutoMapOffsetY(bool increase)
         {
-            if (increase)
-                m_config.Hud.AutoMapOffsetY.Set(m_config.Hud.AutoMapOffsetY + 1);
-            else
-                m_config.Hud.AutoMapOffsetY.Set(m_config.Hud.AutoMapOffsetY - 1);
+            m_autoMapOffset.Y += (increase ? 1 : -1);
         }
         
         private void ChangeAutoMapOffsetX(bool increase)
         {
-            if (increase)
-                m_config.Hud.AutoMapOffsetX.Set(m_config.Hud.AutoMapOffsetX + 1);
-            else
-                m_config.Hud.AutoMapOffsetX.Set(m_config.Hud.AutoMapOffsetX - 1);
+            m_autoMapOffset.X += (increase ? 1 : -1);
         }
         
         private void ChangeAutoMapSize(bool increase)
         {
-            if (increase)
-                m_config.Hud.AutoMapScale.Set(m_config.Hud.AutoMapScale.Value + 0.1);
-            else
-                m_config.Hud.AutoMapScale.Set(m_config.Hud.AutoMapScale.Value - 0.1);
+            m_autoMapScale += increase ? 0.1 : -0.1;
         }
         
         private void HandleMovementInput(InputEvent input)
         {
             m_tickCommand.Clear();
-            foreach (var (inputKey, command) in m_consumeDownKeys)
-                if (input.ConsumeKeyPressedOrDown(inputKey))
-                    m_tickCommand.Add(command, true);
+            
+            foreach ((string command, TickCommands tickCommand) in ConsumeDownKeys)
+                if (m_config.Keys.ConsumeCommandKeyPress(command, input))
+                    m_tickCommand.Add(tickCommand, true);
 
-            foreach (var (inputKey, command) in m_consumePressedKeys)
-                if (!input.WasPreviouslyPressed(inputKey) && input.ConsumeKeyPressed(inputKey))
-                    m_tickCommand.Add(command, false);
+            foreach ((string command, TickCommands tickCommand) in ConsumeContinuallyDownKeys)
+                if (m_config.Keys.ConsumeCommandKeyContinuallyDown(command, input))
+                    m_tickCommand.Add(tickCommand, false);
         }
         
         private void ChangeHudSize(bool increase)
         {
-            int size = (int)m_config.Hud.StatusBarSize.Value;
-            if (increase)
-                size++;
-            else
-                size--;
-
-            size = Math.Clamp(size, 0, Enum.GetValues(typeof(StatusBarSizeType)).Length - 1);
-
-            if ((int)m_config.Hud.StatusBarSize.Value != size)
-            {
-                m_config.Hud.StatusBarSize.Set((StatusBarSizeType)size);
+            StatusBarSizeType current = m_config.Hud.StatusBarSize;
+            StatusBarSizeType next = (StatusBarSizeType)((int)current + (increase ? 1 : -1));
+            
+            if (m_config.Hud.StatusBarSize.Set(next) == ConfigSetResult.Set)
                 World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
-            }
         }
     }
 }

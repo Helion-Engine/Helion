@@ -25,12 +25,15 @@ namespace Helion.Layer.Worlds
             float pitchRadians = oldCamera.PitchRadians;
             Camera camera = new(position, yawRadians, pitchRadians);
             
-            WorldRenderContext worldContext = new(camera, m_lastTickInfo.Fraction);
-            
-            // NOTE: This is temporary because of the old renderer. This will
-            // go away when it gets removed.
-            worldContext.DrawAutomap = m_drawAutomap;
-            
+            WorldRenderContext worldContext = new(camera, m_lastTickInfo.Fraction)
+            {
+                // NOTE: This is temporary because of the old renderer. This will
+                // go away when it gets removed.
+                DrawAutomap = m_drawAutomap,
+                AutomapOffset = m_autoMapOffset,
+                AutomapScale = m_autoMapScale
+            };
+
             ctx.World(worldContext, worldRenderer =>
             {
                 worldRenderer.Draw(World);

@@ -7,8 +7,12 @@ using System.Text.Json;
 using Helion.Util.Extensions;
 using NLog;
 
-namespace Helion.Util.ConfigsNew.Values
+namespace Helion.Util.Configs.Values
 {
+    /// <summary>
+    /// A collection of conversion functions that take some arbitrary input and
+    /// turn them into a desired type.
+    /// </summary>
     public static class ConfigConverters
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();

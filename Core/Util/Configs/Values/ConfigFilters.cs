@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Util.ConfigsNew.Values
+namespace Helion.Util.Configs.Values
 {
     /// <summary>
     /// A collection of filters that are commonly used.

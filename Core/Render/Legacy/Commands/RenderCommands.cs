@@ -78,9 +78,10 @@ namespace Helion.Render.Legacy.Commands
             m_commands.Add(command);
         }
 
-        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap)
+        public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
+            Vec2I automapOffset, double automapScale)
         {
-            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap));
+            m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
         }
 
         public void Viewport(Dimension dimension, Vec2I? offset = null)
