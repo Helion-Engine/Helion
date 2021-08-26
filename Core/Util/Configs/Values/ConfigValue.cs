@@ -8,11 +8,24 @@ namespace Helion.Util.Configs.Values
     {
         // This value could be passed any type. To avoid many creations, this
         // is cached between different generic types.
-        private static readonly Func<object, T> ObjectToTypeConverterOrThrow = MakeObjectToTypeConverterOrThrow<T>();
+        private static readonly Func<object, T> ObjectToTypeConverterOrThrow;
         
         // The type may need help in conversion to a string.
-        private static readonly Func<T, string>? ToStringHelper = MakeToStringHelper<T>();
-
+        private static readonly Func<T, string>? ToStringHelper;
+        
+        // We need these to run at the start. They won't, and this forces it.
+        // This way any developer who adds something that would break due to
+        // not having the proper conversions will be notified immediately. For
+        // whatever reason, assigning these directly will delay the function
+        // invocation, which means if the developer forgets, it will blow up
+        // much later (possibly even on write!) which is very bad because configs
+        // will never get written.
+        static ConfigValue()
+        {
+            ObjectToTypeConverterOrThrow = MakeObjectToTypeConverterOrThrow<T>();
+            ToStringHelper = MakeToStringHelper<T>();
+        }
+        
         public object ObjectValue => Value;
         public T Value { get; private set; }
         public bool Changed { get; set; }

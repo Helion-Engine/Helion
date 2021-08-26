@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Helion.Layer.Consoles;
@@ -72,7 +73,8 @@ namespace Helion.Client
                 else
                     ShowFatalError("Failed to load files.");
 
-                Process.GetCurrentProcess().Kill();
+                throw new Exception("hi");
+                //Process.GetCurrentProcess().Kill();
             }
         }
 

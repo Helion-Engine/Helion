@@ -23,7 +23,7 @@ namespace Helion.Util.Configs
     public class Config : IEnumerable<ConfigComponent>
     {
         [ConfigComponentIgnore]
-        public const string DefaultConfigPath = "config.txt";
+        public const string DefaultConfigPath = "config.ini";
         private const string EngineSectionName = "engine";
         private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();

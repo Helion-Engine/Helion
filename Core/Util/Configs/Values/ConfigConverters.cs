@@ -143,8 +143,9 @@ namespace Helion.Util.Configs.Values
         {
             if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
                 return null;
-            
-            if (typeof(T).IsSubclassOf(typeof(IList)))
+
+            // TODO: Support more than just string lists...
+            if (typeof(T).GetTypeInfo().IsAssignableFrom(typeof(IList).GetTypeInfo()))
             {
                 return value =>
                 {
@@ -154,12 +155,13 @@ namespace Helion.Util.Configs.Values
                         return "ERROR";
                     }
                     
-                    List<object> enumerable = new();
-                    foreach (object? obj in list)
-                        if (obj != null)
-                            enumerable.Add(obj);
+                    List<string> enumerable = new();
+                    foreach (string obj in list)
+                        enumerable.Add(obj);
 
-                    return enumerable.Select(o => (o.ToString() ?? "").Trim()).Where(s => s != "").Join(", ");
+                    return enumerable.Select(o => $"\"{(o.ToString() ?? "").Trim()}\"")
+                        .Where(s => s != "")
+                        .Join(", ");
                 };
             }
 
