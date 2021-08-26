@@ -8,13 +8,13 @@ namespace Helion.Resources.Definitions.Locks
     {
         public readonly List<LockDef> LockDefs = new List<LockDef>();
 
-        private static string KeyMessage(string name) => $"{name} key";
+        private static string NeedKeyMessage(string name) => $"You need {name}";
 
         public LockDefinitions()
         {
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("red"),
+                Message = NeedKeyMessage("a red card"),
                 KeyNumber = 1,
                 MapColor = Color.Red,
                 KeyDefinitionNames = new List<string>() { "RedCard" }
@@ -22,7 +22,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("blue"),
+                Message = NeedKeyMessage("a blue card"),
                 KeyNumber = 2,
                 MapColor = Color.Blue,
                 KeyDefinitionNames = new List<string>() { "BlueCard" }
@@ -30,7 +30,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("yellow"),
+                Message = NeedKeyMessage("a yellow card"),
                 KeyNumber = 3,
                 MapColor = Color.Yellow,
                 KeyDefinitionNames = new List<string>() { "YellowCard" }
@@ -38,7 +38,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("red skull"),
+                Message = NeedKeyMessage("a red skull"),
                 KeyNumber = 4,
                 MapColor = Color.Red,
                 KeyDefinitionNames = new List<string>() { "RedSkull" }
@@ -46,7 +46,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("blue skull"),
+                Message = NeedKeyMessage("a blue skull"),
                 KeyNumber = 5,
                 MapColor = Color.Blue,
                 KeyDefinitionNames = new List<string>() { "BlueSkull" }
@@ -54,7 +54,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = KeyMessage("yellow skull"),
+                Message = NeedKeyMessage("a yellow skull"),
                 KeyNumber = 6,
                 MapColor = Color.Yellow,
                 KeyDefinitionNames = new List<string>() { "YellowSkull" }
@@ -62,7 +62,7 @@ namespace Helion.Resources.Definitions.Locks
 
             LockDefs.Add(new LockDef()
             {
-                Message = "all six keys",
+                Message = NeedKeyMessage("all six keys"),
                 KeyNumber = 101,
                 MapColor = Color.Purple,
                 KeyDefinitionNames = new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" }
@@ -70,7 +70,7 @@ namespace Helion.Resources.Definitions.Locks
 
             var anyRed = new LockDef()
             {
-                Message = KeyMessage("red"),
+                Message = NeedKeyMessage("a red key"),
                 KeyNumber = 129,
                 MapColor = Color.Red
             };
@@ -79,7 +79,7 @@ namespace Helion.Resources.Definitions.Locks
 
             var anyBlue = new LockDef()
             {
-                Message = KeyMessage("blue"),
+                Message = NeedKeyMessage("a blue key"),
                 KeyNumber = 130,
                 MapColor = Color.Blue
             };
@@ -88,7 +88,7 @@ namespace Helion.Resources.Definitions.Locks
 
             var anyYellow = new LockDef()
             {
-                Message = KeyMessage("yellow"),
+                Message = NeedKeyMessage("a yellow key"),
                 KeyNumber = 131,
                 MapColor = Color.Yellow,
             };
@@ -97,7 +97,7 @@ namespace Helion.Resources.Definitions.Locks
 
             var any = new LockDef()
             {
-                Message = KeyMessage("any"),
+                Message = NeedKeyMessage("any key"),
                 KeyNumber = 100,
                 MapColor = Color.LightBlue,
             };
@@ -106,7 +106,7 @@ namespace Helion.Resources.Definitions.Locks
 
             var allThreeColors = new LockDef()
             {
-                Message = "all three colors",
+                Message = NeedKeyMessage("all three key colors"),
                 KeyNumber = 229,
                 MapColor = Color.Purple,
             };

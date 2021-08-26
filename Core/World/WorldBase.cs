@@ -555,9 +555,9 @@ namespace Helion.World
         {
             if (line.Special.LineSpecialCompatibility != null &&
                 line.Special.LineSpecialCompatibility.CompatibilityType == LineSpecialCompatibilityType.KeyObject)
-                return $"You need a {lockDef.Message} to activate this object.";
+                return $"{lockDef.Message} to activate this object.";
             else
-                return $"You need a {lockDef.Message} to open this door.";
+                return $"{lockDef.Message} to open this door.";
         }
 
         /// <summary>

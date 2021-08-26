@@ -17,6 +17,6 @@ namespace Helion.Maps.Specials.ZDoom
         RedKeyCardOrSkullOrGreenPrism,
         BlueKeyCardOrSkullOrBluePrism,
         YellowKeycardOrSkullOrYellPrism,
-        ThreeKeys, 
+        AllThreeColors = 229, 
     }
 }

@@ -10,7 +10,7 @@ namespace Helion.Maps.Specials.Boom
         private enum BoomKey
         {
             AnyKey = 0,
-            AllSixKeys = 7
+            AllKeys = 7
         }
 
         private const int MaxVanilla = 272;
@@ -38,6 +38,7 @@ namespace Helion.Maps.Specials.Boom
         private const int DoorDelayMask = 0x0300;
         private const int DoorLockKeyMask = 0x01c0;
         private const int DoorLockKindMask = 0x0020;
+        private const int DoorLockKeyTypeMask = 0x0200;
 
         private const int StairMonsterMask = 0x0020;
         private const int StairIgnoreMask = 0x0200;
@@ -65,6 +66,7 @@ namespace Helion.Maps.Specials.Boom
         private const int StairDirectionShift = 8;
         private const int StairStepShift = 6;
 
+        private const int DoorLockKeyTypeShift = 9;
         private const int DoorDelayShift = 8;
         private const int DoorKindShift = 5;
         private const int DoorLockKindShift = 5;
@@ -221,12 +223,20 @@ namespace Helion.Maps.Specials.Boom
             if (argsToMutate.Arg2 == (int)ZDoomDoorKind.OpenDelayClose)
                 argsToMutate.Arg3 = 34;
 
-            // All color keys map directly to ZDoom, any and all six need to changed specifically
+            // All color keys map directly to ZDoom, any and all keys need to changed specifically
             argsToMutate.Arg4 = (special & DoorLockKeyMask) >> DoorLockKeyShift;
             if (argsToMutate.Arg4 == (int)BoomKey.AnyKey)
+            {
                 argsToMutate.Arg4 = (int)ZDoomKeyType.AnyKey;
-            else if (argsToMutate.Arg4 == (int)BoomKey.AllSixKeys)
-                argsToMutate.Arg4 = (int)ZDoomKeyType.AllSixKeys;
+            }
+            else if (argsToMutate.Arg4 == (int)BoomKey.AllKeys)
+            {
+                bool skullOrKeyCard = (special & DoorLockKeyTypeMask) >> DoorLockKeyTypeShift != 0;
+                if (skullOrKeyCard)
+                    argsToMutate.Arg4 = (int)ZDoomKeyType.AllThreeColors;
+                else
+                    argsToMutate.Arg4 = (int)ZDoomKeyType.AllSixKeys;
+            }
         }
 
         private static ActivationType GetSpecialActivationType(ushort special, out bool repeat, out LineActivationType lineActivationType)
