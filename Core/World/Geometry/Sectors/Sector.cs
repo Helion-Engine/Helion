@@ -125,6 +125,22 @@ namespace Helion.World.Geometry.Sectors
             SetRenderingChanged();
         }
 
+        public void SetFloorLightLevel(short lightLevel, bool flagRenderingChange)
+        {
+            DataChanges |= SectorDataTypes.Light;
+            Floor.LightLevel = lightLevel;
+            if (flagRenderingChange)
+                SetRenderingChanged();
+        }
+
+        public void SetCeilingLightLevel(short lightLevel, bool flagRenderingChange)
+        {
+            DataChanges |= SectorDataTypes.Light;
+            Ceiling.LightLevel = lightLevel;
+            if (flagRenderingChange)
+                SetRenderingChanged();
+        }
+
         public void SetSectorSpecialType(ZDoomSectorSpecialType type)
         {
             SectorSpecialType = type;
@@ -139,7 +155,7 @@ namespace Helion.World.Geometry.Sectors
 
         public void PlaneTextureChange(SectorPlane sectorPlane)
         {
-            if (sectorPlane == Floor)
+            if (sectorPlane.Facing == SectorPlaneFace.Floor)
             {
                 DataChanges |= SectorDataTypes.FloorTexture;
                 Floor.SetRenderingChanged();
@@ -178,14 +194,20 @@ namespace Helion.World.Geometry.Sectors
                     sectorModel.FloorZ = Floor.Z;
                 if (DataChanges.HasFlag(SectorDataTypes.CeilingZ))
                     sectorModel.CeilingZ = Ceiling.Z;
-                if (DataChanges.HasFlag(SectorDataTypes.Light))
-                    sectorModel.LightLevel = LightLevel;
                 if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
                     sectorModel.FloorTexture = Floor.TextureHandle;
                 if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
                     sectorModel.CeilingTexture = Ceiling.TextureHandle;
                 if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType))
                     sectorModel.SectorSpecialType = (int)SectorSpecialType;
+                if (DataChanges.HasFlag(SectorDataTypes.Light))
+                {
+                    sectorModel.LightLevel = LightLevel;
+                    if (Floor.LightLevel != LightLevel)
+                        sectorModel.FloorLightLevel = Floor.LightLevel;
+                    if (Ceiling.LightLevel != LightLevel)
+                        sectorModel.CeilingLightLevel = Ceiling.LightLevel;
+                }
 
                 sectorModel.Secret = Secret;
                 sectorModel.DamageAmount = DamageAmount;
@@ -221,14 +243,21 @@ namespace Helion.World.Geometry.Sectors
                     Ceiling.Plane.MoveZ(amount);
                 }
 
-                if (DataChanges.HasFlag(SectorDataTypes.Light) && sectorModel.LightLevel.HasValue)
-                    SetLightLevel(sectorModel.LightLevel.Value);
+                if (DataChanges.HasFlag(SectorDataTypes.Light))
+                {
+                    if (sectorModel.LightLevel.HasValue)
+                        SetLightLevel(sectorModel.LightLevel.Value);
+                    if (sectorModel.FloorLightLevel.HasValue)
+                        SetFloorLightLevel(sectorModel.FloorLightLevel.Value, false);
+                    if (sectorModel.CeilingLightLevel.HasValue)
+                        SetCeilingLightLevel(sectorModel.CeilingLightLevel.Value, false);
+                }
 
                 if (DataChanges.HasFlag(SectorDataTypes.FloorTexture) && sectorModel.FloorTexture.HasValue)
                     Floor.SetTexture(sectorModel.FloorTexture.Value);
 
                 if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture) && sectorModel.CeilingTexture.HasValue)
-                    Floor.SetTexture(sectorModel.CeilingTexture.Value);
+                    Ceiling.SetTexture(sectorModel.CeilingTexture.Value);
 
                 if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
                     SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
@@ -271,7 +300,7 @@ namespace Helion.World.Geometry.Sectors
             if (!sectorPlane.Sector.Equals(this))
                 return null;
 
-            if (sectorPlane == Floor)
+            if (sectorPlane.Facing == SectorPlaneFace.Floor)
                 return ActiveFloorMove;
 
             return ActiveCeilingMove;
