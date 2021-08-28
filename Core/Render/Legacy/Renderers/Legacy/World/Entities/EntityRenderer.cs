@@ -36,7 +36,6 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
         private RenderWorldData m_debugBoxRenderWorldData;
 
         public readonly List<IRenderObject> AlphaEntities = new();
-        private readonly List<GLLegacyTexture> m_alphaEntityTextures = new();
 
         public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
         {

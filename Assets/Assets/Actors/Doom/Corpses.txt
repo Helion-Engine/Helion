@@ -1,3 +1,16 @@
+// For dehacked compatibility
+actor DeadTorso
+{
+    +CORPSE
+    States
+    {
+    Spawn:
+        PLAY N -1
+        Stop
+    }
+}
+
+// For dehacked compatibility
 actor GibbedMarine
 {
     +CORPSE
@@ -20,14 +33,14 @@ actor GibbedCorpse 10
     }
 }
 
-actor GibbedMarineExtra 12
+actor GibbedMarineExtra : DoomPlayer 12
 {
     +CORPSE
+    Skip_Super
     States
     {
     Spawn:
-        PLAY W -1
-        Stop
+        Goto Super::XDeath+8
     }
 }
 
@@ -38,7 +51,7 @@ actor DeadMarine : DoomPlayer 15
     States
     {
     Spawn:
-        Goto Super::Death+4
+        Goto Super::Death+6
     }
 }
 

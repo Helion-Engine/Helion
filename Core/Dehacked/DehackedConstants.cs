@@ -1514,7 +1514,7 @@ namespace Helion.Dehacked
             { ThingState.BLOODYTWITCH3, new("BloodyTwitch::spawn",          2) },
             { ThingState.BLOODYTWITCH4, new("BloodyTwitch::spawn",          3) },
 
-            { ThingState.DEADTORSO,     new("DeadMarine::spawn",            0) },
+            { ThingState.DEADTORSO,     new("DeadTorso::spawn",           0) },
             { ThingState.DEADBOTTOM,    new("GibbedMarine::spawn",          0) },
             { ThingState.HEADSONSTICK,  new("HeadsOnAStick::spawn",         0) },
             { ThingState.GIBS,          new("Actor::GenericCrush",          0) }, // TODO verify
@@ -3149,8 +3149,8 @@ namespace Helion.Dehacked
             new ThingStateLookup("GOR1", 1),                 // BLOODYTWITCH2,
             new ThingStateLookup("GOR1", 2),                 // BLOODYTWITCH3,
             new ThingStateLookup("GOR1", 3),                 // BLOODYTWITCH4,
-            new ThingStateLookup("PLAY", 0, "DeadMarine"),   // DEADTORSO,
-            new ThingStateLookup("PLAY", 0, "GibbedMarine"), // DEADBOTTOM,
+            new ThingStateLookup("PLAY", 0, "DeadTorso"),    // DEADTORSO, (Doom made a state for this, inaccessible except for dehacked)
+            new ThingStateLookup("PLAY", 0, "GibbedMarine"), // DEADBOTTOM, (Doom made a state for this, inaccessible except for dehacked)
             new ThingStateLookup("POL2", 0),                 // HEADSONSTICK,
             new ThingStateLookup("POL5", 0),                 // GIBS,
             new ThingStateLookup("POL4", 0),                 // HEADONASTICK,

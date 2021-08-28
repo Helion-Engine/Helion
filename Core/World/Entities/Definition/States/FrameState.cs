@@ -71,7 +71,7 @@ namespace Helion.World.Entities.Definition.States
             }
             
             if (warn)
-                Log.Warn("Unable to find state label '{0}' for actor {1}", label, m_definition.Name);
+                Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
 
             return false;
         }
