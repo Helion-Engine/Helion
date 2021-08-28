@@ -19,7 +19,7 @@
 
             if (ticksToRun <= 0)
                 return;
-
+            
             World.SetTickCommand(m_tickCommand);
 
             if (ticksToRun > TickOverflowThreshold)

@@ -311,7 +311,7 @@ namespace Helion.World
                     // Doom did not apply sector damage to voodoo dolls
                     if (player.IsVooDooDoll)
                         continue;
-
+                    
                     player.HandleTickCommand();
                     player.TickCommand.TickHandled();
 

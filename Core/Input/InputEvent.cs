@@ -68,6 +68,26 @@ namespace Helion.Input
         }
 
         /// <summary>
+        /// Checks if a key is pressed without consuming it.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>True if it was just pressed, false if not.</returns>
+        public bool PeekKeyPressed(Key key)
+        {
+            return m_keysPressed.Contains(key);
+        }
+
+        /// <summary>
+        /// Checks if a key is down without consuming it.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>True if it is down, false if not.</returns>
+        public bool PeekKeyDown(Key key)
+        {
+            return m_keysDown.Contains(key);
+        }
+
+        /// <summary>
         /// Consumes the key, returns the result of whether it's down or
         /// pressed depending whether it's been consumed or not.
         /// </summary>
