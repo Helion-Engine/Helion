@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Helion.Input;
 using Helion.Util.Extensions;
+using NLog;
 
 namespace Helion.Util.Configs
 {
@@ -11,6 +12,7 @@ namespace Helion.Util.Configs
     /// </summary>
     public class ConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> Commands)>
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly IReadOnlySet<Key> EmptyKeySet = new HashSet<Key>();
         private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
         
@@ -18,8 +20,10 @@ namespace Helion.Util.Configs
         private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
         private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
 
-        public ConfigKeyMapping()
+        public void AddDefaults()
         {
+            Log.Trace("Adding default key commands to config keys");
+            
             Add(Key.W, Constants.Input.Forward);
             Add(Key.A, Constants.Input.Left);
             Add(Key.S, Constants.Input.Backward);
@@ -59,7 +63,7 @@ namespace Helion.Util.Configs
             Add(Key.F3, Constants.Input.Load);
             Add(Key.Tab, Constants.Input.Automap);
         }
-        
+
         public IReadOnlySet<string> this[Key key] =>
             m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ? 
                 commands : 
@@ -77,6 +81,9 @@ namespace Helion.Util.Configs
         /// <param name="command">The command to map to the key.</param>
         public void Add(Key key, string command)
         {
+            if (key == Key.Unknown || command == "")
+                return;
+            
             if (m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
             {
                 Changed |= !commands.Contains(command);

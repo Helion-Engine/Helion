@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using Helion.Input;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
@@ -58,14 +59,13 @@ namespace Helion.Util.Configs
         public Config()
         {
             VariableAliasMapping = new ConfigVariableAliasMapping(this);
-            
             PopulateComponentsRecursively(this, "");
         }
 
-        public Config(string filePath) : this()
+        public Config(string filePath, bool addDefaultsIfNew = true) : this()
         {
             Log.Info($"Reading config from {filePath}");
-            ReadConfigFrom(filePath);
+            ReadConfigFrom(filePath, addDefaultsIfNew);
 
             // If we read things in, we're going to very likely change things from
             // their default state. This is okay and should not be considered as
@@ -138,8 +138,9 @@ namespace Helion.Util.Configs
                 }
 
                 KeyDataCollection section = data[EngineSectionName];
-                foreach ((string entryPath, _, IConfigValue configValue) in m_components.Values)
-                    section[entryPath] = configValue.ToString();
+                foreach ((string path, ConfigInfoAttribute attr, IConfigValue value) in m_components.Values)
+                    if (attr.Save)
+                        section[path] = value.ToString();
 
                 return true;
             }
@@ -195,7 +196,7 @@ namespace Helion.Util.Configs
             }
         }
 
-        private void ReadConfigFrom(string path)
+        private void ReadConfigFrom(string path, bool addDefaultsIfNew)
         {
             Log.Debug("Reading config file from {Path}", path);
             
@@ -203,6 +204,10 @@ namespace Helion.Util.Configs
             {
                 Log.Info($"Config file not found, will generate new config file at {path}");
                 m_noFileExistedWhenRead = true;
+                
+                if (addDefaultsIfNew)
+                    Keys.AddDefaults();
+                
                 return;
             }
 
@@ -210,6 +215,17 @@ namespace Helion.Util.Configs
             {
                 FileIniDataParser parser = new();
                 IniData iniData = parser.ReadFile(path);
+                
+                ReadEngineValues(iniData);
+                ReadKeyValues(iniData);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Unable to parse config file: {e.Message}");
+            }
+
+            void ReadEngineValues(IniData iniData)
+            {
                 foreach (KeyData keyData in iniData.Sections[EngineSectionName])
                 {
                     string identifier = keyData.KeyName.ToLower();
@@ -229,9 +245,31 @@ namespace Helion.Util.Configs
                     configComponent.Value.Set(keyData.Value);
                 }
             }
-            catch (Exception e)
+
+            void ReadKeyValues(IniData iniData)
             {
-                Log.Error($"Unable to parse config file: {e.Message}");
+                Dictionary<string, Key> nameToKey = new(StringComparer.OrdinalIgnoreCase);
+                foreach (Key key in Enum.GetValues<Key>())
+                    nameToKey[key.ToString()] = key;
+                    
+                foreach (KeyData keyData in iniData.Sections[KeysSectionName])
+                {
+                    if (!nameToKey.TryGetValue(keyData.KeyName, out Key key))
+                    {
+                        Log.Warn($"Unable to parse config key type: {keyData.KeyName} (assigned: with {keyData.Value})");
+                        continue;
+                    }
+                    
+                    List<string>? commandArray = JsonSerializer.Deserialize<List<string>>(keyData.Value);
+                    if (commandArray == null)
+                    {
+                        Log.Warn($"Unable to parse parse config key line: {keyData.KeyName} = {keyData.Value}");
+                        continue;
+                    }
+                 
+                    foreach (var command in commandArray)
+                        Keys.Add(key, command);
+                }
             }
         }
 
