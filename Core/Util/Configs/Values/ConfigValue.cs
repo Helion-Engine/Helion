@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 using static Helion.Util.Configs.Values.ConfigConverters;
 
@@ -10,9 +12,6 @@ namespace Helion.Util.Configs.Values
         // is cached between different generic types.
         private static readonly Func<object, T> ObjectToTypeConverterOrThrow;
         
-        // The type may need help in conversion to a string.
-        private static readonly Func<T, string>? ToStringHelper;
-        
         // We need these to run at the start. They won't, and this forces it.
         // This way any developer who adds something that would break due to
         // not having the proper conversions will be notified immediately. For
@@ -23,7 +22,6 @@ namespace Helion.Util.Configs.Values
         static ConfigValue()
         {
             ObjectToTypeConverterOrThrow = MakeObjectToTypeConverterOrThrow<T>();
-            ToStringHelper = MakeToStringHelper<T>();
         }
         
         public object ObjectValue => Value;
@@ -127,7 +125,11 @@ namespace Helion.Util.Configs.Values
 
         public override string ToString()
         {
-            return ToStringHelper != null ? ToStringHelper(Value) : (Value.ToString() ?? "");
+            // For now, we only have a very few cases, so we'll handle them here.
+            if (Value is List<string> stringList)
+                return $"[\"{stringList.Join("\", \"")}\"]";
+            
+            return Value.ToString() ?? "";
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.Util.Configs
+namespace Helion.Util.Configs.Values
 {
     /// <summary>
     /// Flags that indicate when setting should occur. If a field is set with

@@ -154,7 +154,7 @@ namespace Helion.Util.Configs
 
                 KeyDataCollection section = data[KeysSectionName];
                 foreach ((Key key, IEnumerable<string> commands) in Keys)
-                    section[key.ToString()] = commands.Select(cmd => $"\"{cmd}\"").Join(", ");
+                    section[key.ToString()] = $"[{commands.Select(cmd => $"\"{cmd}\"").Join(", ")}]";
 
                 return true;
             }

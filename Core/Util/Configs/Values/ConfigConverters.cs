@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Helion.Util.Extensions;
-using NLog;
 
 namespace Helion.Util.Configs.Values
 {
@@ -15,8 +12,6 @@ namespace Helion.Util.Configs.Values
     /// </summary>
     public static class ConfigConverters
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         internal static Func<object, T> MakeObjectToTypeConverterOrThrow<T>() where T : notnull
         {
             if (typeof(T) == typeof(bool))
@@ -130,48 +125,13 @@ namespace Helion.Util.Configs.Values
             {
                 // We store it in the format `"a", "bc", ...` so we need to wrap
                 // it in []'s before letting the deserializer do the heavy lifting.
-                string str = $"[{obj.ToString() ?? ""}]";
+                string str = obj.ToString() ?? "[]";
                 List<string> elements = JsonSerializer.Deserialize<List<string>>(str) ?? 
                                         throw new Exception("List is malformed");
                 return (T)(object)elements;
             }
 
             return ThrowableStringListConverter;
-        }
-
-        internal static Func<T, string>? MakeToStringHelper<T>() where T : notnull
-        {
-            if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
-                return null;
-
-            // TODO: Support more than just string lists...
-            if (typeof(T).GetTypeInfo().IsAssignableFrom(typeof(IList).GetTypeInfo()))
-            {
-                return value =>
-                {
-                    if (value is not IList list)
-                    {
-                        Log.Error($"Config ToString() function misclassification for type {typeof(T).Name} as {value.GetType().Name}");
-                        return "ERROR";
-                    }
-                    
-                    List<string> enumerable = new();
-                    foreach (string obj in list)
-                        enumerable.Add(obj);
-
-                    return enumerable.Select(o => $"\"{(o.ToString() ?? "").Trim()}\"")
-                        .Where(s => s != "")
-                        .Join(", ");
-                };
-            }
-
-            // All types that have `public string ToConfigString()` as a method
-            // can be used as a config value for writing.
-            MethodInfo? method = typeof(T).GetMethod("ToConfigString", BindingFlags.Public);
-            if (method != null && method.ReturnType == typeof(string))
-                return val => method.Invoke(val, null)?.ToString() ?? "";
-
-            return null;
         }
     }
 }
