@@ -23,7 +23,7 @@ namespace Helion.Layer.Worlds
                 ChangeHudSize(false);
             else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.HudIncrease, input))
                 ChangeHudSize(true);
-            else if (input.ConsumeKeyPressed(Key.Tab))
+            else if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Automap, input))
             {
                 m_drawAutomap = !m_drawAutomap;
                 m_autoMapOffset = (0, 0);
