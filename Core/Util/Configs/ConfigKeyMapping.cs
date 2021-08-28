@@ -133,10 +133,10 @@ namespace Helion.Util.Configs
         /// <param name="inputEvent">The input event to consume from.</param>
         /// <returns>True if it consumed the key (meaning it was pressed), false
         /// if no keys were pressed for that command.</returns>
-        public bool ConsumeCommandKeyContinuallyDown(string command, InputEvent inputEvent)
+        public bool ConsumeCommandKeyPressedOrDown(string command, InputEvent inputEvent)
         {
             foreach (Key key in this[command])
-                if (inputEvent.ConsumeKeyContinuallyDown(key))
+                if (inputEvent.ConsumeKeyPressedOrDown(key))
                     return true;
             return false;
         }

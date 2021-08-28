@@ -66,12 +66,12 @@ namespace Helion.Layer.Worlds
         {
             m_tickCommand.Clear();
 
-            foreach ((string command, TickCommands tickCommand) in ConsumeDownKeys)
+            foreach ((string command, TickCommands tickCommand) in InstantCommandMapping)
                 if (m_config.Keys.ConsumeCommandKeyPress(command, input))
                     m_tickCommand.Add(tickCommand, true);
-
-            foreach ((string command, TickCommands tickCommand) in ConsumeContinuallyDownKeys)
-                if (m_config.Keys.ConsumeCommandKeyContinuallyDown(command, input))
+            
+            foreach ((string command, TickCommands tickCommand) in NonInstantCommandMapping)
+                if (m_config.Keys.ConsumeCommandKeyPressedOrDown(command, input))
                     m_tickCommand.Add(tickCommand, false);
         }
         

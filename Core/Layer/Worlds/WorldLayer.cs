@@ -25,7 +25,7 @@ namespace Helion.Layer.Worlds
         private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
-        private static readonly (string, TickCommands)[] ConsumeDownKeys = 
+        private static readonly (string, TickCommands)[] NonInstantCommandMapping = 
         {
             (Constants.Input.Forward,   TickCommands.Forward),
             (Constants.Input.Backward,  TickCommands.Backward),
@@ -44,7 +44,7 @@ namespace Helion.Layer.Worlds
             (Constants.Input.Strafe,    TickCommands.Strafe),
         };
         
-        private static readonly (string, TickCommands)[] ConsumeContinuallyDownKeys = 
+        private static readonly (string, TickCommands)[] InstantCommandMapping = 
         {
             (Constants.Input.Use,            TickCommands.Use),
             (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
