@@ -1107,14 +1107,14 @@ namespace Helion.World.Special
         {
             IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
             foreach (var sector in sectors)
-                sector.Ceiling.LightLevel = line.Front.Sector.LightLevel;
+                sector.SetCeilingLightLevel(line.Front.Sector.LightLevel, false);
         }
 
         private void SetFloorLight(Line line)
         {
             IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
             foreach (var sector in sectors)
-                sector.Floor.LightLevel = line.Front.Sector.LightLevel;
+                sector.SetFloorLightLevel(line.Front.Sector.LightLevel, false);
         }
 
         private ISpecial? CreatePlatToggleCeiling(Sector sector)

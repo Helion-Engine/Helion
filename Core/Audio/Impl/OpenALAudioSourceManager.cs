@@ -108,10 +108,11 @@ namespace Helion.Audio.Impl
                 return null;
             }
 
-            OpenALBuffer? buffer = OpenALBuffer.Create(entry.ReadData());
+            OpenALBuffer? buffer = OpenALBuffer.Create(entry.ReadData(), out string? error);
             if (buffer == null)
             {
-                Log.Warn("Sound {0} is either corrupt or not a DMX sound", sound);
+                if (error != null)
+                    Log.Warn($"Error playing sound {sound}: {error}");
                 return null;
             }
 

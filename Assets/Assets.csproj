@@ -115,7 +115,7 @@
     <Content Include="Assets\MapInfo\DoomRegistered.txt" />
     <Content Include="Assets\SndInfo.txt" />
     <None Include="Assets\Animated.lmp" />
-    <None Include="Assets\Sounds\dssecret.lmp" />
+    <Content Include="Assets\Sounds\DSSECRET.wav" />
     <Content Include="Assets\Weapons\Doom\Chainsaw.txt" />
     <Content Include="Assets\Weapons\Doom\DoomWeapon.txt" />
     <Content Include="Assets\Weapons\Doom\Pistol.txt" />
@@ -124,6 +124,7 @@
   <ItemGroup>
     <None Include="Scripts\ZipAssets.ps1" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Client/bin/$(ConfigurationName)/net5.0-windows/assets.pk3"

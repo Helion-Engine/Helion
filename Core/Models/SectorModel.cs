@@ -11,6 +11,8 @@
         public double? FloorZ;
         public double? CeilingZ;
         public short? LightLevel;
+        public short? FloorLightLevel;
+        public short? CeilingLightLevel;
         public int? FloorTexture;
         public int? CeilingTexture;
         public int? SectorSpecialType;

@@ -342,6 +342,8 @@ namespace Helion.Util
 
         public static double ApproximateDistance(int dx, int dy)
         {
+            dx = Math.Abs(dx);
+            dy = Math.Abs(dy);
             if (dx < dy)
                 return dx + dy - (dx / 2);
             return dx + dy - (dy / 2);
