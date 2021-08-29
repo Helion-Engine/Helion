@@ -63,6 +63,21 @@ namespace Helion.Geometry
 
         public bool Equals(Dimension other) => Width == other.Width && Height == other.Height;
 
+        public static Dimension FromConfigString(string s)
+        {
+            try
+            {
+                var tokens = s.Split(",");
+                int w = int.Parse(tokens[0].Trim());
+                int h = int.Parse(tokens[1].Trim());
+                return (w, h);
+            }
+            catch
+            {
+                return (1, 1);
+            }
+        }
+        
         public override bool Equals(object? obj) => obj is Dimension other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(Width, Height);
         public override string ToString() => $"{Width}, {Height}";

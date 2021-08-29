@@ -69,9 +69,6 @@ namespace Helion.World.Geometry.Builder
 
         private static IBspBuilder? CreateBspBuilder(IMap map, Config config)
         {
-            if (config.Developer.InternalBSPBuilder)
-                return new BspBuilder(map);
-
             if (map.GL != null)
                 return new GLBspBuilder(map);
 

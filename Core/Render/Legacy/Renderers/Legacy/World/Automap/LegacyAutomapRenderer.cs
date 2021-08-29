@@ -38,14 +38,12 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
         private readonly VertexArrayObject m_vao;
         private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
         private readonly List<(int start, vec3 color)> m_vboRanges = new();
-        private readonly DynamicArray<vec2> m_entityPoints = new(); 
-        private bool m_disposed;
-
+        private readonly DynamicArray<vec2> m_entityPoints = new();
         private float m_offsetX;
         private float m_offsetY;
-
         private int m_lastOffsetX;
         private int m_lastOffsetY;
+        private bool m_disposed;
 
         private readonly Dictionary<string, AutomapColor> m_keys = new(StringComparer.OrdinalIgnoreCase);
         
@@ -84,7 +82,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
         public void Render(IWorld world, RenderInfo renderInfo)
         {
             // Consider both offsets at zero a reset
-            if (world.Config.Hud.AutoMapOffsetX == 0 && world.Config.Hud.AutoMapOffsetY == 0)
+            if (renderInfo.AutomapOffset.X == 0 && renderInfo.AutomapOffset.Y == 0)
             {
                 m_offsetX = 0;
                 m_offsetY = 0;
@@ -92,12 +90,12 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 m_lastOffsetY = 0;
             }
 
-            if (m_lastOffsetX != world.Config.Hud.AutoMapOffsetX || m_lastOffsetY != world.Config.Hud.AutoMapOffsetY)
+            if (m_lastOffsetX != renderInfo.AutomapOffset.X || m_lastOffsetY != renderInfo.AutomapOffset.Y)
             {
-                m_offsetX += (world.Config.Hud.AutoMapOffsetX - m_lastOffsetX) * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
-                m_offsetY += (world.Config.Hud.AutoMapOffsetY - m_lastOffsetY) * 64 * 1 / (float)world.Config.Hud.AutoMapScale;
-                m_lastOffsetX = world.Config.Hud.AutoMapOffsetX;
-                m_lastOffsetY = world.Config.Hud.AutoMapOffsetY;
+                m_offsetX += (renderInfo.AutomapOffset.X - m_lastOffsetX) * 64 * 1 / (float)renderInfo.AutomapScale;
+                m_offsetY += (renderInfo.AutomapOffset.Y - m_lastOffsetY) * 64 * 1 / (float)renderInfo.AutomapScale;
+                m_lastOffsetX = renderInfo.AutomapOffset.X;
+                m_lastOffsetY = renderInfo.AutomapOffset.Y;
             }
 
             PopulateData(world, renderInfo, out Box2F worldBounds);
@@ -144,7 +142,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
             float aspect = vW / vH;
 
             // TODO: Do this properly...
-            float scale = (float)world.Config.Hud.AutoMapScale.Value;
+            float scale = (float)renderInfo.AutomapScale;
             return new vec2(1 / vW * scale, 1 / vH * scale);
         }
 
@@ -170,7 +168,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
             var center = player.PrevPosition.Interpolate(player.Position, renderInfo.TickFraction);
             float x = (float)center.X + m_offsetX;
             float y = (float)center.Y + m_offsetY;
-            float length = VirtualLength * 1 / (float)world.Config.Hud.AutoMapScale;
+            float length = VirtualLength * 1 / (float)renderInfo.AutomapScale;
             // Center the cross
             float offset = length / VirtualLength / 2.0f;
 
@@ -213,11 +211,16 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
 
                 if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
                     AddLockedLine(line.Args.Arg3, start, end))
-                        continue;
-                else if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric && 
+                {
+                    continue;
+                }
+
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
                     AddLockedLine(line.Args.Arg4, start, end))
-                        continue;
-                
+                {
+                    continue;
+                }
+
                 if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
                 {
                     AddLine(line.SeenForAutomap ? AutomapColor.White : AutomapColor.LightBlue, start, end);
@@ -338,6 +341,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
             DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
             foreach (vec2 point in m_entityPoints)
                 array.Add(point);
+            
             void AddSquare(float startX, float startY, float width, float height)
             {
                 AddLine(startX, startY, startX, startY + height);

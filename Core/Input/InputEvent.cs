@@ -55,8 +55,6 @@ namespace Helion.Input
                 m_previouslyPressed.Add(key);
         }
 
-        public bool WasPreviouslyPressed(Key key) => m_previouslyPressed.Contains(key);
-
         /// <summary>
         /// Consumes all the input so no later consumer sees anything.
         /// </summary>
@@ -67,6 +65,26 @@ namespace Helion.Input
             m_typedCharacters.Clear();
             m_mouseDelta = Vec2I.Zero;
             m_mouseScroll = 0;
+        }
+
+        /// <summary>
+        /// Checks if a key is pressed without consuming it.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>True if it was just pressed, false if not.</returns>
+        public bool PeekKeyPressed(Key key)
+        {
+            return m_keysPressed.Contains(key);
+        }
+
+        /// <summary>
+        /// Checks if a key is down without consuming it.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>True if it is down, false if not.</returns>
+        public bool PeekKeyDown(Key key)
+        {
+            return m_keysDown.Contains(key);
         }
 
         /// <summary>
@@ -96,6 +114,26 @@ namespace Helion.Input
             bool contains = m_keysPressed.Contains(inputKey);
             m_keysPressed.Remove(inputKey);
             return contains;
+        }
+
+        /// <summary>
+        /// If a key has been held down for this polling and the previous polling,
+        /// then it will be consumed.
+        /// </summary>
+        /// <param name="key">The key to check.</param>
+        /// <returns>True if so, false otherwise (and no consumption happened).
+        /// </returns>
+        public bool ConsumeKeyContinuallyDown(Key key)
+        {
+            bool contains = m_keysPressed.Contains(key);
+            bool previouslyContains = m_previouslyPressed.Contains(key);
+
+            if (!contains || !previouslyContains)
+                return false;
+            
+            m_keysPressed.Remove(key);
+            m_previouslyPressed.Remove(key);
+            return true;
         }
 
         /// <summary>

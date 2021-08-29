@@ -121,6 +121,48 @@ namespace Helion.Util
             public static readonly string Flash = "Flash";
         }
 
+        public static class Input
+        {
+            public const string Forward = "Forward";
+            public const string Left = "Left";
+            public const string Backward = "Backward";
+            public const string Right = "Right";
+            public const string Use = "Use";
+            public const string Run = "Run";
+            public const string RunAlt = "RunAlt";
+            public const string Strafe = "Strafe";
+            public const string TurnLeft = "TurnLeft";
+            public const string TurnRight = "TurnRight";
+            public const string LookUp = "LookUp";
+            public const string LookDown = "LookDown";
+            public const string Jump = "Jump";
+            public const string Crouch = "Crouch";
+            public const string Console = "Console";
+            public const string Attack = "Attack";
+            public const string AttackAlt = "AttackAlt";
+            public const string NextWeapon = "NextWeapon";
+            public const string PreviousWeapon = "PreviousWeapon";
+            public const string WeaponSlot1 = "WeaponSlot1";
+            public const string WeaponSlot2 = "WeaponSlot2";
+            public const string WeaponSlot3 = "WeaponSlot3";
+            public const string WeaponSlot4 = "WeaponSlot4";
+            public const string WeaponSlot5 = "WeaponSlot5";
+            public const string WeaponSlot6 = "WeaponSlot6";
+            public const string WeaponSlot7 = "WeaponSlot7";
+            public const string Screenshot = "Screenshot";
+            public const string HudIncrease = "HudIncrease";
+            public const string HudDecrease = "HudDecrease";
+            public const string AutoMapIncrease = "AutoMapIncrease";
+            public const string AutoMapDecrease = "AutoMapDecrease";
+            public const string AutoMapUp = "AutoMapUp";
+            public const string AutoMapDown = "AutoMapDown";
+            public const string AutoMapLeft = "AutoMapLeft";
+            public const string AutoMapRight = "AutoMapRight";
+            public const string Save = "Save";
+            public const string Load = "Load";
+            public const string Automap = "Automap";
+        }
+
         public const double EntityShootDistance = 8192.0;
         public const double EntityMeleeDistance = 64.0;
         public const double DefaultSpreadAngle = 5.625 * Math.PI / 180.0;
