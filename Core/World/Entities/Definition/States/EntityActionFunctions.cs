@@ -2730,14 +2730,16 @@ namespace Helion.World.Entities.Definition.States
             }
         }
 
+        // A_Mushroom from WinMBF.
+        // Credit to Lee Killough et al.
         private static void A_Mushroom(Entity entity)
         {
             int count = entity.Properties.Damage.Value;
             double misc1 = entity.Frame.DehackedMisc1 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc1) : 4;
             double misc2 = entity.Frame.DehackedMisc2 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc2) : 0.5;
 
+            Vec3D velocity = new Vec3D(misc2, misc2, misc2);
             Vec3D oldPos = entity.Position;
-            Vec3D firePos = oldPos;
             double oldAngle = entity.AngleRadians;
 
             A_Explode(entity);
@@ -2746,6 +2748,7 @@ namespace Helion.World.Entities.Definition.States
             {
                 for (int j = -count; j <= count; j+=8)
                 {
+                    Vec3D firePos = entity.Position;
                     firePos.X += i;
                     firePos.Y += j;
                     firePos.Z += MathHelper.ApproximateDistance(i, j) * misc1;
@@ -2755,9 +2758,8 @@ namespace Helion.World.Entities.Definition.States
                     Entity? projectile = entity.World.FireProjectile(entity, pitch, 0, false, "FatShot");
                     if (projectile != null)
                     {
-                        Vec3D velocity = new Vec3D(misc2, misc2, misc2);
                         projectile.Velocity *= velocity;
-                        projectile.Flags.NoGravity = true;
+                        projectile.Flags.NoGravity = false;
                     }
                 }
             }
