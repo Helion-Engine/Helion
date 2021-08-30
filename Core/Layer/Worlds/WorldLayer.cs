@@ -27,21 +27,28 @@ namespace Helion.Layer.Worlds
         
         private static readonly (string, TickCommands)[] NonInstantCommandMapping = 
         {
-            (Constants.Input.Forward,   TickCommands.Forward),
-            (Constants.Input.Backward,  TickCommands.Backward),
-            (Constants.Input.Left,      TickCommands.Left),
-            (Constants.Input.Right,     TickCommands.Right),
-            (Constants.Input.TurnLeft,  TickCommands.TurnLeft),
-            (Constants.Input.TurnRight, TickCommands.TurnRight),
-            (Constants.Input.LookDown,  TickCommands.LookDown),
-            (Constants.Input.LookUp,    TickCommands.LookUp),
-            (Constants.Input.Jump,      TickCommands.Jump),
-            (Constants.Input.Crouch,    TickCommands.Crouch),
-            (Constants.Input.Attack,    TickCommands.Attack),
-            (Constants.Input.AttackAlt, TickCommands.Attack),
-            (Constants.Input.Run,       TickCommands.Speed),
-            (Constants.Input.RunAlt,    TickCommands.Speed),
-            (Constants.Input.Strafe,    TickCommands.Strafe),
+            (Constants.Input.Forward,      TickCommands.Forward),
+            (Constants.Input.Backward,     TickCommands.Backward),
+            (Constants.Input.Left,         TickCommands.Left),
+            (Constants.Input.Right,        TickCommands.Right),
+            (Constants.Input.TurnLeft,     TickCommands.TurnLeft),
+            (Constants.Input.TurnRight,    TickCommands.TurnRight),
+            (Constants.Input.LookDown,     TickCommands.LookDown),
+            (Constants.Input.LookUp,       TickCommands.LookUp),
+            (Constants.Input.Jump,         TickCommands.Jump),
+            (Constants.Input.Crouch,       TickCommands.Crouch),
+            (Constants.Input.Attack,       TickCommands.Attack),
+            (Constants.Input.AttackAlt,    TickCommands.Attack),
+            (Constants.Input.Run,          TickCommands.Speed),
+            (Constants.Input.RunAlt,       TickCommands.Speed),
+            (Constants.Input.Strafe,       TickCommands.Strafe),
+            (Constants.Input.WeaponSlot1,  TickCommands.WeaponSlot1),
+            (Constants.Input.WeaponSlot2,  TickCommands.WeaponSlot2),
+            (Constants.Input.WeaponSlot3,  TickCommands.WeaponSlot3),
+            (Constants.Input.WeaponSlot4,  TickCommands.WeaponSlot4),
+            (Constants.Input.WeaponSlot5,  TickCommands.WeaponSlot5),
+            (Constants.Input.WeaponSlot6,  TickCommands.WeaponSlot6),
+            (Constants.Input.WeaponSlot7,  TickCommands.WeaponSlot7),
         };
         
         private static readonly (string, TickCommands)[] InstantCommandMapping = 
@@ -49,13 +56,6 @@ namespace Helion.Layer.Worlds
             (Constants.Input.Use,            TickCommands.Use),
             (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
             (Constants.Input.PreviousWeapon, TickCommands.PreviousWeapon),
-            (Constants.Input.WeaponSlot1,    TickCommands.WeaponSlot1),
-            (Constants.Input.WeaponSlot2,    TickCommands.WeaponSlot2),
-            (Constants.Input.WeaponSlot3,    TickCommands.WeaponSlot3),
-            (Constants.Input.WeaponSlot4,    TickCommands.WeaponSlot4),
-            (Constants.Input.WeaponSlot5,    TickCommands.WeaponSlot5),
-            (Constants.Input.WeaponSlot6,    TickCommands.WeaponSlot6),
-            (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
         };
 
         public IntermissionLayer? Intermission { get; private set; }
