@@ -1,12 +1,9 @@
-using Helion.Util.Extensions;
-using static Helion.Util.Assertion.Assert;
-
 namespace Helion.World.Entities.Definition.Properties.Components
 {
     public class PlayerStartItem
     {
         public readonly string Name;
-        public readonly int Amount;
+        public int Amount { get; set; }
 
         public PlayerStartItem(string name, int amount)
         {

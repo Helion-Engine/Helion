@@ -33,7 +33,7 @@ namespace Helion.Resources.Definitions.Decorate.Properties
         public PlayerMoveProperty? SideMove;
         public string? SoundClass;
         public string? SpawnClass;
-        public List<PlayerStartItem> StartItem;
+        public List<PlayerStartItem>? StartItem;
         public int? TeleportFreezeTime;
         public double? UseRange;
         public List<PlayerWeaponSlot>? WeaponSlot;

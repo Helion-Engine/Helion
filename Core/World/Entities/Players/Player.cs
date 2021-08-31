@@ -17,6 +17,7 @@ using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Cheats;
 using Helion.Resources.Definitions.MapInfo;
+using NLog;
 
 namespace Helion.World.Entities.Players
 {
@@ -37,6 +38,7 @@ namespace Helion.World.Entities.Players
         private const int JumpDelayTicks = 7;
         private const int SlowTurnTicks = 6;
         private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public readonly int PlayerNumber;
         public double PitchRadians;
@@ -265,32 +267,39 @@ namespace Helion.World.Entities.Players
 
         public void SetDefaultInventory()
         {
-            GiveWeapon("FIST");
-            GiveWeapon("PISTOL");
-            GiveAmmo("CLIP", 50);
-
-            var weapon = Inventory.Weapons.GetWeapon("PISTOL");
-            if (weapon != null)
+            EntityDefinition? startWeaponDef = null;
+            foreach (var item in Properties.Player.StartItem)
             {
-                ChangeWeapon(weapon);
-                ForceLowerWeapon(false);
+                GiveItem(item.Name, item.Amount, out EntityDefinition? definition);
+                if (definition == null)
+                    Log.Error($"Invalid player start item: {item.Name}");
+                else if (definition != null && IsWeapon(definition))
+                    startWeaponDef = definition;
+            }
+
+            if (startWeaponDef != null)
+            {
+                var weapon = Inventory.Weapons.GetWeapon(startWeaponDef.Name);
+                if (weapon != null)
+                {
+                    ChangeWeapon(weapon);
+                    ForceLowerWeapon(false);
+                }
             }
 
             m_hasNewWeapon = false;
         }
 
-        private void GiveAmmo(string name, int amount)
+        private void GiveItem(string name, int amount, out EntityDefinition? definition)
         {
-            var ammo = World.EntityManager.DefinitionComposer.GetByName(name);
-            if (ammo != null)
-                Inventory.Add(ammo, amount);
-        }
+            definition = World.EntityManager.DefinitionComposer.GetByName(name);
+            if (definition == null)
+                return;
 
-        private void GiveWeapon(string name)
-        {
-            var weapon = World.EntityManager.DefinitionComposer.GetByName(name);
-            if (weapon != null)
-                GiveWeapon(weapon, giveDefaultAmmo: false, autoSwitch: false);
+            if (IsWeapon(definition))
+                GiveWeapon(definition, false);
+            else
+                GiveItemBase(definition, null, false, amount);
         }
 
         public bool HasNewWeapon() => m_hasNewWeapon;
@@ -675,16 +684,18 @@ namespace Helion.World.Entities.Players
             return false;
         }
 
-        private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags, bool autoSwitchWeapon = true)
+        private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags, bool autoSwitchWeapon = true, int amount = -1)
         {
             var invData = definition.Properties.Inventory;
             bool isHealth = definition.IsType(Inventory.HealthClassName);
             bool isArmor = definition.IsType(Inventory.ArmorClassName);
             bool isAmmo = IsAmmo(definition);
+            if (amount == -1)
+                amount = invData.Amount;
 
             if (isHealth)
             {
-                return AddHealthOrArmor(definition, flags, ref Health, invData.Amount, false);
+                return AddHealthOrArmor(definition, flags, ref Health, amount, false);
             }
             else if (isArmor)
             {
@@ -711,9 +722,9 @@ namespace Helion.World.Entities.Players
             }
 
             if (isAmmo)
-                return AddAmmo(definition, invData.Amount, flags, autoSwitchWeapon);
+                return AddAmmo(definition, amount, flags, autoSwitchWeapon);
 
-            return Inventory.Add(definition, invData.Amount, flags);
+            return Inventory.Add(definition, amount, flags);
         }
 
         private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
@@ -723,15 +734,6 @@ namespace Helion.World.Entities.Players
             if (success && autoSwitchWeapon)
                 CheckAutoSwitchAmmo(ammoDef, oldCount);
             return success;
-        }
-
-        public void GiveBestArmor(EntityDefinitionComposer definitionComposer)
-        {
-            var armor = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
-                .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
-
-            if (armor.Any())
-                GiveItem(armor.First(), null, pickupFlash: false);
         }
 
         public double GetForwardMovementSpeed()
@@ -804,7 +806,7 @@ namespace Helion.World.Entities.Players
             }
 
             if (def.Properties.Inventory.MaxAmount > 0)
-                return def.Properties.Inventory.MaxAmount;
+                return Math.Max(def.Properties.Inventory.MaxAmount, Health);
 
             return Properties.Player.MaxHealth;
         }

@@ -24,6 +24,7 @@ namespace Helion.Dehacked
         public readonly List<BexItem> BexSprites = new();
 
         public DehackedCheat? Cheat { get; private set; }
+        public DehackedMisc? Misc { get; private set; }
         public int DoomVersion { get; private set; }
         public int PatchFormat { get; set; }
 
@@ -44,6 +45,7 @@ namespace Helion.Dehacked
                     continue;
                 }
 
+                int itemLine = parser.GetCurrentLine();
                 if (BaseTypes.Contains(item))
                     parser.ConsumeString();
 
@@ -61,6 +63,8 @@ namespace Helion.Dehacked
                     ParseText(parser);
                 else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
                     ParsePointer(parser);
+                else if (item.Equals(MiscName, StringComparison.OrdinalIgnoreCase))
+                    ParserMisc(parser, itemLine);
                 else if (item.Equals(BexStringName, StringComparison.OrdinalIgnoreCase))
                     ParseBexText(parser);
                 else if (item.Equals(BexPointerName, StringComparison.OrdinalIgnoreCase))
@@ -78,12 +82,12 @@ namespace Helion.Dehacked
 
         private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
         {
+            int lineNumber = parser.GetCurrentLine();
             string line = parser.ConsumeLine();
             if (prefix != null)
                 line = prefix + " " + line;
             if (string.IsNullOrWhiteSpace(line))
                 return;
-            int lineNumber = parser.GetCurrentLine();
             Log.Warn($"Dehacked: Skipping unknown {type}: {line} line:{lineNumber}");
         }
 
@@ -359,6 +363,55 @@ namespace Helion.Dehacked
             }
 
             Pointers.Add(pointer);
+        }
+
+        private void ParserMisc(SimpleParser parser, int itemLine)
+        {
+            Misc = new();
+
+            // Can have number in brackets (e.g. [0]) just eat it
+            if (parser.GetCurrentLine() == itemLine)
+                parser.ConsumeLine();
+
+            while (!IsBlockComplete(parser))
+            {
+                string item = parser.PeekLine();
+
+                if (item.StartsWith(InitialHealth, StringComparison.OrdinalIgnoreCase))
+                    Misc.InitialHealth = GetIntProperty(parser, InitialHealth);
+                else if (item.StartsWith(InitialBullets, StringComparison.OrdinalIgnoreCase))
+                    Misc.InitialBullets = GetIntProperty(parser, InitialBullets);
+                else if (item.StartsWith(MaxHealth, StringComparison.OrdinalIgnoreCase))
+                    Misc.MaxHealth = GetIntProperty(parser, MaxHealth);
+                else if (item.StartsWith(MaxArmor, StringComparison.OrdinalIgnoreCase))
+                    Misc.MaxArmor = GetIntProperty(parser, MaxArmor);
+                else if (item.StartsWith(GreenArmorClass, StringComparison.OrdinalIgnoreCase))
+                    Misc.GreenArmorClass = GetIntProperty(parser, GreenArmorClass);
+                else if (item.StartsWith(BlueArmorClass, StringComparison.OrdinalIgnoreCase))
+                    Misc.BlueArmorClass = GetIntProperty(parser, BlueArmorClass);
+                else if (item.StartsWith(MaxSoulsphere, StringComparison.OrdinalIgnoreCase))
+                    Misc.MaxSoulsphere = GetIntProperty(parser, MaxSoulsphere);
+                else if (item.StartsWith(SoulsphereHealth, StringComparison.OrdinalIgnoreCase))
+                    Misc.SoulsphereHealth = GetIntProperty(parser, SoulsphereHealth);
+                else if (item.StartsWith(MegasphereHealth, StringComparison.OrdinalIgnoreCase))
+                    Misc.MegasphereHealth = GetIntProperty(parser, MegasphereHealth);
+                else if (item.StartsWith(GodModeHealth, StringComparison.OrdinalIgnoreCase))
+                    Misc.GodModeHealth = GetIntProperty(parser, GodModeHealth);
+                else if (item.StartsWith(IDFAArmorClass, StringComparison.OrdinalIgnoreCase))
+                    Misc.IdfaArmorClass = GetIntProperty(parser, IDFAArmorClass);
+                else if (item.StartsWith(IDFAArmor, StringComparison.OrdinalIgnoreCase))
+                    Misc.IdfaArmor = GetIntProperty(parser, IDFAArmor);
+                else if (item.StartsWith(IDKFAArmorClass, StringComparison.OrdinalIgnoreCase))
+                    Misc.IdkfaArmorClass = GetIntProperty(parser, IDKFAArmorClass);
+                else if (item.StartsWith(IDKFAArmor, StringComparison.OrdinalIgnoreCase))
+                    Misc.IdkfaArmor = GetIntProperty(parser, IDKFAArmor);
+                else if (item.StartsWith(BFGCellsPerShot, StringComparison.OrdinalIgnoreCase))
+                    Misc.BfgCellsPerShot = GetIntProperty(parser, BFGCellsPerShot);
+                else if (item.StartsWith(MonstersInfight, StringComparison.OrdinalIgnoreCase))
+                    Misc.MonstersInfight = (MonsterInfightType)GetIntProperty(parser, MonstersInfight);
+                else
+                    UnknownWarning(parser, "misc");
+            }
         }
 
         private void ParseBexText(SimpleParser parser)

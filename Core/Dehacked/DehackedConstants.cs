@@ -5,6 +5,17 @@ namespace Helion.Dehacked
 {
     public partial class DehackedDefinition
     {
+        public static readonly string SoulsphereClass = "Soulsphere";
+        public static readonly string MegasphereHealthClass = "MegasphereHealth";
+        public static readonly string BFG900Class = "BFG9000";
+        public static readonly string ArmorBonusClass = "ArmorBonus";
+        public static readonly string HealthBonusClass = "HealthBonus";
+        public static readonly string GreenArmorClassName = "GreenArmor";
+        public static readonly string BlueArmorClassName = "BlueArmor";
+
+        public const int GreenArmorClassNum = 1;
+        public const int BlueArmorClassNum = 2;
+
         public readonly string[] AmmoNames = new string[]
         {
             "Clip",
@@ -4666,5 +4677,22 @@ namespace Helion.Dehacked
         private static readonly string LevelWarp = "Level Warp";
         private static readonly string MapCheat = "Map cheat";
         private static readonly string PlayerPos = "Player Position";
+
+        private static readonly string InitialHealth = "Initial Health";
+        private static readonly string InitialBullets = "Initial Bullets";
+        private static readonly string MaxHealth = "Max Health";
+        private static readonly string MaxArmor = "Max Armor";
+        private static readonly string GreenArmorClass = "Green Armor Class";
+        private static readonly string BlueArmorClass = "Blue Armor Class";
+        private static readonly string MaxSoulsphere = "Max Soulsphere";
+        private static readonly string SoulsphereHealth = "Soulsphere Health";
+        private static readonly string MegasphereHealth = "Megasphere Health";
+        private static readonly string GodModeHealth = "God Mode Health";
+        private static readonly string IDFAArmor = "IDFA Armor";
+        private static readonly string IDFAArmorClass = "IDFA Armor Class";
+        private static readonly string IDKFAArmor = "IDKFA Armor";
+        private static readonly string IDKFAArmorClass = "IDKFA Armor Class";
+        private static readonly string BFGCellsPerShot = "BFG Cells/Shot";
+        private static readonly string MonstersInfight = "Monsters Infight";
     }
 }

@@ -188,6 +188,12 @@ namespace Helion.World.Entities.Definition.Composer
                 definition.Properties.Powerup.Strength = properties.Powerup.Strength.Value;
             if (properties.Powerup.Type != null)
                 definition.Properties.Powerup.Type = properties.Powerup.Type;
+
+            if (properties.Player.StartItem != null)
+            {
+                foreach (var startItem in properties.Player.StartItem)
+                    definition.Properties.Player.StartItem.Add(new Properties.Components.PlayerStartItem(startItem.Name, startItem.Amount.HasValue ? startItem.Amount.Value : 0));
+            }
         }
     }
 }

@@ -46,6 +46,7 @@ using Helion.World.Util;
 using Helion.Resources.IWad;
 using Helion.Dehacked;
 using Helion.Resources.Archives;
+using Helion.World.Entities.Inventories;
 
 namespace Helion.World
 {
@@ -1523,17 +1524,17 @@ namespace Helion.World
                     break;
                 case CheatType.God:
                     if (!player.IsDead)
-                        player.Health = player.Definition.Properties.Player.MaxHealth;
+                        SetGodModeHealth(player);
                     player.Flags.Invulnerable = player.Cheats.IsCheatActive(cheat.CheatType);
                     break;
                 case CheatType.GiveAllNoKeys:
                     GiveAllWeapons(player);
-                    player.GiveBestArmor(EntityManager.DefinitionComposer);
+                    GiveCheatArmor(player, cheat.CheatType);
                     break;
                 case CheatType.GiveAll:
                     GiveAllWeapons(player);
                     player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
-                    player.GiveBestArmor(EntityManager.DefinitionComposer);
+                    GiveCheatArmor(player, cheat.CheatType);
                     break;
                 case CheatType.Chainsaw:
                     GiveChainsaw(player);
@@ -1552,6 +1553,19 @@ namespace Helion.World
             }
         }
 
+        private void SetGodModeHealth(Player player)
+        {
+            if (ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.Misc != null && ArchiveCollection.Dehacked.Misc.GodModeHealth.HasValue)
+            {
+                if (ArchiveCollection.Dehacked.Misc.GodModeHealth.Value > 0)
+                    player.Health = ArchiveCollection.Dehacked.Misc.GodModeHealth.Value;
+            }
+            else
+            {
+                player.Health = player.Definition.Properties.Player.MaxHealth;
+            }
+        }
+
         public int EntityAliveCount(int editorId, bool deathStateComplete)
         {
             if (deathStateComplete)
@@ -1560,6 +1574,41 @@ namespace Helion.World
             else
                 return EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue &&
                     x.Definition.EditorId.Value == editorId && !x.IsDead);
+        }
+
+        private void GiveCheatArmor(Player player, CheatType cheatType)
+        {
+            bool autoGive = true;
+            int? setAmount = null;
+            if (ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.Misc != null)
+            {
+                var misc = ArchiveCollection.Dehacked.Misc;
+                if ((cheatType == CheatType.GiveAll && misc.IdkfaArmorClass == DehackedDefinition.GreenArmorClassNum) ||
+                    (cheatType == CheatType.GiveAllNoKeys && misc.IdfaArmorClass == DehackedDefinition.GreenArmorClassNum))
+                {
+                    var armorDef = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.GreenArmorClassName);
+                    if (armorDef != null)
+                        player.GiveItem(armorDef, null, false);
+                    autoGive = false;
+                }
+
+                if (cheatType == CheatType.GiveAll)
+                    setAmount = misc.IdkfaArmor;
+                else if (cheatType == CheatType.GiveAllNoKeys)
+                    setAmount = misc.IdfaArmor;
+            }
+
+            if (autoGive)
+            {
+                var armor = EntityManager.DefinitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
+                    .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
+
+                if (armor.Any())
+                    player.GiveItem(armor.First(), null, pickupFlash: false);
+            }
+
+            if (setAmount.HasValue)
+                player.Armor = setAmount.Value;
         }
 
         private void TogglePowerup(Player player, string powerupDefinition, PowerupType powerupType)

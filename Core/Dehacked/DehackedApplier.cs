@@ -56,6 +56,7 @@ namespace Helion.Dehacked
             ApplyAmmo(dehacked, composer);
             ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
             ApplyCheats(dehacked);
+            ApplyMisc(dehacked, definitionEntries, composer);
 
             ApplyBexText(dehacked, definitionEntries.Language);
             ApplyBexPars(dehacked, definitionEntries.MapInfoDefinition);
@@ -65,7 +66,7 @@ namespace Helion.Dehacked
             NewSpriteLookup.Clear();
         }
 
-        private void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
+        private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
         {
             for (int i = 0; i < (int)ThingState.Count; i++)
             {
@@ -627,6 +628,93 @@ namespace Helion.Dehacked
                 CheatManager.Instance.SetCheatCode(CheatType.ChangeLevel, cheat.LevelWarp);
             if (cheat.PlayerPos != null)
                 CheatManager.Instance.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
+        }
+
+        private static void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
+        {
+            if (dehacked.Misc == null)
+                return;
+
+            var player = composer.GetByName("DoomPlayer");
+            if (player != null)
+            {
+                if (dehacked.Misc.InitialHealth.HasValue)
+                    player.Properties.Health = dehacked.Misc.InitialHealth.Value;
+
+                if (dehacked.Misc.MaxHealth.HasValue)
+                    player.Properties.Player.MaxHealth = dehacked.Misc.MaxHealth.Value;
+
+                if (dehacked.Misc.InitialBullets.HasValue)
+                {
+                    var startItem = player.Properties.Player.StartItem.FirstOrDefault(x => x.Name.Equals("Clip", StringComparison.OrdinalIgnoreCase));
+                    if (startItem != null)
+                        startItem.Amount = dehacked.Misc.InitialBullets.Value;
+                }         
+            }
+
+            // Only appears to work for health bonus, powerups are will still max at 200
+            if (dehacked.Misc.MaxHealth.HasValue)
+                SetMaxAmount(composer, HealthBonusClass, dehacked.Misc.MaxHealth.Value);
+
+            // Only appears to work for armor bonus, blue armor will still max at 200
+            if (dehacked.Misc.MaxArmor.HasValue)
+            {
+                var armorBonus = composer.GetByName(ArmorBonusClass);
+                if (armorBonus != null)
+                    armorBonus.Properties.Armor.MaxSaveAmount = dehacked.Misc.MaxArmor.Value;
+            }
+
+            if (dehacked.Misc.GreenArmorClass.HasValue && dehacked.Misc.GreenArmorClass.Value == BlueArmorClassNum)
+                SetArmorClass(composer, GreenArmorClassName, dehacked.Misc.GreenArmorClass.Value);
+            if (dehacked.Misc.BlueArmorClass.HasValue && dehacked.Misc.BlueArmorClass.Value == GreenArmorClassNum)
+                SetArmorClass(composer, BlueArmorClassName, dehacked.Misc.BlueArmorClass.Value);
+
+            if (dehacked.Misc.SoulsphereHealth.HasValue)
+                SetAmount(composer, SoulsphereClass, dehacked.Misc.SoulsphereHealth.Value);
+            if (dehacked.Misc.MaxSoulsphere.HasValue)
+                SetMaxAmount(composer, SoulsphereClass, dehacked.Misc.MaxSoulsphere.Value);
+
+            if (dehacked.Misc.MegasphereHealth.HasValue)
+                SetAmount(composer, MegasphereHealthClass, dehacked.Misc.MegasphereHealth.Value);
+
+            if (dehacked.Misc.BfgCellsPerShot.HasValue)
+            {
+                var bfg = composer.GetByName(BFG900Class);
+                if (bfg != null)
+                    bfg.Properties.Weapons.AmmoUse = dehacked.Misc.BfgCellsPerShot.Value;
+            }
+
+            if (dehacked.Misc.MonstersInfight.HasValue)
+            {
+                // Enabling this option allows monsters of the same species to injur each other.
+                bool set = dehacked.Misc.MonstersInfight.Value == MonsterInfightType.Enable;
+                foreach (var mapInfo in definitionEntries.MapInfoDefinition.MapInfo.Maps)
+                    mapInfo.SetOption(MapOptions.TotalInfighting, set);
+            }
+        }
+
+        private static void SetArmorClass(EntityDefinitionComposer composer, string armor, int classNumber)
+        {
+            var def = composer.GetByName(armor);
+            if (def == null)
+                return;
+
+            def.Properties.Armor.SaveAmount = classNumber == GreenArmorClassNum ? 100 : 200;
+            def.Properties.Armor.SavePercent = classNumber == GreenArmorClassNum ? 33.335 : 50;
+        }
+
+        private static void SetAmount(EntityDefinitionComposer composer, string name, int amount)
+        {
+            var set = composer.GetByName(name);
+            if (set != null)
+                set.Properties.Inventory.Amount = amount;
+        }
+
+        private static void SetMaxAmount(EntityDefinitionComposer composer, string name, int amount)
+        {
+            var set = composer.GetByName(name);
+            if (set != null)
+                set.Properties.Inventory.MaxAmount = amount;
         }
 
         private static void ApplyBexText(DehackedDefinition dehacked, LanguageDefinition language)
