@@ -2,14 +2,16 @@
 
 namespace Helion.Util.Configs.Components
 {
-    public class ConfigDeveloperRender
-    {
-        [ConfigInfo("If rendering should have debugging information drawn.", save: false)]
-        public readonly ConfigValue<bool> Debug = new(false);
-    }
-    
+    [ConfigInfo("Developer options for debugging the engine.")]
     public class ConfigDeveloper
     {
-        public readonly ConfigDeveloperRender Render = new();
+        [ConfigInfo("If the internal BSP builder should be used.")]
+        public readonly ConfigValueBoolean InternalBSPBuilder = new();
+
+        [ConfigInfo("If rendering should have debugging information drawn.")]
+        public readonly ConfigValueBoolean RenderDebug = new();
+        
+        [ConfigInfo("If the modern renderer should be used even without the required capabilities.")]
+        public readonly ConfigValueBoolean ForceModernRenderer = new();
     }
 }

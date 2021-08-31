@@ -51,6 +51,6 @@ namespace Helion.Resources.Definitions.MapInfo
 
         public int GetDamage(int damage) => (int)(damage * DamageFator);
 
-        public bool IsFastMonsters(Config config) => config.Game.FastMonsters || FastMonsters;
+        public bool IsFastMonsters(Config config) => config.Game.SV_FastMonsters || FastMonsters;
     }
 }

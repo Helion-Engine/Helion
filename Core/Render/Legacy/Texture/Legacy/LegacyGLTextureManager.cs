@@ -109,7 +109,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
                 return;
             }
 
-            (int minFilter, int maxFilter) = FindFilterValues(Config.Render.Filter.Texture);
+            (int minFilter, int maxFilter) = FindFilterValues(Config.Render.TextureFilter);
 
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
@@ -128,7 +128,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
 
         private void HandleFontTextureParameters(TextureTargetType targetType)
         {
-            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.Filter.Font);
+            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.FontFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, fontMinFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, fontMaxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);

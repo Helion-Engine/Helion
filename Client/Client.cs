@@ -84,7 +84,7 @@ namespace Helion.Client
         {
             InputEvent inputEvent = m_window.InputManager.PollInput();
             if (!m_takeScreenshot)
-                m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, inputEvent);
+                m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
             
             m_layerManager.HandleInput(inputEvent);
         }
@@ -275,10 +275,9 @@ namespace Helion.Client
 
         private static void Run(CommandLineArgs commandLineArgs)
         {
-            Config config = new(Config.DefaultConfigPath);
-            
             try
             {
+                using Config config = new();
                 ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
                 using HelionConsole console = new(config, commandLineArgs);
                 using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
@@ -291,7 +290,7 @@ namespace Helion.Client
             }
             finally
             {
-                config.Write(Config.DefaultConfigPath);
+                // TODO: Write config properly in the future
             }
         }
     }

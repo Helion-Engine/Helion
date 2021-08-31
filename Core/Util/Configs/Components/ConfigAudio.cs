@@ -1,21 +1,21 @@
 ﻿using Helion.Audio;
 using Helion.Util.Configs.Values;
-using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components
 {
+    [ConfigInfo("Components that deal with audio presentation.")]
     public class ConfigAudio
     {
         [ConfigInfo("The main device to use for audio.")]
-        public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
+        public readonly ConfigValueString Device = new(IAudioSystem.DefaultAudioDevice);
 
         [ConfigInfo("The volume of the music. 0.0 is off, 1.0 is max.")]
-        public readonly ConfigValue<double> MusicVolume = new(1.0, ClampNormalized);
+        public readonly ConfigValueDouble MusicVolume = new(1.0);
 
         [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
-        public readonly ConfigValue<double> SoundVolume = new(1.0, ClampNormalized);
+        public readonly ConfigValueDouble SoundVolume = new(1.0);
 
         [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
-        public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
+        public readonly ConfigValueDouble Volume = new(1.0);
     }
 }

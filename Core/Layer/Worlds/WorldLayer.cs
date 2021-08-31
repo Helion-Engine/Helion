@@ -87,10 +87,11 @@ namespace Helion.Layer.Worlds
             m_audioSystem = audioSystem;
             m_parent = parent;
             m_fpsTracker = fpsTracker;
-            m_autoMapScale = config.Hud.AutoMap.Scale;
+            m_autoMapScale = config.Hud.AutoMapScale;
             World = world;
             CurrentMap = mapInfoDef;
 
+            SetKeyBindings(config);
             m_ticker.Start();
         }
         

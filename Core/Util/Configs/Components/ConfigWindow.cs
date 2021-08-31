@@ -1,19 +1,21 @@
-﻿using Helion.Geometry;
-using Helion.Util.Configs.Values;
+﻿using Helion.Util.Configs.Values;
 using OpenTK.Windowing.Common;
-using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components
 {
+    [ConfigInfo("Components that deal with the game window.")]
     public class ConfigWindow
     {
         [ConfigInfo("The border of the window.")]
-        public readonly ConfigValue<WindowBorder> Border = new(WindowBorder.Resizable, OnlyValidEnums<WindowBorder>());
+        public readonly ConfigValueEnum<WindowBorder> Border = new(WindowBorder.Fixed);
 
-        [ConfigInfo("The width and height of the window.")]
-        public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.Area > 0);
+        [ConfigInfo("The height of the window.")]
+        public readonly ConfigValueInt Height = new(768);
 
         [ConfigInfo("The state of the window, such as if it is fullscreen or windowed.")]
-        public readonly ConfigValue<WindowState> State = new(WindowState.Fullscreen, OnlyValidEnums<WindowState>());
+        public readonly ConfigValueEnum<WindowState> State = new(WindowState.Fullscreen);
+
+        [ConfigInfo("The width of the window.")]
+        public readonly ConfigValueInt Width = new(1024);
     }
 }

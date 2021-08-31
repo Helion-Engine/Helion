@@ -1,15 +1,15 @@
 ﻿using Helion.Util.Configs.Values;
 using Helion.World.Entities.Players;
-using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components
 {
+    [ConfigInfo("Player configuration")]
     public class ConfigPlayer
     {
         [ConfigInfo("The name of the player.")]
-        public readonly ConfigValue<string> Name = new("Player", IfEmptyDefaultTo("Player"));
+        public readonly ConfigValueString Name = new("Player");
 
         [ConfigInfo("The gender of the player.")]
-        public readonly ConfigValue<PlayerGender> Gender = new(default, OnlyValidEnums<PlayerGender>());
+        public readonly ConfigValueEnum<PlayerGender> Gender = new(PlayerGender.Other);
     }
 }

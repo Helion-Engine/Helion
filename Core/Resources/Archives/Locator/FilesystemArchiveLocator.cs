@@ -5,7 +5,6 @@ using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
-using MoreLinq;
 using NLog;
 
 namespace Helion.Resources.Archives.Locator
@@ -46,10 +45,9 @@ namespace Helion.Resources.Archives.Locator
         /// from.</param>
         public FilesystemArchiveLocator(Config config)
         {
-            config.Files.Directories.Value
-                .Where(p => !p.Empty())
-                .Select(EnsureEndsWithDirectorySeparator)
-                .ForEach(m_paths.Add);
+            var paths = config.Files.Directories.Value.Split(";");
+            foreach (string path in paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator))
+                m_paths.Add(path);
         }
 
         public Archive? Locate(string uri)
