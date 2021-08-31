@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Geometry;
 using Helion.Render.Common.Renderers;
+using Helion.Window;
 
 namespace Helion.Render.Legacy
 {

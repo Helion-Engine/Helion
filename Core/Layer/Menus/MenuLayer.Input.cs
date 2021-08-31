@@ -1,10 +1,10 @@
 ﻿using System;
-using Helion.Input;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Impl;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Window.Input;
 
 namespace Helion.Layer.Menus
 {

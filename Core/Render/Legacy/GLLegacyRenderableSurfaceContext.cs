@@ -4,6 +4,7 @@ using Helion.Geometry.Boxes;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Legacy.Commands;
+using Helion.Window;
 
 namespace Helion.Render.Legacy
 {

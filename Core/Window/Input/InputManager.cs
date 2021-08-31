@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 
-namespace Helion.Input
+namespace Helion.Window.Input
 {
     /// <summary>
     /// Manages all of the input. All methods here are based on the raw state,

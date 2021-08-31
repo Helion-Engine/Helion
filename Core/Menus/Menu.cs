@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Audio.Sounds;
-using Helion.Input;
 using Helion.Menus.Base;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Window.Input;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Menus

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Numerics;
 using Helion.Audio;
-using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -24,6 +23,7 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Resources.Definitions.Language;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Window.Input;
 
 namespace Helion.World.Impl.SinglePlayer
 {

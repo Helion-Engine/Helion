@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
-using Helion.Input;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
@@ -11,6 +10,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Save;
 using NLog;

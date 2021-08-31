@@ -1,7 +1,6 @@
 ﻿using System;
 using Helion.Client.Input;
 using Helion.Geometry;
-using Helion.Input;
 using Helion.Render;
 using Helion.Render.Legacy;
 using Helion.Render.Legacy.Context;
@@ -10,6 +9,8 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Timing;
+using Helion.Window;
+using Helion.Window.Input;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;

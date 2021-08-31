@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Helion.Audio.Sounds;
-using Helion.Input;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
+using Helion.Window.Input;
 
 namespace Helion.Layer.Images
 {

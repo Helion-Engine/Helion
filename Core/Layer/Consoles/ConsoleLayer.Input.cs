@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Helion.Input;
 using Helion.Util.Extensions;
+using Helion.Window.Input;
 using TextCopy;
 
 namespace Helion.Layer.Consoles

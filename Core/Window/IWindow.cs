@@ -1,8 +1,9 @@
 ﻿using System;
 using Helion.Geometry;
-using Helion.Input;
+using Helion.Render;
+using Helion.Window.Input;
 
-namespace Helion.Render
+namespace Helion.Window
 {
     /// <summary>
     /// A window that reads input and renders.

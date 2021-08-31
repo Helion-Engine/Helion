@@ -1,5 +1,4 @@
 ﻿using Helion.Audio.Sounds;
-using Helion.Input;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
@@ -7,6 +6,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using System;
 using System.Collections.Generic;
+using Helion.Window.Input;
 
 namespace Helion.Menus.Impl
 {

@@ -2,7 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
 
-namespace Helion.Input
+namespace Helion.Window.Input
 {
     /// <summary>
     /// An event that can be passed through layers safely.

@@ -5,7 +5,6 @@ using System.Drawing;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
-using Helion.Input;
 using Helion.Layer.Menus;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
@@ -14,6 +13,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
+using Helion.Window.Input;
 using Helion.World.Save;
 
 namespace Helion.Layer.Images

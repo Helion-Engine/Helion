@@ -5,7 +5,6 @@ using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Input;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
@@ -19,6 +18,8 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Window;
+using Helion.Window.Input;
 using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 

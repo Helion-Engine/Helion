@@ -1,4 +1,4 @@
-﻿namespace Helion.Input
+﻿namespace Helion.Window.InputNew
 {
     /// <summary>
     /// All the supported input keys.

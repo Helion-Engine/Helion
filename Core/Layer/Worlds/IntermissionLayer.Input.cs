@@ -1,6 +1,6 @@
 ﻿using System;
-using Helion.Input;
 using Helion.Util;
+using Helion.Window.Input;
 
 namespace Helion.Layer.Worlds
 {

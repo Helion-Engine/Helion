@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Input;
+using Helion.Window.Input;
 using Xunit;
 
 namespace Helion.Tests.Unit.Input

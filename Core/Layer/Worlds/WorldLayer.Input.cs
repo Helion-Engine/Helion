@@ -1,7 +1,7 @@
-﻿using Helion.Input;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
+using Helion.Window.Input;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.Input;
+using Helion.Window.Input;
 
 namespace Helion.Layer.EndGame
 {
