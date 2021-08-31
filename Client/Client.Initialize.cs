@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Helion.Layer.Consoles;
@@ -34,7 +35,7 @@ namespace Helion.Client
 
             m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
-            m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+            m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
@@ -72,7 +73,8 @@ namespace Helion.Client
                 else
                     ShowFatalError("Failed to load files.");
 
-                Process.GetCurrentProcess().Kill();
+                throw new Exception("hi");
+                //Process.GetCurrentProcess().Kill();
             }
         }
 

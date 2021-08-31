@@ -84,7 +84,8 @@ namespace Helion.Client
         {
             InputEvent inputEvent = m_window.InputManager.PollInput();
             if (!m_takeScreenshot)
-                m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
+                m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, inputEvent);
+            
             m_layerManager.HandleInput(inputEvent);
         }
 
@@ -180,6 +181,7 @@ namespace Helion.Client
 
             m_console.OnConsoleCommandEvent -= Console_OnCommand;
             m_window.RenderFrame -= Window_MainLoop;
+            UnregisterConfigChanges();
 
             m_soundManager.Dispose();
             m_layerManager.Dispose();
@@ -273,15 +275,24 @@ namespace Helion.Client
 
         private static void Run(CommandLineArgs commandLineArgs)
         {
-            using Config config = new();
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
-            using HelionConsole console = new(config, commandLineArgs);
-            using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
-            musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
-            using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-            audioPlayer.SetVolume(config.Audio.SoundVolume.Value);
-            using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
-            client.Run();
+            Config config = new(Config.DefaultConfigPath);
+            
+            try
+            {
+                ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
+                using HelionConsole console = new(config, commandLineArgs);
+                using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
+                musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
+                using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
+                audioPlayer.SetVolume(config.Audio.SoundVolume.Value);
+
+                using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
+                client.Run();
+            }
+            finally
+            {
+                config.Write(Config.DefaultConfigPath);
+            }
         }
     }
 }

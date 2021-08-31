@@ -214,7 +214,7 @@ namespace Helion.Client
                 return;
             }
 
-            if (!m_config.Developer.InternalBSPBuilder && !RunZdbsp(map, mapInfoDef.MapName, out map))
+            if (!RunZdbsp(map, mapInfoDef.MapName, out map))
             {
                 Log.Error("Failed to run zdbsp.");
                 return;
