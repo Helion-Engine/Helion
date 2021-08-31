@@ -65,14 +65,22 @@ namespace Helion.Layer.Worlds
         private void HandleMovementInput(InputEvent input)
         {
             m_tickCommand.Clear();
-
+            
             foreach ((string command, TickCommands tickCommand) in InstantCommandMapping)
-                if (m_config.Keys.ConsumeCommandKeyPress(command, input))
+                if (m_config.Keys.ConsumeCommandKeyPressedOrDown(command, input))
                     m_tickCommand.Add(tickCommand, true);
             
             foreach ((string command, TickCommands tickCommand) in NonInstantCommandMapping)
-                if (m_config.Keys.ConsumeCommandKeyPressedOrDown(command, input))
+                if (m_config.Keys.ConsumeKeyJustPressed(command, input))
                     m_tickCommand.Add(tickCommand, false);
+
+            // foreach ((string command, TickCommands tickCommand) in InstantCommandMapping)
+            //     if (m_config.Keys.ConsumeCommandKeyPressedOrDown(command, input))
+            //         m_tickCommand.Add(tickCommand, true);
+            //
+            // foreach ((string command, TickCommands tickCommand) in NonInstantCommandMapping)
+            //     if (m_config.Keys.ConsumeKeyJustPressed(command, input))
+            //         m_tickCommand.Add(tickCommand, false);
         }
         
         private void ChangeHudSize(bool increase)

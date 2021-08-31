@@ -141,6 +141,14 @@ namespace Helion.Util.Configs
             return false;
         }
 
+        public bool ConsumeKeyJustPressed(string command, InputEvent input)
+        {
+            foreach (Key key in this[command])
+                if (!input.WasPreviouslyPressed(key) && input.ConsumeKeyPressed(key))
+                    return true;
+            return false;
+        }
+
         /// <summary>
         /// Removes all bindings from a key to anything, and if there are any
         /// commands for this key, they are all unbound in the other direction.

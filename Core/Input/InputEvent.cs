@@ -54,6 +54,8 @@ namespace Helion.Input
             foreach (var key in previouslyPressed)
                 m_previouslyPressed.Add(key);
         }
+        
+        public bool WasPreviouslyPressed(Key key) => m_previouslyPressed.Contains(key);
 
         /// <summary>
         /// Consumes all the input so no later consumer sees anything.
