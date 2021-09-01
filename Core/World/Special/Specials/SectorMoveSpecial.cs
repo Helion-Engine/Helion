@@ -46,7 +46,7 @@ namespace Helion.World.Special.Specials
             m_world = world;
             MoveData = specialData;
             SoundData = soundData;
-            SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
+            SectorPlane = MoveData.SectorMoveType == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = start;
             DestZ = dest;
 
@@ -64,7 +64,7 @@ namespace Helion.World.Special.Specials
         {
             Sector = sector;
             m_world = world;
-            MoveData = new SectorMoveData((SectorPlaneType)model.MoveType, (MoveDirection)model.StartDirection, 
+            MoveData = new SectorMoveData((SectorPlaneFace)model.MoveType, (MoveDirection)model.StartDirection, 
                 (MoveRepetition)model.Repetion, model.Speed, model.Delay, 
                 crush: FromCrushDataModel(model.Crush), 
                 floorChangeTextureHandle: model.FloorChange, 
@@ -73,7 +73,7 @@ namespace Helion.World.Special.Specials
                 returnSpeed: model.ReturnSpeed,
                 compatibilityBlockMovement: model.CompatibilityBlockMovement);
             SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
-            SectorPlane = MoveData.SectorMoveType == SectorPlaneType.Floor ? sector.Floor : sector.Ceiling;
+            SectorPlane = MoveData.SectorMoveType == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
             m_startZ = model.StartZ;
             DestZ = model.DestZ;
             m_minZ = model.MinZ;
@@ -349,7 +349,7 @@ namespace Helion.World.Special.Specials
         private void SetSectorDataChange()
         {
             SectorPlane.SetRenderingChanged();
-            if (MoveData.SectorMoveType == SectorPlaneType.Floor)
+            if (MoveData.SectorMoveType == SectorPlaneFace.Floor)
                 Sector.DataChanges |= SectorDataTypes.FloorZ;
             else
                 Sector.DataChanges |= SectorDataTypes.CeilingZ;

@@ -116,7 +116,7 @@ namespace Helion.World.Special.Specials
                 return new ScrollSpecialModel()
                 {
                     SectorId = SectorPlane.Sector.Id,
-                    PlaneType = SectorPlane == SectorPlane.Sector.Floor ? (int)SectorPlaneType.Floor : (int)SectorPlaneType.Ceiling,
+                    PlaneType = SectorPlane == SectorPlane.Sector.Floor ? (int)SectorPlaneFace.Floor : (int)SectorPlaneFace.Ceiling,
                     Type = (int)m_type,
                     SpeedX = m_speed.X,
                     SpeedY = m_speed.Y,

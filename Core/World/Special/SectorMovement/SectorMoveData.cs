@@ -1,10 +1,11 @@
-﻿using Helion.World.Special.Specials;
+﻿using Helion.World.Geometry.Sectors;
+using Helion.World.Special.Specials;
 
 namespace Helion.World.Special.SectorMovement
 {
     public class SectorMoveData
     {
-        public SectorPlaneType SectorMoveType { get; set; }
+        public SectorPlaneFace SectorMoveType { get; set; }
         public readonly MoveRepetition MoveRepetition;
         public readonly double Speed;
         public readonly double ReturnSpeed;
@@ -19,7 +20,7 @@ namespace Helion.World.Special.SectorMovement
 
         public const int InstantToggleSpeed = int.MaxValue;
 
-        public SectorMoveData(SectorPlaneType moveType, MoveDirection startDirection, MoveRepetition repetition, 
+        public SectorMoveData(SectorPlaneFace moveType, MoveDirection startDirection, MoveRepetition repetition, 
             double speed, int delay, CrushData? crush = null,
             int? floorChangeTextureHandle = null,
             int? ceilingChangeTextureHandle = null,
