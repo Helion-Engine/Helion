@@ -287,9 +287,9 @@ namespace Helion.World.Geometry.Sectors
         // TODO implement when slopes exist
         public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
         public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
-        public int GetTexture(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
-        public double GetZ(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor.Z : Ceiling.Z;
-        public SectorPlane GetSectorPlane(SectorPlaneType planeType) => planeType == SectorPlaneType.Floor ? Floor : Ceiling;
+        public int GetTexture(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
+        public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
+        public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
 
         /// <summary>
         /// The currently active move special, or null if there's no active
@@ -312,25 +312,25 @@ namespace Helion.World.Geometry.Sectors
             ActiveCeilingMove = null;
         }
 
-        public void ClearActiveMoveSpecial(SectorPlaneType planeType)
+        public void ClearActiveMoveSpecial(SectorPlaneFace planeType)
         {
-            if (planeType == SectorPlaneType.Floor)
+            if (planeType == SectorPlaneFace.Floor)
                 ActiveFloorMove = null;
             else
                 ActiveCeilingMove = null;
         }
 
-        public void SetActiveMoveSpecial(SectorPlaneType planeType, SectorMoveSpecial? special)
+        public void SetActiveMoveSpecial(SectorPlaneFace planeType, SectorMoveSpecial? special)
         {
-            if (planeType == SectorPlaneType.Floor)
+            if (planeType == SectorPlaneFace.Floor)
                 ActiveFloorMove = special;
             else
                 ActiveCeilingMove = special;
         }
 
-        public void SetTexture(SectorPlaneType planeType, int texture)
+        public void SetTexture(SectorPlaneFace planeType, int texture)
         {
-            if (planeType == SectorPlaneType.Floor)
+            if (planeType == SectorPlaneFace.Floor)
                 Floor.SetTexture(texture);
             else
                 Ceiling.SetTexture(texture);

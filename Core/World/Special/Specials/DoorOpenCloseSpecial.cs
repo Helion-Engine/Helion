@@ -12,7 +12,7 @@ namespace Helion.World.Special.Specials
 
         public DoorOpenCloseSpecial(IWorld world, Sector sector, double dest, double speed, int delay, int key = -1)
             : base(world, sector, sector.Floor.Z, dest, 
-                  new SectorMoveData(SectorPlaneType.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), 
+                  new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), 
                   SpecialManager.GetDoorSound(speed))
         {
             Key = key;

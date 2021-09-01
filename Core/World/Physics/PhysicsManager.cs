@@ -98,7 +98,7 @@ namespace Helion.World.Physics
             MoveZ(entity);
         }
 
-        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType, 
+        public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType, 
             double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
         {
             double startZ = sectorPlane.Z;
@@ -132,7 +132,7 @@ namespace Helion.World.Physics
 
                 // At slower speeds we need to set entities to the floor
                 // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-                if (moveType == SectorPlaneType.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
+                if (moveType == SectorPlaneFace.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
                     entity.OnGround && entity.HighestFloorSector == sector)
                 {
                     entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
@@ -146,7 +146,7 @@ namespace Helion.World.Physics
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
                 if (thingZ + entity.Height > entity.LowestCeilingZ)
                 {
-                    if (moveType == SectorPlaneType.Ceiling)
+                    if (moveType == SectorPlaneFace.Ceiling)
                         PushDownBlockingEntities(entity);
                     // Clipped something that wasn't directly on this entity before the move and now it will be
                     // Push the entity up, and the next loop will verify it is legal
@@ -163,8 +163,8 @@ namespace Helion.World.Physics
                 if (entity.IsPlayer)
                     IsPositionValid(entity, entity.Position.XY, m_tryMoveData);
 
-                if ((moveType == SectorPlaneType.Ceiling && startZ < destZ) || 
-                    (moveType == SectorPlaneType.Floor && startZ > destZ))
+                if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) || 
+                    (moveType == SectorPlaneFace.Floor && startZ > destZ))
                     continue;
 
                 double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
@@ -246,20 +246,20 @@ namespace Helion.World.Physics
             return status;
         }
 
-        private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneType moveType, double startZ, double destZ)
+        private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneFace moveType, double startZ, double destZ)
         {
-            if (moveType == SectorPlaneType.Floor && destZ < startZ)
+            if (moveType == SectorPlaneFace.Floor && destZ < startZ)
                 return false;
 
-            if (moveType == SectorPlaneType.Ceiling && destZ > startZ)
+            if (moveType == SectorPlaneFace.Ceiling && destZ > startZ)
                 return false;
 
             return sector.Ceiling.Z < sector.Floor.Z;
         }
 
-        private static void FixPlaneClip(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType)
+        private static void FixPlaneClip(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType)
         {
-            if (moveType == SectorPlaneType.Floor)
+            if (moveType == SectorPlaneFace.Floor)
             {
                 sectorPlane.Plane.MoveZ(sectorPlane.Z - sector.Ceiling.Z);
                 sectorPlane.Z = sector.Ceiling.Z;
@@ -274,10 +274,10 @@ namespace Helion.World.Physics
         private static bool SpeedShouldStickToFloor(double speed) =>
             -speed < SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
-        private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneType moveType)
+        private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType)
         {
             // If the entity was pushed up by a floor and changed it's z pos then this floor is blocked
-            if (moveType == SectorPlaneType.Ceiling || entity.SaveZ != entity.Position.Z)
+            if (moveType == SectorPlaneFace.Ceiling || entity.SaveZ != entity.Position.Z)
                 return true;
 
             return false;

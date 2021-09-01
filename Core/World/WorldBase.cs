@@ -1037,7 +1037,7 @@ namespace Helion.World
         public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
             PhysicsManager.IsPositionValid(entity, position);
 
-        public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneType moveType,
+        public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
             double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
              => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush, compatibilityBlockMovement);
 

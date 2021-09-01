@@ -1768,7 +1768,7 @@ namespace Helion.World.Entities.Definition.States
                     entity.PlayerObj.LowerWeapon();
 
                 if (!entity.PlayerObj.IsVooDooDoll && entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-                    entity.PlayerObj.Weapon.ReadyToFire)
+                    entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
                 {
                     entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
                         SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(entity));

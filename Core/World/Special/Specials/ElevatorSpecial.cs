@@ -19,9 +19,9 @@ namespace Helion.World.Special.Specials
             Sector = sector;
 
             var floor = new SectorMoveSpecial(world, sector, Sector.Floor.Z, floorDestZ,
-                new SectorMoveData(SectorPlaneType.Floor, moveDirection, MoveRepetition.None, speed, 0), soundData);
+                new SectorMoveData(SectorPlaneFace.Floor, moveDirection, MoveRepetition.None, speed, 0), soundData);
             var ceiling = new SectorMoveSpecial(world, sector, Sector.Ceiling.Z, floorDestZ + sector.Ceiling.Z - sector.Floor.Z,
-                new SectorMoveData(SectorPlaneType.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
+                new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
 
             // Sector plane that can potentially be blocked needs to moved first
             if (moveDirection == MoveDirection.Up)

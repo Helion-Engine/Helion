@@ -14,7 +14,7 @@ namespace Helion.World.Special.Specials
 
     public static class TriggerSpecials
     {
-        public static void PlaneTransferChange(IWorld world, Sector sector, Line? line, SectorPlaneType planeType, PlaneTransferType type,
+        public static void PlaneTransferChange(IWorld world, Sector sector, Line? line, SectorPlaneFace planeType, PlaneTransferType type,
             bool transferSpecial = true)
         {
             if (type == PlaneTransferType.Numeric && GetNumericModelChange(world, sector, planeType, sector.GetZ(planeType), 
@@ -32,10 +32,10 @@ namespace Helion.World.Special.Specials
             }
         }
 
-        public static bool GetNumericModelChange(IWorld world, Sector sector, SectorPlaneType planeType,
+        public static bool GetNumericModelChange(IWorld world, Sector sector, SectorPlaneFace planeType,
             double destZ, out int changeTexture, out SectorDamageSpecial? damageSpecial)
         {
-            changeTexture = planeType == SectorPlaneType.Floor ? sector.Floor.TextureHandle : sector.Ceiling.TextureHandle;
+            changeTexture = planeType == SectorPlaneFace.Floor ? sector.Floor.TextureHandle : sector.Ceiling.TextureHandle;
             damageSpecial = sector.SectorDamageSpecial;
             bool found = false;
             for (int i = 0; i < sector.Lines.Count; i++)
@@ -45,12 +45,12 @@ namespace Helion.World.Special.Specials
                     continue;
 
                 Sector opposingSector = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
-                if (planeType == SectorPlaneType.Floor && opposingSector.Floor.Z == destZ)
+                if (planeType == SectorPlaneFace.Floor && opposingSector.Floor.Z == destZ)
                 {
                     changeTexture = opposingSector.Floor.TextureHandle;
                     found = true;
                 }
-                else if (planeType == SectorPlaneType.Ceiling && opposingSector.Ceiling.Z == destZ)
+                else if (planeType == SectorPlaneFace.Ceiling && opposingSector.Ceiling.Z == destZ)
                 {
                     changeTexture = opposingSector.Ceiling.TextureHandle;
                     found = true;

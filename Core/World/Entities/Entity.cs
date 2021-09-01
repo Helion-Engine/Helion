@@ -30,8 +30,8 @@ namespace Helion.World.Entities
     public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObject
     {
         private const double Speed = 47000 / 65536.0;
-        private const int ForceGibDamage = int.MaxValue;
-        private const int KillDamage = int.MaxValue - 1;
+        private const int ForceGibDamage = ushort.MaxValue;
+        private const int KillDamage = ushort.MaxValue - 1;
         public const double FloatSpeed = 4.0;
         public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannelType)).Length;
 
