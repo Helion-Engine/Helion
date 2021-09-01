@@ -87,7 +87,7 @@ namespace Helion.World.Geometry.Sectors
         public Vec3D GetSoundSource(Entity listener, SectorPlaneFace type)
         {
             Vec2D pos2D = listener.Position.XY;
-            if (listener.Sector.Equals(this))
+            if (listener.Sector.Equals(Sector))
                 return pos2D.To3D(type == SectorPlaneFace.Floor ? Sector.ToFloorZ(pos2D) : Sector.ToCeilingZ(pos2D));
 
             double z = listener.Position.Z;
