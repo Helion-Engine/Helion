@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Helion.Util.Extensions;
+using Helion.Window;
 using Helion.Window.Input;
 using TextCopy;
 
@@ -12,15 +13,15 @@ namespace Helion.Layer.Consoles
         
         private int m_submittedInputIndex = NoInputMessageIndex;
         
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (ConsumeControlV(input))
             {
-                input.ConsumeTypedCharacter('v', 'V');
+                input.ConsumeTypedCharacters();
                 AddClipboardToConsole();
             }
 
-            foreach (char c in input.GetTypedCharacters())
+            foreach (char c in input.ConsumeTypedCharacters())
                 m_console.AddInput(c);
             input.ConsumeTypedCharacters();
 
@@ -47,11 +48,10 @@ namespace Helion.Layer.Consoles
             // TODO
         }
 
-        private static bool ConsumeControlV(InputEvent input)
+        private static bool ConsumeControlV(IConsumableInput input)
         {
-            // MacOS is going to have problems with this probably!
-            bool ctrl = input.ConsumeKeyPressedOrDown(Key.ControlLeft) ||
-                        input.ConsumeKeyPressedOrDown(Key.ControlRight);
+            // TODO: MacOS is going to have problems with this!
+            bool ctrl = input.ConsumeKeyDown(Key.ControlLeft) || input.ConsumeKeyDown(Key.ControlRight);
             bool v = input.ConsumeKeyPressed(Key.V);
             return ctrl && v;
         }

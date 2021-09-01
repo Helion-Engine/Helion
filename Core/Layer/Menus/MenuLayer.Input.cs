@@ -4,6 +4,7 @@ using Helion.Menus.Base;
 using Helion.Menus.Impl;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Window;
 using Helion.Window.Input;
 
 namespace Helion.Layer.Menus
@@ -20,13 +21,13 @@ namespace Helion.Layer.Menus
             Manager.Remove(this);
         }
         
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (m_menus.Empty()) 
                 return;
             
             Menu menu = m_menus.Peek();
-            if (input.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
+            if (input.Manager.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
             {
                 if (messageMenu.ClearMenus)
                     ClearMenu(false);
@@ -47,7 +48,7 @@ namespace Helion.Layer.Menus
                 m_menus.Push(subMenu);
         }
         
-        private void HandleInputForMenu(Menu menu, InputEvent input)
+        private void HandleInputForMenu(Menu menu, IConsumableInput input)
         {
             if (input.ConsumeKeyPressed(Key.Up))
                 menu.MoveToPreviousComponent();

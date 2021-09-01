@@ -1,11 +1,11 @@
 ﻿using System;
-using Helion.Window.Input;
+using Helion.Window;
 
 namespace Helion.Layer
 {
     public interface IGameLayer : IDisposable
     {
-        void HandleInput(InputEvent input);
+        void HandleInput(IConsumableInput input);
         void RunLogic();
     }
 }

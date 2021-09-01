@@ -1,17 +1,17 @@
 ﻿using System;
 using Helion.Util;
-using Helion.Window.Input;
+using Helion.Window;
 
 namespace Helion.Layer.Worlds
 {
     public partial class IntermissionLayer
     {
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (IntermissionState == IntermissionState.Complete)
                 return;
 
-            bool pressedKey = input.HasAnyKeyPressed();
+            bool pressedKey = input.Manager.HasAnyKeyPressed();
             input.ConsumeAll();
             
             if (pressedKey)

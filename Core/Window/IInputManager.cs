@@ -1,6 +1,6 @@
 ﻿using System;
 using Helion.Geometry.Vectors;
-using Helion.Window.InputNew;
+using Helion.Window.Input;
 
 namespace Helion.Window
 {
@@ -12,7 +12,7 @@ namespace Helion.Window
         Vec2I MouseMove { get; }
         public int Scroll { get; }
         public ReadOnlySpan<char> TypedCharacters { get; }
-        
+
         bool IsKeyDown(Key key);
         bool IsKeyPrevDown(Key key);
         bool IsKeyHeldDown(Key key);
@@ -20,6 +20,8 @@ namespace Helion.Window
         bool IsKeyPrevUp(Key key);
         bool IsKeyPressed(Key key);
         bool IsKeyReleased(Key key);
-        ConsumableInput Poll();
+        bool HasAnyKeyPressed();
+        void Reset();
+        IConsumableInput Poll();
     }
 }

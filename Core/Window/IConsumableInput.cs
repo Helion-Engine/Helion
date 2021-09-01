@@ -1,6 +1,6 @@
 ﻿using System;
 using Helion.Geometry.Vectors;
-using Helion.Window.InputNew;
+using Helion.Window.Input;
 
 namespace Helion.Window
 {
@@ -11,8 +11,9 @@ namespace Helion.Window
     /// </summary>
     public interface IConsumableInput
     {
-        IInputManager InputManager { get; }
-        
+        IInputManager Manager { get; }
+
+        void ConsumeAll();
         bool ConsumeKeyDown(Key key);
         bool ConsumeKeyPrevDown(Key key);
         bool ConsumeKeyHeldDown(Key key);

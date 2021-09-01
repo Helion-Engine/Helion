@@ -1,5 +1,5 @@
 ﻿using System;
-using Helion.Window.Input;
+using Helion.Window;
 
 namespace Helion.Layer.EndGame
 {
@@ -7,9 +7,9 @@ namespace Helion.Layer.EndGame
     {
         private bool m_invokedNextMapFunc;
 
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
-            if (input.HasAnyKeyPressed())
+            if (input.Manager.HasAnyKeyPressed())
                 AdvanceState();
         }
         

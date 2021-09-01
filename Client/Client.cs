@@ -19,7 +19,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
-using Helion.Window.Input;
+using Helion.Window;
 using Helion.World.Save;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -82,11 +82,17 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            InputEvent inputEvent = m_window.InputManager.PollInput();
+            IConsumableInput inputEvent = m_window.InputManager.Poll();
             if (!m_takeScreenshot)
                 m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
             
             m_layerManager.HandleInput(inputEvent);
+            
+            // Because we had to tightly bound the consumable input to the
+            // input manager, we only want to clear the state after we've
+            // handled all of the input. This wipes the input manager clean,
+            // and we only should do that after we are done with the input.
+            m_window.InputManager.Reset();
         }
 
         private void RunLogic()
@@ -167,7 +173,7 @@ namespace Helion.Client
             if (!focus)
                 return;
 
-            m_window.InputManager.AddMouseMovement(-deltaX, -deltaY);
+            m_window.HandleRawMouseMovement(-deltaX, -deltaY);
 
             int x = m_window.Location.X + (m_window.Size.X / 2);
             int y = m_window.Location.Y + (m_window.Size.Y / 2);

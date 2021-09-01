@@ -7,7 +7,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
-using Helion.Window.Input;
+using Helion.Window;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Menus
@@ -65,7 +65,7 @@ namespace Helion.Menus
             Components = Components.Remove(component);
         }
 
-        public virtual void HandleInput(InputEvent input)
+        public virtual void HandleInput(IConsumableInput input)
         {
             // Up to any children to handle input if they want.
         }

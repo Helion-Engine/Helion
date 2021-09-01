@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 using Helion.Render.Common.Renderers;
-using Helion.Window.Input;
+using Helion.Window;
 
 namespace Helion.Layer.Images
 {
@@ -13,7 +13,7 @@ namespace Helion.Layer.Images
             Image = image;
         }
 
-        public virtual void HandleInput(InputEvent input)
+        public virtual void HandleInput(IConsumableInput input)
         {
             // Not used.
         }

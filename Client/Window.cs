@@ -1,6 +1,7 @@
 ﻿using System;
 using Helion.Client.Input;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.Legacy;
 using Helion.Render.Legacy.Context;
@@ -26,13 +27,14 @@ namespace Helion.Client
     /// </remarks>
     public class Window : GameWindow, IWindow
     {
-        public InputManager InputManager { get; } = new();
+        public IInputManager InputManager => m_inputManager;
         public IRenderer Renderer { get; }
-        private readonly Config m_config;
-        private readonly bool IgnoreMouseEvents;
-        private bool m_disposed;
         public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
         public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
+        private readonly Config m_config;
+        private readonly bool IgnoreMouseEvents;
+        private readonly InputManager m_inputManager = new();
+        private bool m_disposed;
 
         public Window(Config config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(new GameWindowSettings(), MakeNativeWindowSettings(config))
@@ -51,6 +53,7 @@ namespace Helion.Client
             MouseMove += Window_MouseMove;
             MouseUp += Window_MouseUp;
             MouseWheel += Window_MouseWheel;
+            TextInput += Window_TextInput;
         }
 
         public void SetGrabCursor(bool set) => CursorGrabbed = set;
@@ -70,7 +73,6 @@ namespace Helion.Client
 
         private static NativeWindowSettings MakeNativeWindowSettings(Config config)
         {
-            // (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
             int windowWidth = config.Window.Width;
             int windowHeight = config.Window.Height;
             
@@ -92,21 +94,21 @@ namespace Helion.Client
         {
             Key key = OpenTKInputAdapter.ToKey(args.Key);
             if (key != Key.Unknown)
-                InputManager.SetKeyUp(key);
+                m_inputManager.SetKeyUp(key);
         }
 
         private void Window_KeyDown(KeyboardKeyEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToKey(args.Key);
             if (key != Key.Unknown)
-                InputManager.SetKeyDown(key, args.Shift, args.IsRepeat);
+                m_inputManager.SetKeyDown(key);
         }
 
         private void Window_MouseDown(MouseButtonEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
             if (key != Key.Unknown)
-                InputManager.SetKeyDown(key, false, false);
+                m_inputManager.SetKeyDown(key);
         }
 
         private void Window_MouseMove(MouseMoveEventArgs args)
@@ -118,23 +120,37 @@ namespace Helion.Client
             {
                 int centerX = Size.X / 2;
                 int centerY = Size.Y / 2;
-                InputManager.AddMouseMovement(centerX - MouseState.X, centerY - MouseState.Y);
+                Vec2F movement = (centerX - MouseState.X, centerY - MouseState.Y);
+                m_inputManager.AddMouseMovement(movement.Int);
                 MousePosition = new Vector2(centerX, centerY);
             }
             else
-                InputManager.AddMouseMovement(-args.Delta.X, -args.Delta.Y);
+            {
+                Vec2F movement = (-args.Delta.X, -args.Delta.Y);
+                m_inputManager.AddMouseMovement(movement.Int);
+            }
         }
 
         private void Window_MouseUp(MouseButtonEventArgs args)
         {
             Key key = OpenTKInputAdapter.ToMouseKey(args.Button);
             if (key != Key.Unknown)
-                InputManager.SetKeyUp(key);
+                m_inputManager.SetKeyUp(key);
         }
 
         private void Window_MouseWheel(MouseWheelEventArgs args)
         {
-            InputManager.AddScroll(args.OffsetY);
+            m_inputManager.AddMouseScroll(args.OffsetY);
+        }
+        
+        private void Window_TextInput(TextInputEventArgs args)
+        {
+            m_inputManager.AddTypedCharacters(args.AsString);
+        }
+
+        public void HandleRawMouseMovement(int x, int y)
+        {
+            m_inputManager.AddMouseMovement((x, y));
         }
 
         private void PerformDispose()
@@ -148,6 +164,7 @@ namespace Helion.Client
             MouseMove -= Window_MouseMove;
             MouseUp -= Window_MouseUp;
             MouseWheel -= Window_MouseWheel;
+            TextInput -= Window_TextInput;
 
             m_disposed = true;
         }

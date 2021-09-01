@@ -10,6 +10,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Window;
 using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Save;
@@ -96,11 +97,11 @@ namespace Helion.Menus.Impl
             }
         }
 
-        public override void HandleInput(InputEvent input)
+        public override void HandleInput(IConsumableInput input)
         {
             base.HandleInput(input);
 
-            if (input.HasAnyKeyPressed() && m_isSave && !m_canSave)
+            if (input.Manager.HasAnyKeyPressed() && m_isSave && !m_canSave)
             {
                 m_parent.Dispose();
                 return;

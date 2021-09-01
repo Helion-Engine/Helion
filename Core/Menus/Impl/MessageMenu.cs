@@ -6,6 +6,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using System;
 using System.Collections.Generic;
+using Helion.Window;
 using Helion.Window.Input;
 
 namespace Helion.Menus.Impl
@@ -35,7 +36,7 @@ namespace Helion.Menus.Impl
             SetToFirstActiveComponent();
         }
 
-        public bool ShouldClear(InputEvent input)
+        public bool ShouldClear(IConsumableInput input)
         {
             if (IsYesNoConfirm)
             {
@@ -50,7 +51,7 @@ namespace Helion.Menus.Impl
                     return true;
                 }
             }
-            else if (input.HasAnyKeyPressed())
+            else if (input.Manager.HasAnyKeyPressed())
             {
                 Cleared?.Invoke(this, false);
                 return true;

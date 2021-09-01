@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 
-namespace Helion.Window.InputNew
+namespace Helion.Window.Input
 {
     /// <summary>
     /// A basic implementation of consumable input.
@@ -14,84 +14,92 @@ namespace Helion.Window.InputNew
         private bool m_typedCharsConsumed;
         private Vec2I m_mouseMove = (0, 0);
         private int m_mouseScroll;
+        private bool m_allConsumed;
 
-        public IInputManager InputManager => m_inputManager;
+        public IInputManager Manager => m_inputManager;
 
         public ConsumableInput(InputManager inputManager)
         {
             m_inputManager = inputManager;
         }
 
+        public void ConsumeAll()
+        {
+            m_allConsumed = true;
+            m_mouseMove = (0, 0);
+            m_mouseScroll = 0;
+        }
+
         public bool ConsumeKeyDown(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyDown(key);
+            return Manager.IsKeyDown(key);
         }
         
         public bool ConsumeKeyPrevDown(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyPrevDown(key);
+            return Manager.IsKeyPrevDown(key);
         }
         
         public bool ConsumeKeyHeldDown(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyHeldDown(key);
+            return Manager.IsKeyHeldDown(key);
         }
         
         public bool ConsumeKeyUp(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyUp(key);
+            return Manager.IsKeyUp(key);
         }
         
         public bool ConsumeKeyPrevUp(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyPrevUp(key);
+            return Manager.IsKeyPrevUp(key);
         }
         
         public bool ConsumeKeyPressed(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyPressed(key);
+            return Manager.IsKeyPressed(key);
         }
         
         public bool ConsumeKeyReleased(Key key)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
             
             m_inputConsumed.Add(key);
-            return InputManager.IsKeyReleased(key);
+            return Manager.IsKeyReleased(key);
         }
         
         public ReadOnlySpan<char> ConsumeTypedCharacters()
         {
-            if (m_typedCharsConsumed)
+            if (m_allConsumed || m_typedCharsConsumed)
                 return ReadOnlySpan<char>.Empty;
 
             m_typedCharsConsumed = true;
-            return InputManager.TypedCharacters;
+            return Manager.TypedCharacters;
         }
 
         public Vec2I ConsumeMouseMove()
@@ -111,9 +119,10 @@ namespace Helion.Window.InputNew
         internal void Reset()
         {
             m_inputConsumed.Clear();
+            m_allConsumed = false;
             m_typedCharsConsumed = false;
-            m_mouseMove = InputManager.MouseMove;
-            m_mouseScroll = InputManager.Scroll;
+            m_mouseMove = Manager.MouseMove;
+            m_mouseScroll = Manager.Scroll;
         }
     }
 }

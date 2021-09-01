@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
@@ -12,7 +11,6 @@ using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
-using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -171,7 +169,7 @@ namespace Helion.Layer
             }
         }
         
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
                 ToggleConsoleLayer(input);
@@ -188,7 +186,7 @@ namespace Helion.Layer
             WorldLayer?.HandleInput(input);
         }
 
-        private void ToggleConsoleLayer(InputEvent input)
+        private void ToggleConsoleLayer(IConsumableInput input)
         {
             input.ConsumeAll();
             

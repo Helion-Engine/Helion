@@ -13,6 +13,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Sounds.Mus;
+using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Save;
 
@@ -76,12 +77,12 @@ namespace Helion.Layer.Images
             audioSystem.Music.Play(convertedData, loop: false, ignoreAlreadyPlaying: false);
         }
         
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (m_disposed)
                 return;
             
-            if (input.HasAnyKeyPressed() && ShouldMakeMenu)
+            if (input.Manager.HasAnyKeyPressed() && ShouldMakeMenu)
             {
                 // We want the user to be able to get to the menu from the
                 // 'Read This' menu, but we don't want any other keys making
