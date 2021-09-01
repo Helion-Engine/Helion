@@ -185,7 +185,7 @@ namespace Helion.World.Special.Specials
 
             CheckPlaySound();
 
-            if ((SectorPlane.Z == DestZ && IsNonRepeat) || MoveStatus == SectorMoveStatus.BlockedAndStop)
+            if (IsNonRepeat && (SectorPlane.Z == DestZ || MoveStatus == SectorMoveStatus.BlockedAndStop))
             {
                 if (MoveData.FloorChangeTextureHandle != null)
                     Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value);
