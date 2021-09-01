@@ -219,7 +219,8 @@ namespace Helion.World.Special.Specials
 
         private void CheckPlaySound()
         {
-            if (SectorPlane.Z == DestZ)
+            // Doom does not play the stop sound for ceilings
+            if (SectorPlane.Z == DestZ && MoveData.SectorMoveType != SectorPlaneFace.Ceiling)
             {
                 if (SoundData.StopSound != null)
                     CreateSound(SoundData.StopSound);
