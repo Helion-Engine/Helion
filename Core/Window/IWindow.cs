@@ -1,8 +1,8 @@
 ﻿using System;
 using Helion.Geometry;
-using Helion.Input;
+using Helion.Render;
 
-namespace Helion.Render
+namespace Helion.Window
 {
     /// <summary>
     /// A window that reads input and renders.
@@ -12,7 +12,7 @@ namespace Helion.Render
         /// <summary>
         /// The input manager for all of the input on this window.
         /// </summary>
-        InputManager InputManager { get; }
+        IInputManager InputManager { get; }
         
         /// <summary>
         /// The renderer that draws to this window.

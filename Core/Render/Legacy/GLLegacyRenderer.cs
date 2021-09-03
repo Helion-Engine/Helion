@@ -21,6 +21,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Timing;
+using Helion.Window;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 

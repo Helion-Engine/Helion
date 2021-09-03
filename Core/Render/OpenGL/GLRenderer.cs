@@ -13,6 +13,7 @@ using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Util.Configs;
+using Helion.Window;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;

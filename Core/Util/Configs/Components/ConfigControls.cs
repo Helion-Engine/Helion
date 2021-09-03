@@ -1,5 +1,5 @@
-﻿using Helion.Input;
-using Helion.Util.Configs.Values;
+﻿using Helion.Util.Configs.Values;
+using Helion.Window.Input;
 
 namespace Helion.Util.Configs.Components
 {
