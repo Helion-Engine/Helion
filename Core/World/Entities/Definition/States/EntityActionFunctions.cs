@@ -1104,11 +1104,8 @@ namespace Helion.World.Entities.Definition.States
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
             if (entity.PlayerObj != null)
-            {
-                entity.PlayerObj.Weapon?.SetFlashState();
                 entity.PlayerObj.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
                     entity.World.Config.Game.AutoAim, "BFGBall");
-            }
         }
 
         private static void A_FireBullets(Entity entity)
@@ -1142,7 +1139,6 @@ namespace Helion.World.Entities.Definition.States
         {
             if (entity.PlayerObj != null)
             {
-                entity.PlayerObj.Weapon?.SetFlashState();
                 entity.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
                     entity.World.Config.Game.AutoAim, "Rocket");
             }
@@ -1152,10 +1148,7 @@ namespace Helion.World.Entities.Definition.States
         {
             // TODO not sure of difference between A_FireBFG and A_FireOldBFG
             if (entity.PlayerObj != null)
-            {
-                entity.PlayerObj.Weapon?.SetFlashState();
                 entity.World.FireProjectile(entity, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
-            }
         }
 
         private static void A_FirePistol(Entity entity)

@@ -60,6 +60,15 @@ namespace Helion.Layer.Worlds
                 World.HandleFrameInput(input);
             }
             
+            if (input.ConsumeKeyPressed(m_config.Controls.Save))
+            {
+                // TODO: Go to save menu
+            }
+            else if (input.ConsumeKeyPressed(m_config.Controls.Load))
+            {
+                // TODO: Go to load menu
+            }
+            
             if (input.ConsumeKeyPressed(m_config.Controls.HudDecrease))
                 ChangeHudSize(false);
             else if (input.ConsumeKeyPressed(m_config.Controls.HudIncrease))
