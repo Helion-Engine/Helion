@@ -12,6 +12,7 @@ using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using NLog;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -27,6 +28,8 @@ namespace Helion.Client
     /// </remarks>
     public class Window : GameWindow, IWindow
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public IInputManager InputManager => m_inputManager;
         public IRenderer Renderer { get; }
         public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
@@ -39,8 +42,9 @@ namespace Helion.Client
         public Window(Config config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(new GameWindowSettings(), MakeNativeWindowSettings(config))
         {
+            Log.Debug("Creating client window");
+            
             m_config = config;
-
             CursorVisible = !config.Mouse.Focus;
             Renderer = CreateRenderer(config, archiveCollection, tracker);
             IgnoreMouseEvents = config.Mouse.RawInput;
