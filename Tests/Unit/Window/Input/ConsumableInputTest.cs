@@ -47,13 +47,13 @@ namespace Helion.Tests.Unit.Window.Input
                 }
             }
 
-            TestConsumeFunc((i, b) => i.ConsumeKeyDown(b), true, true, false, false);
-            TestConsumeFunc((i, b) => i.ConsumeKeyPrevDown(b), true, false, true, false);
-            TestConsumeFunc((i, b) => i.ConsumeKeyHeldDown(b), true, false, false, false);
-            TestConsumeFunc((i, b) => i.ConsumeKeyUp(b), false, false, true, true);
-            TestConsumeFunc((i, b) => i.ConsumeKeyPrevUp(b), false, true, false, true);
-            TestConsumeFunc((i, b) => i.ConsumeKeyPressed(b), false, true, false, false);
-            TestConsumeFunc((i, b) => i.ConsumeKeyReleased(b), false, false, true, false);
+            TestConsumeFunc((input, key) => input.ConsumeKeyDown(key), true, true, false, false);
+            TestConsumeFunc((input, key) => input.ConsumeKeyPrevDown(key), true, false, true, false);
+            TestConsumeFunc((input, key) => input.ConsumeKeyHeldDown(key), true, false, false, false);
+            TestConsumeFunc((input, key) => input.ConsumeKeyUp(key), false, false, true, true);
+            TestConsumeFunc((input, key) => input.ConsumeKeyPrevUp(key), false, true, false, true);
+            TestConsumeFunc((input, key) => input.ConsumeKeyPressed(key), false, true, false, false);
+            TestConsumeFunc((input, key) => input.ConsumeKeyReleased(key), false, false, true, false);
         }
         
         [Fact(DisplayName = "Can consume mouse movement")]
