@@ -657,7 +657,8 @@ namespace Helion.World.Physics
                 return m_tryMoveData;
             }
 
-            if (entity.IsCrushing())
+            Vec2D velocity = position - entity.Position.XY;
+            if (velocity == Vec2D.Zero || entity.IsCrushing())
             {
                 m_tryMoveData.Success = false;
                 return m_tryMoveData;
@@ -667,7 +668,6 @@ namespace Helion.World.Physics
             // the actor so we don't skip over any lines or things due to fast
             // entity speed.
             int slidesLeft = MaxSlides;
-            Vec2D velocity = position - entity.Position.XY;
             int numMoves = CalculateSteps(velocity, entity.Radius);
             Vec2D stepDelta = velocity / numMoves;
             bool success = true;
