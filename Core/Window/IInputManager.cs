@@ -21,6 +21,7 @@ namespace Helion.Window
         bool IsKeyPressed(Key key);
         bool IsKeyReleased(Key key);
         bool HasAnyKeyPressed();
+        bool HasAnyKeyDown();
         void Reset();
         IConsumableInput Poll();
     }

@@ -60,6 +60,7 @@ namespace Helion.Window.Input
         public bool IsKeyPressed(Key key) => IsKeyDown(key) && !IsKeyPrevDown(key);
         public bool IsKeyReleased(Key key) => !IsKeyDown(key) && IsKeyPrevDown(key);
         public bool HasAnyKeyPressed() => m_inputDown.Any(IsKeyPressed);
+        public bool HasAnyKeyDown() => m_inputDown.Any();
 
         public void Reset()
         {
