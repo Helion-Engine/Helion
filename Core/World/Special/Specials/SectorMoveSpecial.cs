@@ -196,12 +196,15 @@ namespace Helion.World.Special.Specials
                 if (MoveData.DamageSpecial != null)
                     Sector.SectorDamageSpecial = MoveData.DamageSpecial;
 
+                StopMovementSound();
                 Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
+
                 return SpecialTickStatus.Destroy;
             }
 
             if (IsDelayReturn && SectorPlane.Z == m_startZ)
             {
+                StopMovementSound();
                 Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
                 return SpecialTickStatus.Destroy;
             }
@@ -210,6 +213,12 @@ namespace Helion.World.Special.Specials
                 FlipMovementDirection(false);
 
             return SpecialTickStatus.Continue;
+        }
+
+        private void StopMovementSound()
+        {
+            if (SoundData.MovementSound != null)
+                StopSound(SoundData.MovementSound);
         }
 
         public virtual void ResetInterpolation()
@@ -258,8 +267,6 @@ namespace Helion.World.Special.Specials
         public virtual void FinalizeDestroy()
         {
             SectorPlane.PrevZ = SectorPlane.Z;
-            if (SoundData.MovementSound != null)
-                StopSound(SoundData.MovementSound);
         }
 
         public virtual bool Use(Entity entity)
