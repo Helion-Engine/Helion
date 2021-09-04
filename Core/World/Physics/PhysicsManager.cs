@@ -810,7 +810,7 @@ namespace Helion.World.Physics
                                 return GridIterationStatus.Stop;
                         }
 
-                        if (!entity.Flags.NoClip && line.HasSpecial)
+                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip && line.HasSpecial)
                             tryMove.AddIntersectSpecialLine(line);
                     }
                 }
