@@ -218,5 +218,57 @@ namespace Helion.Tests.Unit.Window.Input
             input.ConsumeTypedCharacters().ToString().Should().Be("hi");
             input.ConsumeTypedCharacters().ToString().Should().Be("");
         }
+
+        [Fact(DisplayName = "Detect the special print screen case")]
+        public void CanDetectPrintScreen()
+        {
+            // Prev: NO   Now: NO
+            InputManager inputManager = new();
+            inputManager.IsKeyDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyUp(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
+            inputManager.HasAnyKeyPressed().Should().BeFalse();
+            inputManager.HasAnyKeyDown().Should().BeFalse();
+            
+            // Prev: NO   Now: YES
+            inputManager.SetKeyDown(Key.PrintScreen);
+            inputManager.IsKeyDown(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyUp(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPressed(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
+            inputManager.HasAnyKeyPressed().Should().BeTrue();
+            inputManager.HasAnyKeyDown().Should().BeTrue();
+            
+            // Prev: YES   Now: NO
+            inputManager.Reset();
+            inputManager.IsKeyDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyUp(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyReleased(Key.PrintScreen).Should().BeTrue();
+            inputManager.HasAnyKeyPressed().Should().BeFalse();
+            inputManager.HasAnyKeyDown().Should().BeFalse();
+            
+            // Prev: YES   Now: YES
+            inputManager.SetKeyDown(Key.PrintScreen);
+            inputManager.IsKeyDown(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeTrue();
+            inputManager.IsKeyUp(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
+            inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
+            inputManager.HasAnyKeyPressed().Should().BeFalse();
+            inputManager.HasAnyKeyDown().Should().BeTrue();
+        }
     }
 }

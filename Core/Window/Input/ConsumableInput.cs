@@ -34,7 +34,7 @@ namespace Helion.Window.Input
         {
             if (m_allConsumed || m_inputConsumed.Contains(key))
                 return false;
-            
+
             m_inputConsumed.Add(key);
             return Manager.IsKeyDown(key);
         }
