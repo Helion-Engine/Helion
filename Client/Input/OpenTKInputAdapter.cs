@@ -1,4 +1,4 @@
-﻿using Helion.Input;
+﻿using Helion.Window.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Helion.Client.Input

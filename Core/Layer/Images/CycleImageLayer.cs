@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Helion.Audio.Sounds;
-using Helion.Input;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
+using Helion.Window;
 
 namespace Helion.Layer.Images
 {
@@ -22,11 +22,11 @@ namespace Helion.Layer.Images
             m_images = images;
         }
 
-        public override void HandleInput(InputEvent input)
+        public override void HandleInput(IConsumableInput input)
         {
             base.HandleInput(input);
 
-            if (!input.HasAnyKeyPressed()) 
+            if (!input.Manager.HasAnyKeyPressed()) 
                 return;
             
             m_imageIndex++;

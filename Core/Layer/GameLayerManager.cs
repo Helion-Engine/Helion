@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Input;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
@@ -13,12 +11,13 @@ using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
-using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Window;
+using Helion.Window.Input;
 using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 
@@ -170,9 +169,9 @@ namespace Helion.Layer
             }
         }
         
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
-            if (input.ConsumeKeyPressed(Key.Backtick) || input.ConsumeKeyPressed(Key.Tilde))
+            if (input.ConsumeKeyPressed(m_config.Controls.Console))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
 
@@ -187,7 +186,7 @@ namespace Helion.Layer
             WorldLayer?.HandleInput(input);
         }
 
-        private void ToggleConsoleLayer(InputEvent input)
+        private void ToggleConsoleLayer(IConsumableInput input)
         {
             input.ConsumeAll();
             

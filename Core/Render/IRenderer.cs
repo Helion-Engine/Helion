@@ -3,6 +3,7 @@ using System.Drawing;
 using Helion.Geometry;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Window;
 
 namespace Helion.Render
 {

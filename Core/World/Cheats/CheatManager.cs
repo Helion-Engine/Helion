@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Helion.Input;
+using Helion.Window;
 using Helion.World.Entities.Players;
 
 namespace Helion.World.Cheats
@@ -82,9 +82,9 @@ namespace Helion.World.Cheats
             return false;
         }
 
-        public void HandleInput(Player player, InputEvent input)
+        public void HandleInput(Player player, IConsumableInput input)
         {
-            foreach (char key in input.GetTypedCharacters())
+            foreach (char key in input.ConsumeTypedCharacters())
             {
                 m_currentCheat.Append(key);
                 string cheatString = m_currentCheat.ToString();

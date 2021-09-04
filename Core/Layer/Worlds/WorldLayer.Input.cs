@@ -1,7 +1,8 @@
-﻿using Helion.Input;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
+using Helion.Window;
+using Helion.Window.Input;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 
@@ -48,7 +49,7 @@ namespace Helion.Layer.Worlds
             };
         }
 
-        public void HandleInput(InputEvent input)
+        public void HandleInput(IConsumableInput input)
         {
             if (m_drawAutomap)
                 HandleAutoMapInput(input);
@@ -57,6 +58,15 @@ namespace Helion.Layer.Worlds
             {
                 HandleMovementInput(input);
                 World.HandleFrameInput(input);
+            }
+            
+            if (input.ConsumeKeyPressed(m_config.Controls.Save))
+            {
+                // TODO: Go to save menu
+            }
+            else if (input.ConsumeKeyPressed(m_config.Controls.Load))
+            {
+                // TODO: Go to load menu
             }
             
             if (input.ConsumeKeyPressed(m_config.Controls.HudDecrease))
@@ -71,7 +81,7 @@ namespace Helion.Layer.Worlds
             }
         }
         
-        private void HandleAutoMapInput(InputEvent input)
+        private void HandleAutoMapInput(IConsumableInput input)
         {
             if (input.ConsumeKeyPressed(m_config.Controls.AutoMapDecrease))
                 ChangeAutoMapSize(false);
@@ -102,16 +112,16 @@ namespace Helion.Layer.Worlds
             m_autoMapScale += increase ? 0.1 : -0.1;
         }
         
-        private void HandleMovementInput(InputEvent input)
+        private void HandleMovementInput(IConsumableInput input)
         {
             m_tickCommand.Clear();
             
             foreach (var (inputKey, command) in m_consumeDownKeys)
-                if (input.ConsumeKeyPressedOrDown(inputKey))
+                if (input.ConsumeKeyDown(inputKey))
                     m_tickCommand.Add(command, true);
 
             foreach (var (inputKey, command) in m_consumePressedKeys)
-                if (!input.WasPreviouslyPressed(inputKey) && input.ConsumeKeyPressed(inputKey))
+                if (input.ConsumeKeyPressed(inputKey))
                     m_tickCommand.Add(command, false);
         }
         

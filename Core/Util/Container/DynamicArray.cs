@@ -67,6 +67,14 @@ namespace Helion.Util.Container
             Length = 0;
         }
 
+        public bool Contains(T element)
+        {
+            for (int i = 0; i < Length; i++)
+                if (Equals(Data[i], element))
+                    return true;
+            return false;
+        }
+
         public void Add(T element)
         {
             if (Length == Capacity)

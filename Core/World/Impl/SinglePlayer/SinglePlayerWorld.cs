@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Numerics;
 using Helion.Audio;
-using Helion.Input;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -13,17 +11,16 @@ using Helion.Util.Configs;
 using Helion.Util.Sounds.Mus;
 using Helion.World.Cheats;
 using Helion.World.Entities;
-using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Physics;
 using MoreLinq;
 using NLog;
-using static Helion.Util.Assertion.Assert;
-using static Helion.World.Entities.EntityManager;
-using Helion.Resources.Definitions.Language;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Window;
+using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Impl.SinglePlayer
 {
@@ -198,7 +195,7 @@ namespace Helion.World.Impl.SinglePlayer
             return playingSuccess;
         }
 
-        public void HandleFrameInput(InputEvent input)
+        public void HandleFrameInput(IConsumableInput input)
         {
             CheatManager.Instance.HandleInput(Player, input);
             HandleMouseLook(input);
@@ -277,12 +274,12 @@ namespace Helion.World.Impl.SinglePlayer
                 e.Success = SpecialManager.TryAddActivatedLineSpecial(e);
         }
 
-        private void HandleMouseLook(InputEvent input)
+        private void HandleMouseLook(IConsumableInput input)
         {
             if (Player.IsFrozen || Player.IsDead || WorldState == WorldState.Exit)
                 return;
 
-            Vec2I pixelsMoved = input.ConsumeMouseDelta();
+            Vec2I pixelsMoved = input.ConsumeMouseMove();
             if (pixelsMoved.X != 0 || pixelsMoved.Y != 0)
             {
                 Vec2F moveDelta = pixelsMoved.Float / (float)Config.Mouse.PixelDivisor;
