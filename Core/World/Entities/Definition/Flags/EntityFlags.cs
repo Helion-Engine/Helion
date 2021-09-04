@@ -5,6 +5,9 @@ namespace Helion.World.Entities.Definition.Flags
 {
     public struct EntityFlags
     {
+        // Flags6 & FlagValue.Flag6 is available
+        // Flags7 & FlagValue.Flag32 is available
+
         public static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
 
         private int Flags1;
@@ -168,6 +171,7 @@ namespace Helion.World.Entities.Definition.Flags
         public bool InventoryUntossable { get => (Flags5 & FlagValue.Flag20) != 0; set { if (value) Flags5 |= FlagValue.Flag20; else Flags5 &= FlagValue.InvFlag20; } }
         public bool Invisible { get => (Flags5 & FlagValue.Flag21) != 0; set { if (value) Flags5 |= FlagValue.Flag21; else Flags5 &= FlagValue.InvFlag21; } }
         public bool Invulnerable { get => (Flags5 & FlagValue.Flag22) != 0; set { if (value) Flags5 |= FlagValue.Flag22; else Flags5 &= FlagValue.InvFlag22; } }
+        // Note: This is ZDoom only. Vanilla would use CountKill or !IsPlayer or PlayerObj == null.
         public bool IsMonster { get => (Flags5 & FlagValue.Flag23) != 0; set { if (value) Flags5 |= FlagValue.Flag23; else Flags5 &= FlagValue.InvFlag23; } }
         public bool IsTeleportSpot { get => (Flags5 & FlagValue.Flag24) != 0; set { if (value) Flags5 |= FlagValue.Flag24; else Flags5 &= FlagValue.InvFlag24; } }
         public bool JumpDown { get => (Flags5 & FlagValue.Flag25) != 0; set { if (value) Flags5 |= FlagValue.Flag25; else Flags5 &= FlagValue.InvFlag25; } }
@@ -183,7 +187,6 @@ namespace Helion.World.Entities.Definition.Flags
         public bool Missile { get => (Flags6 & FlagValue.Flag3) != 0; set { if (value) Flags6 |= FlagValue.Flag3; else Flags6 &= FlagValue.InvFlag3; } }
         public bool MissileEvenMore { get => (Flags6 & FlagValue.Flag4) != 0; set { if (value) Flags6 |= FlagValue.Flag4; else Flags6 &= FlagValue.InvFlag4; } }
         public bool MissileMore { get => (Flags6 & FlagValue.Flag5) != 0; set { if (value) Flags6 |= FlagValue.Flag5; else Flags6 &= FlagValue.InvFlag5; } }
-        public bool Monster { get => (Flags6 & FlagValue.Flag6) != 0; set { if (value) Flags6 |= FlagValue.Flag6; else Flags6 &= FlagValue.InvFlag6; } }
         public bool MoveWithSector { get => (Flags6 & FlagValue.Flag7) != 0; set { if (value) Flags6 |= FlagValue.Flag7; else Flags6 &= FlagValue.InvFlag7; } }
         public bool MThruSpecies { get => (Flags6 & FlagValue.Flag8) != 0; set { if (value) Flags6 |= FlagValue.Flag8; else Flags6 &= FlagValue.InvFlag8; } }
         public bool NeverFast { get => (Flags6 & FlagValue.Flag9) != 0; set { if (value) Flags6 |= FlagValue.Flag9; else Flags6 &= FlagValue.InvFlag9; } }
@@ -241,7 +244,6 @@ namespace Helion.World.Entities.Definition.Flags
         public bool PlayerPawnCrouchableMorph { get => (Flags7 & FlagValue.Flag29) != 0; set { if (value) Flags7 |= FlagValue.Flag29; else Flags7 &= FlagValue.InvFlag29; } }
         public bool PlayerPawnNoThrustWhenInvul { get => (Flags7 & FlagValue.Flag30) != 0; set { if (value) Flags7 |= FlagValue.Flag30; else Flags7 &= FlagValue.InvFlag30; } }
         public bool PoisonAlways { get => (Flags7 & FlagValue.Flag31) != 0; set { if (value) Flags7 |= FlagValue.Flag31; else Flags7 &= FlagValue.InvFlag31; } }
-        public bool Projectile { get => (Flags7 & FlagValue.Flag32) != 0; set { if (value) Flags7 |= FlagValue.Flag32; else Flags7 &= FlagValue.InvFlag32; } }
         public bool PuffGetsOwner { get => (Flags8 & FlagValue.Flag1) != 0; set { if (value) Flags8 |= FlagValue.Flag1; else Flags8 &= FlagValue.InvFlag1; } }
         public bool PuffOnActors { get => (Flags8 & FlagValue.Flag2) != 0; set { if (value) Flags8 |= FlagValue.Flag2; else Flags8 &= FlagValue.InvFlag2; } }
         public bool Pushable { get => (Flags8 & FlagValue.Flag3) != 0; set { if (value) Flags8 |= FlagValue.Flag3; else Flags8 &= FlagValue.InvFlag3; } }

@@ -383,7 +383,7 @@ namespace Helion.World.Entities
 
             FrameState.Tick();
 
-            if (Flags.Monster && IsDeathStateFinished)
+            if (Flags.CountKill && IsDeathStateFinished)
             {
                 if (World.SkillDefinition.RespawnTime.Seconds == 0)
                     return;

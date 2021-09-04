@@ -364,7 +364,16 @@ namespace Helion.World.Entities.Definition.Composer
             if (flags.MissileMore != null)
                 definition.Flags.MissileMore = flags.MissileMore.Value;
             if (flags.Monster != null)
-                definition.Flags.Monster = flags.Monster.Value;
+            {
+                definition.Flags.Shootable = true;
+                definition.Flags.CountKill = true;
+                definition.Flags.Solid = true;
+                definition.Flags.CanPushWalls = true;
+                definition.Flags.CanUseWalls = true;
+                definition.Flags.ActivateMCross = true;
+                definition.Flags.CanPass = true;
+                definition.Flags.IsMonster = true;
+            }
             if (flags.MoveWithSector != null)
                 definition.Flags.MoveWithSector = flags.MoveWithSector.Value;
             if (flags.MThruSpecies != null)
@@ -480,7 +489,15 @@ namespace Helion.World.Entities.Definition.Composer
             if (flags.PoisonAlways != null)
                 definition.Flags.PoisonAlways = flags.PoisonAlways.Value;
             if (flags.Projectile != null)
-                definition.Flags.Projectile = flags.Projectile.Value;
+            {
+                definition.Flags.NoBlockmap = true;
+                definition.Flags.NoGravity = true;
+                definition.Flags.Dropoff = true;
+                definition.Flags.Missile = true;
+                definition.Flags.ActivateImpact = true;
+                definition.Flags.ActivatePCross = true;
+                definition.Flags.NoTeleport = true;
+            }
             if (flags.PuffGetsOwner != null)
                 definition.Flags.PuffGetsOwner = flags.PuffGetsOwner.Value;
             if (flags.PuffOnActors != null)

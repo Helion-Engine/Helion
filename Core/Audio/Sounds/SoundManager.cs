@@ -388,7 +388,7 @@ namespace Helion.Audio.Sounds
             if (soundParams is { Attenuation: Attenuation.None } || !CanAttenuate(soundSource, soundInfo))
                 return 1;
 
-            if (soundInfo != null && soundSource is Entity entity && entity.Flags.Monster)
+            if (soundInfo != null && soundSource is Entity entity && !entity.IsPlayer)
             {
                 if (soundInfo.Name.Equals(entity.Properties.PainSound, StringComparison.OrdinalIgnoreCase))
                     return 3;

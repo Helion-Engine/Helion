@@ -186,7 +186,6 @@ namespace Helion.Tests.Unit.Model
             entityFlags.Missile = true;
             entityFlags.MissileEvenMore = true;
             entityFlags.MissileMore = true;
-            entityFlags.Monster = true;
             entityFlags.MoveWithSector = true;
             entityFlags.MThruSpecies = true;
             entityFlags.NeverFast = true;
@@ -244,7 +243,6 @@ namespace Helion.Tests.Unit.Model
             entityFlags.PlayerPawnCrouchableMorph = true;
             entityFlags.PlayerPawnNoThrustWhenInvul = true;
             entityFlags.PoisonAlways = true;
-            entityFlags.Projectile = true;
             entityFlags.PuffGetsOwner = true;
             entityFlags.PuffOnActors = true;
             entityFlags.Pushable = true;
@@ -417,7 +415,6 @@ namespace Helion.Tests.Unit.Model
             entityFlags.MaskRotation = true;
             entityFlags.MirrorReflect = true;
             entityFlags.MissileEvenMore = true;
-            entityFlags.Monster = true;
             entityFlags.MThruSpecies = true;
             entityFlags.NeverRespawn = true;
             entityFlags.NoBlockmap = true;
@@ -446,7 +443,6 @@ namespace Helion.Tests.Unit.Model
             entityFlags.Pickup = true;
             entityFlags.PlayerPawnCanSuperMorph = true;
             entityFlags.PlayerPawnNoThrustWhenInvul = true;
-            entityFlags.Projectile = true;
             entityFlags.PuffOnActors = true;
             entityFlags.QuarterGravity = true;
             entityFlags.Randomize = true;

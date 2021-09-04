@@ -304,7 +304,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap
                 isKey = true;
                 color = keyColor;
             }
-            else if (entity.Flags.IsMonster)
+            else if (entity.Flags.CountKill)
                 color = entity.IsDead ? AutomapColor.Gray : AutomapColor.Red;
             else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
                 color = AutomapColor.Yellow;

@@ -97,6 +97,9 @@ namespace Helion.World.Special
             if (Active)
                 return false;
 
+            if (entity.Flags.NoTeleport && IsTeleport())
+                return false;
+
             LineFlags flags = line.Flags;
             if (entity.Flags.Missile)
             {

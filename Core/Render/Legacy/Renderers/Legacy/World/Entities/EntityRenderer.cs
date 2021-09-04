@@ -174,14 +174,14 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
         private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
         {
             offsetAmount = texture.Offset.Y;
-            if (entity.Flags.Projectile || texture.Offset.Y >= 0)
+            if (entity.Flags.Missile || texture.Offset.Y >= 0)
                 return true;
 
             if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)
                 return false;
 
             if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsType(EntityDefinitionType.Inventory) ||
-                (entity.Flags.Monster && !entity.Flags.Corpse))
+                !entity.Flags.Corpse)
                 return false;
 
             if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Offset.Y)

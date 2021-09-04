@@ -177,7 +177,7 @@ namespace Helion.World.Physics
                     }
 
                     // Need to gib things even when not crushing and do not count as blocking
-                    if (entity.Flags.Monster && entity.Flags.Corpse && !entity.Flags.DontGib)
+                    if (entity.Flags.Corpse && !entity.Flags.DontGib)
                     {
                         SetToGiblets(entity);
                         continue;

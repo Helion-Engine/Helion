@@ -152,7 +152,7 @@ namespace Helion.World.Entities
                     continue;
                 }
 
-                if (World.Config.Game.NoMonsters && definition.Flags.IsMonster)
+                if (World.Config.Game.NoMonsters && definition.Flags.CountKill)
                     continue;
 
                 if (definition.Flags.CountKill && !definition.Flags.Friendly)

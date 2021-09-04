@@ -170,7 +170,7 @@ namespace Helion.World.Geometry.Lines
             if (OneSided)
                 return true;
 
-            return (!entity.IsPlayer && Flags.Blocking.Monsters && !entity.Flags.Projectile) || (entity.IsPlayer && Flags.Blocking.Players);
+            return (!entity.IsPlayer && Flags.Blocking.Monsters && !entity.Flags.Missile) || (entity.IsPlayer && Flags.Blocking.Players);
         }
 
         public void MarkSeenOnAutomap()
