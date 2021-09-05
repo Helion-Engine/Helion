@@ -20,8 +20,8 @@ namespace Helion.Util.Configs.Impl
     public class FileConfig : Config
     {
         public const string DefaultConfigPath = "config.ini";
-        private const string EngineSectionName = "engine";
-        private const string KeysSectionName = "keys";
+        public const string EngineSectionName = "engine";
+        public const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         private readonly string m_filePath;
