@@ -49,7 +49,35 @@ namespace Helion.Resources.Definitions.MapInfo
                 else if (item.Equals(ClearSkillsName, StringComparison.OrdinalIgnoreCase))
                     MapInfo.ClearSkills();
                 else
-                    throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, $"Unknown item {item}");
+                    ConsumeUnknownSection(parser, item);
+            }
+        }
+
+        private void ConsumeUnknownSection(SimpleParser parser, string item)
+        {
+            Log.Warn($"MapInfo: Unknown section {item}");
+
+            if (m_legacy)
+            {
+                while (!IsBlockComplete(parser, false))
+                    parser.ConsumeLine();
+            }
+            else
+            {
+                int subCount = 1;
+                while (!parser.Peek("{"))
+                    parser.ConsumeString();
+
+                parser.ConsumeString();
+                while (subCount != 0)
+                {
+                    if (parser.Peek("{"))
+                        subCount++;
+                    else if (parser.Peek("}"))
+                        subCount--;
+
+                    parser.ConsumeLine();
+                }
             }
         }
 
