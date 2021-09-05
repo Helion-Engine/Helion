@@ -87,8 +87,13 @@ namespace Helion.Util.Configs.Values
                 return ConfigSetResult.NotSetByBadConversion;
             }
         }
-        
+
         public ConfigSetResult Set(T newValue)
+        {
+            return SetValue(newValue, false);
+        }
+        
+        private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
         {
             if (Equals(newValue, Value))
                 return ConfigSetResult.Unchanged;
@@ -99,7 +104,7 @@ namespace Helion.Util.Configs.Values
             if (m_transformer != null)
                 newValue = m_transformer(newValue);
 
-            if (SetFlags != ConfigSetFlags.Normal)
+            if (SetFlags != ConfigSetFlags.Normal && !ignoreSetFlags)
             {
                 m_queuedChange = newValue;
                 return ConfigSetResult.Queued;
@@ -120,7 +125,7 @@ namespace Helion.Util.Configs.Values
                 return;
             
             if ((SetFlags & flagType) == flagType)
-                Set(m_queuedChange);
+                SetValue(m_queuedChange, true);
         }
 
         public override string ToString()

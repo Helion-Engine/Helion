@@ -99,7 +99,7 @@ namespace Helion.Util.Configs.Impl
         public void ApplyQueuedChanges(ConfigSetFlags setFlags)
         {
             Log.Trace("Applying queued config changes for {Flags}", setFlags);
-            
+
             foreach (ConfigComponent component in Components.Values)
                 component.Value.ApplyQueuedChange(setFlags);
         }
