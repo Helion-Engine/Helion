@@ -114,7 +114,7 @@ namespace Helion.Util.Configs.Impl
             foreach (ConfigComponent configComponent in Components.Values)
                 configComponent.Value.Changed = false;
 
-            KeyMapping.Changed = false;
+            KeyMapping.ClearChanged();
         }
         
         [Conditional("DEBUG")]

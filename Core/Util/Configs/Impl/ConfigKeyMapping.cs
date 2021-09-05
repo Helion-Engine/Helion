@@ -17,9 +17,19 @@ namespace Helion.Util.Configs.Impl
         private static readonly IReadOnlySet<Key> EmptyKeySet = new HashSet<Key>();
         private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
         
-        public bool Changed { get; internal set; }
+        public bool Changed { get; private set; }
         private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
         private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
+
+        public IReadOnlySet<string> this[Key key] =>
+            m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ? 
+                commands : 
+                EmptyStringSet;
+
+        public IReadOnlySet<Key> this[string command] => 
+            m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ? 
+                keys : 
+                EmptyKeySet;
 
         public void AddDefaults()
         {
@@ -64,22 +74,12 @@ namespace Helion.Util.Configs.Impl
             Add(Key.F3, Constants.Input.Load);
             Add(Key.Tab, Constants.Input.Automap);
         }
-        
-        public IReadOnlySet<string> this[Key key] =>
-            m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ? 
-                commands : 
-                EmptyStringSet;
 
-        public IReadOnlySet<Key> this[string command] => 
-            m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ? 
-                keys : 
-                EmptyKeySet;
+        public void ClearChanged()
+        {
+            Changed = false;
+        }
 
-        /// <summary>
-        /// Adds a two way mapping.
-        /// </summary>
-        /// <param name="key">The key to map to the command.</param>
-        /// <param name="command">The command to map to the key.</param>
         public void Add(Key key, string command)
         {
             if (key == Key.Unknown || command == "")
@@ -107,16 +107,7 @@ namespace Helion.Util.Configs.Impl
                 m_commandsToKey[command] = new HashSet<Key> { key };
             }
         }
-        
-        /// <summary>
-        /// Will search through all the possible keys for the command. If found,
-        /// it will consume the key and exit. If multiple are pressed, it will
-        /// only consume the first one it finds.
-        /// </summary>
-        /// <param name="command">The case-insensitive command.</param>
-        /// <param name="input">The input event to consume from.</param>
-        /// <returns>True if it consumed the key (meaning it was pressed), false
-        /// if no keys were pressed for that command.</returns>
+
         public bool ConsumeCommandKeyPress(string command, IConsumableInput input)
         {
             foreach (Key key in this[command])
@@ -124,16 +115,7 @@ namespace Helion.Util.Configs.Impl
                     return true;
             return false;
         }
-        
-        /// <summary>
-        /// Will search through all the possible keys for the command. If found,
-        /// it will consume the key and exit. If multiple are pressed, it will
-        /// only consume the first one it finds.
-        /// </summary>
-        /// <param name="command">The case-insensitive command.</param>
-        /// <param name="input">The input event to consume from.</param>
-        /// <returns>True if it consumed the key (meaning it was pressed), false
-        /// if no keys were pressed for that command.</returns>
+
         public bool ConsumeCommandKeyDown(string command, IConsumableInput input)
         {
             foreach (Key key in this[command])
@@ -142,11 +124,6 @@ namespace Helion.Util.Configs.Impl
             return false;
         }
 
-        /// <summary>
-        /// Removes all bindings from a key to anything, and if there are any
-        /// commands for this key, they are all unbound in the other direction.
-        /// </summary>
-        /// <param name="key">The key to unbind.</param>
         public void UnbindAll(Key key)
         {
             if (!m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
