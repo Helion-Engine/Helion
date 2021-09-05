@@ -279,9 +279,23 @@ namespace Helion.Client
         private static void ShowFatalError(string msg) =>
             MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
+        private static Config ReadConfigFileOrTerminate()
+        {
+            try
+            {
+                return new Config(Config.DefaultConfigPath);
+            }
+            catch
+            {
+                ShowFatalError("Critical error parsing config file");
+                Environment.Exit(1);
+                throw;
+            }
+        }
+        
         private static void Run(CommandLineArgs commandLineArgs)
         {
-            Config config = new(Config.DefaultConfigPath);
+            Config config = ReadConfigFileOrTerminate();
 
             try
             {
