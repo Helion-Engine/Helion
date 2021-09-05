@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -242,7 +243,9 @@ namespace Helion.Util.Configs
                         continue;
                     }
 
-                    configComponent.Value.Set(keyData.Value);
+                    var status = configComponent.Value.Set(keyData.Value);
+                    if (status != ConfigSetResult.Set)
+                        Log.Error($"Unable to parse and set {identifier} with {keyData.Value} (reason: {status})");
                 }
             }
 
