@@ -60,7 +60,7 @@ namespace Helion.Util.Configs.Values
                 if (text.EqualsIgnoreCase("true"))
                     return (T)(object)1;
                 if (double.TryParse(text, out double d))
-                    return (T)(object)d;
+                    return (T)(object)(int)d;
                 return (T)(object)int.Parse(text);
             }
 

@@ -17,8 +17,6 @@ namespace Helion.Util.Configs
     /// </summary>
     public class Config : IConfig
     {
-        protected const string EngineSectionName = "engine";
-        protected const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
         public ConfigAudio Audio { get; } = new();
@@ -40,16 +38,35 @@ namespace Helion.Util.Configs
         public Config()
         {
             Aliases = new ConfigVariableAliasMapping(this);
-            PopulateComponentsRecursively(this, "");
+            PopulateTopLevelComponentsRecursively();
+        }
+
+        private void PopulateTopLevelComponentsRecursively()
+        {
+            foreach (PropertyInfo propertyInfo in GetType().GetProperties())
+            {
+                MethodInfo? getMethod = propertyInfo.GetMethod;
+                if (getMethod?.IsPublic == null)
+                    continue;
+
+                if (!getMethod.ReturnType.Name.StartsWith("Config", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                object? obj = getMethod.Invoke(this, null);
+                if (obj == null)
+                    continue;
+
+                PopulateComponentsRecursively(obj, propertyInfo.Name.ToLower(), 1);
+            }
         }
         
-        private void PopulateComponentsRecursively(object obj, string path, int depth = 0)
+        private void PopulateComponentsRecursively(object obj, string path, int depth)
         {
             const int RecursiveOverflowLimit = 100;
 
             if (depth > RecursiveOverflowLimit)
                 throw new Exception($"A public instance is missing the [ConfigComponentIgnore] attribute, possibly at: {path}");
-            
+
             foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
             {
                 if (!fieldInfo.IsPublic)

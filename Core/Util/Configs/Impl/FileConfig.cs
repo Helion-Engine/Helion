@@ -19,14 +19,18 @@ namespace Helion.Util.Configs.Impl
     /// </summary>
     public class FileConfig : Config
     {
-        [ConfigComponentIgnore]
         public const string DefaultConfigPath = "config.ini";
+        private const string EngineSectionName = "engine";
+        private const string KeysSectionName = "keys";
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
+        private readonly string m_filePath;
         private bool m_noFileExistedWhenRead;
 
         public FileConfig(string filePath, bool addDefaultsIfNew = true)
         {
+            m_filePath = filePath;
+            
             ReadConfigFrom(filePath, addDefaultsIfNew);
 
             // If we read things in, we're going to very likely change things from
@@ -40,13 +44,17 @@ namespace Helion.Util.Configs.Impl
         /// if and only if: alwaysWrite is false, and no changes happened, and
         /// it's a new file that didn't exist before.
         /// </summary>
-        /// <param name="filePath">The path to write.</param>
+        /// <param name="filePath">The path to write. If null, will use the path
+        /// that was present when opening, but this allows the caller to use a
+        /// different path if desired.</param>
         /// <param name="alwaysWrite">If true, will always write no matter what.
         /// </param>
         /// <returns>True on success (or no write due to no changes if it's an
         /// existing file and alwaysWrite is false), false on failure.</returns>
-        public bool Write(string filePath, bool alwaysWrite = false)
+        public bool Write(string? filePath = null, bool alwaysWrite = false)
         {
+            filePath ??= m_filePath;
+            
             Log.Debug($"Writing config file to {filePath} (always write = {alwaysWrite})");
             
             // If a file existed, and it didn't change after we loaded it, then
@@ -163,7 +171,7 @@ namespace Helion.Util.Configs.Impl
                     }
 
                     var status = configComponent.Value.Set(keyData.Value);
-                    if (status != ConfigSetResult.Set)
+                    if (status != ConfigSetResult.Set && status != ConfigSetResult.Unchanged)
                         Log.Error($"Unable to parse and set {identifier} with {keyData.Value} (reason: {status})");
                 }
             }
