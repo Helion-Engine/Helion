@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Configs.Values;
 
-namespace Helion.Util.Configs
+namespace Helion.Util.Configs.Impl
 {
-    public class ConfigVariableAliasMapping : IEnumerable<(string name, IConfigValue value)>
+    public class ConfigVariableAliasMapping : IConfigVariableAliasMapping
     {
         private readonly Dictionary<string, IConfigValue> m_nameToComponent;
         
-        public ConfigVariableAliasMapping(Config config)
+        public ConfigVariableAliasMapping(IConfig config)
         {
             m_nameToComponent = new Dictionary<string, IConfigValue>(StringComparer.OrdinalIgnoreCase)
             {
@@ -19,6 +20,11 @@ namespace Helion.Util.Configs
                 ["mouse_sensitivity"] = config.Mouse.Sensitivity,
                 ["sv_nomonsters"] = config.Game.NoMonsters
             };
+        }
+
+        public bool TryGet(string name, [NotNullWhen(true)] out IConfigValue? configValue)
+        {
+            return m_nameToComponent.TryGetValue(name, out configValue);
         }
 
         public IEnumerator<(string name, IConfigValue value)> GetEnumerator()

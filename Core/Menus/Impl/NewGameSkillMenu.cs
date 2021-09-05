@@ -13,14 +13,14 @@ namespace Helion.Menus.Impl
     public class NewGameSkillMenu : Menu
     {
         private SkillLevel m_confirmSkillLevel = SkillLevel.None;
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly string? m_episode;
 
         private const int OffsetX = 48;
         private const int PaddingY = 1;
 
-        public NewGameSkillMenu(Config config, HelionConsole console, SoundManager soundManager, 
+        public NewGameSkillMenu(IConfig config, HelionConsole console, SoundManager soundManager, 
                 ArchiveCollection archiveCollection, string? episode) : 
             base(config, console, soundManager, archiveCollection, 6, true)
         {

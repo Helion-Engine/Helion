@@ -36,7 +36,7 @@ namespace Helion.Layer
         public EndGameLayer? EndGameLayer { get; private set; }
         public IntermissionLayer? IntermissionLayer { get; private set; }
         public WorldLayer? WorldLayer { get; private set; }
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly IWindow m_window;
         private readonly HelionConsole m_console;
         private readonly ArchiveCollection m_archiveCollection;
@@ -50,7 +50,7 @@ namespace Helion.Layer
             ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
         }.WhereNotNull();
 
-        public GameLayerManager(Config config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
+        public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
             SoundManager soundManager, SaveGameManager saveGameManager)
         {
             m_config = config;

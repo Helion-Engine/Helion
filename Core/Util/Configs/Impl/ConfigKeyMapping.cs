@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Helion.Window.Input;
 using Helion.Util.Extensions;
 using Helion.Window;
+using Helion.Window.Input;
 using NLog;
 
-namespace Helion.Util.Configs
+namespace Helion.Util.Configs.Impl
 {
     /// <summary>
     /// A case insensitive two-way lookup.
     /// </summary>
-    public class ConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> Commands)>
+    public class ConfigKeyMapping : IConfigKeyMapping
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly IReadOnlySet<Key> EmptyKeySet = new HashSet<Key>();
@@ -64,7 +64,7 @@ namespace Helion.Util.Configs
             Add(Key.F3, Constants.Input.Load);
             Add(Key.Tab, Constants.Input.Automap);
         }
-
+        
         public IReadOnlySet<string> this[Key key] =>
             m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ? 
                 commands : 

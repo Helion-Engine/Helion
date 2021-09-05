@@ -25,7 +25,7 @@ namespace Helion.Layer.Images
 
         private readonly GameLayerManager m_parent;
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
@@ -40,7 +40,7 @@ namespace Helion.Layer.Images
         private bool ShouldDarken => m_parent.MenuLayer != null;
         private bool ShouldMakeMenu => m_parent.ConsoleLayer == null && m_parent.MenuLayer == null;
         
-        public TitlepicLayer(GameLayerManager parent, Config config, HelionConsole console, SoundManager soundManager,
+        public TitlepicLayer(GameLayerManager parent, IConfig config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveGameManager, IAudioSystem audioSystem)
         {
             m_parent = parent;

@@ -36,7 +36,7 @@ namespace Helion.Render.Legacy
         public IRenderableSurface DefaultSurface => Default;
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
-        internal readonly Config m_config;
+        internal readonly IConfig m_config;
         internal readonly FpsTracker m_fpsTracker;
         internal readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
@@ -47,7 +47,7 @@ namespace Helion.Render.Legacy
 
         public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-        public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions,
+        public GLLegacyRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
             FpsTracker fpsTracker)
         {
             Window = window;
@@ -93,7 +93,7 @@ namespace Helion.Render.Legacy
             return projection * view * model;
         }
 
-        private static void WarnForInvalidStates(Config config)
+        private static void WarnForInvalidStates(IConfig config)
         {
             if (config.Render.Anisotropy.Enable)
             {

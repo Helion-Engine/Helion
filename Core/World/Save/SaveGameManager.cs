@@ -11,9 +11,9 @@ namespace Helion.World.Save
 {
     public class SaveGameManager
     {
-        private readonly Config m_config;
+        private readonly IConfig m_config;
 
-        public SaveGameManager(Config config)
+        public SaveGameManager(IConfig config)
         {
             m_config = config;
         }

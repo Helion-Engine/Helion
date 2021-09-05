@@ -28,7 +28,7 @@ namespace Helion.Layer.Worlds
         public IntermissionLayer? Intermission { get; private set; }
         public MapInfoDef CurrentMap { get; }
         public SinglePlayerWorld World { get; }
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly IAudioSystem m_audioSystem;
@@ -45,7 +45,7 @@ namespace Helion.Layer.Worlds
         private Player Player => World.Player;
         public bool ShouldFocus => !World.Paused;
         
-        public WorldLayer(GameLayerManager parent, Config config, HelionConsole console, ArchiveCollection archiveCollection,
+        public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, ArchiveCollection archiveCollection,
             IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef)
         {
             m_config = config;
@@ -67,7 +67,7 @@ namespace Helion.Layer.Worlds
             PerformDispose();
         }
         
-        public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, Config config, 
+        public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config, 
             HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection, 
             FpsTracker fpsTracker, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, Player? existingPlayer, 
             WorldModel? worldModel)
@@ -85,7 +85,7 @@ namespace Helion.Layer.Worlds
             return new WorldLayer(parent, config, console, archiveCollection, audioSystem, fpsTracker, world, mapInfoDef);
         }
 
-        private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, Config config, IAudioSystem audioSystem,
+        private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map,
             Player? existingPlayer, WorldModel? worldModel)
         {

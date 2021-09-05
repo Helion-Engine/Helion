@@ -16,6 +16,7 @@ using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
@@ -35,7 +36,7 @@ namespace Helion.Client
         private readonly ArchiveCollection m_archiveCollection;
         private readonly IAudioSystem m_audioSystem;
         private readonly CommandLineArgs m_commandLineArgs;
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly NativeWinMouse? m_nativeWinMouse;
@@ -46,7 +47,7 @@ namespace Helion.Client
         private bool m_disposed;
         private bool m_takeScreenshot;
 
-        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
+        private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
         {
             m_commandLineArgs = commandLineArgs;
@@ -279,11 +280,11 @@ namespace Helion.Client
         private static void ShowFatalError(string msg) =>
             MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-        private static Config ReadConfigFileOrTerminate()
+        private static FileConfig ReadConfigFileOrTerminate(string path)
         {
             try
             {
-                return new Config(Config.DefaultConfigPath);
+                return new FileConfig(path);
             }
             catch
             {
@@ -295,7 +296,7 @@ namespace Helion.Client
         
         private static void Run(CommandLineArgs commandLineArgs)
         {
-            Config config = ReadConfigFileOrTerminate();
+            FileConfig config = ReadConfigFileOrTerminate(FileConfig.DefaultConfigPath);
 
             try
             {
@@ -311,8 +312,8 @@ namespace Helion.Client
             }
             finally
             {
-                if (!config.Write(Config.DefaultConfigPath))
-                    Log.Error($"Unable to write config to {Config.DefaultConfigPath}");
+                if (!config.Write(FileConfig.DefaultConfigPath))
+                    Log.Error($"Unable to write config to {FileConfig.DefaultConfigPath}");
             }
         }
     }

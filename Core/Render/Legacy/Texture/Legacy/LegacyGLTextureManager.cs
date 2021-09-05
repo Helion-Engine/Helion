@@ -18,7 +18,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
     {
         public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
-        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions,
+        public LegacyGLTextureManager(IConfig config, GLCapabilities capabilities, IGLFunctions functions,
             ArchiveCollection archiveCollection)
             : base(config, capabilities, functions, archiveCollection)
         {

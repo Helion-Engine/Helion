@@ -72,12 +72,12 @@ namespace Helion.Util.Consoles
         /// </summary>
         public event EventHandler<ConsoleCommandEventArgs>? OnConsoleCommandEvent;
 
-        private readonly Config? m_config;
+        private readonly IConfig? m_config;
         private readonly StringBuilder m_input = new();
         private int m_capacity;
         private bool m_disposed;
 
-        public HelionConsole(Config? cfg = null, CommandLineArgs? args = null)
+        public HelionConsole(IConfig? cfg = null, CommandLineArgs? args = null)
         {
             Name = TargetName;
             m_config = cfg;

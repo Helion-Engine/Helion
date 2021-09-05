@@ -34,12 +34,12 @@ namespace Helion.Client
         public IRenderer Renderer { get; }
         public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
         public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly bool IgnoreMouseEvents;
         private readonly InputManager m_inputManager = new();
         private bool m_disposed;
 
-        public Window(Config config, ArchiveCollection archiveCollection, FpsTracker tracker) :
+        public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(new GameWindowSettings(), MakeNativeWindowSettings(config))
         {
             Log.Debug("Creating client window");
@@ -62,7 +62,7 @@ namespace Helion.Client
 
         public void SetGrabCursor(bool set) => CursorGrabbed = set;
 
-        private IRenderer CreateRenderer(Config config, ArchiveCollection archiveCollection, FpsTracker tracker)
+        private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
         {
             if (Constants.UseNewRenderer)
                 return new GLRenderer(config, this, archiveCollection);
@@ -75,7 +75,7 @@ namespace Helion.Client
             PerformDispose();
         }
 
-        private static NativeWindowSettings MakeNativeWindowSettings(Config config)
+        private static NativeWindowSettings MakeNativeWindowSettings(IConfig config)
         {
             (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
             

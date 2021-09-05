@@ -12,7 +12,7 @@ namespace Helion.Util
         private const int Generations = 3;
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly int[] m_lastGenAmount = new int[Generations];
         private readonly int[] m_collectionGen = new int[Generations];
 
@@ -21,7 +21,7 @@ namespace Helion.Util
         /// printing should occur.
         /// </summary>
         /// <param name="config">The config to use.</param>
-        public GCTracker(Config config)
+        public GCTracker(IConfig config)
         {
             m_config = config;
         }
