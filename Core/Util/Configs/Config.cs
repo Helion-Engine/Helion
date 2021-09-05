@@ -101,6 +101,8 @@ namespace Helion.Util.Configs
         /// existing file and alwaysWrite is false), false on failure.</returns>
         public bool Write(string filePath, bool alwaysWrite = false)
         {
+            Log.Debug($"Writing config file to {filePath} (always write = {alwaysWrite})");
+            
             // If a file existed, and it didn't change after we loaded it, then
             // we don't want to force a pointless write. However if desired, this
             // can be forcefully overridden.
@@ -198,8 +200,6 @@ namespace Helion.Util.Configs
 
         private void ReadConfigFrom(string path, bool addDefaultsIfNew)
         {
-            Log.Debug("Reading config file from {Path}", path);
-            
             if (!File.Exists(path))
             {
                 Log.Info($"Config file not found, will generate new config file at {path}");
@@ -251,7 +251,7 @@ namespace Helion.Util.Configs
                 Dictionary<string, Key> nameToKey = new(StringComparer.OrdinalIgnoreCase);
                 foreach (Key key in Enum.GetValues<Key>())
                     nameToKey[key.ToString()] = key;
-                    
+
                 foreach (KeyData keyData in iniData.Sections[KeysSectionName])
                 {
                     if (!nameToKey.TryGetValue(keyData.KeyName, out Key key))

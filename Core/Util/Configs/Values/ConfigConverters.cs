@@ -126,6 +126,10 @@ namespace Helion.Util.Configs.Values
                 // We store it in the format `"a", "bc", ...` so we need to wrap
                 // it in []'s before letting the deserializer do the heavy lifting.
                 string str = obj.ToString() ?? "[]";
+                
+                // Windows backslashes break the JSON parser, so convert them.
+                str = str.Replace('\\', '/');
+                
                 List<string> elements = JsonSerializer.Deserialize<List<string>>(str) ?? 
                                         throw new Exception("List is malformed");
                 return (T)(object)elements;
