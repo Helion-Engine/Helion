@@ -29,7 +29,7 @@ namespace Helion.Menus
         public readonly bool LeftAlign;
         
         protected readonly ArchiveCollection ArchiveCollection;
-        protected readonly Config Config;
+        protected readonly IConfig Config;
         protected readonly SoundManager SoundManager;
         protected readonly HelionConsole Console;
         protected ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
@@ -37,7 +37,7 @@ namespace Helion.Menus
 
         public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-        protected Menu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+        protected Menu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
             int topPixelPadding = 0, bool leftAlign = false)
         {
             Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");

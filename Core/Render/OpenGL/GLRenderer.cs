@@ -33,7 +33,7 @@ namespace Helion.Render.OpenGL
         private static DebugProc? LastCallbackProcReference;
         
         public IWindow Window { get; }
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly IResources m_resources;
         private readonly GLTextureManager m_textureManager;
         private readonly GLDefaultRenderableSurface m_defaultSurface;
@@ -46,7 +46,7 @@ namespace Helion.Render.OpenGL
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface DefaultSurface => m_defaultSurface;
         
-        public GLRenderer(Config config, IWindow window, IResources resources)
+        public GLRenderer(IConfig config, IWindow window, IResources resources)
         {
             ThrowIfNotCapable();
 
@@ -95,7 +95,7 @@ namespace Helion.Render.OpenGL
             }
         }
 
-        private static void InitializeStates(Config config)
+        private static void InitializeStates(IConfig config)
         {
             GL.Enable(EnableCap.DepthTest);
 
@@ -113,7 +113,7 @@ namespace Helion.Render.OpenGL
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
-            if (config.Developer.RenderDebug && GLCapabilities.Version.Supports(4, 3))
+            if (config.Developer.Render.Debug && GLCapabilities.Version.Supports(4, 3))
                 SetDebugCallbackHandler();
         }
 

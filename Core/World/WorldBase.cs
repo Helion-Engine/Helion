@@ -86,7 +86,7 @@ namespace Helion.World
         public abstract Entity ListenerEntity { get; }
         public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
         public SpecialManager SpecialManager { get; private set; }
-        public Config Config { get; private set; }
+        public IConfig Config { get; private set; }
         public MapInfoDef MapInfo { get; private set; }
         public LevelStats LevelStats { get; } = new();
         public SkillDef SkillDefinition { get; private set; }
@@ -106,7 +106,7 @@ namespace Helion.World
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
         private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
-        protected WorldBase(GlobalData globalData, Config config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
+        protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
             MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();

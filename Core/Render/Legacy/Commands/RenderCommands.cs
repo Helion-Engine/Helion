@@ -16,7 +16,7 @@ namespace Helion.Render.Legacy.Commands
 {
     public class RenderCommands : IEnumerable<IRenderCommand>
     {
-        public readonly Config Config;
+        public readonly IConfig Config;
         public readonly Dimension WindowDimension;
         public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
         public readonly FpsTracker FpsTracker;
@@ -26,7 +26,7 @@ namespace Helion.Render.Legacy.Commands
         private Vec2D m_scale = Vec2D.One;
         private int m_centeringOffsetX;
 
-        public RenderCommands(Config config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
+        public RenderCommands(IConfig config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
             FpsTracker fpsTracker)
         {
             Config = config;

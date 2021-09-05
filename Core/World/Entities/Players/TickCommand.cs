@@ -34,7 +34,7 @@ namespace Helion.World.Entities.Players
                 m_commands.Remove(m_tickCommands[i]);
         }
 
-        public void Add(TickCommands command, bool isInstant)
+        public void Add(TickCommands command, bool isInstant = false)
         {
             m_commands.Add(command);
 

@@ -48,7 +48,7 @@ namespace Helion.World
         WorldSoundManager SoundManager { get; }
         BlockmapTraverser BlockmapTraverser { get; }
         SpecialManager SpecialManager { get; }
-        Config Config { get; }
+        IConfig Config { get; }
         SkillDef SkillDefinition { get; }
         ArchiveCollection ArchiveCollection { get; }
         MapInfoDef MapInfo { get; }

@@ -15,7 +15,7 @@ namespace Helion.Menus.Impl
     {
         private readonly Func<Menu?> m_quitAction;
         
-        public QuitGameMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
+        public QuitGameMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
             base(config, console, soundManager, archiveCollection, 90)
         {
             m_quitAction = () =>

@@ -19,7 +19,7 @@ namespace Helion.Layer.Menus
         private readonly Stopwatch m_stopwatch = new();
         private bool m_disposed;
 
-        public MenuLayer(GameLayerManager manager, Config config, HelionConsole console, 
+        public MenuLayer(GameLayerManager manager, IConfig config, HelionConsole console, 
             ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager)
         {
             Manager = manager;

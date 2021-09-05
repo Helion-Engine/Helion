@@ -25,7 +25,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
         private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
         private static readonly Color ShadowColor = Color.FromArgb(32, 32, 32);
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly RenderWorldDataManager m_worldDataManager;
         private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
@@ -37,7 +37,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
 
         public readonly List<IRenderObject> AlphaEntities = new();
 
-        public EntityRenderer(Config config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
+        public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
         {
             m_config = config;
             m_textureManager = textureManager;
@@ -58,7 +58,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             // I'm hitching a ride here so we don't keep making a bunch of
             // invocations to this for every single sprite to avoid overhead
             // of asking the config for a new value every time.
-            m_drawDebugBox = m_config.Developer.RenderDebug;
+            m_drawDebugBox = m_config.Developer.Render.Debug;
             m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
             m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
 

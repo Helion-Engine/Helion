@@ -8,7 +8,7 @@ namespace Helion.Menus.Impl
 {
     public class OptionsMenu : Menu
     {
-        public OptionsMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
+        public OptionsMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
             base(config, console, soundManager, archiveCollection, 64)
         {
             Components = Components.AddRange(new[] 

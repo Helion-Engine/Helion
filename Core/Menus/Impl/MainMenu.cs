@@ -23,7 +23,7 @@ namespace Helion.Menus.Impl
         private readonly MenuLayer m_parent;
         private readonly SoundManager m_soundManager;
 
-        public MainMenu(MenuLayer parent, Config config, HelionConsole console, SoundManager soundManager,
+        public MainMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, SaveGameManager saveManager)
             : base(config, console, soundManager, archiveCollection)
         {

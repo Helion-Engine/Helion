@@ -1,8 +1,6 @@
 ﻿using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Window;
-using Helion.Window.Input;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 
@@ -10,43 +8,47 @@ namespace Helion.Layer.Worlds
 {
     public partial class WorldLayer
     {
-        private (ConfigValueEnum<Key>, TickCommands)[] m_consumeDownKeys = {};
-        private (ConfigValueEnum<Key>, TickCommands)[] m_consumePressedKeys = {};
-
-        private void SetKeyBindings(Config config)
+        private static readonly (string, TickCommands)[] KeyDownCommandMapping = 
         {
-            m_consumeDownKeys = new[]
-            {
-                (config.Controls.Forward,   TickCommands.Forward),
-                (config.Controls.Backward,  TickCommands.Backward),
-                (config.Controls.Left,      TickCommands.Left),
-                (config.Controls.Right,     TickCommands.Right),
-                (config.Controls.TurnLeft,  TickCommands.TurnLeft),
-                (config.Controls.TurnRight, TickCommands.TurnRight),
-                (config.Controls.LookDown,  TickCommands.LookDown),
-                (config.Controls.LookUp,    TickCommands.LookUp),
-                (config.Controls.Jump,      TickCommands.Jump),
-                (config.Controls.Crouch,    TickCommands.Crouch),
-                (config.Controls.Attack,    TickCommands.Attack),
-                (config.Controls.AttackAlt, TickCommands.Attack),
-                (config.Controls.Run,       TickCommands.Speed),
-                (config.Controls.RunAlt,    TickCommands.Speed),
-                (config.Controls.Strafe,    TickCommands.Strafe),
-            };
+            (Constants.Input.Forward,   TickCommands.Forward),
+            (Constants.Input.Backward,  TickCommands.Backward),
+            (Constants.Input.Left,      TickCommands.Left),
+            (Constants.Input.Right,     TickCommands.Right),
+            (Constants.Input.TurnLeft,  TickCommands.TurnLeft),
+            (Constants.Input.TurnRight, TickCommands.TurnRight),
+            (Constants.Input.LookDown,  TickCommands.LookDown),
+            (Constants.Input.LookUp,    TickCommands.LookUp),
+            (Constants.Input.Jump,      TickCommands.Jump),
+            (Constants.Input.Crouch,    TickCommands.Crouch),
+            (Constants.Input.Attack,    TickCommands.Attack),
+            (Constants.Input.AttackAlt, TickCommands.Attack),
+            (Constants.Input.Run,       TickCommands.Speed),
+            (Constants.Input.RunAlt,    TickCommands.Speed),
+            (Constants.Input.Strafe,    TickCommands.Strafe),
+        };
+        
+        private static readonly (string, TickCommands)[] KeyPressCommandMapping = 
+        {
+            (Constants.Input.Use,            TickCommands.Use),
+            (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
+            (Constants.Input.PreviousWeapon, TickCommands.PreviousWeapon),
+            (Constants.Input.WeaponSlot1,    TickCommands.WeaponSlot1),
+            (Constants.Input.WeaponSlot2,    TickCommands.WeaponSlot2),
+            (Constants.Input.WeaponSlot3,    TickCommands.WeaponSlot3),
+            (Constants.Input.WeaponSlot4,    TickCommands.WeaponSlot4),
+            (Constants.Input.WeaponSlot5,    TickCommands.WeaponSlot5),
+            (Constants.Input.WeaponSlot6,    TickCommands.WeaponSlot6),
+            (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
+        };
 
-            m_consumePressedKeys = new[]
-            {
-                (config.Controls.Use,            TickCommands.Use),
-                (config.Controls.NextWeapon,     TickCommands.NextWeapon),
-                (config.Controls.PreviousWeapon, TickCommands.PreviousWeapon),
-                (config.Controls.WeaponSlot1,    TickCommands.WeaponSlot1),
-                (config.Controls.WeaponSlot2,    TickCommands.WeaponSlot2),
-                (config.Controls.WeaponSlot3,    TickCommands.WeaponSlot3),
-                (config.Controls.WeaponSlot4,    TickCommands.WeaponSlot4),
-                (config.Controls.WeaponSlot5,    TickCommands.WeaponSlot5),
-                (config.Controls.WeaponSlot6,    TickCommands.WeaponSlot6),
-                (config.Controls.WeaponSlot7,    TickCommands.WeaponSlot7),
-            };
+        private bool IsCommandPressed(string command, IConsumableInput input)
+        {
+            return m_config.Keys.ConsumeCommandKeyPress(command, input);
+        }
+        
+        private bool IsCommandDown(string command, IConsumableInput input)
+        {
+            return m_config.Keys.ConsumeCommandKeyDown(command, input);
         }
 
         public void HandleInput(IConsumableInput input)
@@ -60,40 +62,40 @@ namespace Helion.Layer.Worlds
                 World.HandleFrameInput(input);
             }
             
-            if (input.ConsumeKeyPressed(m_config.Controls.Save))
+            if (IsCommandPressed(Constants.Input.Save, input))
             {
                 // TODO: Go to save menu
             }
-            else if (input.ConsumeKeyPressed(m_config.Controls.Load))
+            else if (IsCommandPressed(Constants.Input.Load, input))
             {
                 // TODO: Go to load menu
             }
             
-            if (input.ConsumeKeyPressed(m_config.Controls.HudDecrease))
+            if (IsCommandPressed(Constants.Input.HudDecrease, input))
                 ChangeHudSize(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.HudIncrease))
+            else if (IsCommandPressed(Constants.Input.HudIncrease, input))
                 ChangeHudSize(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.Automap))
+            else if (IsCommandPressed(Constants.Input.Automap, input))
             {
                 m_drawAutomap = !m_drawAutomap;
                 m_autoMapOffset = (0, 0);
-                m_autoMapScale = m_config.Hud.AutoMapScale;
+                m_autoMapScale = m_config.Hud.AutoMap.Scale;
             }
         }
         
         private void HandleAutoMapInput(IConsumableInput input)
         {
-            if (input.ConsumeKeyPressed(m_config.Controls.AutoMapDecrease))
+            if (IsCommandPressed(Constants.Input.AutoMapDecrease, input))
                 ChangeAutoMapSize(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapIncrease))
+            else if (IsCommandPressed(Constants.Input.AutoMapIncrease, input))
                 ChangeAutoMapSize(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapUp))
+            else if (IsCommandPressed(Constants.Input.AutoMapUp, input))
                 ChangeAutoMapOffsetY(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapDown))
+            else if (IsCommandPressed(Constants.Input.AutoMapDown, input))
                 ChangeAutoMapOffsetY(false);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapRight))
+            else if (IsCommandPressed(Constants.Input.AutoMapRight, input))
                 ChangeAutoMapOffsetX(true);
-            else if (input.ConsumeKeyPressed(m_config.Controls.AutoMapLeft))
+            else if (IsCommandPressed(Constants.Input.AutoMapLeft, input))
                 ChangeAutoMapOffsetX(false);
         }
         
@@ -116,13 +118,13 @@ namespace Helion.Layer.Worlds
         {
             m_tickCommand.Clear();
             
-            foreach (var (inputKey, command) in m_consumeDownKeys)
-                if (input.ConsumeKeyDown(inputKey))
-                    m_tickCommand.Add(command, true);
-
-            foreach (var (inputKey, command) in m_consumePressedKeys)
-                if (input.ConsumeKeyPressed(inputKey))
-                    m_tickCommand.Add(command, false);
+            foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
+                if (IsCommandPressed(command, input))
+                    m_tickCommand.Add(tickCommand);
+            
+            foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
+                if (IsCommandDown(command, input))
+                    m_tickCommand.Add(tickCommand);
         }
         
         private void ChangeHudSize(bool increase)
@@ -130,8 +132,7 @@ namespace Helion.Layer.Worlds
             StatusBarSizeType current = m_config.Hud.StatusBarSize;
             StatusBarSizeType next = (StatusBarSizeType)((int)current + (increase ? 1 : -1));
             
-            // TODO: Check result
-            if (m_config.Hud.StatusBarSize.Set(next))
+            if (m_config.Hud.StatusBarSize.Set(next) == ConfigSetResult.Set)
                 World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
         }
     }

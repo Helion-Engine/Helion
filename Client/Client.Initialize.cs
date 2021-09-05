@@ -35,7 +35,7 @@ namespace Helion.Client
 
             m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
-            m_config.Game.SV_FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+            m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();

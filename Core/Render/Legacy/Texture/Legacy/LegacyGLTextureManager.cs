@@ -18,7 +18,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
     {
         public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
-        public LegacyGLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions,
+        public LegacyGLTextureManager(IConfig config, GLCapabilities capabilities, IGLFunctions functions,
             ArchiveCollection archiveCollection)
             : base(config, capabilities, functions, archiveCollection)
         {
@@ -109,7 +109,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
                 return;
             }
 
-            (int minFilter, int maxFilter) = FindFilterValues(Config.Render.TextureFilter);
+            (int minFilter, int maxFilter) = FindFilterValues(Config.Render.Filter.Texture.Value);
 
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
@@ -128,7 +128,7 @@ namespace Helion.Render.Legacy.Texture.Legacy
 
         private void HandleFontTextureParameters(TextureTargetType targetType)
         {
-            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.FontFilter);
+            (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.Filter.Font.Value);
             gl.TexParameter(targetType, TextureParameterNameType.MinFilter, fontMinFilter);
             gl.TexParameter(targetType, TextureParameterNameType.MagFilter, fontMaxFilter);
             gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);

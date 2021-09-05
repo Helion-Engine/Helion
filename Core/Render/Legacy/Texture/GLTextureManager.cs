@@ -23,7 +23,7 @@ namespace Helion.Render.Legacy.Texture
     public abstract class GLTextureManager<GLTextureType> : IGLTextureManager 
         where GLTextureType : GLTexture
     {
-        protected readonly Config Config;
+        protected readonly IConfig Config;
         protected readonly ArchiveCollection ArchiveCollection;
         protected readonly GLCapabilities Capabilities;
         protected readonly IGLFunctions gl;
@@ -54,7 +54,7 @@ namespace Helion.Render.Legacy.Texture
         /// </summary>
         public GLFontTexture<GLTextureType> NullFont { get; }
 
-        protected GLTextureManager(Config config, GLCapabilities capabilities, IGLFunctions functions,
+        protected GLTextureManager(IConfig config, GLCapabilities capabilities, IGLFunctions functions,
             ArchiveCollection archiveCollection)
         {
             Config = config;

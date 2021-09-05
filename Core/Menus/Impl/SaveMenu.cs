@@ -34,7 +34,7 @@ namespace Helion.Menus.Impl
         private readonly bool m_canSave;
         private SaveGame? m_deleteSave;
 
-        public SaveMenu(MenuLayer parent, Config config, HelionConsole console, SoundManager soundManager, 
+        public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager, 
             ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave) 
             : base(config, console, soundManager, archiveCollection, 8, true)
         {

@@ -18,7 +18,7 @@ namespace Helion.Menus.Impl
         private const int OffsetX = 48;
         private const int PaddingY = 1;
 
-        public NewGameEpisodeMenu(Config config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
+        public NewGameEpisodeMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) : 
             base(config, console, soundManager, archiveCollection, 30, true)
         {
             var episodes = archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;

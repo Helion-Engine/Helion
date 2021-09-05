@@ -22,11 +22,11 @@ namespace Helion.Audio.Impl
         private readonly ArchiveCollection m_archiveCollection;
         private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
         private readonly ISet<string> m_extensions = new HashSet<string>();
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private OpenALDevice m_alDevice;
         private OpenALContext m_alContext;
 
-        public OpenALAudioSystem(Config config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
+        public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
         {
             m_config = config;
             m_archiveCollection = archiveCollection;
