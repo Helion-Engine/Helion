@@ -437,6 +437,7 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ElevatorRaiseToNearest:
                 case ZDoomLineSpecialType.ElevatorLowerToNearest:
                 case ZDoomLineSpecialType.ElevatorMoveToFloor:
+                case ZDoomLineSpecialType.GenericCrusher:
                     return true;
 
                 default:
