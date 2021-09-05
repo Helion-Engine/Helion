@@ -58,7 +58,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             // I'm hitching a ride here so we don't keep making a bunch of
             // invocations to this for every single sprite to avoid overhead
             // of asking the config for a new value every time.
-            m_drawDebugBox = m_config.Developer.RenderDebug;
+            m_drawDebugBox = m_config.Developer.Render.Debug;
             m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
             m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
 

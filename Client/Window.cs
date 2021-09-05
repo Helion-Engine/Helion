@@ -77,14 +77,13 @@ namespace Helion.Client
 
         private static NativeWindowSettings MakeNativeWindowSettings(Config config)
         {
-            int windowWidth = config.Window.Width;
-            int windowHeight = config.Window.Height;
+            (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
             
             return new NativeWindowSettings
             {
                 Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
                 APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
-                Flags = config.Developer.RenderDebug ? ContextFlags.Debug : ContextFlags.Default,
+                Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
                 IsFullscreen = config.Window.State == WindowState.Fullscreen,
                 NumberOfSamples = config.Render.Multisample.Enable ? config.Render.Multisample.Value : 0,
                 Size = new Vector2i(windowWidth, windowHeight),

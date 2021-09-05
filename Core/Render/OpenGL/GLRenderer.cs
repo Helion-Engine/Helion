@@ -113,7 +113,7 @@ namespace Helion.Render.OpenGL
             GL.CullFace(CullFaceMode.Back);
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
-            if (config.Developer.RenderDebug && GLCapabilities.Version.Supports(4, 3))
+            if (config.Developer.Render.Debug && GLCapabilities.Version.Supports(4, 3))
                 SetDebugCallbackHandler();
         }
 

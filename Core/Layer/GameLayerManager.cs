@@ -171,7 +171,7 @@ namespace Helion.Layer
         
         public void HandleInput(IConsumableInput input)
         {
-            if (input.ConsumeKeyPressed(m_config.Controls.Console))
+            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
 

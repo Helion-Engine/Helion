@@ -100,8 +100,8 @@ namespace Helion.Render.Legacy
                 if (config.Render.Anisotropy.Value <= 1.0)
                     Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
 
-                if (config.Render.TextureFilter != FilterType.Trilinear)
-                    Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.TextureFilter}), you will not get the best results!");
+                if (config.Render.Filter.Texture.Value != FilterType.Trilinear)
+                    Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
             }
         }
         
@@ -148,7 +148,7 @@ namespace Helion.Render.Legacy
 
         public void PerformThrowableErrorChecks()
         {
-            if (m_config.Developer.RenderDebug)
+            if (m_config.Developer.Render.Debug)
                 GLHelper.AssertNoGLError(gl);
         }
         
@@ -199,7 +199,7 @@ namespace Helion.Render.Legacy
             // some glDebugControl... setting that changes them all to don't
             // cares if we have already registered a function? See:
             // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.RenderDebug)
+            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.Render.Debug)
                 return;
 
             gl.Enable(EnableType.DebugOutput);

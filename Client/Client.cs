@@ -82,11 +82,11 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            IConsumableInput inputEvent = m_window.InputManager.Poll();
+            IConsumableInput input = m_window.InputManager.Poll();
             if (!m_takeScreenshot)
-                m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
+                m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, input);
             
-            m_layerManager.HandleInput(inputEvent);
+            m_layerManager.HandleInput(input);
             
             // Because we had to tightly bound the consumable input to the
             // input manager, we only want to clear the state after we've
@@ -281,9 +281,10 @@ namespace Helion.Client
 
         private static void Run(CommandLineArgs commandLineArgs)
         {
+            Config config = new(Config.DefaultConfigPath);
+
             try
             {
-                using Config config = new();
                 ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
                 using HelionConsole console = new(config, commandLineArgs);
                 using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
@@ -296,7 +297,8 @@ namespace Helion.Client
             }
             finally
             {
-                // TODO: Write config properly in the future
+                if (!config.Write(Config.DefaultConfigPath))
+                    Log.Error($"Unable to write config to {Config.DefaultConfigPath}");
             }
         }
     }
