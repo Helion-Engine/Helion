@@ -6,11 +6,11 @@ using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs.Impl
 {
-    public class ConfigVariableAliasMapping : IConfigVariableAliasMapping
+    public class ConfigAliasMapping : IConfigAliasMapping
     {
         private readonly Dictionary<string, IConfigValue> m_nameToComponent;
         
-        public ConfigVariableAliasMapping(IConfig config)
+        public ConfigAliasMapping(IConfig config)
         {
             m_nameToComponent = new Dictionary<string, IConfigValue>(StringComparer.OrdinalIgnoreCase)
             {

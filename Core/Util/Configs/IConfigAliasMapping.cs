@@ -7,7 +7,7 @@ namespace Helion.Util.Configs
     /// <summary>
     /// A mapping of aliases to a config value.
     /// </summary>
-    public interface IConfigVariableAliasMapping : IEnumerable<(string name, IConfigValue value)>
+    public interface IConfigAliasMapping : IEnumerable<(string name, IConfigValue value)>
     {
         /// <summary>
         /// Tries to look up an existing config value that maps to the alias name.

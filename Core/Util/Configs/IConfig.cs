@@ -22,7 +22,7 @@ namespace Helion.Util.Configs
         ConfigRender Render { get; }
         ConfigWindow Window { get; }
         IConfigKeyMapping Keys { get; }
-        IConfigVariableAliasMapping Aliases { get; }
+        IConfigAliasMapping Aliases { get; }
 
         /// <summary>
         /// Tries to get the config component for the lookup name.

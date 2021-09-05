@@ -6,11 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using NLog;
 
-namespace Helion.Util.Configs
+namespace Helion.Util.Configs.Impl
 {
     /// <summary>
     /// A basic config file.
@@ -31,13 +30,13 @@ namespace Helion.Util.Configs
         public ConfigRender Render { get; } = new();
         public ConfigWindow Window { get; } = new();
         public IConfigKeyMapping Keys => KeyMapping;
-        public IConfigVariableAliasMapping Aliases { get; }
+        public IConfigAliasMapping Aliases { get; }
         protected readonly ConfigKeyMapping KeyMapping = new();
         protected readonly Dictionary<string, ConfigComponent> Components = new(StringComparer.OrdinalIgnoreCase);
 
         public Config()
         {
-            Aliases = new ConfigVariableAliasMapping(this);
+            Aliases = new ConfigAliasMapping(this);
             PopulateTopLevelComponentsRecursively();
         }
 
@@ -70,9 +69,6 @@ namespace Helion.Util.Configs
             foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
             {
                 if (!fieldInfo.IsPublic)
-                    continue;
-
-                if (fieldInfo.GetCustomAttribute(typeof(ConfigComponentIgnoreAttribute)) != null)
                     continue;
 
                 object? childObj = fieldInfo.GetValue(obj);
