@@ -8,7 +8,7 @@ namespace Helion.Layer.Worlds
 {
     public partial class WorldLayer
     {
-        private static readonly (string, TickCommands)[] NonInstantCommandMapping = 
+        private static readonly (string, TickCommands)[] KeyDownCommandMapping = 
         {
             (Constants.Input.Forward,   TickCommands.Forward),
             (Constants.Input.Backward,  TickCommands.Backward),
@@ -27,7 +27,7 @@ namespace Helion.Layer.Worlds
             (Constants.Input.Strafe,    TickCommands.Strafe),
         };
         
-        private static readonly (string, TickCommands)[] InstantCommandMapping = 
+        private static readonly (string, TickCommands)[] KeyPressCommandMapping = 
         {
             (Constants.Input.Use,            TickCommands.Use),
             (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
@@ -118,13 +118,13 @@ namespace Helion.Layer.Worlds
         {
             m_tickCommand.Clear();
             
-            foreach ((string command, TickCommands tickCommand) in InstantCommandMapping)
+            foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
                 if (IsCommandPressed(command, input))
-                    m_tickCommand.Add(tickCommand, true);
+                    m_tickCommand.Add(tickCommand);
             
-            foreach ((string command, TickCommands tickCommand) in NonInstantCommandMapping)
+            foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
                 if (IsCommandDown(command, input))
-                    m_tickCommand.Add(tickCommand, false);
+                    m_tickCommand.Add(tickCommand);
         }
         
         private void ChangeHudSize(bool increase)
