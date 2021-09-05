@@ -54,9 +54,7 @@ namespace Helion.Util.Configs
 
         private readonly Dictionary<string, ConfigComponent> m_components = new(StringComparer.OrdinalIgnoreCase);
         private bool m_noFileExistedWhenRead;
-        
-        public bool Changed => Keys.Changed || m_components.Values.Any(c => c.Value.Changed);
-        
+
         public Config()
         {
             VariableAliasMapping = new ConfigVariableAliasMapping(this);
@@ -73,6 +71,11 @@ namespace Helion.Util.Configs
             // "changed".
             UnsetChangedFlag();
         }
+
+        private bool CheckAnyBindingsChanged()
+        {
+            return Keys.Changed || m_components.Values.Any(c => c.Value.Changed && c.Attribute.Save);
+        } 
 
         private void UnsetChangedFlag()
         {
@@ -107,9 +110,16 @@ namespace Helion.Util.Configs
             // If a file existed, and it didn't change after we loaded it, then
             // we don't want to force a pointless write. However if desired, this
             // can be forcefully overridden.
-            if (!m_noFileExistedWhenRead && !Changed && !alwaysWrite)
+            bool changed = CheckAnyBindingsChanged();
+            if (!m_noFileExistedWhenRead && !changed && !alwaysWrite)
+            {
+                Log.Trace($"Not writing config to {filePath} since nothing changed");
                 return true;
-            
+            }
+
+            if (changed)
+                LogChangedValues();
+
             try
             {
                 FileIniDataParser parser = new();
@@ -162,6 +172,14 @@ namespace Helion.Util.Configs
 
                 return true;
             }
+        }
+
+        [Conditional("DEBUG")]
+        private void LogChangedValues()
+        {
+            foreach ((string key, ConfigComponent component) in m_components)
+                if (component.Value.Changed && component.Attribute.Save)
+                    Log.Trace($"Writing changed value {key} = {component.Value.ObjectValue}");
         }
 
         private void PopulateComponentsRecursively(object obj, string path, int depth = 0)

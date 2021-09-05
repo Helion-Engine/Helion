@@ -10,7 +10,7 @@ namespace Helion.Util.Configs.Components
         [ConfigInfo("Use vanilla sector physics. Floors can move through ceiling. Only one move special per sector at a time.")]
         public readonly ConfigValue<bool> VanillaSectorPhysics = new(false);
 
-        [ConfigInfo("Vanilla method for finding shortest texture. Emulates bug with AASHITTY.")]
+        [ConfigInfo("Vanilla method for finding shortest texture. Emulates bug with AASHITTY.", save: false)]
         public readonly ConfigValue<bool> VanillaShortestTexture = new(true);
     }
 }
