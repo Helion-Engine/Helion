@@ -143,6 +143,14 @@ namespace Helion.Layer.Consoles
                         EmitMessage((Color.SaddleBrown, component.Attribute.Description));
                         if (!component.Attribute.Save)
                             EmitMessage((Color.SaddleBrown, "Note this value is transient and is not saved to the config"));
+
+                        Type componentType = component.Value.ObjectValue.GetType();
+                        if (componentType.IsEnum)
+                        {
+                            EmitMessage((Color.SaddleBrown, "Eligible values:"));
+                            foreach (object? enumValue in Enum.GetValues(componentType))
+                                EmitMessage((Color.SaddleBrown, $"    {enumValue}"));
+                        }
                     }
                     else if (path.StartsWith(input, StringComparison.OrdinalIgnoreCase))
                     {
