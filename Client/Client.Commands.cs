@@ -141,7 +141,7 @@ namespace Helion.Client
         
         [ConsoleCommand("soundVolume", "Sets the sound volume")]
         [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
-        void CommandSetSoundVolume(ConsoleCommandEventArgs args)
+        private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
         {
             if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
             {
@@ -227,8 +227,6 @@ namespace Helion.Client
             
             return true;
         }
-        
-        //=====================================================================
 
         private void NewGame(MapInfoDef mapInfo)
         {
