@@ -19,6 +19,7 @@ namespace Helion.World.Entities.Players
         {
             for (int i = 0; i < m_instantCommands.Count; i++)
                 m_commands.Remove(m_instantCommands[i]);
+            m_instantCommands.Clear();
         }
 
         public void TickHandled()
@@ -32,16 +33,18 @@ namespace Helion.World.Entities.Players
 
             for (int i = 0; i < m_tickCommands.Count; i++)
                 m_commands.Remove(m_tickCommands[i]);
+            m_tickCommands.Clear();
         }
 
         public void Add(TickCommands command, bool isInstant = false)
         {
-            m_commands.Add(command);
-
-            if (isInstant)
-                m_instantCommands.Add(command);
-            else
-                m_tickCommands.Add(command);
+            if (m_commands.Add(command))
+            {
+                if (isInstant)
+                    m_instantCommands.Add(command);
+                else
+                    m_tickCommands.Add(command);
+            }
         }
 
         public bool Has(TickCommands command) => m_commands.Contains(command);
