@@ -620,9 +620,6 @@ namespace Helion.World.Physics
                     Line line = block.Lines[i];
                     if (line.Segment.Intersects(box))
                     {
-                        if (tryMove != null && !entity.Flags.NoClip && line.HasSpecial)
-                            tryMove.AddIntersectSpecialLine(line);
-
                         sectors.Add(line.Front.Sector);
 
                         if (line.Back != null)
@@ -810,8 +807,13 @@ namespace Helion.World.Physics
                                 return GridIterationStatus.Stop;
                         }
 
-                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip && line.HasSpecial)
-                            tryMove.AddIntersectSpecialLine(line);
+                        if (!entity.Flags.NoClip && line.HasSpecial)
+                        {
+                            if (blockType == LineBlock.NoBlock)
+                                tryMove.AddIntersectSpecialLine(line);
+                            else
+                                tryMove.AddImpactSpecialLine(line);
+                        }
                     }
                 }
 

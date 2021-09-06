@@ -2,7 +2,6 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics
 {
@@ -19,6 +18,7 @@ namespace Helion.World.Physics
 
         public List<Entity> IntersectEntities2D = new List<Entity>();
         public List<Line> IntersectSpecialLines = new List<Line>();
+        public List<Line> ImpactSpecialLines = new List<Line>();
 
         public void SetPosition(in Vec2D position)
         {
@@ -26,6 +26,7 @@ namespace Helion.World.Physics
             CanFloat = false;
             IntersectEntities2D.Clear();
             IntersectSpecialLines.Clear();
+            ImpactSpecialLines.Clear();
             DropOffEntity = null;
         }
 
@@ -47,6 +48,12 @@ namespace Helion.World.Physics
         {
             if (!FindLine(IntersectSpecialLines, line.Id))
                 IntersectSpecialLines.Add(line);
+        }
+
+        public void AddImpactSpecialLine(Line line)
+        {
+            if (!FindLine(ImpactSpecialLines, line.Id))
+                ImpactSpecialLines.Add(line);
         }
 
         private static bool FindLine(List<Line> lines, int id)
