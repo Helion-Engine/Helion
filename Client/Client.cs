@@ -16,6 +16,7 @@ using Helion.Resources.Archives.Locator;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
@@ -35,7 +36,7 @@ namespace Helion.Client
         private readonly ArchiveCollection m_archiveCollection;
         private readonly IAudioSystem m_audioSystem;
         private readonly CommandLineArgs m_commandLineArgs;
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly GameLayerManager m_layerManager;
         private readonly NativeWinMouse? m_nativeWinMouse;
@@ -46,7 +47,7 @@ namespace Helion.Client
         private bool m_disposed;
         private bool m_takeScreenshot;
 
-        private Client(CommandLineArgs commandLineArgs, Config config, HelionConsole console, IAudioSystem audioSystem,
+        private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
             ArchiveCollection archiveCollection)
         {
             m_commandLineArgs = commandLineArgs;
@@ -82,11 +83,11 @@ namespace Helion.Client
 
         private void HandleInput()
         {
-            IConsumableInput inputEvent = m_window.InputManager.Poll();
+            IConsumableInput input = m_window.InputManager.Poll();
             if (!m_takeScreenshot)
-                m_takeScreenshot = inputEvent.ConsumeKeyPressed(m_config.Controls.Screenshot);
+                m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, input);
             
-            m_layerManager.HandleInput(inputEvent);
+            m_layerManager.HandleInput(input);
             
             // Because we had to tightly bound the consumable input to the
             // input manager, we only want to clear the state after we've
@@ -279,11 +280,26 @@ namespace Helion.Client
         private static void ShowFatalError(string msg) =>
             MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-        private static void Run(CommandLineArgs commandLineArgs)
+        private static FileConfig ReadConfigFileOrTerminate(string path)
         {
             try
             {
-                using Config config = new();
+                return new FileConfig(path);
+            }
+            catch
+            {
+                ShowFatalError("Critical error parsing config file");
+                Environment.Exit(1);
+                throw;
+            }
+        }
+        
+        private static void Run(CommandLineArgs commandLineArgs)
+        {
+            FileConfig config = ReadConfigFileOrTerminate(FileConfig.DefaultConfigPath);
+
+            try
+            {
                 ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
                 using HelionConsole console = new(config, commandLineArgs);
                 using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
@@ -296,7 +312,8 @@ namespace Helion.Client
             }
             finally
             {
-                // TODO: Write config properly in the future
+                if (!config.Write(FileConfig.DefaultConfigPath))
+                    Log.Error($"Unable to write config to {FileConfig.DefaultConfigPath}");
             }
         }
     }

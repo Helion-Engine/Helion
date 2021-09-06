@@ -17,7 +17,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
         private static readonly VertexArrayAttributes GeometryAttributes = new(
             new VertexPointerFloatAttribute("pos", 0, 3));
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly IGLFunctions gl;
         private readonly StreamVertexBuffer<SkyGeometryVertex> m_geometryVbo;
         private readonly VertexArrayObject m_geometryVao;
@@ -26,7 +26,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
 
         public bool HasGeometry => !m_geometryVbo.Empty;
 
-        public SkySphereComponent(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
+        public SkySphereComponent(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle)
         {
             m_config = config;

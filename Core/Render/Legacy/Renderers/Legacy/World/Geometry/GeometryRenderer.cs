@@ -29,7 +29,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
     {
         private const double MaxSky = 16384;
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly LineDrawnTracker m_lineDrawnTracker = new LineDrawnTracker();
         private readonly DynamicArray<WorldVertex> m_subsectorVertices = new DynamicArray<WorldVertex>();
@@ -52,7 +52,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry
         private SkyGeometryVertex[][] m_skyFloorVertexLookup = Array.Empty<SkyGeometryVertex[]>();
         private SkyGeometryVertex[][] m_skyCeilingVertexLookup = Array.Empty<SkyGeometryVertex[]>();
 
-        public GeometryRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
+        public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
             RenderWorldDataManager worldDataManager)
         {

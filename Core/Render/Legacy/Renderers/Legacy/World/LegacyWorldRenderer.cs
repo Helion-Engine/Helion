@@ -20,7 +20,6 @@ using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
@@ -37,7 +36,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World
             new VertexPointerFloatAttribute("colorMul", 4, 3),
             new VertexPointerFloatAttribute("fuzz", 5, 1));
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly IGLFunctions gl;
         private readonly GeometryRenderer m_geometryRenderer;
         private readonly EntityRenderer m_entityRenderer;
@@ -46,7 +45,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World
         private readonly LegacyAutomapRenderer m_automapRenderer;
         private readonly ViewClipper m_viewClipper = new();
 
-        public LegacyWorldRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
+        public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             m_config = config;

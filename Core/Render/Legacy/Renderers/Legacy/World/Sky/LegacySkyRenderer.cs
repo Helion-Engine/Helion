@@ -16,14 +16,14 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky
     {
         private const int MaxSkyTextures = 255;
 
-        private readonly Config m_config;
+        private readonly IConfig m_config;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
         private readonly LegacyGLTextureManager m_textureManager;
         private readonly IGLFunctions gl;
         private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
 
-        public LegacySkyRenderer(Config config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
+        public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
             IGLFunctions functions, LegacyGLTextureManager textureManager)
         {
             m_config = config;

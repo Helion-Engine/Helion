@@ -49,7 +49,7 @@ namespace Helion.World.Geometry.Builder
         /// <param name="config">The player config data.</param>
         /// <returns>A map geometry object if it was parsed and created right,
         /// otherwise null if it failed.</returns>
-        public static MapGeometry? Create(IMap map, Config config)
+        public static MapGeometry? Create(IMap map, IConfig config)
         {
             IBspBuilder? bspBuilder = CreateBspBuilder(map, config);
             if (bspBuilder == null)
@@ -67,7 +67,7 @@ namespace Helion.World.Geometry.Builder
             }
         }
 
-        private static IBspBuilder? CreateBspBuilder(IMap map, Config config)
+        private static IBspBuilder? CreateBspBuilder(IMap map, IConfig config)
         {
             if (map.GL != null)
                 return new GLBspBuilder(map);

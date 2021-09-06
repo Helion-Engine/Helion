@@ -36,7 +36,7 @@ namespace Helion.Render.Legacy
         public IRenderableSurface DefaultSurface => Default;
         public IRendererTextureManager Textures => m_textureManager;
         public IRenderableSurface Default { get; }
-        internal readonly Config m_config;
+        internal readonly IConfig m_config;
         internal readonly FpsTracker m_fpsTracker;
         internal readonly ArchiveCollection m_archiveCollection;
         private readonly GLCapabilities m_capabilities;
@@ -47,7 +47,7 @@ namespace Helion.Render.Legacy
 
         public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-        public GLLegacyRenderer(IWindow window, Config config, ArchiveCollection archiveCollection, IGLFunctions functions,
+        public GLLegacyRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
             FpsTracker fpsTracker)
         {
             Window = window;
@@ -93,15 +93,15 @@ namespace Helion.Render.Legacy
             return projection * view * model;
         }
 
-        private static void WarnForInvalidStates(Config config)
+        private static void WarnForInvalidStates(IConfig config)
         {
             if (config.Render.Anisotropy.Enable)
             {
                 if (config.Render.Anisotropy.Value <= 1.0)
                     Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
 
-                if (config.Render.TextureFilter != FilterType.Trilinear)
-                    Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.TextureFilter}), you will not get the best results!");
+                if (config.Render.Filter.Texture.Value != FilterType.Trilinear)
+                    Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
             }
         }
         
@@ -148,7 +148,7 @@ namespace Helion.Render.Legacy
 
         public void PerformThrowableErrorChecks()
         {
-            if (m_config.Developer.RenderDebug)
+            if (m_config.Developer.Render.Debug)
                 GLHelper.AssertNoGLError(gl);
         }
         
@@ -199,7 +199,7 @@ namespace Helion.Render.Legacy
             // some glDebugControl... setting that changes them all to don't
             // cares if we have already registered a function? See:
             // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.RenderDebug)
+            if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.Render.Debug)
                 return;
 
             gl.Enable(EnableType.DebugOutput);

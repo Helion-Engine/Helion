@@ -43,9 +43,9 @@ namespace Helion.Resources.Archives.Locator
         /// </summary>
         /// <param name="config">The config to get the additional directories
         /// from.</param>
-        public FilesystemArchiveLocator(Config config)
+        public FilesystemArchiveLocator(IConfig config)
         {
-            var paths = config.Files.Directories.Value.Split(";");
+            List<string> paths = config.Files.Directories.Value;
             foreach (string path in paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator))
                 m_paths.Add(path);
         }
