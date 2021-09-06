@@ -273,7 +273,7 @@ namespace Helion.Client
             }
 
             WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
-                m_audioSystem, m_archiveCollection, m_fpsTracker, mapInfoDef, skillDef, map, 
+                m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map, 
                 players.FirstOrDefault(), worldModel);
             if (newLayer == null)
                 return;

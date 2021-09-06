@@ -9,6 +9,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -35,6 +36,7 @@ namespace Helion.Layer.Worlds
         private readonly GameLayerManager m_parent;
         private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
         private readonly FpsTracker m_fpsTracker;
+        private readonly Profiler m_profiler;
         private TickerInfo m_lastTickInfo = new(0, 0);
         private TickCommand m_tickCommand = new();
         private bool m_drawAutomap;
@@ -46,7 +48,7 @@ namespace Helion.Layer.Worlds
         public bool ShouldFocus => !World.Paused;
         
         public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, ArchiveCollection archiveCollection,
-            IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef)
+            IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
         {
             m_config = config;
             m_console = console;
@@ -55,6 +57,7 @@ namespace Helion.Layer.Worlds
             m_parent = parent;
             m_fpsTracker = fpsTracker;
             m_autoMapScale = config.Hud.AutoMap.Scale;
+            m_profiler = profiler;
             World = world;
             CurrentMap = mapInfoDef;
 
@@ -69,24 +72,24 @@ namespace Helion.Layer.Worlds
         
         public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config, 
             HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection, 
-            FpsTracker fpsTracker, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, Player? existingPlayer, 
-            WorldModel? worldModel)
+            FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, 
+            Player? existingPlayer, WorldModel? worldModel)
         {
             string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
             Log.Info(displayName);
             
             TextureManager.Init(archiveCollection, mapInfoDef);
             
-            SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, mapInfoDef, skillDef, 
-                map, existingPlayer, worldModel);
+            SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
+                mapInfoDef, skillDef, map, existingPlayer, worldModel);
             if (world == null)
                 return null;
             
-            return new WorldLayer(parent, config, console, archiveCollection, audioSystem, fpsTracker, world, mapInfoDef);
+            return new WorldLayer(parent, config, console, archiveCollection, audioSystem, fpsTracker, world, mapInfoDef, profiler);
         }
 
         private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
-            ArchiveCollection archiveCollection, MapInfoDef mapDef, SkillDef skillDef, IMap map,
+            ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
             Player? existingPlayer, WorldModel? worldModel)
         {
             MapGeometry? geometry = GeometryBuilder.Create(map, config);
@@ -95,8 +98,8 @@ namespace Helion.Layer.Worlds
 
             try
             {
-                return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map,
-                    existingPlayer, worldModel);
+                return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry, 
+                    mapDef, skillDef, map,existingPlayer, worldModel);
             }
             catch (HelionException e)
             {

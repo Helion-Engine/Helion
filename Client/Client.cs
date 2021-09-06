@@ -20,6 +20,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
@@ -46,6 +47,7 @@ namespace Helion.Client
         private readonly Window m_window;
         private readonly FpsTracker m_fpsTracker = new();
         private readonly ConsoleCommands m_consoleCommands = new();
+        private readonly Profiler m_profiler = new();
         private bool m_disposed;
         private bool m_takeScreenshot;
 
@@ -61,7 +63,7 @@ namespace Helion.Client
             m_soundManager = new SoundManager(audioSystem, archiveCollection);
             m_window = new Window(config, archiveCollection, m_fpsTracker);
             m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection, 
-                m_soundManager, m_saveGameManager);
+                m_soundManager, m_saveGameManager, m_profiler);
 
             m_consoleCommands.RegisterMethodsOrThrow(this);
             
@@ -88,6 +90,8 @@ namespace Helion.Client
 
         private void HandleInput()
         {
+            m_profiler.Input.Start();
+            
             IConsumableInput input = m_window.InputManager.Poll();
             if (!m_takeScreenshot)
                 m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, input);
@@ -99,11 +103,17 @@ namespace Helion.Client
             // handled all of the input. This wipes the input manager clean,
             // and we only should do that after we are done with the input.
             m_window.InputManager.Reset();
+            
+            m_profiler.Input.Stop();
         }
 
         private void RunLogic()
         {
+            m_profiler.Logic.Start();
+            
             m_layerManager.RunLogic();
+            
+            m_profiler.Logic.Stop();
         }
 
         private bool ShouldRender()
@@ -144,15 +154,26 @@ namespace Helion.Client
             if (!ShouldRender())
                 return;
 
+            m_profiler.Render.Total.Start();
+            
             m_fpsLimit.Restart();
             PerformRender();
             HandleScreenshot();
+            
+            m_profiler.Render.SwapBuffers.Start();
             m_window.SwapBuffers();
-            m_fpsTracker.FinishFrame();
+            m_profiler.Render.SwapBuffers.Stop();
+            
+            m_fpsTracker.FinishFrame();   
+            
+            m_profiler.Render.Total.Stop();
         }
 
         private void Window_MainLoop(FrameEventArgs frameEventArgs)
         {
+            m_profiler.ResetTimers();
+            m_profiler.Global.Start();
+            
             CheckForErrorsIfDebug();
 
             HandleInput();
@@ -160,6 +181,8 @@ namespace Helion.Client
             Render();
             
             m_soundManager.Update();
+            
+            m_profiler.Global.Stop();
         }
 
         /// <summary>

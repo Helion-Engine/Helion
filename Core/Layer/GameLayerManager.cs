@@ -17,6 +17,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Profiling;
 using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Save;
@@ -44,6 +45,7 @@ namespace Helion.Layer
         private readonly ArchiveCollection m_archiveCollection;
         private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
+        private readonly Profiler m_profiler;
         private bool m_disposed;
 
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -53,7 +55,8 @@ namespace Helion.Layer
         }.WhereNotNull();
 
         public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
-            ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager)
+            ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager,
+            Profiler profiler)
         {
             m_config = config;
             m_window = window;
@@ -62,6 +65,7 @@ namespace Helion.Layer
             m_archiveCollection = archiveCollection;
             m_soundManager = soundManager;
             m_saveGameManager = saveGameManager;
+            m_profiler = profiler;
         }
 
         ~GameLayerManager()
@@ -238,6 +242,7 @@ namespace Helion.Layer
 
                 WorldLayer?.Render(ctx);
                 
+                m_profiler.Render.MiscLayers.Start();
                 ctx.Hud(hudContext, hud =>
                 {
                     IntermissionLayer?.Render(ctx, hud);
@@ -247,6 +252,7 @@ namespace Helion.Layer
                     MenuLayer?.Render(hud);
                     ConsoleLayer?.Render(ctx, hud);
                 });
+                m_profiler.Render.MiscLayers.Stop();
             });
         }
 

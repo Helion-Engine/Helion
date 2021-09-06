@@ -46,6 +46,7 @@ using Helion.World.Util;
 using Helion.Resources.IWad;
 using Helion.Dehacked;
 using Helion.Resources.Archives;
+using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 
 namespace Helion.World
@@ -97,6 +98,7 @@ namespace Helion.World
         protected readonly MapGeometry Geometry;
         protected readonly PhysicsManager PhysicsManager;
         protected readonly IMap Map;
+        protected readonly Profiler Profiler; 
         private readonly DoomRandom m_random = new();
 
         private int m_exitTicks;
@@ -106,8 +108,9 @@ namespace Helion.World
         private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
         private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
-        protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map, WorldModel? worldModel = null)
+        protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection, 
+            IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef, 
+            SkillDef skillDef, IMap map, WorldModel? worldModel = null)
         {
             CreationTimeNanos = Ticker.NanoTime();
             GlobalData = globalData;
@@ -117,6 +120,7 @@ namespace Helion.World
             MapInfo = mapInfoDef;
             SkillDefinition = skillDef;
             MapName = map.Name;
+            Profiler = profiler;
             Geometry = geometry;
             Map = map;
             Blockmap = new BlockMap(Lines);
@@ -279,6 +283,8 @@ namespace Helion.World
         {
             if (Paused)
                 return;
+            
+            Profiler.World.Total.Start();
 
             if (WorldState == WorldState.Exit)
             {
@@ -292,52 +298,77 @@ namespace Helion.World
             }
             else if (WorldState == WorldState.Normal)
             {
-                foreach (Entity entity in EntityManager.Entities)
+                TickEntities();
+                TickPlayers();
+
+                if (WorldState != WorldState.Exit)
                 {
-                    entity.Tick();
-
-                    if (WorldState == WorldState.Exit)
-                        return;
-
-                    // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
-                    if (!entity.IsDisposed)
-                        PhysicsManager.Move(entity);
-
-                    if (entity.Respawn)
-                        HandleRespawn(entity);
-                }
-
-                foreach (Player player in EntityManager.Players)
-                {
-                    // Doom did not apply sector damage to voodoo dolls
-                    if (player.IsVooDooDoll)
-                        continue;
+                    SpecialManager.Tick();
+                    TextureManager.Instance.Tick();
+                    SoundManager.Tick();
                     
-                    player.HandleTickCommand();
-                    player.TickCommand.TickHandled();
-
-                    if (player.Sector.SectorDamageSpecial != null)
-                        player.Sector.SectorDamageSpecial.Tick(player);
-
-                    if (player.Sector.Secret)
-                    {
-                        DisplayMessage(player, null, "$SECRETMESSAGE");
-                        SoundManager.PlayStaticSound("misc/secret");
-                        player.Sector.SetSecret(false);
-                        LevelStats.SecretCount++;
-                        player.SecretsFound++;
-                    }
+                    LevelTime++;
+                    GlobalData.TotalTime++;
                 }
-
-                SpecialManager.Tick();
-                TextureManager.Instance.Tick();
-                SoundManager.Tick();
-
-                LevelTime++;
-                GlobalData.TotalTime++;
             }
 
             Gametick++;
+            
+            Profiler.World.Total.Stop();
+        }
+
+        private void TickEntities()
+        {
+            Profiler.World.TickEntity.Start();
+            
+            foreach (Entity entity in EntityManager.Entities)
+            {
+                entity.Tick();
+
+                if (WorldState == WorldState.Exit)
+                    break;
+
+                // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
+                if (!entity.IsDisposed)
+                    PhysicsManager.Move(entity);
+
+                if (entity.Respawn)
+                    HandleRespawn(entity);
+            }
+            
+            Profiler.World.TickEntity.Stop();
+        }
+
+        private void TickPlayers()
+        {
+            Profiler.World.TickPlayer.Start();
+            
+            foreach (Player player in EntityManager.Players)
+            {
+                if (WorldState == WorldState.Exit)
+                    break;
+                    
+                // Doom did not apply sector damage to voodoo dolls
+                if (player.IsVooDooDoll)
+                    continue;
+                    
+                player.HandleTickCommand();
+                player.TickCommand.TickHandled();
+
+                if (player.Sector.SectorDamageSpecial != null)
+                    player.Sector.SectorDamageSpecial.Tick(player);
+
+                if (player.Sector.Secret)
+                {
+                    DisplayMessage(player, null, "$SECRETMESSAGE");
+                    SoundManager.PlayStaticSound("misc/secret");
+                    player.Sector.SetSecret(false);
+                    LevelStats.SecretCount++;
+                    player.SecretsFound++;
+                }
+            }
+            
+            Profiler.World.TickPlayer.Stop();
         }
 
         public void Pause()

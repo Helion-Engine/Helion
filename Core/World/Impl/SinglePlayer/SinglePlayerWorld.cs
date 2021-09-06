@@ -18,6 +18,7 @@ using MoreLinq;
 using NLog;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Util.Profiling;
 using Helion.Window;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
@@ -35,10 +36,10 @@ namespace Helion.World.Impl.SinglePlayer
 
         public Player Player { get; private set; }
 
-        public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection, IAudioSystem audioSystem,
-            MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, IMap map, 
-            Player? existingPlayer = null, WorldModel? worldModel = null)
-            : base(globalData, config, archiveCollection, audioSystem, geometry, mapDef, skillDef, map, worldModel)
+        public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection, 
+            IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef, 
+            IMap map, Player? existingPlayer = null, WorldModel? worldModel = null)
+            : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel)
         {
             if (worldModel == null)
             {

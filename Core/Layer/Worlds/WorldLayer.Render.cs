@@ -15,6 +15,8 @@ namespace Helion.Layer.Worlds
 
         private void DrawWorld(IRenderableSurfaceContext ctx)
         {
+            m_profiler.Render.World.Start();
+            
             ctx.ClearDepth();
             ctx.ClearStencil();
             
@@ -38,10 +40,14 @@ namespace Helion.Layer.Worlds
             {
                 worldRenderer.Draw(World);
             });
+            
+            m_profiler.Render.World.Stop();
         }
 
         private void DrawAutomapAndHud(IRenderableSurfaceContext ctx)
         {
+            m_profiler.Render.Hud.Start();
+            
             HudRenderContext hudContext = new(ctx.Surface.Dimension);
             ctx.Hud(hudContext, hud =>
             {
@@ -54,6 +60,8 @@ namespace Helion.Layer.Worlds
                 ctx.ClearDepth();
                 DrawHud(hudContext, hud);
             });
+            
+            m_profiler.Render.Hud.Stop();
         }
     }
 }
