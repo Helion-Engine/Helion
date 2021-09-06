@@ -10,8 +10,9 @@ namespace Helion.World.Physics
     {
         CrossLine,
         UseLine,
-        ProjectileHitLine,
-        PlayerPushesWall
+        HitscanCrossLine,
+        HitscanImpactsWall,
+        EntityImpactsWall
     }
 
     /// <summary>

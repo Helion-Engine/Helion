@@ -506,7 +506,7 @@ namespace Helion.World
                         if (bi.Line.HasSpecial)
                             activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
-                        if (activateSuccess && !bi.Line.Flags.UseThrough)
+                        if (activateSuccess && !bi.Line.Flags.PassThrough)
                             break;
 
                         if (bi.Line.Back == null)
@@ -705,9 +705,9 @@ namespace Helion.World
 
                 if (bi.Line != null)
                 {
-                    if (bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.ProjectileHitLine))
+                    if (bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                     {
-                        var args = new EntityActivateSpecialEventArgs(ActivationContext.ProjectileHitLine, shooter, bi.Line);
+                        var args = new EntityActivateSpecialEventArgs(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
                         EntityActivatedSpecial?.Invoke(this, args);
                     }
 
@@ -910,10 +910,10 @@ namespace Helion.World
         {
             entity.Hit(previousVelocity);
 
-            if (entity.Flags.Missile && tryMove != null)
+            if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
             {
                 for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
-                    ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.ProjectileHitLine);
+                    ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall);
             }
 
             if (entity.ShouldDieOnCollison())
@@ -955,11 +955,6 @@ namespace Helion.World
                     entity.BlockingEntity.Kill(null);
                 else if (entity.IsCrushing())
                     entity.Kill(null);
-            }
-            else if (tryMove != null && entity.IsPlayer)
-            {
-                for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                    ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.PlayerPushesWall);
             }
         }
 

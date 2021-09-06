@@ -803,6 +803,8 @@ namespace Helion.World.Physics
                         {
                             entity.BlockingLine = line;
                             tryMove.Success = false;
+                            if (!entity.Flags.NoClip && line.HasSpecial)
+                                tryMove.AddImpactSpecialLine(line);
                             if (blockType == LineBlock.BlockStopChecking)
                                 return GridIterationStatus.Stop;
                         }

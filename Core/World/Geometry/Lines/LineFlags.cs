@@ -8,11 +8,10 @@ namespace Helion.World.Geometry.Lines
         public LineAutomapFlags Automap;
         public LineBlockFlags Blocking;
         public UnpeggedFlags Unpegged;
-        public ActivationType ActivationType;
+        public LineActivations Activations;
         public bool BlockSound;
         public bool Repeat;
-        public bool MonsterCanActivate;
-        public bool UseThrough;
+        public bool PassThrough;
         public bool Secret => Automap.DrawAsOneSided;
 
         public LineFlags(MapLineFlags flags)
@@ -31,9 +30,9 @@ namespace Helion.World.Geometry.Lines
             
             BlockSound = flags.BlockSound;
 
-            ActivationType = flags.ActivationType;
+            Activations = flags.Activations;
             Repeat = flags.RepeatSpecial;
-            UseThrough = flags.UseThrough;
+            PassThrough = flags.PassThrough;
         }
     }
 }

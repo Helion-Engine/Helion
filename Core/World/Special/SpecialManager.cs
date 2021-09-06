@@ -431,7 +431,7 @@ namespace Helion.World.Special
 
         public void StartInitSpecials(LevelStats levelStats)
         {
-            var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.ActivationType == ActivationType.LevelStart);
+            var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart));
             foreach (var line in lines)
                 HandleLineInitSpecial(line);
 

@@ -90,10 +90,11 @@ namespace Helion.Maps.Specials.Boom
                 return ZDoomLineSpecialType.None;
 
             ZDoomLineSpecialType type = ZDoomLineSpecialType.None;
-            lineFlags.ActivationType = GetSpecialActivationType(special, out bool repeat, out lineActivationType);
+            lineFlags.Activations = GetSpecialActivationType(special, out bool repeat, out lineActivationType);
             lineFlags.Repeat = repeat;
 
-            if (lineFlags.ActivationType != ActivationType.PlayerPushesWall)
+            LineActivations tagActivation = LineActivations.Player | LineActivations.ImpactLine;            
+            if (lineFlags.Activations != tagActivation)
                 argsToMutate.Arg0 = tag;
 
             if (special >= FloorBase)
@@ -138,7 +139,7 @@ namespace Helion.Maps.Specials.Boom
         private static void SetGenericCrusher(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
             if ((special & CrusherMonsterMask) != 0)
-                lineFlags.MonsterCanActivate = true;
+                lineFlags.Activations |= LineActivations.Monster;
 
             argsToMutate.Arg1 = GetCrusherSpeed(special);
             argsToMutate.Arg2 = argsToMutate.Arg1;
@@ -149,7 +150,7 @@ namespace Helion.Maps.Specials.Boom
         private static void SetGenericStairs(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
             if ((special & StairMonsterMask) != 0)
-                lineFlags.MonsterCanActivate = true;
+                lineFlags.Activations |= LineActivations.Monster;
 
             argsToMutate.Arg1 = GetStairSpeed(special);
             argsToMutate.Arg2 = GetStairHeight(special);
@@ -191,7 +192,7 @@ namespace Helion.Maps.Specials.Boom
         private static void SetGenericLift(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
             if ((special & LiftMonsterMask) != 0)
-                lineFlags.MonsterCanActivate = true;
+                lineFlags.Activations |= LineActivations.Monster;
 
             argsToMutate.Arg1 = GetLiftSpeed(special);
             argsToMutate.Arg2 = GetLiftDelay(special);
@@ -203,7 +204,7 @@ namespace Helion.Maps.Specials.Boom
         private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
         {
             if ((special & DoorMonsterMask) != 0)
-                lineFlags.MonsterCanActivate = true;
+                lineFlags.Activations |= LineActivations.Monster;
 
             // Arg1 = Speed, Arg2 = Kind, Arg3 = Delay
             argsToMutate.Arg1 = GetDoorSpeed(special);
@@ -239,8 +240,9 @@ namespace Helion.Maps.Specials.Boom
             }
         }
 
-        private static ActivationType GetSpecialActivationType(ushort special, out bool repeat, out LineActivationType lineActivationType)
+        private static LineActivations GetSpecialActivationType(ushort special, out bool repeat, out LineActivationType lineActivationType)
         {
+            LineActivations activations = LineActivations.None;
             repeat = false;
             lineActivationType = LineActivationType.Any;
             BoomActivationType boomActivationType = (BoomActivationType)(special & SpecialActivationMask);
@@ -248,39 +250,47 @@ namespace Helion.Maps.Specials.Boom
             switch (boomActivationType)
             {
                 case BoomActivationType.WalkOnce:
-                    return ActivationType.PlayerOrMonsterLineCross;
+                    activations |= LineActivations.Player | LineActivations.CrossLine;
+                    return activations;
 
                 case BoomActivationType.WalkRepeat:
                     repeat = true;
-                    return ActivationType.PlayerOrMonsterLineCross;
+                    activations |= LineActivations.Player | LineActivations.Monster | LineActivations.CrossLine;
+                    return activations;
 
                 case BoomActivationType.PushOnce:
                     lineActivationType = LineActivationType.BackSide;
-                    return ActivationType.PlayerUse;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    return activations;
 
                 case BoomActivationType.SwitchOnce:
                     lineActivationType = LineActivationType.Tag;
-                    return ActivationType.PlayerUse;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    return activations;
 
                 case BoomActivationType.PushRepeat:
                     repeat = true;
                     lineActivationType = LineActivationType.BackSide;
-                    return ActivationType.PlayerUse;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    return activations;
 
                 case BoomActivationType.SwitchRepeat:
                     repeat = true;
                     lineActivationType = LineActivationType.Tag;
-                    return ActivationType.PlayerUse;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    return activations;
 
                 case BoomActivationType.ShootOnce:
-                    return ActivationType.ProjectileHitsOrCrossesLine;
+                    activations |= LineActivations.Hitscan | LineActivations.CrossLine | LineActivations.ImpactLine;
+                    return activations;
 
                 case BoomActivationType.ShootRepeat:
-                    repeat = true;
-                    return ActivationType.ProjectileHitsOrCrossesLine;
+                    repeat = true; 
+                    activations |= LineActivations.Hitscan | LineActivations.CrossLine | LineActivations.ImpactLine;
+                    return activations;
             }
 
-            return ActivationType.None;
+            return activations;
         }
 
         private static int GetDoorDelay(ushort special)

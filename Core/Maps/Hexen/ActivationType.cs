@@ -1,4 +1,4 @@
-namespace Helion.Maps.Specials
+namespace Helion.Maps.Hexen
 {
     /// <summary>
     /// Describes how a special is activated.
@@ -9,12 +9,10 @@ namespace Helion.Maps.Specials
         PlayerLineCross,
         PlayerUse,
         MonsterLineCross,
-        PlayerOrMonsterLineCross,
-        ProjectileHitsWall,
+        ProjectileOrHitscanHitsOrCrossesLine,
         PlayerPushesWall,
         ProjectileCrossesLine,
         PlayerUsePassThrough,
-        ProjectileHitsOrCrossesLine,
-        LevelStart,
+        PlayerLineCrossThrough,
     }
 }

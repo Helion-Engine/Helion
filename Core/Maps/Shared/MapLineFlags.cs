@@ -1,3 +1,4 @@
+using Helion.Maps.Hexen;
 using Helion.Maps.Specials;
 
 namespace Helion.Maps.Shared
@@ -26,12 +27,12 @@ namespace Helion.Maps.Shared
         public bool BlockSound;
         public bool NoDrawAutomap;
         public bool AlwaysDrawAutomap;
-        public bool UseThrough;
+        public bool PassThrough;
         public bool RepeatSpecial;
         public bool BlockPlayers;
         public bool BlockEverything;
 
-        public ActivationType ActivationType;
+        public LineActivations Activations;
 
         private MapLineFlags(ushort flags)
         {
@@ -45,23 +46,69 @@ namespace Helion.Maps.Shared
             AlwaysDrawAutomap = (flags & AlwaysDrawAutomapMask) == AlwaysDrawAutomapMask;
         }
 
-        public static MapLineFlags Doom(ushort flags)
-        {
-            return new MapLineFlags(flags)
-            {
-                UseThrough = (flags & UseThroughMask) == UseThroughMask,
-            };
-        }
+        public static MapLineFlags Doom(ushort flags) =>
+            new MapLineFlags(flags);
         
         public static MapLineFlags ZDoom(ushort flags)
         {
-            return new MapLineFlags(flags)
+            var mapLineFlags = new MapLineFlags(flags)
             {
                 RepeatSpecial = (flags & RepeatSpecialMask) == RepeatSpecialMask,
                 BlockPlayers = (flags & BlockPlayersMask) == BlockPlayersMask,
                 BlockEverything = (flags & BlockEverythingMask) == BlockEverythingMask,
-                ActivationType = (ActivationType)((flags & 0x1C00) >> 10)
             };
+
+            mapLineFlags.Activations = GetActivations(flags, out mapLineFlags.PassThrough);
+            return mapLineFlags;
+        }
+
+        private static LineActivations GetActivations(ushort flags, out bool passThrough)
+        {
+            passThrough = false;
+            LineActivations activations = LineActivations.None;
+            ActivationType type = (ActivationType)((flags & 0x1C00) >> 10);
+
+            switch (type)
+            {
+                case ActivationType.PlayerLineCross:
+                    activations = LineActivations.Player | LineActivations.CrossLine;
+                    break;
+
+                case ActivationType.PlayerUse:
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    break;
+
+                case ActivationType.MonsterLineCross:
+                    activations = LineActivations.Monster | LineActivations.CrossLine;
+                    break;
+
+                case ActivationType.ProjectileOrHitscanHitsOrCrossesLine:
+                    activations = LineActivations.Projectile | LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
+                    break;
+
+                case ActivationType.PlayerPushesWall:
+                    activations = LineActivations.Player | LineActivations.ImpactLine;
+                    break;
+
+                case ActivationType.ProjectileCrossesLine:
+                    activations = LineActivations.Projectile | LineActivations.CrossLine;
+                    break;
+
+                case ActivationType.PlayerUsePassThrough:
+                    passThrough = true;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    break;
+
+                case ActivationType.PlayerLineCrossThrough:
+                    passThrough = true;
+                    activations = LineActivations.Player | LineActivations.CrossLine;
+                    break;
+
+                default:
+                    break;
+            }
+
+            return activations;
         }
     }
 }

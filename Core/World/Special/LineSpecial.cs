@@ -61,13 +61,13 @@ namespace Helion.World.Special
                 case ZDoomLineSpecialType.ScrollTextureRight:
                 case ZDoomLineSpecialType.ScrollTextureUp:
                 case ZDoomLineSpecialType.ScrollTextureDown:
-                    flags.ActivationType = ActivationType.LevelStart;
+                    flags.Activations = LineActivations.LevelStart;
                     break;
 
                 case ZDoomLineSpecialType.Teleport:
                 case ZDoomLineSpecialType.TeleportNoFog:
-                    if (flags.ActivationType == ActivationType.PlayerLineCross)
-                        flags.ActivationType = ActivationType.PlayerOrMonsterLineCross;
+                    if (flags.Activations == (LineActivations.Player | LineActivations.CrossLine))//  == ActivationType.PlayerLineCross)
+                        flags.Activations |= LineActivations.Monster;// ActivationType.PlayerOrMonsterLineCross;
                     break;
             }
         }
@@ -101,37 +101,50 @@ namespace Helion.World.Special
                 return false;
 
             LineFlags flags = line.Flags;
-            if (entity.Flags.Missile)
+            if (context == ActivationContext.HitscanCrossLine || context == ActivationContext.HitscanImpactsWall)
             {
-                if (context == ActivationContext.ProjectileHitLine)
-                    return flags.ActivationType == ActivationType.ProjectileHitsWall || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
+                if (!flags.Activations.HasFlag(LineActivations.Hitscan))
+                    return false;
+
+                if (context == ActivationContext.HitscanCrossLine)
+                    return flags.Activations.HasFlag(LineActivations.CrossLine);
+                else
+                    return flags.Activations.HasFlag(LineActivations.ImpactLine);
+            }
+            else if (entity.Flags.Missile)
+            {
+                if (!flags.Activations.HasFlag(LineActivations.Projectile))
+                    return false;
+
+                if (context == ActivationContext.EntityImpactsWall)
+                    return flags.Activations.HasFlag(LineActivations.ImpactLine);
                 else if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.ProjectileCrossesLine || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
+                    return flags.Activations.HasFlag(LineActivations.CrossLine);
+
             }
             else if (!entity.IsPlayer)
             {
-                if (line.Flags.Secret)
+                if (line.Flags.Secret || !flags.Activations.HasFlag(LineActivations.Monster))
                     return false;
 
                 if (context == ActivationContext.CrossLine)
-                    return flags.ActivationType == ActivationType.MonsterLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross ||
-                        line.Flags.MonsterCanActivate;
-                else if (context == ActivationContext.UseLine)
-                    return flags.ActivationType == ActivationType.PlayerUse && !line.Flags.Secret && 
-                        line.Flags.MonsterCanActivate;
+                    return flags.Activations.HasFlag(LineActivations.CrossLine);
+                // Based on testing this implementation appears to be goofed. Only works with two-sided lines.
+                else if (context == ActivationContext.UseLine && line.Back != null)
+                    return flags.Activations.HasFlag(LineActivations.UseLine);
             }
             else if (entity.PlayerObj != null)
             {
                 bool contextSuccess = false;
-
-                if (context == ActivationContext.CrossLine)
-                    contextSuccess = flags.ActivationType == ActivationType.PlayerLineCross || flags.ActivationType == ActivationType.PlayerOrMonsterLineCross;
-                else if (context == ActivationContext.UseLine)
-                    contextSuccess = flags.ActivationType == ActivationType.PlayerUse || flags.ActivationType == ActivationType.PlayerUsePassThrough;
-                else if (context == ActivationContext.ProjectileHitLine)
-                    contextSuccess = flags.ActivationType == ActivationType.ProjectileHitsWall || flags.ActivationType == ActivationType.ProjectileHitsOrCrossesLine;
-                else if (context == ActivationContext.PlayerPushesWall)
-                    contextSuccess = flags.ActivationType == ActivationType.PlayerPushesWall;
+                if (flags.Activations.HasFlag(LineActivations.Player))
+                {
+                    if (context == ActivationContext.CrossLine)
+                        contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
+                    else if (context == ActivationContext.UseLine)
+                        contextSuccess = flags.Activations.HasFlag(LineActivations.UseLine);
+                    else if (context == ActivationContext.EntityImpactsWall)
+                        contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
+                }
 
                 if (contextSuccess && IsLockType(line, out int keyNumber))
                 {

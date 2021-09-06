@@ -19,16 +19,15 @@ namespace Helion.Maps.Specials.Vanilla
             lineActivationType = GetLineTagActivation(type);
             if (type == VanillaLineSpecialType.None)
             {                
-                lineFlags.ActivationType = ActivationType.None;
+                lineFlags.Activations = LineActivations.None;
                 return ZDoomLineSpecialType.None;
             }
 
             if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
                 return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
 
-            lineFlags.ActivationType = GetSpecialActivationType(type);
+            lineFlags.Activations = GetSpecialActivations(type);
             lineFlags.Repeat = GetRepeat(type);
-            lineFlags.MonsterCanActivate = MonsterCanActivate(type);
 
             switch (type)
             {
@@ -126,7 +125,7 @@ namespace Helion.Maps.Specials.Vanilla
                     argsToMutate.Arg0 = tag;
                     argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                     argsToMutate.Arg2 = GetDelay(type);
-                    lineFlags.MonsterCanActivate = true;
+                    lineFlags.Activations |= LineActivations.Monster;
                     return ZDoomLineSpecialType.DoorOpenClose;
 
                 case VanillaLineSpecialType.W1_CloseDoor:
@@ -1076,8 +1075,10 @@ namespace Helion.Maps.Specials.Vanilla
             return 0;
         }
 
-        private static ActivationType GetSpecialActivationType(VanillaLineSpecialType type)
+        private static LineActivations GetSpecialActivations(VanillaLineSpecialType type)
         {
+            LineActivations activations = LineActivations.None;
+
             switch (type)
             {
                 case VanillaLineSpecialType.DR_DoorOpenClose:
@@ -1201,7 +1202,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.SR_ElevatorRaiseToNearest:
                 case VanillaLineSpecialType.S1_ElevatorMoveToActivatingFloor:
                 case VanillaLineSpecialType.SR_ElevatorMoveToActivatingFloor:
-                    return ActivationType.PlayerUse;
+                    activations = LineActivations.Player | LineActivations.UseLine;
+                    return activations;
 
                 case VanillaLineSpecialType.W1_DoorOpenStay:
                 case VanillaLineSpecialType.W1_CloseDoor:
@@ -1301,14 +1303,16 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_ElevatorLowerToNearest:
                 case VanillaLineSpecialType.W1_ElevatorMoveToActivatingFloor:
                 case VanillaLineSpecialType.WR_ElevatorMoveToActivatingFloor:
-                    return ActivationType.PlayerLineCross;
+                    activations = LineActivations.Player | LineActivations.CrossLine;
+                    return activations;
 
                 case VanillaLineSpecialType.G1_RaiseFloorToLowestAdjacentCeiling:
                 case VanillaLineSpecialType.GR_OpenDoorStayOpen:
                 case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.G_EndLevel:
                 case VanillaLineSpecialType.G_EndLevelSecret:
-                    return ActivationType.ProjectileHitsWall;
+                    activations = LineActivations.Player | LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
+                    return activations;
 
                 case VanillaLineSpecialType.ScrollTextureLeft:
                 case VanillaLineSpecialType.ScrollTextureRight:
@@ -1333,7 +1337,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.TranslucentLine:
                 case VanillaLineSpecialType.TransferSky:
                 case VanillaLineSpecialType.TransferSkyFlipped:
-                    return ActivationType.LevelStart;
+                    activations = LineActivations.LevelStart;
+                    return activations;
 
                 case VanillaLineSpecialType.W1_Teleport:
                 case VanillaLineSpecialType.WR_Teleport:
@@ -1346,7 +1351,8 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_TeleportLine:
                 case VanillaLineSpecialType.W1_TeleportLineReversed:
                 case VanillaLineSpecialType.WR_TeleportLineReversed:
-                    return ActivationType.PlayerOrMonsterLineCross;
+                    activations = LineActivations.Player | LineActivations.Monster | LineActivations.CrossLine;
+                    return activations;
 
                 case VanillaLineSpecialType.W1_MonsterTeleport:
                 case VanillaLineSpecialType.WR_MonsterTeleport:
@@ -1356,13 +1362,17 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
                 case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
                 case VanillaLineSpecialType.WR_MonsterTeportNoFog:
-                    return ActivationType.MonsterLineCross;
+                    activations = LineActivations.Monster | LineActivations.CrossLine;
+                    return activations;
 
                 default:
                     break;
             }
 
-            return ActivationType.None;
+            if (MonsterCanActivate(type))
+                activations |= LineActivations.Monster;
+
+            return activations;
         }
 
         private static bool GetRepeat(VanillaLineSpecialType type)
