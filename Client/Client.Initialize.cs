@@ -7,6 +7,7 @@ using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Consoles;
 using Helion.World.Util;
 
 namespace Helion.Client
@@ -42,7 +43,8 @@ namespace Helion.Client
 
             if (m_commandLineArgs.LoadGame != null)
             {
-                HandleLoadGame(new[] { m_commandLineArgs.LoadGame });
+                ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
+                CommandLoadGame(args);
             }
             else
             {

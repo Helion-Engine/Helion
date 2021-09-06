@@ -1,5 +1,6 @@
 ﻿using Helion.Resources.Definitions.MapInfo;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Helion.World.Util
@@ -24,7 +25,7 @@ namespace Helion.World.Util
             return GetMap(warp, mapInfo, out mapInfoDef);
         }
 
-        public static bool GetMap(int warp, MapInfo mapInfo, out MapInfoDef? mapInfoDef)
+        public static bool GetMap(int warp, MapInfo mapInfo, [NotNullWhen(true)] out MapInfoDef? mapInfoDef)
         {
             int episode = warp / 10;
             int level = warp - episode * 10;
