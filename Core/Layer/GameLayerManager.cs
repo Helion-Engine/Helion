@@ -206,6 +206,14 @@ namespace Helion.Layer
             MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
             Add(menuLayer);
         }
+        
+        public void GoToSaveOrLoadMenu(bool isSave)
+        {
+            if (MenuLayer == null)
+                CreateMenuLayer();
+            
+            MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave);
+        }
 
         public void RunLogic()
         {

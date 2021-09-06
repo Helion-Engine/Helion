@@ -61,15 +61,11 @@ namespace Helion.Layer.Worlds
                 HandleMovementInput(input);
                 World.HandleFrameInput(input);
             }
-            
+
             if (IsCommandPressed(Constants.Input.Save, input))
-            {
-                // TODO: Go to save menu
-            }
+                m_parent.GoToSaveOrLoadMenu(true);
             else if (IsCommandPressed(Constants.Input.Load, input))
-            {
-                // TODO: Go to load menu
-            }
+                m_parent.GoToSaveOrLoadMenu(false);
             
             if (IsCommandPressed(Constants.Input.HudDecrease, input))
                 ChangeHudSize(false);
