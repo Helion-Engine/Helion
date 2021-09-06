@@ -18,6 +18,7 @@ using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
+using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -44,6 +45,7 @@ namespace Helion.Client
         private readonly SaveGameManager m_saveGameManager;
         private readonly Window m_window;
         private readonly FpsTracker m_fpsTracker = new();
+        private readonly ConsoleCommands m_consoleCommands = new();
         private bool m_disposed;
         private bool m_takeScreenshot;
 
@@ -58,8 +60,11 @@ namespace Helion.Client
             m_saveGameManager = new SaveGameManager(config);
             m_soundManager = new SoundManager(audioSystem, archiveCollection);
             m_window = new Window(config, archiveCollection, m_fpsTracker);
-            m_layerManager = new GameLayerManager(config, m_window, console, archiveCollection, m_soundManager, m_saveGameManager);
+            m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection, 
+                m_soundManager, m_saveGameManager);
 
+            m_consoleCommands.RegisterMethodsOrThrow(this);
+            
             m_console.OnConsoleCommandEvent += Console_OnCommand;
             m_window.RenderFrame += Window_MainLoop;
 
@@ -284,7 +289,7 @@ namespace Helion.Client
         {
             try
             {
-                return new FileConfig(path);
+                return new FileConfig(path, true);
             }
             catch
             {

@@ -9,7 +9,10 @@ using Helion.Maps;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
+using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World;
@@ -22,77 +25,61 @@ namespace Helion.Client
 {
     public partial class Client
     {
+        private const string StatFile = "levelstat.txt";
         private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
-        private static readonly string StatFile = "levelstat.txt";
 
         private GlobalData m_globalData = new();
 
-        private void Console_OnCommand(object? sender, ConsoleCommandEventArgs ccmdArgs)
+        [ConsoleCommand("audioDevice", "Sets a new audio device; can list devices with 'audioDevices'")]
+        [ConsoleCommandArg("deviceIndex", "The device number from 'audioDevices' command")]
+        private void CommandSetAudioDevice(ConsoleCommandEventArgs args)
         {
-            switch (ccmdArgs.Command.ToUpper())
+            if (!int.TryParse(args.Args[0], out int deviceIndex))
             {
-                case "EXIT":
-                    m_window.Close();
-                    break;
-                
-                case "LOADGAME":
-                    HandleLoadGame(ccmdArgs.Args);
-                    break;
-
-                case "MAP":
-                    HandleMap(ccmdArgs.Args);
-                    break;
-                
-                case "STARTGAME":
-                    StartNewGame();
-                    break;
-
-                case "SOUNDVOLUME":
-                    SetSoundVolume(ccmdArgs.Args);
-                    break;
-
-                case "MUSICVOLUME":
-                    SetMusicVolume(ccmdArgs.Args);
-                    break;
-
-                case "AUDIODEVICE":
-                    HandleAudioDevice(ccmdArgs.Args);
-                    break;
-
-                case "AUDIODEVICES":
-                    PrintAudioDevices();
-                    break;
-
-                default:
-                    HandleDefault(ccmdArgs);
-                    break;
+                Log.Warn($"Unable to read audio device number from {args.Args[0]}");
+                return;
             }
+            
+            // The user provides something in the range of [1, n] when we want
+            // it in [0, n).
+            deviceIndex--;
+            
+            List<string> deviceNames = m_audioSystem.GetDeviceNames().ToList();
+            if (deviceIndex < 0 || deviceIndex >= deviceNames.Count)
+            {
+                Log.Warn($"Audio device index out of range, must be between 1 and {deviceNames.Count} inclusive");
+                return;
+            }
+
+            string deviceName = deviceNames[deviceIndex];
+            Log.Info($"Setting audio device to {deviceName}");
+            
+            // TODO: The audio device should be listening to the config.
+            m_config.Audio.Device.Set(deviceName);
+            m_audioSystem.SetDevice(deviceName);
+            m_audioSystem.SetVolume(m_config.Audio.Volume);
+        }
+        
+        [ConsoleCommand("audioDevices", "Prints all available audio devices")]
+        private void CommandPrintAudioDevices(ConsoleCommandEventArgs args)
+        {
+            int num = 1;
+            foreach (string device in m_audioSystem.GetDeviceNames())
+                Log.Info($"{num++}. {device}");
+        }
+        
+        [ConsoleCommand("exit", $"Exits {Constants.ApplicationName}")]
+        private void CommandExit(ConsoleCommandEventArgs args)
+        {
+            m_window.Close();
         }
 
-        private void HandleDefault(ConsoleCommandEventArgs ccmdArgs)
+        [ConsoleCommand("load", "Loads a save game file into a new world")]
+        [ConsoleCommandArg("fileName", "The name of the file")]
+        private void CommandLoadGame(ConsoleCommandEventArgs args)
         {
-            if (m_layerManager.WorldLayer == null)
-                return;
-            if (m_layerManager.WorldLayer.World.EntityManager.Players.Empty())
-                return;
-            
-            Player player = m_layerManager.WorldLayer.World.EntityManager.Players[0];
-            
-            if (!CheatManager.Instance.HandleCommand(player, ccmdArgs.Command))
-                Log.Info($"Unknown command: {ccmdArgs.Command}");
-        }   
-
-        private void HandleLoadGame(IReadOnlyList<string> args)
-        {
-            if (args.Empty())
-            {
-                Log.Info("Usage: loadfile <filename>");
-                Log.Info("Example: loadfile savegame2");
-                return;
-            }
-            
-            string fileName = args[0];
-            SaveGame saveGame = new SaveGame(fileName);
+            string fileName = args.Args[0];
+            SaveGame saveGame = new(fileName);
 
             if (saveGame.Model == null)
             {
@@ -115,8 +102,32 @@ namespace Helion.Client
 
             LoadMap(GetMapInfo(worldModel.MapName), worldModel, NoPlayers);
         }
+        
+        [ConsoleCommand("map", "Starts a new world with the map provided")]
+        [ConsoleCommandArg("mapName", "The name of the map")]
+        private void CommandHandleMap(ConsoleCommandEventArgs args)
+        {
+            MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
+            NewGame(mapInfo);
+        }
 
-        private void StartNewGame()
+        [ConsoleCommand("musicVolume", "Sets the music volume")]
+        [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
+        private void CommandSetMusicVolume(ConsoleCommandEventArgs args)
+        {
+            if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+            {
+                Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
+                return;
+            }
+
+            // TODO: The audio system should be listening to the config.
+            m_config.Audio.MusicVolume.Set(volume);
+            m_audioSystem.Music.SetVolume(volume);
+        }
+        
+        [ConsoleCommand("startGame", "Starts a new game")]
+        private void CommandStartNewGame(ConsoleCommandEventArgs args)
         {
             MapInfoDef? mapInfoDef = GetDefaultMap();
             if (mapInfoDef == null)
@@ -127,79 +138,100 @@ namespace Helion.Client
 
             NewGame(mapInfoDef);
         }
+        
+        [ConsoleCommand("soundVolume", "Sets the sound volume")]
+        [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
+        private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
+        {
+            if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+            {
+                Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
+                return;
+            }
+
+            // TODO: The audio system should be listening to the config.
+            m_config.Audio.SoundVolume.Set(volume);
+            m_audioSystem.SetVolume(volume);
+        }
+
+        private void Console_OnCommand(object? sender, ConsoleCommandEventArgs args)
+        {
+            if (TryHandleConsoleCommand(args))
+                return;
+
+            if (TryHandleCheatCommand(args))
+                return;
+
+            if (TryHandleConfigVariableCommand(args))
+                return;
+                
+            Log.Warn($"No such command or config variable: {args.Command}");
+        }
+
+        private bool TryHandleCheatCommand(ConsoleCommandEventArgs args)
+        {
+            List<Player>? players = m_layerManager.WorldLayer?.World.EntityManager.Players;
+            if (players == null || players.Empty())
+                return false;
+            
+            return CheatManager.Instance.HandleCommand(players[0], args.Command);
+        }
+
+        private bool TryHandleConsoleCommand(ConsoleCommandEventArgs args)
+        {
+            if (m_consoleCommands.Invoke(args))
+                return true;
+
+            if (!m_consoleCommands.TryGet(args.Command, out ConsoleCommandData? cmd)) 
+                return false;
+            
+            string cmdArgs = cmd.Args.Select(arg => arg.Optional ? $"[{arg.Name}]" : $"<{arg.Name}>").Join(", ");
+            Log.Warn($"Invalid number of arguments for command {cmd.Info.Command}");
+            Log.Warn($"    Usage: {cmd.Info.Command} {cmdArgs}");
+            return true;
+        }
+
+        private bool TryHandleConfigVariableCommand(ConsoleCommandEventArgs args)
+        {
+            if (!m_config.TryGetComponent(args.Command, out ConfigComponent? component)) 
+                return false;
+            
+            if (args.Args.Empty())
+            {
+                Log.Info($"{component.Path} = {component.Value}");
+                return true;
+            }
+            
+            ConfigSetResult result = component.Value.Set(args.Args[0]);
+            switch (result)
+            {
+                case ConfigSetResult.Set:
+                    Log.Info($"Set {args.Command} to {args.Args[0]}");
+                    break;
+                case ConfigSetResult.Unchanged:
+                    Log.Info($"{args.Command} set to the same value as before");
+                    break;
+                case ConfigSetResult.Queued:
+                    Log.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
+                    break;
+                case ConfigSetResult.NotSetByBadConversion:
+                    Log.Info($"{args.Command} could not be set, incompatible argument");
+                    break;
+                case ConfigSetResult.NotSetByFilter:
+                    Log.Info($"{args.Command} could not be set, out of range or invalid argument");
+                    break;
+                default:
+                    Log.Error($"{args.Command} unexpected setting result, report to a developer!");
+                    break;
+            }
+            
+            return true;
+        }
 
         private void NewGame(MapInfoDef mapInfo)
         {
             m_globalData = new();
             LoadMap(mapInfo, null, NoPlayers);
-        }
-
-        private void PrintAudioDevices()
-        {
-            int num = 1;
-            foreach (string device in m_audioSystem.GetDeviceNames())
-                Log.Info($"{num++}. {device}");
-        }
-
-        private void HandleAudioDevice(IList<string> args)
-        {
-            if (args.Empty())
-            {
-                Log.Info(m_audioSystem.GetDeviceName());
-                return;
-            }
-
-            if (!int.TryParse(args[0], out int deviceIndex))
-                return;
-
-            deviceIndex--;
-            List<string> deviceNames = m_audioSystem.GetDeviceNames().ToList();
-            if (deviceIndex < 0 || deviceIndex >= deviceNames.Count)
-                return;
-
-            SetAudioDevice(deviceNames[deviceIndex]);
-        }
-
-        private void SetAudioDevice(string deviceName)
-        {
-            m_config.Audio.Device.Set(deviceName);
-            m_audioSystem.SetDevice(deviceName);
-            m_audioSystem.SetVolume(m_config.Audio.Volume);
-        }
-
-        private void SetSoundVolume(IList<string> args)
-        {
-            if (args.Empty() || !SimpleParser.TryParseFloat(args[0], out float volume))
-            {
-                Log.Info("Usage: soundvolume <volume>");
-                return;
-            }
-
-            m_config.Audio.SoundVolume.Set(volume);
-            m_audioSystem.SetVolume(volume);
-        }
-
-        private void SetMusicVolume(IList<string> args)
-        {
-            if (args.Empty() || !SimpleParser.TryParseFloat(args[0], out float volume))
-            {
-                Log.Info("Usage: musicvolume <volume>");
-                return;
-            }
-
-            m_config.Audio.MusicVolume.Set(volume);
-            m_audioSystem.Music.SetVolume(volume);
-        }
-
-        private void HandleMap(IList<string> args)
-        {
-            if (args.Empty())
-            {
-                Log.Info("Usage: map <mapName>");
-                return;
-            }
-
-            NewGame(GetMapInfo(args[0]));    
         }
 
         private MapInfoDef GetMapInfo(string mapName) =>
@@ -349,7 +381,7 @@ namespace Helion.Client
                 LoadMap(nextMapInfo, null, world.EntityManager.Players);
         }
 
-        void HandleZDoomTransition(IWorld world, ClusterDef? cluster, MapInfoDef? nextMapInfo)
+        private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, MapInfoDef? nextMapInfo)
         {
             if (cluster == null)
                 return;
@@ -385,7 +417,7 @@ namespace Helion.Client
         private void ShowConsole()
         {
             if (m_layerManager.ConsoleLayer == null)
-                m_layerManager.Add(new ConsoleLayer(m_console));
+                m_layerManager.Add(new ConsoleLayer(m_config, m_console, m_consoleCommands));
         }
 
         private void LogError(string error)

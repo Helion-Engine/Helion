@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using Helion.World.Entities.Players;
 
 namespace Helion.World.Cheats
 {
-    public class CheatManager
+    public class CheatManager : IEnumerable<ICheat>
     {
         private const string BeholdActivated = "$STSTR_BEHOLDX";
 
@@ -105,5 +106,8 @@ namespace Helion.World.Cheats
                 }
             }
         }
+
+        public IEnumerator<ICheat> GetEnumerator() => ((IEnumerable<ICheat>)Cheats).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
