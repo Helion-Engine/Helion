@@ -17,7 +17,6 @@ namespace Helion.Layer.Consoles
         private const string FontName = "Console";
         private const long FlashSpanNanos = 500 * 1000L * 1000L;
         private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
-        
         private static bool IsCursorFlashTime => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
         
         public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -102,6 +101,7 @@ namespace Helion.Layer.Consoles
             const int BetweenMessagePadding = 7;
 
             int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
+            int offsetCount = 0;
             
             // Note: If we do something that triggers a message, that can modify
             // the collection while iterating. A shallow copy is needed.
@@ -110,6 +110,12 @@ namespace Helion.Layer.Consoles
             {
                 if (bottomY <= 0)
                     break;
+
+                if (offsetCount < m_messageRenderOffset)
+                {
+                    offsetCount++;
+                    continue;
+                }
 
                 hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea, 
                     anchor: Align.BottomLeft);

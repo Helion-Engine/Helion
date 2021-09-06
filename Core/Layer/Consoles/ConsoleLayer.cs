@@ -15,6 +15,7 @@ namespace Helion.Layer.Consoles
         private readonly IConfig m_config;
         private readonly HelionConsole m_console;
         private readonly ConsoleCommands m_consoleCommands;
+        private int m_messageRenderOffset;
         private bool m_disposed;
 
         public ConsoleLayer(IConfig config, HelionConsole console, ConsoleCommands consoleCommands)

@@ -40,6 +40,10 @@ namespace Helion.Layer.Consoles
                 SetToMoreRecentInput();
             if (input.ConsumeKeyPressed(Key.Tab))
                 ApplyAutocomplete();
+            if (input.ConsumeKeyPressed(Key.PageUp))
+                GoBackInMessageHistory();
+            if (input.ConsumeKeyPressed(Key.PageDown))
+                GoForwardInMessageHistory();
 
             if (input.ConsumeKeyPressed(Key.Enter))
             {
@@ -48,6 +52,16 @@ namespace Helion.Layer.Consoles
             }
 
             input.ConsumeAll();
+        }
+
+        private void GoBackInMessageHistory()
+        {
+            m_messageRenderOffset = Math.Min(m_messageRenderOffset + 10, m_console.Messages.Count - 1);
+        }
+        
+        private void GoForwardInMessageHistory()
+        {
+            m_messageRenderOffset = Math.Max(0, m_messageRenderOffset - 10);
         }
 
         private void ApplyAutocomplete()
