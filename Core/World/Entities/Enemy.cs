@@ -353,10 +353,10 @@ namespace Helion.World.Entities
         {
             if (!MoveEnemy(out TryMoveData? tryMove))
             {
-                if (tryMove != null && tryMove.IntersectSpecialLines.Count > 0)
+                if (tryMove != null && tryMove.ImpactSpecialLines.Count > 0)
                 {
-                    for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                        World.ActivateSpecialLine(this, tryMove.IntersectSpecialLines[i], ActivationContext.UseLine);
+                    for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+                        World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
                 }
 
                 return false;

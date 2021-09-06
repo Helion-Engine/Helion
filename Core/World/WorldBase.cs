@@ -912,8 +912,8 @@ namespace Helion.World
 
             if (entity.Flags.Missile && tryMove != null)
             {
-                for (int i = 0; i < tryMove.IntersectSpecialLines.Count; i++)
-                    ActivateSpecialLine(entity, tryMove.IntersectSpecialLines[i], ActivationContext.ProjectileHitLine);
+                for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+                    ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.ProjectileHitLine);
             }
 
             if (entity.ShouldDieOnCollison())
