@@ -40,7 +40,7 @@ namespace Helion.Client
         private bool m_disposed;
 
         public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
-            base(new GameWindowSettings(), MakeNativeWindowSettings(config))
+            base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
         {
             Log.Debug("Creating client window");
             
@@ -60,21 +60,20 @@ namespace Helion.Client
             TextInput += Window_TextInput;
         }
 
-        public void SetGrabCursor(bool set) => CursorGrabbed = set;
-
-        private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
-        {
-            if (Constants.UseNewRenderer)
-                return new GLRenderer(config, this, archiveCollection);
-            return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
-        }
-
         ~Window()
         {
             FailedToDispose(this);
             PerformDispose();
         }
 
+        private static GameWindowSettings MakeGameWindowSettings()
+        {
+            return new GameWindowSettings
+            {
+                RenderFrequency = 500
+            };
+        }
+        
         private static NativeWindowSettings MakeNativeWindowSettings(IConfig config)
         {
             (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
@@ -91,6 +90,15 @@ namespace Helion.Client
                 WindowBorder = config.Window.Border,
                 WindowState = config.Window.State
             };
+        }
+        
+        public void SetGrabCursor(bool set) => CursorGrabbed = set;
+
+        private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
+        {
+            if (Constants.UseNewRenderer)
+                return new GLRenderer(config, this, archiveCollection);
+            return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
         }
 
         private void Window_KeyUp(KeyboardKeyEventArgs args)
