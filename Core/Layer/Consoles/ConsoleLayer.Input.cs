@@ -68,7 +68,33 @@ namespace Helion.Layer.Consoles
 
         private void DoAutoCompleteFill()
         {
-            Log.Info("Doing autocomplete fill");
+            string input = m_console.Input;
+            string? bestMatch = null;
+
+            foreach ((string command, _) in m_consoleCommands)
+                AssignIfBest(command);
+            foreach ((string path, _) in m_config)
+                AssignIfBest(path);
+            foreach (ICheat cheat in CheatManager.Instance)
+                if (cheat.ConsoleCommand != null)
+                    AssignIfBest(cheat.ConsoleCommand);
+            
+            if (bestMatch != null)
+            {
+                m_console.ClearInputText();
+                m_console.AddInput(bestMatch);
+            }
+
+            void AssignIfBest(string item)
+            {
+                if (!item.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                    return;
+                
+                if (bestMatch == null)
+                    bestMatch = item;
+                else if (string.Compare(item, bestMatch, StringComparison.Ordinal) < 0)
+                    bestMatch = item;
+            }
         }
 
         private void DoAutoCompleteEnumeration()
