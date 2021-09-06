@@ -28,6 +28,6 @@ namespace Helion.Util.Profiling
             m_stopwatch.Reset();
         }
 
-        public override string ToString() => $"Frame = {FrameMilliseconds} ms, Total = {TotalMilliseconds} ms";
+        public override string ToString() => $"Frame = {FrameMilliseconds:0.######} ms, Total = {TotalMilliseconds:0.####} ms";
     }
 }

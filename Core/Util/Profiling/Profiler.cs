@@ -10,7 +10,13 @@ namespace Helion.Util.Profiling
         public readonly ProfilerStopwatch Logic = new();
         public readonly RenderProfiler Render = new();
         public readonly WorldProfiler World = new();
+        public int FrameCount { get; private set; }
 
+        public void MarkFrameFinished()
+        {
+            FrameCount++;
+        }
+        
         public void ResetTimers()
         {
             Global.Reset();

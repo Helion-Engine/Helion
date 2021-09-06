@@ -183,6 +183,7 @@ namespace Helion.Client
             m_soundManager.Update();
             
             m_profiler.Global.Stop();
+            m_profiler.MarkFrameFinished();
         }
 
         /// <summary>
