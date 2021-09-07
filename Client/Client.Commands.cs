@@ -68,7 +68,7 @@ namespace Helion.Client
                 Log.Info($"{num++}. {device}");
         }
         
-        [ConsoleCommand("exit", $"Exits {Constants.ApplicationName}")]
+        [ConsoleCommand("exit", "Exits Helion")]
         private void CommandExit(ConsoleCommandEventArgs args)
         {
             m_window.Close();
