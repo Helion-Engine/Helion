@@ -1311,7 +1311,7 @@ namespace Helion.Maps.Specials.Vanilla
                 case VanillaLineSpecialType.G1_RaiseFloorToMatchNextHigherChangeTexture:
                 case VanillaLineSpecialType.G_EndLevel:
                 case VanillaLineSpecialType.G_EndLevelSecret:
-                    activations = LineActivations.Player | LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
+                    activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
                     return activations;
 
                 case VanillaLineSpecialType.ScrollTextureLeft:

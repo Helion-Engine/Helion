@@ -66,8 +66,8 @@ namespace Helion.World.Special
 
                 case ZDoomLineSpecialType.Teleport:
                 case ZDoomLineSpecialType.TeleportNoFog:
-                    if (flags.Activations == (LineActivations.Player | LineActivations.CrossLine))//  == ActivationType.PlayerLineCross)
-                        flags.Activations |= LineActivations.Monster;// ActivationType.PlayerOrMonsterLineCross;
+                    if (flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
+                        flags.Activations |= LineActivations.Monster;
                     break;
             }
         }
