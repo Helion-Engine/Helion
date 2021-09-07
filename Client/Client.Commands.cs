@@ -54,7 +54,7 @@ namespace Helion.Client
             string deviceName = deviceNames[deviceIndex];
             Log.Info($"Setting audio device to {deviceName}");
             
-            // TODO: The audio device should be listening to the config.
+            // TODO: We should poll the device after setting it, and if SetDevice == true, set the config value.
             m_config.Audio.Device.Set(deviceName);
             m_audioSystem.SetDevice(deviceName);
             m_audioSystem.SetVolume(m_config.Audio.Volume);
@@ -111,21 +111,6 @@ namespace Helion.Client
             NewGame(mapInfo);
         }
 
-        [ConsoleCommand("musicVolume", "Sets the music volume")]
-        [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
-        private void CommandSetMusicVolume(ConsoleCommandEventArgs args)
-        {
-            if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
-            {
-                Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
-                return;
-            }
-
-            // TODO: The audio system should be listening to the config.
-            m_config.Audio.MusicVolume.Set(volume);
-            m_audioSystem.Music.SetVolume(volume);
-        }
-        
         [ConsoleCommand("startGame", "Starts a new game")]
         private void CommandStartNewGame(ConsoleCommandEventArgs args)
         {

@@ -322,7 +322,7 @@ namespace Helion.Client
             {
                 ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
                 using HelionConsole console = new(config, commandLineArgs);
-                using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(@"SoundFonts\Default.sf2");
+                using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(config, @"SoundFonts\Default.sf2");
                 musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
                 using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
                 audioPlayer.SetVolume(config.Audio.SoundVolume.Value);

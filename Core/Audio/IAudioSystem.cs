@@ -35,11 +35,15 @@ namespace Helion.Audio
         /// </summary>
         /// <param name="volume">Volume in range of 0.0 to 1.0.</param>
         void SetVolume(double volume);
-
+        
         /// <summary>
-        /// <param name="deviceName">String of the audio device to set. Use DefaultAudioDevice property to set default audio device.</param>
+        /// Sets the device to the device name that exists.
         /// </summary>
-        void SetDevice(string deviceName);
+        /// <param name="deviceName">String of the audio device to set. Use
+        /// DefaultAudioDevice property to set default audio device.</param>
+        /// <returns>True if the device was successfully set, false if not.
+        /// </returns>
+        bool SetDevice(string deviceName);
 
         /// <summary>
         /// The music player.

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using Helion.Audio;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NFluidsynth;
 using static Helion.Util.Assertion.Assert;
@@ -10,14 +11,13 @@ namespace Helion.Client.Music
 {
     public class FluidSynthMusicPlayer : IMusicPlayer
     {
-        private bool m_disposed;
-        private string m_lastDataHash = string.Empty;
-
         private readonly string m_soundFontFile;
         private readonly Settings m_settings;
-
+        private readonly IConfig m_config;
+        private string m_lastDataHash = string.Empty;
         private Player? m_player;
         private Thread? m_thread;
+        private bool m_disposed;
 
         private class PlayParams
         {
@@ -25,17 +25,25 @@ namespace Helion.Client.Music
             public bool Loop { get; set; }
         }
         
-        public FluidSynthMusicPlayer(string soundFontFile)
+        public FluidSynthMusicPlayer(IConfig config, string soundFontFile)
         {
+            m_config = config;
             m_soundFontFile = soundFontFile;
             m_settings = new Settings();
             m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
+
+            m_config.Audio.MusicVolume.OnChanged += OnMusicVolumeChange;
         }
 
         ~FluidSynthMusicPlayer()
         {
             FailedToDispose(this);
             PerformDispose();
+        }
+        
+        private void OnMusicVolumeChange(object? sender, double newVolume)
+        {
+            SetVolume((float)newVolume);
         }
 
         public void SetVolume(float volume)
@@ -113,6 +121,8 @@ namespace Helion.Client.Music
         {
             if (m_disposed)
                 return;
+            
+            m_config.Audio.MusicVolume.OnChanged -= OnMusicVolumeChange;
 
             Stop();
             m_settings.Dispose();

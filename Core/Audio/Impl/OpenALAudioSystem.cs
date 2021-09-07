@@ -34,6 +34,8 @@ namespace Helion.Audio.Impl
             m_alContext = new OpenALContext(m_alDevice);
             Music = musicPlayer;
 
+            m_config.Audio.SoundVolume.OnChanged += OnSoundVolumeChange;
+
             PrintOpenALInfo();
             DiscoverExtensions();
         }
@@ -50,7 +52,7 @@ namespace Helion.Audio.Impl
             return m_alDevice.DeviceName;
         }
 
-        public void SetDevice(string deviceName)
+        public bool SetDevice(string deviceName)
         {
             DeviceChanging?.Invoke(this, EventArgs.Empty);
 
@@ -59,6 +61,9 @@ namespace Helion.Audio.Impl
 
             m_alDevice = new OpenALDevice(deviceName);
             m_alContext = new OpenALContext(m_alDevice);
+
+            // TODO: This assumes we always successfully changed. We should probably limit this.
+            return true;
         }
 
         public void SetVolume(double volume)
@@ -103,6 +108,11 @@ namespace Helion.Audio.Impl
             FailedToDispose(this);
             PerformDispose();
         }
+        
+        private void OnSoundVolumeChange(object? sender, double newVolume)
+        {
+            SetVolume(newVolume);
+        }
 
         public IAudioSourceManager CreateContext()
         {
@@ -136,6 +146,8 @@ namespace Helion.Audio.Impl
             m_sourceManagers.ToList().ForEach(srcManager => srcManager.Dispose());
             Invariant(m_sourceManagers.Empty(), "Disposal of AL audio context children should empty out of the context container");
 
+            m_config.Audio.SoundVolume.OnChanged -= OnSoundVolumeChange;
+            
             m_alContext.Dispose();
             m_alDevice.Dispose();
             Music.Dispose();
