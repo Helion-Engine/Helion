@@ -215,10 +215,10 @@ namespace Helion.Client
                     Log.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
                     break;
                 case ConfigSetResult.NotSetByBadConversion:
-                    Log.Info($"{args.Command} could not be set, incompatible argument");
+                    Log.Warn($"{args.Command} could not be set, incompatible argument");
                     break;
                 case ConfigSetResult.NotSetByFilter:
-                    Log.Info($"{args.Command} could not be set, out of range or invalid argument");
+                    Log.Warn($"{args.Command} could not be set, out of range or invalid argument");
                     break;
                 default:
                     Log.Error($"{args.Command} unexpected setting result, report to a developer!");
