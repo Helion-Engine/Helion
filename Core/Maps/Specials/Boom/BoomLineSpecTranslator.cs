@@ -255,7 +255,7 @@ namespace Helion.Maps.Specials.Boom
 
                 case BoomActivationType.WalkRepeat:
                     repeat = true;
-                    activations |= LineActivations.Player | LineActivations.Monster | LineActivations.CrossLine;
+                    activations |= LineActivations.Player | LineActivations.CrossLine;
                     return activations;
 
                 case BoomActivationType.PushOnce:
