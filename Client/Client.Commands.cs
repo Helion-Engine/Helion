@@ -206,7 +206,7 @@ namespace Helion.Client
             switch (result)
             {
                 case ConfigSetResult.Set:
-                    Log.Info($"Set {args.Command} to {args.Args[0]}");
+                    Log.Info($"Set {args.Command} to {component.Value.ObjectValue}");
                     break;
                 case ConfigSetResult.Unchanged:
                     Log.Info($"{args.Command} set to the same value as before");
