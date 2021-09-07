@@ -358,7 +358,7 @@ namespace Helion.World
                 if (player.Sector.SectorDamageSpecial != null)
                     player.Sector.SectorDamageSpecial.Tick(player);
 
-                if (player.Sector.Secret)
+                if (player.Sector.Secret && player.Sector.ToFloorZ(player.Position) == player.Position.Z)
                 {
                     DisplayMessage(player, null, "$SECRETMESSAGE");
                     SoundManager.PlayStaticSound("misc/secret");
