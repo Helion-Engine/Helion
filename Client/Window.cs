@@ -58,6 +58,9 @@ namespace Helion.Client
             MouseUp += Window_MouseUp;
             MouseWheel += Window_MouseWheel;
             TextInput += Window_TextInput;
+
+            m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
+            m_config.Render.VSync.OnChanged += OnVSyncChanged;
         }
 
         ~Window()
@@ -163,6 +166,16 @@ namespace Helion.Client
         {
             m_inputManager.AddMouseMovement((x, y));
         }
+        
+        private void OnMaxFpsChanged(object? sender, int maxFps)
+        {
+            RenderFrequency = maxFps;
+        }
+        
+        private void OnVSyncChanged(object? sender, bool useVSync)
+        {
+            VSync = useVSync ? VSyncMode.Adaptive : VSyncMode.Off;
+        }
 
         private void PerformDispose()
         {
@@ -176,6 +189,9 @@ namespace Helion.Client
             MouseUp -= Window_MouseUp;
             MouseWheel -= Window_MouseWheel;
             TextInput -= Window_TextInput;
+
+            m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
+            m_config.Render.VSync.OnChanged -= OnVSyncChanged;
 
             m_disposed = true;
         }

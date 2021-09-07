@@ -116,11 +116,6 @@ namespace Helion.Client
             m_profiler.Logic.Stop();
         }
 
-        private bool ShouldRender()
-        {
-            return m_fpsLimitValue <= 0 || m_fpsLimit.ElapsedTicks * StopwatchFrequencyValue / Stopwatch.Frequency >= m_fpsLimitValue;
-        }
-
         private void PerformRender()
         {
             m_layerManager.Render(m_window.Renderer);
@@ -151,12 +146,8 @@ namespace Helion.Client
 
         private void Render()
         {
-            if (!ShouldRender())
-                return;
-
             m_profiler.Render.Total.Start();
             
-            m_fpsLimit.Restart();
             PerformRender();
             HandleScreenshot();
             

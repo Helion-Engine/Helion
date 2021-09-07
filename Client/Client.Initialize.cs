@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
@@ -14,21 +13,8 @@ namespace Helion.Client
 {
     public partial class Client
     {
-        private const int StopwatchFrequencyValue = 1000000;
-
-        private readonly Stopwatch m_fpsLimit = new();
-        private int m_fpsLimitValue;
-
-        private void SetFPSLimit()
-        {
-            if (m_config.Render.MaxFPS > 0)
-                m_fpsLimitValue = StopwatchFrequencyValue / m_config.Render.MaxFPS;
-            m_fpsLimit.Start();
-        }
-
         private void Initialize()
         {
-            SetFPSLimit();
             LoadFiles();
 
             if (m_commandLineArgs.Skill.HasValue)

@@ -60,7 +60,15 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValue<bool> LightDropoff = new(true);
         
         [ConfigInfo("A cap on the maximum amount of frames per second. Zero is equivalent to no cap.")]
-        public readonly ConfigValue<int> MaxFPS = new(0);
+        public readonly ConfigValue<int> MaxFPS = new(250, fps =>
+        {
+            return fps switch
+            {
+                <= 0 => 0,
+                < 35 => 35,
+                _ => fps
+            };
+        });
 
         public readonly ConfigRenderMultisample Multisample = new();
 
