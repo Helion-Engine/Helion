@@ -1,33 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Consoles;
 using Helion.World.Util;
 
 namespace Helion.Client
 {
     public partial class Client
     {
-        private const int StopwatchFrequencyValue = 1000000;
-
-        private readonly Stopwatch m_fpsLimit = new();
-        private int m_fpsLimitValue;
-
-        private void SetFPSLimit()
-        {
-            if (m_config.Render.MaxFPS > 0)
-                m_fpsLimitValue = StopwatchFrequencyValue / m_config.Render.MaxFPS;
-            m_fpsLimit.Start();
-        }
-
         private void Initialize()
         {
-            SetFPSLimit();
             LoadFiles();
 
             if (m_commandLineArgs.Skill.HasValue)
@@ -42,7 +29,8 @@ namespace Helion.Client
 
             if (m_commandLineArgs.LoadGame != null)
             {
-                HandleLoadGame(new[] { m_commandLineArgs.LoadGame });
+                ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
+                CommandLoadGame(args);
             }
             else
             {
@@ -141,7 +129,7 @@ namespace Helion.Client
 
             if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
             {
-                ConsoleLayer layer = new(m_console);
+                ConsoleLayer layer = new(m_config, m_console, m_consoleCommands);
                 m_layerManager.Add(layer);
             }
         }

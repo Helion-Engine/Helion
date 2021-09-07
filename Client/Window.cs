@@ -40,7 +40,7 @@ namespace Helion.Client
         private bool m_disposed;
 
         public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
-            base(new GameWindowSettings(), MakeNativeWindowSettings(config))
+            base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
         {
             Log.Debug("Creating client window");
             
@@ -58,15 +58,9 @@ namespace Helion.Client
             MouseUp += Window_MouseUp;
             MouseWheel += Window_MouseWheel;
             TextInput += Window_TextInput;
-        }
 
-        public void SetGrabCursor(bool set) => CursorGrabbed = set;
-
-        private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
-        {
-            if (Constants.UseNewRenderer)
-                return new GLRenderer(config, this, archiveCollection);
-            return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
+            m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
+            m_config.Render.VSync.OnChanged += OnVSyncChanged;
         }
 
         ~Window()
@@ -75,6 +69,14 @@ namespace Helion.Client
             PerformDispose();
         }
 
+        private static GameWindowSettings MakeGameWindowSettings()
+        {
+            return new GameWindowSettings
+            {
+                RenderFrequency = 500
+            };
+        }
+        
         private static NativeWindowSettings MakeNativeWindowSettings(IConfig config)
         {
             (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
@@ -91,6 +93,15 @@ namespace Helion.Client
                 WindowBorder = config.Window.Border,
                 WindowState = config.Window.State
             };
+        }
+        
+        public void SetGrabCursor(bool set) => CursorGrabbed = set;
+
+        private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
+        {
+            if (Constants.UseNewRenderer)
+                return new GLRenderer(config, this, archiveCollection);
+            return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
         }
 
         private void Window_KeyUp(KeyboardKeyEventArgs args)
@@ -155,6 +166,16 @@ namespace Helion.Client
         {
             m_inputManager.AddMouseMovement((x, y));
         }
+        
+        private void OnMaxFpsChanged(object? sender, int maxFps)
+        {
+            RenderFrequency = maxFps;
+        }
+        
+        private void OnVSyncChanged(object? sender, bool useVSync)
+        {
+            VSync = useVSync ? VSyncMode.Adaptive : VSyncMode.Off;
+        }
 
         private void PerformDispose()
         {
@@ -168,6 +189,9 @@ namespace Helion.Client
             MouseUp -= Window_MouseUp;
             MouseWheel -= Window_MouseWheel;
             TextInput -= Window_TextInput;
+
+            m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
+            m_config.Render.VSync.OnChanged -= OnVSyncChanged;
 
             m_disposed = true;
         }

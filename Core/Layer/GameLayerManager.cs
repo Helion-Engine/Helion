@@ -15,7 +15,9 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Profiling;
 using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Save;
@@ -39,9 +41,11 @@ namespace Helion.Layer
         private readonly IConfig m_config;
         private readonly IWindow m_window;
         private readonly HelionConsole m_console;
+        private readonly ConsoleCommands m_consoleCommands;
         private readonly ArchiveCollection m_archiveCollection;
         private readonly SoundManager m_soundManager;
         private readonly SaveGameManager m_saveGameManager;
+        private readonly Profiler m_profiler;
         private bool m_disposed;
 
         private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -50,15 +54,18 @@ namespace Helion.Layer
             ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
         }.WhereNotNull();
 
-        public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ArchiveCollection archiveCollection,
-            SoundManager soundManager, SaveGameManager saveGameManager)
+        public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
+            ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager,
+            Profiler profiler)
         {
             m_config = config;
             m_window = window;
             m_console = console;
+            m_consoleCommands = consoleCommands;
             m_archiveCollection = archiveCollection;
             m_soundManager = soundManager;
             m_saveGameManager = saveGameManager;
+            m_profiler = profiler;
         }
 
         ~GameLayerManager()
@@ -191,7 +198,7 @@ namespace Helion.Layer
             input.ConsumeAll();
             
             if (ConsoleLayer == null)
-                Add(new ConsoleLayer(m_console));
+                Add(new ConsoleLayer(m_config, m_console, m_consoleCommands));
             else
                 Remove(ConsoleLayer);
         }
@@ -202,6 +209,14 @@ namespace Helion.Layer
             
             MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
             Add(menuLayer);
+        }
+        
+        public void GoToSaveOrLoadMenu(bool isSave)
+        {
+            if (MenuLayer == null)
+                CreateMenuLayer();
+            
+            MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave);
         }
 
         public void RunLogic()
@@ -227,6 +242,7 @@ namespace Helion.Layer
 
                 WorldLayer?.Render(ctx);
                 
+                m_profiler.Render.MiscLayers.Start();
                 ctx.Hud(hudContext, hud =>
                 {
                     IntermissionLayer?.Render(ctx, hud);
@@ -236,6 +252,7 @@ namespace Helion.Layer
                     MenuLayer?.Render(hud);
                     ConsoleLayer?.Render(ctx, hud);
                 });
+                m_profiler.Render.MiscLayers.Stop();
             });
         }
 

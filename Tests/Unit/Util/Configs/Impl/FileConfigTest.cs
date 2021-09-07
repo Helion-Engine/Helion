@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using FluentAssertions;
 using Helion.Util.Configs.Impl;
 using Helion.Window.Input;
@@ -15,7 +14,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             {
                 return Path.GetTempFileName();
             }
-            catch (Exception e)
+            catch
             {
                 false.Should().BeTrue("OS failed to give us a temporary file path");
                 return "";
@@ -53,7 +52,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             contentBefore.Should().NotContain(FileConfig.KeysSectionName);
             
             // Note: Force it to write since we're not changing anything.
-            FileConfig fileConfig = new(tempPath);
+            FileConfig fileConfig = new(tempPath, false);
             fileConfig.Write(tempPath, true).Should().BeTrue();
             
             // It should be different, and we want to make sure certain parts
@@ -70,7 +69,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             string contentBefore = File.ReadAllText(tempPath);
             contentBefore.Should().NotContain(FileConfig.EngineSectionName);
             
-            FileConfig fileConfig = new(GetTempFilePath());
+            FileConfig fileConfig = new(GetTempFilePath(), false);
             fileConfig.Write().Should().BeTrue();
             
             string contentAfter = File.ReadAllText(tempPath);

@@ -11,7 +11,7 @@ namespace Helion.Util.Timing
     /// </remarks>
     public class FpsTracker
     {
-        private const long RefreshRateMs = 1000;
+        private const long RefreshRateMs = 600;
 
         public double AverageFramesPerSecond { get; private set; }
         public double MaxFramesPerSecond { get; private set; }

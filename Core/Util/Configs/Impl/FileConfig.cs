@@ -27,7 +27,7 @@ namespace Helion.Util.Configs.Impl
         private readonly string m_filePath;
         private bool m_noFileExistedWhenRead;
 
-        public FileConfig(string filePath, bool addDefaultsIfNew = true)
+        public FileConfig(string filePath, bool addDefaultsIfNew)
         {
             m_filePath = filePath;
             
