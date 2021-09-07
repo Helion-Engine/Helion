@@ -912,7 +912,13 @@ namespace Helion.World.Entities.Players
 
         public bool FireWeapon()
         {
-            if (!CheckAmmo() || PendingWeapon != null || Weapon == null || !Weapon.ReadyToFire)
+            if (!CheckAmmo())
+            {
+                TrySwitchWeapon();
+                return false;
+            }
+
+            if (PendingWeapon != null || Weapon == null || !Weapon.ReadyToFire)
                 return false;
 
             SetWeaponTop();
