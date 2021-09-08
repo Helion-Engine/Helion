@@ -75,6 +75,8 @@ namespace Helion.Layer.Worlds
                 m_autoMapOffset = (0, 0);
                 m_autoMapScale = m_config.Hud.AutoMap.Scale;
             }
+
+            input.ConsumeScroll();
         }
         
         private void HandleAutoMapInput(IConsumableInput input)

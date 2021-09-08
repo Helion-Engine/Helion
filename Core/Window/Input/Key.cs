@@ -125,6 +125,8 @@
         MouseCustom5,
         MouseCustom6,
         MouseCustom7,
-        MouseCustom8
+        MouseCustom8,
+        MouseWheelUp,
+        MouseWheelDown,
     }
 }

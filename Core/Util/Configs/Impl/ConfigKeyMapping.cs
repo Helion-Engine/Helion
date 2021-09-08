@@ -46,8 +46,8 @@ namespace Helion.Util.Configs.Impl
             Add(Key.AltRight, Constants.Input.Strafe);
             Add(Key.Left, Constants.Input.TurnLeft);
             Add(Key.Right, Constants.Input.TurnRight);
-            Add(Key.O, Constants.Input.LookUp);
-            Add(Key.L, Constants.Input.LookDown);
+            Add(Key.Up, Constants.Input.LookUp);
+            Add(Key.Down, Constants.Input.LookDown);
             Add(Key.Space, Constants.Input.Jump);
             Add(Key.C, Constants.Input.Crouch);
             Add(Key.Backtick, Constants.Input.Console);
@@ -75,6 +75,8 @@ namespace Helion.Util.Configs.Impl
             Add(Key.F2, Constants.Input.Save);
             Add(Key.F3, Constants.Input.Load);
             Add(Key.Tab, Constants.Input.Automap);
+            Add(Key.MouseWheelUp, Constants.Input.NextWeapon);
+            Add(Key.MouseWheelDown, Constants.Input.PreviousWeapon);
         }
 
         public void ClearChanged()
@@ -113,16 +115,38 @@ namespace Helion.Util.Configs.Impl
         public bool ConsumeCommandKeyPress(string command, IConsumableInput input)
         {
             foreach (Key key in this[command])
+            {
+                if (ConsumeMouseWheel(key, input))
+                    return true;
+
                 if (input.ConsumeKeyPressed(key))
                     return true;
+            }
+
             return false;
         }
 
         public bool ConsumeCommandKeyDown(string command, IConsumableInput input)
         {
             foreach (Key key in this[command])
+            {
+                if (ConsumeMouseWheel(key, input))
+                    return true;
+
                 if (input.ConsumeKeyDown(key))
                     return true;
+            }
+
+            return false;
+        }
+
+        private static bool ConsumeMouseWheel(Key key, IConsumableInput input)
+        {
+            if (key == Key.MouseWheelUp && input.Manager.Scroll > 0)
+                return input.ConsumeScroll() > 0;
+            else if (key == Key.MouseWheelDown && input.Manager.Scroll < 0)
+                return input.ConsumeScroll() < 0;
+
             return false;
         }
 

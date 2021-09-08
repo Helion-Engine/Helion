@@ -38,6 +38,7 @@ namespace Helion.Client
         private readonly bool IgnoreMouseEvents;
         private readonly InputManager m_inputManager = new();
         private bool m_disposed;
+        private Vec2F m_prevScroll = Vec2F.Zero;
 
         public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
             base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
@@ -154,7 +155,9 @@ namespace Helion.Client
 
         private void Window_MouseWheel(MouseWheelEventArgs args)
         {
-            m_inputManager.AddMouseScroll(args.OffsetY);
+            m_inputManager.AddMouseScroll(args.OffsetY - m_prevScroll.Y);
+            m_prevScroll.X = args.OffsetX;
+            m_prevScroll.Y = args.OffsetY;
         }
         
         private void Window_TextInput(TextInputEventArgs args)
