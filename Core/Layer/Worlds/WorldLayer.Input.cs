@@ -120,7 +120,7 @@ namespace Helion.Layer.Worlds
             
             foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
                 if (IsCommandDown(command, input))
-                    m_tickCommand.Add(tickCommand);
+                    m_tickCommand.Add(tickCommand, true);
         }
         
         private void ChangeHudSize(bool increase)
