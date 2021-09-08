@@ -20,7 +20,7 @@ namespace Helion.Util.Configs.Components
     public class ConfigRenderMultisample
     {
         [ConfigInfo("Whether multisampling should be used or not.")]
-        public readonly ConfigValue<bool> Enable = new(true);
+        public readonly ConfigValue<bool> Enable = new(false);
 
         [ConfigInfo("If true, overrides multisampling to use the max value supported.")]
         public readonly ConfigValue<bool> UseMaxSupported = new(false);
@@ -32,7 +32,7 @@ namespace Helion.Util.Configs.Components
     public class ConfigRenderFilter
     {
         [ConfigInfo("The kind of filter applied to fonts.")]
-        public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
+        public readonly ConfigValue<FilterType> Font = new(FilterType.Trilinear, OnlyValidEnums<FilterType>());
         
         [ConfigInfo("The filter to be applied to textures.")]
         public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
@@ -93,6 +93,6 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigRenderVirtualDimension VirtualDimension = new();
         
         [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
-        public readonly ConfigValue<bool> VSync = new(false);
+        public readonly ConfigValue<bool> VSync = new(true);
     }
 }

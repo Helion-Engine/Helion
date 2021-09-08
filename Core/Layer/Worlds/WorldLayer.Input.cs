@@ -21,9 +21,7 @@ namespace Helion.Layer.Worlds
             (Constants.Input.Jump,      TickCommands.Jump),
             (Constants.Input.Crouch,    TickCommands.Crouch),
             (Constants.Input.Attack,    TickCommands.Attack),
-            (Constants.Input.AttackAlt, TickCommands.Attack),
             (Constants.Input.Run,       TickCommands.Speed),
-            (Constants.Input.RunAlt,    TickCommands.Speed),
             (Constants.Input.Strafe,    TickCommands.Strafe),
         };
         

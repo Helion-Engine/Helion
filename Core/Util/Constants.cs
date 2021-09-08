@@ -129,7 +129,6 @@ namespace Helion.Util
             public const string Right = "Right";
             public const string Use = "Use";
             public const string Run = "Run";
-            public const string RunAlt = "RunAlt";
             public const string Strafe = "Strafe";
             public const string TurnLeft = "TurnLeft";
             public const string TurnRight = "TurnRight";
@@ -139,7 +138,6 @@ namespace Helion.Util
             public const string Crouch = "Crouch";
             public const string Console = "Console";
             public const string Attack = "Attack";
-            public const string AttackAlt = "AttackAlt";
             public const string NextWeapon = "NextWeapon";
             public const string PreviousWeapon = "PreviousWeapon";
             public const string WeaponSlot1 = "WeaponSlot1";

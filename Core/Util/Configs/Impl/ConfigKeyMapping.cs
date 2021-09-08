@@ -41,8 +41,9 @@ namespace Helion.Util.Configs.Impl
             Add(Key.D, Constants.Input.Right);
             Add(Key.E, Constants.Input.Use);
             Add(Key.ShiftLeft, Constants.Input.Run);
-            Add(Key.ShiftRight, Constants.Input.RunAlt);
+            Add(Key.ShiftRight, Constants.Input.Run);
             Add(Key.AltLeft, Constants.Input.Strafe);
+            Add(Key.AltRight, Constants.Input.Strafe);
             Add(Key.Left, Constants.Input.TurnLeft);
             Add(Key.Right, Constants.Input.TurnRight);
             Add(Key.O, Constants.Input.LookUp);
@@ -51,7 +52,8 @@ namespace Helion.Util.Configs.Impl
             Add(Key.C, Constants.Input.Crouch);
             Add(Key.Backtick, Constants.Input.Console);
             Add(Key.MouseLeft, Constants.Input.Attack);
-            Add(Key.ControlRight, Constants.Input.AttackAlt);
+            Add(Key.ControlLeft, Constants.Input.Attack);
+            Add(Key.ControlRight, Constants.Input.Attack);
             Add(Key.Up, Constants.Input.NextWeapon);
             Add(Key.Down, Constants.Input.PreviousWeapon);
             Add(Key.One, Constants.Input.WeaponSlot1);
