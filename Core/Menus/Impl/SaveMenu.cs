@@ -188,7 +188,7 @@ namespace Helion.Menus.Impl
                 {
                     string displayName = save.Model?.MapName ?? "Unknown";
                     string fileName = System.IO.Path.GetFileName(save.FileName);
-                    return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"loadgame {fileName}"),
+                    return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"load {fileName}"),
                         CreateDeleteCommand(save), save);
                 });
         }
