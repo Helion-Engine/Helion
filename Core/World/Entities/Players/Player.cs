@@ -560,6 +560,9 @@ namespace Helion.World.Entities.Players
                 if (weapon != null)
                     ChangeWeapon(weapon);
             }
+
+            if (TickCommand.Has(TickCommands.CenterView))
+                PitchRadians = 0;
         }
 
         private Vec3D CalculateForwardMovement(double speed)

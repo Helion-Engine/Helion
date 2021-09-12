@@ -159,6 +159,7 @@ namespace Helion.Util
             public const string Save = "Save";
             public const string Load = "Load";
             public const string Automap = "Automap";
+            public const string CenterView = "CenterView";
         }
 
         public const double EntityShootDistance = 8192.0;

@@ -10,19 +10,20 @@ namespace Helion.Layer.Worlds
     {
         private static readonly (string, TickCommands)[] KeyDownCommandMapping = 
         {
-            (Constants.Input.Forward,   TickCommands.Forward),
-            (Constants.Input.Backward,  TickCommands.Backward),
-            (Constants.Input.Left,      TickCommands.Left),
-            (Constants.Input.Right,     TickCommands.Right),
-            (Constants.Input.TurnLeft,  TickCommands.TurnLeft),
-            (Constants.Input.TurnRight, TickCommands.TurnRight),
-            (Constants.Input.LookDown,  TickCommands.LookDown),
-            (Constants.Input.LookUp,    TickCommands.LookUp),
-            (Constants.Input.Jump,      TickCommands.Jump),
-            (Constants.Input.Crouch,    TickCommands.Crouch),
-            (Constants.Input.Attack,    TickCommands.Attack),
-            (Constants.Input.Run,       TickCommands.Speed),
-            (Constants.Input.Strafe,    TickCommands.Strafe),
+            (Constants.Input.Forward,       TickCommands.Forward),
+            (Constants.Input.Backward,      TickCommands.Backward),
+            (Constants.Input.Left,          TickCommands.Left),
+            (Constants.Input.Right,         TickCommands.Right),
+            (Constants.Input.TurnLeft,      TickCommands.TurnLeft),
+            (Constants.Input.TurnRight,     TickCommands.TurnRight),
+            (Constants.Input.LookDown,      TickCommands.LookDown),
+            (Constants.Input.LookUp,        TickCommands.LookUp),
+            (Constants.Input.Jump,          TickCommands.Jump),
+            (Constants.Input.Crouch,        TickCommands.Crouch),
+            (Constants.Input.Attack,        TickCommands.Attack),
+            (Constants.Input.Run,           TickCommands.Speed),
+            (Constants.Input.Strafe,        TickCommands.Strafe),
+            (Constants.Input.CenterView,    TickCommands.CenterView),
         };
         
         private static readonly (string, TickCommands)[] KeyPressCommandMapping = 

@@ -139,6 +139,13 @@ namespace Helion.Client
             m_audioSystem.SetVolume(volume);
         }
 
+        [ConsoleCommand("centerView", "Centers the players view")]
+        private void CommandCenterView(ConsoleCommandEventArgs args)
+        {
+            if (m_layerManager.WorldLayer != null)
+                m_layerManager.WorldLayer.World.Player.TickCommand.Add(TickCommands.CenterView);
+        }
+
         private void Console_OnCommand(object? sender, ConsoleCommandEventArgs args)
         {
             if (TryHandleConsoleCommand(args))

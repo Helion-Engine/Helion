@@ -26,5 +26,6 @@ namespace Helion.World.Entities.Players
         WeaponSlot5,
         WeaponSlot6,
         WeaponSlot7,
+        CenterView,
     }
 }
