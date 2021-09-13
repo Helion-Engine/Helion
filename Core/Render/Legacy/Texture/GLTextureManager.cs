@@ -191,7 +191,7 @@ namespace Helion.Render.Legacy.Texture
                 return NullSpriteRotation;
 
             if (spriteRotation.Texture.RenderStore == null)
-                spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image);
+                spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, null, ResourceNamespace.Sprites);
 
             return spriteRotation;
         }
