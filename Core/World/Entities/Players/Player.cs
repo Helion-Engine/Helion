@@ -74,6 +74,7 @@ namespace Helion.World.Entities.Players
         public Vec2D PrevWeaponOffset;
         public Vec2D WeaponOffset;
         public Entity? Attacker { get; private set; }
+        public Entity? CrosshairTarget { get; set; }
         public PlayerStatusBar StatusBar { get; private set; }
         public PlayerCheats Cheats { get; } = new PlayerCheats();
         public PlayerInfo Info { get; set; } = new PlayerInfo();

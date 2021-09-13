@@ -279,7 +279,7 @@ namespace Helion.World
             PhysicsManager.LinkToWorld(entity, null, false);
         }
 
-        public void Tick()
+        public virtual void Tick()
         {
             if (Paused)
                 return;
@@ -695,9 +695,9 @@ namespace Helion.World
         {
             Vec3D start = shooter.HitscanAttackPos;
             Vec3D end = start + Vec3D.UnitSphere(angle, pitch) * distance;
-            Vec3D intersect = new Vec3D(0, 0, 0);
+            Vec3D intersect = Vec3D.Zero;
 
-            BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, ref intersect, out Sector? hitSector);
+            BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, damage <= 0, ref intersect, out Sector? hitSector);
 
             if (bi != null)
             {
@@ -719,8 +719,8 @@ namespace Helion.World
             return null;
         }
 
-        public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, ref Vec3D intersect,
-            out Sector? hitSector)
+        public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, bool isTest, 
+            ref Vec3D intersect, out Sector? hitSector)
         {
             hitSector = null;
             BlockmapIntersect? returnValue = null;
@@ -733,10 +733,9 @@ namespace Helion.World
             for (int i = 0; i < intersections.Count; i++)
             {
                 BlockmapIntersect bi = intersections[i];
-
                 if (bi.Line != null)
                 {
-                    if (bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
+                    if (!isTest && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                     {
                         var args = new EntityActivateSpecialEventArgs(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
                         EntityActivatedSpecial?.Invoke(this, args);
@@ -760,6 +759,7 @@ namespace Helion.World
 
                         GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
                         hitSector = bi.Line.Front.Sector;
+                        DataCache.Instance.FreeBlockmapIntersectList(intersections);
                         return bi;
                     }
 
@@ -1363,8 +1363,6 @@ namespace Helion.World
                     setAngle = angle - tracerSpread;
             }
 
-
-            angle = setAngle;
             return false;
         }
 

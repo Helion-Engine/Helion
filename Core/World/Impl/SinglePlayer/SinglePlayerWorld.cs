@@ -106,6 +106,26 @@ namespace Helion.World.Impl.SinglePlayer
             config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         }
 
+        public override void Tick()
+        {
+            if (GetCrosshairTarget(out Entity? entity))
+                Player.CrosshairTarget = entity;
+            else
+                Player.CrosshairTarget = null;
+
+            base.Tick();
+        }
+
+        private bool GetCrosshairTarget(out Entity? entity)
+        {
+            if (Config.Game.AutoAim)         
+                GetAutoAimEntity(Player, Player.Position, Player.AngleRadians, Constants.EntityShootDistance, out _, out entity);
+            else
+                entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, 0);
+
+            return entity != null && !entity.Flags.Friendly && entity.Health > 0;
+        }
+
         private void PlayerName_OnChanged(object? sender, string name) => Player.Info.Name = name;
         private void PlayerGender_OnChanged(object? sender, PlayerGender gender) =>  Player.Info.Gender = gender;
 
