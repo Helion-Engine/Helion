@@ -184,16 +184,19 @@ namespace Helion.Layer.Worlds
         
         private void DrawCrosshair(IHudRenderContext hud)
         {
-            const int Width = 4;
+            const int Width = 2;
             const int HalfWidth = Width / 2;
             const int Length = 10;
 
-            Vec2I center = m_viewport.Vector / 2;
-            Vec2I horizontal = center - new Vec2I(Length, HalfWidth);
-            Vec2I vertical = center - new Vec2I(HalfWidth, Length);
+            Color color = Player.CrosshairTarget == null ? Color.LawnGreen : Color.Red;
+            int crosshairLength = Player.CrosshairTarget == null ? Length : (int)(Length * 0.8f);
 
-            hud.FillBox((horizontal.X, horizontal.Y, horizontal.X + (Length * 2), horizontal.Y + (HalfWidth * 2)), Color.LawnGreen);
-            hud.FillBox((vertical.X, vertical.Y, vertical.X + (HalfWidth * 2), vertical.Y + (Length * 2)), Color.LawnGreen);
+            Vec2I center = m_viewport.Vector / 2;
+            Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
+            Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
+
+            hud.FillBox((horizontal.X, horizontal.Y, horizontal.X + (crosshairLength * 2), horizontal.Y + (HalfWidth * 2)), color);
+            hud.FillBox((vertical.X, vertical.Y, vertical.X + (HalfWidth * 2), vertical.Y + (crosshairLength * 2)), color);
         }
         
         private void DrawMinimalStatusBar(IHudRenderContext hud, int topRightY)
