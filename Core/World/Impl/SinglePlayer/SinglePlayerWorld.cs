@@ -119,7 +119,7 @@ namespace Helion.World.Impl.SinglePlayer
         private bool GetCrosshairTarget(out Entity? entity)
         {
             if (Config.Game.AutoAim)         
-                GetAutoAimEntity(Player, Player.Position, Player.AngleRadians, Constants.EntityShootDistance, out _, out entity);
+                GetAutoAimEntity(Player, Player.HitscanAttackPos, Player.AngleRadians, Constants.EntityShootDistance, out _, out entity);
             else
                 entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, 0);
 
