@@ -101,7 +101,11 @@ namespace Helion.Graphics.Fonts
 
             Dictionary<char, Image> processedCharImages = new();
             foreach ((char c, Image charImage) in charImages)
-                processedCharImages[c] = CreateCharImage(charImage, maxHeight, definition.Alignment, imageType);
+            {
+                FontAlignment alignment = definition.CharDefinitions[c].Alignment ?? definition.Alignment;
+                processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType);
+            }
+            
             return processedCharImages;
         }
 
