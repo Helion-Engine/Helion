@@ -27,8 +27,8 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             (Key.AltRight, Constants.Input.Strafe),
             (Key.Left, Constants.Input.TurnLeft),
             (Key.Right, Constants.Input.TurnRight),
-            (Key.O, Constants.Input.LookUp),
-            (Key.L, Constants.Input.LookDown),
+            (Key.Up, Constants.Input.LookUp),
+            (Key.Down, Constants.Input.LookDown),
             (Key.Space, Constants.Input.Jump),
             (Key.C, Constants.Input.Crouch),
             (Key.Backtick, Constants.Input.Console),
@@ -63,6 +63,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
         {
             ConfigKeyMapping keys = new();
 
+            // No keys are added yet.
             foreach ((Key key, string command) in ExpectedMappings)
             {
                 keys[key].Should().BeEmpty();
@@ -71,6 +72,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             
             keys.AddDefaults();
             
+            // Now with the defaults applied, let's make sure they are in fact added.
             foreach ((Key key, string command) in ExpectedMappings)
             {
                 keys[key].Should().Contain(command);

@@ -8,8 +8,8 @@ using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Texture.Legacy
@@ -160,14 +160,10 @@ namespace Helion.Render.Legacy.Texture.Legacy
 
         private void SetAnisotropicFiltering(TextureTargetType targetType)
         {
-            if (!Config.Render.Anisotropy.Enable)
+            if (Config.Render.Anisotropy <= 1)
                 return;
 
-            float value = (float)Config.Render.Anisotropy.Value;
-            if (Config.Render.Anisotropy.UseMaxSupported)
-                value = Capabilities.Limits.MaxAnisotropy;
-            value = MathHelper.Clamp(value, 1.0f, Capabilities.Limits.MaxAnisotropy);
-
+            float value = Config.Render.Anisotropy.Value.Clamp(1, (int)Capabilities.Limits.MaxAnisotropy);
             gl.TexParameterF(targetType, TextureParameterFloatNameType.AnisotropyExt, value);
         }
     }

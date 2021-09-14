@@ -95,14 +95,8 @@ namespace Helion.Render.Legacy
 
         private static void WarnForInvalidStates(IConfig config)
         {
-            if (config.Render.Anisotropy.Enable)
-            {
-                if (config.Render.Anisotropy.Value <= 1.0)
-                    Log.Warn("Anisotropic filter is enabled, but the desired value of 1.0 (equal to being off). Set a higher value than 1.0!");
-
-                if (config.Render.Filter.Texture.Value != FilterType.Trilinear)
-                    Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
-            }
+            if (config.Render.Anisotropy > 1 && config.Render.Filter.Texture.Value != FilterType.Trilinear)
+                Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
         }
         
         public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension) => Default;
@@ -176,7 +170,7 @@ namespace Helion.Render.Legacy
         {
             gl.Enable(EnableType.DepthTest);
 
-            if (m_config.Render.Multisample.Enable)
+            if (m_config.Render.Multisample > 1)
                 gl.Enable(EnableType.Multisample);
 
             if (m_capabilities.Version.Supports(3, 2))

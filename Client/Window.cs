@@ -88,7 +88,7 @@ namespace Helion.Client
                 APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
                 Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
                 IsFullscreen = config.Window.State == WindowState.Fullscreen,
-                NumberOfSamples = config.Render.Multisample.Enable ? config.Render.Multisample.Value : 0,
+                NumberOfSamples = config.Render.Multisample.Value,
                 Size = new Vector2i(windowWidth, windowHeight),
                 Title = Constants.ApplicationName,
                 WindowBorder = config.Window.Border,

@@ -5,30 +5,6 @@ using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components
 {
-    public class ConfigRenderAnisotropy
-    {
-        [ConfigInfo("Whether anisotropic rendering should be used or not.")]
-        public readonly ConfigValue<bool> Enable = new(true);
-
-        [ConfigInfo("If true, overrides anisotropy to use the max value supported.")]
-        public readonly ConfigValue<bool> UseMaxSupported = new(false);
-
-        [ConfigInfo("The anisotropic filtering amount.")]
-        public readonly ConfigValue<int> Value = new(8, GreaterOrEqual(1));
-    }
-    
-    public class ConfigRenderMultisample
-    {
-        [ConfigInfo("Whether multisampling should be used or not.")]
-        public readonly ConfigValue<bool> Enable = new(false);
-
-        [ConfigInfo("If true, overrides multisampling to use the max value supported.")]
-        public readonly ConfigValue<bool> UseMaxSupported = new(false);
-
-        [ConfigInfo("The multisampling amount.")]
-        public readonly ConfigValue<int> Value = new(8, GreaterOrEqual(1));
-    }
-
     public class ConfigRenderFilter
     {
         [ConfigInfo("The kind of filter applied to fonts.")]
@@ -49,7 +25,8 @@ namespace Helion.Util.Configs.Components
     
     public class ConfigRender
     {
-        public readonly ConfigRenderAnisotropy Anisotropy = new();
+        [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
+        public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
         
         [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
         public readonly ConfigValue<bool> FakeContrast = new(true);
@@ -70,7 +47,8 @@ namespace Helion.Util.Configs.Components
             };
         });
 
-        public readonly ConfigRenderMultisample Multisample = new();
+        [ConfigInfo("The multisampling amount. A value of 1 is the same as being off.")]
+        public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
 
         [ConfigInfo("If the frames per second should be rendered.")]
         public readonly ConfigValue<bool> ShowFPS = new(false);

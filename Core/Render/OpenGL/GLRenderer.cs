@@ -99,7 +99,7 @@ namespace Helion.Render.OpenGL
         {
             GL.Enable(EnableCap.DepthTest);
 
-            if (config.Render.Multisample.Enable)
+            if (config.Render.Multisample > 1)
                 GL.Enable(EnableCap.Multisample);
             
             if (GLCapabilities.SupportsSeamlessCubeMap)
