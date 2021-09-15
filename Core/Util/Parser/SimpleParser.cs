@@ -242,6 +242,9 @@ namespace Helion.Util.Parser
 
         public string PeekString()
         {
+            if (IsDone())
+                return string.Empty;
+
             AssertData();
             return GetData(m_index);
         }
@@ -258,6 +261,12 @@ namespace Helion.Util.Parser
 
         public bool PeekInteger(out int i)
         {
+            if (IsDone())
+            {
+                i = 0;
+                return false;
+            }
+
             AssertData();
             return int.TryParse(GetData(m_index), out i);
         }
