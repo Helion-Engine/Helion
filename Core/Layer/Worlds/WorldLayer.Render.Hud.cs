@@ -164,7 +164,6 @@ namespace Helion.Layer.Worlds
             
             hud.DoomVirtualResolution(() =>
             {
-                Dimension dimension = handle.Dimension;
                 Vec2I offset = handle.Offset;
                 float tickFraction = m_lastTickInfo.Fraction;
                 
@@ -176,8 +175,7 @@ namespace Helion.Layer.Worlds
                 if (powerup != null && powerup.DrawPowerupEffect)
                     alpha = 0.3f;
                 
-                offset = TranslateDoomOffset(offset, dimension);
-
+                offset = TranslateDoomOffset(offset);
                 hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
             });
         }

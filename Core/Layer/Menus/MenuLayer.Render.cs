@@ -74,7 +74,7 @@ namespace Helion.Layer.Menus
             if (!hud.Textures.TryGet(image.ImageName, out var handle))
                 return;
             
-            Vec2I offset = TranslateDoomOffset(handle.Offset, handle.Dimension);
+            Vec2I offset = TranslateDoomOffset(handle.Offset);
             int offsetX = offset.X + image.OffsetX;
             
             hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: (Align)image.ImageAlign);
@@ -87,7 +87,7 @@ namespace Helion.Layer.Menus
                     return;
                 
                 offsetX += SelectedOffsetX;
-                Vec2I selectedOffset = TranslateDoomOffset(selectedHandle.Offset, selectedHandle.Dimension);
+                Vec2I selectedOffset = TranslateDoomOffset(selectedHandle.Offset);
                 Vec2I drawPosition = selectedOffset + (offsetX, drawY - SelectedOffsetY);
                 hud.Image(selectedName, drawPosition, both: (Align)image.ImageAlign);
             }
@@ -114,7 +114,7 @@ namespace Helion.Layer.Menus
                 string selectedName = ShouldDrawActive ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
                 if (hud.Textures.TryGet(selectedName, out var handle))
                 {
-                    Vec2I selectedOffset = TranslateDoomOffset(handle.Offset, handle.Dimension);
+                    Vec2I selectedOffset = TranslateDoomOffset(handle.Offset);
                     selectedOffset += (LeftOffset - handle.Dimension.Width - SelectionOffsetX, offsetY);
                     hud.Image(selectedName, selectedOffset); 
                 }

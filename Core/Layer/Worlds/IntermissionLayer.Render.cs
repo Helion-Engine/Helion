@@ -57,7 +57,7 @@ namespace Helion.Layer.Worlds
                 if (!hud.Textures.TryGet(image, out var handle))
                     continue;
                 
-                Vec2I offset = TranslateDoomOffset(handle.Offset, handle.Dimension); 
+                Vec2I offset = TranslateDoomOffset(handle.Offset, hud); 
                 hud.Image(image, animation.Vector + offset);
             }
         }
@@ -72,7 +72,7 @@ namespace Helion.Layer.Worlds
 
             IList<IntermissionSpot> spots = IntermissionDef.Spots;
             Dimension dimension = handle.Dimension;
-            Vec2I offset = TranslateDoomOffset(handle.Offset, dimension);
+            Vec2I offset = TranslateDoomOffset(handle.Offset, hud);
 
             foreach (var visitedMap in World.GlobalData.VisitedMaps)
             {
@@ -95,7 +95,7 @@ namespace Helion.Layer.Worlds
                 return;
             
             Dimension nextSpotDimension = pointerHandle.Dimension;
-            Vec2I nextSpotOffset = TranslateDoomOffset(pointerHandle.Offset, nextSpotDimension);
+            Vec2I nextSpotOffset = TranslateDoomOffset(pointerHandle.Offset, hud);
             
             nextSpotOffset += m_nextSpot.Vector;
             m_nextSpot.Box = (nextSpotOffset, nextSpotOffset + nextSpotDimension.Vector);

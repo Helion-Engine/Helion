@@ -136,9 +136,9 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             // know where to place the quad vertices.
             Vec2F rightNormal = viewDirection.RotateRight90().Unit().Float;
             Vec2F entityCenterXY = entityCenterBottom.XY.Float;
-
+            //(width - (reader.ReadInt16() * 2), reader.ReadInt16() - height);
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-            entityCenterXY += rightNormal * texture.Offset.X;
+            entityCenterXY += rightNormal * (texture.Width - (texture.Offset.X * 2));
 
             Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
             Vec2F left = entityCenterXY - halfWidth;
@@ -173,8 +173,8 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
 
         private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
         {
-            offsetAmount = texture.Offset.Y;
-            if (entity.Definition.Flags.Missile || texture.Offset.Y >= 0)
+            offsetAmount = texture.Offset.Y - texture.Height;
+            if (entity.Definition.Flags.Missile || offsetAmount >= 0)
                 return true;
 
             if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)

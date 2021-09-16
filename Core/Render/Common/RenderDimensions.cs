@@ -1,6 +1,7 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
+using Helion.Render.Common.Renderers;
 
 namespace Helion.Render.Common
 {
@@ -34,13 +35,8 @@ namespace Helion.Render.Common
         /// Translates Doom-specific HUD offsets.
         /// </summary>
         /// <param name="offset">The offset of the image.</param>
-        /// <param name="dimension">The dimension to translate with respect to,
-        /// usually the image dimension.</param>
         /// <returns>The translated point.</returns>
-        public static Vec2I TranslateDoomOffset(Vec2I offset, Dimension dimension)
-        {
-            return ((offset.X / 2) - (dimension.Width / 2), -offset.Y - dimension.Height);
-        }
+        public static Vec2I TranslateDoomOffset(Vec2I offset) => (-offset.X, -offset.Y);
         
         public Vec2I Translate(Vec2I point, Dimension parentViewport)
         {

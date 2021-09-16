@@ -180,8 +180,14 @@ namespace Helion.Render.Legacy.Commands
 
         private ImageBox2I TranslateDimensions(int x, int y, int width, int height)
         {
-            ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
-            return TranslateDimensions(drawLocation);
+            if (WindowDimension == ResolutionInfo.VirtualDimensions)
+                return new ImageBox2I(x, y, x + width, y + height);
+
+            width = (int)(width * m_scale.X);
+            height = (int)(height * m_scale.Y);
+            return new ImageBox2I(x, y, x + width, y + height);
+            //ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
+            //return TranslateDimensions(drawLocation);
         }
 
         private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
