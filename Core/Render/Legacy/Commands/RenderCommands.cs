@@ -24,6 +24,7 @@ namespace Helion.Render.Legacy.Commands
         private readonly List<IRenderCommand> m_commands = new();
         private readonly Dimension m_windowDimensions;
         private Vec2D m_scale = Vec2D.One;
+        private Vec2I m_translateOffset = Vec2I.Zero;
         private int m_centeringOffsetX;
 
         public RenderCommands(IConfig config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
@@ -59,7 +60,7 @@ namespace Helion.Render.Legacy.Commands
         public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
             float alpha = 1.0f, bool drawInvul = false)
         {
-            ImageBox2I drawArea = TranslateDimensions(left, top, width, height);
+            ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
             DrawImageCommand cmd = new(textureName, drawArea, color, alpha, drawInvul);
             m_commands.Add(cmd);
         }
@@ -114,6 +115,14 @@ namespace Helion.Render.Legacy.Commands
             double scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
             double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
             m_scale = new Vec2D(scaleWidth, scaleHeight);
+
+            if (WindowDimension.AspectRatio < ResolutionInfo.AspectRatio)
+            {
+                int diff = ResolutionInfo.VirtualDimensions.Height - ResolutionInfo.VirtualDimensions.Width;
+                int adjustX = (int)(diff * (ResolutionInfo.AspectRatio - WindowDimension.AspectRatio));
+                m_translateOffset = new Vec2I(adjustX, 0);
+            }
+
             m_centeringOffsetX = 0;
 
             // By default we're stretching, but if we're centering, our values
@@ -129,46 +138,6 @@ namespace Helion.Render.Legacy.Commands
             }
         }
 
-        // /// <summary>
-        // /// Sets a virtual resolution to draw with.
-        // /// </summary>
-        // /// <param name="resolutionInfo">Resolution parameters.</param>
-        // public void SetVirtualResolution(ResolutionInfo resolutionInfo)
-        // {
-        //     ResolutionInfo = resolutionInfo;
-        //
-        //     double scaleWidth = WindowDimension.Width / (double)resolutionInfo.VirtualDimensions.Width;
-        //     double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
-        //     m_scale = new Vec2D(scaleWidth, scaleHeight);
-        //     m_centeringOffsetX = 0;
-        //
-        //     if (resolutionInfo.Scale == ResolutionScale.Stretch)
-        //         return;
-        //
-        //     // Note that for now, we always stretch along the Y axis.
-        //     if (scaleHeight > scaleWidth)
-        //         return;
-        //     
-        //     m_scale = new Vec2D(scaleHeight, scaleHeight);
-        //     
-        //     // By default we're stretching, but if we're centering, our values
-        //     // have to change to accomodate a gutter if the aspect ratios are
-        //     // different.
-        //     if (resolutionInfo.Scale == ResolutionScale.Center)
-        //     {
-        //         // We only want to do centering if we will end up with gutters
-        //         // on the side. This can only happen if the virtual dimension
-        //         // has a smaller aspect ratio. We have to exit out if not since
-        //         // it will cause weird overdrawing otherwise.
-        //         if (resolutionInfo.VirtualDimensions.AspectRatio < WindowDimension.AspectRatio)
-        //         {
-        //             int scaledWidth = (int)(resolutionInfo.VirtualDimensions.Width * m_scale.Y);
-        //             int gutter = WindowDimension.Width - scaledWidth;
-        //             m_centeringOffsetX = gutter / 2;
-        //         }      
-        //     }
-        // }
-
         public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -178,16 +147,16 @@ namespace Helion.Render.Legacy.Commands
             return TranslateDimensions(new ImageBox2I(x, y, x + dimension.Width, y + dimension.Height));
         }
 
-        private ImageBox2I TranslateDimensions(int x, int y, int width, int height)
+        private ImageBox2I TranslateDoomImageDimensions(int x, int y, int width, int height)
         {
             if (WindowDimension == ResolutionInfo.VirtualDimensions)
                 return new ImageBox2I(x, y, x + width, y + height);
 
-            width = (int)(width * m_scale.X);
-            height = (int)(height * m_scale.Y);
-            return new ImageBox2I(x, y, x + width, y + height);
-            //ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
-            //return TranslateDimensions(drawLocation);
+            x += m_translateOffset.X;
+            y += m_translateOffset.Y;
+            ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
+            drawLocation = TranslateDimensions(drawLocation);
+            return drawLocation;
         }
 
         private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
