@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MoreLinq;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -27,6 +28,7 @@ namespace Helion.Util.Parser
         }
 
         private readonly List<ParserToken> m_tokens = new List<ParserToken>();
+        private readonly HashSet<char> m_special = new HashSet<char>();
         private readonly ParseType m_parseType;
         private string[] m_lines = Array.Empty<string>();
 
@@ -43,9 +45,16 @@ namespace Helion.Util.Parser
         public SimpleParser(ParseType parseType = ParseType.Normal)
         {
             m_parseType = parseType;
+            SetSpecialChars(new char[] { '{', '}', '=', ';', ',' , '[' ,']'});
         }
 
-        public void Parse(string data, bool keepEmptyLines = false, bool splitSpecialChars = true)
+        public void SetSpecialChars(IEnumerable<char> special)
+        {
+            m_special.Clear();
+            special.ForEach(x => m_special.Add(x));
+        }
+
+        public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
         {
             m_index = 0;
             m_lines = data.Split(new string[] { "\r\n", "\n" }, 
@@ -103,7 +112,7 @@ namespace Helion.Util.Parser
                     if (multiLineComment)
                         continue;
 
-                    if (splitSpecialChars && line[i] == '"')
+                    if (parseQuotes && line[i] == '"')
                     {
                         quotedString = true;
                         isQuote = !isQuote;
@@ -120,7 +129,7 @@ namespace Helion.Util.Parser
 
                     if (!isQuote)
                     {
-                        bool special = splitSpecialChars && CheckSpecial(line[i]);
+                        bool special = CheckSpecial(line[i]);
                         if (split || special || CheckSplit(line[i]))
                         {
                             if (startLine == lineCount)
@@ -190,7 +199,7 @@ namespace Helion.Util.Parser
             if (m_parseType != ParseType.Normal)
                 return false;
 
-            return c == '{' || c == '}' || c == '=' || c == ';' || c == ',' || c == '[' || c == ']';
+            return m_special.Contains(c);
         }
 
         private void AddToken(int startIndex, int currentIndex, int lineCount, bool quotedString)

@@ -32,7 +32,8 @@ namespace Helion.Dehacked
         {
             data = data.Replace('\0', ' ');
             SimpleParser parser = new SimpleParser();
-            parser.Parse(data, keepEmptyLines: true, splitSpecialChars: false);
+            parser.SetSpecialChars(new char[] { '=' });
+            parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
 
             ParseHeader(parser);
 
