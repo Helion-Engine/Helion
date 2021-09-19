@@ -51,6 +51,7 @@ namespace Helion.Client
             IgnoreMouseEvents = config.Mouse.RawInput;
             CursorGrabbed = config.Mouse.Focus;
             VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
+            RenderFrequency = config.Render.MaxFPS;
 
             KeyDown += Window_KeyDown;
             KeyUp += Window_KeyUp;
@@ -61,7 +62,7 @@ namespace Helion.Client
             TextInput += Window_TextInput;
 
             m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
-            m_config.Render.VSync.OnChanged += OnVSyncChanged;
+            m_config.Render.VSync.OnChanged += OnVSyncChanged;          
         }
 
         ~Window()
