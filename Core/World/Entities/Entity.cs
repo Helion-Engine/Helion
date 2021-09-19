@@ -444,7 +444,9 @@ namespace Helion.World.Entities
                 SetDeath(source, false);
                 FrameState.SetState(Constants.FrameStates.Death);
 
-                if (Flags.Randomize)
+                // Vanilla would set the ticks to 1 if less than 1 always because it didn't care if it was actually randomized.
+                // Not doing this can break dehacked frames...      
+                if (Flags.Randomize || World.ArchiveCollection.Definitions.DehackedDefinition != null)
                     SetRandomizeTicks();
             }
         }
