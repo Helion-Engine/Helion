@@ -183,7 +183,7 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities
             if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsType(EntityDefinitionType.Inventory))
                 return false;
 
-            if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < -texture.Offset.Y)
+            if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < texture.Offset.Y)
             {
                 if (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)
                 {
