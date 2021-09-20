@@ -950,6 +950,12 @@ namespace Helion.Dehacked
             { ThingState.SKEL_RAISE5,   new("Revenant::raise",              4) },
             { ThingState.SKEL_RAISE6,   new("Revenant::raise",              5) },
 
+            { ThingState.FATSHOT1,      new("FatShot::spawn",               0) },
+            { ThingState.FATSHOT2,      new("FatShot::spawn",               1) },
+            { ThingState.FATSHOTX1,     new("FatShot::death",               0) },
+            { ThingState.FATSHOTX2,     new("FatShot::death",               1) },
+            { ThingState.FATSHOTX3,     new("FatShot::death",               2) },
+
             { ThingState.FATT_STND,     new("Fatso::spawn",                 0) },
             { ThingState.FATT_STND2,    new("Fatso::spawn",                 1) },
             { ThingState.FATT_RUN1,     new("Fatso::see",                   0) },
