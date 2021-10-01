@@ -154,6 +154,11 @@ namespace Helion.Client
             m_profiler.Render.SwapBuffers.Start();
             m_window.SwapBuffers();
             m_profiler.Render.SwapBuffers.Stop();
+
+            m_profiler.Render.FlushPipeline.Start();
+            if (m_config.Render.ForcePipelineFlush)
+                m_window.Renderer.FlushPipeline();
+            m_profiler.Render.FlushPipeline.Stop();
             
             m_fpsTracker.FinishFrame();   
             

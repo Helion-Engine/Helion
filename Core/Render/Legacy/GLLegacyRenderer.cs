@@ -23,6 +23,7 @@ using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.Window;
 using NLog;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy
@@ -145,7 +146,12 @@ namespace Helion.Render.Legacy
             if (m_config.Developer.Render.Debug)
                 GLHelper.AssertNoGLError(gl);
         }
-        
+
+        public void FlushPipeline()
+        {
+            GL.Finish();
+        }
+
         public void Dispose()
         {
             ReleaseUnmanagedResources();

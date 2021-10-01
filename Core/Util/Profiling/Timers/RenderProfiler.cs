@@ -2,6 +2,7 @@
 {
     public class RenderProfiler
     {
+        public readonly ProfilerStopwatch FlushPipeline = new();
         public readonly ProfilerStopwatch Hud = new();
         public readonly ProfilerStopwatch MiscLayers = new();
         public readonly ProfilerStopwatch SwapBuffers = new();
@@ -10,6 +11,7 @@
 
         internal void ResetAll()
         {
+            FlushPipeline.Reset();
             Hud.Reset();
             MiscLayers.Reset();
             SwapBuffers.Reset();

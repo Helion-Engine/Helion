@@ -32,6 +32,9 @@ namespace Helion.Util.Configs.Components
         public readonly ConfigValue<bool> FakeContrast = new(true);
 
         public readonly ConfigRenderFilter Filter = new();
+        
+        [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
+        public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
 
         [ConfigInfo("Emulate light dropoff like vanilla Doom.")]
         public readonly ConfigValue<bool> LightDropoff = new(true);
