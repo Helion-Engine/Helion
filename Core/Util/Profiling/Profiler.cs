@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling.Timers;
 using NLog;
 
@@ -6,7 +8,7 @@ namespace Helion.Util.Profiling
 {
     public class Profiler
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger ProfilerLog = LogManager.GetLogger(HelionLoggers.ProfilerLoggerName);
 
         public readonly GCProfiler GarbageCollection = new();
         public readonly ProfilerStopwatch Global = new();
@@ -32,15 +34,17 @@ namespace Helion.Util.Profiling
 
         public void LogStats()
         {
-            Log.Info("Profiler statistics:");
-            Log.Info("----------------------------------------");
-            Log.Info($"Frame count: {FrameCount}");
-            RecursivelyLogStats(this, "");
-            Log.Info("----------------------------------------");
+            ProfilerLog.Info($"Frame count: {FrameCount}");
+            RecursivelyLogStats(this);
         }
 
-        private static void RecursivelyLogStats(object obj, string path)
+        private static void RecursivelyLogStats(object obj, string path = "", int depth = 0)
         {
+            const int RecursiveOverflow = 100;
+            
+            if (depth >= RecursiveOverflow)
+                throw new Exception($"Recursive profiler logging overflow: {path}");
+            
             foreach (FieldInfo fieldInfo in obj.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 string newPath = path == "" ? fieldInfo.Name.ToLower() : $"{path}.{fieldInfo.Name.ToLower()}";
@@ -50,12 +54,12 @@ namespace Helion.Util.Profiling
                     object? profilerObj = fieldInfo.GetValue(obj);
                     if (profilerObj == null)
                     {
-                        Log.Error($"Should never have a null {nameof(ProfilerStopwatch)} when printing profiler stats");
+                        ProfilerLog.Error($"Should never have a null {nameof(ProfilerStopwatch)} when printing profiler stats");
                         continue;
                     }
 
                     ProfilerStopwatch profilerStopwatch = (ProfilerStopwatch)profilerObj;
-                    Log.Info($"{newPath}: {profilerStopwatch.TotalMilliseconds:0.####} ms");
+                    ProfilerLog.Info($"{newPath}: {profilerStopwatch.TotalMilliseconds:0.####} ms");
                     continue;
                 }
                 
@@ -63,7 +67,7 @@ namespace Helion.Util.Profiling
                 if (fieldObj == null)
                     continue;
                 
-                RecursivelyLogStats(fieldObj, newPath);
+                RecursivelyLogStats(fieldObj, newPath, depth + 1);
             }
         }
     }

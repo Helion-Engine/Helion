@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Helion.Audio;
@@ -20,6 +19,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -272,7 +272,7 @@ namespace Helion.Client
         public static void Main(string[] args)
         {
             CommandLineArgs commandLineArgs = CommandLineArgs.Parse(args);
-            Logging.Initialize(commandLineArgs);
+            HelionLoggers.Initialize(commandLineArgs);
             LogClientInfo();
             LogAnyCommandLineErrors(commandLineArgs);
 
@@ -294,12 +294,12 @@ namespace Helion.Client
             }
             catch (Exception e)
             {
-                string msg = e.ToString();
-                Log.Error(msg);
-                File.WriteAllText("errorlog.txt", msg);
+                Logger errorLogger = LogManager.GetLogger(HelionLoggers.ErrorLoggerName);
+                errorLogger.Error(e, "Fatal error occurred");
+                
                 // TODO verify this doesn't prevent from loading on other platforms...
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    ShowFatalError(msg);
+                    ShowFatalError(e.ToString());
             }
         }
 
