@@ -189,6 +189,7 @@ namespace Helion.Client
         {
             Initialize();
             m_window.Run();
+            m_profiler.LogStats();
         }
 
         private void HandleWinMouseMove(int deltaX, int deltaY)
