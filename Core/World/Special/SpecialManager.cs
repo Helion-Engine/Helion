@@ -518,7 +518,13 @@ namespace Helion.World.Special
         {
             IEnumerable<Line> lines = m_world.FindByLineId(setLine.Args.Arg0);
             ZDoomScroll flags = (ZDoomScroll)setLine.Args.Arg1;
-            ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
+
+            ScrollSpeeds speeds;
+            if (flags == ZDoomScroll.None)
+                speeds = new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
+            else
+                speeds = ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
+
             if (!speeds.ScrollSpeed.HasValue)
                 return;
 
@@ -527,12 +533,18 @@ namespace Helion.World.Special
                 changeScroll = setLine.Front.Sector;
 
             Vec2D speed = speeds.ScrollSpeed.Value;
-            speed.Y = -speed.Y;
-
             foreach (Line line in lines)
             {
                 if (line.Id == setLine.Id)
                     continue;
+
+                if (flags == ZDoomScroll.None)
+                {
+                    speeds = ScrollUtil.GetScrollLineSpeed(setLine, line);
+                    if (!speeds.ScrollSpeed.HasValue)
+                        continue;
+                    speed = speeds.ScrollSpeed.Value;
+                }
 
                 AddSpecial(new ScrollSpecial(line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
             }

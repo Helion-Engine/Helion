@@ -280,9 +280,9 @@ namespace Helion.Maps.Specials.Vanilla
         WR_MonsterTeleportLine,
         W1_MonsterTeleportNoFog,
         WR_MonsterTeportNoFog,
-        // TODO
         Unused,
         TransferSky,
+        // TODO
         TransferSkyFlipped
     }
 }
