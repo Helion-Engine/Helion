@@ -9,10 +9,17 @@ namespace Helion.Tests.Unit.Util.CommandLine
         [Fact(DisplayName = "Can set many command line arguments")]
         public void CanSetMany()
         {
-            CommandLineArgs args = CommandLineArgs.Parse(new[] { "-iwad", "DOOM.WAD", "-file", "yes.pk3", "no.wad", "+map", "E1M3" });
+            CommandLineArgs args = CommandLineArgs.Parse(new[]
+            {
+                "-iwad", "DOOM.WAD", 
+                "-file", "yes.pk3", "no.wad", 
+                "-log", "log.log", 
+                "+map", "E1M3"
+            });
 
             args.Iwad.Should().Be("DOOM.WAD");
             args.Files.Should().Equal("yes.pk3", "no.wad");
+            args.LogFileName.Should().Be("log.log");
             args.Map.Should().Be("E1M3");
         }
         
@@ -37,7 +44,23 @@ namespace Helion.Tests.Unit.Util.CommandLine
         {
             CommandLineArgs args = CommandLineArgs.Parse(new[] { "-log", "yes.log" });
 
-            args.LogPath.Should().Be("yes.log");
+            args.LogFileName.Should().Be("yes.log");
+        }
+        
+        [Fact(DisplayName = "Can set command line log level")]
+        public void CanAddLogLevel()
+        {
+            CommandLineArgs args = CommandLineArgs.Parse(new[] { "-loglevel", "trace" });
+
+            args.LogLevel.Should().Be("trace");
+        }
+        
+        [Fact(DisplayName = "Can set command line log profiler path")]
+        public void CanAddProfilerLog()
+        {
+            CommandLineArgs args = CommandLineArgs.Parse(new[] { "-logprofiler", "prof.log" });
+
+            args.LogProfilerFileName.Should().Be("prof.log");
         }
 
         [Fact(DisplayName = "Can set command line skill")]

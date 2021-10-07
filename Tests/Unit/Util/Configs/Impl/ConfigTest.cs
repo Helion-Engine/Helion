@@ -58,6 +58,7 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
                 ["player.gender"] = m_config.Player.Gender,
                 ["render.anisotropy"] = m_config.Render.Anisotropy,
                 ["render.fakecontrast"] = m_config.Render.FakeContrast,
+                ["render.forcepipelineflush"] = m_config.Render.ForcePipelineFlush,
                 ["render.filter.font"] = m_config.Render.Filter.Font,
                 ["render.filter.texture"] = m_config.Render.Filter.Texture,
                 ["render.lightdropoff"] = m_config.Render.LightDropoff,
@@ -78,6 +79,17 @@ namespace Helion.Tests.Unit.Util.Configs.Impl
             };
 
             Dictionary<string, ConfigComponent> pathToValue = m_config.ToDictionary();
+            
+            // If we fail this, it means we removed or added a field. If so,
+            // then add it to the dictionary above. This makes it so we can
+            // test every config field an make sure it works, so if someone
+            // adds a new field and screws up, we will know when the test
+            // starts trying to do stuff with it.
+            //
+            // What this line below does however is act as a quick alert to
+            // the developer that they forgot to track it. It also is a cheap
+            // way of making sure that we didn't accidentally nuke a config
+            // field, so it does two things.
             expected.Count.Should().Be(pathToValue.Count);
             
             foreach ((string path, ConfigComponent component) in m_config)

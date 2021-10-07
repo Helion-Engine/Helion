@@ -29,14 +29,16 @@ namespace Helion.Client
 
                 CleanZdbspData(outputFile);
 
-                Log.Info($"Building nodes [{map.Archive.OriginalFilePath}]....");
+                Log.Info($"Building nodes [{map.Archive.OriginalFilePath}]...");
                 m_stopwatch.Restart();
                 Zdbsp zdbsp = new(map.Archive.OriginalFilePath, outputFile);
                 zdbsp.Run(mapName, out string output);
 
                 m_stopwatch.Stop();
                 Log.Info($"Completed nodes {m_stopwatch.Elapsed}");
-                Log.Info($"Zdbsp output: {output}");
+                Log.Debug("Zdbsp output:");
+                foreach (string line in output.Split(Environment.NewLine))
+                    Log.Debug($"    {line}");
 
                 m_lastMapName = mapName;
 

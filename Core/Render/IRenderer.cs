@@ -68,5 +68,15 @@ namespace Helion.Render
         /// exists.
         /// </remarks>
         void PerformThrowableErrorChecks();
+
+        /// <summary>
+        /// Force the pipeline to flush all the instructions.
+        /// </summary>
+        /// <remarks>
+        /// Apparently if this is not done for renderers like OpenGL, it somehow
+        /// clogs the pipeline with a lot of extra frames that are rendered, and
+        /// some computers fall behind by 100ms or more.
+        /// </remarks>
+        void FlushPipeline();
     }
 }

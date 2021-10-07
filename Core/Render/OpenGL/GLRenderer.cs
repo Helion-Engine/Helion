@@ -190,6 +190,11 @@ namespace Helion.Render.OpenGL
 #endif
         }
 
+        public void FlushPipeline()
+        {
+            GL.Finish();
+        }
+
         public void Dispose()
         {
             GC.SuppressFinalize(this);

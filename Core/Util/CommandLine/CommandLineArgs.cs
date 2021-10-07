@@ -14,8 +14,9 @@ namespace Helion.Util.CommandLine
         public readonly List<string> Files = new();
         public string? Iwad { get; set; }
         public string? Map { get; set; }
-        public string? LogPath { get; set; }
+        public string? LogFileName { get; set; }
         public string? LogLevel { get; set; }
+        public string? LogProfilerFileName { get; set; }
         public string? Warp { get; set; }
         public int? Skill { get; set; }
         public bool NoMonsters { get; set; }
@@ -43,9 +44,11 @@ namespace Helion.Util.CommandLine
                 else if (IsArgMatch(parsedArg, "-file"))
                     commandLineArgs.Files.AddRange(parsedArg.Values);
                 else if (IsArgMatch(parsedArg, "-log"))
-                    commandLineArgs.LogPath = GetString(commandLineArgs, parsedArg);
+                    commandLineArgs.LogFileName = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "-loglevel"))
                     commandLineArgs.LogLevel = GetString(commandLineArgs, parsedArg);
+                else if (IsArgMatch(parsedArg, "-logprofiler"))
+                    commandLineArgs.LogProfilerFileName = GetString(commandLineArgs, parsedArg);
                 else if (IsArgMatch(parsedArg, "-warp"))
                     commandLineArgs.Warp = GetConcatString(commandLineArgs, parsedArg, " ");
                 else if (IsArgMatch(parsedArg, "-skill"))
