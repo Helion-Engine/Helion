@@ -262,9 +262,7 @@ namespace Helion.Maps.Specials.Vanilla
         ScrollTaggedFloor,
         CarryObjectsTaggedFloor,
         ScrollTagedFloorAndCarryObjects,
-        // TODO
         ScrollTaggedWallSameAsFloorCeiling,
-        // END TODO
         ScrollTextureOffsets,
         WR_RaiseStairs8,
         WR_RaiseStairsFast,
