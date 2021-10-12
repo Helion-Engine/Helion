@@ -60,4 +60,3 @@ public static class ConfigFilters
 
     public static readonly Func<double, double> ClampNormalized = Clamp(0.0, 1.0);
 }
-

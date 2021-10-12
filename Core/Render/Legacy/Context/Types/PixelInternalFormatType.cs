@@ -4,4 +4,3 @@ public enum PixelInternalFormatType
 {
     Rgba8 = 32856,
 }
-

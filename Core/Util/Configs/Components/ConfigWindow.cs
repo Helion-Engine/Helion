@@ -16,4 +16,3 @@ public class ConfigWindow
     [ConfigInfo("The state of the window, such as if it is fullscreen or windowed.")]
     public readonly ConfigValue<WindowState> State = new(WindowState.Fullscreen, OnlyValidEnums<WindowState>());
 }
-

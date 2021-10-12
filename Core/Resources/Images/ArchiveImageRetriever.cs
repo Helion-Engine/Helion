@@ -154,4 +154,3 @@ public class ArchiveImageRetriever : IImageRetriever
         return image;
     }
 }
-

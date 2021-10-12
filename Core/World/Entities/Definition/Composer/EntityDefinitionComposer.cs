@@ -201,4 +201,3 @@ public class EntityDefinitionComposer
         return definition;
     }
 }
-

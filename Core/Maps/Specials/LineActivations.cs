@@ -15,4 +15,3 @@ public enum LineActivations
     ImpactLine = 64,
     LevelStart = 128,
 }
-

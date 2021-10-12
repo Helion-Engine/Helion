@@ -17,4 +17,3 @@ public readonly struct RenderableSentence
 
     public override string ToString() => $"Index: {StartIndex}, Count: {Count}, Bounds: {Bounds}";
 }
-

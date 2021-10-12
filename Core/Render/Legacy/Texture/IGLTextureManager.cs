@@ -13,4 +13,3 @@ public interface IGLTextureManager : IRendererTextureManager
     /// </summary>
     IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 }
-

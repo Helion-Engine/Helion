@@ -11,4 +11,3 @@ public class SideScrollData
     public Vec2D[] LastOffset = new Vec2D[3];
     public Vec2D[] Offset = new Vec2D[3];
 }
-

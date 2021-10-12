@@ -84,4 +84,3 @@ public class VertexCountTracker
         withThreeOrMoreLines = 0;
     }
 }
-

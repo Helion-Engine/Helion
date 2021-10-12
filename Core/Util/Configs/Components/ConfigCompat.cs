@@ -13,4 +13,3 @@ public class ConfigCompat
     [ConfigInfo("Vanilla method for finding shortest texture. Emulates bug with AASHITTY.", save: false)]
     public readonly ConfigValue<bool> VanillaShortestTexture = new(true);
 }
-

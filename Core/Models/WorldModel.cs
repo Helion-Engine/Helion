@@ -36,4 +36,3 @@ public class WorldModel
     public int ItemCount { get; set; }
     public int SecretCount { get; set; }
 }
-

@@ -44,4 +44,3 @@ public class SkySphereGeometryShader : ShaderProgram
         return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
     }
 }
-

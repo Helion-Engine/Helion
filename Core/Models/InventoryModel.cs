@@ -9,4 +9,3 @@ public class InventoryModel
     public IList<string> Weapons { get; set; } = Array.Empty<string>();
     public IList<PowerupModel> Powerups { get; set; } = Array.Empty<PowerupModel>();
 }
-

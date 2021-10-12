@@ -17,4 +17,3 @@ public class GLInfo
         Vendor = gl.GetString(GetStringType.Vendor);
     }
 }
-

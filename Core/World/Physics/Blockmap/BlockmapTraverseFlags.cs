@@ -9,4 +9,3 @@ public enum BlockmapTraverseFlags
     Lines = 2,
     StopOnOneSidedLine = 4
 }
-

@@ -40,4 +40,3 @@ public interface IRenderableTextureHandle
     /// </summary>
     Vec2I Offset { get; }
 }
-

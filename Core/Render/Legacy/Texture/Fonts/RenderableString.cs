@@ -198,4 +198,3 @@ public class RenderableString
         return string.Join("\n", Sentences.Select(s => s.ToString()));
     }
 }
-

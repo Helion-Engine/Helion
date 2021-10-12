@@ -32,4 +32,3 @@ public class Wall
         Side.DataChanges |= type;
     }
 }
-

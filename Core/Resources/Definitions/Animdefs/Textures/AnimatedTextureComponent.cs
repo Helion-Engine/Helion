@@ -23,4 +23,3 @@ public class AnimatedTextureComponent
 
     public override string ToString() => $"{Texture} (startTicks={MinTicks} endTicks={MaxTicks})";
 }
-

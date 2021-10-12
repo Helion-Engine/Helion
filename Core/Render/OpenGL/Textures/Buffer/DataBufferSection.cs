@@ -65,4 +65,3 @@ public class DataBufferSection<T> where T : struct
         m_data[index] = data;
     }
 }
-

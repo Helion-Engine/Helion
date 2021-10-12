@@ -82,4 +82,3 @@ public struct Dimension
     public override int GetHashCode() => HashCode.Combine(Width, Height);
     public override string ToString() => $"{Width}, {Height}";
 }
-

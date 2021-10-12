@@ -68,4 +68,3 @@ public class GeometryRenderer : IGLWorldRenderer
         m_disposed = true;
     }
 }
-

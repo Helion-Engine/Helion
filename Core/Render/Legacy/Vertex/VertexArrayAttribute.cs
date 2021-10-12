@@ -24,4 +24,3 @@ public abstract class VertexArrayAttribute
 
     public abstract void Enable(IGLFunctions gl, int stride, int offset);
 }
-

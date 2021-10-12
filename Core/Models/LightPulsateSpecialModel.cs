@@ -19,4 +19,3 @@ public class LightPulsateSpecialModel : ISpecialModel
         return new LightPulsateSpecial(world.Sectors[SectorId], this);
     }
 }
-

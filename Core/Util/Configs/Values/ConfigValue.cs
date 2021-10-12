@@ -137,4 +137,3 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         return Value.ToString() ?? "";
     }
 }
-

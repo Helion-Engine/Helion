@@ -128,4 +128,3 @@ public partial class DecorateParser : ParserBase
         InvokeUntilAndConsume('}', ConsumeActorStateElement);
     }
 }
-

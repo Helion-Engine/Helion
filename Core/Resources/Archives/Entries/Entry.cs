@@ -42,4 +42,3 @@ public abstract class Entry
 
     public override string ToString() => $"{Path}";
 }
-

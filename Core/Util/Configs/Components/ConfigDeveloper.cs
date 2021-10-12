@@ -12,4 +12,3 @@ public class ConfigDeveloper
 {
     public readonly ConfigDeveloperRender Render = new();
 }
-

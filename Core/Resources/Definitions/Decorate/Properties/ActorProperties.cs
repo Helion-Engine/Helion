@@ -121,4 +121,3 @@ public class ActorProperties
     public double? XScale;
     public double? YScale;
 }
-

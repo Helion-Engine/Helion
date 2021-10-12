@@ -6,4 +6,3 @@ public enum DecorateHealRadius
     Health,
     Mana,
 }
-

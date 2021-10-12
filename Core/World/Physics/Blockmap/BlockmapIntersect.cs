@@ -27,4 +27,3 @@ public struct BlockmapIntersect
         Distance2D = distance2D;
     }
 }
-

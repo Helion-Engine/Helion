@@ -290,4 +290,3 @@ public class Image
         return new Image(bitmap, ImageType.Argb);
     }
 }
-

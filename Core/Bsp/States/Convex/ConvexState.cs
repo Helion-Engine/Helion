@@ -12,4 +12,3 @@ public enum ConvexState
     FinishedIsConvex,
     FinishedIsSplittable,
 }
-

@@ -4,4 +4,3 @@ public enum PolygonFaceType
 {
     FrontAndBack = 1032,
 }
-

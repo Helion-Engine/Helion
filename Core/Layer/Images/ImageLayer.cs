@@ -38,4 +38,3 @@ public class ImageLayer : IGameLayer
         // Nothing to dispose.
     }
 }
-

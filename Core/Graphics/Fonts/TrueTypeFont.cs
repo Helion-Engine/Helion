@@ -179,4 +179,3 @@ public static class TrueTypeFont
         return (glyphs, image);
     }
 }
-

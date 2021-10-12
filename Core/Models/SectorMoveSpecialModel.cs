@@ -49,4 +49,3 @@ public class SectorMoveSpecialModel : ISpecialModel
         return new SectorMoveSpecial(world, world.Sectors[SectorId], this);
     }
 }
-

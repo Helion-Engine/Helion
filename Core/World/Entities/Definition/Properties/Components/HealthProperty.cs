@@ -5,4 +5,3 @@ public struct HealthProperty
     public string LowMessage;
     public int LowMessageHealth;
 }
-

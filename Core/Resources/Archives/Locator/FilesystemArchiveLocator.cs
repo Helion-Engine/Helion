@@ -89,4 +89,3 @@ public class FilesystemArchiveLocator : IArchiveLocator
         return path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;
     }
 }
-

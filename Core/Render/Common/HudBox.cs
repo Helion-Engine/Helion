@@ -91,4 +91,3 @@ public readonly struct HudBox
 
     public override string ToString() => $"({Min}), ({Max})";
 }
-

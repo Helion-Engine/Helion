@@ -5,4 +5,3 @@ public enum BlendingFactorType
     SrcAlpha = 770,
     OneMinusSrcAlpha = 771,
 }
-

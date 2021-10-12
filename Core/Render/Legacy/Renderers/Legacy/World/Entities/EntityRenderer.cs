@@ -315,4 +315,3 @@ public class EntityRenderer
         AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteRotation.Mirror);
     }
 }
-

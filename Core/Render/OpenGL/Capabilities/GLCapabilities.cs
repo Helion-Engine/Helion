@@ -54,4 +54,3 @@ public static class GLCapabilities
         return new GLVersion(0, 0);
     }
 }
-

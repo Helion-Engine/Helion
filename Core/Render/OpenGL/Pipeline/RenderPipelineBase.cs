@@ -80,4 +80,3 @@ public abstract class RenderPipelineBase<TShader, TVertex> : IDisposable
         m_disposed = true;
     }
 }
-

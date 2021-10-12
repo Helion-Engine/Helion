@@ -60,4 +60,3 @@ public readonly struct RenderableGlyph
         Color = parent.Color;
     }
 }
-

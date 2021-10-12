@@ -16,4 +16,3 @@ public enum SectorDataTypes
     Secret = 256,
     SkyTexture = 512,
 }
-

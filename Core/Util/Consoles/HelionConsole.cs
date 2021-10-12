@@ -317,4 +317,3 @@ public class HelionConsole : Target
         m_disposed = true;
     }
 }
-

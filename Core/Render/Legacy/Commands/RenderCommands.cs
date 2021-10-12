@@ -172,4 +172,3 @@ public class RenderCommands : IEnumerable<IRenderCommand>
 
     private Vec2I TranslatePoint(int x, int y) => (new Vec2D(x, y) * m_scale).Int;
 }
-

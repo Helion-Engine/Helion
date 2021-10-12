@@ -6,4 +6,3 @@ public struct LineAutomapFlags
     public bool NeverDraw;
     public bool AlwaysDraw;
 }
-

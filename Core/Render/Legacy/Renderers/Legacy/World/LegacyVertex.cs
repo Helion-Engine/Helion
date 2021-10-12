@@ -39,4 +39,3 @@ public struct LegacyVertex
         Fuzz = fuzz ? 1.0f : 0.0f;
     }
 }
-

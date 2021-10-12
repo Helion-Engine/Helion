@@ -156,4 +156,3 @@ public partial class IntermissionLayer
         }
     }
 }
-

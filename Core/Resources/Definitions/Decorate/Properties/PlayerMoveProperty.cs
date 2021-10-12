@@ -11,4 +11,3 @@ public class PlayerMoveProperty
         Run = run;
     }
 }
-

@@ -174,4 +174,3 @@ public class PowerupBase : IPowerup
         SetTics();
     }
 }
-

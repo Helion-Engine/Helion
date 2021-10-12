@@ -106,4 +106,3 @@ internal readonly struct BufferRenderInfo
         Count = count;
     }
 }
-

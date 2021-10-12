@@ -5,4 +5,3 @@ public enum ImageType
     Palette,
     Argb
 }
-

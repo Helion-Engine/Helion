@@ -91,4 +91,3 @@ public class GLTexture : IDisposable
 
     public override string ToString() => $"{DebugName} (GLName: {TextureName}, Target: {Target})";
 }
-

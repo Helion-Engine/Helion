@@ -40,4 +40,3 @@ public class PlayerProperty
     public double ViewBob = 1;
     public double ViewHeight = 41;
 }
-

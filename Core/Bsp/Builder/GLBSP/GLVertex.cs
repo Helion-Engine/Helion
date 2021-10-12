@@ -18,4 +18,3 @@ public struct GLVertex
 
     public Vec2D ToDouble() => new(X.ToDouble(), Y.ToDouble());
 }
-

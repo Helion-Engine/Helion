@@ -69,4 +69,3 @@ public partial class MenuLayer : IGameLayer
         Manager.Remove(this);
     }
 }
-

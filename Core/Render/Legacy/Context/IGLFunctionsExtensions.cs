@@ -10,4 +10,3 @@ public static class IGLFunctionsExtensions
         func.BufferSubData(type, byteOffset, numBytes, new[] { value });
     }
 }
-

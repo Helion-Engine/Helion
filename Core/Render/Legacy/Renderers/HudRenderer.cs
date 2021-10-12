@@ -16,4 +16,3 @@ public abstract class HudRenderer : IDisposable
     public abstract void DrawText(RenderableString text, ImageBox2I drawArea, float alpha);
     public abstract void Render(Rectangle viewport);
 }
-

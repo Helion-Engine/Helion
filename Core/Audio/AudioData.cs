@@ -46,4 +46,3 @@ public class AudioData
     /// </summary>
     public bool Loop { get; set; }
 }
-

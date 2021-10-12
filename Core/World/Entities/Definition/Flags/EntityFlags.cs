@@ -403,4 +403,3 @@ public struct EntityFlags
     public override int GetHashCode() => Flags1 ^ Flags2 ^ Flags3 ^ Flags4 ^ Flags5 ^ Flags6 ^ Flags7 ^
         Flags8 ^ Flags9 ^ Flags10;
 }
-

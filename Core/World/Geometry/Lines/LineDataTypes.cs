@@ -11,4 +11,3 @@ public enum LineDataTypes
     Args = 8,
     Alpha = 16,
 }
-

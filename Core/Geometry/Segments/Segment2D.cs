@@ -348,4 +348,3 @@ public class Segment2D
         yield return End;
     }
 }
-

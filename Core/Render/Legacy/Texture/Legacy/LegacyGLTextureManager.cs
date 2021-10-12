@@ -167,4 +167,3 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         gl.TexParameterF(targetType, TextureParameterFloatNameType.AnisotropyExt, value);
     }
 }
-

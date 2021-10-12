@@ -5,4 +5,3 @@ public enum SpecialTickStatus
     Continue,
     Destroy,
 }
-

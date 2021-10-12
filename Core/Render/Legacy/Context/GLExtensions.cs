@@ -31,4 +31,3 @@ public class GLExtensions
             m_extensions.Add(gl.GetString(GetStringType.Extensions, i));
     }
 }
-

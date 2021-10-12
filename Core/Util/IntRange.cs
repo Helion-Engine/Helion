@@ -18,4 +18,3 @@ public readonly struct IntRange
         return new(start, start + count);
     }
 }
-

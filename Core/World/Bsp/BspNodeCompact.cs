@@ -83,4 +83,3 @@ public readonly struct BspNodeCompact
         BoundingBox = boundingBox;
     }
 }
-

@@ -32,4 +32,3 @@ public record ClearRenderCommand : IRenderCommand
         return new ClearRenderCommand(false, true, false, DefaultClearColor);
     }
 }
-

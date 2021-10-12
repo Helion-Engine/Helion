@@ -32,4 +32,3 @@ public static class LayerUtil
         return newPages;
     }
 }
-

@@ -8,4 +8,3 @@ public class FrameSet
 
     public override string ToString() => $"name={VanillActorName} start={StartFrameIndex} count={Count}";
 }
-

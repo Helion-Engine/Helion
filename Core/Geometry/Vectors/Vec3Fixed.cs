@@ -117,4 +117,3 @@ public struct Vec3Fixed
     public override bool Equals(object? obj) => obj is Vec3Fixed v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 }
-

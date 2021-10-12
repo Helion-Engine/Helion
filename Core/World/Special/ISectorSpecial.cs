@@ -10,4 +10,3 @@ public interface ISectorSpecial : ISpecial
     void Resume();
     bool IsPaused { get; }
 }
-

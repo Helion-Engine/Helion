@@ -224,4 +224,3 @@ public class GLRenderer : IRenderer
         m_disposed = true;
     }
 }
-

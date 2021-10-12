@@ -10,4 +10,3 @@ public class DehackedWeapon
     public int? ShootingFrame { get; set; }
     public int? FiringFrame { get; set; }
 }
-

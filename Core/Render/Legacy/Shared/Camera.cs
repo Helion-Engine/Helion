@@ -121,4 +121,3 @@ public class Camera
         return (float)MathHelper.Clamp(pitchRadians, -MathHelper.HalfPi, MathHelper.HalfPi);
     }
 }
-

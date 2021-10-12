@@ -64,4 +64,3 @@ public class GLVersion
     /// <inheritdoc/>
     public override string ToString() => $"{Major}.{Minor}";
 }
-

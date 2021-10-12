@@ -141,4 +141,3 @@ public class Vector4D
     public override bool Equals(object? obj) => obj is Vector4D v && X == v.X && Y == v.Y && Z == v.Z && W == v.W;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z, W);
 }
-

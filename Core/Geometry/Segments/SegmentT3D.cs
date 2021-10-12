@@ -56,4 +56,3 @@ public class SegmentT3D<V> where V : Vector3D
         yield return End;
     }
 }
-

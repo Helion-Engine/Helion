@@ -8,4 +8,3 @@ public enum Thrust
     Horizontal,
     HorizontalAndVertical
 }
-

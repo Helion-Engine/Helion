@@ -8,4 +8,3 @@ public enum GetStringType
     Extensions = 7939,
     ShadingLanguageVersion = 35724,
 }
-

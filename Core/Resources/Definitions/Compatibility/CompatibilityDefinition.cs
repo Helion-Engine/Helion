@@ -7,4 +7,3 @@ public class CompatibilityDefinition
 {
     public readonly Dictionary<string, CompatibilityMapDefinition> MapDefinitions = new(StringComparer.OrdinalIgnoreCase);
 }
-

@@ -9,4 +9,3 @@ public enum ActorStateBranch
     Stop,
     Wait,
 }
-

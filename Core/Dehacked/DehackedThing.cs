@@ -33,4 +33,3 @@ public class DehackedThing
         return $"[{Number}]{Name}";
     }
 }
-

@@ -7,4 +7,3 @@ public enum TextureParameterNameType
     WrapS = 10242,
     WrapT = 10243,
 }
-

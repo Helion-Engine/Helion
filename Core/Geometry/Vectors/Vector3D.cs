@@ -169,4 +169,3 @@ public class Vector3D
     public override bool Equals(object? obj) => obj is Vector3D v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 }
-

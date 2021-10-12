@@ -8,4 +8,3 @@ public class EpisodeDef
     public string Key { get; set; } = string.Empty;
     public bool Optional { get; set; }
 }
-

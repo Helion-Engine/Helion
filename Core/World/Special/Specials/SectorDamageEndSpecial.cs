@@ -34,4 +34,3 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
     public override SectorDamageSpecial Copy(Sector sector) =>
         new SectorDamageEndSpecial(m_world, sector, m_damage);
 }
-

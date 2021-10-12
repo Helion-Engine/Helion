@@ -15,4 +15,3 @@ public struct WallVertices
         BottomRight = bottomRight;
     }
 }
-

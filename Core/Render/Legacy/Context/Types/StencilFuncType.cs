@@ -11,4 +11,3 @@ public enum StencilFuncType
     Gequal = 518,
     Always = 519,
 }
-

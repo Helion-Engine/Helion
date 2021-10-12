@@ -30,4 +30,3 @@ public class ActorDefinition
 
     public override string ToString() => $"{Name}";
 }
-

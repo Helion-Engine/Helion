@@ -67,4 +67,3 @@ public struct Circle2D
     public override bool Equals(object? obj) => obj is Circle2D c && Radius == c.Radius && Origin == c.Origin;
     public override int GetHashCode() => HashCode.Combine(Radius.GetHashCode(), Origin.GetHashCode());
 }
-

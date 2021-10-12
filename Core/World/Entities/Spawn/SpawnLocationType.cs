@@ -6,4 +6,3 @@ public enum SpawnLocationType
     Cooperative,
     Deathmatch,
 }
-

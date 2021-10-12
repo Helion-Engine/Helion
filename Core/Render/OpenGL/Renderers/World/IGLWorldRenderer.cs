@@ -23,4 +23,3 @@ public interface IGLWorldRenderer : IDisposable
     /// <param name="context">The rendering context information.</param>
     void Render(WorldRenderContext context);
 }
-

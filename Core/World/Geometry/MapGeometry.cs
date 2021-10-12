@@ -79,4 +79,3 @@ public class MapGeometry
             m_idToLine[line.LineId] = new List<Line> { line };
     }
 }
-

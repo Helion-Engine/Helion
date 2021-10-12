@@ -99,4 +99,3 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
         return GetEnumerator();
     }
 }
-

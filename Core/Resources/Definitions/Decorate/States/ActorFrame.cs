@@ -21,4 +21,3 @@ public class ActorFrame
 
     public override string ToString() => $"{Sprite} {Frame} {Ticks} action={ActionFunction} flow={FlowControl}]";
 }
-

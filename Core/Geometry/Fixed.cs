@@ -125,4 +125,3 @@ public readonly struct Fixed
     public override bool Equals(object? obj) => obj is Fixed f && Bits == f.Bits;
     public override int GetHashCode() => Bits.GetHashCode();
 }
-

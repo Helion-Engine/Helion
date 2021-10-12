@@ -305,4 +305,3 @@ public enum EntityFlag
     // New flags we added.
     IsTeleportSpot = 300,
 }
-

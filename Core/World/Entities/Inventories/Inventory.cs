@@ -401,4 +401,3 @@ public class Inventory
         Keys.Sort((i1, i2) => i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value));
     }
 }
-

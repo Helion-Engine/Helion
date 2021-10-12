@@ -21,4 +21,3 @@ public class MenuPaddingComponent : IMenuComponent
         PixelAmount = pixelAmount;
     }
 }
-

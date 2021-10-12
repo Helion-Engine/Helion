@@ -64,4 +64,3 @@ public partial class WorldLayer
         m_profiler.Render.Hud.Stop();
     }
 }
-

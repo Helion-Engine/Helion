@@ -183,4 +183,3 @@ public class Line : IBspUsableLine
         return $"Id={Id} [{StartPosition}] [{EndPosition}]";
     }
 }
-

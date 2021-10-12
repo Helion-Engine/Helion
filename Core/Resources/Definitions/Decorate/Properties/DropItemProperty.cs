@@ -6,4 +6,3 @@ public struct DropItemProperty
     public byte? Probability;
     public int? Amount;
 }
-

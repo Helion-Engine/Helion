@@ -40,4 +40,3 @@ public class HexenLine : ILine
     public ISide GetFront() => Front;
     public ISide? GetBack() => Back;
 }
-

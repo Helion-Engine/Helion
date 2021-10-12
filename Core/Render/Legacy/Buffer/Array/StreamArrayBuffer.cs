@@ -12,4 +12,3 @@ public class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 
     protected override BufferUsageType GetBufferUsageType() => BufferUsageType.StreamDraw;
 }
-

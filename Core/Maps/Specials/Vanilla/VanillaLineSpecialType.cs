@@ -283,4 +283,3 @@ public enum VanillaLineSpecialType
     // TODO
     TransferSkyFlipped
 }
-

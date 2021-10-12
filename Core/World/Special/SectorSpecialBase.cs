@@ -34,4 +34,3 @@ public abstract class SectorSpecialBase : ISectorSpecial
 
     public virtual bool IsPaused { get; }
 }
-

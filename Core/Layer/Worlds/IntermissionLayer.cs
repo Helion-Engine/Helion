@@ -134,4 +134,3 @@ public partial class IntermissionLayer : IGameLayer
         // Not used.
     }
 }
-

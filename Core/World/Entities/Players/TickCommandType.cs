@@ -28,4 +28,3 @@ public enum TickCommands
     WeaponSlot7,
     CenterView,
 }
-

@@ -22,4 +22,3 @@ public readonly struct GLHudTextureVertex
         Alpha = alpha;
     }
 }
-

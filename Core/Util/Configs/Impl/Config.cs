@@ -133,4 +133,3 @@ public class Config : IConfig
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

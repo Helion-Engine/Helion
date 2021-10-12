@@ -45,4 +45,3 @@ public interface INode
     /// </summary>
     bool RightIsSubsector { get; }
 }
-

@@ -88,4 +88,3 @@ public class MapEntryCollection
     /// </summary>
     public bool IsUDMFMap => Textmap != null;
 }
-

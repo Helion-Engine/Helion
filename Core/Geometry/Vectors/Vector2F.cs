@@ -139,4 +139,3 @@ public class Vector2F
     public override bool Equals(object? obj) => obj is Vector2F v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
-

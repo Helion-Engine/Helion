@@ -31,4 +31,3 @@ public struct WorldVertex
 
     public override string ToString() => $"{X}, {Y}, {Z} [{U}, {V}]";
 }
-

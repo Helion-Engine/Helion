@@ -4,4 +4,3 @@ public enum CullFaceType
 {
     Back = 1029,
 }
-

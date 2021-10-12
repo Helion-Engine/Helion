@@ -169,4 +169,3 @@ public class LegacyShader : ShaderProgram
         return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
     }
 }
-

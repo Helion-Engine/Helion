@@ -10,4 +10,3 @@ public static class EntityDefinitionType
     public const string Key = "Key";
     public const string Weapon = "Weapon";
 }
-

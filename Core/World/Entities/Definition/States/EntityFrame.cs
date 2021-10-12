@@ -61,4 +61,3 @@ public class EntityFrame
     private void CheckSetInvisible() =>
         IsInvisible = Sprite.Equals(Constants.InvisibleSprite, StringComparison.OrdinalIgnoreCase);
 }
-

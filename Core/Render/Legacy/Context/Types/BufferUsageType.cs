@@ -12,4 +12,3 @@ public enum BufferUsageType
     DynamicRead = 35049,
     DynamicCopy = 35050,
 }
-

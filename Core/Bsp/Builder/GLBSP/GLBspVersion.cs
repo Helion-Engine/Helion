@@ -8,4 +8,3 @@ public enum GLBspVersion
     Four,
     Five
 }
-

@@ -32,4 +32,3 @@ public class SoundInfo
         return Name.GetHashCode();
     }
 }
-

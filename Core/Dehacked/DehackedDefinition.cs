@@ -563,4 +563,3 @@ public partial class DehackedDefinition
             parser.ConsumeString();
     }
 }
-

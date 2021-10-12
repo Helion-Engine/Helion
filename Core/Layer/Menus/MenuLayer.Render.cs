@@ -151,4 +151,3 @@ public partial class MenuLayer
         offsetY += MathHelper.Max(area.Height, leftDim.Height, midDim.Height, rightDim.Width) + RowVerticalPadding;
     }
 }
-

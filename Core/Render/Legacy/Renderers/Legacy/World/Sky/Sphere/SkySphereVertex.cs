@@ -20,4 +20,3 @@ public struct SkySphereVertex
         V = v;
     }
 }
-

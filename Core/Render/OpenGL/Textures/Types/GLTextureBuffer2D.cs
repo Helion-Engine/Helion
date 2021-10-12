@@ -59,4 +59,3 @@ public class GLTextureBuffer2D : GLTexture
             Unbind();
     }
 }
-

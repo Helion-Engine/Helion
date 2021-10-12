@@ -130,4 +130,3 @@ public class Weapon : InventoryItem, ITickable
             Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
     }
 }
-

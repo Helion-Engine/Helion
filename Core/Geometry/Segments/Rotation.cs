@@ -9,4 +9,3 @@ public enum Rotation
     On,
     Right,
 }
-

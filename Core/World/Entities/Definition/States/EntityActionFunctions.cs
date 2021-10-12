@@ -2797,4 +2797,3 @@ public static class EntityActionFunctions
         return new Line(0, 0, seg, side, null, flags, special, args);
     }
 }
-

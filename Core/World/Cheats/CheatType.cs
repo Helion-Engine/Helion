@@ -30,4 +30,3 @@ public enum CheatType
     Ressurect,
     Kill
 }
-

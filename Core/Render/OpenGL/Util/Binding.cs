@@ -5,4 +5,3 @@ public enum Binding
     Bind,
     DoNotBind
 }
-

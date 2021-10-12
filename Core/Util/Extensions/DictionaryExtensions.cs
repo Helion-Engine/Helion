@@ -16,4 +16,3 @@ public static class DictionaryExtensions
     /// <returns>True if it is, false if not.</returns>
     public static bool Empty<K, V>(this Dictionary<K, V> dictionary) => dictionary.Count == 0;
 }
-

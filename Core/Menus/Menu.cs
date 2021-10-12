@@ -148,4 +148,3 @@ public abstract class Menu : IEnumerable<IMenuComponent>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

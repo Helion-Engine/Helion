@@ -11,4 +11,3 @@ public class ActorActionFunction
 
     public override string ToString() => FunctionName;
 }
-

@@ -13,4 +13,3 @@ public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
 
     protected override BufferUsageType GetBufferUsageType() => BufferUsageType.DynamicDraw;
 }
-

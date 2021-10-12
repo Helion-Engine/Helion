@@ -21,4 +21,3 @@ public class WadEntry : Entry
         return Parent.ReadData(this);
     }
 }
-

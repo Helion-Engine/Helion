@@ -12,4 +12,3 @@ public class EntityBoxModel
 
     public Vec3D GetCenter() => (CenterX, CenterY, CenterZ);
 }
-

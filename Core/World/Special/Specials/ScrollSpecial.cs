@@ -228,4 +228,3 @@ class ScrollSpecial : ISpecial
         return false;
     }
 }
-

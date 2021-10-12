@@ -63,4 +63,3 @@ public class GLRenderableFramebufferTextureSurface : GLRenderableSurface
         m_disposed = true;
     }
 }
-

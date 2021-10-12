@@ -56,4 +56,3 @@ public class SegmentT3F<V> where V : Vector3F
         yield return End;
     }
 }
-

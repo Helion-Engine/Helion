@@ -79,4 +79,3 @@ public interface IRenderer : IDisposable
     /// </remarks>
     void FlushPipeline();
 }
-

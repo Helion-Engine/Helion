@@ -267,4 +267,3 @@ public enum ZDoomLineSpecialType
     CeilingRaiseToHighest = 262,
     StairsBuildUpDoomCrush = 273,
 }
-

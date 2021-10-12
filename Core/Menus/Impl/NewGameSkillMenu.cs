@@ -101,4 +101,3 @@ public class NewGameSkillMenu : Menu
         m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
     }
 }
-

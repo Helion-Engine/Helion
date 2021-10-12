@@ -11,4 +11,3 @@ public struct MorphProjectileProperty
     public string? PlayerClass;
     public string? UnmorphFlash;
 }
-

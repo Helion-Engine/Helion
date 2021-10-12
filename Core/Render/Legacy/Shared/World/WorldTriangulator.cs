@@ -362,4 +362,3 @@ public static class WorldTriangulator
         return uv;
     }
 }
-

@@ -35,4 +35,3 @@ public class GLDefaultRenderableSurface : GLRenderableSurface
         // Does nothing, no components to dispose.
     }
 }
-

@@ -72,4 +72,3 @@ public class MapInfoDef : ICloneable
         return MapName.GetHashCode(StringComparison.OrdinalIgnoreCase);
     }
 }
-

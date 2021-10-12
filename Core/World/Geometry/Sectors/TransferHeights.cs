@@ -9,4 +9,3 @@ public class TransferHeights
         ControlSector = controlSector;
     }
 }
-

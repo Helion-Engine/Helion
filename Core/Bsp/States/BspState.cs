@@ -14,4 +14,3 @@ public enum BspState
     FinishingSplit,
     Complete,
 }
-

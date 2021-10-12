@@ -681,4 +681,3 @@ public partial class MapInfoDefinition
         Parse(archiveCollection, entry.ReadDataAsString());
     }
 }
-

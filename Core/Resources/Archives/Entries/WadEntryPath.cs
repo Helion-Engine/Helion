@@ -14,4 +14,3 @@ public class WadEntryPath : IEntryPath
         FullPath = path;
     }
 }
-

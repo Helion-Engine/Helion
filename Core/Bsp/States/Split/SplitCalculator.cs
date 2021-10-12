@@ -177,4 +177,3 @@ public class SplitCalculator
         return score;
     }
 }
-

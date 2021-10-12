@@ -33,4 +33,3 @@ public class GLLegacySurface : IRenderableSurface
         GC.SuppressFinalize(this);
     }
 }
-

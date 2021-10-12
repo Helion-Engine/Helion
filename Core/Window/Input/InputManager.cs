@@ -83,4 +83,3 @@ public class InputManager : IInputManager
         return m_consumableInput;
     }
 }
-

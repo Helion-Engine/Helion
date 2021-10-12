@@ -11,4 +11,3 @@ public class PowerupProperty
     public int Strength;
     public string Type = "";
 }
-

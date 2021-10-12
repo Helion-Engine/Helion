@@ -44,4 +44,3 @@ public class EntityDefinition
 
     public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";
 }
-

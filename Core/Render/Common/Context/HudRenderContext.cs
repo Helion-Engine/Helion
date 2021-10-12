@@ -15,4 +15,3 @@ public class HudRenderContext
         Dimension = dimension;
     }
 }
-

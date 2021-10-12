@@ -20,4 +20,3 @@ public interface IArchiveLocator
     /// </returns>
     Archive? Locate(string uri);
 }
-

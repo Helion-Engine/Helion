@@ -149,4 +149,3 @@ public class FontDefinitionParser : ParserBase
         Definitions.Add(CurrentDefinition);
     }
 }
-

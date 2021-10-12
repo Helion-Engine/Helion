@@ -106,4 +106,3 @@ public struct Vec2Fixed
     public override bool Equals(object? obj) => obj is Vec2Fixed v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
-

@@ -1414,4 +1414,3 @@ public partial class DecorateParser
         }
     }
 }
-

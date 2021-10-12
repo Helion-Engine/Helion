@@ -74,4 +74,3 @@ public class RenderWorldDataManager : IDisposable
         m_textureToWorldData.Values.ForEach(geometryData => geometryData.Dispose());
     }
 }
-

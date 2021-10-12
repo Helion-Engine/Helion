@@ -29,4 +29,3 @@ public interface IWindow : IDisposable
     /// </summary>
     Dimension FramebufferDimension { get; }
 }
-

@@ -29,4 +29,3 @@ public record DrawWorldCommand : IRenderCommand
         AutomapScale = automapScale;
     }
 }
-

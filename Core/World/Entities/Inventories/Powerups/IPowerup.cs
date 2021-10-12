@@ -18,4 +18,3 @@ public interface IPowerup
     void Reset();
     PowerupModel ToPowerupModel();
 }
-

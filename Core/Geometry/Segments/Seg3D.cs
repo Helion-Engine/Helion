@@ -80,4 +80,3 @@ public struct Seg3D
         yield return End;
     }
 }
-

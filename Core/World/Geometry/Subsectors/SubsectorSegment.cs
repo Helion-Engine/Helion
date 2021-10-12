@@ -55,4 +55,3 @@ public class SubsectorSegment : Segment2D
         Subsector = null !;
     }
 }
-

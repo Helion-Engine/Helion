@@ -12,4 +12,3 @@ public class ActorFrameProperties
     public Vec2I? Offset;
     public bool? Slow;
 }
-

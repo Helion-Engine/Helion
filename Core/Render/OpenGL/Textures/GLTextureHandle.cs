@@ -32,4 +32,3 @@ public class GLTextureHandle : IRenderableTextureHandle
         Offset = offset;
     }
 }
-

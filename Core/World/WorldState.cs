@@ -6,4 +6,3 @@ public enum WorldState
     Exit,
     Exited
 }
-

@@ -18,4 +18,3 @@ public class PowerupColorMap
         Destination = destination;
     }
 }
-

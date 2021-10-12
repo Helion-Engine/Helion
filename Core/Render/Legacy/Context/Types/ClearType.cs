@@ -9,4 +9,3 @@ public enum ClearType
     StencilBufferBit = 1024,
     ColorBufferBit = 16384,
 }
-

@@ -11,4 +11,3 @@ public struct PowerupProperty
     public int? Strength;
     public string? Type;
 }
-

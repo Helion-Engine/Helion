@@ -35,4 +35,3 @@ public readonly struct ByteColor
 
     public override string ToString() => $"{R}, {G}, {B}, {A}";
 }
-

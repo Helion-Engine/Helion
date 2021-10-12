@@ -9,4 +9,3 @@ public class Sector3DFloor
         ControlSector = controlSector;
     }
 }
-

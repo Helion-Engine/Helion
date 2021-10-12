@@ -9,4 +9,3 @@ public enum LineActivationType
     BackSide = 2,
     Any = 3,
 }
-

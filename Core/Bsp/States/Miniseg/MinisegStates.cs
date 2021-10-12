@@ -34,4 +34,3 @@ public class MinisegStates
     /// </summary>
     public int CurrentVertexListIndex = 0;
 }
-

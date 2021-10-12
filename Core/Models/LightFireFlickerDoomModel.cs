@@ -19,4 +19,3 @@ public class LightFireFlickerDoomModel : ISpecialModel
         return new LightFireFlickerDoom(world.Sectors[SectorId], world.Random, this);
     }
 }
-

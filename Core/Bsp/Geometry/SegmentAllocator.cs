@@ -144,4 +144,3 @@ public class SegmentAllocator
         return m_collinearTracker.GetOrCreateIndex(start.Position, end.Position);
     }
 }
-

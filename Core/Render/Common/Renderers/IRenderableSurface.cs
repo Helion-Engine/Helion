@@ -29,4 +29,3 @@ public interface IRenderableSurface : IDisposable
     /// <param name="action">The rendering actions.</param>
     public void Render(Action<IRenderableSurfaceContext> action);
 }
-

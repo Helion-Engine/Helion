@@ -16,4 +16,3 @@ public readonly struct ColoredChar
         Color = color;
     }
 }
-

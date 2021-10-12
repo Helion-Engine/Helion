@@ -6,4 +6,3 @@ public enum ArchiveType
     Assets,
     IWAD
 }
-

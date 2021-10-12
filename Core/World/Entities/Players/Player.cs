@@ -1114,4 +1114,3 @@ public class Player : Entity
 
     private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
 }
-

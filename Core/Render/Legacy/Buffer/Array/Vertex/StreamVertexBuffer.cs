@@ -13,4 +13,3 @@ public class StreamVertexBuffer<T> : VertexBufferObject<T> where T : struct
 
     protected override BufferUsageType GetBufferUsageType() => BufferUsageType.StreamDraw;
 }
-

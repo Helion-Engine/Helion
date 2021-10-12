@@ -17,4 +17,3 @@ public interface IConfigAliasMapping : IEnumerable<(string name, IConfigValue va
     /// <returns>True if an alias mapping was found, false otherwise.</returns>
     bool TryGet(string name, [NotNullWhen(true)] out IConfigValue? configValue);
 }
-

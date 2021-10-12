@@ -9,4 +9,3 @@ public enum MinisegState
     Working,
     Finished,
 }
-

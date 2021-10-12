@@ -16,4 +16,3 @@ public enum VertexAttributePointerType
     UnsignedInt10F11F11FRev = 35899,
     Int2101010Rev = 36255,
 }
-

@@ -24,4 +24,3 @@ public class ShaderStorageBufferObject<T> : ShaderDataBufferObject<T> where T : 
         gl.BindBufferBase(BufferRangeType.ShaderStorageBuffer, BindIndex, BufferId);
     }
 }
-

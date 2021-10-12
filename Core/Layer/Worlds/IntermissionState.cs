@@ -12,4 +12,3 @@ public enum IntermissionState
     NextMap,
     Complete
 }
-

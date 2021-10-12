@@ -315,4 +315,3 @@ public readonly struct Box2F
     }
     public override string ToString() => $"({Min}), ({Max})";
 }
-

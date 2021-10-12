@@ -27,4 +27,3 @@ public class DoomNode : INode
         RightIsSubsector = (rightChild & IsSubsectorMask) == IsSubsectorMask;
     }
 }
-

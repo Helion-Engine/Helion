@@ -12,4 +12,3 @@ public enum MapOptions
     NoInfighting,
     TotalInfighting
 }
-

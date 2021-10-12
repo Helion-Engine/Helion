@@ -124,4 +124,3 @@ public partial class ConsoleLayer
         }
     }
 }
-

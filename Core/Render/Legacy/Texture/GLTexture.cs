@@ -57,4 +57,3 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         gl.DeleteTexture(TextureId);
     }
 }
-

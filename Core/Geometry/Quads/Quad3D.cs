@@ -17,4 +17,3 @@ public readonly struct Quad3D
         BottomRight = bottomRight;
     }
 }
-

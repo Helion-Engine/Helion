@@ -166,4 +166,3 @@ public class PrimitiveWorldRenderer : IDisposable
         m_disposed = true;
     }
 }
-

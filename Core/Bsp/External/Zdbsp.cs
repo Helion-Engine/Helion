@@ -76,4 +76,3 @@ public class Zdbsp
         return string.Format("--gl-only --output \"{0}\" \"{1}\" --map=\"{2}\"", m_output, m_file, map);
     }
 }
-

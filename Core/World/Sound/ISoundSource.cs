@@ -16,4 +16,3 @@ public interface ISoundSource
     bool CanAttenuate(SoundInfo soundInfo);
     bool CanMakeSound();
 }
-

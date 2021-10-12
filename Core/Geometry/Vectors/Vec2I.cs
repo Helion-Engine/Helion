@@ -107,4 +107,3 @@ public struct Vec2I
     public override bool Equals(object? obj) => obj is Vec2I v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
-

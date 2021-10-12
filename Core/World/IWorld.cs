@@ -103,4 +103,3 @@ public interface IWorld : IDisposable
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
 }
-

@@ -17,4 +17,3 @@ public class Defines
     public static readonly string Pnames = "PNAMES";
     public static readonly string[] TextureDefinitions = new string[] { "TEXTURE1", "TEXTURE2", "TEXTURE3" };
 }
-

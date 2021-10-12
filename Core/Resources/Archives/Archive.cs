@@ -56,4 +56,3 @@ public abstract class Archive
     public Entry? GetEntryByName(string name) => Entries.FirstOrDefault(x => x.Path.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     public bool AnyEntryByName(string name) => Entries.Any(x => x.Path.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 }
-

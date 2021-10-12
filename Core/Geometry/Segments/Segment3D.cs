@@ -56,4 +56,3 @@ public class Segment3D
         yield return End;
     }
 }
-

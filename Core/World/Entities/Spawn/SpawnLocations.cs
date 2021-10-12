@@ -117,4 +117,3 @@ public class SpawnLocations
         m_deathmatchStarts.Add(entity);
     }
 }
-

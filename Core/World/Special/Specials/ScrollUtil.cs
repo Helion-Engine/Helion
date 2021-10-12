@@ -69,4 +69,3 @@ public static class ScrollUtil
         return new ScrollSpeeds() { ScrollSpeed = toDiff };
     }
 }
-

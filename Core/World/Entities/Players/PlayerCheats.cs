@@ -22,4 +22,3 @@ public class PlayerCheats
 
     public IReadOnlyList<CheatType> GetActiveCheats() => m_cheats.AsReadOnly();
 }
-

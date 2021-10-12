@@ -17,4 +17,3 @@ public interface IVertex
     /// </summary>
     Vec2D Position { get; }
 }
-

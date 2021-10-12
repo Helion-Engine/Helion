@@ -172,4 +172,3 @@ public class GLLegacyWorldRenderContext : IWorldRenderContext
         // Nothing to do.
     }
 }
-

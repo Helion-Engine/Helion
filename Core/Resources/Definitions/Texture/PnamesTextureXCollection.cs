@@ -59,4 +59,3 @@ public class PnamesTextureXCollection
             Log.Warn("Unable to parse TextureX from {0}", entry.Path);
     }
 }
-

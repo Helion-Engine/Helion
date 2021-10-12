@@ -1408,4 +1408,3 @@ public class SpecialManager : ITickable, IDisposable
         return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
     }
 }
-

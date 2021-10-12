@@ -19,4 +19,3 @@ public readonly ref struct MoveInfo
 
     public static MoveInfo From(Line line, double t) => new MoveInfo(line, t, true);
 }
-

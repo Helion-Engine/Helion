@@ -137,4 +137,3 @@ public class VertexAttributeCollection
         Unbind();
     }
 }
-

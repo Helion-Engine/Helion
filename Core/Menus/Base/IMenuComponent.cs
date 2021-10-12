@@ -22,4 +22,3 @@ public interface IMenuComponent
 
     bool PlaySelectedSound { get { return true; } }
 }
-

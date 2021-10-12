@@ -12,4 +12,3 @@ public enum Axis3D
     Y,
     Z
 }
-

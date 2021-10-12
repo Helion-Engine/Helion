@@ -4701,4 +4701,3 @@ public partial class DehackedDefinition
     private static readonly string BFGCellsPerShot = "BFG Cells/Shot";
     private static readonly string MonstersInfight = "Monsters Infight";
 }
-

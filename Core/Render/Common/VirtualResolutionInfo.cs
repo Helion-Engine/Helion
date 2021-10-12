@@ -81,4 +81,3 @@ public readonly struct VirtualResolutionInfo
         return (topLeft, topLeft + dimension);
     }
 }
-

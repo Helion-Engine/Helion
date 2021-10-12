@@ -74,4 +74,3 @@ public class ElevatorSpecial : ISectorSpecial
         return false;
     }
 }
-

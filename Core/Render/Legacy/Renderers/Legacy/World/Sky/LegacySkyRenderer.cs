@@ -122,4 +122,3 @@ public class LegacySkyRenderer : IDisposable
         m_skyComponents.Clear();
     }
 }
-

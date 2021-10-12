@@ -7,4 +7,3 @@ public enum ZDoomDoorKind
     CloseDelayOpen,
     CloseStay
 }
-

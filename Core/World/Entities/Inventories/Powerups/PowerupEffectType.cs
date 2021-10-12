@@ -6,4 +6,3 @@ public enum PowerupEffectType
     Color,
     ColorMap
 }
-

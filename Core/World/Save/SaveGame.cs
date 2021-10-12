@@ -97,4 +97,3 @@ public class SaveGame
             stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(world.ToWorldModel(), DefaultSerializerSettings)));
     }
 }
-

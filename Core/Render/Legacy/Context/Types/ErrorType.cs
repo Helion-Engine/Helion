@@ -13,4 +13,3 @@ public enum ErrorType
     ContextLost = 1287,
     TableTooLarge = 32817,
 }
-

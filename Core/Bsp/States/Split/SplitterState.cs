@@ -9,4 +9,3 @@ public enum SplitterState
     Working,
     Finished,
 }
-

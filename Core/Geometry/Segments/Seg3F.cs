@@ -80,4 +80,3 @@ public struct Seg3F
         yield return End;
     }
 }
-

@@ -6,4 +6,3 @@ public class EntityFlagProperty
     public bool DefaultAlpha;
     public bool SkipSuper;
 }
-

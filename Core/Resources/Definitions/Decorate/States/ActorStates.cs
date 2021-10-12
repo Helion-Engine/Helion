@@ -9,4 +9,3 @@ public class ActorStates
     public readonly IDictionary<string, ActorFlowOverride> FlowOverrides = new Dictionary<string, ActorFlowOverride>(StringComparer.OrdinalIgnoreCase);
     public readonly IList<ActorFrame> Frames = new List<ActorFrame>();
 }
-

@@ -14,4 +14,3 @@ public class TrueRandom : IRandom
 
     public int NextDiff() => m_random.Next(256) - m_random.Next(256);
 }
-

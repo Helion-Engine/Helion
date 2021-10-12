@@ -10,4 +10,3 @@ public enum LineSpecialCompatibilityType
     KeyDoor,
     KeyObject
 }
-

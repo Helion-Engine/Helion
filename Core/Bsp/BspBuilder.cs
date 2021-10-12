@@ -335,4 +335,3 @@ public class BspBuilder : IBspBuilder
         LoadNextWorkItem();
     }
 }
-

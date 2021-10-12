@@ -44,4 +44,3 @@ public interface IWorldRenderContext : IDisposable
     void DrawImage(string texture, Quad3D quad, Color? color = null);
     void DrawSurface(string surfaceName, Quad3D quad, Color? color = null);
 }
-

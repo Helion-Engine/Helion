@@ -187,4 +187,3 @@ public class GLTextureDataBuffer : IDisposable
         m_disposed = true;
     }
 }
-

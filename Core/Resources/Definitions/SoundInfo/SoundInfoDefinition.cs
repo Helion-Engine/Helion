@@ -165,4 +165,3 @@ public class SoundInfoDefinition
         m_lookup[key] = new SoundInfo(key, entryName, m_pitchShiftRange, playerEntry);
     }
 }
-

@@ -13,4 +13,3 @@ public class UniformMatrix4 : UniformElement<mat4>
         GL.UniformMatrix4(Location, 1, false, value.Values1D);
     }
 }
-

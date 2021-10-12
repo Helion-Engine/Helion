@@ -131,4 +131,3 @@ internal class ColorRange
         Color = color;
     }
 }
-

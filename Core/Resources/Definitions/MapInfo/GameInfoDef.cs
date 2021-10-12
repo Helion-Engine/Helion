@@ -20,4 +20,3 @@ public class GameInfoDef
     public int PageTime { get; set; } = 5;
     public bool DrawReadThis { get; set; }
 }
-

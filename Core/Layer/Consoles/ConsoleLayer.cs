@@ -57,4 +57,3 @@ public partial class ConsoleLayer : IGameLayer
         m_disposed = true;
     }
 }
-

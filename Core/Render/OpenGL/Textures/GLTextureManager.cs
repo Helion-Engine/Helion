@@ -259,4 +259,3 @@ public class GLTextureManager : IRendererTextureManager
         m_disposed = true;
     }
 }
-

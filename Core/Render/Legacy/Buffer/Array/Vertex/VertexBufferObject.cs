@@ -43,4 +43,3 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         });
     }
 }
-

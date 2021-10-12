@@ -11,4 +11,3 @@ public enum BindingPoint
     Sector = 2,
     SectorPlane = 3,
 }
-

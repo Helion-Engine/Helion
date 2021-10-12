@@ -308,4 +308,3 @@ public class AtlasNode
         return m_left.RecursivelyAdd(dimension);
     }
 }
-

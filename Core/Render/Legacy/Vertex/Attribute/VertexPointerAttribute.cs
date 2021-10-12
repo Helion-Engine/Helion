@@ -25,4 +25,3 @@ public abstract class VertexPointerAttribute : VertexArrayAttribute
 
     protected abstract VertexAttributePointerType GetAttributePointerType();
 }
-

@@ -15,4 +15,3 @@ public class ConsoleCommandArgAttribute : Attribute
         Optional = optional;
     }
 }
-

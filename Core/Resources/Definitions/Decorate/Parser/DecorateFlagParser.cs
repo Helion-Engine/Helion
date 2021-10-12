@@ -983,4 +983,3 @@ public partial class DecorateParser
         }
     }
 }
-

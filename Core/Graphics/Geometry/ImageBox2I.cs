@@ -64,4 +64,3 @@ public readonly struct ImageBox2I
 
     public override string ToString() => $"({Min}, {Max})";
 }
-

@@ -79,4 +79,3 @@ public interface IGLFunctions
     void VertexAttribPointer(int index, int size, VertexAttributePointerType type, bool normalized, int stride, int offset);
     void Viewport(int x, int y, int width, int height);
 }
-

@@ -35,4 +35,3 @@ public class ConfigAliasMapping : IConfigAliasMapping
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

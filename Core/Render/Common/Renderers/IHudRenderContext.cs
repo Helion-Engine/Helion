@@ -173,4 +173,3 @@ public interface IHudRenderContext : IDisposable
     /// </summary>
     void PopVirtualDimension();
 }
-

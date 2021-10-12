@@ -56,4 +56,3 @@ public interface IConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> C
     /// <param name="key">The key to unbind.</param>
     void UnbindAll(Key key);
 }
-

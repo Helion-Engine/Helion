@@ -10,4 +10,3 @@ public enum PowerupModeType
     Stencil,
     Translucent,
 }
-

@@ -4,4 +4,3 @@ public enum TexStorageTargetType
 {
     Texture2D = 3553,
 }
-

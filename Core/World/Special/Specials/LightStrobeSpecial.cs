@@ -74,4 +74,3 @@ public class LightStrobeSpecial : SectorSpecialBase
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
 }
-

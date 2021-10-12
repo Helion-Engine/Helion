@@ -128,4 +128,3 @@ public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
             Fail("Unexpected map entry name (not a map entry)");
     }
 }
-

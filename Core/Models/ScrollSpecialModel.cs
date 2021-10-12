@@ -51,4 +51,3 @@ public class ScrollSpecialModel : ISpecialModel
         return new ScrollSpecial(world.Lines[0], Geometry.Vectors.Vec2D.Zero, Maps.Specials.ZDoom.ZDoomLineScroll.MiddleTexture);
     }
 }
-

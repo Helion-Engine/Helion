@@ -34,4 +34,3 @@ public struct ActorFlowControl
 
     public override string ToString() => $"{FlowType} (parent={Parent} label={Label} offset={Offset})";
 }
-

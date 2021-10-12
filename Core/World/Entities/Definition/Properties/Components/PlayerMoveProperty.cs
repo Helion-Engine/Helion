@@ -11,4 +11,3 @@ public struct PlayerMoveProperty
         Run = run;
     }
 }
-

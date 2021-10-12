@@ -19,4 +19,3 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 
     protected abstract BufferUsageType GetBufferUsageType();
 }
-

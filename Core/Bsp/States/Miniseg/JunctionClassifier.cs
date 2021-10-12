@@ -130,4 +130,3 @@ public class JunctionClassifier
         return false;
     }
 }
-

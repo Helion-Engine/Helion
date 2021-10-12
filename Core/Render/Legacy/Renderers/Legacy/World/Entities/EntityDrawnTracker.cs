@@ -38,4 +38,3 @@ public class EntityDrawnTracker
         m_entityWasDrawn.Set(entity.Id, true);
     }
 }
-

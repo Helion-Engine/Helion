@@ -15,4 +15,3 @@ public class UniformBool : UniformElement<bool>
         GL.Uniform1(Location, value ? UniformBoolTrue : UniformBoolFalse);
     }
 }
-

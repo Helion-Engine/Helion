@@ -269,4 +269,3 @@ public partial class ConsoleLayer
             m_submittedInputIndex = NoInputMessageIndex;
     }
 }
-

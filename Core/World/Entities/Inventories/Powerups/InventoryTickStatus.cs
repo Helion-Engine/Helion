@@ -5,4 +5,3 @@ public enum InventoryTickStatus
     Continue,
     Destroy
 }
-

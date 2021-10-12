@@ -15,4 +15,3 @@ public static class StackExtensions
     /// <returns>True if it has no elements, false if not.</returns>
     public static bool Empty<T>(this Stack<T> stack) => stack.Count == 0;
 }
-

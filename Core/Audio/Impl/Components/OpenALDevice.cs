@@ -66,4 +66,3 @@ public class OpenALDevice : IDisposable
         ALC.CloseDevice(Device);
     }
 }
-

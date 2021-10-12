@@ -196,4 +196,3 @@ public static class DefinitionPropertyApplier
         }
     }
 }
-

@@ -7,4 +7,3 @@ public abstract class Uniform
 
     public int Location { get; internal set; } = NoLocation;
 }
-

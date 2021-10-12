@@ -162,4 +162,3 @@ public class ConvexChecker
         States.TotalSegs = segments.Count;
     }
 }
-

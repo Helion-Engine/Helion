@@ -20,4 +20,3 @@ public interface ILegacyRenderer : IRenderer
     /// <param name="renderCommands">A series of drawing commands.</param>
     void Render(RenderCommands renderCommands);
 }
-

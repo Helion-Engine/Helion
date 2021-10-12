@@ -44,4 +44,3 @@ public interface ISkyComponent : IDisposable
     /// <param name="renderInfo">The position for rendering.</param>
     void RenderSky(RenderInfo renderInfo);
 }
-

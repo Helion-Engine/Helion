@@ -13,4 +13,3 @@ public class CheatEventArgs
         Cheat = cheat;
     }
 }
-

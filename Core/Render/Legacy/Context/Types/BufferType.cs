@@ -7,4 +7,3 @@ public enum BufferType
     TextureBuffer = 35882,
     ShaderStorageBuffer = 37074,
 }
-

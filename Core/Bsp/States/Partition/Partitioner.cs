@@ -295,4 +295,3 @@ public class Partitioner
             States.LeftSegments.Add(segmentToSplit);
     }
 }
-

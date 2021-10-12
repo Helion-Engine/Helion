@@ -10,4 +10,3 @@ public interface ISideDefinition
     /// </summary>
     int Id { get; }
 }
-

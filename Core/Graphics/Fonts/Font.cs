@@ -45,4 +45,3 @@ public class Font : IEnumerable<Glyph>
 
     public override string ToString() => $"{Name}, Glyphs: {m_glyphs.Count}, Atlas: {Image.Dimension}";
 }
-

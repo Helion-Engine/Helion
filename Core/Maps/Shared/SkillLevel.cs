@@ -9,4 +9,3 @@ public enum SkillLevel
     Hard,
     Nightmare,
 }
-

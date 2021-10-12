@@ -5,4 +5,3 @@ public enum ParseType
     Normal,
     Csv
 }
-

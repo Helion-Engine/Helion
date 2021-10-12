@@ -108,4 +108,3 @@ public partial class EndGameLayer : IGameLayer
         // TODO: Anything we need to dispose of? What about `Exited`?
     }
 }
-

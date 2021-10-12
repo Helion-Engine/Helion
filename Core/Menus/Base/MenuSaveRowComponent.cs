@@ -21,4 +21,3 @@ public class MenuSaveRowComponent : IMenuComponent
         SaveGame = saveGame;
     }
 }
-

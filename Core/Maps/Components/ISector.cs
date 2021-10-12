@@ -45,4 +45,3 @@ public interface ISector
 
     SectorDamageSpecial? SectorDamageSpecial { get; set; }
 }
-

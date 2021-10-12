@@ -50,4 +50,3 @@ public class StaticGeometryRenderer : IDisposable
         m_disposed = true;
     }
 }
-

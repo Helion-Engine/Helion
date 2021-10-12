@@ -15,4 +15,3 @@ public enum DecorateSpecialActivationType
     Deactivate,
     Switch,
 }
-

@@ -51,4 +51,3 @@ public struct Triangle3D
         yield return Third;
     }
 }
-

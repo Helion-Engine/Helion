@@ -17,4 +17,3 @@ public interface IRandom
     /// <returns>A random byte in the range of a +/- unsigned byte.</returns>
     int NextDiff();
 }
-

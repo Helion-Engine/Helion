@@ -55,4 +55,3 @@ public class HudDrawBuffer
         return newData;
     }
 }
-

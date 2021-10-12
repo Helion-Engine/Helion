@@ -310,4 +310,3 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
 
     private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
 }
-

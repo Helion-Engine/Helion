@@ -28,4 +28,3 @@ public static class MapInfoDefExtensions
         return $"{mapInfo.MapName}: {displayName}";
     }
 }
-

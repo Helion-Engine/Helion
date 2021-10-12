@@ -178,4 +178,3 @@ public class SectorPlane : ISoundSource
     public bool CanAttenuate(SoundInfo soundInfo) => true;
     public bool CanMakeSound() => true;
 }
-

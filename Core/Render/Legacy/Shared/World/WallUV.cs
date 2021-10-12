@@ -13,4 +13,3 @@ public struct WallUV
         BottomRight = bottomRight;
     }
 }
-

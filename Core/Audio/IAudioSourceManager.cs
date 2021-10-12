@@ -48,4 +48,3 @@ public interface IAudioSourceManager : IDisposable
     void PlayGroup(IEnumerable<IAudioSource> audioSources);
     void DeviceChanging();
 }
-

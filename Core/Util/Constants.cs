@@ -192,4 +192,3 @@ public static class Constants
     public const string MenuSelectIconActive = "M_SKULL1";
     public const string MenuSelectIconInactive = "M_SKULL2";
 }
-

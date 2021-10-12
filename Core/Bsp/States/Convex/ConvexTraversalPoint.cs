@@ -45,4 +45,3 @@ public class ConvexTraversalPoint
         Vertex = Segment[Endpoint];
     }
 }
-

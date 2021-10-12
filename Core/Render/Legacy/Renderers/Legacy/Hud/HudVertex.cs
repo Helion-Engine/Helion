@@ -41,4 +41,3 @@ public readonly struct HudVertex
     {
     }
 }
-

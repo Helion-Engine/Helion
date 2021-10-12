@@ -13,4 +13,3 @@ public enum BufferStorageFlagType
     DynamicStorage = 256,
     ClientStorage = 512,
 }
-

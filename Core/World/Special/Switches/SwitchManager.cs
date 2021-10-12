@@ -66,4 +66,3 @@ public static class SwitchManager
         return (Constants.NoTextureIndex, WallLocation.None);
     }
 }
-

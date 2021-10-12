@@ -41,4 +41,3 @@ public interface IThing
     /// </summary>
     ThingFlags Flags { get; }
 }
-

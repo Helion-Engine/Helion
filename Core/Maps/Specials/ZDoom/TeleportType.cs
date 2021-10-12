@@ -8,4 +8,3 @@ public enum TeleportType
     BoomFixed,
     Doom
 }
-

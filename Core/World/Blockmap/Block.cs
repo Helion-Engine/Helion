@@ -56,4 +56,3 @@ public class Block
         m_coordinate = new Vec2I(x, y);
     }
 }
-

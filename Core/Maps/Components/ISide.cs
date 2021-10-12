@@ -41,4 +41,3 @@ public interface ISide
 
     public SideScrollData? ScrollData { get; set; }
 }
-

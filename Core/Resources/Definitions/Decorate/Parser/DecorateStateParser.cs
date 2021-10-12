@@ -308,4 +308,3 @@ public partial class DecorateParser
         }
     }
 }
-

@@ -43,4 +43,3 @@ public class RenderableSentence
 
     public override string ToString() => new(Glyphs.Select(g => g.Character).ToArray());
 }
-

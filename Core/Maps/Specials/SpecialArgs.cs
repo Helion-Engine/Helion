@@ -33,4 +33,3 @@ public struct SpecialArgs
         Arg4 = other.Arg4;
     }
 }
-

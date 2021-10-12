@@ -28,4 +28,3 @@ public class DoomSector : ISector
         SectorType = sectorType;
     }
 }
-

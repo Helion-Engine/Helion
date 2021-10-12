@@ -22,4 +22,3 @@ public static class BitmapExtensions
         bitmap.UnlockBits(metadata);
     }
 }
-

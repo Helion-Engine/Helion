@@ -106,4 +106,3 @@ public static class HelionLoggers
         config.AddRuleForAllLevels(ProfilerFileTarget, ProfilerLoggerName);
     }
 }
-

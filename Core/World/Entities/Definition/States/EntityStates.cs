@@ -8,4 +8,3 @@ public class EntityStates
     public int FrameCount { get; set; }
     public Dictionary<string, int> Labels = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 }
-

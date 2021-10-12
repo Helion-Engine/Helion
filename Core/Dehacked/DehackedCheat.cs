@@ -20,4 +20,3 @@ public class DehackedCheat
     public string? PlayerPos { get; set; }
     public string? MapCheat { get; set; }
 }
-

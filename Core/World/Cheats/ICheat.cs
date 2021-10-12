@@ -23,4 +23,3 @@ public interface ICheat
             player.Cheats.SetCheatActive(CheatType);
     }
 }
-

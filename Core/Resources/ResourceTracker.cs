@@ -132,4 +132,3 @@ public class ResourceTracker<T> where T : class
         return m_table.GetValues(resourceNamespace);
     }
 }
-

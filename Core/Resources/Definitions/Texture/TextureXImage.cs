@@ -54,4 +54,3 @@ public class TextureXImage
         Height = Math.Max(0, height);
     }
 }
-

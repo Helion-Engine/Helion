@@ -70,4 +70,3 @@ class MonsterCountSpecial : ISpecial
         return false;
     }
 }
-

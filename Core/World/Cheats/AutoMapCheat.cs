@@ -27,4 +27,3 @@ class AutoMapCheat : ExactMatchCheat, ICheat
         }
     }
 }
-

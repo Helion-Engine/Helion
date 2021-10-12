@@ -10,4 +10,3 @@ public interface ILineDefinition
     /// </summary>
     int Id { get; }
 }
-

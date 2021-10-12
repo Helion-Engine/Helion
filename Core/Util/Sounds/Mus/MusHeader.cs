@@ -21,4 +21,3 @@ public record MusHeader
         InstrumentCount = reader.ReadInt16();
     }
 }
-

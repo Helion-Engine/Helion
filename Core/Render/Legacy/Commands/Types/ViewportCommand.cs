@@ -14,4 +14,3 @@ public record ViewportCommand : IRenderCommand
         Offset = offset;
     }
 }
-

@@ -11,4 +11,3 @@ public struct PlayerFallingScreamSpeed
         Max = max;
     }
 }
-

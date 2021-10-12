@@ -56,4 +56,3 @@ public class Segment3F
         yield return End;
     }
 }
-

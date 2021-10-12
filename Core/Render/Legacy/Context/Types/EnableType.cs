@@ -11,4 +11,3 @@ public enum EnableType
     TextureCubeMapSeamless = 34895,
     DebugOutput = 37600,
 }
-

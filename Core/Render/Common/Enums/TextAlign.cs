@@ -21,4 +21,3 @@ public enum TextAlign
     /// </summary>
     Right
 }
-

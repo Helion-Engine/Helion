@@ -7,4 +7,3 @@ public enum GpuVendor
     Amd,
     Intel
 }
-

@@ -387,4 +387,3 @@ public class OpenTKGLFunctions : IGLFunctions
         GL.Viewport(x, y, width, height);
     }
 }
-

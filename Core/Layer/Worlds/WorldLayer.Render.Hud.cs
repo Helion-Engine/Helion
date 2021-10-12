@@ -478,4 +478,3 @@ public partial class WorldLayer
         return 1.0f - (float)fractionIntoFadeRange;
     }
 }
-

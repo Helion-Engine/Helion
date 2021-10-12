@@ -11,4 +11,3 @@ public class SideModel
     public double[]? BackOffsetX { get; set; }
     public double[]? BackOffsetY { get; set; }
 }
-

@@ -517,4 +517,3 @@ public class LineSpecial
         return false;
     }
 }
-

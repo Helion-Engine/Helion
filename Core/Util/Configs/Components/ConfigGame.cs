@@ -24,4 +24,3 @@ public class ConfigGame
     [ConfigInfo("The skill level to use when starting a map.", save: false)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
 }
-

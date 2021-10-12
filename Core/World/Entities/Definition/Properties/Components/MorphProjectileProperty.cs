@@ -11,4 +11,3 @@ public class MorphProjectileProperty
     public string PlayerClass = "";
     public string UnmorphFlash = "";
 }
-

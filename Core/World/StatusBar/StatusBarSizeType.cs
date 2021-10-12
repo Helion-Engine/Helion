@@ -6,4 +6,3 @@ public enum StatusBarSizeType
     Minimal,
     Full
 }
-

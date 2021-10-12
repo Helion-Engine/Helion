@@ -741,4 +741,3 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Dispose();
     }
 }
-

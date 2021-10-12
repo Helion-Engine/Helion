@@ -28,4 +28,3 @@ public abstract class BufferObject<T> : IDisposable, IEnumerable<T> where T : st
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

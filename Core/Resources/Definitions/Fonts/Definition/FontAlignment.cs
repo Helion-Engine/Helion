@@ -6,4 +6,3 @@ public enum FontAlignment
     Center,
     Bottom,
 }
-

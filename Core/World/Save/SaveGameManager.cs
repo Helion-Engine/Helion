@@ -86,4 +86,3 @@ public class SaveGameManager
 
     private static string GetSaveName(int number) => $"savegame{number}.hsg";
 }
-

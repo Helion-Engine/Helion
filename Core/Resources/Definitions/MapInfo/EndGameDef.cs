@@ -8,4 +8,3 @@ public class EndGameDef
     public VerticalScroll VerticalScroll { get; set; } = VerticalScroll.None;
     public bool Cast { get; set; }
 }
-

@@ -6,4 +6,3 @@ public struct AmmoProperty
     public int BackpackMaxAmount;
     public int DropAmount;
 }
-

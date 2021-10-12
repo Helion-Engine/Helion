@@ -15,4 +15,3 @@ public static class LinkedListExtensions
     /// <returns>True if it has no elements, false otherwise.</returns>
     public static bool Empty<T>(this LinkedList<T> list) => list.Count == 0;
 }
-

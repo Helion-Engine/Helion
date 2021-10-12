@@ -133,4 +133,3 @@ public partial class WorldLayer
             World.SoundManager.PlayStaticSound(Constants.MenuSounds.Change);
     }
 }
-

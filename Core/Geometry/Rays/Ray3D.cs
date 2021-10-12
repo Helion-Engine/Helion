@@ -32,4 +32,3 @@ public readonly struct Ray3D
     public override bool Equals(object? obj) => obj is Ray3D r && Origin == r.Origin && Direction == r.Direction;
     public override int GetHashCode() => HashCode.Combine(Origin.GetHashCode(), Direction.GetHashCode());
 }
-

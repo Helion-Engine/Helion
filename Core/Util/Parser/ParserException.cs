@@ -130,4 +130,3 @@ public class ParserException : HelionException
         errorMessages.Add(caret);
     }
 }
-

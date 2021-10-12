@@ -15,4 +15,3 @@ public readonly struct HudQuad
         BottomRight = bottomRight;
     }
 }
-

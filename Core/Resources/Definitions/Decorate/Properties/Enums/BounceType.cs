@@ -12,4 +12,3 @@ public enum DecorateBounceType
     HereticCompat,
     HexenCompat,
 }
-

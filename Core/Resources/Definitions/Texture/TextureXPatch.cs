@@ -27,4 +27,3 @@ public class TextureXPatch
         Offset = offset;
     }
 }
-

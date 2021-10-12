@@ -164,4 +164,3 @@ public class GLTexture2D : GLTexture
         return bitmap;
     }
 }
-

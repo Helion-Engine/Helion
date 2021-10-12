@@ -6,4 +6,3 @@ public class FrameStateModel
     public int Tics;
     public bool Destroy;
 }
-

@@ -13,4 +13,3 @@ public class SectorData
         SectorEffect = SectorEffect.None;
     }
 }
-

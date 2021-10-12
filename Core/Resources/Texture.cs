@@ -37,4 +37,3 @@ public class Texture
     /// </summary>
     public object? RenderStore;
 }
-

@@ -255,4 +255,3 @@ public class ActorFlags
     public bool? WindThrust;
     public bool? ZdoomTrans;
 }
-

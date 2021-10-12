@@ -11,4 +11,3 @@ public interface ISpecial
     SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
     ISpecialModel? ToSpecialModel() => null;
 }
-

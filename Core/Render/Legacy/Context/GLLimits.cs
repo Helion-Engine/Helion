@@ -13,4 +13,3 @@ public class GLLimits
         // TODO: GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS
     }
 }
-

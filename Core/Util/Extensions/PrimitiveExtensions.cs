@@ -224,4 +224,3 @@ public static class PrimitiveExtensions
     }
 
 }
-

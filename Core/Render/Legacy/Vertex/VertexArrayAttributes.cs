@@ -21,4 +21,3 @@ public class VertexArrayAttributes : IEnumerable<VertexArrayAttribute>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

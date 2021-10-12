@@ -14,4 +14,3 @@ public static class BoomParseUtil
         return Encoding.ASCII.GetString(data, index, countIndex - index);
     }
 }
-

@@ -11,4 +11,3 @@ public enum MidiEvent : byte
     ChangePatch = 0xC0,
     PitchWheel = 0xE0
 }
-

@@ -8,4 +8,3 @@ public enum Endpoint
     Start,
     End,
 }
-

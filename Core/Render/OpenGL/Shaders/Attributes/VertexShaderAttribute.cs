@@ -9,4 +9,3 @@ public record VertexShaderAttribute(int Location, string Name, int Index, int Si
 {
     public const int NoLocation = -1;
 }
-

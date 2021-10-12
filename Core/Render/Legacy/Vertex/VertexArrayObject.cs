@@ -56,4 +56,3 @@ public class VertexArrayObject : IDisposable
         gl.DeleteVertexArray(m_vaoId);
     }
 }
-

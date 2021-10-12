@@ -23,4 +23,3 @@ public class AnimatedDefinitions
         CameraTextures.AddRange(parser.CameraTextures);
     }
 }
-

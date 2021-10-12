@@ -202,4 +202,3 @@ public class ByteWriter
     /// <returns>The written data.</returns>
     public byte[] GetData() => stream.ToArray();
 }
-

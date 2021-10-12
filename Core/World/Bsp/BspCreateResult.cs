@@ -42,4 +42,3 @@ public readonly struct BspCreateResult
     /// <returns>A result with the node index.</returns>
     public static BspCreateResult Node(uint index) => new BspCreateResult(false, index);
 }
-

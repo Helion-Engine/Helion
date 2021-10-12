@@ -120,4 +120,3 @@ public static class IntermissionParser
         return pointers;
     }
 }
-

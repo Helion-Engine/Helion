@@ -112,4 +112,3 @@ public static class AlignHelper
         return -Translate(align, dimension);
     }
 }
-

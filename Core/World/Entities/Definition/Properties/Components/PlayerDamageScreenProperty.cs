@@ -15,4 +15,3 @@ public class PlayerDamageScreenProperty
         DamageType = damageType;
     }
 }
-

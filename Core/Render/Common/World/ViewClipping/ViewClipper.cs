@@ -341,4 +341,3 @@ public class ViewClipper : IEnumerable<ClipSpan>
         startNode.Value = new ClipSpan(startNode.Value.StartAngle, newEndingAngle);
     }
 }
-

@@ -89,4 +89,3 @@ public class ArchiveCollectionEntries
         return m_namespaceNameEntries.GetValues(resourceNamespace);
     }
 }
-

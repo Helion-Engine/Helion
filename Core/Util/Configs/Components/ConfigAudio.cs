@@ -18,4 +18,3 @@ public class ConfigAudio
     [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
     public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
 }
-

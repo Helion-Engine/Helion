@@ -91,4 +91,3 @@ public class SwitchChangeSpecial : ISpecial
             DataCache.Instance.GetSoundParams(soundSource));
     }
 }
-

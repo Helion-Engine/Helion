@@ -25,4 +25,3 @@ public interface IInputManager
     void Reset();
     IConsumableInput Poll();
 }
-

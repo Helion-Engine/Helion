@@ -4,4 +4,3 @@ public enum GetIntegerType
 {
     NumExtensions = 33309,
 }
-

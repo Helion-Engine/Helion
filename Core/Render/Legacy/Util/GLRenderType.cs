@@ -23,4 +23,3 @@ public enum GLRenderType
     /// </summary>
     Modern,
 }
-

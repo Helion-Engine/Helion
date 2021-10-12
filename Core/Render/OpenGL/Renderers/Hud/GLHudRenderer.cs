@@ -533,4 +533,3 @@ public class GLHudRenderer : IHudRenderContext
         m_disposed = true;
     }
 }
-

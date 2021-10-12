@@ -1179,4 +1179,3 @@ public class PhysicsManager
             HandleStackedEntityPhysics(entity);
     }
 }
-

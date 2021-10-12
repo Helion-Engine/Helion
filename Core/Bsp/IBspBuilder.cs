@@ -9,4 +9,3 @@ public interface IBspBuilder
 {
     BspNode? Build();
 }
-

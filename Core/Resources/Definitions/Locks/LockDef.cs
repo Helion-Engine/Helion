@@ -12,4 +12,3 @@ public class LockDef
     public List<string> KeyDefinitionNames { get; set; } = new();
     public List<List<string>> AnyKeyDefinitionNames { get; set; } = new();
 }
-

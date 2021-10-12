@@ -30,4 +30,3 @@ public struct WeaponProperty
     public string? UpSound;
     public int? YAdjust;
 }
-

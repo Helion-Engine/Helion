@@ -26,4 +26,3 @@ public class SoundParams
         Loop = loop;
     }
 }
-

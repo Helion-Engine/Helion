@@ -7,4 +7,3 @@ public enum ZDoomCrushMode
     Hexen,
     DoomWithSlowDown,
 }
-

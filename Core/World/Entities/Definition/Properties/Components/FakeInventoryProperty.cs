@@ -4,4 +4,3 @@ public struct FakeInventoryProperty
 {
     public bool Respawns;
 }
-

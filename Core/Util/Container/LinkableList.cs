@@ -164,4 +164,3 @@ public class LinkableNode<T>
         Previous!.Next = Next;
     }
 }
-

@@ -16,4 +16,3 @@ public class DoorOpenCloseSpecialModel : SectorMoveSpecialModel
         return new DoorOpenCloseSpecial(world, world.Sectors[SectorId], this);
     }
 }
-

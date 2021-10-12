@@ -11,4 +11,3 @@ public enum BoomActivationType
     PushOnce,
     PushRepeat
 }
-

@@ -348,4 +348,3 @@ public class SegmentT2D<V> where V : Vector2D
         yield return End;
     }
 }
-

@@ -129,4 +129,3 @@ public class VertexAllocator : IEnumerable<BspVertex>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

@@ -23,4 +23,3 @@ public class DoomThing : IThing
         Flags = flags;
     }
 }
-

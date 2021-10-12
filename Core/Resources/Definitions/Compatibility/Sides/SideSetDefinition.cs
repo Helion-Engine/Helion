@@ -34,4 +34,3 @@ public class SideSetDefinition : ISideDefinition
         Id = id;
     }
 }
-

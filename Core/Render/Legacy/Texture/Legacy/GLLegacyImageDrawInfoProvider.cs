@@ -77,4 +77,3 @@ public class GLLegacyImageDrawInfoProvider : IImageDrawInfoProvider
         return new Rectangle(topLeft.X, topLeft.Y, width, fontTexture.Height);
     }
 }
-

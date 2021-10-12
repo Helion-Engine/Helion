@@ -116,4 +116,3 @@ public class BoundingBox3D
     }
     public override string ToString() => $"({Min}), ({Max})";
 }
-

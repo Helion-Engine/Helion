@@ -175,4 +175,3 @@ public class DynamicArray<T> : IEnumerable<T>
         Data = newData;
     }
 }
-

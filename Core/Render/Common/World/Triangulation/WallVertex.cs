@@ -4,4 +4,3 @@ public readonly struct WallVertex
 {
 
 }
-

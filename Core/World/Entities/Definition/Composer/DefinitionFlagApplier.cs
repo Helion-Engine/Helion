@@ -654,4 +654,3 @@ public static class DefinitionFlagApplier
             definition.Flags.ZdoomTrans = flags.ZdoomTrans.Value;
     }
 }
-

@@ -43,4 +43,3 @@ public abstract class GLRenderableSurface : IRenderableSurface
 
     public abstract void Dispose();
 }
-

@@ -5,4 +5,3 @@ public class WeaponPiecesProperty
     public int Number;
     public string Weapon = "";
 }
-

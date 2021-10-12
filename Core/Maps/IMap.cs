@@ -67,4 +67,3 @@ public interface IMap
     /// </summary>
     GLComponents? GL { get; }
 }
-

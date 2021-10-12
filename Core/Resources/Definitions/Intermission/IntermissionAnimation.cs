@@ -19,4 +19,3 @@ public class IntermissionAnimation
 
     public Vec2I Vector => (X, Y);
 }
-

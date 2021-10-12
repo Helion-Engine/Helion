@@ -75,4 +75,3 @@ public class QuitGameMenu : Menu
         base.HandleInput(input);
     }
 }
-

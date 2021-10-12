@@ -379,4 +379,3 @@ public static class MathHelper
         return n > 0 && (n & ~(n ^ (n - 1))) == 0;
     }
 }
-

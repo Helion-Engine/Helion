@@ -54,4 +54,3 @@ public class CommandParser
         return cmp.Substring(0, arg.Length).Equals(arg, StringComparison.OrdinalIgnoreCase);
     }
 }
-

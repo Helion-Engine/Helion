@@ -6,4 +6,3 @@ public class BexPar
     public int Map { get; set; }
     public int Par { get; set; }
 }
-

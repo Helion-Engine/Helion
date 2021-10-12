@@ -6,4 +6,3 @@ public enum FilterType
     Bilinear,
     Trilinear,
 }
-

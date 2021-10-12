@@ -75,4 +75,3 @@ public class ConvexTraversal
         return true;
     }
 }
-

@@ -25,4 +25,3 @@ public struct ActorWeaponFlags
     public bool? Spawn;
     public bool? WimpyWeapon;
 }
-

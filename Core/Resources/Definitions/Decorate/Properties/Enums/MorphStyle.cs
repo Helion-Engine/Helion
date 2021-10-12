@@ -18,4 +18,3 @@ public enum MorphStyle
     UndoAlways,
     TransferTranslation,
 }
-

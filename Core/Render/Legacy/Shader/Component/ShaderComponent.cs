@@ -60,4 +60,3 @@ public abstract class ShaderComponent : IDisposable
         gl.DeleteShader(ShaderId);
     }
 }
-

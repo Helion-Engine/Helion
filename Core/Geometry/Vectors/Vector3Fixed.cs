@@ -110,4 +110,3 @@ public class Vector3Fixed
     public override bool Equals(object? obj) => obj is Vector3Fixed v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 }
-

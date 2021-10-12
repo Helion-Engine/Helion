@@ -28,4 +28,3 @@ public class ConfigInfoAttribute : Attribute
         Save = save;
     }
 }
-

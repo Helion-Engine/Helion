@@ -58,4 +58,3 @@ public class TickCommand
     public bool IsFastSpeed(bool alwaysRun) =>
         (alwaysRun && !Has(TickCommands.Speed)) || (!alwaysRun && Has(TickCommands.Speed));
 }
-

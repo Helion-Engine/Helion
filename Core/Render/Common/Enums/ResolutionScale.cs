@@ -55,4 +55,3 @@ public enum ResolutionScale
     /// </summary>
     Stretch
 }
-

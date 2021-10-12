@@ -372,4 +372,3 @@ public struct Seg2D
         yield return End;
     }
 }
-

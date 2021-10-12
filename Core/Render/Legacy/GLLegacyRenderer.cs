@@ -354,4 +354,3 @@ public class GLLegacyRenderer : ILegacyRenderer
         m_worldRenderer.Dispose();
     }
 }
-

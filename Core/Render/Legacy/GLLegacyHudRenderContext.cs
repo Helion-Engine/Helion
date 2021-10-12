@@ -320,4 +320,3 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         // Nothing to do
     }
 }
-

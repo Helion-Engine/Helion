@@ -24,4 +24,3 @@ public static class ViewMath
         return projection * view * model;
     }
 }
-

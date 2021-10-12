@@ -40,4 +40,3 @@ public struct PlayerProperty
     public double? ViewBob;
     public double? ViewHeight;
 }
-

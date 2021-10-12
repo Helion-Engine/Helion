@@ -4,4 +4,3 @@ public enum GetFloatType
 {
     MaxTextureMaxAnisotropyExt = 0x84FF,
 }
-

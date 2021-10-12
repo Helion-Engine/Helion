@@ -795,4 +795,3 @@ public class DehackedApplier
         Log.Warn($"Dehacked: {warning}");
     }
 }
-

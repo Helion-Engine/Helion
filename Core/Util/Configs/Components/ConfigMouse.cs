@@ -26,4 +26,3 @@ public class ConfigMouse
     [ConfigInfo("The horizontal sensitivity. This is multiplied by the sensitivity value for a final calculation.")]
     public readonly ConfigValue<double> Yaw = new(1.0);
 }
-

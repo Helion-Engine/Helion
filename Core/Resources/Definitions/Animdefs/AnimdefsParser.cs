@@ -291,4 +291,3 @@ public class AnimdefsParser
             throw parser.MakeException($"Unknown animdefs type {text}");
     }
 }
-

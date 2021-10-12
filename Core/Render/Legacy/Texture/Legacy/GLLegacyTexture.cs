@@ -25,4 +25,3 @@ public class GLLegacyTexture : GLTexture
         gl.BindTexture(TextureType, 0);
     }
 }
-

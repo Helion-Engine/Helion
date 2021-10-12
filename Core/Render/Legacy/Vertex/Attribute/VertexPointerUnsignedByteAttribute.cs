@@ -16,4 +16,3 @@ public class VertexPointerUnsignedByteAttribute : VertexPointerAttribute
         return VertexAttributePointerType.UnsignedByte;
     }
 }
-

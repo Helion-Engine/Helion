@@ -18,4 +18,3 @@ public class UniformTexture : UniformElement<TextureUnit>
         GL.Uniform1(Location, (int)textureUnit - (int)TextureUnit.Texture0);
     }
 }
-

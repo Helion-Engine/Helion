@@ -67,4 +67,3 @@ public class TryMoveData
         return false;
     }
 }
-

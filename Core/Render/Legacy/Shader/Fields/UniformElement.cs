@@ -11,4 +11,3 @@ public abstract class UniformElement<T> where T : struct
 
     public abstract void Set(IGLFunctions gl, T value);
 }
-

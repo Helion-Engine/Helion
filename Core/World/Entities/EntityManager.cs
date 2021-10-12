@@ -338,4 +338,3 @@ public class EntityManager : IDisposable
         GC.SuppressFinalize(this);
     }
 }
-

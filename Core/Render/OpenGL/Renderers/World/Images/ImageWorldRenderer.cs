@@ -58,4 +58,3 @@ public class ImageWorldRenderer : IDisposable
         m_disposed = true;
     }
 }
-

@@ -13,4 +13,3 @@ public enum ZDoomGenericFlags
     Raise = 8,
     Crush = 16
 }
-

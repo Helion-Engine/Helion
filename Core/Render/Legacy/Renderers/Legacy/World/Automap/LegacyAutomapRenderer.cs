@@ -427,4 +427,3 @@ public class LegacyAutomapRenderer : IDisposable
         m_disposed = true;
     }
 }
-

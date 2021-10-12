@@ -121,4 +121,3 @@ public class VertexBufferObject<TVertex> : BufferObject<TVertex> where TVertex :
         m_disposed = true;
     }
 }
-

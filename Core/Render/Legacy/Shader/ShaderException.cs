@@ -8,4 +8,3 @@ public class ShaderException : HelionException
     {
     }
 }
-

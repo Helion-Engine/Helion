@@ -10,4 +10,3 @@ public enum ZDoomStaticInit
     Line = 254,
     Sky = 255
 }
-

@@ -7,4 +7,3 @@ public interface ISpecialModel
 {
     ISpecial? ToWorldSpecial(IWorld world);
 }
-

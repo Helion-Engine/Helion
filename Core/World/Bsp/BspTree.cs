@@ -288,4 +288,3 @@ public class BspTree
         Nodes = new[] { root };
     }
 }
-

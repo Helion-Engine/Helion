@@ -144,4 +144,3 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         m_nameToBuffer.ForEach(pair => pair.Value.Dispose());
     }
 }
-

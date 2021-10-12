@@ -10,4 +10,3 @@ public enum ZDoomScroll
     Accelerative = 2,
     Line = 4
 }
-

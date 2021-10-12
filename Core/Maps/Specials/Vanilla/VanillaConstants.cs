@@ -28,4 +28,3 @@ public static class VanillaConstants
     public const int SlowDarkTime = 35;
     public const int BrightTime = 5;
 }
-

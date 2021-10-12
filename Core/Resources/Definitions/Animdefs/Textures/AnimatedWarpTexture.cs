@@ -18,4 +18,3 @@ public class AnimatedWarpTexture
         WaterEffect = waterEffect;
     }
 }
-

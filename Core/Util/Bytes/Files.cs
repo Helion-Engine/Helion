@@ -39,4 +39,3 @@ public static class Files
         return hex.ToString();
     }
 }
-

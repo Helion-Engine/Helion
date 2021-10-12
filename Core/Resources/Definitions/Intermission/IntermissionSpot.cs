@@ -12,4 +12,3 @@ public class IntermissionSpot
 
     public Vec2I Vector => (X, Y);
 }
-

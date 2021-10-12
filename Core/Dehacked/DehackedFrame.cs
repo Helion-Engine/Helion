@@ -10,4 +10,3 @@ public class DehackedFrame
     public int? Unknown1 { get; set; }
     public int? Unknown2 { get; set; }
 }
-

@@ -27,4 +27,3 @@ public interface IImageRetriever
     /// <returns>The image, or null if none can be found.</returns>
     Image? GetOnly(string name, ResourceNamespace targetNamespace);
 }
-

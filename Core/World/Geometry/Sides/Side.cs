@@ -53,4 +53,3 @@ public class Side : IRenderObject
         Line = null !;
     }
 }
-

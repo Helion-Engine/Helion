@@ -18,4 +18,3 @@ public readonly struct RenderableCharacter
 
     public override string ToString() => $"{Character}, Area: {Area}, UV: {UV}";
 }
-

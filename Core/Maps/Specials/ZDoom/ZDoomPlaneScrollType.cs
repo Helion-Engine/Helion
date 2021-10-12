@@ -6,4 +6,3 @@ public enum ZDoomPlaneScrollType
     Carry,
     ScrollAndCarry,
 }
-

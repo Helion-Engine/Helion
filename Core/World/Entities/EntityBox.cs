@@ -161,4 +161,3 @@ public class EntityBox : BoundingBox3D
 
     public override string ToString() => $"{base.ToString()} (center: {m_centerBottom}, radius: {Radius}, height: {Height})";
 }
-

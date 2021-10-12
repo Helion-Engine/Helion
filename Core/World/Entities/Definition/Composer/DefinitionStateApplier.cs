@@ -363,4 +363,3 @@ public static class DefinitionStateApplier
         ApplyGotoOffsets(entityFrameTable, UnresolvedGotoFrames, offsetMasterTable, parent.Name, definition);
     }
 }
-

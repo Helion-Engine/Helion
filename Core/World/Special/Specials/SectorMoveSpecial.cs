@@ -367,4 +367,3 @@ public class SectorMoveSpecial : ISectorSpecial
     private bool IsDelayReturn => MoveData.MoveRepetition == MoveRepetition.DelayReturn;
     private bool IsInitCrush => MoveData.Crush != null && m_direction == MoveData.StartDirection && !m_crushing;
 }
-

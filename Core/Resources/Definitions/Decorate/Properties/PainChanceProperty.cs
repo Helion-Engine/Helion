@@ -17,4 +17,3 @@ public readonly struct PainChanceProperty
         Value = value;
     }
 }
-

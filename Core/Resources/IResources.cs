@@ -59,4 +59,3 @@ public interface IResources : IDisposable
     Font? GetFont(string name);
     Archive? GetArchiveByFileName(string fileName);
 }
-

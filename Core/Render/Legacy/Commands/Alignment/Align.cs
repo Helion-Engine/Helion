@@ -28,4 +28,3 @@ public enum Align
     BottomMiddle,
     BottomRight
 }
-

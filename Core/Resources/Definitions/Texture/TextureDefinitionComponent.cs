@@ -30,4 +30,3 @@ public class TextureDefinitionComponent
         Offset = offset;
     }
 }
-

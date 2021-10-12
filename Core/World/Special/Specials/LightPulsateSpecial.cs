@@ -54,4 +54,3 @@ public class LightPulsateSpecial : SectorSpecialBase
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
 }
-

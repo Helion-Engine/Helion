@@ -92,4 +92,3 @@ public class JunctionWedge
         return false;
     }
 }
-

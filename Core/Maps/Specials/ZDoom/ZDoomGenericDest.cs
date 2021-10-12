@@ -11,4 +11,3 @@ public enum ZDoomGenericDest
     ShortestTexture,
     Max
 }
-

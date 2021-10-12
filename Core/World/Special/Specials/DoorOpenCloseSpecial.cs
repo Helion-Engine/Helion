@@ -39,4 +39,3 @@ public class DoorOpenCloseSpecial : SectorMoveSpecial
         return true;
     }
 }
-

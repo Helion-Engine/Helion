@@ -15,4 +15,3 @@ public interface ICovariantReadOnlyDictionary<in K, out V> : IEnumerable<V> wher
     V this[K key] { get; }
     bool ContainsKey(K key);
 }
-

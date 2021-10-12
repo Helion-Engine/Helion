@@ -25,4 +25,3 @@ public class EntityFrameTable
         m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
     }
 }
-

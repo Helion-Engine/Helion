@@ -18,4 +18,3 @@ public class SwitchChangeSpecialModel : ISpecialModel
         return new SwitchChangeSpecial(world, world.Lines[LineId], this);
     }
 }
-

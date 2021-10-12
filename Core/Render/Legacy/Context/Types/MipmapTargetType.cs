@@ -4,4 +4,3 @@ public enum MipmapTargetType
 {
     Texture2D = 3553,
 }
-

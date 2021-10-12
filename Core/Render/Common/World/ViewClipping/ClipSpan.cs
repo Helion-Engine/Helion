@@ -42,4 +42,3 @@ public readonly struct ClipSpan
     /// <returns>True if both are in this span, false otherwise.</returns>
     public bool Contains(uint firstAngle, uint secondAngle) => Contains(firstAngle) && Contains(secondAngle);
 }
-

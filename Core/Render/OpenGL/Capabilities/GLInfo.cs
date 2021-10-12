@@ -27,4 +27,3 @@ public class GLInfo
         return GpuVendor.Unknown;
     }
 }
-

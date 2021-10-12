@@ -29,4 +29,3 @@ public class VertexSplitterTime : IComparable<VertexSplitterTime>
 
     public int CompareTo(VertexSplitterTime? other) => SplitterTime.CompareTo(other?.SplitterTime);
 }
-

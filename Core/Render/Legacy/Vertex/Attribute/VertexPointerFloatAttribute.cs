@@ -13,4 +13,3 @@ public class VertexPointerFloatAttribute : VertexPointerAttribute
 
     protected override VertexAttributePointerType GetAttributePointerType() => VertexAttributePointerType.Float;
 }
-

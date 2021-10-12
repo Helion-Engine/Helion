@@ -38,4 +38,3 @@ public class ColoredStringBuilder
 
     public ColoredString Build() => RGBColoredStringDecoder.Decode(m_builder.ToString());
 }
-

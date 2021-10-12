@@ -645,4 +645,3 @@ public abstract class ParserBase
             Log.Error("Critical parsing error parsing text around character offset {0}, report this to a developer!)", CurrentTokenIndex);
     }
 }
-

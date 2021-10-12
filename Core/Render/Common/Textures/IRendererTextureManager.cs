@@ -32,4 +32,3 @@ public interface IRendererTextureManager : IDisposable
     /// <returns>True if found, false if not.</returns>
     bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null);
 }
-

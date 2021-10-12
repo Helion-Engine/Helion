@@ -8,4 +8,3 @@ public enum ShaderParameterType
     InfoLogLength = 35716,
     ShaderSourceLength = 35720,
 }
-

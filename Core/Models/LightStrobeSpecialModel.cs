@@ -21,4 +21,3 @@ public class LightStrobeSpecialModel : ISpecialModel
         return new LightStrobeSpecial(world.Sectors[SectorId], this);
     }
 }
-

@@ -47,4 +47,3 @@ public class PartitionStates
     /// </summary>
     public HashSet<BspVertex> CollinearVertices = new HashSet<BspVertex>();
 }
-

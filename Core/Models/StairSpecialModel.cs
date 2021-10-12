@@ -26,4 +26,3 @@ public class StairSpecialModel : ISpecialModel
         return new StairSpecial(world, world.Sectors[MoveSpecial.SectorId], this);
     }
 }
-

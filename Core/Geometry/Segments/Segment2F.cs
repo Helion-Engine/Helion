@@ -348,4 +348,3 @@ public class Segment2F
         yield return End;
     }
 }
-

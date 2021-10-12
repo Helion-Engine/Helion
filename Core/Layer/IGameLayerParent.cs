@@ -8,4 +8,3 @@ public interface IGameLayerParent : IGameLayer
 {
     void Remove(object layer);
 }
-

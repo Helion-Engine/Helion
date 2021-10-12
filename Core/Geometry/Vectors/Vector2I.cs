@@ -100,4 +100,3 @@ public class Vector2I
     public override bool Equals(object? obj) => obj is Vector2I v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
-

@@ -49,4 +49,3 @@ public class CycleImageLayer : ImageLayer
         m_images = LayerUtil.GetRenderPages(hud, m_images, false);
     }
 }
-

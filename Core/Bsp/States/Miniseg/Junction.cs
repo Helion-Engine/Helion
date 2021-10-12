@@ -139,4 +139,3 @@ public class Junction
         return score;
     }
 }
-

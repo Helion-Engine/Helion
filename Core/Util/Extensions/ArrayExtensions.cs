@@ -29,4 +29,3 @@ public static class ArrayExtensions
         return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
     }
 }
-

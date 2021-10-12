@@ -22,4 +22,3 @@ public readonly struct TickerInfo
         Fraction = fraction;
     }
 }
-

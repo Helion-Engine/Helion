@@ -11,4 +11,3 @@ public enum TextureUnitType
     Six = 33984 + 6,
     Seven = 33984 + 7,
 }
-

@@ -26,4 +26,3 @@ public class EntityFrameProperties
         Slow = actorFrameProperties.Slow ?? false;
     }
 }
-

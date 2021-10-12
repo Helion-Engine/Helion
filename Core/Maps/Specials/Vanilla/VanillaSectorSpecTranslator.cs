@@ -55,4 +55,3 @@ public static class VanillaSectorSpecTranslator
         return ZDoomSectorSpecialType.None;
     }
 }
-

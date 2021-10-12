@@ -4,4 +4,3 @@ public enum EditorNumberType
 {
     TeleportDest = 14,
 }
-

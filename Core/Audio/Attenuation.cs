@@ -6,4 +6,3 @@ public enum Attenuation
     Default,
     Rapid
 }
-

@@ -43,4 +43,3 @@ public interface IConfigValue
     /// of the bits to be set to apply the change.</param>
     void ApplyQueuedChange(ConfigSetFlags flagType);
 }
-

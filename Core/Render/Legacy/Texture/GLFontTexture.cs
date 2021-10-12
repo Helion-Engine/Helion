@@ -29,4 +29,3 @@ public class GLFontTexture<GLTextureType> : IDisposable where GLTextureType : GL
         GC.SuppressFinalize(this);
     }
 }
-

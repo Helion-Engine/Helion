@@ -26,4 +26,3 @@ public readonly struct FrameData
         Unused = Vec4F.Zero;
     }
 }
-

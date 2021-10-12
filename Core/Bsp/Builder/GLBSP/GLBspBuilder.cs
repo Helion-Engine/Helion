@@ -161,4 +161,3 @@ public class GLBspBuilder : IBspBuilder
         }
     }
 }
-

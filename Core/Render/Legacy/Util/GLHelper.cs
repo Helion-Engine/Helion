@@ -96,4 +96,3 @@ public static class GLHelper
             gl.ObjectLabel(type, objectId, name);
     }
 }
-

@@ -8,4 +8,3 @@ public enum ZDoomLiftType
     DownToLowestCeiling,
     PerpetualRaise
 }
-

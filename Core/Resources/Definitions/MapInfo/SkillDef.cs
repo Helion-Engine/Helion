@@ -53,4 +53,3 @@ public class SkillDef
 
     public bool IsFastMonsters(IConfig config) => config.Game.FastMonsters || FastMonsters;
 }
-

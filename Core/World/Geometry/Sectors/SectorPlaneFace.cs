@@ -5,4 +5,3 @@ public enum SectorPlaneFace
     Floor,
     Ceiling,
 }
-

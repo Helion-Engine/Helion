@@ -7,4 +7,3 @@ public enum SectorMoveStatus
     Crush,
     BlockedAndStop
 }
-

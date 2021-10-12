@@ -21,4 +21,3 @@ public class SectorDamageSpecialModel
             return new SectorDamageSpecial(world, world.Sectors[SectorId], this);
     }
 }
-

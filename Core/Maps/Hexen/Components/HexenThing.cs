@@ -30,4 +30,3 @@ public class HexenThing : IThing
         Args = args;
     }
 }
-

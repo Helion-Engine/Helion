@@ -41,4 +41,3 @@ public interface IConfig : IEnumerable<(string path, ConfigComponent component)>
     /// should be applied, provided they match the flag bits provided.</param>
     void ApplyQueuedChanges(ConfigSetFlags setFlags);
 }
-

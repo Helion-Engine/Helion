@@ -340,4 +340,3 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
         }
     }
 }
-

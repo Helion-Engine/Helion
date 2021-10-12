@@ -4,4 +4,3 @@ public enum TexStorageInternalType
 {
     Rgba8 = 32856,
 }
-

@@ -23,4 +23,3 @@ public readonly struct WallTriangulation
         return default;
     }
 }
-

@@ -33,4 +33,3 @@ public class ShaderBuilder : IDisposable
         Fragment.Dispose();
     }
 }
-

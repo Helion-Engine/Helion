@@ -16,4 +16,3 @@ public class DoomVertex : IVertex
         PositionFixed = positionFixed;
     }
 }
-

@@ -9,4 +9,3 @@ public enum ObjectLabelType
     Program = 33506,
     Query = 33507,
 }
-

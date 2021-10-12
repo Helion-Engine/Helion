@@ -181,4 +181,3 @@ public class BspSegment : SegmentT2D<BspVertex>
         return $"({Start}) -> ({End}) [oneSided={OneSided} miniseg={IsMiniseg} collinearIndex={CollinearIndex}]";
     }
 }
-

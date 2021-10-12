@@ -34,4 +34,3 @@ public readonly struct Glyph
 
     public override string ToString() => $"{Character}, Area: {Area}, UV: {UV}";
 }
-

@@ -174,4 +174,3 @@ public static class DoomGeometryBuilder
         }
     }
 }
-

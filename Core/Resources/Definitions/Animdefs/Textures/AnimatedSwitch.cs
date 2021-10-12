@@ -33,4 +33,3 @@ public class AnimatedSwitch
 
     public override string ToString() => $"{Texture} (On count: {On.Count}, Off count: {Off.Count})";
 }
-

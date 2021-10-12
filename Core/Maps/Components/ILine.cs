@@ -37,4 +37,3 @@ public interface ILine : IBspUsableLine
     /// <returns>The back side of the line.</returns>
     ISide? GetBack();
 }
-

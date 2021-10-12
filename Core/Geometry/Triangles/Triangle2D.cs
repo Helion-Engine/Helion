@@ -85,4 +85,3 @@ public struct Triangle2D
         yield return Third;
     }
 }
-

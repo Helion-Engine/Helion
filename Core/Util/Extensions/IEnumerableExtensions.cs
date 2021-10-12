@@ -43,4 +43,3 @@ public static class IEnumerableExtensions
         return string.Join(joinToken, strings);
     }
 }
-

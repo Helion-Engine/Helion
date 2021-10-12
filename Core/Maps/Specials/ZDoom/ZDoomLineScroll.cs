@@ -10,4 +10,3 @@ public enum ZDoomLineScroll
     MiddleTexture = 2,
     LowerTexture = 4,
 }
-

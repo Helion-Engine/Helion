@@ -231,4 +231,3 @@ public partial class MapInfoDefinition
         { "needclustertext",    new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
     };
 }
-

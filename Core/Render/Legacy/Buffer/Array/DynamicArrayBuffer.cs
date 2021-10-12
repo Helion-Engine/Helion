@@ -12,4 +12,3 @@ public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 
     protected override BufferUsageType GetBufferUsageType() => BufferUsageType.DynamicDraw;
 }
-

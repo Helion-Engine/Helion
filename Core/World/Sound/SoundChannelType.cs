@@ -25,4 +25,3 @@ public enum SoundChannelType
     Channel6 = 6,
     Channel7 = 7,
 }
-

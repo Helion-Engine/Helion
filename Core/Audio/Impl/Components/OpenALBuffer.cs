@@ -86,4 +86,3 @@ public class OpenALBuffer : IDisposable
         OpenALDebug.End("Deleting sound buffer");
     }
 }
-

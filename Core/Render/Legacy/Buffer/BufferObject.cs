@@ -233,4 +233,3 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.Buffer, BufferId, objectLabel);
     }
 }
-

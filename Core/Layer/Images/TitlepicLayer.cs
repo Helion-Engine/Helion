@@ -162,4 +162,3 @@ public class TitlepicLayer : IGameLayer
         m_disposed = true;
     }
 }
-

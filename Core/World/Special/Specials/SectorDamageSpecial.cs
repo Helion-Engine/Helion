@@ -53,4 +53,3 @@ public class SectorDamageSpecial
     public virtual SectorDamageSpecial Copy(Sector sector) =>
         new SectorDamageSpecial(m_world, sector, m_damage, m_radSuitLeakChance);
 }
-

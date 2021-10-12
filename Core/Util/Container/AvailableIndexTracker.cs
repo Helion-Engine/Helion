@@ -91,4 +91,3 @@ public class AvailableIndexTracker
         return index >= 0 && !m_availableIndices.Contains(index) && index < m_nextAvailableIndex;
     }
 }
-

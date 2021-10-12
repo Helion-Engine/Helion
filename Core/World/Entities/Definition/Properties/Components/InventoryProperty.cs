@@ -19,4 +19,3 @@ public class InventoryProperty
     public List<string> RestrictedTo = new List<string>();
     public string UseSound = "";
 }
-

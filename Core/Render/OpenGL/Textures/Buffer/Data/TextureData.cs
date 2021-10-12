@@ -17,4 +17,3 @@ public readonly struct TextureData
         UV = uv;
     }
 }
-

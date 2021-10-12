@@ -15,4 +15,3 @@ public readonly struct StaticWallVertex
         UV = uv;
     }
 }
-

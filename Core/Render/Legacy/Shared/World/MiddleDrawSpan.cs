@@ -46,4 +46,3 @@ public struct MiddleDrawSpan
     /// be rendered.</returns>
     public bool NotVisible() => VisibleTopZ <= VisibleBottomZ;
 }
-

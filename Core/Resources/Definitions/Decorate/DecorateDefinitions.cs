@@ -49,4 +49,3 @@ public class DecorateDefinitions
             m_definitionsByEditorNumber[definition.EditorNumber.Value] = definition;
     }
 }
-

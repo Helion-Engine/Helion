@@ -11,4 +11,3 @@ public class IntermissionDef
     public IList<IntermissionAnimation> Animations { get; set; } = Array.Empty<IntermissionAnimation>();
     public IList<IntermissionSpot> Spots { get; set; } = Array.Empty<IntermissionSpot>();
 }
-

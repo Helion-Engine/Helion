@@ -39,4 +39,3 @@ public class MultiCodeCheat : ICheat
 
     public bool PartialMatch(string str) => m_codes.Any(x => x.StartsWith(str, StringComparison.InvariantCultureIgnoreCase));
 }
-

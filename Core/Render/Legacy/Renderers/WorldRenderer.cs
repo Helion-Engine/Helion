@@ -61,4 +61,3 @@ public abstract class WorldRenderer : IDisposable
         return !ReferenceEquals(lastWorld, world);
     }
 }
-

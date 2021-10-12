@@ -9,4 +9,3 @@ public enum WeaponBob
     Normal,
     Smooth,
 }
-

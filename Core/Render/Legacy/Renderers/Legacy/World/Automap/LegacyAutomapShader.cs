@@ -47,4 +47,3 @@ public class LegacyAutomapShader : ShaderProgram
         return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
     }
 }
-

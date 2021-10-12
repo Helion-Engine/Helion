@@ -925,4 +925,3 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public virtual bool CanMakeSound() => true;
 }
-

@@ -111,4 +111,3 @@ public class MapLineFlags
         return activations;
     }
 }
-

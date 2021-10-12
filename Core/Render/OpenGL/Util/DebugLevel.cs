@@ -6,4 +6,3 @@ public enum DebugLevel
     Medium,
     High,
 }
-

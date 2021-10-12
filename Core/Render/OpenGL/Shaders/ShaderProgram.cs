@@ -187,4 +187,3 @@ public abstract class ShaderProgram : IDisposable
         m_disposed = true;
     }
 }
-

@@ -7,4 +7,3 @@ public class DehackedPointer
     public int CodePointerFrame { get; set; }
     public string? CodePointerMnemonic { get; set; }
 }
-

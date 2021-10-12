@@ -41,4 +41,3 @@ public class EntityModel
 
     public Vec3D GetSpawnPoint() => (SpawnPointX, SpawnPointY, SpawnPointZ);
 }
-

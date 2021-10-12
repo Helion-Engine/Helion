@@ -9,4 +9,3 @@ public enum SideDataTypes
     MiddleTexture = 2,
     LowerTexture = 4
 }
-

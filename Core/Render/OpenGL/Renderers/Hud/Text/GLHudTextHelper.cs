@@ -208,4 +208,3 @@ public class GLHudTextHelper
         return (maxX - minX, maxY - minY);
     }
 }
-

@@ -4,4 +4,3 @@ public enum PrimitiveDrawType
 {
     Triangles = 4,
 }
-

@@ -93,4 +93,3 @@ public class StaticWallRenderer : IDisposable
         m_disposed = true;
     }
 }
-

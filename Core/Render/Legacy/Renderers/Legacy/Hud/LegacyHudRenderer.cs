@@ -198,4 +198,3 @@ public class LegacyHudRenderer : HudRenderer
         m_shaderProgram.Dispose();
     }
 }
-

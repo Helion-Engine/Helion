@@ -161,4 +161,3 @@ public class SkySphereRenderer : IDisposable
         m_skyTexture.Dispose();
     }
 }
-

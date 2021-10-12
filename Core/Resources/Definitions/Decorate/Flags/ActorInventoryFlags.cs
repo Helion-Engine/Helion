@@ -30,4 +30,3 @@ public struct ActorInventoryFlags
     public bool? Undroppable;
     public bool? Untossable;
 }
-

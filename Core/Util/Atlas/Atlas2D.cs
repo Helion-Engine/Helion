@@ -129,4 +129,3 @@ public class Atlas2D
         node?.EmplaceExistingTree(prevRoot);
     }
 }
-

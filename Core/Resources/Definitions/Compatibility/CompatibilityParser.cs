@@ -174,4 +174,3 @@ public class CompatibilityParser : ParserBase
         AddDefinitionToIdentifier(identifiers);
     }
 }
-

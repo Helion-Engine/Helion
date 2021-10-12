@@ -37,4 +37,3 @@ public class LineDrawnTracker
         m_lineWasDrawn.Set(line.Id, true);
     }
 }
-

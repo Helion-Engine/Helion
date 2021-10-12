@@ -26,4 +26,3 @@ public class GLFontTexture : GLTexture2D
         }
     }
 }
-

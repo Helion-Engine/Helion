@@ -38,4 +38,3 @@ public class ExactMatchCheat : ICheat
 
     public bool PartialMatch(string str) => m_code.StartsWith(str, StringComparison.InvariantCultureIgnoreCase);
 }
-

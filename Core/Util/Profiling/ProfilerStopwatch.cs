@@ -30,4 +30,3 @@ public class ProfilerStopwatch
 
     public override string ToString() => $"Frame = {FrameMilliseconds:0.######} ms, Total = {TotalMilliseconds:0.####} ms";
 }
-

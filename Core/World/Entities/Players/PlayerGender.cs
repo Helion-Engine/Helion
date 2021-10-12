@@ -6,4 +6,3 @@ public enum PlayerGender
     Female,
     Other
 }
-

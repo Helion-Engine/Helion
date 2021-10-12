@@ -17,4 +17,3 @@ public class Animation
 
     public override string ToString() => $"{AnimatedTexture.Name} (Animation = {AnimationIndex}, Tick = {Tics})";
 }
-

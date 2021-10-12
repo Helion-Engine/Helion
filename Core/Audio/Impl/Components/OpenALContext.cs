@@ -46,4 +46,3 @@ public class OpenALContext : IDisposable
         m_disposed = true;
     }
 }
-

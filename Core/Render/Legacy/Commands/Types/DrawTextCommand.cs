@@ -18,4 +18,3 @@ public record DrawTextCommand : IRenderCommand
 
     public override string ToString() => Text.ToString();
 }
-

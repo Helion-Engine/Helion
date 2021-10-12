@@ -118,4 +118,3 @@ public struct Vec3I
     public override bool Equals(object? obj) => obj is Vec3I v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 }
-

@@ -18,4 +18,3 @@ public readonly struct ImageWorldVertex
         Color = color;
     }
 }
-

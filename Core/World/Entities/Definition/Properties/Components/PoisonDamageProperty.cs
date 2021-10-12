@@ -6,4 +6,3 @@ public struct PoisonDamageProperty
     public int Duration;
     public int Period;
 }
-

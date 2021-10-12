@@ -116,4 +116,3 @@ public class TextureX
         return components;
     }
 }
-

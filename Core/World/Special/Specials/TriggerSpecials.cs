@@ -68,4 +68,3 @@ public static class TriggerSpecials
         return false;
     }
 }
-

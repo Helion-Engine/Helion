@@ -12,4 +12,3 @@ public class LineModel
     public SpecialArgs? Args { get; set; }
     public float? Alpha { get; set; }
 }
-

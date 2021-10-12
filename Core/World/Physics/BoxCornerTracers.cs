@@ -15,4 +15,3 @@ public struct BoxCornerTracers
         Third = third;
     }
 }
-

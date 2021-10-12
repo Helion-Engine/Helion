@@ -19,4 +19,3 @@ public enum ZDoomKeyType
     YellowKeycardOrSkullOrYellPrism,
     AllThreeColors = 229,
 }
-

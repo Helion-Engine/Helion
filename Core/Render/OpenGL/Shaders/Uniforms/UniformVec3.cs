@@ -21,4 +21,3 @@ public class UniformVec3 : UniformElement<vec3>
         GL.Uniform3(Location, x, y, z);
     }
 }
-

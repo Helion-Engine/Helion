@@ -39,4 +39,3 @@ public enum TokenType
     Slash,
     QuestionMark,
 }
-

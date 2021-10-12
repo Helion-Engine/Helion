@@ -19,4 +19,3 @@ public class DehackedMisc
     public int? BfgCellsPerShot { get; set; }
     public MonsterInfightType? MonstersInfight { get; set; }
 }
-

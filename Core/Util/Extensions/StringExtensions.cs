@@ -38,4 +38,3 @@ public static class StringExtensions
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
 }
-

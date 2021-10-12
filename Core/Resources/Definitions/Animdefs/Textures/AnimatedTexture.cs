@@ -21,4 +21,3 @@ public class AnimatedTexture
 
     public override string ToString() => $"{Name} (len={Components.Count})";
 }
-

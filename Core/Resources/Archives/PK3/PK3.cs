@@ -99,4 +99,3 @@ public class PK3 : Archive, IDisposable
         }
     }
 }
-

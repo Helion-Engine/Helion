@@ -21,4 +21,3 @@ public abstract class ShaderDataBufferObject<T> : BufferObject<T> where T : stru
         BindIndex = bindPoint;
     }
 }
-

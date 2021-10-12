@@ -348,4 +348,3 @@ public class SegmentT2F<V> where V : Vector2F
         yield return End;
     }
 }
-

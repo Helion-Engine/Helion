@@ -9,4 +9,3 @@ public enum SectorEffect
     Wind = 1,
     Ice = 2
 }
-

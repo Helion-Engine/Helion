@@ -12,4 +12,3 @@ public class UniformInt : UniformElement<int>
         GL.Uniform1(Location, value);
     }
 }
-

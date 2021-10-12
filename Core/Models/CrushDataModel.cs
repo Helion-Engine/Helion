@@ -6,4 +6,3 @@ public class CrushDataModel
     public int Damage;
     public double ReturnFactor;
 }
-

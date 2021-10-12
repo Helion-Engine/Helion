@@ -16,4 +16,3 @@ public record DrawShapeCommand : IRenderCommand
         Alpha = alpha;
     }
 }
-

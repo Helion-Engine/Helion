@@ -6,4 +6,3 @@ public class LineSpecialCompatibility
 
     public LineSpecialCompatibilityType CompatibilityType;
 }
-

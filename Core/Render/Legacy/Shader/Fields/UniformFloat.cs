@@ -12,4 +12,3 @@ public class UniformFloat : UniformElement<float>
         gl.Uniform1(Location, value);
     }
 }
-

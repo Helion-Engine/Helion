@@ -38,4 +38,3 @@ public class DoomLine : ILine
     public ISide GetFront() => Front;
     public ISide? GetBack() => Back;
 }
-

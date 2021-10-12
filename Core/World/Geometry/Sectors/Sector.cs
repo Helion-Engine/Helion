@@ -631,4 +631,3 @@ public class Sector
 
     public override int GetHashCode() => Id.GetHashCode();
 }
-

@@ -10,4 +10,3 @@ public struct ArmorProperty
     public int? SaveAmount;
     public double? SavePercent;
 }
-

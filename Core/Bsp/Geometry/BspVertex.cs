@@ -17,4 +17,3 @@ public class BspVertex : Vector2D
 
     public override string ToString() => $"{base.ToString()} (index = {Index}, edgeCount = {Edges.Count})";
 }
-

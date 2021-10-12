@@ -23,4 +23,3 @@ public enum ZDoomSectorSpecialType
     DamageSuperHell = 80,
     LightFireFlicker,
 }
-

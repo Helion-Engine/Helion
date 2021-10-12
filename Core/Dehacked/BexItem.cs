@@ -6,4 +6,3 @@ public class BexItem
     public int? Index { get; set; }
     public string EntryName { get; set; }
 }
-

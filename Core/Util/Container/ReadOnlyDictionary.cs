@@ -40,4 +40,3 @@ public class ReadOnlyDictionary<K, V> : ICovariantReadOnlyDictionary<K, V> where
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

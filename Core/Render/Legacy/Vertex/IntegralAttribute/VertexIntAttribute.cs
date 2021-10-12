@@ -21,4 +21,3 @@ public abstract class VertexIntAttribute : VertexArrayAttribute
 
     protected abstract VertexAttributeIntegralPointerType GetAttributeType();
 }
-

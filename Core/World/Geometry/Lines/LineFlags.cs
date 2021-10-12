@@ -35,4 +35,3 @@ public class LineFlags
         PassThrough = flags.PassThrough;
     }
 }
-

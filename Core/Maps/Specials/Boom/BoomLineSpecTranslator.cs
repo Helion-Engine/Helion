@@ -389,4 +389,3 @@ public static class BoomLineSpecTranslator
         };
     }
 }
-

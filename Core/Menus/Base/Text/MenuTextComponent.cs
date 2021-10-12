@@ -26,4 +26,3 @@ public abstract class MenuTextComponent : IMenuComponent
 
     public override string ToString() => Text.ToString();
 }
-

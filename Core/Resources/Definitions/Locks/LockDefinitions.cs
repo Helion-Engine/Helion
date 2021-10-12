@@ -118,4 +118,3 @@ public class LockDefinitions
 
     public LockDef? GetLockDef(int keyNumber) => LockDefs.FirstOrDefault(x => x.KeyNumber == keyNumber);
 }
-

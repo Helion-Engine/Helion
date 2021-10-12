@@ -11,4 +11,3 @@ public class GLSubsector
         FirstSegmentIndex = firstSegmentIndex;
     }
 }
-

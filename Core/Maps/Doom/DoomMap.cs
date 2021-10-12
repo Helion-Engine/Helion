@@ -444,4 +444,3 @@ public class DoomMap : IMap
         return nodes;
     }
 }
-

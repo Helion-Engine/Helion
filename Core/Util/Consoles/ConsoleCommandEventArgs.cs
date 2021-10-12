@@ -42,4 +42,3 @@ public class ConsoleCommandEventArgs : EventArgs
 
     public override string ToString() => $"{Command} [{string.Join(", ", Args)}]";
 }
-

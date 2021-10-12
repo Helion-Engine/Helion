@@ -99,4 +99,3 @@ public class GLFramebuffer : IDisposable
             GL.Ext.DeleteFramebuffer(fbo);
     }
 }
-

@@ -44,4 +44,3 @@ public class LevelCheat : ICheat
         return str.Length <= m_code.Length + 2 && str.StartsWith(m_code);
     }
 }
-

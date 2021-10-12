@@ -164,4 +164,3 @@ public class ByteReader : BinaryReader
         BaseStream.Seek(offset, SeekOrigin.Begin);
     }
 }
-

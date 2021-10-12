@@ -10,4 +10,3 @@ internal enum EndGameDrawState
     TheEnd,
     Complete
 }
-

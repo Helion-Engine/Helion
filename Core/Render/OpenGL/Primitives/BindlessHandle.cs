@@ -26,4 +26,3 @@ public readonly struct BindlessHandle
 
     public override string ToString() => $"{Upper}:{Lower}";
 }
-

@@ -82,4 +82,3 @@ public static class SectorSpecialData
         return sectorEffect;
     }
 }
-

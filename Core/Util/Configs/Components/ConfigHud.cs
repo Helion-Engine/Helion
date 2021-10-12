@@ -23,4 +23,3 @@ public class ConfigHud
     [ConfigInfo("The size of the status bar.")]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 }
-

@@ -7,4 +7,3 @@ public enum IntermissionAnimationType
     IfEntering,
     IfVisited
 }
-

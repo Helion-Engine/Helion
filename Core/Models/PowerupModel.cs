@@ -15,4 +15,3 @@ public class PowerupModel
     public int EffectTics { get; set; }
     public float SubAlpha { get; set; }
 }
-

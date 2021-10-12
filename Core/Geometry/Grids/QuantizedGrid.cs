@@ -120,4 +120,3 @@ public class QuantizedGrid<T>
     /// <returns>The quantized value.</returns>
     private int Quantize(double value) => (int)(value * quantizationMultiplier);
 }
-

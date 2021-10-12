@@ -34,4 +34,3 @@ public class PlayerModel : EntityModel
     public FrameStateModel? WeaponFlashFrame { get; set; }
     public IList<int> Cheats { get; set; } = Array.Empty<int>();
 }
-

@@ -68,4 +68,3 @@ public static class FlagValue
     public const int InvFlag31 = ~Flag31;
     public const int InvFlag32 = ~Flag32;
 }
-

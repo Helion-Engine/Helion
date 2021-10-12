@@ -38,4 +38,3 @@ public class DoomRandom : IRandom
 
     public int NextDiff() => NextByte() - NextByte();
 }
-

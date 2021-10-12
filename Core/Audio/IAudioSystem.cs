@@ -50,4 +50,3 @@ public interface IAudioSystem : IDisposable
     /// </summary>
     IMusicPlayer Music { get; }
 }
-

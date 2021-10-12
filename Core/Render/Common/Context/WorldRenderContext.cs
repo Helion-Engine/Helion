@@ -28,4 +28,3 @@ public class WorldRenderContext
         InterpolationFrac = interpolationFrac;
     }
 }
-

@@ -7,4 +7,3 @@ public record Texture(int Index, string Name, Image Image, ResourceNamespace Nam
 {
     public bool IsNullTexture => Index == Constants.NoTextureIndex;
 }
-

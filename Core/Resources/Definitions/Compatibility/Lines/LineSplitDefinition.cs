@@ -37,4 +37,3 @@ public class LineSplitDefinition : ILineDefinition
         SplitVertexId = splitVertexId;
     }
 }
-

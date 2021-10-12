@@ -255,4 +255,3 @@ public class SkySphereTexture : IDisposable
             m_texture.Dispose();
     }
 }
-

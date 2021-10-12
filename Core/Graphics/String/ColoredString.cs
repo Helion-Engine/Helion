@@ -40,4 +40,3 @@ public class ColoredString : IEnumerable<ColoredChar>
     public IEnumerator<ColoredChar> GetEnumerator() => m_characters.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

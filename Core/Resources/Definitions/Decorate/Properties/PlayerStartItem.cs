@@ -17,4 +17,3 @@ public class PlayerStartItem
         Amount = amount;
     }
 }
-

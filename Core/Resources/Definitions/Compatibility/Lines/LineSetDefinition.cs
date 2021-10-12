@@ -53,4 +53,3 @@ public class LineSetDefinition : ILineDefinition
         Id = id;
     }
 }
-

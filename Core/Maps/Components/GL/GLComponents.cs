@@ -213,4 +213,3 @@ public class GLComponents
         return new Box2D(min, max);
     }
 }
-

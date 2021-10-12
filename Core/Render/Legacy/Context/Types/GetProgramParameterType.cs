@@ -6,4 +6,3 @@ public enum GetProgramParameterType
     ActiveUniforms = 35718,
     ActiveAttributes = 35721,
 }
-

@@ -49,4 +49,3 @@ public class RenderPipeline<TShader, TVertex> : RenderPipelineBase<TShader, TVer
             Vbo.Clear();
     }
 }
-

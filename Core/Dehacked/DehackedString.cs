@@ -7,4 +7,3 @@ public class DehackedString
     public string OldString { get; set; } = string.Empty;
     public string NewString { get; set; } = string.Empty;
 }
-

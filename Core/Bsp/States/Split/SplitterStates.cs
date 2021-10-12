@@ -40,4 +40,3 @@ public class SplitterStates
     /// </summary>
     public int CurrentSegScore = int.MaxValue;
 }
-

@@ -20,4 +20,3 @@ public class SectorModel
     public bool Secret;
     public int DamageAmount;
 }
-

@@ -35,4 +35,3 @@ public interface IEntryPath
     /// </summary>
     bool IsDirectory { get; }
 }
-

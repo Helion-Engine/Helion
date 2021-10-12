@@ -118,4 +118,3 @@ public class IWadInfo
         return DefaultIWadInfo;
     }
 }
-

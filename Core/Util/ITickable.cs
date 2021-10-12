@@ -11,4 +11,3 @@ public interface ITickable
     /// </summary>
     void Tick();
 }
-

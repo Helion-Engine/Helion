@@ -6,4 +6,3 @@ public enum SectorBaseSpecialType
     Move,
     Light,
 }
-

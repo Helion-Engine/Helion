@@ -7,4 +7,3 @@ public enum WallLocation
     Middle,
     Lower,
 }
-

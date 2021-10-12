@@ -67,4 +67,3 @@ public readonly struct Plane3D
         return true;
     }
 }
-

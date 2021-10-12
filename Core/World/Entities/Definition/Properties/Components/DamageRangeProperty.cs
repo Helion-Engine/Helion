@@ -19,4 +19,3 @@ public struct DamageRangeProperty
         return Exact ? Value : Value * ((random.NextByte() % 8) + 1);
     }
 }
-

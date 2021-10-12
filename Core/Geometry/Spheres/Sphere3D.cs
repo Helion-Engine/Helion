@@ -63,4 +63,3 @@ public struct Sphere3D
     public override bool Equals(object? obj) => obj is Sphere3D c && Radius == c.Radius && Origin == c.Origin;
     public override int GetHashCode() => HashCode.Combine(Radius.GetHashCode(), Origin.GetHashCode());
 }
-

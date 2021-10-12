@@ -63,4 +63,3 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
 }
-

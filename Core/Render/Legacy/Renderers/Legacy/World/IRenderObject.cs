@@ -11,4 +11,3 @@ public interface IRenderObject
     double RenderDistance { get; set; }
     RenderObjectType Type { get; }
 }
-

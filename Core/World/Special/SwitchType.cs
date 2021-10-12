@@ -5,4 +5,3 @@ public enum SwitchType
     Default,
     Exit
 }
-

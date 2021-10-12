@@ -13,4 +13,3 @@ public struct WadHeader
         DirectoryTableOffset = directoryTableOffset;
     }
 }
-

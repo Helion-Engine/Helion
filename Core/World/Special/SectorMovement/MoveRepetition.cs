@@ -39,4 +39,3 @@ public enum MoveRepetition
     /// </summary>
     PerpetualPause,
 }
-

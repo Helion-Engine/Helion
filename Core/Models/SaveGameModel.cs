@@ -11,4 +11,3 @@ public class SaveGameModel
     public DateTime Date { get; set; }
     public string WorldFile { get; set; } = string.Empty;
 }
-

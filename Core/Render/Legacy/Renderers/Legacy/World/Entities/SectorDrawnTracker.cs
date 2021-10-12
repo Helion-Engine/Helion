@@ -42,4 +42,3 @@ public class SectorDrawnTracker
         m_sectorWasDrawn.Set(sector.Id, true);
     }
 }
-

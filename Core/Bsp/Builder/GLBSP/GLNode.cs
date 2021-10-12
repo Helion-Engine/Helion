@@ -20,4 +20,3 @@ public struct GLNode
         LeftChild = leftChild;
     }
 }
-

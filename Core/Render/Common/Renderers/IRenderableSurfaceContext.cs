@@ -78,4 +78,3 @@ public interface IRenderableSurfaceContext
     /// <param name="action">The world rendering actions to issue.</param>
     void World(WorldRenderContext context, Action<IWorldRenderContext> action);
 }
-

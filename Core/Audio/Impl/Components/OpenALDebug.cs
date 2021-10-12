@@ -15,4 +15,3 @@ public static class OpenALDebug
     public static void End(string debugText) =>
         OpenALAudioSystem.CheckForErrors("[Done: {0}]", debugText);
 }
-

@@ -6,4 +6,3 @@ public struct ActorPlayerPawnFlags
     public bool? CrouchableMorph;
     public bool? NoThrustWhenInvul;
 }
-

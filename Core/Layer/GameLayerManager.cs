@@ -278,4 +278,3 @@ public class GameLayerManager : IGameLayerParent
         m_disposed = true;
     }
 }
-

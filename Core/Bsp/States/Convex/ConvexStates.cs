@@ -48,4 +48,3 @@ public class ConvexStates
     /// </summary>
     public int TotalSegs = 0;
 }
-

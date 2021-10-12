@@ -306,4 +306,3 @@ public class HexenMap : IMap
         return new ReadOnlyDictionary<int, HexenThing>(things);
     }
 }
-

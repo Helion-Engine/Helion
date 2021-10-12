@@ -41,4 +41,3 @@ public class SectorMoveData
         CompatibilityBlockMovement = compatibilityBlockMovement;
     }
 }
-

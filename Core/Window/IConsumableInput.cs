@@ -25,4 +25,3 @@ public interface IConsumableInput
     Vec2I ConsumeMouseMove();
     int ConsumeScroll();
 }
-

@@ -32,4 +32,3 @@ public class SplitWeights
     /// </summary>
     public int NearEndpointSplitScore = 1000;
 }
-

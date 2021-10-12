@@ -472,4 +472,3 @@ public class SimpleParser
         return m_lines[token.Line].Substring(token.Index, 1)[0];
     }
 }
-

@@ -28,4 +28,3 @@ public class DoomSide : ISide
 
     public ISector GetSector() => Sector;
 }
-

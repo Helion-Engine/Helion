@@ -8,4 +8,3 @@ public enum MapSpecialAction
     OpenDoor,
     FloorRaiseByLowestTexture
 }
-

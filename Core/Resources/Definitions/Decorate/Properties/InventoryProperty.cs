@@ -19,4 +19,3 @@ public struct InventoryProperty
     public List<string>? RestrictedTo;
     public string? UseSound;
 }
-

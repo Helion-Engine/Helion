@@ -30,4 +30,3 @@ public interface IMusicPlayer : IDisposable
     /// </summary>
     void Stop();
 }
-

@@ -12,4 +12,3 @@ public enum MusEvent : byte
     ChangeController = 0x40,
     ScoreEnd = 0x60
 }
-

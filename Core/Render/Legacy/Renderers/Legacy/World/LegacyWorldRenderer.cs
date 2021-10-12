@@ -240,4 +240,3 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer.Dispose();
     }
 }
-

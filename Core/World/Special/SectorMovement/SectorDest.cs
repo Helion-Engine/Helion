@@ -16,4 +16,3 @@ public enum SectorDest
     ShortestLowerTexture,
     ShortestUpperTexture,
 }
-

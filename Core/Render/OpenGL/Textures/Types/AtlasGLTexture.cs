@@ -58,4 +58,3 @@ public class AtlasGLTexture : GLTexture2D
         return true;
     }
 }
-

@@ -34,4 +34,3 @@ public class FontDefinitionCollection
                 m_definitions.Add(fontDefinition.Name, fontDefinition);
     }
 }
-

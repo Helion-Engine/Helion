@@ -87,4 +87,3 @@ public class GLLegacyRenderableSurfaceContext : IRenderableSurfaceContext
         action(m_worldRenderContext);
     }
 }
-

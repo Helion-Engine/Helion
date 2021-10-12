@@ -4,4 +4,3 @@ public enum TextureTargetType
 {
     Texture2D = 3553,
 }
-

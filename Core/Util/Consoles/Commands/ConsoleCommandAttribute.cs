@@ -13,4 +13,3 @@ public class ConsoleCommandAttribute : Attribute
         Description = description;
     }
 }
-

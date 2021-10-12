@@ -1522,4 +1522,3 @@ public static class VanillaLineSpecTranslator
         return false;
     }
 }
-

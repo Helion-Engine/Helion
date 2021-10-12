@@ -4,4 +4,3 @@ public enum PolygonModeType
 {
     Fill = 6914,
 }
-

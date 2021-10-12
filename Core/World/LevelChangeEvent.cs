@@ -32,4 +32,3 @@ public enum LevelChangeType
     SpecificLevel,
     Reset
 }
-

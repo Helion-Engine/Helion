@@ -129,4 +129,3 @@ public class BlockmapTraverser
         return intersections;
     }
 }
-

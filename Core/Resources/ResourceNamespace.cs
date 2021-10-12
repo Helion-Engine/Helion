@@ -15,4 +15,3 @@ public enum ResourceNamespace
     Sprites,
     Textures,
 }
-

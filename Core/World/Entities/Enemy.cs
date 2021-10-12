@@ -366,4 +366,3 @@ public partial class Entity
         return true;
     }
 }
-

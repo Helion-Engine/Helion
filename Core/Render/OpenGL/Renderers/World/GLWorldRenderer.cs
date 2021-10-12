@@ -92,4 +92,3 @@ public class GLWorldRenderer : IWorldRenderContext
         m_disposed = true;
     }
 }
-

@@ -56,4 +56,3 @@ public class DefaultSoundSource : ISoundSource
     public bool CanAttenuate(SoundInfo soundInfo) => m_attenuate;
     public bool CanMakeSound() => true;
 }
-

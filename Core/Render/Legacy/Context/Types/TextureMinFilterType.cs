@@ -9,4 +9,3 @@ public enum TextureMinFilterType
     NearestMipmapLinear = 9986,
     LinearMipmapLinear = 9987,
 }
-

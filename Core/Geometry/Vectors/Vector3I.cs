@@ -111,4 +111,3 @@ public class Vector3I
     public override bool Equals(object? obj) => obj is Vector3I v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
 }
-

@@ -177,4 +177,3 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

@@ -11,4 +11,3 @@ public enum BlockmapTraverseEntityFlags
     Corpse = 4,
     NotCorpse = 8
 }
-

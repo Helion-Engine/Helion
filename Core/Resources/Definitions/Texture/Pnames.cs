@@ -52,4 +52,3 @@ public class Pnames
         return new Pnames(names);
     }
 }
-

@@ -74,4 +74,3 @@ public class LegacyHudShader : ShaderProgram
         return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
     }
 }
-

@@ -6,4 +6,3 @@ public class DehackedAmmo
     public int? MaxAmmo { get; set; }
     public int? PerAmmo { get; set; }
 }
-

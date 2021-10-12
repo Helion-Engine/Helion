@@ -7,4 +7,3 @@ public enum HealthPickupAutoUse
     WouldDieAndWithAutoUseFlagOrDeathmatch = 2,
     AutoUseUnderFiftyHealth = 3,
 }
-

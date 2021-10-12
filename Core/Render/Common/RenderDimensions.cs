@@ -83,4 +83,3 @@ public readonly struct RenderDimensions
         return (scaledPoint + gutter).Int;
     }
 }
-

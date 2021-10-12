@@ -36,4 +36,3 @@ public readonly struct SectorPlaneData
         Unused7 = 0;
     }
 }
-

@@ -7,4 +7,3 @@ public class BoomAnimatedTexture
     public int Tics { get; set; }
     public bool IsTexture { get; set; }
 }
-

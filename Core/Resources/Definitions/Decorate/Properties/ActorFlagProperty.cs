@@ -6,4 +6,3 @@ public class ActorFlagProperty
     public bool? DefaultAlpha;
     public bool? SkipSuper;
 }
-

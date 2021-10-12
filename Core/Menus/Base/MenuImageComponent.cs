@@ -31,4 +31,3 @@ public class MenuImageComponent : IMenuComponent
         AddToOffsetY = addToOffsetY;
     }
 }
-

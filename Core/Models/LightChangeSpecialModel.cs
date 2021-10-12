@@ -21,4 +21,3 @@ public class LightChangeSpecialModel : ISpecialModel
         return new LightChangeSpecial(world.Sectors[SectorId], this);
     }
 }
-

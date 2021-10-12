@@ -196,4 +196,3 @@ public class EntityProperties
         Speed = properties.Speed;
     }
 }
-

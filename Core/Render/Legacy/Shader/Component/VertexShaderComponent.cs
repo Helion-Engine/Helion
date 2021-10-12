@@ -11,4 +11,3 @@ public class VertexShaderComponent : ShaderComponent
 
     protected override ShaderComponentType GetShaderComponentType() => ShaderComponentType.Vertex;
 }
-

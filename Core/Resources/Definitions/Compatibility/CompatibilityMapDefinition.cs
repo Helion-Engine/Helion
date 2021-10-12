@@ -9,4 +9,3 @@ public class CompatibilityMapDefinition
     public readonly List<ILineDefinition> Lines = new List<ILineDefinition>();
     public readonly List<ISideDefinition> Sides = new List<ISideDefinition>();
 }
-

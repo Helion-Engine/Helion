@@ -115,4 +115,3 @@ public class Wad : Archive, IDisposable
         }
     }
 }
-

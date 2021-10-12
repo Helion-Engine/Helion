@@ -314,4 +314,3 @@ public class SinglePlayerWorld : WorldBase
         }
     }
 }
-

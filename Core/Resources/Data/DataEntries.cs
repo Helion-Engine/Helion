@@ -76,4 +76,3 @@ public class DataEntries
             Log.Warn("Unable to load font from entry {0}", entry.Path);
     }
 }
-

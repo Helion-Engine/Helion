@@ -89,4 +89,3 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         m_worldRenderer.Render(context);
     }
 }
-

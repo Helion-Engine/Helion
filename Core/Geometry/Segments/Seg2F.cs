@@ -372,4 +372,3 @@ public struct Seg2F
         yield return End;
     }
 }
-

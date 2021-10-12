@@ -42,4 +42,3 @@ public class GLVersion
 
     public override string ToString() => $"{Major}.{Minor}";
 }
-

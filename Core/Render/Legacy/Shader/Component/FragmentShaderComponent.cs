@@ -11,4 +11,3 @@ public class FragmentShaderComponent : ShaderComponent
 
     protected override ShaderComponentType GetShaderComponentType() => ShaderComponentType.Fragment;
 }
-

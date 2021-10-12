@@ -141,4 +141,3 @@ public struct Vec2D
     public override bool Equals(object? obj) => obj is Vec2D v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
-

@@ -18,4 +18,3 @@ public class AnimatedCameraTexture
         WorldPanning = worldPanning;
     }
 }
-

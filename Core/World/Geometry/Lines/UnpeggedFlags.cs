@@ -5,4 +5,3 @@ public struct UnpeggedFlags
     public bool Upper;
     public bool Lower;
 }
-

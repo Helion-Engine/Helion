@@ -356,4 +356,3 @@ public class TextureManager : ITickable
             texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace);
     }
 }
-

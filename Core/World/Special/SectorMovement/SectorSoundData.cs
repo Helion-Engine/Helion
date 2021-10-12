@@ -19,4 +19,3 @@ public class SectorSoundData
         MovementSound = movementSound;
     }
 }
-

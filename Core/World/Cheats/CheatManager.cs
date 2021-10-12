@@ -110,4 +110,3 @@ public class CheatManager : IEnumerable<ICheat>
     public IEnumerator<ICheat> GetEnumerator() => ((IEnumerable<ICheat>)Cheats).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
-

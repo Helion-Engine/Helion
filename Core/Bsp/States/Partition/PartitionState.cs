@@ -9,4 +9,3 @@ public enum PartitionState
     Working,
     Finished,
 }
-

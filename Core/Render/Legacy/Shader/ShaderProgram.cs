@@ -138,4 +138,3 @@ public class ShaderProgram : IDisposable
         gl.DeleteProgram(m_programId);
     }
 }
-

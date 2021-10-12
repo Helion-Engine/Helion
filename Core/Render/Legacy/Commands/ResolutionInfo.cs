@@ -33,4 +33,3 @@ public struct ResolutionInfo
         AspectRatio = aspectRatio;
     }
 }
-

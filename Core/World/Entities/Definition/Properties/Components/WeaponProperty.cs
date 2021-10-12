@@ -30,4 +30,3 @@ public class WeaponProperty
     public string UpSound = "";
     public int YAdjust;
 }
-

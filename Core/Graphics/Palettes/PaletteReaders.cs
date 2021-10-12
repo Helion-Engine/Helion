@@ -218,4 +218,3 @@ public static class PaletteReaders
         return reader.HasBytesRemaining(1);
     }
 }
-

@@ -14,4 +14,3 @@ public enum IWadType
     DoomRegistered,
     NoRestForTheLiving
 }
-

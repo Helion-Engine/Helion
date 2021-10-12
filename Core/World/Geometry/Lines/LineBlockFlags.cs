@@ -7,4 +7,3 @@ public struct LineBlockFlags
     public bool Players;
     public bool Projectiles;
 }
-

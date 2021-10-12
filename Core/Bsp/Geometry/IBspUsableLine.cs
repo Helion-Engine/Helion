@@ -32,4 +32,3 @@ public interface IBspUsableLine
     /// </summary>
     bool OneSided { get; }
 }
-

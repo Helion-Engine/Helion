@@ -9,4 +9,3 @@ public enum VertexAttributeIntegralPointerType
     Int = 5124,
     UnsignedInt = 5125,
 }
-
