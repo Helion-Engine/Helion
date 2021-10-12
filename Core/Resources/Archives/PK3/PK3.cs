@@ -45,13 +45,12 @@ namespace Helion.Resources.Archives
         public byte[] ReadData(PK3Entry entry)
         {
             Invariant(entry.Parent == this, "Bad entry parent");
-            
-            using (var stream = entry.ZipEntry.Open())
-            {
-                byte[] data = new byte[entry.ZipEntry.Length];
-                stream.Read(data, 0, (int)entry.ZipEntry.Length);
-                return data;
-            }
+
+            using var stream = entry.ZipEntry.Open();
+            MemoryStream memoryStream = new();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+            return memoryStream.ToArray();
         }
 
         private static bool ZipEntryDirectory(ZipArchiveEntry entry)
