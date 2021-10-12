@@ -1,8 +1,8 @@
-namespace Helion.World.Geometry.Sectors
+namespace Helion.World.Geometry.Sectors;
+
+public enum SectorPlaneFace
 {
-    public enum SectorPlaneFace
-    {
-        Floor,
-        Ceiling,
-    }
+    Floor,
+    Ceiling,
 }
+

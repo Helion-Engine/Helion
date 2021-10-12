@@ -1,9 +1,9 @@
-﻿namespace Helion.World
+namespace Helion.World;
+
+public enum WorldState
 {
-    public enum WorldState
-    {
-        Normal,
-        Exit,
-        Exited
-    }
+    Normal,
+    Exit,
+    Exited
 }
+

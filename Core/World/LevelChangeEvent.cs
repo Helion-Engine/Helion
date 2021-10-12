@@ -1,35 +1,35 @@
 using Helion.Models;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World
+namespace Helion.World;
+
+public class LevelChangeEvent
 {
-    public class LevelChangeEvent
+    public readonly LevelChangeType ChangeType;
+    public readonly int LevelNumber = 1;
+    public readonly WorldModel? WorldModel;
+
+    public LevelChangeEvent(LevelChangeType levelChangeType)
     {
-        public readonly LevelChangeType ChangeType;
-        public readonly int LevelNumber = 1;
-        public readonly WorldModel? WorldModel;
+        Precondition(levelChangeType != LevelChangeType.SpecificLevel, "Wrong level change type constructor");
 
-        public LevelChangeEvent(LevelChangeType levelChangeType)
-        {
-            Precondition(levelChangeType != LevelChangeType.SpecificLevel, "Wrong level change type constructor");
-
-            ChangeType = levelChangeType;
-        }
-
-        public LevelChangeEvent(int levelNumber)
-        {
-            Precondition(levelNumber >= 0, "Cannot have a negative level number");
-
-            ChangeType = LevelChangeType.SpecificLevel;
-            LevelNumber = levelNumber;
-        }
+        ChangeType = levelChangeType;
     }
 
-    public enum LevelChangeType
+    public LevelChangeEvent(int levelNumber)
     {
-        Next,
-        SecretNext,
-        SpecificLevel,
-        Reset
+        Precondition(levelNumber >= 0, "Cannot have a negative level number");
+
+        ChangeType = LevelChangeType.SpecificLevel;
+        LevelNumber = levelNumber;
     }
 }
+
+public enum LevelChangeType
+{
+    Next,
+    SecretNext,
+    SpecificLevel,
+    Reset
+}
+

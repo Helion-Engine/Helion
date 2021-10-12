@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum MipmapTargetType
 {
-    public enum MipmapTargetType
-    {
-        Texture2D = 3553,
-    }
+    Texture2D = 3553,
 }
+

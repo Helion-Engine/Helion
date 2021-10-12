@@ -4,56 +4,56 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Util;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Vertex
+namespace Helion.Render.Legacy.Vertex;
+
+public class VertexArrayObject : IDisposable
 {
-    public class VertexArrayObject : IDisposable
+    public readonly VertexArrayAttributes Attributes;
+    private readonly IGLFunctions gl;
+    private readonly int m_vaoId;
+
+    public VertexArrayObject(GLCapabilities capabilities, IGLFunctions functions, VertexArrayAttributes vaoAttributes,
+        string objectLabel = "")
     {
-        public readonly VertexArrayAttributes Attributes;
-        private readonly IGLFunctions gl;
-        private readonly int m_vaoId;
+        gl = functions;
+        Attributes = vaoAttributes;
+        m_vaoId = gl.GenVertexArray();
 
-        public VertexArrayObject(GLCapabilities capabilities, IGLFunctions functions, VertexArrayAttributes vaoAttributes, 
-            string objectLabel = "")
-        {
-            gl = functions;
-            Attributes = vaoAttributes;
-            m_vaoId = gl.GenVertexArray();
-            
-            BindAnd(() => { GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.VertexArray, m_vaoId, objectLabel); });
-        }
-        
-        ~VertexArrayObject()
-        {
-            FailedToDispose(this);
-            ReleaseUnmanagedResources();
-        }
+        BindAnd(() => { GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.VertexArray, m_vaoId, objectLabel); });
+    }
 
-        public void Bind()
-        {
-            gl.BindVertexArray(m_vaoId);
-        }
+    ~VertexArrayObject()
+    {
+        FailedToDispose(this);
+        ReleaseUnmanagedResources();
+    }
 
-        public void Unbind()
-        {
-            gl.BindVertexArray(0);
-        }
+    public void Bind()
+    {
+        gl.BindVertexArray(m_vaoId);
+    }
 
-        public void BindAnd(Action action)
-        {
-            Bind();
-            action.Invoke();
-            Unbind();
-        }
+    public void Unbind()
+    {
+        gl.BindVertexArray(0);
+    }
 
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
+    public void BindAnd(Action action)
+    {
+        Bind();
+        action.Invoke();
+        Unbind();
+    }
 
-        private void ReleaseUnmanagedResources()
-        {
-            gl.DeleteVertexArray(m_vaoId);
-        }
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
+
+    private void ReleaseUnmanagedResources()
+    {
+        gl.DeleteVertexArray(m_vaoId);
     }
 }
+

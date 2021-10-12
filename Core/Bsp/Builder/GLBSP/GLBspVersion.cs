@@ -1,11 +1,11 @@
-namespace Helion.Bsp.Builder.GLBSP
+namespace Helion.Bsp.Builder.GLBSP;
+
+public enum GLBspVersion
 {
-    public enum GLBspVersion
-    {
-        One,
-        Two,
-        Three,
-        Four,
-        Five
-    }
+    One,
+    Two,
+    Three,
+    Four,
+    Five
 }
+

@@ -1,10 +1,10 @@
-﻿namespace Helion.Resources.Definitions.Intermission
+namespace Helion.Resources.Definitions.Intermission;
+
+public enum IntermissionAnimationType
 {
-    public enum IntermissionAnimationType
-    {
-        Normal,
-        IfLeaving,
-        IfEntering,
-        IfVisited
-    }
+    Normal,
+    IfLeaving,
+    IfEntering,
+    IfVisited
 }
+

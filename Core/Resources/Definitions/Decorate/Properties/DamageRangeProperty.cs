@@ -1,14 +1,14 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
-{
-    public struct DamageRangeProperty
-    {
-        public int? Value;
-        public bool? Exact;
+namespace Helion.Resources.Definitions.Decorate.Properties;
 
-        public DamageRangeProperty(int value, bool exact)
-        {
-            Value = value;
-            Exact = exact;
-        }
+public struct DamageRangeProperty
+{
+    public int? Value;
+    public bool? Exact;
+
+    public DamageRangeProperty(int value, bool exact)
+    {
+        Value = value;
+        Exact = exact;
     }
 }
+

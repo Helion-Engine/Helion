@@ -1,10 +1,10 @@
-﻿namespace Helion.Render.Common.Enums
+namespace Helion.Render.Common.Enums;
+
+public enum GpuVendor
 {
-    public enum GpuVendor
-    {
-        Unknown,
-        Nvidia,
-        Amd,
-        Intel
-    }
+    Unknown,
+    Nvidia,
+    Amd,
+    Intel
 }
+

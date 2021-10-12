@@ -1,8 +1,8 @@
-﻿namespace Helion.Util.Parser
+namespace Helion.Util.Parser;
+
+public enum ParseType
 {
-    public enum ParseType
-    {
-        Normal,
-        Csv
-    }
+    Normal,
+    Csv
 }
+

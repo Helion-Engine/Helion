@@ -1,14 +1,14 @@
-namespace Helion.World.Entities.Definition.Properties.Components
-{
-    public struct PlayerMoveProperty
-    {
-        public readonly double Walk;
-        public readonly double Run;
+namespace Helion.World.Entities.Definition.Properties.Components;
 
-        public PlayerMoveProperty(double walk, double run)
-        {
-            Walk = walk;
-            Run = run;
-        }
+public struct PlayerMoveProperty
+{
+    public readonly double Walk;
+    public readonly double Run;
+
+    public PlayerMoveProperty(double walk, double run)
+    {
+        Walk = walk;
+        Run = run;
     }
 }
+

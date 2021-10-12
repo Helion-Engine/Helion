@@ -1,10 +1,10 @@
-﻿using Helion.World;
+using Helion.World;
 using Helion.World.Special;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public interface ISpecialModel
 {
-    public interface ISpecialModel
-    {
-        ISpecial? ToWorldSpecial(IWorld world);
-    }
+    ISpecial? ToWorldSpecial(IWorld world);
 }
+

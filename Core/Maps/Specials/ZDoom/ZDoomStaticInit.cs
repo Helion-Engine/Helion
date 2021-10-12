@@ -1,13 +1,13 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomStaticInit
 {
-    public enum ZDoomStaticInit
-    {
-        Gravity,
-        Color,
-        Damage,
-        Link,
-        Sector = 253,
-        Line = 254,
-        Sky = 255
-    }
+    Gravity,
+    Color,
+    Damage,
+    Link,
+    Sector = 253,
+    Line = 254,
+    Sky = 255
 }
+

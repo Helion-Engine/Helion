@@ -1,15 +1,15 @@
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
 
-namespace Helion.Render.Legacy.Buffer.Array
-{
-    public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
-    {
-        public DynamicArrayBuffer(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") : 
-            base(capabilities, functions, objectLabel)
-        {
-        }
+namespace Helion.Render.Legacy.Buffer.Array;
 
-        protected override BufferUsageType GetBufferUsageType() => BufferUsageType.DynamicDraw;
+public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+{
+    public DynamicArrayBuffer(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") :
+        base(capabilities, functions, objectLabel)
+    {
     }
+
+    protected override BufferUsageType GetBufferUsageType() => BufferUsageType.DynamicDraw;
 }
+

@@ -1,8 +1,8 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.World.Entities.Definition.Properties.Components;
+
+public class WeaponPiecesProperty
 {
-    public class WeaponPiecesProperty
-    {
-        public int Number;
-        public string Weapon = "";
-    }
+    public int Number;
+    public string Weapon = "";
 }
+

@@ -1,8 +1,8 @@
-﻿namespace Helion.World.Entities.Inventories.Powerups
+namespace Helion.World.Entities.Inventories.Powerups;
+
+public enum InventoryTickStatus
 {
-    public enum InventoryTickStatus
-    {
-        Continue,
-        Destroy
-    }
+    Continue,
+    Destroy
 }
+

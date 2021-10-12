@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public class EntityFlagsModel
 {
-    public class EntityFlagsModel
-    {
-        public int[] Bits { get; set; } = Array.Empty<int>(); 
-    }
+    public int[] Bits { get; set; } = Array.Empty<int>();
 }
+

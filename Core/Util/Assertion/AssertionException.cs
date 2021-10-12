@@ -1,19 +1,19 @@
 using System;
 
-namespace Helion.Util.Assertion
+namespace Helion.Util.Assertion;
+
+/// <summary>
+/// An exception triggered when an assertion fails.
+/// </summary>
+[Serializable]
+public class AssertionException : HelionException
 {
     /// <summary>
-    /// An exception triggered when an assertion fails.
+    /// Initializes a new instance of the <see cref="AssertionException"/> class.
     /// </summary>
-    [Serializable]
-    public class AssertionException : HelionException
+    /// <param name="message">The error message.</param>
+    public AssertionException(string message) :  base(message)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AssertionException"/> class.
-        /// </summary>
-        /// <param name="message">The error message.</param>
-        public AssertionException(string message) :  base(message)
-        {
-        }
     }
 }
+

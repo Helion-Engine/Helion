@@ -1,14 +1,14 @@
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
-namespace Helion.Resources.Definitions.Decorate.Properties
+namespace Helion.Resources.Definitions.Decorate.Properties;
+
+public struct MorphProjectileProperty
 {
-    public struct MorphProjectileProperty
-    {
-        public int? Duration;
-        public string? MonsterClass;
-        public MorphStyle? MorphStyle;
-        public string? MorphFlash;
-        public string? PlayerClass;
-        public string? UnmorphFlash;
-    }
+    public int? Duration;
+    public string? MonsterClass;
+    public MorphStyle? MorphStyle;
+    public string? MorphFlash;
+    public string? PlayerClass;
+    public string? UnmorphFlash;
 }
+

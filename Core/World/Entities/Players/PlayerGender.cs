@@ -1,9 +1,9 @@
-﻿namespace Helion.World.Entities.Players
+namespace Helion.World.Entities.Players;
+
+public enum PlayerGender
 {
-    public enum PlayerGender
-    {
-        Male,
-        Female,
-        Other
-    }
+    Male,
+    Female,
+    Other
 }
+

@@ -1,24 +1,24 @@
-﻿namespace Helion.Render.Common.Enums
+namespace Helion.Render.Common.Enums;
+
+/// <summary>
+/// How to align text.
+/// </summary>
+public enum TextAlign
 {
     /// <summary>
-    /// How to align text.
+    /// Draw from the left border, going right.
     /// </summary>
-    public enum TextAlign
-    {
-        /// <summary>
-        /// Draw from the left border, going right.
-        /// </summary>
-        Left,
+    Left,
 
-        /// <summary>
-        /// Draw from the center outwards, so that the text is centered around
-        /// some central point.
-        /// </summary>
-        Center,
+    /// <summary>
+    /// Draw from the center outwards, so that the text is centered around
+    /// some central point.
+    /// </summary>
+    Center,
 
-        /// <summary>
-        /// Draw from the right side, going left.
-        /// </summary>
-        Right
-    }
+    /// <summary>
+    /// Draw from the right side, going left.
+    /// </summary>
+    Right
 }
+

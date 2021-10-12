@@ -1,11 +1,11 @@
 using Helion.Util;
 
-namespace Helion.Render.OpenGL.Shaders
+namespace Helion.Render.OpenGL.Shaders;
+
+public class ShaderException : HelionException
 {
-    public class ShaderException : HelionException
+    public ShaderException(string message) : base(message)
     {
-        public ShaderException(string message) : base(message)
-        {
-        }
     }
 }
+

@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 
-namespace Helion.World.Physics.Blockmap
+namespace Helion.World.Physics.Blockmap;
+
+[Flags]
+public enum BlockmapTraverseFlags
 {
-    [Flags]
-    public enum BlockmapTraverseFlags
-    {
-        Entities = 1,
-        Lines = 2,
-        StopOnOneSidedLine = 4
-    }
+    Entities = 1,
+    Lines = 2,
+    StopOnOneSidedLine = 4
 }
+

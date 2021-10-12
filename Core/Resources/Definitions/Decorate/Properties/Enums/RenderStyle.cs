@@ -1,19 +1,19 @@
-namespace Helion.Resources.Definitions.Decorate.Properties.Enums
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
+
+public enum RenderStyle
 {
-    public enum RenderStyle 
-    {
-        None,
-        Normal,
-        Fuzzy,
-        SoulTrans,
-        OptFuzzy,
-        Stencil,
-        AddStencil,
-        Translucent,
-        Add,
-        Subtract,
-        Shaded,
-        AddShaded,
-        Shadow,
-    }
+    None,
+    Normal,
+    Fuzzy,
+    SoulTrans,
+    OptFuzzy,
+    Stencil,
+    AddStencil,
+    Translucent,
+    Add,
+    Subtract,
+    Shaded,
+    AddShaded,
+    Shadow,
 }
+

@@ -1,10 +1,10 @@
-﻿namespace Helion.World.Physics
+namespace Helion.World.Physics;
+
+public enum SectorMoveStatus
 {
-    public enum SectorMoveStatus
-    {
-        Blocked,
-        Success,
-        Crush,
-        BlockedAndStop
-    }
+    Blocked,
+    Success,
+    Crush,
+    BlockedAndStop
 }
+

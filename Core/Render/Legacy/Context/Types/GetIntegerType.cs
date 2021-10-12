@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum GetIntegerType
 {
-    public enum GetIntegerType
-    {
-        NumExtensions = 33309,
-    }
+    NumExtensions = 33309,
 }
+

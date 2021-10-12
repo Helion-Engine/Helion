@@ -1,7 +1,7 @@
-﻿namespace Helion.Render.Common.World.Triangulation
+namespace Helion.Render.Common.World.Triangulation;
+
+public readonly struct WallVertex
 {
-    public readonly struct WallVertex
-    {
-        
-    }
+
 }
+

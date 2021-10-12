@@ -1,7 +1,7 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.World.Entities.Definition.Properties.Components;
+
+public struct FakeInventoryProperty
 {
-    public struct FakeInventoryProperty
-    {
-        public bool Respawns;
-    }
+    public bool Respawns;
 }
+

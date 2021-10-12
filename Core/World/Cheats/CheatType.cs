@@ -1,33 +1,33 @@
-namespace Helion.World.Cheats
+namespace Helion.World.Cheats;
+
+public enum CheatType
 {
-    public enum CheatType
-    {
-        GiveItem,
-        Chainsaw,
-        NoClip,
-        ChangeLevel,
-        God,
-        Automap,
-        AutomapMode,
-        GiveAllNoKeys,
-        GiveAll,
-        ChangeMusic,
-        ShowPosition,
+    GiveItem,
+    Chainsaw,
+    NoClip,
+    ChangeLevel,
+    God,
+    Automap,
+    AutomapMode,
+    GiveAllNoKeys,
+    GiveAll,
+    ChangeMusic,
+    ShowPosition,
 
-        AutoMapModeShowAllLines,
-        AutoMapModeShowAllLinesAndThings,
+    AutoMapModeShowAllLines,
+    AutoMapModeShowAllLinesAndThings,
 
-        Behold,
-        BeholdRadSuit,
-        BeholdPartialInvisibility,
-        BeholdInvulnerability,
-        BeholdComputerAreaMap,
-        BeholdLightAmp,
-        BeholdBerserk,
+    Behold,
+    BeholdRadSuit,
+    BeholdPartialInvisibility,
+    BeholdInvulnerability,
+    BeholdComputerAreaMap,
+    BeholdLightAmp,
+    BeholdBerserk,
 
-        // Start non-vanilla doom cheats
-        Fly,
-        Ressurect,
-        Kill
-    }
+    // Start non-vanilla doom cheats
+    Fly,
+    Ressurect,
+    Kill
 }
+

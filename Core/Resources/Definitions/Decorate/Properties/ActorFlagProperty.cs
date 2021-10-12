@@ -1,9 +1,9 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
+namespace Helion.Resources.Definitions.Decorate.Properties;
+
+public class ActorFlagProperty
 {
-    public class ActorFlagProperty
-    {
-        public bool? ClearFlags;
-        public bool? DefaultAlpha;
-        public bool? SkipSuper;
-    }
+    public bool? ClearFlags;
+    public bool? DefaultAlpha;
+    public bool? SkipSuper;
 }
+

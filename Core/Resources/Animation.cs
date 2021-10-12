@@ -1,20 +1,20 @@
-﻿using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.Animdefs.Textures;
 
-namespace Helion.Resources
+namespace Helion.Resources;
+
+public class Animation
 {
-    public class Animation
-    {
-        public AnimatedTexture AnimatedTexture;
-        public int TranslationIndex;
-        public int AnimationIndex;
-        public int Tics;
-        
-        public Animation(AnimatedTexture animatedTexture, int textureIndex)
-        {
-            AnimatedTexture = animatedTexture;
-            TranslationIndex = textureIndex;
-        }
+    public AnimatedTexture AnimatedTexture;
+    public int TranslationIndex;
+    public int AnimationIndex;
+    public int Tics;
 
-        public override string ToString() => $"{AnimatedTexture.Name} (Animation = {AnimationIndex}, Tick = {Tics})";
+    public Animation(AnimatedTexture animatedTexture, int textureIndex)
+    {
+        AnimatedTexture = animatedTexture;
+        TranslationIndex = textureIndex;
     }
+
+    public override string ToString() => $"{AnimatedTexture.Name} (Animation = {AnimationIndex}, Tick = {Tics})";
 }
+

@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace Helion.Util.CommandLine
+namespace Helion.Util.CommandLine;
+
+public record CommandArg
 {
-    public record CommandArg
+    public string Key { get; }
+    public List<string> Values { get; } = new();
+
+    public CommandArg(string key)
     {
-        public string Key { get; }
-        public List<string> Values { get; } = new();
-        
-        public CommandArg(string key)
-        {
-            Key = key;
-        }
+        Key = key;
     }
 }
+

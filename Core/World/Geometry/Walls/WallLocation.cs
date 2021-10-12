@@ -1,10 +1,10 @@
-namespace Helion.World.Geometry.Walls
+namespace Helion.World.Geometry.Walls;
+
+public enum WallLocation
 {
-    public enum WallLocation
-    {
-        None, // This is for 3D floors and transfer heights; any better words?
-        Upper,
-        Middle,
-        Lower,
-    }
+    None, // This is for 3D floors and transfer heights; any better words?
+    Upper,
+    Middle,
+    Lower,
 }
+

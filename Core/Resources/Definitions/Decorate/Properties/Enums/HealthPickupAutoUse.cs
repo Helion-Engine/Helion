@@ -1,10 +1,10 @@
-namespace Helion.Resources.Definitions.Decorate.Properties.Enums
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
+
+public enum HealthPickupAutoUse
 {
-    public enum HealthPickupAutoUse
-    {
-        Never = 0,
-        WouldDieAndWithAutoUseFlag = 1,
-        WouldDieAndWithAutoUseFlagOrDeathmatch = 2,
-        AutoUseUnderFiftyHealth = 3,
-    }
+    Never = 0,
+    WouldDieAndWithAutoUseFlag = 1,
+    WouldDieAndWithAutoUseFlagOrDeathmatch = 2,
+    AutoUseUnderFiftyHealth = 3,
 }
+

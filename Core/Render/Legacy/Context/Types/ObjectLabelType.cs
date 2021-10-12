@@ -1,12 +1,12 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum ObjectLabelType
 {
-    public enum ObjectLabelType
-    {
-        Texture = 5890,
-        VertexArray = 32884,
-        Buffer = 33504,
-        Shader = 33505,
-        Program = 33506,
-        Query = 33507,
-    }
+    Texture = 5890,
+    VertexArray = 32884,
+    Buffer = 33504,
+    Shader = 33505,
+    Program = 33506,
+    Query = 33507,
 }
+

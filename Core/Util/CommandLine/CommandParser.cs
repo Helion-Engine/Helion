@@ -1,57 +1,57 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.CommandLine;
 
-namespace Helion.Util.CommandLine
+namespace Helion.Util.CommandLine;
+
+public class CommandParser
 {
-    public class CommandParser
+    private readonly string[] m_argStart;
+
+    public CommandParser(string[] argStart)
     {
-        private readonly string[] m_argStart;
+        m_argStart = argStart;
+    }
 
-        public CommandParser(string[] argStart)
+    public List<CommandArg> Parse(string[] stringArgs)
+    {
+        List<CommandArg> args = new();
+        CommandArg? current = null;
+
+        foreach (string stringArg in stringArgs)
         {
-            m_argStart = argStart;
-        }
+            string? argKey = m_argStart.FirstOrDefault(x => ArgEquals(x, stringArg));
 
-        public List<CommandArg> Parse(string[] stringArgs)
-        {
-            List<CommandArg> args = new();
-            CommandArg? current = null;
-
-            foreach (string stringArg in stringArgs)
+            if (argKey != null)
             {
-                string? argKey = m_argStart.FirstOrDefault(x => ArgEquals(x, stringArg));
-
-                if (argKey != null)
-                {
-                    current = FindOrCreate(stringArg, args);
-                    continue;
-                }
-
-                current?.Values.Add(stringArg.Replace("\"", string.Empty));
+                current = FindOrCreate(stringArg, args);
+                continue;
             }
 
-            return args;
+            current?.Values.Add(stringArg.Replace("\"", string.Empty));
         }
 
-        private CommandArg FindOrCreate(string argKey, List<CommandArg> args)
-        {
-            CommandArg? arg = args.FirstOrDefault(x => x.Key.Equals(argKey, StringComparison.OrdinalIgnoreCase));
-            if (arg != null)
-                return arg;
+        return args;
+    }
 
-            arg = new CommandArg(argKey);
-            args.Add(arg);
+    private CommandArg FindOrCreate(string argKey, List<CommandArg> args)
+    {
+        CommandArg? arg = args.FirstOrDefault(x => x.Key.Equals(argKey, StringComparison.OrdinalIgnoreCase));
+        if (arg != null)
             return arg;
-        }
 
-        private bool ArgEquals(string arg, string cmp)
-        {
-            if (cmp.Length < arg.Length)
-                return false;
+        arg = new CommandArg(argKey);
+        args.Add(arg);
+        return arg;
+    }
 
-            return cmp.Substring(0, arg.Length).Equals(arg, StringComparison.OrdinalIgnoreCase);
-        }
+    private bool ArgEquals(string arg, string cmp)
+    {
+        if (cmp.Length < arg.Length)
+            return false;
+
+        return cmp.Substring(0, arg.Length).Equals(arg, StringComparison.OrdinalIgnoreCase);
     }
 }
+

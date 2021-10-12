@@ -1,19 +1,19 @@
 using System.Drawing;
 using Helion.Graphics.Geometry;
 
-namespace Helion.Render.Legacy.Commands.Types
-{
-    public record DrawShapeCommand : IRenderCommand
-    {
-        public readonly ImageBox2I Rectangle;
-        public readonly Color Color;
-        public readonly float Alpha;
+namespace Helion.Render.Legacy.Commands.Types;
 
-        public DrawShapeCommand(ImageBox2I rectangle, Color color, float alpha)
-        {
-            Rectangle = rectangle;
-            Color = color;
-            Alpha = alpha;
-        }
+public record DrawShapeCommand : IRenderCommand
+{
+    public readonly ImageBox2I Rectangle;
+    public readonly Color Color;
+    public readonly float Alpha;
+
+    public DrawShapeCommand(ImageBox2I rectangle, Color color, float alpha)
+    {
+        Rectangle = rectangle;
+        Color = color;
+        Alpha = alpha;
     }
 }
+

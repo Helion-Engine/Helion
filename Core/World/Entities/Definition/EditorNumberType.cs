@@ -1,7 +1,7 @@
-namespace Helion.World.Entities.Definition
+namespace Helion.World.Entities.Definition;
+
+public enum EditorNumberType
 {
-    public enum EditorNumberType
-    {
-        TeleportDest = 14,
-    }
+    TeleportDest = 14,
 }
+

@@ -1,8 +1,8 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.World.Entities.Definition.Properties.Components;
+
+public struct PuzzleItemProperty
 {
-    public struct PuzzleItemProperty
-    {
-        public int Number;
-        public string FailMessage;
-    }
+    public int Number;
+    public string FailMessage;
 }
+

@@ -1,4 +1,4 @@
-﻿using Helion.Dehacked;
+using Helion.Dehacked;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
 using Helion.Resources.Archives;
@@ -21,42 +21,42 @@ using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Textures;
 using Helion.Resources.Images;
 
-namespace Helion.Resources
-{
-    /// <summary>
-    /// A collection of all the resources that are loaded.
-    /// </summary>
-    public interface IResources : IDisposable
-    {
-        IWadBaseType IWadType { get; }
-        Palette Palette { get; }
-        IWadInfo IWadInfo { get; }
-        Archive? Assets { get; }
-        Archive? IWad { get; }
-        IEnumerable<Archive> Archives { get; }
-        AnimatedDefinitions Animdefs { get; }
-        BoomAnimatedDefinition BoomAnimated { get; }
-        BoomSwitchDefinition BoomSwitches { get; }
-        CompatibilityDefinitions Compatibility { get; }
-        DecorateDefinitions Decorate { get; }
-        FontManager Fonts { get; }
-        ITextureManager Textures { get; }
-        ResourceTracker<TextureDefinition> TextureDefinitions { get; }
-        SoundInfoDefinition SoundInfo { get; }
-        LockDefinitions Locks { get; }
-        LanguageDefinition Language { get; }
-        MapInfoDefinition MapInfo { get; }
-        EntityFrameTable EntityFrameTable { get; }
-        EntityDefinitionComposer EntityDefinitionComposer { get; }
-        DehackedDefinition? Dehacked { get; }
-        IImageRetriever ImageRetriever { get; }
+namespace Helion.Resources;
 
-        Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null);
-        Entry? FindEntryByPath(string path);
-        IEnumerable<Entry> GetEntriesByNamespace(ResourceNamespace resourceNamespace);
-        MapEntryCollection? GetMapEntryCollection(string mapName);
-        IMap? FindMap(string mapName);
-        Font? GetFont(string name);
-        Archive? GetArchiveByFileName(string fileName);
-    }
+/// <summary>
+/// A collection of all the resources that are loaded.
+/// </summary>
+public interface IResources : IDisposable
+{
+    IWadBaseType IWadType { get; }
+    Palette Palette { get; }
+    IWadInfo IWadInfo { get; }
+    Archive? Assets { get; }
+    Archive? IWad { get; }
+    IEnumerable<Archive> Archives { get; }
+    AnimatedDefinitions Animdefs { get; }
+    BoomAnimatedDefinition BoomAnimated { get; }
+    BoomSwitchDefinition BoomSwitches { get; }
+    CompatibilityDefinitions Compatibility { get; }
+    DecorateDefinitions Decorate { get; }
+    FontManager Fonts { get; }
+    ITextureManager Textures { get; }
+    ResourceTracker<TextureDefinition> TextureDefinitions { get; }
+    SoundInfoDefinition SoundInfo { get; }
+    LockDefinitions Locks { get; }
+    LanguageDefinition Language { get; }
+    MapInfoDefinition MapInfo { get; }
+    EntityFrameTable EntityFrameTable { get; }
+    EntityDefinitionComposer EntityDefinitionComposer { get; }
+    DehackedDefinition? Dehacked { get; }
+    IImageRetriever ImageRetriever { get; }
+
+    Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null);
+    Entry? FindEntryByPath(string path);
+    IEnumerable<Entry> GetEntriesByNamespace(ResourceNamespace resourceNamespace);
+    MapEntryCollection? GetMapEntryCollection(string mapName);
+    IMap? FindMap(string mapName);
+    Font? GetFont(string name);
+    Archive? GetArchiveByFileName(string fileName);
 }
+

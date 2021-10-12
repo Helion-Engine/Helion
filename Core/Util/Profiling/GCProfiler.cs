@@ -1,7 +1,7 @@
-﻿namespace Helion.Util.Profiling
+namespace Helion.Util.Profiling;
+
+public class GCProfiler
 {
-    public class GCProfiler
-    {
-        // TODO
-    }
+    // TODO
 }
+

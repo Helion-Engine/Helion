@@ -1,15 +1,15 @@
-﻿namespace Helion.Layer.Worlds
+namespace Helion.Layer.Worlds;
+
+public enum IntermissionState
 {
-    public enum IntermissionState
-    {
-        None,
-        Started,
-        TallyingKills,
-        TallyingItems,
-        TallyingSecrets,
-        TallyingTime,
-        ShowAllStats,
-        NextMap,
-        Complete
-    }
+    None,
+    Started,
+    TallyingKills,
+    TallyingItems,
+    TallyingSecrets,
+    TallyingTime,
+    ShowAllStats,
+    NextMap,
+    Complete
 }
+

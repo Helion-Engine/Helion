@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum CullFaceType
 {
-    public enum CullFaceType
-    {
-        Back = 1029,
-    }
+    Back = 1029,
 }
+

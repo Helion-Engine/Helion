@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 
-namespace Helion.Bsp.Geometry
+namespace Helion.Bsp.Geometry;
+
+public class BspVertex : Vector2D
 {
-    public class BspVertex : Vector2D
+    public readonly int Index;
+    public readonly List<BspSegment> Edges = new();
+
+    public Vec2D Position => new(X, Y);
+
+    public BspVertex(Vec2D position, int index) : base(position.X, position.Y)
     {
-        public readonly int Index;
-        public readonly List<BspSegment> Edges = new();
-
-        public Vec2D Position => new(X, Y);
-        
-        public BspVertex(Vec2D position, int index) : base(position.X, position.Y)
-        {
-            Index = index;
-        }
-
-        public override string ToString() => $"{base.ToString()} (index = {Index}, edgeCount = {Edges.Count})";
+        Index = index;
     }
+
+    public override string ToString() => $"{base.ToString()} (index = {Index}, edgeCount = {Edges.Count})";
 }
+

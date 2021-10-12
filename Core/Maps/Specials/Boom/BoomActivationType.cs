@@ -1,14 +1,14 @@
-﻿namespace Helion.Maps.Specials.Boom
+namespace Helion.Maps.Specials.Boom;
+
+public enum BoomActivationType
 {
-    public enum BoomActivationType
-    {
-        WalkOnce,
-        WalkRepeat,
-        SwitchOnce,
-        SwitchRepeat,
-        ShootOnce,
-        ShootRepeat,
-        PushOnce,
-        PushRepeat
-    }
+    WalkOnce,
+    WalkRepeat,
+    SwitchOnce,
+    SwitchRepeat,
+    ShootOnce,
+    ShootRepeat,
+    PushOnce,
+    PushRepeat
 }
+

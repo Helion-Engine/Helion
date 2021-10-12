@@ -1,9 +1,9 @@
-﻿namespace Helion.Audio
+namespace Helion.Audio;
+
+public enum Attenuation
 {
-    public enum Attenuation
-    {
-        None,
-        Default,
-        Rapid
-    }
+    None,
+    Default,
+    Rapid
 }
+

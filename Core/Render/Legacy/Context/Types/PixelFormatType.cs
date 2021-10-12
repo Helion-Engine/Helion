@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PixelFormatType
 {
-    public enum PixelFormatType
-    {
-        Rgba = 6408,
-        Bgra = 32993,
-    }
+    Rgba = 6408,
+    Bgra = 32993,
 }
+

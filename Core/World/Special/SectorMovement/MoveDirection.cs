@@ -1,9 +1,9 @@
-﻿namespace Helion.World.Special.SectorMovement
+namespace Helion.World.Special.SectorMovement;
+
+public enum MoveDirection
 {
-    public enum MoveDirection
-    {
-        None,
-        Up,
-        Down,
-    }
+    None,
+    Up,
+    Down,
 }
+

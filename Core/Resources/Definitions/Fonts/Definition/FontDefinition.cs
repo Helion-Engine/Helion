@@ -4,60 +4,60 @@ using Helion.Util.Extensions;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Resources.Definitions.Fonts.Definition
+namespace Helion.Resources.Definitions.Fonts.Definition;
+
+public class FontDefinition
 {
-    public class FontDefinition
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public readonly string Name;
+    public readonly Dictionary<char, CharDefinition> CharDefinitions = new Dictionary<char, CharDefinition>();
+    public bool Grayscale;
+    public int? SpaceWidth;
+    public FontAlignment Alignment = FontAlignment.Bottom;
+
+    public FontDefinition(string name)
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        Precondition(!string.IsNullOrEmpty(name), "Should not have an empty font definition name");
 
-        public readonly string Name;
-        public readonly Dictionary<char, CharDefinition> CharDefinitions = new Dictionary<char, CharDefinition>();
-        public bool Grayscale;
-        public int? SpaceWidth;
-        public FontAlignment Alignment = FontAlignment.Bottom;
+        Name = name;
+    }
 
-        public FontDefinition(string name)
+    public bool IsValid()
+    {
+        if (CharDefinitions.Empty())
         {
-            Precondition(!string.IsNullOrEmpty(name), "Should not have an empty font definition name");
-            
-            Name = name;
+            Log.Error("Font {0} has no character definitions, font cannot be used", Name);
+            return false;
         }
-        
-        public bool IsValid()
+
+        if (!CharDefinitions.ContainsKey(' '))
         {
-            if (CharDefinitions.Empty())
+            if (SpaceWidth == null)
+            {
+                Log.Error("Font {0} did not define a space character width and has no space character definition", Name);
+                return false;
+            }
+
+            if (SpaceWidth <= 0)
             {
                 Log.Error("Font {0} has no character definitions, font cannot be used", Name);
                 return false;
             }
+        }
 
-            if (!CharDefinitions.ContainsKey(' '))
-            {
-                if (SpaceWidth == null)
-                {
-                    Log.Error("Font {0} did not define a space character width and has no space character definition", Name);
-                    return false;
-                }
-
-                if (SpaceWidth <= 0)
-                {
-                    Log.Error("Font {0} has no character definitions, font cannot be used", Name);
-                    return false;
-                }                
-            }
-
-            int charsWithDefault = CharDefinitions.Count(charDef => charDef.Value.Default);
-            switch (charsWithDefault)
-            {
-            case 0:
-                Log.Error("Font {0} has no default character definition");
-                return false;
-            case 1:
-                return true;
-            default:
-                Log.Error("Font {0} has multiple default character definitions, only support one default character");
-                return false;
-            }
+        int charsWithDefault = CharDefinitions.Count(charDef => charDef.Value.Default);
+        switch (charsWithDefault)
+        {
+        case 0:
+            Log.Error("Font {0} has no default character definition");
+            return false;
+        case 1:
+            return true;
+        default:
+            Log.Error("Font {0} has multiple default character definitions, only support one default character");
+            return false;
         }
     }
 }
+

@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum TextureMagFilterType
 {
-    public enum TextureMagFilterType
-    {
-        Nearest = 9728,
-        Linear = 9729,
-    }
+    Nearest = 9728,
+    Linear = 9729,
 }
+

@@ -1,12 +1,12 @@
-namespace Helion.World.Geometry.Sectors
-{
-    public class Sector3DFloor
-    {
-        public readonly Sector ControlSector;
+namespace Helion.World.Geometry.Sectors;
 
-        public Sector3DFloor(Sector controlSector)
-        {
-            ControlSector = controlSector;
-        }
+public class Sector3DFloor
+{
+    public readonly Sector ControlSector;
+
+    public Sector3DFloor(Sector controlSector)
+    {
+        ControlSector = controlSector;
     }
 }
+

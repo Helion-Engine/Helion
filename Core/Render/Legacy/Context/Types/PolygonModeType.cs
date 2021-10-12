@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PolygonModeType
 {
-    public enum PolygonModeType
-    {
-        Fill = 6914,
-    }
+    Fill = 6914,
 }
+

@@ -1,9 +1,9 @@
-﻿namespace Helion.World.Special
+namespace Helion.World.Special;
+
+public enum SectorBaseSpecialType
 {
-    public enum SectorBaseSpecialType
-    {
-        Default,
-        Move,
-        Light,
-    }
+    Default,
+    Move,
+    Light,
 }
+

@@ -1,11 +1,11 @@
-﻿namespace Helion.Resources.Definitions.MapInfo
+namespace Helion.Resources.Definitions.MapInfo;
+
+public enum MapSpecialAction
 {
-    public enum MapSpecialAction
-    {
-        None,
-        LowerFloor,
-        ExitLevel,
-        OpenDoor,
-        FloorRaiseByLowestTexture
-    }
+    None,
+    LowerFloor,
+    ExitLevel,
+    OpenDoor,
+    FloorRaiseByLowestTexture
 }
+

@@ -1,8 +1,8 @@
-namespace Helion.World.Geometry.Lines
+namespace Helion.World.Geometry.Lines;
+
+public struct UnpeggedFlags
 {
-    public struct UnpeggedFlags
-    {
-        public bool Upper;
-        public bool Lower;
-    }
+    public bool Upper;
+    public bool Lower;
 }
+

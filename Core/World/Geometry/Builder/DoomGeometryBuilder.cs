@@ -17,161 +17,161 @@ using Helion.World.Special;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Geometry.Builder
+namespace Helion.World.Geometry.Builder;
+
+public static class DoomGeometryBuilder
 {
-    public static class DoomGeometryBuilder
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder)
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
-        public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder)
-        {
-            GeometryBuilder builder = new GeometryBuilder();
-            
-            PopulateSectorData(map, builder);
-            PopulateLineData(map, builder);
+        GeometryBuilder builder = new GeometryBuilder();
 
-            BspTree? bspTree;
-            try
-            {
-                bspTree = BspTree.Create(map, builder, bspBuilder);
-                if (bspTree == null)
-                    return null;
-            }
-            catch
-            {
-                Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
+        PopulateSectorData(map, builder);
+        PopulateLineData(map, builder);
+
+        BspTree? bspTree;
+        try
+        {
+            bspTree = BspTree.Create(map, builder, bspBuilder);
+            if (bspTree == null)
                 return null;
-            }
-
-            return new MapGeometry(builder, bspTree);
+        }
+        catch
+        {
+            Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
+            return null;
         }
 
-        private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face)
+        return new MapGeometry(builder, bspTree);
+    }
+
+    private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face)
+    {
+        int id = sectorPlanes.Count;
+        double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
+        string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
+        int handle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
+
+        SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
+        sectorPlanes.Add(sectorPlane);
+
+        return sectorPlane;
+    }
+
+    private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
+    {
+        SectorData sectorData = new();
+        foreach (DoomSector doomSector in map.Sectors)
         {
-            int id = sectorPlanes.Count;
-            double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
-            string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-            int handle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
-            
-            SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
-            sectorPlanes.Add(sectorPlane);
-            
-            return sectorPlane;
+            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
+            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
+            ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
+
+            Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
+                floorPlane, ceilingPlane, sectorSpecial, sectorData);
+            builder.Sectors.Add(sector);
         }
-        
-        private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
+    }
+
+    private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
+        ref int nextSideId)
+    {
+        DoomSide doomSide = doomLine.Front;
+
+        // This is okay because of how we create sectors corresponding
+        // to their list index. If this is wrong then someone broke the
+        // ordering very badly.
+        Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
+        Sector sector = builder.Sectors[doomSide.Sector.Id];
+        var middleTexture = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures);
+        var upperTexture = TextureManager.Instance.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
+        var lowerTexture = TextureManager.Instance.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
+
+        Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+        Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+        Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
+        builder.Walls.Add(middle);
+        builder.Walls.Add(upper);
+        builder.Walls.Add(lower);
+
+        Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
+        builder.Sides.Add(front);
+
+        nextSideId++;
+
+        return (front, null);
+    }
+
+    private static TwoSided CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
+    {
+        // This is okay because of how we create sectors corresponding
+        // to their list index. If this is wrong then someone broke the
+        // ordering very badly.
+        Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
+        Sector facingSector = builder.Sectors[facingSide.Sector.Id];
+
+        var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
+        var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
+        var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
+
+        Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+        Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+        Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
+        builder.Walls.Add(middle);
+        builder.Walls.Add(upper);
+        builder.Walls.Add(lower);
+
+        TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
+        builder.Sides.Add(side);
+
+        nextSideId++;
+
+        return side;
+    }
+
+    private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder,
+        ref int nextSideId)
+    {
+        if (doomLine.Back == null)
+            return CreateSingleSide(doomLine, builder, ref nextSideId);
+
+        TwoSided front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
+        TwoSided back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
+        return (front, back);
+    }
+
+    private static void PopulateLineData(DoomMap map, GeometryBuilder builder)
+    {
+        int nextSideId = 0;
+
+        foreach (DoomLine doomLine in map.Lines)
         {
-            SectorData sectorData = new();
-            foreach (DoomSector doomSector in map.Sectors)
+            if (doomLine.Start.Position == doomLine.End.Position)
             {
-                SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
-                SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
-                ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
-
-                Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel, 
-                    floorPlane, ceilingPlane, sectorSpecial, sectorData);
-                builder.Sectors.Add(sector);
+                Log.Warn("Zero length linedef pruned (id = {0})", doomLine.Id);
+                continue;
             }
-        }
 
-        private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
-            ref int nextSideId)
-        {
-            DoomSide doomSide = doomLine.Front;
-            
-            // This is okay because of how we create sectors corresponding
-            // to their list index. If this is wrong then someone broke the
-            // ordering very badly.
-            Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
-            Sector sector = builder.Sectors[doomSide.Sector.Id];
-            var middleTexture = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures);
-            var upperTexture = TextureManager.Instance.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
-            var lowerTexture = TextureManager.Instance.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
+            (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
 
-            Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-            Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-            Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
-            builder.Walls.Add(middle);
-            builder.Walls.Add(upper);
-            builder.Walls.Add(lower);
+            Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
+            LineFlags flags = new LineFlags(doomLine.Flags);
+            SpecialArgs specialArgs = default;
+            ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, doomLine.SectorTag,
+                ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility? compatibility);
 
-            Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
-            builder.Sides.Add(front);
+            LineSpecial special;
+            if (zdoomType == ZDoomLineSpecialType.None)
+                special = LineSpecial.Default;
+            else
+                special = new LineSpecial(zdoomType, activationType, compatibility);
 
-            nextSideId++;
-            
-            return (front, null);
-        }
-
-        private static TwoSided CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
-        {
-            // This is okay because of how we create sectors corresponding
-            // to their list index. If this is wrong then someone broke the
-            // ordering very badly.
-            Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
-            Sector facingSector = builder.Sectors[facingSide.Sector.Id];
-
-            var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
-            var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
-            var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
-            
-            Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-            Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-            Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
-            builder.Walls.Add(middle);
-            builder.Walls.Add(upper);
-            builder.Walls.Add(lower);
-            
-            TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
-            builder.Sides.Add(side);
-
-            nextSideId++;
-            
-            return side;
-        }
-
-        private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder,
-            ref int nextSideId)
-        {
-            if (doomLine.Back == null)
-                return CreateSingleSide(doomLine, builder, ref nextSideId);
-
-            TwoSided front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
-            TwoSided back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
-            return (front, back);
-        }
-
-        private static void PopulateLineData(DoomMap map, GeometryBuilder builder)
-        {
-            int nextSideId = 0;
-            
-            foreach (DoomLine doomLine in map.Lines)
-            {
-                if (doomLine.Start.Position == doomLine.End.Position)
-                {
-                    Log.Warn("Zero length linedef pruned (id = {0})", doomLine.Id);
-                    continue;
-                }
-                
-                (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
-
-                Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
-                LineFlags flags = new LineFlags(doomLine.Flags);
-                SpecialArgs specialArgs = default;
-                ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, doomLine.SectorTag,
-                    ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility? compatibility);
-
-                LineSpecial special;
-                if (zdoomType == ZDoomLineSpecialType.None)
-                    special = LineSpecial.Default;
-                else
-                    special = new LineSpecial(zdoomType, activationType, compatibility);        
-
-                Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
-                VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
-                builder.Lines.Add(line);
-                builder.MapLines[line.MapId] = line;
-            }
+            Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
+            VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
+            builder.Lines.Add(line);
+            builder.MapLines[line.MapId] = line;
         }
     }
 }
+

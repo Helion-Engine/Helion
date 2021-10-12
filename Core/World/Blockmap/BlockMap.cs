@@ -12,119 +12,119 @@ using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 
-namespace Helion.World.Blockmap
+namespace Helion.World.Blockmap;
+
+/// <summary>
+/// A conversion of a map into a grid structure whereby things in certain
+/// blocks only will check the blocks they are in for collision detection
+/// or line intersections to optimize computational cost.
+/// </summary>
+public class BlockMap
 {
+    public readonly Box2D Bounds;
+    private readonly UniformGrid<Block> m_blocks;
+
     /// <summary>
-    /// A conversion of a map into a grid structure whereby things in certain
-    /// blocks only will check the blocks they are in for collision detection
-    /// or line intersections to optimize computational cost.
+    /// Creates a blockmap grid for the map provided.
     /// </summary>
-    public class BlockMap
+    /// <param name="lines">The lines to make the grid for.</param>
+    public BlockMap(IList<Line> lines)
     {
-        public readonly Box2D Bounds;
-        private readonly UniformGrid<Block> m_blocks;
-        
-        /// <summary>
-        /// Creates a blockmap grid for the map provided.
-        /// </summary>
-        /// <param name="lines">The lines to make the grid for.</param>
-        public BlockMap(IList<Line> lines)
-        {
-            Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
-            m_blocks = new UniformGrid<Block>(Bounds);
-            SetBlockCoordinates();
-            AddLinesToBlocks(lines);
-        }
-        
-        /// <summary>
-        /// Performs iteration over the blocks for some line.
-        /// </summary>
-        /// <param name="seg">The line segment to check.</param>
-        /// <param name="func">The callback for whether iteration should be
-        /// continued or not.</param>
-        /// <returns>True if iteration was halted due to the return value of
-        /// the provided function, false if not.</returns>
-        public bool Iterate(Seg2D seg, Func<Block, GridIterationStatus> func) 
-        {
-            return m_blocks.Iterate(seg, func);
-        }
+        Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
+        m_blocks = new UniformGrid<Block>(Bounds);
+        SetBlockCoordinates();
+        AddLinesToBlocks(lines);
+    }
 
-        /// <summary>
-        /// Performs iteration over the blocks at the entity position.
-        /// </summary>
-        /// <param name="entity">The entity to iterate from.</param>
-        /// <param name="func">The callback for whether iteration should be
-        /// continued or not.</param>
-        /// <returns>True if iteration was halted due to the return value of
-        /// the provided function, false if not.</returns>
-        public bool Iterate(Entity entity, Func<Block, GridIterationStatus> func)
+    /// <summary>
+    /// Performs iteration over the blocks for some line.
+    /// </summary>
+    /// <param name="seg">The line segment to check.</param>
+    /// <param name="func">The callback for whether iteration should be
+    /// continued or not.</param>
+    /// <returns>True if iteration was halted due to the return value of
+    /// the provided function, false if not.</returns>
+    public bool Iterate(Seg2D seg, Func<Block, GridIterationStatus> func)
+    {
+        return m_blocks.Iterate(seg, func);
+    }
+
+    /// <summary>
+    /// Performs iteration over the blocks at the entity position.
+    /// </summary>
+    /// <param name="entity">The entity to iterate from.</param>
+    /// <param name="func">The callback for whether iteration should be
+    /// continued or not.</param>
+    /// <returns>True if iteration was halted due to the return value of
+    /// the provided function, false if not.</returns>
+    public bool Iterate(Entity entity, Func<Block, GridIterationStatus> func)
+    {
+        // TODO: Why not store the blocks with the entity in the internal
+        //       list and just iterate over that? May be faster...
+        return Iterate(entity.Box.To2D(), func);
+    }
+
+    /// <summary>
+    /// Performs iteration over the blocks at the box position.
+    /// </summary>
+    /// <param name="box">The box area to iterate with.</param>
+    /// <param name="func">The callback for whether iteration should be
+    /// continued or not.</param>
+    /// <returns>True if iteration was halted due to the return value of
+    /// the provided function, false if not.</returns>
+    public bool Iterate(Box2D box, Func<Block, GridIterationStatus> func)
+    {
+        return m_blocks.Iterate(box, func);
+    }
+
+    /// <summary>
+    /// Links an entity to the grid.
+    /// </summary>
+    /// <param name="entity">The entity to link. Should be inside the map.
+    /// </param>
+    public void Link(Entity entity)
+    {
+        Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
+
+        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+
+        GridIterationStatus BlockLinkFunc(Block block)
         {
-            // TODO: Why not store the blocks with the entity in the internal
-            //       list and just iterate over that? May be faster...
-            return Iterate(entity.Box.To2D(), func);
+            LinkableNode<Entity> blockEntityNode = DataCache.Instance.GetLinkableNodeEntity(entity);
+            block.Entities.Add(blockEntityNode);
+
+            entity.BlockmapNodes.Add(blockEntityNode);
+            return GridIterationStatus.Continue;
         }
+    }
 
-        /// <summary>
-        /// Performs iteration over the blocks at the box position.
-        /// </summary>
-        /// <param name="box">The box area to iterate with.</param>
-        /// <param name="func">The callback for whether iteration should be
-        /// continued or not.</param>
-        /// <returns>True if iteration was halted due to the return value of
-        /// the provided function, false if not.</returns>
-        public bool Iterate(Box2D box, Func<Block, GridIterationStatus> func)
+    private static Box2D? FindMapBoundingBox(IEnumerable<Line> lines)
+    {
+        var boxes = lines.Select(l => l.Segment.Box);
+        return Box2D.Combine(boxes);
+    }
+
+    private void SetBlockCoordinates()
+    {
+        // Unfortunately we have to do it this way because we can't get
+        // constraining for generic parameters, so the UniformGrid will
+        // not be able to do this for us via it's constructor.
+        int index = 0;
+        for (int y = 0; y < m_blocks.Height; y++)
+            for (int x = 0; x < m_blocks.Width; x++)
+                m_blocks[index++].SetCoordinate(x, y);
+    }
+
+    private void AddLinesToBlocks(IList<Line> lines)
+    {
+        foreach (Line line in lines)
         {
-            return m_blocks.Iterate(box, func);
-        }
-
-        /// <summary>
-        /// Links an entity to the grid.
-        /// </summary>
-        /// <param name="entity">The entity to link. Should be inside the map.
-        /// </param>
-        public void Link(Entity entity)
-        {
-            Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
-
-            m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
-            
-            GridIterationStatus BlockLinkFunc(Block block)
+            m_blocks.Iterate(line.Segment, block =>
             {
-                LinkableNode<Entity> blockEntityNode = DataCache.Instance.GetLinkableNodeEntity(entity);
-                block.Entities.Add(blockEntityNode);
-
-                entity.BlockmapNodes.Add(blockEntityNode);
+                block.Lines.Add(line);
                 return GridIterationStatus.Continue;
-            }
-        }
-
-        private static Box2D? FindMapBoundingBox(IEnumerable<Line> lines)
-        {
-            var boxes = lines.Select(l => l.Segment.Box);
-            return Box2D.Combine(boxes);
-        }
-
-        private void SetBlockCoordinates()
-        {
-            // Unfortunately we have to do it this way because we can't get
-            // constraining for generic parameters, so the UniformGrid will
-            // not be able to do this for us via it's constructor. 
-            int index = 0;
-            for (int y = 0; y < m_blocks.Height; y++)
-                for (int x = 0; x < m_blocks.Width; x++)
-                    m_blocks[index++].SetCoordinate(x, y);
-        }
-
-        private void AddLinesToBlocks(IList<Line> lines)
-        {
-            foreach (Line line in lines)
-            {
-                m_blocks.Iterate(line.Segment, block =>
-                {
-                    block.Lines.Add(line);
-                    return GridIterationStatus.Continue;
-                });
-            }
+            });
         }
     }
 }
+

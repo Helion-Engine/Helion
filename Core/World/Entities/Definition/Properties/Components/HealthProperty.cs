@@ -1,8 +1,8 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.World.Entities.Definition.Properties.Components;
+
+public struct HealthProperty
 {
-    public struct HealthProperty
-    {
-        public string LowMessage;
-        public int LowMessageHealth;
-    }
+    public string LowMessage;
+    public int LowMessageHealth;
 }
+

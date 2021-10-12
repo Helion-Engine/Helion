@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PrimitiveDrawType
 {
-    public enum PrimitiveDrawType
-    {
-        Triangles = 4,
-    }
+    Triangles = 4,
 }
+

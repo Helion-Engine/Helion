@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Impl;
@@ -7,86 +7,86 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 
-namespace Helion.Layer.Menus
+namespace Helion.Layer.Menus;
+
+public partial class MenuLayer
 {
-    public partial class MenuLayer
+    private bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, m_menus.Peek());
+
+    private void ClearMenu(bool playSound)
     {
-        private bool MenuNotChanged(Menu menu) => !m_menus.Empty() && ReferenceEquals(menu, m_menus.Peek());
-        
-        private void ClearMenu(bool playSound)
+        if (playSound)
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
+
+        Manager.Remove(this);
+    }
+
+    public void HandleInput(IConsumableInput input)
+    {
+        if (m_menus.Empty())
+            return;
+
+        Menu menu = m_menus.Peek();
+        if (input.Manager.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
         {
-            if (playSound)
-                m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
-            
-            Manager.Remove(this);
+            if (messageMenu.ClearMenus)
+                ClearMenu(false);
+            else
+                m_menus.Pop();
         }
-        
-        public void HandleInput(IConsumableInput input)
+
+        menu.HandleInput(input);
+
+        if (MenuNotChanged(menu))
+            HandleInputForMenu(menu, input);
+    }
+
+    private void InvokeAndPushMenu(Func<Menu?> action)
+    {
+        Menu? subMenu = action();
+        if (subMenu != null)
+            m_menus.Push(subMenu);
+    }
+
+    private void HandleInputForMenu(Menu menu, IConsumableInput input)
+    {
+        if (input.ConsumeKeyPressed(Key.Up))
+            menu.MoveToPreviousComponent();
+        if (input.ConsumeKeyPressed(Key.Down))
+            menu.MoveToNextComponent();
+
+        if (menu.CurrentComponent is MenuOptionListComponent options)
         {
-            if (m_menus.Empty()) 
-                return;
-            
-            Menu menu = m_menus.Peek();
-            if (input.Manager.HasAnyKeyPressed() && menu is MessageMenu messageMenu && messageMenu.ShouldClear(input))
-            {
-                if (messageMenu.ClearMenus)
-                    ClearMenu(false);
-                else
-                    m_menus.Pop();
-            }
-
-            menu.HandleInput(input);
-
-            if (MenuNotChanged(menu))
-                HandleInputForMenu(menu, input);
+            if (input.ConsumeKeyPressed(Key.Left))
+                options.MoveToPrevious();
+            else if (input.ConsumeKeyPressed(Key.Right))
+                options.MoveToNext();
         }
-        
-        private void InvokeAndPushMenu(Func<Menu?> action)
+
+        if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
         {
-            Menu? subMenu = action();
-            if (subMenu != null)
-                m_menus.Push(subMenu);
+            if (menu.CurrentComponent.PlaySelectedSound)
+            {
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+                m_soundManager.Update();
+            }
+
+            InvokeAndPushMenu(menu.CurrentComponent.Action);
         }
-        
-        private void HandleInputForMenu(Menu menu, IConsumableInput input)
+
+        if (input.ConsumeKeyPressed(Key.Delete) && menu.CurrentComponent?.DeleteAction != null)
+            InvokeAndPushMenu(menu.CurrentComponent.DeleteAction);
+
+        if (input.ConsumeKeyPressed(Key.Escape))
         {
-            if (input.ConsumeKeyPressed(Key.Up))
-                menu.MoveToPreviousComponent();
-            if (input.ConsumeKeyPressed(Key.Down))
-                menu.MoveToNextComponent();
+            if (m_menus.Count >= 1)
+                m_menus.Pop();
 
-            if (menu.CurrentComponent is MenuOptionListComponent options)
-            {
-                if (input.ConsumeKeyPressed(Key.Left))
-                    options.MoveToPrevious();
-                else if (input.ConsumeKeyPressed(Key.Right))
-                    options.MoveToNext();
-            }
-
-            if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
-            {
-                if (menu.CurrentComponent.PlaySelectedSound)
-                {
-                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
-                    m_soundManager.Update();
-                }
-
-                InvokeAndPushMenu(menu.CurrentComponent.Action);
-            }
-
-            if (input.ConsumeKeyPressed(Key.Delete) && menu.CurrentComponent?.DeleteAction != null)
-                InvokeAndPushMenu(menu.CurrentComponent.DeleteAction);
-
-            if (input.ConsumeKeyPressed(Key.Escape))
-            {
-                if (m_menus.Count >= 1)
-                    m_menus.Pop();
-
-                if (m_menus.Empty())
-                    ClearMenu(true);
-                else
-                    m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
-            }
+            if (m_menus.Empty())
+                ClearMenu(true);
+            else
+                m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
     }
 }
+

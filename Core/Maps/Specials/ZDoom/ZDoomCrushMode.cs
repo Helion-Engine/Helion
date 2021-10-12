@@ -1,10 +1,10 @@
-namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomCrushMode
 {
-    public enum ZDoomCrushMode
-    {
-        Compatibility,
-        DoomNoSlowDown,
-        Hexen,
-        DoomWithSlowDown,
-    }
+    Compatibility,
+    DoomNoSlowDown,
+    Hexen,
+    DoomWithSlowDown,
 }
+

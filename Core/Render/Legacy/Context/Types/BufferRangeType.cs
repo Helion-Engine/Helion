@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum BufferRangeType
 {
-    public enum BufferRangeType
-    {
-        UniformBuffer = 35345,
-        ShaderStorageBuffer = 37074,
-    }
+    UniformBuffer = 35345,
+    ShaderStorageBuffer = 37074,
 }
+

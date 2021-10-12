@@ -1,8 +1,8 @@
-namespace Helion.World.Entities.Definition.Properties.Components
+namespace Helion.World.Entities.Definition.Properties.Components;
+
+public class DamageFactor
 {
-    public class DamageFactor
-    {
-        public string Type = "";
-        public double Value;
-    }
+    public string Type = "";
+    public double Value;
 }
+

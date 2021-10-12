@@ -1,9 +1,9 @@
-﻿namespace Helion.Dehacked
+namespace Helion.Dehacked;
+
+public class DehackedAmmo
 {
-    public class DehackedAmmo
-    {
-        public int AmmoNumber { get; set; }
-        public int? MaxAmmo { get; set; }
-        public int? PerAmmo { get; set; }
-    }
+    public int AmmoNumber { get; set; }
+    public int? MaxAmmo { get; set; }
+    public int? PerAmmo { get; set; }
 }
+

@@ -1,14 +1,14 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomGenericDest
 {
-    public enum ZDoomGenericDest
-    {
-        Height,
-        HighestPlane,
-        LowestPlane,
-        NearestPlane,
-        AdjacentOpposingPlane,
-        OpposingPlane,
-        ShortestTexture,
-        Max
-    }
+    Height,
+    HighestPlane,
+    LowestPlane,
+    NearestPlane,
+    AdjacentOpposingPlane,
+    OpposingPlane,
+    ShortestTexture,
+    Max
 }
+

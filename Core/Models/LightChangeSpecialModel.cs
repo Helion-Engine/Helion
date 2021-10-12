@@ -1,24 +1,24 @@
-﻿using Helion.World;
+using Helion.World;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 using System;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public class LightChangeSpecialModel : ISpecialModel
 {
-    public class LightChangeSpecialModel : ISpecialModel
+    public int SectorId { get; set; }
+    public short Light { get; set; }
+    public int Step { get; set; }
+    public int Min { get; set; }
+    public int Max { get; set; }
+
+    public ISpecial? ToWorldSpecial(IWorld world)
     {
-        public int SectorId { get; set; }
-        public short Light { get; set; }
-        public int Step { get; set; }
-        public int Min { get; set; }
-        public int Max { get; set; }
+        if (!world.IsSectorIdValid(SectorId))
+            return null;
 
-        public ISpecial? ToWorldSpecial(IWorld world)
-        {
-            if (!world.IsSectorIdValid(SectorId))
-                return null;
-
-            return new LightChangeSpecial(world.Sectors[SectorId], this);
-        }
+        return new LightChangeSpecial(world.Sectors[SectorId], this);
     }
 }
+

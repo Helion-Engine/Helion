@@ -1,14 +1,14 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
-{
-    public class PlayerMoveProperty
-    {
-        public readonly double Walk;
-        public readonly double Run;
+namespace Helion.Resources.Definitions.Decorate.Properties;
 
-        public PlayerMoveProperty(double walk, double run)
-        {
-            Walk = walk;
-            Run = run;
-        }
+public class PlayerMoveProperty
+{
+    public readonly double Walk;
+    public readonly double Run;
+
+    public PlayerMoveProperty(double walk, double run)
+    {
+        Walk = walk;
+        Run = run;
     }
 }
+

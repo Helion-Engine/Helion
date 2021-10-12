@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 
-namespace Helion.World.Physics
+namespace Helion.World.Physics;
+
+public enum Thrust
 {
-    public enum Thrust
-    {
-        None,
-        Horizontal,
-        HorizontalAndVertical
-    }
+    None,
+    Horizontal,
+    HorizontalAndVertical
 }
+

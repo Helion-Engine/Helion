@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public class InventoryModel
 {
-    public class InventoryModel
-    {
-        public IList<InventoryItemModel> Items { get; set; } = Array.Empty<InventoryItemModel>();
-        public IList<string> Weapons { get; set; } = Array.Empty<string>();
-        public IList<PowerupModel> Powerups { get; set; } = Array.Empty<PowerupModel>();
-    }
+    public IList<InventoryItemModel> Items { get; set; } = Array.Empty<InventoryItemModel>();
+    public IList<string> Weapons { get; set; } = Array.Empty<string>();
+    public IList<PowerupModel> Powerups { get; set; } = Array.Empty<PowerupModel>();
 }
+

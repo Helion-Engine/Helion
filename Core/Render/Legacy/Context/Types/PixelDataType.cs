@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PixelDataType
 {
-    public enum PixelDataType
-    {
-        UnsignedInt8888Rev = 33639,
-    }
+    UnsignedInt8888Rev = 33639,
 }
+

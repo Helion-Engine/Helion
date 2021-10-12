@@ -1,15 +1,15 @@
-﻿using Helion.Util.Configs.Values;
+using Helion.Util.Configs.Values;
 
-namespace Helion.Util.Configs.Components
+namespace Helion.Util.Configs.Components;
+
+public class ConfigDeveloperRender
 {
-    public class ConfigDeveloperRender
-    {
-        [ConfigInfo("If rendering should have debugging information drawn.", save: false)]
-        public readonly ConfigValue<bool> Debug = new(false);
-    }
-    
-    public class ConfigDeveloper
-    {
-        public readonly ConfigDeveloperRender Render = new();
-    }
+    [ConfigInfo("If rendering should have debugging information drawn.", save: false)]
+    public readonly ConfigValue<bool> Debug = new(false);
 }
+
+public class ConfigDeveloper
+{
+    public readonly ConfigDeveloperRender Render = new();
+}
+

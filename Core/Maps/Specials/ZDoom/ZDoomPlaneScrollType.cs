@@ -1,9 +1,9 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomPlaneScrollType
 {
-    public enum ZDoomPlaneScrollType
-    {
-        Scroll,
-        Carry,
-        ScrollAndCarry,
-    }
+    Scroll,
+    Carry,
+    ScrollAndCarry,
 }
+

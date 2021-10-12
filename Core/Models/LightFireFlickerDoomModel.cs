@@ -1,22 +1,22 @@
-﻿using Helion.World;
+using Helion.World;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public class LightFireFlickerDoomModel : ISpecialModel
 {
-    public class LightFireFlickerDoomModel : ISpecialModel
+    public int SectorId { get; set; }
+    public short Max { get; set; }
+    public short Min { get; set; }
+    public int Delay { get; set; }
+
+    public ISpecial? ToWorldSpecial(IWorld world)
     {
-        public int SectorId { get; set; }
-        public short Max { get; set; }
-        public short Min { get; set; }
-        public int Delay { get; set; }
+        if (!world.IsSectorIdValid(SectorId))
+            return null;
 
-        public ISpecial? ToWorldSpecial(IWorld world)
-        {
-            if (!world.IsSectorIdValid(SectorId))
-                return null;
-
-            return new LightFireFlickerDoom(world.Sectors[SectorId], world.Random, this);
-        }
+        return new LightFireFlickerDoom(world.Sectors[SectorId], world.Random, this);
     }
 }
+

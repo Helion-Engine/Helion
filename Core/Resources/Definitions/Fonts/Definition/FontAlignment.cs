@@ -1,9 +1,9 @@
-namespace Helion.Resources.Definitions.Fonts.Definition
+namespace Helion.Resources.Definitions.Fonts.Definition;
+
+public enum FontAlignment
 {
-    public enum FontAlignment
-    {
-        Top,
-        Center,
-        Bottom,
-    }
+    Top,
+    Center,
+    Bottom,
 }
+

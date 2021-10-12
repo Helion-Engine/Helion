@@ -1,13 +1,13 @@
 using Helion.World.Geometry.Sectors;
 
-namespace Helion.World.Special
+namespace Helion.World.Special;
+
+public interface ISectorSpecial : ISpecial
 {
-    public interface ISectorSpecial : ISpecial
-    {
-        Sector Sector { get; }
-        void FinalizeDestroy();
-        void Pause();
-        void Resume();
-        bool IsPaused { get; }
-    }
+    Sector Sector { get; }
+    void FinalizeDestroy();
+    void Pause();
+    void Resume();
+    bool IsPaused { get; }
 }
+

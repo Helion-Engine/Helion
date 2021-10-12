@@ -1,32 +1,32 @@
-﻿using Force.Crc32;
+using Force.Crc32;
 
-namespace Helion.Util.Extensions
+namespace Helion.Util.Extensions;
+
+/// <summary>
+/// A list of extensions for arrays.
+/// </summary>
+public static class ArrayExtensions
 {
     /// <summary>
-    /// A list of extensions for arrays.
+    /// Fills all the elements of the array with a value.
     /// </summary>
-    public static class ArrayExtensions
+    /// <typeparam name="T">The type for the array.</typeparam>
+    /// <param name="array">The array to fill.</param>
+    /// <param name="element">The element to fill with.</param>
+    public static void Fill<T>(this T[] array, T element)
     {
-        /// <summary>
-        /// Fills all the elements of the array with a value.
-        /// </summary>
-        /// <typeparam name="T">The type for the array.</typeparam>
-        /// <param name="array">The array to fill.</param>
-        /// <param name="element">The element to fill with.</param>
-        public static void Fill<T>(this T[] array, T element)
-        {
-            for (int i = 0; i < array.Length; i++)
-                array[i] = element;
-        }
-        
-        /// <summary>
-        /// Calculates the CRC32 hash of a bunch of bytes.
-        /// </summary>
-        /// <param name="bytes">The bytes to hash.</param>
-        /// <returns>The hashed string.</returns>
-        public static string CalculateCrc32(this byte[] bytes)
-        {
-            return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
-        }
+        for (int i = 0; i < array.Length; i++)
+            array[i] = element;
+    }
+
+    /// <summary>
+    /// Calculates the CRC32 hash of a bunch of bytes.
+    /// </summary>
+    /// <param name="bytes">The bytes to hash.</param>
+    /// <returns>The hashed string.</returns>
+    public static string CalculateCrc32(this byte[] bytes)
+    {
+        return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
     }
 }
+

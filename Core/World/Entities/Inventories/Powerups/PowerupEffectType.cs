@@ -1,9 +1,9 @@
-﻿namespace Helion.World.Entities.Inventories.Powerups
+namespace Helion.World.Entities.Inventories.Powerups;
+
+public enum PowerupEffectType
 {
-    public enum PowerupEffectType
-    {
-        None,
-        Color,
-        ColorMap
-    }
+    None,
+    Color,
+    ColorMap
 }
+

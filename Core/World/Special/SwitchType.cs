@@ -1,8 +1,8 @@
-﻿namespace Helion.World.Special
+namespace Helion.World.Special;
+
+public enum SwitchType
 {
-    public enum SwitchType
-    {
-        Default,
-        Exit
-    }
+    Default,
+    Exit
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
@@ -8,97 +8,97 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using MoreLinq;
 
-namespace Helion.Menus.Impl
+namespace Helion.Menus.Impl;
+
+public class NewGameSkillMenu : Menu
 {
-    public class NewGameSkillMenu : Menu
+    private SkillLevel m_confirmSkillLevel = SkillLevel.None;
+    private readonly IConfig m_config;
+    private readonly HelionConsole m_console;
+    private readonly string? m_episode;
+
+    private const int OffsetX = 48;
+    private const int PaddingY = 1;
+
+    public NewGameSkillMenu(IConfig config, HelionConsole console, SoundManager soundManager,
+            ArchiveCollection archiveCollection, string? episode) :
+        base(config, console, soundManager, archiveCollection, 6, true)
     {
-        private SkillLevel m_confirmSkillLevel = SkillLevel.None;
-        private readonly IConfig m_config;
-        private readonly HelionConsole m_console;
-        private readonly string? m_episode;
+        m_config = config;
+        m_console = console;
+        m_episode = episode;
 
-        private const int OffsetX = 48;
-        private const int PaddingY = 1;
-
-        public NewGameSkillMenu(IConfig config, HelionConsole console, SoundManager soundManager, 
-                ArchiveCollection archiveCollection, string? episode) : 
-            base(config, console, soundManager, archiveCollection, 6, true)
+        Components = Components.AddRange(new[]
         {
-            m_config = config;
-            m_console = console;
-            m_episode = episode;
+            CreateMenuOption("M_NEWG", 96, 8),
+            CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8),
+        });
 
-            Components = Components.AddRange(new[] 
+        var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
+        int indexOffset = 0;
+
+        archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
+        {
+            SkillLevel skillLevel = (SkillLevel)(index + 1);
+            if (skill == defaultSkillDef)
+                indexOffset = index;
+
+            IMenuComponent component;
+            if (skill.MustConfirm)
             {
-                CreateMenuOption("M_NEWG", 96, 8),
-                CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8),
-            });
-
-            var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
-            int indexOffset = 0;
-
-            archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
+                m_confirmSkillLevel = skillLevel;
+                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm());
+            }
+            else
             {
-                SkillLevel skillLevel = (SkillLevel)(index + 1);
-                if (skill == defaultSkillDef)
-                    indexOffset = index;
-
-                IMenuComponent component;
-                if (skill.MustConfirm)
-                {
-                    m_confirmSkillLevel = skillLevel;
-                    component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm());
-                }
-                else
-                {
-                    component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel));
-                }
-
-                Components = Components.Add(component);
- 
-            });
-
-            // Menu title etc are menu components so offset by the index of the default difficulty
-            SetToFirstActiveComponent();
-            ComponentIndex += indexOffset;
-
-            IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0)
-            {
-                return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, 
-                    imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY);
+                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel));
             }
 
-            Func<Menu?> Confirm()
-            {
-                return () =>
-                {
-                    string[] confirm = ArchiveCollection.Definitions.Language.GetMessages("$NIGHTMARE");
-                    var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
-                    messageMenu.Cleared += MessageMenu_Cleared;
-                    return messageMenu;
-                }; 
-            }
+            Components = Components.Add(component);
 
-            Func<Menu?> CreateWorld(SkillLevel skillLevel)
-            {
-                return () =>
-                {
-                    DoNewGame(skillLevel);
-                    return null;
-                };
-            }
+        });
+
+        // Menu title etc are menu components so offset by the index of the default difficulty
+        SetToFirstActiveComponent();
+        ComponentIndex += indexOffset;
+
+        IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0)
+        {
+            return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action,
+                imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY);
         }
 
-        private void MessageMenu_Cleared(object? sender, bool confirmed)
+        Func<Menu?> Confirm()
         {
-            if (confirmed)
-                DoNewGame(m_confirmSkillLevel);
+            return () =>
+            {
+                string[] confirm = ArchiveCollection.Definitions.Language.GetMessages("$NIGHTMARE");
+                var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
+                messageMenu.Cleared += MessageMenu_Cleared;
+                return messageMenu;
+            };
         }
 
-        private void DoNewGame(SkillLevel skillLevel)
+        Func<Menu?> CreateWorld(SkillLevel skillLevel)
         {
-            m_config.Game.Skill.Set(skillLevel);
-            m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
+            return () =>
+            {
+                DoNewGame(skillLevel);
+                return null;
+            };
         }
     }
+
+    private void MessageMenu_Cleared(object? sender, bool confirmed)
+    {
+        if (confirmed)
+            DoNewGame(m_confirmSkillLevel);
+    }
+
+    private void DoNewGame(SkillLevel skillLevel)
+    {
+        m_config.Game.Skill.Set(skillLevel);
+        m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
+    }
 }
+

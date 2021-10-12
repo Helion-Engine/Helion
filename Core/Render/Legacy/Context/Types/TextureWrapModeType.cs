@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum TextureWrapModeType
 {
-    public enum TextureWrapModeType
-    {
-        Repeat = 10497,
-        ClampToEdge = 33071,
-    }
+    Repeat = 10497,
+    ClampToEdge = 33071,
 }
+

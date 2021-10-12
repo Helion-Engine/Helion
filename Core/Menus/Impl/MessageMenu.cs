@@ -1,4 +1,4 @@
-﻿using Helion.Audio.Sounds;
+using Helion.Audio.Sounds;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
@@ -9,55 +9,55 @@ using System.Collections.Generic;
 using Helion.Window;
 using Helion.Window.Input;
 
-namespace Helion.Menus.Impl
+namespace Helion.Menus.Impl;
+
+public class MessageMenu  : Menu
 {
-    public class MessageMenu  : Menu
+    public readonly bool IsYesNoConfirm;
+    public readonly bool ClearMenus;
+
+    // True if IsYesNoConfirm and Y was pressed
+    public event EventHandler<bool>? Cleared;
+
+    public MessageMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+        IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
+        : base(config, console, soundManager, archiveCollection, 90)
     {
-        public readonly bool IsYesNoConfirm;
-        public readonly bool ClearMenus;
+        IsYesNoConfirm = isYesNoConfirm;
+        ClearMenus = clearMenus;
 
-        // True if IsYesNoConfirm and Y was pressed
-        public event EventHandler<bool>? Cleared;
-
-        public MessageMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
-            IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
-            : base(config, console, soundManager, archiveCollection, 90)
+        for (int i = 0; i < text.Count; i++)
         {
-            IsYesNoConfirm = isYesNoConfirm;
-            ClearMenus = clearMenus;
-
-            for (int i = 0; i < text.Count; i++)
-            {
-                Components = Components.Add(new MenuSmallTextComponent(text[i]));
-                if (i != text.Count - 1)
-                    Components = Components.Add(new MenuPaddingComponent(8));
-            }
-
-            SetToFirstActiveComponent();
+            Components = Components.Add(new MenuSmallTextComponent(text[i]));
+            if (i != text.Count - 1)
+                Components = Components.Add(new MenuPaddingComponent(8));
         }
 
-        public bool ShouldClear(IConsumableInput input)
+        SetToFirstActiveComponent();
+    }
+
+    public bool ShouldClear(IConsumableInput input)
+    {
+        if (IsYesNoConfirm)
         {
-            if (IsYesNoConfirm)
+            if (input.ConsumeKeyPressed(Key.Y))
             {
-                if (input.ConsumeKeyPressed(Key.Y))
-                {
-                    Cleared?.Invoke(this, true);
-                    return true;
-                }
-                if (input.ConsumeKeyPressed(Key.N))
-                {
-                    Cleared?.Invoke(this, false);
-                    return true;
-                }
+                Cleared?.Invoke(this, true);
+                return true;
             }
-            else if (input.Manager.HasAnyKeyPressed())
+            if (input.ConsumeKeyPressed(Key.N))
             {
                 Cleared?.Invoke(this, false);
                 return true;
             }
-
-            return false;
         }
+        else if (input.Manager.HasAnyKeyPressed())
+        {
+            Cleared?.Invoke(this, false);
+            return true;
+        }
+
+        return false;
     }
 }
+

@@ -1,10 +1,10 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomDoorKind
 {
-    public enum ZDoomDoorKind
-    {
-        OpenDelayClose,
-        OpenStay,
-        CloseDelayOpen,
-        CloseStay
-    }
+    OpenDelayClose,
+    OpenStay,
+    CloseDelayOpen,
+    CloseStay
 }
+

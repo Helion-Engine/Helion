@@ -1,6 +1,6 @@
-namespace Helion.Render.Legacy.Commands
+namespace Helion.Render.Legacy.Commands;
+
+public interface IRenderCommand
 {
-    public interface IRenderCommand
-    {
-    }
 }
+

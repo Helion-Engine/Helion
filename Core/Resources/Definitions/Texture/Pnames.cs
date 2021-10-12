@@ -1,55 +1,55 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Helion.Util;
 using Helion.Util.Bytes;
 
-namespace Helion.Resources.Definitions.Texture
+namespace Helion.Resources.Definitions.Texture;
+
+/// <summary>
+/// The data that represents a Pnames entry.
+/// </summary>
+public class Pnames
 {
     /// <summary>
-    /// The data that represents a Pnames entry.
+    /// All the names that make up their respective indices.
     /// </summary>
-    public class Pnames
+    public readonly List<string> Names;
+
+    private Pnames(List<string> names)
     {
-        /// <summary>
-        /// All the names that make up their respective indices.
-        /// </summary>
-        public readonly List<string> Names;
-        
-        private Pnames(List<string> names)
-        {
-            Names = names;
-        }
+        Names = names;
+    }
 
-        /// <summary>
-        /// Tries to read the Pnames data into a Pnames object.
-        /// </summary>
-        /// <param name="data">The Pnames data.</param>
-        /// <returns>The object if reading was successful, false otherwise.
-        /// </returns>
-        public static Pnames? From(byte[] data)
+    /// <summary>
+    /// Tries to read the Pnames data into a Pnames object.
+    /// </summary>
+    /// <param name="data">The Pnames data.</param>
+    /// <returns>The object if reading was successful, false otherwise.
+    /// </returns>
+    public static Pnames? From(byte[] data)
+    {
+        if ((data.Length - 4) % 8 != 0)
+            return null;
+
+        List<string> names = new List<string>();
+
+        try
         {
-            if ((data.Length - 4) % 8 != 0)
+            ByteReader reader = new ByteReader(data);
+            int count = reader.ReadInt32();
+            int actual = (data.Length - 4) / 8;
+
+            if (count > actual)
                 return null;
 
-            List<string> names = new List<string>();
-
-            try
-            {
-                ByteReader reader = new ByteReader(data);
-                int count = reader.ReadInt32();
-                int actual = (data.Length - 4) / 8;
-
-                if (count > actual)
-                    return null;
-
-                for (int i = 0; i < count; i++)
-                    names.Add(reader.ReadEightByteString());
-            }
-            catch
-            {
-                return null;
-            }
-
-            return new Pnames(names);
+            for (int i = 0; i < count; i++)
+                names.Add(reader.ReadEightByteString());
         }
+        catch
+        {
+            return null;
+        }
+
+        return new Pnames(names);
     }
 }
+

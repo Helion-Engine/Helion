@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PolygonFaceType
 {
-    public enum PolygonFaceType
-    {
-        FrontAndBack = 1032,
-    }
+    FrontAndBack = 1032,
 }
+

@@ -1,12 +1,12 @@
-namespace Helion.Resources.Definitions.Decorate.States
+namespace Helion.Resources.Definitions.Decorate.States;
+
+public enum ActorStateBranch
 {
-    public enum ActorStateBranch
-    {
-        None,
-        Fail,
-        Goto,
-        Loop,
-        Stop,
-        Wait,
-    }
+    None,
+    Fail,
+    Goto,
+    Loop,
+    Stop,
+    Wait,
 }
+

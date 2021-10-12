@@ -1,11 +1,11 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum ZDoomLiftType
 {
-    public enum ZDoomLiftType
-    {
-        UpByValue,
-        DownWaitUpStay,
-        DownToNearestFloor,
-        DownToLowestCeiling,
-        PerpetualRaise
-    }
+    UpByValue,
+    DownWaitUpStay,
+    DownToNearestFloor,
+    DownToLowestCeiling,
+    PerpetualRaise
 }
+

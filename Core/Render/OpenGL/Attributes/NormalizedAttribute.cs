@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
-namespace Helion.Render.OpenGL.Attributes
+namespace Helion.Render.OpenGL.Attributes;
+
+public class NormalizedAttribute : Attribute
 {
-    public class NormalizedAttribute : Attribute
-    {
-    }
 }
+

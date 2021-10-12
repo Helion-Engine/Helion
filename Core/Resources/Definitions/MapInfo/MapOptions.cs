@@ -1,15 +1,15 @@
-﻿namespace Helion.Resources.Definitions.MapInfo
+namespace Helion.Resources.Definitions.MapInfo;
+
+public enum MapOptions
 {
-    public enum MapOptions
-    {
-        None,
-        NoIntermission,
-        NeedClusterText,
-        AllowMonsterTelefrags,
-        NoCrouch,
-        NoJump,
-        NoFreelook,
-        NoInfighting,
-        TotalInfighting
-    }
+    None,
+    NoIntermission,
+    NeedClusterText,
+    AllowMonsterTelefrags,
+    NoCrouch,
+    NoJump,
+    NoFreelook,
+    NoInfighting,
+    TotalInfighting
 }
+

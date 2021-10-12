@@ -1,8 +1,8 @@
-﻿namespace Helion.Dehacked
+namespace Helion.Dehacked;
+
+public enum MonsterInfightType
 {
-    public enum MonsterInfightType
-    {
-        Disable = 202,
-        Enable = 221
-    }
+    Disable = 202,
+    Enable = 221
 }
+

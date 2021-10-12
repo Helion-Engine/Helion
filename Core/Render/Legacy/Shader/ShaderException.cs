@@ -1,11 +1,11 @@
 using Helion.Util;
 
-namespace Helion.Render.Legacy.Shader
+namespace Helion.Render.Legacy.Shader;
+
+public class ShaderException : HelionException
 {
-    public class ShaderException : HelionException
+    public ShaderException(string message) : base(message)
     {
-        public ShaderException(string message) : base(message)
-        {
-        }
     }
 }
+

@@ -1,9 +1,9 @@
-namespace Helion.Render.OpenGL.Util
+namespace Helion.Render.OpenGL.Util;
+
+public enum DebugLevel
 {
-    public enum DebugLevel
-    {
-        Low,
-        Medium,
-        High,
-    }
+    Low,
+    Medium,
+    High,
 }
+

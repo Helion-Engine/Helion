@@ -1,8 +1,8 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
+namespace Helion.Resources.Definitions.Decorate.Properties;
+
+public struct PuzzleItemProperty
 {
-    public struct PuzzleItemProperty
-    {
-        public int? Number;
-        public string? FailMessage;
-    }
+    public int? Number;
+    public string? FailMessage;
 }
+

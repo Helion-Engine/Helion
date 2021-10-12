@@ -1,10 +1,10 @@
-﻿using Helion.Geometry.Vectors;
+using Helion.Geometry.Vectors;
 
-namespace Helion.Maps.Specials
+namespace Helion.Maps.Specials;
+
+public class SectorScrollData
 {
-    public class SectorScrollData
-    {
-        public Vec2D Offset;
-        public Vec2D LastOffset;
-    }
+    public Vec2D Offset;
+    public Vec2D LastOffset;
 }
+

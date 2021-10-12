@@ -1,8 +1,8 @@
-namespace Helion.Resources.Definitions.Decorate.Properties
+namespace Helion.Resources.Definitions.Decorate.Properties;
+
+public struct HealthProperty
 {
-    public struct HealthProperty
-    {
-        public string? LowMessage;
-        public int? LowMessageHealth;
-    }
+    public string? LowMessage;
+    public int? LowMessageHealth;
 }
+

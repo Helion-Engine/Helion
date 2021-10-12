@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum FrontFaceType
 {
-    public enum FrontFaceType
-    {
-        CounterClockwise = 2305,
-    }
+    CounterClockwise = 2305,
 }
+

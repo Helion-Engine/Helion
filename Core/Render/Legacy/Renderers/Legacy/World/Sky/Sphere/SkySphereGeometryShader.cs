@@ -4,44 +4,44 @@ using Helion.Render.Legacy.Shader.Component;
 using Helion.Render.Legacy.Shader.Fields;
 using Helion.Render.Legacy.Vertex;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere
+namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
+
+public class SkySphereGeometryShader : ShaderProgram
 {
-    public class SkySphereGeometryShader : ShaderProgram
+    public readonly UniformMatrix4 Mvp = new UniformMatrix4();
+
+    public SkySphereGeometryShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
+        base(functions, builder, attributes)
     {
-        public readonly UniformMatrix4 Mvp = new UniformMatrix4();
-        
-        public SkySphereGeometryShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) : 
-            base(functions, builder, attributes)
-        {
-        }
+    }
 
-        public static ShaderBuilder MakeBuilder(IGLFunctions functions)
-        {
-            const string vertexShaderText = @"
-                #version 130
+    public static ShaderBuilder MakeBuilder(IGLFunctions functions)
+    {
+        const string vertexShaderText = @"
+            #version 130
 
-                in vec3 pos;
+            in vec3 pos;
 
-                uniform mat4 mvp;
+            uniform mat4 mvp;
 
-                void main() {
-                    gl_Position = mvp * vec4(pos, 1.0);
-                }
-            ";
-            
-            const string fragmentShaderText = @"
-                #version 130
+            void main() {
+                gl_Position = mvp * vec4(pos, 1.0);
+            }
+        ";
 
-                out vec4 fragColor;
+        const string fragmentShaderText = @"
+            #version 130
 
-                void main() {
-                    fragColor = vec4(1.0, 1.0, 1.0, 1.0);
-                }
-            ";
-            
-            VertexShaderComponent vertexShaderComponent = new VertexShaderComponent(functions, vertexShaderText);
-            FragmentShaderComponent fragmentShaderComponent = new FragmentShaderComponent(functions, fragmentShaderText);
-            return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
-        }
+            out vec4 fragColor;
+
+            void main() {
+                fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        ";
+
+        VertexShaderComponent vertexShaderComponent = new VertexShaderComponent(functions, vertexShaderText);
+        FragmentShaderComponent fragmentShaderComponent = new FragmentShaderComponent(functions, fragmentShaderText);
+        return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
     }
 }
+

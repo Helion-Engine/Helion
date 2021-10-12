@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum ShaderComponentType
 {
-    public enum ShaderComponentType
-    {
-        Fragment = 35632,
-        Vertex = 35633,
-    }
+    Fragment = 35632,
+    Vertex = 35633,
 }
+

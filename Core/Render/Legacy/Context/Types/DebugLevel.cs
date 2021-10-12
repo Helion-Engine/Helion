@@ -1,9 +1,9 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum DebugLevel
 {
-    public enum DebugLevel
-    {
-        Low,
-        Medium,
-        High,
-    }
+    Low,
+    Medium,
+    High,
 }
+

@@ -1,13 +1,13 @@
-namespace Helion.Resources.Definitions.Decorate.Properties.Enums
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
+
+public enum PowerupModeType
 {
-    public enum PowerupModeType
-    {
-        None,
-        Cumulative,
-        Fuzzy,
-        Opaque,
-        Reflective,
-        Stencil,
-        Translucent,
-    }
+    None,
+    Cumulative,
+    Fuzzy,
+    Opaque,
+    Reflective,
+    Stencil,
+    Translucent,
 }
+

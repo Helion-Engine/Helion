@@ -4,67 +4,67 @@ using Helion.Maps.Components.GL;
 using Helion.Resources.Archives;
 using Helion.Util.Container;
 
-namespace Helion.Maps
+namespace Helion.Maps;
+
+/// <summary>
+/// The interface for a map with map components. This can be loaded by a
+/// things like a world, map editor, resource editor... etc.
+/// </summary>
+public interface IMap
 {
+    public Archive Archive { get; }
+
     /// <summary>
-    /// The interface for a map with map components. This can be loaded by a
-    /// things like a world, map editor, resource editor... etc.
+    /// The name of the map.
     /// </summary>
-    public interface IMap
-    {
-        public Archive Archive { get; }
+    string Name { get; }
 
-        /// <summary>
-        /// The name of the map.
-        /// </summary>
-        string Name { get; }
+    /// <summary>
+    /// The type of map this is.
+    /// </summary>
+    MapType MapType { get; }
 
-        /// <summary>
-        /// The type of map this is.
-        /// </summary>
-        MapType MapType { get; }
+    /// <summary>
+    /// Gets the lines for this map.
+    /// </summary>
+    /// <returns>The lines for this map.</returns>
+    ICovariantReadOnlyDictionary<int, ILine> GetLines();
 
-        /// <summary>
-        /// Gets the lines for this map.
-        /// </summary>
-        /// <returns>The lines for this map.</returns>
-        ICovariantReadOnlyDictionary<int, ILine> GetLines();
+    /// <summary>
+    /// Gets the nodes for the map. This is empty if there was no nodes
+    /// element.
+    /// </summary>
+    /// <returns>The list of nodes, or an empty list if no nodes were
+    /// present.</returns>
+    IReadOnlyList<INode> GetNodes();
 
-        /// <summary>
-        /// Gets the nodes for the map. This is empty if there was no nodes
-        /// element.
-        /// </summary>
-        /// <returns>The list of nodes, or an empty list if no nodes were
-        /// present.</returns>
-        IReadOnlyList<INode> GetNodes();
+    /// <summary>
+    /// Gets the lines for this map.
+    /// </summary>
+    /// <returns>The lines for this map.</returns>
+    ICovariantReadOnlyDictionary<int, ISector> GetSectors();
 
-        /// <summary>
-        /// Gets the lines for this map.
-        /// </summary>
-        /// <returns>The lines for this map.</returns>
-        ICovariantReadOnlyDictionary<int, ISector> GetSectors();
+    /// <summary>
+    /// Gets the sides for this map.
+    /// </summary>
+    /// <returns>The sides for this map.</returns>
+    ICovariantReadOnlyDictionary<int, ISide> GetSides();
 
-        /// <summary>
-        /// Gets the sides for this map.
-        /// </summary>
-        /// <returns>The sides for this map.</returns>
-        ICovariantReadOnlyDictionary<int, ISide> GetSides();
+    /// <summary>
+    /// Gets the things for this map.
+    /// </summary>
+    /// <returns>The things for this map.</returns>
+    ICovariantReadOnlyDictionary<int, IThing> GetThings();
 
-        /// <summary>
-        /// Gets the things for this map.
-        /// </summary>
-        /// <returns>The things for this map.</returns>
-        ICovariantReadOnlyDictionary<int, IThing> GetThings();
+    /// <summary>
+    /// Gets the vertices for this map.
+    /// </summary>
+    /// <returns>The vertices for this map.</returns>
+    ICovariantReadOnlyDictionary<int, IVertex> GetVertices();
 
-        /// <summary>
-        /// Gets the vertices for this map.
-        /// </summary>
-        /// <returns>The vertices for this map.</returns>
-        ICovariantReadOnlyDictionary<int, IVertex> GetVertices();
-
-        /// <summary>
-        /// The GL components of the map. If there are none, this is null.
-        /// </summary>
-        GLComponents? GL { get; }
-    }
+    /// <summary>
+    /// The GL components of the map. If there are none, this is null.
+    /// </summary>
+    GLComponents? GL { get; }
 }
+

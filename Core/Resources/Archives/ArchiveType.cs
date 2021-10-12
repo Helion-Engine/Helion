@@ -1,9 +1,9 @@
-﻿namespace Helion.Resources.Archives
+namespace Helion.Resources.Archives;
+
+public enum ArchiveType
 {
-    public enum ArchiveType
-    {
-        None,
-        Assets,
-        IWAD
-    }
+    None,
+    Assets,
+    IWAD
 }
+

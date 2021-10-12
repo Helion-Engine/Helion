@@ -1,12 +1,12 @@
-﻿using Helion.Bsp.Node;
+using Helion.Bsp.Node;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Helion.Bsp
+namespace Helion.Bsp;
+
+public interface IBspBuilder
 {
-    public interface IBspBuilder
-    {
-        BspNode? Build();
-    }
+    BspNode? Build();
 }
+

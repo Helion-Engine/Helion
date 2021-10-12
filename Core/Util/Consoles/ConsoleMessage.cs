@@ -1,6 +1,6 @@
-﻿using Helion.Graphics.String;
+using Helion.Graphics.String;
 
-namespace Helion.Util.Consoles
-{
-    public record ConsoleMessage(ColoredString Message, long TimeNanos);
-}
+namespace Helion.Util.Consoles;
+
+public record ConsoleMessage(ColoredString Message, long TimeNanos);
+

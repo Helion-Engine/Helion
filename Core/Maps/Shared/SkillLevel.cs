@@ -1,12 +1,12 @@
-namespace Helion.Maps.Shared
+namespace Helion.Maps.Shared;
+
+public enum SkillLevel
 {
-    public enum SkillLevel
-    {
-        None,
-        VeryEasy,
-        Easy,
-        Medium,
-        Hard,
-        Nightmare,
-    }
+    None,
+    VeryEasy,
+    Easy,
+    Medium,
+    Hard,
+    Nightmare,
 }
+

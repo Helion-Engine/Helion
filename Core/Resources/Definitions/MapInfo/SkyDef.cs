@@ -1,19 +1,19 @@
-﻿using System;
+using System;
 
-namespace Helion.Resources.Definitions.MapInfo
+namespace Helion.Resources.Definitions.MapInfo;
+
+public class SkyDef : ICloneable
 {
-    public class SkyDef : ICloneable
-    {
-        public string Name { get; set; } = string.Empty;
-        public int ScrollSpeed { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int ScrollSpeed { get; set; }
 
-        public object Clone()
+    public object Clone()
+    {
+        return new SkyDef
         {
-            return new SkyDef
-            {
-                Name = Name,
-                ScrollSpeed = ScrollSpeed
-            };
-        }
+            Name = Name,
+            ScrollSpeed = ScrollSpeed
+        };
     }
 }
+

@@ -1,8 +1,8 @@
-﻿namespace Helion.Render.OpenGL.Textures.Types
+namespace Helion.Render.OpenGL.Textures.Types;
+
+public enum Mipmap
 {
-    public enum Mipmap
-    {
-        Generate,
-        DoNotGenerate
-    }
+    Generate,
+    DoNotGenerate
 }
+

@@ -1,19 +1,19 @@
-﻿using Helion.World;
+using Helion.World;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 
-namespace Helion.Models
+namespace Helion.Models;
+
+public class DoorOpenCloseSpecialModel : SectorMoveSpecialModel
 {
-    public class DoorOpenCloseSpecialModel : SectorMoveSpecialModel
+    public int Key { get; set; }
+
+    public override ISpecial? ToWorldSpecial(IWorld world)
     {
-        public int Key { get; set; }
+        if (!world.IsSectorIdValid(SectorId))
+            return null;
 
-        public override ISpecial? ToWorldSpecial(IWorld world)
-        {
-            if (!world.IsSectorIdValid(SectorId))
-                return null;
-
-            return new DoorOpenCloseSpecial(world, world.Sectors[SectorId], this);
-        }
+        return new DoorOpenCloseSpecial(world, world.Sectors[SectorId], this);
     }
 }
+

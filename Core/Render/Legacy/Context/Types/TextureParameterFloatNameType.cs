@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum TextureParameterFloatNameType
 {
-    public enum TextureParameterFloatNameType
-    {
-        AnisotropyExt = 0x84FE,
-    }
+    AnisotropyExt = 0x84FE,
 }
+

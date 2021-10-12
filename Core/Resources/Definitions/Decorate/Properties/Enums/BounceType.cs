@@ -1,15 +1,15 @@
-namespace Helion.Resources.Definitions.Decorate.Properties.Enums
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
+
+public enum DecorateBounceType
 {
-    public enum DecorateBounceType 
-    {
-        None,
-        Doom,
-        Heretic,
-        Hexen,
-        Classic,
-        Grenade,
-        DoomCompat,
-        HereticCompat,
-        HexenCompat,
-    }
+    None,
+    Doom,
+    Heretic,
+    Hexen,
+    Classic,
+    Grenade,
+    DoomCompat,
+    HereticCompat,
+    HexenCompat,
 }
+

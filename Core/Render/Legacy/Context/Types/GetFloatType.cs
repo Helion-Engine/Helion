@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum GetFloatType
 {
-    public enum GetFloatType
-    {
-        MaxTextureMaxAnisotropyExt = 0x84FF,
-    }
+    MaxTextureMaxAnisotropyExt = 0x84FF,
 }
+

@@ -4,60 +4,60 @@ using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Util;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shader.Component
+namespace Helion.Render.Legacy.Shader.Component;
+
+public abstract class ShaderComponent : IDisposable
 {
-    public abstract class ShaderComponent : IDisposable
+    protected readonly int ShaderId;
+    protected readonly IGLFunctions gl;
+
+    protected ShaderComponent(IGLFunctions functions, string shaderText)
     {
-        protected readonly int ShaderId;
-        protected readonly IGLFunctions gl;
+        gl = functions;
+        ShaderId = gl.CreateShader(GetShaderComponentType());
+        gl.ShaderSource(ShaderId, shaderText);
+        gl.CompileShader(ShaderId);
 
-        protected ShaderComponent(IGLFunctions functions, string shaderText)
-        {
-            gl = functions;
-            ShaderId = gl.CreateShader(GetShaderComponentType());
-            gl.ShaderSource(ShaderId, shaderText);
-            gl.CompileShader(ShaderId);
+        CleanupAndThrowIfCompilationError();
+    }
 
-            CleanupAndThrowIfCompilationError();
-        }
+    ~ShaderComponent()
+    {
+        FailedToDispose(this);
+        ReleaseUnmanagedResources();
+    }
 
-        ~ShaderComponent()
-        {
-            FailedToDispose(this);
-            ReleaseUnmanagedResources();
-        }
+    public void AttachAnd(int programId, Action action)
+    {
+        gl.AttachShader(programId, ShaderId);
+        action.Invoke();
+        gl.DetachShader(programId, ShaderId);
+    }
 
-        public void AttachAnd(int programId, Action action)
-        {
-            gl.AttachShader(programId, ShaderId);
-            action.Invoke();
-            gl.DetachShader(programId, ShaderId);
-        }
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
 
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
+    protected abstract ShaderComponentType GetShaderComponentType();
 
-        protected abstract ShaderComponentType GetShaderComponentType();
+    private void CleanupAndThrowIfCompilationError()
+    {
+        gl.GetShader(ShaderId, ShaderParameterType.CompileStatus, out int status);
+        if (status == GLHelper.GLTrue)
+            return;
 
-        private void CleanupAndThrowIfCompilationError()
-        {
-            gl.GetShader(ShaderId, ShaderParameterType.CompileStatus, out int status);
-            if (status == GLHelper.GLTrue)
-                return;
+        string errorMsg = gl.GetShaderInfoLog(ShaderId);
 
-            string errorMsg = gl.GetShaderInfoLog(ShaderId);
+        Dispose();
 
-            Dispose();
+        throw new ShaderException($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
+    }
 
-            throw new ShaderException($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
-        }
-
-        private void ReleaseUnmanagedResources()
-        {
-            gl.DeleteShader(ShaderId);
-        }
+    private void ReleaseUnmanagedResources()
+    {
+        gl.DeleteShader(ShaderId);
     }
 }
+

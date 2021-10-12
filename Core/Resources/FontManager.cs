@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helion.Resources
+namespace Helion.Resources;
+
+public class FontManager
 {
-    public class FontManager
-    {
-    }
 }
+

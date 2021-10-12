@@ -1,8 +1,8 @@
-﻿namespace Helion.Render.OpenGL.Util
+namespace Helion.Render.OpenGL.Util;
+
+public enum Binding
 {
-    public enum Binding
-    {
-        Bind,
-        DoNotBind
-    }
+    Bind,
+    DoNotBind
 }
+

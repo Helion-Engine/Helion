@@ -1,9 +1,9 @@
-namespace Helion.Maps
+namespace Helion.Maps;
+
+public enum MapType
 {
-    public enum MapType
-    {
-        Doom,
-        Hexen,
-        UDMF,
-    }
+    Doom,
+    Hexen,
+    UDMF,
 }
+

@@ -1,15 +1,15 @@
-namespace Helion.Geometry
+namespace Helion.Geometry;
+
+public enum Axis2D
 {
-    public enum Axis2D
-    {
-        X,
-        Y,
-    }
-    
-    public enum Axis3D
-    {
-        X,
-        Y,
-        Z
-    }
+    X,
+    Y,
 }
+
+public enum Axis3D
+{
+    X,
+    Y,
+    Z
+}
+

@@ -1,41 +1,41 @@
-﻿using System.Drawing;
+using System.Drawing;
 using Helion.Render.Common.Renderers;
 using Helion.Window;
 
-namespace Helion.Layer.Images
+namespace Helion.Layer.Images;
+
+public class ImageLayer : IGameLayer
 {
-    public class ImageLayer : IGameLayer
+    public string Image { get; protected set; }
+
+    public ImageLayer(string image)
     {
-        public string Image { get; protected set; }
+        Image = image;
+    }
 
-        public ImageLayer(string image)
+    public virtual void HandleInput(IConsumableInput input)
+    {
+        // Not used.
+    }
+
+    public virtual void RunLogic()
+    {
+        // Not used.
+    }
+
+    public virtual void Render(IHudRenderContext hud)
+    {
+        hud.Clear(Color.Black);
+
+        hud.DoomVirtualResolution(() =>
         {
-            Image = image;
-        }
+            hud.Image(Image, (0, 0));
+        });
+    }
 
-        public virtual void HandleInput(IConsumableInput input)
-        {
-            // Not used.
-        }
-
-        public virtual void RunLogic()
-        {
-            // Not used.
-        }
-
-        public virtual void Render(IHudRenderContext hud)
-        {
-            hud.Clear(Color.Black);
-
-            hud.DoomVirtualResolution(() =>
-            {
-                hud.Image(Image, (0, 0));
-            });
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose.
-        }
+    public void Dispose()
+    {
+        // Nothing to dispose.
     }
 }
+

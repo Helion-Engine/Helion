@@ -1,79 +1,79 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using NLog;
 
-namespace Helion.Bsp.External
+namespace Helion.Bsp.External;
+
+public class Zdbsp
 {
-    public class Zdbsp
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    private readonly string m_file;
+    private readonly string m_output;
+
+    public Zdbsp(string intpuFile, string outputFile)
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        m_file = intpuFile;
+        m_output = outputFile;
+    }
 
-        private readonly string m_file;
-        private readonly string m_output;
+    public bool Run(string map, out string output)
+    {
+        output = string.Empty;
+        string? path = GetZdbspPath();
+        if (string.IsNullOrEmpty(path))
+            return false;
 
-        public Zdbsp(string intpuFile, string outputFile)
+        ProcessStartInfo info = new()
         {
-            m_file = intpuFile;
-            m_output = outputFile;
+            FileName = Path.Combine(path, "zdbsp.exe"),
+            Arguments = CreateArgs(map),
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
+        };
+
+        Process? process = Process.Start(info);
+        if (process == null)
+        {
+            Log.Warn("Unable to start ZDBSP process");
+            return false;
         }
 
-        public bool Run(string map, out string output)
-        {
-            output = string.Empty;
-            string? path = GetZdbspPath();
-            if (string.IsNullOrEmpty(path))
-                return false;
+        StringBuilder sb = new StringBuilder();
+        while (!process.StandardOutput.EndOfStream)
+            sb.AppendLine(process.StandardOutput.ReadLine());
 
-            ProcessStartInfo info = new()
-            {
-                FileName = Path.Combine(path, "zdbsp.exe"),
-                Arguments = CreateArgs(map),
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            };
+        output = sb.ToString();
+        process.WaitForExit();
+        return true;
+    }
 
-            Process? process = Process.Start(info);
-            if (process == null)
-            {
-                Log.Warn("Unable to start ZDBSP process");
-                return false;
-            }
+    private static string? GetZdbspPath()
+    {
+        string platform;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            platform = "win";
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            platform = "linux";
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            platform = "osx";
+        else
+            return null;
 
-            StringBuilder sb = new StringBuilder();
-            while (!process.StandardOutput.EndOfStream)
-                sb.AppendLine(process.StandardOutput.ReadLine());
+        if (Environment.Is64BitOperatingSystem)
+            return Path.Combine("runtimes", $"{platform}-x64", "native");
+        else
+            return Path.Combine("runtimes", $"{platform}-x86", "native");
+    }
 
-            output = sb.ToString();
-            process.WaitForExit();
-            return true;
-        }
-
-        private static string? GetZdbspPath()
-        {
-            string platform;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                platform = "win";
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                platform = "linux";
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                platform = "osx";
-            else
-                return null;
-
-            if (Environment.Is64BitOperatingSystem)
-                return Path.Combine("runtimes", $"{platform}-x64", "native");
-            else
-                return Path.Combine("runtimes", $"{platform}-x86", "native");
-        }
-
-        private string CreateArgs(string map)
-        {
-            return string.Format("--gl-only --output \"{0}\" \"{1}\" --map=\"{2}\"", m_output, m_file, map);
-        }
+    private string CreateArgs(string map)
+    {
+        return string.Format("--gl-only --output \"{0}\" \"{1}\" --map=\"{2}\"", m_output, m_file, map);
     }
 }
+

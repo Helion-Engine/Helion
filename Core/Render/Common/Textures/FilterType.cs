@@ -1,9 +1,9 @@
-namespace Helion.Render.Common.Textures
+namespace Helion.Render.Common.Textures;
+
+public enum FilterType
 {
-    public enum FilterType
-    {
-        Nearest,
-        Bilinear,
-        Trilinear,
-    }
+    Nearest,
+    Bilinear,
+    Trilinear,
 }
+

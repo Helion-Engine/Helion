@@ -1,18 +1,18 @@
-﻿using System.Drawing;
+using System.Drawing;
 using Helion.Graphics.String;
 
-namespace Helion.Menus.Base.Text
+namespace Helion.Menus.Base.Text;
+
+public class MenuLargeTextComponent : MenuTextComponent
 {
-    public class MenuLargeTextComponent : MenuTextComponent
+    public MenuLargeTextComponent(string text) :
+        this(ColoredStringBuilder.From(Color.Red, text))
     {
-        public MenuLargeTextComponent(string text) : 
-            this(ColoredStringBuilder.From(Color.Red, text))
-        {
-        }
-        
-        public MenuLargeTextComponent(ColoredString text) : 
-            base(text, 24, "BigFont")
-        {
-        }
+    }
+
+    public MenuLargeTextComponent(ColoredString text) :
+        base(text, 24, "BigFont")
+    {
     }
 }
+

@@ -2,35 +2,35 @@ using System;
 using Helion.Render.Legacy.Shader.Component;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shader
+namespace Helion.Render.Legacy.Shader;
+
+public class ShaderBuilder : IDisposable
 {
-    public class ShaderBuilder : IDisposable
+    public readonly VertexShaderComponent Vertex;
+    public readonly FragmentShaderComponent Fragment;
+
+    public ShaderBuilder(VertexShaderComponent vertex, FragmentShaderComponent fragment)
     {
-        public readonly VertexShaderComponent Vertex;
-        public readonly FragmentShaderComponent Fragment;
+        Vertex = vertex;
+        Fragment = fragment;
+    }
 
-        public ShaderBuilder(VertexShaderComponent vertex, FragmentShaderComponent fragment)
-        {
-            Vertex = vertex;
-            Fragment = fragment;
-        }
+    ~ShaderBuilder()
+    {
+        FailedToDispose(this);
+        ReleaseUnmanagedResources();
+    }
 
-        ~ShaderBuilder()
-        {
-            FailedToDispose(this);
-            ReleaseUnmanagedResources();
-        }
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
 
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
-
-        private void ReleaseUnmanagedResources()
-        {
-            Vertex.Dispose();
-            Fragment.Dispose();
-        }
+    private void ReleaseUnmanagedResources()
+    {
+        Vertex.Dispose();
+        Fragment.Dispose();
     }
 }
+

@@ -1,12 +1,12 @@
-﻿using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Renderers;
 
-namespace Helion.Layer.Worlds
+namespace Helion.Layer.Worlds;
+
+public partial class WorldLayer
 {
-    public partial class WorldLayer
+    private void DrawAutomap(IHudRenderContext hud)
     {
-        private void DrawAutomap(IHudRenderContext hud)
-        {
-            // TODO
-        }
+        // TODO
     }
 }
+

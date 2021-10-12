@@ -7,127 +7,127 @@ using Helion.World.Entities.Players;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.World.Entities.Inventories
+namespace Helion.World.Entities.Inventories;
+
+/// <summary>
+/// A weapon that can be fired by some player.
+/// </summary>
+public class Weapon : InventoryItem, ITickable
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public readonly Player Owner;
+
     /// <summary>
-    /// A weapon that can be fired by some player.
+    /// The current state of the weapon.
     /// </summary>
-    public class Weapon : InventoryItem, ITickable
+    public readonly FrameState FrameState;
+    public readonly FrameState FlashState;
+
+    public readonly EntityDefinition? AmmoDefinition;
+    public readonly string AmmoSprite;
+
+    /// <summary>
+    /// True if this gun is eligible to fire, false if not.
+    /// </summary>
+    /// <remarks>
+    /// Intended to be set by something like A_WeaponReady. We need some
+    /// method of having an action function communicate with the weapon,
+    /// and this is the best option currently due to the static nature of
+    /// action functions.
+    /// </remarks>
+    public bool ReadyToFire;
+
+    /// <summary>
+    /// The amount of height this weapon has been raised in [0.0, 1.0]. A
+    /// value of 0.0 means it is not visible and not raised, 1.0 is fully
+    /// raised.
+    /// </summary>
+    public double RaiseFraction
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        get => m_raiseFraction;
+        set => m_raiseFraction = Math.Clamp(value, 0.0, 1.0);
+    }
 
-        public readonly Player Owner;
+    /// <summary>
+    /// An interpolatable value for the previous raise fraction value.
+    /// </summary>
+    public double PrevRaiseFraction { get; private set; }
 
-        /// <summary>
-        /// The current state of the weapon.
-        /// </summary>
-        public readonly FrameState FrameState;
-        public readonly FrameState FlashState;
+    private bool m_tryingToFire;
+    private double m_raiseFraction;
 
-        public readonly EntityDefinition? AmmoDefinition;
-        public readonly string AmmoSprite;
-        
-        /// <summary>
-        /// True if this gun is eligible to fire, false if not.
-        /// </summary>
-        /// <remarks>
-        /// Intended to be set by something like A_WeaponReady. We need some
-        /// method of having an action function communicate with the weapon,
-        /// and this is the best option currently due to the static nature of
-        /// action functions.
-        /// </remarks>
-        public bool ReadyToFire;
-        
-        /// <summary>
-        /// The amount of height this weapon has been raised in [0.0, 1.0]. A
-        /// value of 0.0 means it is not visible and not raised, 1.0 is fully
-        /// raised.
-        /// </summary>
-        public double RaiseFraction
-        {
-            get => m_raiseFraction;
-            set => m_raiseFraction = Math.Clamp(value, 0.0, 1.0);
-        }
-        
-        /// <summary>
-        /// An interpolatable value for the previous raise fraction value.
-        /// </summary>
-        public double PrevRaiseFraction { get; private set; }
+    public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
+        FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null) :
+        base(definition, 1)
+    {
+        Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
 
-        private bool m_tryingToFire;
-        private double m_raiseFraction;
+        Owner = owner;
 
-        public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
-            FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null) :
-            base(definition, 1)
-        {
-            Precondition(definition.IsType(EntityDefinitionType.Weapon), "Trying to create a weapon from a non-weapon type");
+        if (frameStateModel == null)
+            FrameState = new FrameState(owner, definition, entityManager, false);
+        else
+            FrameState = new FrameState(owner, definition, entityManager, frameStateModel);
 
-            Owner = owner;
+        if (flashStateModel == null)
+            FlashState = new FrameState(owner, definition, entityManager, false);
+        else
+            FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
 
-            if (frameStateModel == null)
-                FrameState = new FrameState(owner, definition, entityManager, false);
-            else
-                FrameState = new FrameState(owner, definition, entityManager, frameStateModel);
+        AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+        if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))
+            AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
+        else
+            AmmoSprite = string.Empty;
+    }
 
-            if (flashStateModel == null)
-                FlashState = new FrameState(owner, definition, entityManager, false);
-            else
-                FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
+    /// <summary>
+    /// Requests that the gun fire.
+    /// </summary>
+    /// <remarks>
+    /// A request does not mean the action will take place, this is just a
+    /// notification to the weapon that the owner of it wants it to attempt
+    /// to start firing if it is not already.
+    /// </remarks>
+    public void RequestFire()
+    {
+        m_tryingToFire = true;
+    }
 
-            AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-            if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))
-                AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
-            else
-                AmmoSprite = string.Empty;
-        }
+    public void SetFireState()
+    {
+        FrameState.SetState(Constants.FrameStates.Fire);
+    }
 
-        /// <summary>
-        /// Requests that the gun fire.
-        /// </summary>
-        /// <remarks>
-        /// A request does not mean the action will take place, this is just a
-        /// notification to the weapon that the owner of it wants it to attempt
-        /// to start firing if it is not already.
-        /// </remarks>
-        public void RequestFire()
-        {
-            m_tryingToFire = true;
-        }
+    public void SetFlashState(int offset = 0)
+    {
+        FlashState.SetState(Constants.FrameStates.Flash, offset, false);
+    }
 
-        public void SetFireState()
-        {
-            FrameState.SetState(Constants.FrameStates.Fire);
-        }
+    public void SetReadyState()
+    {
+        FrameState.SetState(Constants.FrameStates.Ready);
+    }
 
-        public void SetFlashState(int offset = 0)
-        {
-            FlashState.SetState(Constants.FrameStates.Flash, offset, false);
-        }
+    public void Tick()
+    {
+        PrevRaiseFraction = m_raiseFraction;
 
-        public void SetReadyState()
-        {
-            FrameState.SetState(Constants.FrameStates.Ready);
-        }
+        if (m_tryingToFire && ReadyToFire)
+            SetToFireState();
 
-        public void Tick()
-        {
-            PrevRaiseFraction = m_raiseFraction;
-            
-            if (m_tryingToFire && ReadyToFire)
-                SetToFireState();
+        ReadyToFire = false;
+        m_tryingToFire = false;
 
-            ReadyToFire = false;
-            m_tryingToFire = false;
+        FrameState.Tick();
+        FlashState.Tick();
+    }
 
-            FrameState.Tick();
-            FlashState.Tick();
-        }
-        
-        private void SetToFireState()
-        {
-            if (!FrameState.SetState(Constants.FrameStates.Fire))
-                Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
-        }
+    private void SetToFireState()
+    {
+        if (!FrameState.SetState(Constants.FrameStates.Fire))
+            Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
     }
 }
+

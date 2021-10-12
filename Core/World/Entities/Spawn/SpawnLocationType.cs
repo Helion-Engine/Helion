@@ -1,9 +1,9 @@
-namespace Helion.World.Entities.Spawn
+namespace Helion.World.Entities.Spawn;
+
+public enum SpawnLocationType
 {
-    public enum SpawnLocationType
-    {
-        Start,
-        Cooperative,
-        Deathmatch,
-    }
+    Start,
+    Cooperative,
+    Deathmatch,
 }
+

@@ -1,69 +1,69 @@
-﻿using System;
+using System;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Audio.Impl.Components
+namespace Helion.Audio.Impl.Components;
+
+public class OpenALDevice : IDisposable
 {
-    public class OpenALDevice : IDisposable
+    public string DeviceName { get; private set; }
+    public string OpenALDeviceName { get; private set; }
+    internal ALDevice Device;
+
+    public OpenALDevice()
     {
-        public string DeviceName { get; private set; }
-        public string OpenALDeviceName { get; private set; }
-        internal ALDevice Device;
+        DeviceName = string.Empty;
+        CreateDefault();
+    }
 
-        public OpenALDevice()
+    public OpenALDevice(string deviceName)
+    {
+        DeviceName = deviceName;
+
+        if (!string.IsNullOrEmpty(deviceName))
         {
-            DeviceName = string.Empty;
-            CreateDefault();
-        }
-
-        public OpenALDevice(string deviceName)
-        {
-            DeviceName = deviceName;
-
-            if (!string.IsNullOrEmpty(deviceName))
+            if (deviceName.Equals(IAudioSystem.DefaultAudioDevice, StringComparison.OrdinalIgnoreCase))
             {
-                if (deviceName.Equals(IAudioSystem.DefaultAudioDevice, StringComparison.OrdinalIgnoreCase))
-                {
-                    CreateDefault();
-                }
-                else
-                {
-                    Device = ALC.OpenDevice(deviceName);
-                    OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
-                }
-            }
-
-            if (Device == IntPtr.Zero)
                 CreateDefault();
+            }
+            else
+            {
+                Device = ALC.OpenDevice(deviceName);
+                OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
+            }
         }
 
-        private void CreateDefault()
-        {
-            DeviceName = IAudioSystem.DefaultAudioDevice;
-            Device = ALC.OpenDevice(null);
-            if (Device == IntPtr.Zero)
-                throw new Exception("Unable to access OpenAL device");
+        if (Device == IntPtr.Zero)
+            CreateDefault();
+    }
 
-            OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
-        }
+    private void CreateDefault()
+    {
+        DeviceName = IAudioSystem.DefaultAudioDevice;
+        Device = ALC.OpenDevice(null);
+        if (Device == IntPtr.Zero)
+            throw new Exception("Unable to access OpenAL device");
 
-        ~OpenALDevice()
-        {
-            FailedToDispose(this);
-            ReleaseUnmanagedResources();
-        }
+        OpenALDeviceName = ALC.GetString(Device, AlcGetString.AllDevicesSpecifier);
+    }
 
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources();
-            GC.SuppressFinalize(this);
-        }
+    ~OpenALDevice()
+    {
+        FailedToDispose(this);
+        ReleaseUnmanagedResources();
+    }
 
-        private void ReleaseUnmanagedResources()
-        {
-            // TODO: Not checking this right now since it should not be setting errors (but is).
-            // TODO: Appears to fail if we did not dispose all buffers/contexts.
-            ALC.CloseDevice(Device);
-        }
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
+
+    private void ReleaseUnmanagedResources()
+    {
+        // TODO: Not checking this right now since it should not be setting errors (but is).
+        // TODO: Appears to fail if we did not dispose all buffers/contexts.
+        ALC.CloseDevice(Device);
     }
 }
+

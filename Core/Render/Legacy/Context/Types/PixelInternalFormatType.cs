@@ -1,7 +1,7 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum PixelInternalFormatType
 {
-    public enum PixelInternalFormatType
-    {
-        Rgba8 = 32856,
-    }
+    Rgba8 = 32856,
 }
+

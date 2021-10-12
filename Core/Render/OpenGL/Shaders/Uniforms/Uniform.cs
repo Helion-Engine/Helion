@@ -1,10 +1,10 @@
-﻿namespace Helion.Render.OpenGL.Shaders.Uniforms
-{
-    [Uniform]
-    public abstract class Uniform
-    {
-        internal const int NoLocation = -1;
+namespace Helion.Render.OpenGL.Shaders.Uniforms;
 
-        public int Location { get; internal set; } = NoLocation;
-    }
+[Uniform]
+public abstract class Uniform
+{
+    internal const int NoLocation = -1;
+
+    public int Location { get; internal set; } = NoLocation;
 }
+

@@ -1,9 +1,9 @@
-﻿namespace Helion.World.StatusBar
+namespace Helion.World.StatusBar;
+
+public enum StatusBarSizeType
 {
-    public enum StatusBarSizeType
-    {
-        Hidden,
-        Minimal,
-        Full
-    }
+    Hidden,
+    Minimal,
+    Full
 }
+

@@ -1,8 +1,8 @@
-namespace Helion.Render.Legacy.Context.Types
+namespace Helion.Render.Legacy.Context.Types;
+
+public enum BlendingFactorType
 {
-    public enum BlendingFactorType
-    {
-        SrcAlpha = 770,
-        OneMinusSrcAlpha = 771,
-    }
+    SrcAlpha = 770,
+    OneMinusSrcAlpha = 771,
 }
+

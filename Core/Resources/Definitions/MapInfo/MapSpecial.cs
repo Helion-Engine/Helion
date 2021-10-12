@@ -1,11 +1,11 @@
-﻿namespace Helion.Resources.Definitions.MapInfo
+namespace Helion.Resources.Definitions.MapInfo;
+
+public enum MapSpecial
 {
-    public enum MapSpecial
-    {
-        None,
-        BaronSpecial,
-        CyberdemonSpecial,
-        SpiderMastermindSpecial,
-        Map07Special
-    }
+    None,
+    BaronSpecial,
+    CyberdemonSpecial,
+    SpiderMastermindSpecial,
+    Map07Special
 }
+

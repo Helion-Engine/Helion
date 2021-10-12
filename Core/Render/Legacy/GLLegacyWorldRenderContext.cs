@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Quads;
@@ -14,162 +14,162 @@ using Helion.Render.Legacy.Commands;
 using Helion.World;
 using Helion.World.Impl.SinglePlayer;
 
-namespace Helion.Render.Legacy
+namespace Helion.Render.Legacy;
+
+public class GLLegacyWorldRenderContext : IWorldRenderContext
 {
-    public class GLLegacyWorldRenderContext : IWorldRenderContext
+    private readonly RenderCommands m_commands;
+    private WorldRenderContext? m_context;
+
+    public GLLegacyWorldRenderContext(RenderCommands commands)
     {
-        private readonly RenderCommands m_commands;
-        private WorldRenderContext? m_context;
+        m_commands = commands;
+    }
 
-        public GLLegacyWorldRenderContext(RenderCommands commands)
-        {
-            m_commands = commands;
-        }
+    internal void Begin(WorldRenderContext context)
+    {
+        m_context = context;
+    }
 
-        internal void Begin(WorldRenderContext context)
-        {
-            m_context = context;
-        }
+    public void Draw(IWorld world)
+    {
+        if (m_context == null || world is not SinglePlayerWorld singlePlayerWorld)
+            return;
 
-        public void Draw(IWorld world)
-        {
-            if (m_context == null || world is not SinglePlayerWorld singlePlayerWorld)
-                return;
-            
-            Camera camera = m_context.Camera;
-            Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
-            Shared.Camera oldCamera = new(cameraPosition, camera.YawRadians, camera.PitchRadians);
-            
-            // Note: We never draw the automap for this, that should be handled
-            // elsewhere.
-            m_commands.DrawWorld(singlePlayerWorld, oldCamera, world.Gametick, m_context.InterpolationFrac,
-                singlePlayerWorld.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
-                m_context?.AutomapScale ?? 1.0);
-        }
+        Camera camera = m_context.Camera;
+        Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
+        Shared.Camera oldCamera = new(cameraPosition, camera.YawRadians, camera.PitchRadians);
 
-        public void DrawLine(Seg3D seg, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+        // Note: We never draw the automap for this, that should be handled
+        // elsewhere.
+        m_commands.DrawWorld(singlePlayerWorld, oldCamera, world.Gametick, m_context.InterpolationFrac,
+            singlePlayerWorld.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
+            m_context?.AutomapScale ?? 1.0);
+    }
 
-        public void DrawLines(Seg3D[] segs, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawLine(Seg3D seg, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawRay(Ray3D ray, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawLines(Seg3D[] segs, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawRays(Ray3D[] rays, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawRay(Ray3D ray, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawTriangle(Triangle3D triangle, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawRays(Ray3D[] rays, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawTriangles(Triangle3D[] triangles, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawTriangle(Triangle3D triangle, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillTriangle(Triangle3D triangle, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawTriangles(Triangle3D[] triangles, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillTriangles(Triangle3D[] triangles, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillTriangle(Triangle3D triangle, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawQuad(Quad3D quad, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillTriangles(Triangle3D[] triangles, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawQuads(Quad3D[] quads, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawQuad(Quad3D quad, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillQuad(Quad3D quad, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawQuads(Quad3D[] quads, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillQuads(Quad3D[] quads, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillQuad(Quad3D quad, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillPlane(PlaneD plane, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillQuads(Quad3D[] quads, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillPlanes(PlaneD[] planes, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillPlane(PlaneD plane, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawBox(Box3D box, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillPlanes(PlaneD[] planes, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawBoxes(Box3D[] boxes, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawBox(Box3D box, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillBox(Box3D box, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawBoxes(Box3D[] boxes, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillBoxes(Box3D[] boxes, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillBox(Box3D box, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawSphere(Sphere3D sphere, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillBoxes(Box3D[] boxes, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawSpheres(Sphere3D[] spheres, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawSphere(Sphere3D sphere, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillSphere(Sphere3D sphere, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void DrawSpheres(Sphere3D[] spheres, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void FillSpheres(Sphere3D[] spheres, Color color)
-        {
-            // Not implemented in the legacy renderer.
-        }
+    public void FillSphere(Sphere3D sphere, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
 
-        public void DrawImage(string texture, Quad3D quad, Color? color = null)
-        {
-            // Not implemented in the legacy renderer.
-        }
-        
-        public void DrawSurface(string surfaceName, Quad3D quad, Color? color = null)
-        {
-            // Not implemented in the legacy renderer.
-        }
-        
-        public void Dispose()
-        {
-            // Nothing to do.
-        }
+    public void FillSpheres(Sphere3D[] spheres, Color color)
+    {
+        // Not implemented in the legacy renderer.
+    }
+
+    public void DrawImage(string texture, Quad3D quad, Color? color = null)
+    {
+        // Not implemented in the legacy renderer.
+    }
+
+    public void DrawSurface(string surfaceName, Quad3D quad, Color? color = null)
+    {
+        // Not implemented in the legacy renderer.
+    }
+
+    public void Dispose()
+    {
+        // Nothing to do.
     }
 }
+

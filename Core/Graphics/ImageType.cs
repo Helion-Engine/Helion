@@ -1,8 +1,8 @@
-﻿namespace Helion.Graphics
+namespace Helion.Graphics;
+
+public enum ImageType
 {
-    public enum ImageType
-    {
-        Palette,
-        Argb
-    }
+    Palette,
+    Argb
 }
+

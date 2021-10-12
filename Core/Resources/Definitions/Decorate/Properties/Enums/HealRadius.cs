@@ -1,9 +1,9 @@
-namespace Helion.Resources.Definitions.Decorate.Properties.Enums
+namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
+
+public enum DecorateHealRadius
 {
-    public enum DecorateHealRadius 
-    {
-        Armor,
-        Health,
-        Mana,
-    }
+    Armor,
+    Health,
+    Mana,
 }
+

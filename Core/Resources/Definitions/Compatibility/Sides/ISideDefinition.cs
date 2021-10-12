@@ -1,13 +1,13 @@
-namespace Helion.Resources.Definitions.Compatibility.Sides
+namespace Helion.Resources.Definitions.Compatibility.Sides;
+
+/// <summary>
+/// A definition for some mutation to a side in a map.
+/// </summary>
+public interface ISideDefinition
 {
     /// <summary>
-    /// A definition for some mutation to a side in a map.
+    /// The ID of the side to affect.
     /// </summary>
-    public interface ISideDefinition
-    {
-        /// <summary>
-        /// The ID of the side to affect.
-        /// </summary>
-        int Id { get; }
-    }
+    int Id { get; }
 }
+

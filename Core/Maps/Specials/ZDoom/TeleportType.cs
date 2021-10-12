@@ -1,11 +1,11 @@
-﻿namespace Helion.Maps.Specials.ZDoom
+namespace Helion.Maps.Specials.ZDoom;
+
+public enum TeleportType
 {
-    public enum TeleportType
-    {
-        Hexen,
-        Strife,
-        BoomCompat,
-        BoomFixed,
-        Doom
-    }
+    Hexen,
+    Strife,
+    BoomCompat,
+    BoomFixed,
+    Doom
 }
+

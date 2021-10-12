@@ -1,8 +1,8 @@
-namespace Helion.World.Special
+namespace Helion.World.Special;
+
+public enum SpecialTickStatus
 {
-    public enum SpecialTickStatus
-    {
-        Continue,
-        Destroy,
-    }
+    Continue,
+    Destroy,
 }
+

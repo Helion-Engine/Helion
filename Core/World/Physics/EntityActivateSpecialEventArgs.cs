@@ -1,50 +1,50 @@
-﻿using Helion.World.Entities;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 
-namespace Helion.World.Physics
+namespace Helion.World.Physics;
+
+/// <summary>
+/// How to activate a special.
+/// </summary>
+public enum ActivationContext
+{
+    CrossLine,
+    UseLine,
+    HitscanCrossLine,
+    HitscanImpactsWall,
+    EntityImpactsWall
+}
+
+/// <summary>
+/// Event arguments for when a special is activated.
+/// </summary>
+public class EntityActivateSpecialEventArgs
 {
     /// <summary>
-    /// How to activate a special.
+    /// How the special was activated.
     /// </summary>
-    public enum ActivationContext
-    {
-        CrossLine,
-        UseLine,
-        HitscanCrossLine,
-        HitscanImpactsWall,
-        EntityImpactsWall
-    }
+    public readonly ActivationContext ActivationContext;
 
     /// <summary>
-    /// Event arguments for when a special is activated.
+    /// Entity that activated the special.
     /// </summary>
-    public class EntityActivateSpecialEventArgs
+    public readonly Entity Entity;
+
+    /// <summary>
+    /// The line that activated the special if applicable.
+    /// </summary>
+    public readonly Line ActivateLineSpecial;
+
+    /// <summary>
+    /// If the activation was successful.
+    /// </summary>
+    public bool Success { get; set; }
+
+    public EntityActivateSpecialEventArgs(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
     {
-        /// <summary>
-        /// How the special was activated.
-        /// </summary>
-        public readonly ActivationContext ActivationContext;
-
-        /// <summary>
-        /// Entity that activated the special.
-        /// </summary>
-        public readonly Entity Entity;
-
-        /// <summary>
-        /// The line that activated the special if applicable.
-        /// </summary>
-        public readonly Line ActivateLineSpecial;
-
-        /// <summary>
-        /// If the activation was successful.
-        /// </summary>
-        public bool Success { get; set; }
-
-        public EntityActivateSpecialEventArgs(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
-        {
-            ActivationContext = activationContext;
-            Entity = entity;
-            ActivateLineSpecial = activateLineSpecial;
-        }
+        ActivationContext = activationContext;
+        Entity = entity;
+        ActivateLineSpecial = activateLineSpecial;
     }
 }
+

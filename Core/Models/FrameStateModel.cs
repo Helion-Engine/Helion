@@ -1,9 +1,9 @@
-﻿namespace Helion.Models
+namespace Helion.Models;
+
+public class FrameStateModel
 {
-    public class FrameStateModel
-    {
-        public int FrameIndex;
-        public int Tics;
-        public bool Destroy;
-    }
+    public int FrameIndex;
+    public int Tics;
+    public bool Destroy;
 }
+
