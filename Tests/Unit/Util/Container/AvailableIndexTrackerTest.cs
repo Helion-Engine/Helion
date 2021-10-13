@@ -1,51 +1,50 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Helion.Util.Container;
 using Xunit;
 
-namespace Helion.Tests.Unit.Util.Container
+namespace Helion.Tests.Unit.Util.Container;
+
+public class AvailableIndexTrackerTest
 {
-    public class AvailableIndexTrackerTest
+    [Fact(DisplayName = "Get indices from tracker")]
+    public void GetIndices()
     {
-        [Fact(DisplayName = "Get indices from tracker")]
-        public void GetIndices()
-        {
-            AvailableIndexTracker tracker = new();
+        AvailableIndexTracker tracker = new();
 
-            for (int i = 0; i < 100; i++)
-                tracker.Next().Should().Be(i);
-        }
-        
-        [Fact(DisplayName = "Check indices from tracker")]
-        public void CheckIfTracked()
-        {
-            AvailableIndexTracker tracker = new();
-            
-            for (int i = 0; i < 10; i++)
-                tracker.Next();
+        for (int i = 0; i < 100; i++)
+            tracker.Next().Should().Be(i);
+    }
 
-            tracker.IsTracked(-1).Should().BeFalse();
-            tracker.IsTracked(10).Should().BeFalse();
-            tracker.IsTracked(12345).Should().BeFalse();
-            for (int i = 0; i < 10; i++)
-                tracker.IsTracked(i).Should().BeTrue();
-        }
-        
-        [Fact(DisplayName = "Makes indices from tracker available")]
-        public void MakeIndexAvailable()
-        {
-            AvailableIndexTracker tracker = new();
-            
-            for (int i = 0; i < 10; i++)
-                tracker.Next();
+    [Fact(DisplayName = "Check indices from tracker")]
+    public void CheckIfTracked()
+    {
+        AvailableIndexTracker tracker = new();
 
-            tracker.MakeAvailable(4);
-            tracker.MakeAvailable(6);
-            tracker.IsTracked(4).Should().BeFalse();
-            tracker.IsTracked(6).Should().BeFalse();
+        for (int i = 0; i < 10; i++)
+            tracker.Next();
 
-            tracker.Next().Should().Be(4);
-            tracker.Next().Should().Be(6);
-            tracker.Next().Should().Be(10);
-        }
+        tracker.IsTracked(-1).Should().BeFalse();
+        tracker.IsTracked(10).Should().BeFalse();
+        tracker.IsTracked(12345).Should().BeFalse();
+        for (int i = 0; i < 10; i++)
+            tracker.IsTracked(i).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Makes indices from tracker available")]
+    public void MakeIndexAvailable()
+    {
+        AvailableIndexTracker tracker = new();
+
+        for (int i = 0; i < 10; i++)
+            tracker.Next();
+
+        tracker.MakeAvailable(4);
+        tracker.MakeAvailable(6);
+        tracker.IsTracked(4).Should().BeFalse();
+        tracker.IsTracked(6).Should().BeFalse();
+
+        tracker.Next().Should().Be(4);
+        tracker.Next().Should().Be(6);
+        tracker.Next().Should().Be(10);
     }
 }

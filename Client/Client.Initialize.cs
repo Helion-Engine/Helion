@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Helion.Layer.Consoles;
@@ -9,129 +9,128 @@ using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.World.Util;
 
-namespace Helion.Client
+namespace Helion.Client;
+
+public partial class Client
 {
-    public partial class Client
+    private void Initialize()
     {
-        private void Initialize()
+        LoadFiles();
+
+        if (m_commandLineArgs.Skill.HasValue)
+            SetSkill(m_commandLineArgs.Skill.Value);
+
+        m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
+        m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
+        m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+
+        if (m_commandLineArgs.LevelStat)
+            ClearStatsFile();
+
+        if (m_commandLineArgs.LoadGame != null)
         {
-            LoadFiles();
+            ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
+            CommandLoadGame(args);
+        }
+        else
+        {
+            CheckLoadMap();
+            AddTitlepicIfNoMap();
+        }
+    }
 
-            if (m_commandLineArgs.Skill.HasValue)
-                SetSkill(m_commandLineArgs.Skill.Value);
+    private void AddTitlepicIfNoMap()
+    {
+        if (m_layerManager.WorldLayer != null)
+            return;
 
-            m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
-            m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
-            m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+        TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection,
+            m_saveGameManager, m_audioSystem);
+        m_layerManager.Add(layer);
+    }
 
-            if (m_commandLineArgs.LevelStat)
-                ClearStatsFile();
-
-            if (m_commandLineArgs.LoadGame != null)
-            {
-                ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
-                CommandLoadGame(args);
-            }
+    private void LoadFiles()
+    {
+        if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad(),
+            dehackedPatch: m_commandLineArgs.DehackedPatch))
+        {
+            if (m_archiveCollection.Assets == null)
+                ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+            else if (m_archiveCollection.IWad == null)
+                ShowFatalError("Failed to load IWAD.");
             else
-            {
-                CheckLoadMap();
-                AddTitlepicIfNoMap();
-            }
+                ShowFatalError("Failed to load files.");
+
+            throw new Exception("hi");
+            //Process.GetCurrentProcess().Kill();
         }
+    }
 
-        private void AddTitlepicIfNoMap()
+    private void CheckLoadMap()
+    {
+        if (m_commandLineArgs.Map != null)
         {
-            if (m_layerManager.WorldLayer != null) 
-                return;
-
-            TitlepicLayer layer = new(m_layerManager, m_config, m_console, m_soundManager, m_archiveCollection, 
-                m_saveGameManager, m_audioSystem);
-            m_layerManager.Add(layer);
+            LoadMap(m_commandLineArgs.Map);
         }
-
-        private void LoadFiles()
+        else if (m_commandLineArgs.Warp != null &&
+            MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
+                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
         {
-            if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad(), 
-                dehackedPatch: m_commandLineArgs.DehackedPatch))
-            {
-                if (m_archiveCollection.Assets == null)
-                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-                else if (m_archiveCollection.IWad == null)
-                    ShowFatalError("Failed to load IWAD.");
-                else
-                    ShowFatalError("Failed to load files.");
-
-                throw new Exception("hi");
-                //Process.GetCurrentProcess().Kill();
-            }
+            LoadMap(mapInfoDef.MapName);
         }
+    }
 
-        private void CheckLoadMap()
+    private string? GetIwad()
+    {
+        if (m_commandLineArgs.Iwad != null)
+            return m_commandLineArgs.Iwad;
+
+        string? iwad = LocateIwad();
+        if (iwad != null)
+            return iwad;
+
+        Log.Error("No IWAD found!");
+        return null;
+
+    }
+
+    private static string? LocateIwad()
+    {
+        IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
+        List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
+        return iwadData.Count > 0 ? iwadData[0].Item1 : null;
+    }
+
+    private MapInfoDef? GetDefaultMap()
+    {
+        if (m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Count == 0)
         {
-            if (m_commandLineArgs.Map != null)
-            {
-                LoadMap(m_commandLineArgs.Map);
-            }
-            else if (m_commandLineArgs.Warp != null &&
-                MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
-                    out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-            {
-                LoadMap(mapInfoDef.MapName);
-            }
-        }
-
-        private string? GetIwad()
-        {
-            if (m_commandLineArgs.Iwad != null)
-                return m_commandLineArgs.Iwad;
-
-            string? iwad = LocateIwad();
-            if (iwad != null) 
-                return iwad;
-            
-            Log.Error("No IWAD found!");
+            Log.Error("No episodes defined.");
             return null;
-
         }
 
-        private static string? LocateIwad()
+        var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
+        string startMapName = mapInfo.Episodes[0].StartMap;
+        return mapInfo.GetMap(startMapName);
+    }
+
+    private void SetSkill(int value)
+    {
+        if (value > 0 && value < 6)
+            m_config.Game.Skill.Set((Maps.Shared.SkillLevel)value);
+        else
+            Log.Info($"Invalid skill level: {value}");
+    }
+
+    private void LoadMap(string mapName)
+    {
+        m_console.ClearInputText();
+        m_console.AddInput($"map {mapName}\n");
+
+        if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
         {
-            IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
-            List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
-            return iwadData.Count > 0 ? iwadData[0].Item1 : null;
-        }
-
-        private MapInfoDef? GetDefaultMap()
-        {
-            if (m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Count == 0)
-            {
-                Log.Error("No episodes defined.");
-                return null;
-            }
-
-            var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
-            string startMapName = mapInfo.Episodes[0].StartMap;
-            return mapInfo.GetMap(startMapName);
-        }
-
-        private void SetSkill(int value)
-        {
-            if (value > 0 && value < 6)
-                m_config.Game.Skill.Set((Maps.Shared.SkillLevel)value);
-            else
-                Log.Info($"Invalid skill level: {value}");
-        }
-
-        private void LoadMap(string mapName)
-        {
-            m_console.ClearInputText();
-            m_console.AddInput($"map {mapName}\n");
-
-            if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
-            {
-                ConsoleLayer layer = new(m_config, m_console, m_consoleCommands);
-                m_layerManager.Add(layer);
-            }
+            ConsoleLayer layer = new(m_config, m_console, m_consoleCommands);
+            m_layerManager.Add(layer);
         }
     }
 }

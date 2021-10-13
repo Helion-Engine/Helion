@@ -1,15 +1,14 @@
-﻿using Generators.Generators;
+using Generators.Generators;
 
-namespace Generators
+namespace Generators;
+
+public static class Start
 {
-    public static class Start
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            PrimitiveExtensionsGenerator.Generate();
-            VectorGenerator.Generate();
-            SegmentGenerator.Generate();
-            BoxGenerator.Generate();
-        }
+        PrimitiveExtensionsGenerator.Generate();
+        VectorGenerator.Generate();
+        SegmentGenerator.Generate();
+        BoxGenerator.Generate();
     }
 }
