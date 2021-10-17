@@ -10,6 +10,8 @@ public class Wall
     public Side Side { get; internal set; }
     public int TextureHandle { get; private set; }
 
+    public Line Line => Side.Line;
+
     public Wall(int id, int textureHandle, WallLocation location)
     {
         Id = id;

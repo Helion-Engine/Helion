@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using GlmSharp;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.World;
-using Helion.Render.Common.World.Triangulation;
 using Helion.Render.OpenGL.Pipeline;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Textures.Buffer;
@@ -49,11 +48,15 @@ public class StaticWallRenderer : IDisposable
         var vbo = m_pipeline.Vbo;
         m_wallToVboOffset[wall] = vbo.Count;
 
-        WallTriangulation wallTriangulation = WallTriangulation.From(wall);
-        StaticWallQuad wallQuad = new(wallTriangulation);
-
-        vbo.AddTriangle(wallQuad.TopLeft, wallQuad.BottomLeft, wallQuad.TopRight);
-        vbo.AddTriangle(wallQuad.TopRight, wallQuad.BottomLeft, wallQuad.BottomRight);
+        // Need to convert to using the newer version of textures.
+        throw new NotImplementedException("TODO");
+        // Texture texture = TextureManager.Instance.GetTexture(wall.TextureHandle);
+        // GLTextureHandle textureHandle = m_textureManager.Get(texture);
+        // WallTriangulation wallTriangulation = WallTriangulation.From(wall, textureHandle);
+        // StaticWallQuad wallQuad = new(wallTriangulation);
+        //
+        // vbo.AddTriangle(wallQuad.TopLeft, wallQuad.BottomLeft, wallQuad.TopRight);
+        // vbo.AddTriangle(wallQuad.TopRight, wallQuad.BottomLeft, wallQuad.BottomRight);
     }
 
     public void Render(WorldRenderContext context)
