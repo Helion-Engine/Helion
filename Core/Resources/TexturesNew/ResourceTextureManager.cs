@@ -2,6 +2,7 @@
 using Helion.Graphics;
 using Helion.Resources.TexturesNew.Animations;
 using NLog;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.TexturesNew;
 
@@ -25,6 +26,7 @@ public class ResourceTextureManager : IResourceTextureManager
     {
         m_resources = resources;
         m_animations = new ResourceTextureAnimations(resources, this);
+        m_animations.Add(NullTexture);
     }
 
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
@@ -79,7 +81,15 @@ public class ResourceTextureManager : IResourceTextureManager
 
     public ResourceTexture GetNullCompatibilityTexture(int index)
     {
-        // TODO
-        return NullTexture;
+        switch (index)
+        {
+            case < 0:
+                Fail("Trying to get null compatibility texture with a negative index");
+                return NullTexture;
+            case NoTextureIndex:
+                return m_textureList.Count >= 2 ? m_animations.Lookup(1) : NullTexture;
+            default:
+                return m_animations.Lookup(index);
+        }
     }
 }
