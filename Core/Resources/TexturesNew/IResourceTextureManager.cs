@@ -1,10 +1,17 @@
-﻿namespace Helion.Resources.TexturesNew;
+﻿using Helion.Resources.TexturesNew.Animations;
+
+namespace Helion.Resources.TexturesNew;
 
 /// <summary>
 /// Responsible for managing textures that come from a resource collection.
 /// </summary>
 public interface IResourceTextureManager
 {
+    /// <summary>
+    /// The animations that the texture manager uses.
+    /// </summary>
+    IResourceTextureAnimations Animations { get; }
+    
     /// <summary>
     /// Looks up the texture, or creates one if it has not been found yet.
     /// </summary>

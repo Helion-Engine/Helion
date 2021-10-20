@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Helion.Graphics;
+using Helion.Resources.TexturesNew.Animations;
 using NLog;
 
 namespace Helion.Resources.TexturesNew;
@@ -13,15 +14,17 @@ public class ResourceTextureManager : IResourceTextureManager
     public static readonly ResourceTexture NullTexture = new(NoTextureIndex, "null", Image.NullImage, ResourceNamespace.Global);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly ResourceTextureAnimations Animations;
     private readonly IResources m_resources;
+    private readonly ResourceTextureAnimations m_animations;
     private readonly ResourceTracker<ResourceTexture> m_textures = new();
     private readonly List<ResourceTexture> m_textureList = new() { NullTexture };
+
+    public IResourceTextureAnimations Animations => m_animations;
 
     public ResourceTextureManager(IResources resources)
     {
         m_resources = resources;
-        Animations = new ResourceTextureAnimations(resources, this);
+        m_animations = new ResourceTextureAnimations(resources, this);
     }
 
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
@@ -69,6 +72,7 @@ public class ResourceTextureManager : IResourceTextureManager
         ResourceTexture texture = new(index, name, image, priorityNamespace);
         m_textures.Insert(name, priorityNamespace, texture);
         m_textureList.Add(texture);
+        m_animations.Add(texture);
         
         return texture;
     }
