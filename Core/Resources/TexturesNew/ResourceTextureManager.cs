@@ -5,9 +5,9 @@ using NLog;
 namespace Helion.Resources.TexturesNew;
 
 /// <summary>
-/// Responsible for managing textures that come from a resource collection.
+/// A concrete implementation of an <see cref="IResourceTextureManager"/>.
 /// </summary>
-public class ResourceTextureManager
+public class ResourceTextureManager : IResourceTextureManager
 {
     public const int NoTextureIndex = 0;
     public static readonly ResourceTexture NullTexture = new(NoTextureIndex, "null", Image.NullImage, ResourceNamespace.Global);
@@ -24,17 +24,6 @@ public class ResourceTextureManager
         Animations = new ResourceTextureAnimations(resources, this);
     }
 
-    /// <summary>
-    /// Looks up the texture, or creates one if it has not been found yet.
-    /// </summary>
-    /// <param name="name">The texture name.</param>
-    /// <param name="priorityNamespace">The first namespace to look in.</param>
-    /// <param name="texture">Always returns a texture. If the function returns
-    /// true, then a texture was created. It may not be from the same namespace
-    /// though. If it returns false, that means it could not find, nor make the
-    /// texture, and the null texture was returned (which is not a null reference).
-    /// </param>
-    /// <returns>True if found (or made), false if unable to find.</returns>
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
     {
         texture = NullTexture;
@@ -67,12 +56,6 @@ public class ResourceTextureManager
         return false;
     }
 
-    /// <summary>
-    /// Gets a texture by index. If the index is out of range, then the
-    /// <see cref="NullTexture"/> is returned.
-    /// </summary>
-    /// <param name="index">The index to get.</param>
-    /// <returns>The texture, or the "null texture" singleton.</returns>
     public ResourceTexture GetByIndex(int index)
     {
         return index >= 0 && index < m_textureList.Count ? m_textureList[index] : NullTexture;
@@ -90,14 +73,6 @@ public class ResourceTextureManager
         return texture;
     }
 
-    /// <summary>
-    /// Get a texture by index, checks if the index is null and returns Doom's
-    /// zero indexed texture (usually AASHITTY). This function is only intended
-    /// to be used for vanilla compatibility like FloorRaiseByTexture.
-    /// </summary>
-    /// <param name="index">The index of the texture.</param>
-    /// <returns>Returns a texture at the given index. If the texture is
-    /// animated it's current animation texture will be returned.</returns>
     public ResourceTexture GetNullCompatibilityTexture(int index)
     {
         // TODO
