@@ -19,7 +19,7 @@ public interface IResourceTextureAnimations : ITickable
     /// animation.</param>
     /// <returns>Either the same texture, or the animated texture for this
     /// texture.</returns>
-    ResourceTexture Lookup(ResourceTexture texture);
+    ResourceTexture Lookup(ResourceTexture texture) => Lookup(texture.Index);
     
     /// <summary>
     /// Looks up the texture based on its texture index.

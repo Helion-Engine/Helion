@@ -26,10 +26,17 @@ public class ResourceTextureManager : IResourceTextureManager
     {
         m_resources = resources;
         m_animations = new ResourceTextureAnimations(resources, this);
-        m_animations.Add(NullTexture);
     }
 
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
+    {
+        return TryGetInternal(name, priorityNamespace, out texture, true);
+    }
+    
+    // This does the job of TryGet, but it can be called by the animation
+    // manager without fear of infinite recursion.
+    internal bool TryGetInternal(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture,
+        bool alsoLoadFromAnimationManager)
     {
         texture = NullTexture;
 
@@ -47,11 +54,17 @@ public class ResourceTextureManager : IResourceTextureManager
             texture = trackedTexture;
             return true;
         }
-        
+
         Image? image = m_resources.ImageRetriever.Get(name, priorityNamespace);
         if (image != null)
         {
             texture = CreateNewTexture(name, priorityNamespace, image);
+
+            // This must come after the texture is loaded above, so it can be
+            // found, and not go into an infinite loop.
+            if (alsoLoadFromAnimationManager)
+                m_animations.Load(name, priorityNamespace);
+                
             return true;
         }
 
@@ -74,7 +87,6 @@ public class ResourceTextureManager : IResourceTextureManager
         ResourceTexture texture = new(index, name, image, priorityNamespace);
         m_textures.Insert(name, priorityNamespace, texture);
         m_textureList.Add(texture);
-        m_animations.Add(texture);
         
         return texture;
     }

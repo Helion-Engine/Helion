@@ -1,43 +1,72 @@
-﻿using System;
-using System.Collections.Generic;
-using NLog;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Util.Extensions;
 
 namespace Helion.Resources.TexturesNew.Animations;
 
+/// <summary>
+/// A concrete implementation of a texture animation manager.
+/// </summary>
 public class ResourceTextureAnimations : IResourceTextureAnimations
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     private readonly IResources m_resources;
     private readonly ResourceTextureManager m_textureManager;
-    private readonly List<ResourceTexture> m_translation = new();
     private readonly List<ResourceAnimation> m_animations = new();
-    
+    private readonly Dictionary<int, ResourceAnimation> m_textureIndexToAnimation = new();
+
     public ResourceTextureAnimations(IResources resources, ResourceTextureManager textureManager)
     {
         m_resources = resources;
         m_textureManager = textureManager;
     }
-
-    public ResourceTexture Lookup(ResourceTexture texture) => m_translation[texture.Index];
-    public ResourceTexture Lookup(int textureIndex) => m_translation[textureIndex];
-
-    internal void Add(ResourceTexture texture)
+    
+    public ResourceTexture Lookup(int textureIndex)
     {
-        if (texture.Index < m_translation.Count)
+        if (m_textureIndexToAnimation.TryGetValue(textureIndex, out ResourceAnimation? animation))
+            return animation.Texture;
+        return ResourceTextureManager.NullTexture;
+    }
+
+    internal void Load(string name, ResourceNamespace priorityNamespace)
+    {
+        // TODO: Looking this up instead of iterating over a list would be much better.
+        List<AnimatedTexture> animTextures = m_resources.Animdefs.AnimatedTextures;
+        
+        foreach (AnimatedTexture t in animTextures.Where(t => t.Name.EqualsIgnoreCase(name)))
+            LoadAnimation(name, t, priorityNamespace);
+    }
+
+    private void LoadAnimation(string name, AnimatedTexture animatedTexture, ResourceNamespace priorityNamespace)
+    {
+        List<ResourceAnimationTexture> animationTextures = new();
+        List<int> textureIndicesForThisAnimation = new();
+        
+        foreach (AnimatedTextureComponent component in animatedTexture.Components)
         {
-            Log.Error($"Adding the same texture to the animator twice: {texture.Name} ({texture.Namespace}, index {texture.Index})");
-            return;
+            // Remember that this can return the "null missing texture", so even
+            // if it fails, that is okay, we just want some texture. Since we are
+            // calling into who is directly calling us, we must avoid recursion too.
+            m_textureManager.TryGetInternal(name, priorityNamespace, out ResourceTexture texture, false);
+            
+            // TODO: Implement this properly with oscillating, random, etc, one day.
+            ResourceAnimationTexture animationTexture = new(texture, component.MaxTicks);
+            animationTextures.Add(animationTexture);
+            
+            textureIndicesForThisAnimation.Add(texture.Index);
         }
         
-        if (texture.Index > m_translation.Count)
-            throw new Exception($"Allocated texture but did not track it ({texture.Name}: {texture.Index}, translation count: {m_translation.Count})");
-        
-        m_translation.Add(texture);
+        ResourceAnimation animation = new(animationTextures);
+        m_animations.Add(animation);
+
+        foreach (int textureIndex in textureIndicesForThisAnimation)
+            m_textureIndexToAnimation[textureIndex] = animation;
     }
 
     public void Tick()
     {
-        // TODO
+        // Don't generate any GC pressure since this will get called every tick.
+        for (int i = 0; i < m_animations.Count; i++)
+            m_animations[i].Tick();
     }
 }
