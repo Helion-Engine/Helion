@@ -23,8 +23,8 @@ public class ResourceTextureManager : IResourceTextureManager
     private readonly List<ResourceTexture> m_textureList = new() { NullTexture };
 
     public int Count => m_textureList.Count;
-    public IResourceTextureAnimationManager AnimationManager => m_animationManager;
-    public IResourceSpriteManager ResourceSpriteManager => m_resourceSpriteManager;
+    public IResourceTextureAnimationManager Animations => m_animationManager;
+    public IResourceSpriteManager Sprites => m_resourceSpriteManager;
     
     public ResourceTextureManager(IResources resources)
     {

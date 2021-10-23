@@ -16,12 +16,12 @@ public interface IResourceTextureManager
     /// <summary>
     /// The animations that the texture manager uses.
     /// </summary>
-    IResourceTextureAnimationManager AnimationManager { get; }
+    IResourceTextureAnimationManager Animations { get; }
     
     /// <summary>
     /// Manages sprites from this texture manager.
     /// </summary>
-    IResourceSpriteManager ResourceSpriteManager { get; }
+    IResourceSpriteManager Sprites { get; }
     
     /// <summary>
     /// Gets a texture based on a texture index. If the index is out of range,
@@ -38,7 +38,7 @@ public interface IResourceTextureManager
     /// <param name="texture">Always returns a texture. If the function returns
     /// true, then a texture was created. It may not be from the same namespace
     /// though. If it returns false, that means it could not find, nor make the
-    /// texture, and the "null texture" singleton was returned.
+    /// texture, and the "missing texture" singleton was returned.
     /// </param>
     /// <returns>True if found (or made), false if unable to find.</returns>
     bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture);
