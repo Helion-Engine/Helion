@@ -25,7 +25,7 @@ public class ResourceTextureAnimationManager : IResourceTextureAnimationManager
     {
         if (m_textureIndexToAnimation.TryGetValue(textureIndex, out ResourceAnimation? animation))
             return animation.Texture;
-        return ResourceTextureManager.NullTexture;
+        return m_textureManager[textureIndex];
     }
 
     internal void Load(string name, ResourceNamespace priorityNamespace)

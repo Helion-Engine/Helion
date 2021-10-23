@@ -22,15 +22,18 @@ public class ResourceTextureManager : IResourceTextureManager
     private readonly ResourceTracker<ResourceTexture> m_textures = new();
     private readonly List<ResourceTexture> m_textureList = new() { NullTexture };
 
+    public int Count => m_textureList.Count;
     public IResourceTextureAnimationManager AnimationManager => m_animationManager;
-    public IResourceSpriteManager ResourceSpriteManager => m_resourceSpriteManager; 
-
+    public IResourceSpriteManager ResourceSpriteManager => m_resourceSpriteManager;
+    
     public ResourceTextureManager(IResources resources)
     {
         m_resources = resources;
         m_animationManager = new ResourceTextureAnimationManager(resources, this);
         m_resourceSpriteManager = new ResourceSpriteManager(this);
     }
+
+    public ResourceTexture this[int index] => GetByIndex(index);
 
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
     {

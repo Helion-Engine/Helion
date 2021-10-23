@@ -9,6 +9,11 @@ namespace Helion.Resources.Textures;
 public interface IResourceTextureManager
 {
     /// <summary>
+    /// Gets the number of textures present in the texture manager.
+    /// </summary>
+    int Count { get; }
+
+    /// <summary>
     /// The animations that the texture manager uses.
     /// </summary>
     IResourceTextureAnimationManager AnimationManager { get; }
@@ -17,6 +22,13 @@ public interface IResourceTextureManager
     /// Manages sprites from this texture manager.
     /// </summary>
     IResourceSpriteManager ResourceSpriteManager { get; }
+    
+    /// <summary>
+    /// Gets a texture based on a texture index. If the index is out of range,
+    /// it will return a "missing texture" object.
+    /// </summary>
+    /// <param name="index">The texture index.</param>
+    ResourceTexture this[int index] { get; }
     
     /// <summary>
     /// Looks up the texture, or creates one if it has not been found yet.
