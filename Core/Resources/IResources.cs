@@ -40,7 +40,7 @@ public interface IResources : IDisposable
     CompatibilityDefinitions Compatibility { get; }
     DecorateDefinitions Decorate { get; }
     FontManager Fonts { get; }
-    ITextureManager Textures { get; }
+    IResourceTextureManager Textures { get; }
     ResourceTracker<TextureDefinition> TextureDefinitions { get; }
     SoundInfoDefinition SoundInfo { get; }
     LockDefinitions Locks { get; }

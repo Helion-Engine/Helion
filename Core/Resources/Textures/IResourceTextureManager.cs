@@ -1,7 +1,7 @@
-﻿using Helion.Resources.TexturesNew.Animations;
-using Helion.Resources.TexturesNew.Sprites;
+﻿using Helion.Resources.Textures.Animations;
+using Helion.Resources.Textures.Sprites;
 
-namespace Helion.Resources.TexturesNew;
+namespace Helion.Resources.Textures;
 
 /// <summary>
 /// Responsible for managing textures that come from a resource collection.

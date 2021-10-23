@@ -53,7 +53,7 @@ public class ArchiveCollection : IResources
     public CompatibilityDefinitions Compatibility => Definitions.Compatibility;
     public DecorateDefinitions Decorate => Definitions.Decorate;
     public FontManager Fonts { get; } = new();
-    public ITextureManager Textures { get; }
+    public IResourceTextureManager Textures { get; }
     public ResourceTracker<TextureDefinition> TextureDefinitions => Definitions.Textures;
     public SoundInfoDefinition SoundInfo => Definitions.SoundInfo;
     public LockDefinitions Locks => Definitions.LockDefininitions;
@@ -74,7 +74,7 @@ public class ArchiveCollection : IResources
     {
         m_archiveLocator = archiveLocator;
         Definitions = new DefinitionEntries(this, config);
-        Textures = new Textures.TextureManager(this);
+        Textures = new ResourceTextureManager(this);
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
         ImageRetriever = new ArchiveImageRetriever(this);
     }

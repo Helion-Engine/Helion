@@ -5,7 +5,7 @@ using System.Linq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Resources.TexturesNew.Sprites;
+namespace Helion.Resources.Textures.Sprites;
 
 public class ResourceSpriteManager : IResourceSpriteManager
 {

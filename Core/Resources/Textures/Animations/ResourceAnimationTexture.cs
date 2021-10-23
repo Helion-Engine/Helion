@@ -1,6 +1,6 @@
 ﻿using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Resources.TexturesNew.Animations;
+namespace Helion.Resources.Textures.Animations;
 
 /// <summary>
 /// An animation is composed of one or more of these.

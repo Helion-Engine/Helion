@@ -3,7 +3,7 @@ using System.Linq;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Util.Extensions;
 
-namespace Helion.Resources.TexturesNew.Animations;
+namespace Helion.Resources.Textures.Animations;
 
 /// <summary>
 /// A concrete implementation of a texture animation manager.

@@ -1,6 +1,6 @@
 ﻿using Helion.Graphics;
 
-namespace Helion.Resources.TexturesNew;
+namespace Helion.Resources.Textures;
 
 /// <summary>
 /// A texture that derives itself from a resource. This is intended only for

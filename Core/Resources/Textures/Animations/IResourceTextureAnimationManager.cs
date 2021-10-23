@@ -1,6 +1,6 @@
 ﻿using Helion.Util;
 
-namespace Helion.Resources.TexturesNew.Animations;
+namespace Helion.Resources.Textures.Animations;
 
 /// <summary>
 /// Manages animations for a texture manager.

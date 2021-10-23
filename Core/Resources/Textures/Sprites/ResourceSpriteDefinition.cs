@@ -1,4 +1,4 @@
-﻿namespace Helion.Resources.TexturesNew.Sprites;
+﻿namespace Helion.Resources.Textures.Sprites;
 
 public class ResourceSpriteDefinition
 {

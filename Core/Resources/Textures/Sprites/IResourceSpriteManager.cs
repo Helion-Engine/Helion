@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Helion.Resources.TexturesNew.Sprites;
+namespace Helion.Resources.Textures.Sprites;
 
 /// <summary>
 /// Manages sprites from a texture manager.

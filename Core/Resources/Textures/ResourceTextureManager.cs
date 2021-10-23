@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using Helion.Graphics;
-using Helion.Resources.TexturesNew.Animations;
-using Helion.Resources.TexturesNew.Sprites;
+using Helion.Resources.Textures.Animations;
+using Helion.Resources.Textures.Sprites;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Resources.TexturesNew;
+namespace Helion.Resources.Textures;
 
 /// <summary>
 /// A concrete implementation of a resource texture manager.

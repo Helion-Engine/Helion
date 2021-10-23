@@ -3,7 +3,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Resources.TexturesNew.Animations;
+namespace Helion.Resources.Textures.Animations;
 
 /// <summary>
 /// An animation is meant to be a collection of textures that are cycled through

@@ -12,11 +12,11 @@ using Helion.Render.OpenGL.Textures.Buffer;
 using Helion.Render.OpenGL.Textures.Types;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
+using Helion.Resources.Textures;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
-using Texture = Helion.Resources.Textures.Texture;
 
 namespace Helion.Render.OpenGL.Textures;
 
@@ -163,7 +163,7 @@ public class GLTextureManager : IRendererTextureManager
     /// cannot be found.</returns>
     public GLTextureHandle Get(string name, ResourceNamespace priority)
     {
-        m_resources.Textures.TryGet(name, priority, out Texture? texture);
+        m_resources.Textures.TryGet(name, priority, out ResourceTexture? texture);
         return Get(texture, priority);
     }
 
@@ -176,7 +176,7 @@ public class GLTextureManager : IRendererTextureManager
     /// lookup fails and we pull from somewhere else. It is likely the
     /// case that the same call will be made again.</param>
     /// <returns>A texture handle.</returns>
-    public GLTextureHandle Get(Texture? texture, ResourceNamespace? priority = null)
+    public GLTextureHandle Get(ResourceTexture? texture, ResourceNamespace? priority = null)
     {
         if (texture == null)
             return NullHandle;
