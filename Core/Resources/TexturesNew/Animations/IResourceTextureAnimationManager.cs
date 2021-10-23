@@ -5,7 +5,7 @@ namespace Helion.Resources.TexturesNew.Animations;
 /// <summary>
 /// Manages animations for a texture manager.
 /// </summary>
-public interface IResourceTextureAnimations : ITickable
+public interface IResourceTextureAnimationManager : ITickable
 {
     /// <summary>
     /// Gets the texture that should be used for the provided texture.

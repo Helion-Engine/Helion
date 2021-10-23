@@ -1,4 +1,5 @@
 ﻿using Helion.Resources.TexturesNew.Animations;
+using Helion.Resources.TexturesNew.Sprites;
 
 namespace Helion.Resources.TexturesNew;
 
@@ -10,7 +11,12 @@ public interface IResourceTextureManager
     /// <summary>
     /// The animations that the texture manager uses.
     /// </summary>
-    IResourceTextureAnimations Animations { get; }
+    IResourceTextureAnimationManager AnimationManager { get; }
+    
+    /// <summary>
+    /// Manages sprites from this texture manager.
+    /// </summary>
+    IResourceSpriteManager ResourceSpriteManager { get; }
     
     /// <summary>
     /// Looks up the texture, or creates one if it has not been found yet.

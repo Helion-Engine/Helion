@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using Helion.Graphics;
 using Helion.Resources.TexturesNew.Animations;
+using Helion.Resources.TexturesNew.Sprites;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.TexturesNew;
 
 /// <summary>
-/// A concrete implementation of an <see cref="IResourceTextureManager"/>.
+/// A concrete implementation of a resource texture manager.
 /// </summary>
 public class ResourceTextureManager : IResourceTextureManager
 {
@@ -16,16 +17,19 @@ public class ResourceTextureManager : IResourceTextureManager
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly IResources m_resources;
-    private readonly ResourceTextureAnimations m_animations;
+    private readonly ResourceTextureAnimationManager m_animationManager;
+    private readonly ResourceSpriteManager m_resourceSpriteManager;
     private readonly ResourceTracker<ResourceTexture> m_textures = new();
     private readonly List<ResourceTexture> m_textureList = new() { NullTexture };
 
-    public IResourceTextureAnimations Animations => m_animations;
+    public IResourceTextureAnimationManager AnimationManager => m_animationManager;
+    public IResourceSpriteManager ResourceSpriteManager => m_resourceSpriteManager; 
 
     public ResourceTextureManager(IResources resources)
     {
         m_resources = resources;
-        m_animations = new ResourceTextureAnimations(resources, this);
+        m_animationManager = new ResourceTextureAnimationManager(resources, this);
+        m_resourceSpriteManager = new ResourceSpriteManager(this);
     }
 
     public bool TryGet(string name, ResourceNamespace priorityNamespace, out ResourceTexture texture)
@@ -63,7 +67,7 @@ public class ResourceTextureManager : IResourceTextureManager
             // This must come after the texture is loaded above, so it can be
             // found, and not go into an infinite loop.
             if (alsoLoadFromAnimationManager)
-                m_animations.Load(name, priorityNamespace);
+                m_animationManager.Load(name, priorityNamespace);
                 
             return true;
         }
@@ -99,9 +103,9 @@ public class ResourceTextureManager : IResourceTextureManager
                 Fail("Trying to get null compatibility texture with a negative index");
                 return NullTexture;
             case NoTextureIndex:
-                return m_textureList.Count >= 2 ? m_animations.Lookup(1) : NullTexture;
+                return m_textureList.Count >= 2 ? m_animationManager.Lookup(1) : NullTexture;
             default:
-                return m_animations.Lookup(index);
+                return m_animationManager.Lookup(index);
         }
     }
 }

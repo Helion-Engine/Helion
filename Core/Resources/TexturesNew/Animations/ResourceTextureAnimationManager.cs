@@ -8,14 +8,14 @@ namespace Helion.Resources.TexturesNew.Animations;
 /// <summary>
 /// A concrete implementation of a texture animation manager.
 /// </summary>
-public class ResourceTextureAnimations : IResourceTextureAnimations
+public class ResourceTextureAnimationManager : IResourceTextureAnimationManager
 {
     private readonly IResources m_resources;
     private readonly ResourceTextureManager m_textureManager;
     private readonly List<ResourceAnimation> m_animations = new();
     private readonly Dictionary<int, ResourceAnimation> m_textureIndexToAnimation = new();
 
-    public ResourceTextureAnimations(IResources resources, ResourceTextureManager textureManager)
+    public ResourceTextureAnimationManager(IResources resources, ResourceTextureManager textureManager)
     {
         m_resources = resources;
         m_textureManager = textureManager;
