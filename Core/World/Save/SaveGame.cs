@@ -69,7 +69,9 @@ public class SaveGame
     {
         byte[] data = new byte[entry.Length];
         using Stream stream = entry.Open();
-        stream.Read(data, 0, (int)entry.Length);
+        int totalRead = 0;
+        while (totalRead < data.Length)
+            totalRead += stream.Read(data, totalRead, (int)entry.Length - totalRead);
         return Encoding.UTF8.GetString(data);
     }
 
