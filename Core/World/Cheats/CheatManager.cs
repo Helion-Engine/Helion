@@ -17,7 +17,7 @@ public class CheatManager : IEnumerable<ICheat>
         new LevelCheat("$STSTR_CLEV", "idclev", CheatType.ChangeLevel),
         new LevelCheat("$STSTR_MUS", "idmus", CheatType.ChangeMusic),
         new MultiCodeCheat("$STSTR_NCON", "$STSTR_NCOFF", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
-        new ExactMatchCheat(string.Empty, string.Empty, "idmypos", CheatType.ShowPosition),
+        new ExactMatchCheat(string.Empty, string.Empty, "idmypos", "showposition", CheatType.ShowPosition),
         new AutoMapCheat(string.Empty, "iddt", CheatType.AutomapMode),
         new ExactMatchCheat("$STSTR_DQDON", "$STSTR_DQDOFF", "iddqd", "god", CheatType.God),
         new ExactMatchCheat("$STSTR_FLY", "Fly mode off", "fly", "fly", CheatType.Fly),
@@ -38,7 +38,7 @@ public class CheatManager : IEnumerable<ICheat>
     };
 
     private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
-    private readonly StringBuilder m_currentCheat = new StringBuilder();
+    private readonly StringBuilder m_currentCheat = new();
 
     public event EventHandler<CheatEventArgs>? CheatActivationChanged;
 
@@ -49,7 +49,7 @@ public class CheatManager : IEnumerable<ICheat>
         m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);
     }
 
-    public void SetCheatCode(CheatType type, string code, int index = 0)
+    public static void SetCheatCode(CheatType type, string code, int index = 0)
     {
         ICheat? cheat = Cheats.FirstOrDefault(x => x.CheatType == type);
         if (cheat == null)
