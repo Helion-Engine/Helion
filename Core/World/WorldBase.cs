@@ -129,11 +129,7 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
         SpecialManager = new SpecialManager(this, m_random);
 
-        if (worldModel == null)
-        {
-            SpecialManager.StartInitSpecials(LevelStats);
-        }
-        else
+        if (worldModel != null)
         {
             WorldState = worldModel.WorldState;
             Gametick = worldModel.Gametick;
@@ -180,6 +176,9 @@ public abstract partial class WorldBase : IWorld
     {
         AddMapSpecial();
         InitBossBrainTargets();
+
+        if (worldModel == null)
+            SpecialManager.StartInitSpecials(LevelStats);
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
