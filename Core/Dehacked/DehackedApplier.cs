@@ -601,33 +601,33 @@ public class DehackedApplier
 
         var cheat = dehacked.Cheat;
         if (cheat.Chainsaw != null)
-            CheatManager.Instance.SetCheatCode(CheatType.Chainsaw, cheat.Chainsaw);
+            CheatManager.SetCheatCode(CheatType.Chainsaw, cheat.Chainsaw);
         if (cheat.God != null)
-            CheatManager.Instance.SetCheatCode(CheatType.God, cheat.God);
+            CheatManager.SetCheatCode(CheatType.God, cheat.God);
         if (cheat.AmmoAndKeys != null)
-            CheatManager.Instance.SetCheatCode(CheatType.GiveAll, cheat.AmmoAndKeys);
+            CheatManager.SetCheatCode(CheatType.GiveAll, cheat.AmmoAndKeys);
         if (cheat.Ammo != null)
-            CheatManager.Instance.SetCheatCode(CheatType.GiveAllNoKeys, cheat.Ammo);
+            CheatManager.SetCheatCode(CheatType.GiveAllNoKeys, cheat.Ammo);
         if (cheat.NoClip1 != null)
-            CheatManager.Instance.SetCheatCode(CheatType.NoClip, cheat.NoClip1, 0);
+            CheatManager.SetCheatCode(CheatType.NoClip, cheat.NoClip1, 0);
         if (cheat.NoClip2 != null)
-            CheatManager.Instance.SetCheatCode(CheatType.NoClip, cheat.NoClip2, 1);
+            CheatManager.SetCheatCode(CheatType.NoClip, cheat.NoClip2, 1);
         if (cheat.Behold != null)
-            CheatManager.Instance.SetCheatCode(CheatType.Behold, cheat.Behold);
+            CheatManager.SetCheatCode(CheatType.Behold, cheat.Behold);
         if (cheat.Invincibility != null)
-            CheatManager.Instance.SetCheatCode(CheatType.BeholdInvulnerability, cheat.Invincibility);
+            CheatManager.SetCheatCode(CheatType.BeholdInvulnerability, cheat.Invincibility);
         if (cheat.Invisibility != null)
-            CheatManager.Instance.SetCheatCode(CheatType.BeholdPartialInvisibility, cheat.Invisibility);
+            CheatManager.SetCheatCode(CheatType.BeholdPartialInvisibility, cheat.Invisibility);
         if (cheat.RadSuit != null)
-            CheatManager.Instance.SetCheatCode(CheatType.BeholdRadSuit, cheat.RadSuit);
+            CheatManager.SetCheatCode(CheatType.BeholdRadSuit, cheat.RadSuit);
         if (cheat.AutoMap != null)
-            CheatManager.Instance.SetCheatCode(CheatType.BeholdComputerAreaMap, cheat.AutoMap);
+            CheatManager.SetCheatCode(CheatType.BeholdComputerAreaMap, cheat.AutoMap);
         if (cheat.LiteAmp != null)
-            CheatManager.Instance.SetCheatCode(CheatType.BeholdLightAmp, cheat.LiteAmp);
+            CheatManager.SetCheatCode(CheatType.BeholdLightAmp, cheat.LiteAmp);
         if (cheat.LevelWarp != null)
-            CheatManager.Instance.SetCheatCode(CheatType.ChangeLevel, cheat.LevelWarp);
+            CheatManager.SetCheatCode(CheatType.ChangeLevel, cheat.LevelWarp);
         if (cheat.PlayerPos != null)
-            CheatManager.Instance.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
+            CheatManager.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
     }
 
     private static void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
