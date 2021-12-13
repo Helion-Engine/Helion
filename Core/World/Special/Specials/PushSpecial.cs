@@ -36,7 +36,7 @@ public class PushSpecial : ISpecial
         m_world = world;
         m_sector = sector;
         m_pushFactor = pushFactor.To3D(0);
-        m_magnitude = GetMagnitude(m_pushFactor);
+        m_magnitude = pushFactor.Length();
         m_pusher = pusher;
     }
 
@@ -55,11 +55,11 @@ public class PushSpecial : ISpecial
 
     public SpecialTickStatus Tick()
     {
+        // TODO logic changes when Transfer Heights is implemented
         if (m_type == PushType.Push && m_pusher != null)
         {
             Box2D box = new(m_pusher.Position.XY, m_magnitude * 2);
-            var intersections = m_world.BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
-                BlockmapTraverseEntityFlags.NotNoGravity | BlockmapTraverseEntityFlags.NotNoClip);
+            var intersections = m_world.BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities);
             PushEntities(intersections);
             DataCache.Instance.FreeBlockmapIntersectList(intersections);
         }
@@ -70,10 +70,7 @@ public class PushSpecial : ISpecial
                 Vec3D pushFactor = m_pushFactor;
                 if (m_type == PushType.Wind)
                 {
-                    if (entity.Flags.NoBlockmap || entity.Flags.NoClip || entity.Flags.NoGravity)
-                        continue;
-
-                    if (!entity.IsPlayer && !entity.Flags.WindThrust)
+                    if (!entity.IsPlayer || !entity.Flags.WindThrust || entity.Flags.NoBlockmap || entity.Flags.NoClip || entity.Flags.NoGravity)
                         continue;
 
                     if (entity.Position.Z != m_sector.ToFloorZ(entity.Position))
@@ -115,15 +112,6 @@ public class PushSpecial : ISpecial
 
             bi.Entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
         }
-    }
-
-    private static double GetMagnitude(Vec3D pushFactor)
-    {
-        double dx = Math.Abs(pushFactor.X);
-        double dy = Math.Abs(pushFactor.Y);
-        if (dx < dy)
-            return dx + dy - (dx / 2);
-        return dx + dy - (dy / 2);
     }
 
     public bool Use(Entity entity) => false;

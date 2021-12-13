@@ -71,6 +71,8 @@ public class EntityManager : IDisposable
         return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
     }
 
+    public Entity? FindById(int id) => Entities.FirstOrDefault(x => x.Id == id);
+
     public Entity? Create(string className, in Vec3D pos)
     {
         var def = DefinitionComposer.GetByName(className);

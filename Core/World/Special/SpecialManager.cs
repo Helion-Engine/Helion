@@ -9,6 +9,8 @@ using Helion.Models;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -478,6 +480,15 @@ public class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.ScrollCeiling:
                 CreateScrollPlane(line, SectorPlaneFace.Ceiling);
                 break;
+            case ZDoomLineSpecialType.SectorSetWind:
+                CreatePushSpecial(PushType.Wind, line);
+                break;
+            case ZDoomLineSpecialType.SectorSetCurrent:
+                CreatePushSpecial(PushType.Current, line);
+                break;
+            case ZDoomLineSpecialType.PointPushSetForce:
+                CreatePushSpecial(PushType.Push, line);
+                break;
             case ZDoomLineSpecialType.TranslucentLine:
                 SetTranslucentLine(line, line.Args.Arg0, line.Args.Arg1);
                 break;
@@ -485,6 +496,39 @@ public class SpecialManager : ITickable, IDisposable
                 SetStaticInit(line);
                 break;
         }
+    }
+
+    private void CreatePushSpecial(PushType type, Line line)
+    {
+        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
+        foreach (var sector in sectors)
+        {
+            Entity? pusher = null;
+            if (type == PushType.Push)
+                pusher = GetPusher(sector);
+
+            AddSpecial(new PushSpecial(type, m_world, sector, GetPushFactor(line), pusher));
+        }
+    }
+
+    private Entity? GetPusher(Sector sector)
+    {
+        foreach (Entity entity in sector.Entities)
+        {
+            if (entity.Definition.EditorId == (int)EditorId.PointPusher || entity.Definition.EditorId == (int)EditorId.PointPuller)
+                return entity;
+        }
+
+        return null;
+    }
+
+    private static Vec2D GetPushFactor(Line line)
+    {
+        if (line.Args.Arg3 != 0)
+            return line.EndPosition - line.StartPosition;
+        
+        // Arg2 = angle, Arg1 = amount
+        return Vec2D.UnitCircle(line.Args.Arg2) * line.Args.Arg1;
     }
 
     private void SetStaticInit(Line line)

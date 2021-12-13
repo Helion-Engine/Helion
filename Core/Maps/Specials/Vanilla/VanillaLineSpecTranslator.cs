@@ -601,6 +601,21 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg1 = (int)ZDoomScroll.Line;
                 return ZDoomLineSpecialType.ScrollCeiling;
 
+            case VanillaLineSpecialType.SectorSetWind:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg3 = 1; // Use line for angle / magnitude
+                return ZDoomLineSpecialType.SectorSetWind;
+
+            case VanillaLineSpecialType.SectorSetCurrent:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg3 = 1; // Use line for angle / magnitude
+                return ZDoomLineSpecialType.SectorSetCurrent;
+
+            case VanillaLineSpecialType.SetPush:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg3 = 1; // Use line for angle / magnitude
+                return ZDoomLineSpecialType.PointPushSetForce;
+
             case VanillaLineSpecialType.ScrollAccellTaggedWallFirstSide:
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative;
@@ -1337,6 +1352,10 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.TranslucentLine:
             case VanillaLineSpecialType.TransferSky:
             case VanillaLineSpecialType.TransferSkyFlipped:
+            case VanillaLineSpecialType.SectorSetFriction:
+            case VanillaLineSpecialType.SectorSetWind:
+            case VanillaLineSpecialType.SectorSetCurrent:
+            case VanillaLineSpecialType.SetPush:
                 activations = LineActivations.LevelStart;
                 return activations;
 
