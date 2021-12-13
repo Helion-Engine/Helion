@@ -277,7 +277,7 @@ public class LegacyAutomapRenderer : IDisposable
             return;
 
         // Ignore player starts and deathmatch starts
-        if (entity.Definition.EditorId < 4 || entity.Definition.EditorId == 11)
+        if (EditorIds.IsPlayerStart(entity.Definition.EditorId) || entity.Definition.EditorId == (int)EditorId.DeathmatchStart)
             return;
 
         m_entityPoints.Clear();
@@ -309,7 +309,7 @@ public class LegacyAutomapRenderer : IDisposable
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
             color = AutomapColor.Yellow;
 
-        if (entity.Definition.EditorId == 14)
+        if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
         {
             color = AutomapColor.Green;
             AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
