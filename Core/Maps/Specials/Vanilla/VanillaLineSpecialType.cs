@@ -226,12 +226,10 @@ public enum VanillaLineSpecialType
     WR_LowerFloorToNearest,
     S1_LowerFloorToNearest,
     SR_LowerFloorToNearest,
-    // TODO
     SectorSetFriction,
     SectorSetWind,
     SectorSetCurrent,
     SetPush,
-    // END TODO
     W1_ElevatorRaiseToNearest,
     WR_ElevatorRaiseToNearest,
     S1_ElevatorRaiseToNearest,
