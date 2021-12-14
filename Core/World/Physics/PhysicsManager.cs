@@ -14,13 +14,13 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
+using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
@@ -32,10 +32,15 @@ namespace Helion.World.Physics;
 public class PhysicsManager
 {
     private const int MaxSlides = 3;
-    private const double Friction = 0.90625;
     private const double SlideStepBackTime = 1.0 / 32.0;
-    private const double MinMovementThreshold = 0.06;
+    private const double MinMovementThreshold = 0.01;
     private const double SetEntityToFloorSpeedMax = 9;
+    private const double MinMoveFactor = 32 / 65536.0;
+    private const double DefaultMoveFactor = 1.0;
+    private const double MudMoveFactorLow = 15000 / 65536.0;
+    private const double MudMoveFactorMed = MudMoveFactorLow * 2;
+    private const double MudMoveFactorHigh = MudMoveFactorLow * 4;
+
 
     public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
@@ -246,6 +251,39 @@ public class PhysicsManager
         return status;
     }
 
+    // Constants and logic from WinMBF.
+    // Credit to Lee Killough et al.
+    public static double GetMoveFactor(Entity entity)
+    {
+        double sectorFriction = GetFrictionFromSectors(entity);
+        double moveFactor = DefaultMoveFactor;
+
+        if (sectorFriction != Constants.DefaultFriction)
+        {
+            if (sectorFriction >= Constants.DefaultFriction)
+                moveFactor = (0x10092 - sectorFriction * 65536.0) * 0x70 / 0x158 / 65536.0;
+            else
+                moveFactor = (sectorFriction * 65536.0 - 0xDB34) * 0xA / 0x80 / 65536.0;
+
+            moveFactor = Math.Clamp(moveFactor, MinMoveFactor, double.MaxValue);
+            // The move factor was based on 2048 being default in Boom.
+            moveFactor /= 2048.0 / 65536.0;
+        }
+
+        if (sectorFriction < Constants.DefaultFriction)
+        {
+            double momentum = entity.Velocity.XY.Length();
+            if (momentum > MudMoveFactorHigh)
+                moveFactor *= 8;
+            else if (momentum > MudMoveFactorMed)
+                moveFactor *= 4;
+            else if (momentum > MudMoveFactorLow)
+                moveFactor *= 2;
+        }
+
+        return moveFactor;
+    }
+
     private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneFace moveType, double startZ, double destZ)
     {
         if (moveType == SectorPlaneFace.Floor && destZ < startZ)
@@ -378,8 +416,9 @@ public class PhysicsManager
 
     private static void ApplyFriction(Entity entity)
     {
-        entity.Velocity.X *= Friction;
-        entity.Velocity.Y *= Friction;
+        double sectorFriction = GetFrictionFromSectors(entity);
+        entity.Velocity.X *= sectorFriction;
+        entity.Velocity.Y *= sectorFriction;
     }
 
     private static void StopXYMovementIfSmall(Entity entity)
@@ -1100,8 +1139,8 @@ public class PhysicsManager
 
         // TODO: This is almost surely not how it's done, but it feels okay
         //       enough right now to leave as is.
-        entity.Velocity.X = stepProjection.X * Friction;
-        entity.Velocity.Y = stepProjection.Y * Friction;
+        entity.Velocity.X = stepProjection.X * Constants.DefaultFriction;
+        entity.Velocity.Y = stepProjection.Y * Constants.DefaultFriction;
 
         double totalRemainingDistance = ((stepProjection * movesLeft) + residualProjection).Length();
         movesLeft += 1;
@@ -1147,6 +1186,27 @@ public class PhysicsManager
         StopXYMovementIfSmall(entity);
     }
 
+    private static double GetFrictionFromSectors(Entity entity)
+    {
+        if (entity.Flags.NoClip)
+            return Constants.DefaultFriction;
+
+        double lowestFriction = double.MaxValue;
+        foreach (var sector in entity.IntersectSectors)
+        {
+            if (entity.Position.Z != sector.ToFloorZ(entity.Position))
+                continue;
+
+            if (sector.Friction < lowestFriction)
+                lowestFriction = sector.Friction;
+        }
+
+        if (lowestFriction == double.MaxValue)
+            return Constants.DefaultFriction;
+
+        return lowestFriction;
+    }
+
     private void MoveZ(Entity entity)
     {
         if (m_world.WorldState == WorldState.Exit)
@@ -1157,7 +1217,7 @@ public class PhysicsManager
         entity.BlockingSectorPlane = null;
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
-            entity.Velocity.Z *= Friction;
+            entity.Velocity.Z *= Constants.DefaultFriction;
         if (entity.ShouldApplyGravity())
             entity.Velocity.Z -= m_world.Gravity;
 

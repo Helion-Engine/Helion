@@ -616,6 +616,11 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg3 = 1; // Use line for angle / magnitude
                 return ZDoomLineSpecialType.PointPushSetForce;
 
+            case VanillaLineSpecialType.SectorSetFriction:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg3 = 1; // Use line for angle / magnitude
+                return ZDoomLineSpecialType.SectorSetFriction;
+
             case VanillaLineSpecialType.ScrollAccellTaggedWallFirstSide:
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative;

@@ -99,6 +99,7 @@ public interface IWorld : IDisposable
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
+    double GetMoveFactor(Entity entity);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

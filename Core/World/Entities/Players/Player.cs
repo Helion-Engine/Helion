@@ -7,7 +7,6 @@ using Helion.Models;
 using Helion.Render.Legacy.Shared;
 using Helion.Util;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -497,6 +496,13 @@ public class Player : Entity
         Vec3D movement = Vec3D.Zero;
         movement += CalculateForwardMovement(TickCommand.ForwardMoveSpeed);
         movement += CalculateStrafeMovement(TickCommand.SideMoveSpeed);
+
+        if (TickCommand.ForwardMoveSpeed != 0 || TickCommand.SideMoveSpeed != 0)
+        {
+            double moveFactor = World.GetMoveFactor(this);
+            movement.X *= moveFactor;
+            movement.Y *= moveFactor;
+        }
 
         if (TickCommand.Has(TickCommands.Jump))
         {

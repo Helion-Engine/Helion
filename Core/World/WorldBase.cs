@@ -223,6 +223,9 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
+    public double GetMoveFactor(Entity entity) => 
+        PhysicsManager.GetMoveFactor(entity);
+
     private static bool InFieldOfView(Entity from, Entity to)
     {
         double distance = from.Position.ApproximateDistance2D(to.Position);

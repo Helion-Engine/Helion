@@ -100,6 +100,8 @@ public class Sector
     public int SoundBlock;
     public Entity? SoundTarget;
 
+    public double Friction = Constants.DefaultFriction;
+
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
     {

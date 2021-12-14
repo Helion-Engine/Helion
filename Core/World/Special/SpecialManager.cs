@@ -27,11 +27,10 @@ public class SpecialManager : ITickable, IDisposable
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
 
-    private readonly LinkedList<ISpecial> m_specials = new LinkedList<ISpecial>();
-    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new List<ISectorSpecial>();
+    private readonly LinkedList<ISpecial> m_specials = new();
+    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly IRandom m_random;
     private readonly WorldBase m_world;
-    private readonly bool m_skyChanged;
 
     public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
     {
@@ -489,12 +488,27 @@ public class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.PointPushSetForce:
                 CreatePushSpecial(PushType.Push, line);
                 break;
+            case ZDoomLineSpecialType.SectorSetFriction:
+                SetSectorFriction(line);
+                break;
             case ZDoomLineSpecialType.TranslucentLine:
                 SetTranslucentLine(line, line.Args.Arg0, line.Args.Arg1);
                 break;
             case ZDoomLineSpecialType.StaticInit:
                 SetStaticInit(line);
                 break;
+        }
+    }
+
+    // Constants and logic from WinMBF.
+    // Credit to Lee Killough et al.
+    private void SetSectorFriction(Line line)
+    {
+        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
+        foreach (var sector in sectors)
+        {
+            double length = line.Segment.Length;
+            sector.Friction = Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0);           
         }
     }
 
@@ -511,7 +525,7 @@ public class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private Entity? GetPusher(Sector sector)
+    private static Entity? GetPusher(Sector sector)
     {
         foreach (Entity entity in sector.Entities)
         {
