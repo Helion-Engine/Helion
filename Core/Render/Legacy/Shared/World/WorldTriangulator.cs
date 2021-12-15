@@ -19,15 +19,13 @@ public static class WorldTriangulator
 {
     public const double NoOverride = double.MaxValue;
 
-    public static WallVertices HandleOneSided(Side side, in Vec2F textureUVInverse, double tickFraction,
+    public static WallVertices HandleOneSided(Side side, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, double tickFraction,
         double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
         Line line = side.Line;
         Sector sector = side.Sector;
-        SectorPlane floor = sector.Floor;
-        SectorPlane ceiling = sector.Ceiling;
 
         Vec2D left = isFront ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFront ? line.Segment.End : line.Segment.Start;
@@ -46,15 +44,15 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static WallVertices HandleTwoSidedLower(TwoSided facingSide, Side otherSide,
+    public static WallVertices HandleTwoSidedLower(TwoSided facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
         in Vec2F textureUVInverse, bool isFrontSide, double tickFraction)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
         Line line = facingSide.Line;
         Sector sector = facingSide.Sector;
-        SectorPlane topFlat = otherSide.Sector.Floor;
-        SectorPlane bottomFlat = sector.Floor;
+        //SectorPlane topFlat = otherSide.Sector.Floor;
+        //SectorPlane bottomFlat = sector.Floor;
 
         Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
@@ -132,18 +130,8 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    /// <summary>
-    /// Triangulates a subsector by populating the provided dynamic array
-    /// of vertices.
-    /// </summary>
-    /// <param name="subsector">The subsector to triangulate.</param>
-    /// <param name="sectorPlane">The flat plane for the subsector.</param>
-    /// <param name="textureDimension">The texture dimension.</param>
-    /// <param name="tickFraction">The fractional value for interpolating
-    /// the subsector.</param>
-    /// <param name="verticesToPopulate">An output array where vertices are
-    /// written to upon triangulating.</param>
-    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
+    public static void HandleSubsector(Subsector subsector, double z, double prevZ, SectorPlaneFace face,
+        SectorScrollData? scrollData, in Dimension textureDimension,
         double tickFraction, DynamicArray<WorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -152,7 +140,7 @@ public static class WorldTriangulator
         List<SubsectorSegment> edges = subsector.ClockwiseEdges;
         verticesToPopulate.Clear();
 
-        if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
+        if (face == SectorPlaneFace.Ceiling)
         {
             for (int i = 0; i < edges.Count; i++)
             {
@@ -160,12 +148,12 @@ public static class WorldTriangulator
 
                 // TODO: Interpolation and slopes needs a slight change in
                 //       how we store sector flat plane information.
-                double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
+                z = prevZ.Interpolate(z, tickFraction);
                 if (overrideZ != int.MaxValue)
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane, vertex, textureDimension, tickFraction);
+                Vec2F uv = CalculateFlatUV(scrollData, vertex, textureDimension, tickFraction);
 
                 verticesToPopulate.Add(new WorldVertex(position, uv));
             }
@@ -181,12 +169,12 @@ public static class WorldTriangulator
 
                 // TODO: Interpolation and slopes needs a slight change in
                 //       how we store sector flat plane information.
-                double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
+                z = prevZ.Interpolate(z, tickFraction);
                 if (overrideZ != int.MaxValue)
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane, vertex, textureDimension, tickFraction);
+                Vec2F uv = CalculateFlatUV(scrollData, vertex, textureDimension, tickFraction);
 
                 verticesToPopulate.Add(new WorldVertex(position, uv));
             }
@@ -337,13 +325,13 @@ public static class WorldTriangulator
         return scrollAmount * textureUVInverse;
     }
 
-    private static Vec2F CalculateFlatUV(SectorPlane sectorPlane, in Vec2D vertex, in Dimension textureDimension,
+    private static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Dimension textureDimension,
         double tickFraction)
     {
         Vec2F uv = vertex.Float / textureDimension.Vector.Float;
-        if (sectorPlane.SectorScrollData != null)
+        if (scrollData != null)
         {
-            Vec2F scrollAmount = sectorPlane.SectorScrollData.LastOffset.Interpolate(sectorPlane.SectorScrollData.Offset, tickFraction).Float;
+            Vec2F scrollAmount = scrollData.LastOffset.Interpolate(scrollData.Offset, tickFraction).Float;
             uv.X += scrollAmount.X;
             uv.Y -= scrollAmount.Y;
         }

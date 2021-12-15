@@ -651,6 +651,10 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg2 = 1;
                 return ZDoomLineSpecialType.StaticInit;
 
+            case VanillaLineSpecialType.TransferHeights:
+                argsToMutate.Arg0 = tag;
+                return ZDoomLineSpecialType.TransferHeights;
+
             default:
                 Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                 break;
@@ -1361,6 +1365,7 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.SectorSetWind:
             case VanillaLineSpecialType.SectorSetCurrent:
             case VanillaLineSpecialType.SetPush:
+            case VanillaLineSpecialType.TransferHeights:
                 activations = LineActivations.LevelStart;
                 return activations;
 

@@ -8,6 +8,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Legacy;
 using Helion.Render.Legacy.Util;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
@@ -19,6 +20,7 @@ using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
 
@@ -139,6 +141,15 @@ public partial class WorldLayer
         }
     }
 
+    private static short GetLightLevel(Player player)
+    {
+        if (player.Sector.TransferHeights == null)
+            return player.Sector.LightLevel;
+
+        return TransferHeightsRendering.GetSectorLightLevel(player.Sector, 
+            TransferHeightsRendering.GetPos(player.Sector.TransferHeights.ControlSector, player.GetViewPosition()));
+    }
+
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset)
     {
         int lightLevel;
@@ -150,10 +161,11 @@ public partial class WorldLayer
         else
         {
             int extraLight = Player.ExtraLight * Constants.ExtraLightFactor;
+            lightLevel = GetLightLevel(Player);
             if (m_config.Render.LightDropoff)
-                lightLevel = GLHelper.DoomLightLevelToColor(Player.Sector.LightLevel, extraLight);
+                lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
             else
-                lightLevel = (int)(GLHelper.DoomLightLevelToColorStatic(Player.Sector.LightLevel, extraLight) * 255);
+                lightLevel = (int)(GLHelper.DoomLightLevelToColorStatic(lightLevel, extraLight) * 255);
         }
 
         Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);

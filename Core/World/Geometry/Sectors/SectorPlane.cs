@@ -22,6 +22,7 @@ public class SectorPlane : ISoundSource
     public double PrevZ;
     public int TextureHandle { get; private set; }
     public short LightLevel { get; set; }
+    public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
     public bool RenderingChanged { get; private set; }
 
     public event EventHandler? OnRenderingChanged;

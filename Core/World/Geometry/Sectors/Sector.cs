@@ -102,6 +102,9 @@ public class Sector
 
     public double Friction = Constants.DefaultFriction;
 
+    private Sector m_transferFloorLightSector;
+    private Sector m_transferCeilingLightSector;
+
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
     {
@@ -116,7 +119,24 @@ public class Sector
 
         floor.Sector = this;
         ceiling.Sector = this;
+        m_transferFloorLightSector = this;
+        m_transferCeilingLightSector = this;
     }
+
+    public void SetTransferFloorLight(Sector sector)
+    {
+        m_transferFloorLightSector = sector;
+        SetFloorLightLevel(Floor.LightLevel, true);
+    }
+
+    public void SetTransferCeilingLight(Sector sector)
+    {
+        m_transferCeilingLightSector = sector;
+        SetCeilingLightLevel(Floor.LightLevel, true);
+    }
+
+    public short FloorRenderLightLevel => m_transferCeilingLightSector.Floor.LightLevel;
+    public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
 
     public void SetLightLevel(short lightLevel)
     {

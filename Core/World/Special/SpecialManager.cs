@@ -497,7 +497,17 @@ public class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.StaticInit:
                 SetStaticInit(line);
                 break;
+            case ZDoomLineSpecialType.TransferHeights:
+                SetTransferHeights(line);
+                break;
         }
+    }
+
+    private void SetTransferHeights(Line line)
+    {
+        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
+        foreach (var sector in sectors)
+            sector.TransferHeights = new TransferHeights(line.Front.Sector);
     }
 
     // Constants and logic from WinMBF.
@@ -1178,14 +1188,14 @@ public class SpecialManager : ITickable, IDisposable
     {
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
-            sector.SetCeilingLightLevel(line.Front.Sector.LightLevel, false);
+            sector.SetTransferCeilingLight(line.Front.Sector);
     }
 
     private void SetFloorLight(Line line)
     {
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
-            sector.SetFloorLightLevel(line.Front.Sector.LightLevel, false);
+            sector.SetTransferFloorLight(line.Front.Sector);
     }
 
     private ISpecial? CreatePlatToggleCeiling(Sector sector)

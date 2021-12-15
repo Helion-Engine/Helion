@@ -59,6 +59,10 @@ public class LineOpening
     {
         Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
 
+        // TODO This can be smarter. This is just to allow rendering tricks for invisible platforms.
+        if (line.Front.Sector.TransferHeights != null || line.Back!.Sector.TransferHeights != null)
+            return false;
+
         // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
         // E.g. TNT Map02 - see through window that opens as a door
         if (line.Back!.Sector.Ceiling.Z <= line.Front.Sector.Floor.Z || line.Back.Sector.Floor.Z >=  line.Front.Sector.Ceiling.Z)

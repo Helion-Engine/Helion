@@ -107,10 +107,11 @@ public class LegacyWorldRenderer : WorldRenderer
     private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
     {
         Vec2D position = renderInfo.Camera.Position.XY.Double;
+        Vec3D position3D = renderInfo.Camera.Position.Double;
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
 
         m_viewClipper.Center = position;
-        RecursivelyRenderBsp(world.BspTree.Root, position, viewDirection, world);
+        RecursivelyRenderBsp(world.BspTree.Root, position3D, viewDirection, world);
 
         // This will just render based on distance from their center point.
         // Not really correct, but mostly correct enough for now.
@@ -127,7 +128,7 @@ public class LegacyWorldRenderer : WorldRenderer
             else if (renderObject.Type == RenderObjectType.Side)
             {
                 Side side = (Side)renderObject;
-                m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position));
+                m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position), position3D);
             }
         }
     }
@@ -141,10 +142,10 @@ public class LegacyWorldRenderer : WorldRenderer
         return m_viewClipper.InsideAnyRange(first, second);
     }
 
-    private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec2D position, in Vec2D viewDirection,
+    private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec3D position, in Vec2D viewDirection,
         WorldBase world)
     {
-        if (Occluded(node.BoundingBox, position))
+        if (Occluded(node.BoundingBox, position.XY))
             return;
 
         // TODO: Consider changing to xor trick to avoid branching?
@@ -174,13 +175,13 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
+    private void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D viewDirection)
     {
-        if (Occluded(subsector.BoundingBox, position))
+        if (Occluded(subsector.BoundingBox, position.XY))
             return;
 
         m_geometryRenderer.RenderSubsector(subsector, position);
-        m_entityRenderer.RenderSubsector(subsector, position, viewDirection);
+        m_entityRenderer.RenderSubsector(subsector, position.XY, viewDirection);
     }
 
     private void SetUniforms(RenderInfo renderInfo)
