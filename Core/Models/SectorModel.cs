@@ -19,4 +19,7 @@ public class SectorModel
     public int? SkyTexture;
     public bool Secret;
     public int DamageAmount;
+    public int? TransferFloorLight;
+    public int? TransferCeilingLight;
+    public int? TransferHeights;
 }

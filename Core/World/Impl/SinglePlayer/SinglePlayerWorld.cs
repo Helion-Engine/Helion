@@ -173,7 +173,7 @@ public class SinglePlayerWorld : WorldBase
             if (sectorModel.Id < 0 || sectorModel.Id >= Sectors.Count)
                 continue;
 
-            Sectors[sectorModel.Id].ApplySectorModel(sectorModel, result);
+            Sectors[sectorModel.Id].ApplySectorModel(sectorModel, result, Sectors);
         }
     }
 

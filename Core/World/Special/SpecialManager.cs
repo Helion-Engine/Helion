@@ -507,7 +507,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
-            sector.TransferHeights = new TransferHeights(line.Front.Sector);
+            sector.SetTransferHeights(line.Front.Sector);
     }
 
     // Constants and logic from WinMBF.

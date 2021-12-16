@@ -15,4 +15,5 @@ public enum SectorDataTypes
     Offset = 128,
     Secret = 256,
     SkyTexture = 512,
+    TransferHeights = 1024,
 }

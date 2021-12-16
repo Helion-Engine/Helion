@@ -135,7 +135,7 @@ public class Sector
         SetCeilingLightLevel(Floor.LightLevel, true);
     }
 
-    public short FloorRenderLightLevel => m_transferCeilingLightSector.Floor.LightLevel;
+    public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
 
     public void SetLightLevel(short lightLevel)
@@ -196,9 +196,15 @@ public class Sector
         SetRenderingChanged();
     }
 
+    public void SetTransferHeights(Sector controlSector)
+    {
+        TransferHeights = new TransferHeights(controlSector);
+        DataChanges |= SectorDataTypes.TransferHeights;
+    }
+
     public SectorModel ToSectorModel()
     {
-        SectorModel sectorModel = new SectorModel()
+        SectorModel sectorModel = new()
         {
             Id = Id,
             SoundValidationCount = SoundValidationCount,
@@ -207,7 +213,10 @@ public class Sector
             Secret = Secret,
             SectorSpecialType = (int)SectorSpecialType,
             SectorDataChanges = (int)DataChanges,
-            SkyTexture  = SkyTextureHandle
+            SkyTexture = SkyTextureHandle,
+            TransferFloorLight = m_transferFloorLightSector?.Id,
+            TransferCeilingLight = m_transferCeilingLightSector?.Id,
+            TransferHeights = TransferHeights?.ControlSector.Id
         };
 
         if (DataChanged)
@@ -238,7 +247,7 @@ public class Sector
         return sectorModel;
     }
 
-    public void ApplySectorModel(SectorModel sectorModel, WorldModelPopulateResult result)
+    public void ApplySectorModel(SectorModel sectorModel, WorldModelPopulateResult result, IList<Sector> sectors)
     {
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
@@ -290,7 +299,18 @@ public class Sector
             Secret = sectorModel.Secret;
             DamageAmount = sectorModel.DamageAmount;
         }
+
+        if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
+            m_transferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
+
+        if (sectorModel.TransferCeilingLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferCeilingLight.Value))
+            m_transferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
+
+        if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
+            TransferHeights = new TransferHeights(sectors[sectorModel.TransferHeights.Value]);
     }
+
+    private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
 
     public LinkableNode<Entity> Link(Entity entity)
     {
