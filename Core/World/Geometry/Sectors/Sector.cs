@@ -17,6 +17,8 @@ using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
+using Helion.Render.Legacy;
+using Helion.World.Geometry.Subsectors;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -71,7 +73,7 @@ public class Sector
     /// The light level of the sector. This is usually between 0 - 255, but
     /// can be outside the range.
     /// </summary>
-    public short LightLevel { get; private set; }
+    public short LightLevel { get; set; }
 
     /// <summary>
     /// The transfer heights applied to this sector, or null if none are.
@@ -93,7 +95,8 @@ public class Sector
     public bool Has3DFloors => !Floors3D.Empty();
     public SectorDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
-    public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ);
+    public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ) ||
+        (TransferHeights != null && TransferHeights.ControlSector.PlaneHeightChanged);
     public bool LightingChanged => DataChanges.HasFlag(SectorDataTypes.Light);
 
     public int SoundValidationCount;
@@ -121,6 +124,14 @@ public class Sector
         ceiling.Sector = this;
         m_transferFloorLightSector = this;
         m_transferCeilingLightSector = this;
+    }
+
+    public Sector GetRenderSector(Sector sector, double viewZ)
+    {
+        if (TransferHeights == null)
+            return this;
+
+        return TransferHeights.GetRenderSector(sector, viewZ);
     }
 
     public void SetTransferFloorLight(Sector sector)
@@ -198,7 +209,7 @@ public class Sector
 
     public void SetTransferHeights(Sector controlSector)
     {
-        TransferHeights = new TransferHeights(controlSector);
+        TransferHeights = new TransferHeights(this, controlSector);
         DataChanges |= SectorDataTypes.TransferHeights;
     }
 
@@ -307,7 +318,7 @@ public class Sector
             m_transferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
-            TransferHeights = new TransferHeights(sectors[sectorModel.TransferHeights.Value]);
+            TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value]);
     }
 
     private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;

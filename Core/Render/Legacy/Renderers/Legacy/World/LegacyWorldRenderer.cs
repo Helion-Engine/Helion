@@ -20,6 +20,7 @@ using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using static Helion.Util.Assertion.Assert;
@@ -104,11 +105,14 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);
     }
 
+    private Sector m_viewSector;
+
     private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
     {
         Vec2D position = renderInfo.Camera.Position.XY.Double;
         Vec3D position3D = renderInfo.Camera.Position.Double;
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_viewSector = world.BspTree.ToSubsector(position3D).Sector;
 
         m_viewClipper.Center = position;
         RecursivelyRenderBsp(world.BspTree.Root, position3D, viewDirection, world);
@@ -147,7 +151,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         if (Occluded(node.BoundingBox, position.XY))
             return;
-
+        
         // TODO: Consider changing to xor trick to avoid branching?
         if (node.Splitter.OnRight(position))
         {
@@ -180,7 +184,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (Occluded(subsector.BoundingBox, position.XY))
             return;
 
-        m_geometryRenderer.RenderSubsector(subsector, position);
+        m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position);
         m_entityRenderer.RenderSubsector(subsector, position.XY, viewDirection);
     }
 

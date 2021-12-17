@@ -146,8 +146,7 @@ public partial class WorldLayer
         if (player.Sector.TransferHeights == null)
             return player.Sector.LightLevel;
 
-        return TransferHeightsRendering.GetSectorLightLevel(player.Sector, 
-            TransferHeightsRendering.GetPos(player.Sector.TransferHeights.ControlSector, player.GetViewPosition()));
+        return player.Sector.GetRenderSector(player.Sector, player.GetViewPosition().Z).LightLevel;
     }
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset)

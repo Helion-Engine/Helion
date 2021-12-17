@@ -20,7 +20,7 @@ public class SectorPlane : ISoundSource
     public Sector Sector { get; internal set; }
     public double Z;
     public double PrevZ;
-    public int TextureHandle { get; private set; }
+    public int TextureHandle { get; set; }
     public short LightLevel { get; set; }
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
     public bool RenderingChanged { get; private set; }

@@ -25,7 +25,6 @@ public static class WorldTriangulator
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
         Line line = side.Line;
-        Sector sector = side.Sector;
 
         Vec2D left = isFront ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFront ? line.Segment.End : line.Segment.Start;
@@ -50,9 +49,6 @@ public static class WorldTriangulator
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
         Line line = facingSide.Line;
-        Sector sector = facingSide.Sector;
-        //SectorPlane topFlat = otherSide.Sector.Floor;
-        //SectorPlane bottomFlat = sector.Floor;
 
         Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
@@ -72,7 +68,7 @@ public static class WorldTriangulator
 
     public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ,
-        bool isFrontSide, out bool nothingVisible, double tickFraction)
+        bool isFrontSide, out bool nothingVisible, double tickFraction, double offset = 0)
     {
         if (LineOpening.IsRenderingBlocked(facingSide.Line))
         {
@@ -81,7 +77,7 @@ public static class WorldTriangulator
         }
 
         Line line = facingSide.Line;
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, textureDimension);
+        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, textureDimension, offset);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
@@ -102,15 +98,12 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static WallVertices HandleTwoSidedUpper(Side facingSide, Side otherSide, in Vec2F textureUVInverse,
+    public static WallVertices HandleTwoSidedUpper(Side facingSide, SectorPlane topPlane, SectorPlane bottomPlane, in Vec2F textureUVInverse,
         bool isFrontSide, double tickFraction, double overrideTopZ = NoOverride)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
 
         Line line = facingSide.Line;
-        Sector sector = facingSide.Sector;
-        SectorPlane topPlane = sector.Ceiling;
-        SectorPlane bottomPlane = otherSide.Sector.Ceiling;
 
         Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
@@ -182,7 +175,7 @@ public static class WorldTriangulator
     }
 
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, TwoSided facingSide, double bottomOpeningZ,
-        double topOpeningZ, in Dimension textureDimension)
+        double topOpeningZ, in Dimension textureDimension, double offset)
     {
         double topZ = topOpeningZ;
         double bottomZ = topZ - textureDimension.Height;
@@ -192,8 +185,8 @@ public static class WorldTriangulator
             topZ = bottomZ + textureDimension.Height;
         }
 
-        topZ += facingSide.Offset.Y;
-        bottomZ += facingSide.Offset.Y;
+        topZ += facingSide.Offset.Y + offset;
+        bottomZ += facingSide.Offset.Y + offset;
 
         // Check if the lower/upper textures are set. If not then then the middle can be drawn through.
         double visibleTopZ = topZ;
