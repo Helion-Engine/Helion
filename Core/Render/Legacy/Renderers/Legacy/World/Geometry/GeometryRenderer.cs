@@ -486,7 +486,7 @@ public class GeometryRenderer : IDisposable
         if (facingSide.OffsetChanged || facingSector.PlaneHeightChanged || otherSector.PlaneHeightChanged || data == null || m_cacheOverride)
         {
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
-            double offset = GetTransferHeightHackOffset(facingSide, otherSide, otherSector);
+            double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible, m_tickFraction, offset);
 
@@ -513,16 +513,15 @@ public class GeometryRenderer : IDisposable
     // There is some issue with how the original code renders middle textures with transfer heights.
     // It appears to incorrectly draw from the floor of the original sector instead of the transfer heights sector.
     // Alternatively, I could be dumb and this is dumb but it appears to work.
-    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, Sector otherSector)
+    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
         double offset = 0;
         if (otherSide.Sector.TransferHeights != null)
-            offset = otherSide.Sector.Floor.PrevZ.Interpolate(otherSide.Sector.Floor.Z, m_tickFraction) -
-                otherSector.Floor.PrevZ.Interpolate(otherSector.Floor.Z, m_tickFraction);
+            offset = otherSide.Sector.Floor.PrevZ.Interpolate(otherSide.Sector.Floor.Z, m_tickFraction);
 
         if (facingSide.Sector.TransferHeights != null)
-            offset = Math.Max(offset, facingSide.Sector.Floor.PrevZ.Interpolate(facingSide.Sector.Floor.Z, m_tickFraction) - 
-                otherSector.Floor.PrevZ.Interpolate(otherSector.Floor.PrevZ, m_tickFraction));
+            offset = Math.Max(offset, facingSide.Sector.Floor.PrevZ.Interpolate(facingSide.Sector.Floor.Z, m_tickFraction));
+
         return offset;
     }
 
