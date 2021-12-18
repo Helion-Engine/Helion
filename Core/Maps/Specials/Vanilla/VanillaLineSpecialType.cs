@@ -245,10 +245,7 @@ public enum VanillaLineSpecialType
     W1_FloorTransferNumeric,
     WR_FloorTransferNumeric,
     S1_FloorTransferNumeric,
-
-    // TODO
     TransferHeights,
-    // END TODO
     W1_TeleportLine,
     WR_TeleportLine,
     ScrollTaggedCeilingFirstSide,
