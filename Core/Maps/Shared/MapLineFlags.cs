@@ -44,10 +44,16 @@ public class MapLineFlags
         BlockSound = (flags & BlockSoundMask) == BlockSoundMask;
         NoDrawAutomap = (flags & NoDrawAutomapMask) == NoDrawAutomapMask;
         AlwaysDrawAutomap = (flags & AlwaysDrawAutomapMask) == AlwaysDrawAutomapMask;
+
     }
 
-    public static MapLineFlags Doom(ushort flags) =>
-        new MapLineFlags(flags);
+    public static MapLineFlags Doom(ushort flags)
+    {
+        return new MapLineFlags(flags)
+        {
+            PassThrough = (flags & UseThroughMask) == UseThroughMask,
+        };
+    }
 
     public static MapLineFlags ZDoom(ushort flags)
     {
