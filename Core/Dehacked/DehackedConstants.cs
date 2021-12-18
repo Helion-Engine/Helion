@@ -4700,4 +4700,16 @@ public partial class DehackedDefinition
     private static readonly string IDKFAArmorClass = "IDKFA Armor Class";
     private static readonly string BFGCellsPerShot = "BFG Cells/Shot";
     private static readonly string MonstersInfight = "Monsters Infight";
+
+    private static readonly string SoundOffset = "Offset";
+    private static readonly string SoundZeroOne = "Zero/One";
+    private static readonly string SoundValue = "Value";
+    private static readonly string SoundZero1 = "Zero 1";
+    private static readonly string SoundZero2 = "Zero 2";
+    private static readonly string SoundZero3 = "Zero 3";
+    private static readonly string SoundZero4 = "Zero 4";
+    private static readonly string NegOne1 = "Neg. One 1";
+    private static readonly string NegOne2 = "Neg. One 2";
+
+    private static readonly string[] IgnoreSoundProperties = new string[] { SoundOffset, SoundZero1, SoundZero2, SoundZero3, SoundZero4, NegOne1, NegOne2 };
 }

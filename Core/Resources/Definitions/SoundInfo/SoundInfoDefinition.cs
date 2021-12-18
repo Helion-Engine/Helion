@@ -43,6 +43,8 @@ public class SoundInfoDefinition
         return null;
     }
 
+    public bool GetSound(string name, out SoundInfo? soundInfo) => m_lookup.TryGetValue(name, out soundInfo);
+
     public void Parse(string data)
     {
         SimpleParser parser = new SimpleParser();

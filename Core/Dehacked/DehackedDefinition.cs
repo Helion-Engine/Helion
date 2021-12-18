@@ -17,6 +17,7 @@ public partial class DehackedDefinition
     public readonly List<DehackedWeapon> Weapons = new();
     public readonly List<DehackedString> Strings = new();
     public readonly List<DehackedPointer> Pointers = new();
+    public readonly List<DehackedSound> Sounds = new();
 
     public readonly List<BexString> BexStrings = new();
     public readonly List<BexPar> BexPars = new();
@@ -31,7 +32,7 @@ public partial class DehackedDefinition
     public void Parse(string data)
     {
         data = data.Replace('\0', ' ');
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.SetSpecialChars(new char[] { '=' });
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
 
@@ -65,7 +66,9 @@ public partial class DehackedDefinition
             else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
                 ParsePointer(parser);
             else if (item.Equals(MiscName, StringComparison.OrdinalIgnoreCase))
-                ParserMisc(parser, itemLine);
+                ParseMisc(parser, itemLine);
+            else if (item.Equals(SoundName, StringComparison.Ordinal))
+                ParseSound(parser);
             else if (item.Equals(BexStringName, StringComparison.OrdinalIgnoreCase))
                 ParseBexText(parser);
             else if (item.Equals(BexPointerName, StringComparison.OrdinalIgnoreCase))
@@ -366,7 +369,7 @@ public partial class DehackedDefinition
         Pointers.Add(pointer);
     }
 
-    private void ParserMisc(SimpleParser parser, int itemLine)
+    private void ParseMisc(SimpleParser parser, int itemLine)
     {
         Misc = new();
 
@@ -413,6 +416,31 @@ public partial class DehackedDefinition
             else
                 UnknownWarning(parser, "misc");
         }
+    }
+
+    private void ParseSound(SimpleParser parser)
+    {
+        DehackedSound sound = new();
+        sound.Number = parser.ConsumeInteger();
+
+        while (!IsBlockComplete(parser))
+        {
+            string line = parser.PeekLine();
+            if (IgnoreSoundProperties.Any(x => line.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
+            {
+                parser.ConsumeLine();
+                continue;
+            }
+
+            if (line.StartsWith(SoundZeroOne, StringComparison.OrdinalIgnoreCase))
+                sound.ZeroOne = GetIntProperty(parser, SoundZeroOne);
+            else if (line.StartsWith(SoundValue, StringComparison.OrdinalIgnoreCase))
+                sound.Priority = GetIntProperty(parser, SoundValue);
+            else
+                UnknownWarning(parser, "sound");
+        }
+
+        Sounds.Add(sound);
     }
 
     private void ParseBexText(SimpleParser parser)

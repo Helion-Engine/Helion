@@ -46,6 +46,7 @@ public class DehackedApplier
     {
         ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
 
+        ApplySounds(dehacked, definitionEntries.SoundInfo);
         ApplyBexSounds(dehacked, definitionEntries.SoundInfo);
         ApplyBexSprites(dehacked);
 
@@ -64,6 +65,21 @@ public class DehackedApplier
         RemoveLabels.Clear();
         NewSoundLookup.Clear();
         NewSpriteLookup.Clear();
+    }
+
+    private void ApplySounds(DehackedDefinition dehacked, SoundInfoDefinition soundInfoDef)
+    {
+        foreach (DehackedSound dehSound in dehacked.Sounds)
+        {
+            string sound = GetSound(dehacked, dehSound.Number);
+            if (string.IsNullOrEmpty(sound))
+                continue;
+
+            if (!soundInfoDef.GetSound(sound, out SoundInfo? soundInfo))
+                continue;
+
+            // Not doing anything with this yet...
+        }
     }
 
     private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
