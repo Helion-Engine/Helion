@@ -1,6 +1,3 @@
-using Helion.Maps.Specials;
-using Helion.World.Geometry.Subsectors;
-
 namespace Helion.World.Geometry.Sectors;
 
 public class TransferHeights
@@ -16,73 +13,84 @@ public class TransferHeights
     public readonly Sector ParentSector;
     public readonly Sector ControlSector;
 
-    private readonly Sector m_renderSector;
+    // Because sectors are classes returning new ones every time would put too much pressure on the GC.
+    // This static rotating list will allow for up to 16 calls in the stack before they are reused.
+    // A rendering function will generally call this twice, so this gives 8 stacked calls which should be more than enough.
+    private static readonly Sector[] RenderSectors = new Sector[]
+    {   Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+        Sector.CreateDefault(), Sector.CreateDefault(),
+    };
+
+    private static int RenderSectorIndex = RenderSectors.Length;
 
     public TransferHeights(Sector parentSector, Sector controlSector)
     {
         ParentSector = parentSector;
         ControlSector = controlSector;
-        m_renderSector = new Sector(0, 0, 0, 
-            new SectorPlane(0, SectorPlaneFace.Floor, 0, 0, 0), 
-            new SectorPlane(0, SectorPlaneFace.Ceiling, 0, 0, 0),
-            Maps.Specials.ZDoom.ZDoomSectorSpecialType.None, SectorData.Default);
     }
 
     public Sector GetRenderSector(Sector viewSector, double viewZ)
     {
+        Sector sector = RenderSectors[++RenderSectorIndex % RenderSectors.Length];
         switch (GetView(viewSector, viewZ))
         {
             case TransferHeightView.Top:
-                m_renderSector.Ceiling.Z = ParentSector.Ceiling.Z;
-                m_renderSector.Ceiling.PrevZ = ParentSector.Ceiling.PrevZ;
-                m_renderSector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
-                m_renderSector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
-                m_renderSector.Ceiling.Sector = ControlSector;
-                m_renderSector.LightLevel = ControlSector.LightLevel;
+                sector.Ceiling.Z = ParentSector.Ceiling.Z;
+                sector.Ceiling.PrevZ = ParentSector.Ceiling.PrevZ;
+                sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
+                sector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
+                sector.Ceiling.Sector = ControlSector;
+                sector.LightLevel = ControlSector.LightLevel;
 
-                m_renderSector.Floor.Z = ControlSector.Ceiling.Z;
-                m_renderSector.Floor.PrevZ = ControlSector.Ceiling.PrevZ;
-                m_renderSector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
-                m_renderSector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
-                m_renderSector.Floor.Sector = ControlSector;
-                m_renderSector.LightLevel = ControlSector.LightLevel;
+                sector.Floor.Z = ControlSector.Ceiling.Z;
+                sector.Floor.PrevZ = ControlSector.Ceiling.PrevZ;
+                sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
+                sector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
+                sector.Floor.Sector = ControlSector;
+                sector.LightLevel = ControlSector.LightLevel;
                 break;
 
             case TransferHeightView.Middle:
-                m_renderSector.Ceiling.Z = ControlSector.Ceiling.Z;
-                m_renderSector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
-                m_renderSector.Ceiling.TextureHandle = ParentSector.Ceiling.TextureHandle;
-                m_renderSector.Ceiling.LightLevel = ParentSector.CeilingRenderLightLevel;
-                m_renderSector.Ceiling.Sector = ParentSector;
-                m_renderSector.LightLevel = ParentSector.LightLevel;
+                sector.Ceiling.Z = ControlSector.Ceiling.Z;
+                sector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
+                sector.Ceiling.TextureHandle = ParentSector.Ceiling.TextureHandle;
+                sector.Ceiling.LightLevel = ParentSector.CeilingRenderLightLevel;
+                sector.Ceiling.Sector = ParentSector;
+                sector.LightLevel = ParentSector.LightLevel;
 
-                m_renderSector.Floor.Z = ControlSector.Floor.Z;
-                m_renderSector.Floor.PrevZ = ControlSector.Floor.PrevZ;
-                m_renderSector.Floor.TextureHandle = ParentSector.Floor.TextureHandle;
-                m_renderSector.Floor.LightLevel = ParentSector.FloorRenderLightLevel;
-                m_renderSector.Floor.Sector = ParentSector;
-                m_renderSector.LightLevel = ParentSector.LightLevel;
+                sector.Floor.Z = ControlSector.Floor.Z;
+                sector.Floor.PrevZ = ControlSector.Floor.PrevZ;
+                sector.Floor.TextureHandle = ParentSector.Floor.TextureHandle;
+                sector.Floor.LightLevel = ParentSector.FloorRenderLightLevel;
+                sector.Floor.Sector = ParentSector;
+                sector.LightLevel = ParentSector.LightLevel;
                 break;
 
             default:
-                m_renderSector.Ceiling.Z = ControlSector.Floor.Z;
-                m_renderSector.Ceiling.PrevZ = ControlSector.Floor.PrevZ;
-                m_renderSector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
-                m_renderSector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
-                m_renderSector.Ceiling.Sector = ControlSector;
-                m_renderSector.LightLevel = ControlSector.LightLevel;
+                sector.Ceiling.Z = ControlSector.Floor.Z;
+                sector.Ceiling.PrevZ = ControlSector.Floor.PrevZ;
+                sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
+                sector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
+                sector.Ceiling.Sector = ControlSector;
+                sector.LightLevel = ControlSector.LightLevel;
 
-                m_renderSector.Floor.Z = ParentSector.Floor.Z;
-                m_renderSector.Floor.PrevZ = ParentSector.Floor.PrevZ;
-                m_renderSector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
-                m_renderSector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
-                m_renderSector.Floor.Sector = ControlSector;
-                m_renderSector.LightLevel = ControlSector.LightLevel;
+                sector.Floor.Z = ParentSector.Floor.Z;
+                sector.Floor.PrevZ = ParentSector.Floor.PrevZ;
+                sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
+                sector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
+                sector.Floor.Sector = ControlSector;
+                sector.LightLevel = ControlSector.LightLevel;
                 break;
         }
 
-        m_renderSector.DataChanges = ParentSector.DataChanges | ControlSector.DataChanges;
-        return m_renderSector;
+        sector.DataChanges = ParentSector.DataChanges | ControlSector.DataChanges;
+        return sector;
     }
 
     private static TransferHeightView GetView(Sector viewSector, double viewZ)

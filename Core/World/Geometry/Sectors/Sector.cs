@@ -126,6 +126,12 @@ public class Sector
         m_transferCeilingLightSector = this;
     }
 
+    public static Sector CreateDefault() =>
+        new (0, 0, 0,
+            new SectorPlane(0, SectorPlaneFace.Floor, 0, 0, 0),
+            new SectorPlane(0, SectorPlaneFace.Ceiling, 0, 0, 0),
+            ZDoomSectorSpecialType.None, SectorData.Default);
+
     public Sector GetRenderSector(Sector sector, double viewZ)
     {
         if (TransferHeights == null)
