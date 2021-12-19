@@ -191,10 +191,15 @@ public class StairSpecial : SectorMoveSpecial
 
     public override void FinalizeDestroy()
     {
-        if (m_stairs.Count > 0)
+        for (int i = 0; i < m_stairs.Count; i++)
         {
-            Sector = m_stairs[^1].Sector;
-            Sector.Floor.PrevZ = Sector.Floor.Z;
+            Sector sector = m_stairs[i].Sector;
+            // Other specials can interact with a sector before this entire special is complete.
+            // Only reset interpolation if this stair special is the active floor move.
+            if (!ReferenceEquals(sector.ActiveFloorMove, this))
+                continue;
+
+            sector.Floor.PrevZ = sector.Floor.Z;
         }
     }
 
