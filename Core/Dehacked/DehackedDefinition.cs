@@ -156,11 +156,11 @@ public partial class DehackedDefinition
             else if (line.StartsWith(DeathSound, StringComparison.OrdinalIgnoreCase))
                 thing.DeathSound = GetIntProperty(parser, DeathSound);
             else if (line.StartsWith(Speed, StringComparison.OrdinalIgnoreCase))
-                thing.Speed = GetIntProperty(parser, Speed);
+                thing.Speed = GetDoubleProperty(parser, Speed);
             else if (line.StartsWith(Width, StringComparison.OrdinalIgnoreCase))
-                thing.Width = GetIntProperty(parser, Width);
+                thing.Width = GetDoubleProperty(parser, Width);
             else if (line.StartsWith(Height, StringComparison.OrdinalIgnoreCase))
-                thing.Height = GetIntProperty(parser, Height);
+                thing.Height = GetDoubleProperty(parser, Height);
             else if (line.StartsWith(Mass, StringComparison.OrdinalIgnoreCase))
                 thing.Mass = GetIntProperty(parser, Mass);
             else if (line.StartsWith(MisileDamage, StringComparison.OrdinalIgnoreCase))
@@ -583,6 +583,13 @@ public partial class DehackedDefinition
         ConsumeProperty(parser, property);
         parser.ConsumeString("=");
         return parser.ConsumeInteger();
+    }
+
+    public static double GetDoubleProperty(SimpleParser parser, string property)
+    {
+        ConsumeProperty(parser, property);
+        parser.ConsumeString("=");
+        return parser.ConsumeDouble();
     }
 
     private static void ConsumeProperty(SimpleParser parser, string property)

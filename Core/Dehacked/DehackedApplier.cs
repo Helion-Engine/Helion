@@ -388,11 +388,11 @@ public class DehackedApplier
         }
     }
 
-    private static int GetThingSpeed(int speed, EntityDefinition definition)
+    private static int GetThingSpeed(double speed, EntityDefinition definition)
     {
         if (definition.Flags.Missile)
             return (int)GetDouble(speed);
-        return speed;
+        return (int)speed;
     }
 
     private void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable,
@@ -784,7 +784,7 @@ public class DehackedApplier
         }
     }
 
-    private static double GetDouble(int value) => value / 65536.0;
+    private static double GetDouble(double value) => value / 65536.0;
 
     private string GetSound(DehackedDefinition dehacked, int sound)
     {
