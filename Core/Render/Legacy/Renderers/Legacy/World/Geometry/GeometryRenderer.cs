@@ -289,8 +289,8 @@ public class GeometryRenderer : IDisposable
 
     private bool LowerIsVisible(Sector facingSector, Sector otherSector)
     {
-        double facingZ = facingSector.Floor.PrevZ.Interpolate(facingSector.Floor.Z, m_tickFraction);
-        double otherZ = otherSector.Floor.PrevZ.Interpolate(otherSector.Floor.Z, m_tickFraction);
+        double facingZ = facingSector.Floor.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Floor.GetInterpolatedZ(m_tickFraction);
         return facingZ < otherZ;
     }
 
@@ -308,8 +308,8 @@ public class GeometryRenderer : IDisposable
             return true;
         }
 
-        double facingZ = facingSector.Ceiling.PrevZ.Interpolate(facingSector.Ceiling.Z, m_tickFraction);
-        double otherZ = otherSector.Ceiling.PrevZ.Interpolate(otherSector.Ceiling.Z, m_tickFraction);
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         return facingZ > otherZ;
     }
 
@@ -517,10 +517,12 @@ public class GeometryRenderer : IDisposable
     {
         double offset = 0;
         if (otherSide.Sector.TransferHeights != null)
-            offset = otherSide.Sector.Floor.PrevZ.Interpolate(otherSide.Sector.Floor.Z, m_tickFraction);
+            offset = otherSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
+                Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction));
 
         if (facingSide.Sector.TransferHeights != null)
-            offset = Math.Max(offset, facingSide.Sector.Floor.PrevZ.Interpolate(facingSide.Sector.Floor.Z, m_tickFraction));
+            offset = Math.Max(offset, facingSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
+                Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction)));
 
         return offset;
     }
@@ -532,10 +534,10 @@ public class GeometryRenderer : IDisposable
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.PrevZ.Interpolate(facingFloor.Z, m_tickFraction);
-        double facingCeilingZ = facingCeiling.PrevZ.Interpolate(facingCeiling.Z, m_tickFraction);
-        double otherFloorZ = otherFloor.PrevZ.Interpolate(otherFloor.Z, m_tickFraction);
-        double otherCeilingZ = otherCeiling.PrevZ.Interpolate(otherCeiling.Z, m_tickFraction);
+        double facingFloorZ = facingFloor.GetInterpolatedZ(m_tickFraction);
+        double facingCeilingZ = facingCeiling.GetInterpolatedZ(m_tickFraction);
+        double otherFloorZ = otherFloor.GetInterpolatedZ(m_tickFraction);
+        double otherCeilingZ = otherCeiling.GetInterpolatedZ(m_tickFraction);
 
         double bottomZ = facingFloorZ;
         double topZ = facingCeilingZ;

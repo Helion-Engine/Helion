@@ -3,6 +3,7 @@ using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
@@ -51,6 +52,8 @@ public class SectorPlane : ISoundSource
         // fixed in the future with non-messy code, go for it.
         Sector = null !;
     }
+
+    public double GetInterpolatedZ(double t) => PrevZ.Interpolate(Z, t);
 
     public void SetRenderingChanged()
     {
