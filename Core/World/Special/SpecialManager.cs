@@ -290,7 +290,7 @@ public class SpecialManager : ITickable, IDisposable
         if (sectorDest == SectorDest.None)
             destZ = startZ + amount;
         else
-            destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
+            destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling, start);
 
         // Ugh... why
         if (start == MoveDirection.Down && sectorDest == SectorDest.HighestAdjacentFloor)
@@ -1392,7 +1392,7 @@ public class SpecialManager : ITickable, IDisposable
         return Enumerable.Empty<Sector>();
     }
 
-    private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false)
+    private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false, MoveDirection start = MoveDirection.None)
     {
         switch (destination)
         {
@@ -1417,15 +1417,25 @@ public class SpecialManager : ITickable, IDisposable
             case SectorDest.Ceiling:
                 return sector.Ceiling.Z;
             case SectorDest.ShortestLowerTexture:
-                return sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility);
             case SectorDest.ShortestUpperTexture:
-                return sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, false, m_world.Config.Compatibility);
+                return GetShortTextureDestZ(sector, destination, start);
             case SectorDest.None:
             default:
                 break;
         }
 
         return 0;
+    }
+
+    private double GetShortTextureDestZ(Sector sector, SectorDest destination, MoveDirection direction)
+    {
+        int dir = direction == MoveDirection.Down ? -1 : 1;
+        return destination switch
+        {
+            SectorDest.ShortestLowerTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility) * dir),
+            SectorDest.ShortestUpperTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager.Instance, false, m_world.Config.Compatibility) * dir),
+            _ => sector.Floor.Z,
+        };
     }
 
     private static double GetNextLowestFloorDestZ(Sector sector)
