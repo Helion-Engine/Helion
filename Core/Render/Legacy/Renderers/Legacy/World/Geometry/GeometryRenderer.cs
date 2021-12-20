@@ -377,7 +377,8 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle) && TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
-        if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) && upperWall.TextureHandle == Constants.NoTextureIndex)
+        if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+            upperWall.TextureHandle == Constants.NoTextureIndex)
         {
             if (TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 m_skyOverride = true;
@@ -454,7 +455,8 @@ public class GeometryRenderer : IDisposable
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
-        if (twoSided != null && LineOpening.IsRenderingBlocked(twoSided.Line) && twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
+        if (twoSided != null && otherSector != null && LineOpening.IsRenderingBlocked(twoSided.Line) &&
+            SkyUpperRenderFromFloorCheck(twoSided, facingSector, otherSector))
         {
             wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, m_tickFraction,
                 overrideFloor: twoSided.PartnerSide.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
@@ -467,6 +469,18 @@ public class GeometryRenderer : IDisposable
 
         SkyGeometryVertex[] skyData = CreateSkyWallVertices(wall);
         m_skyRenderer.Add(skyData, facingSide.Sector.SkyTextureHandle);
+    }
+
+    private static bool SkyUpperRenderFromFloorCheck(TwoSided twoSided, Sector facingSector, Sector otherSector)
+    {
+        if (twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
+            return true;
+
+        if (TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+            TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+            return true;
+
+        return false;
     }
 
     private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
