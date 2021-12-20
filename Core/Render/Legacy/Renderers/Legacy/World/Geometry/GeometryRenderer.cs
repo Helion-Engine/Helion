@@ -211,7 +211,11 @@ public class GeometryRenderer : IDisposable
             return;
 
         if (twoSided.Middle.TextureHandle != Constants.NoTextureIndex)
-            RenderTwoSidedMiddle(twoSided, twoSided.PartnerSide, isFrontSide);
+        {
+            Sector facingSector = twoSided.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            Sector otherSector = twoSided.PartnerSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            RenderTwoSidedMiddle(twoSided, twoSided.PartnerSide, facingSector, otherSector, isFrontSide);
+        }
     }
 
     public void RenderSide(Side side, bool isFrontSide)
@@ -233,7 +237,7 @@ public class GeometryRenderer : IDisposable
 
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
-        RenderSkySide(side, null, texture);
+        RenderSkySide(side, null, renderSector, null, texture);
 
         if (side.OffsetChanged || side.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
         {
@@ -280,11 +284,11 @@ public class GeometryRenderer : IDisposable
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
         if (LowerIsVisible(facingSector, otherSector))
-            RenderTwoSidedLower(facingSide, otherSide, isFrontSide);
+            RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide);
         if (facingSide.Line.Alpha >= 1 && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
-            RenderTwoSidedMiddle(facingSide, otherSide, isFrontSide);
+            RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide);
         if (UpperIsVisible(facingSide, facingSector, otherSector))
-            RenderTwoSidedUpper(facingSide, otherSide, isFrontSide);
+            RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide);
     }
 
     private bool LowerIsVisible(Sector facingSector, Sector otherSector)
@@ -313,7 +317,7 @@ public class GeometryRenderer : IDisposable
         return facingZ > otherZ;
     }
 
-    private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, bool isFrontSide)
+    private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall lowerWall = facingSide.Lower;
@@ -325,9 +329,6 @@ public class GeometryRenderer : IDisposable
 
         GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
-
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-        Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -369,16 +370,16 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, bool isFrontSide)
+    private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-        SectorPlane plane = otherSide.Sector.Ceiling;
-        bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle) && TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle);
+        SectorPlane plane = otherSector.Ceiling;
+        bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle) && TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
-        if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle) && upperWall.TextureHandle == Constants.NoTextureIndex)
+        if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) && upperWall.TextureHandle == Constants.NoTextureIndex)
         {
-            if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+            if (TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 m_skyOverride = true;
             return;
         }
@@ -386,13 +387,10 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-        Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
 
-        RenderSkySide(facingSide, facingSide, texture);
+        RenderSkySide(facingSide, facingSide, facingSector, otherSector, texture);
 
         if (isSky)
         {
@@ -437,25 +435,24 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderSkySide(Side facingSide, TwoSided? twoSided, GLLegacyTexture texture)
+    private void RenderSkySide(Side facingSide, TwoSided? twoSided, Sector facingSector, Sector? otherSector, GLLegacyTexture texture)
     {
-        if (twoSided == null)
+        if (otherSector == null)
         {
-            if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle))
+            if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle))
                 return;
         }
         else
         {
-            TwoSided otherSide = twoSided.Sector.Id == facingSide.Sector.Id ? twoSided.PartnerSide : twoSided;
-            if (!TextureManager.Instance.IsSkyTexture(facingSide.Sector.Ceiling.TextureHandle) &&
-                !TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+            if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+                !TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 return;
         }
 
         bool isFront = twoSided == null || twoSided.IsFront;
         WallVertices wall;
-        SectorPlane floor = facingSide.Sector.Floor;
-        SectorPlane ceiling = facingSide.Sector.Ceiling;
+        SectorPlane floor = facingSector.Floor;
+        SectorPlane ceiling = facingSector.Ceiling;
 
         if (twoSided != null && LineOpening.IsRenderingBlocked(twoSided.Line) && twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
         {
@@ -465,14 +462,14 @@ public class GeometryRenderer : IDisposable
         else
         {
             wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, m_tickFraction,
-                overrideFloor: facingSide.Sector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
+                overrideFloor: facingSector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
         }
 
         SkyGeometryVertex[] skyData = CreateSkyWallVertices(wall);
         m_skyRenderer.Add(skyData, facingSide.Sector.SkyTextureHandle);
     }
 
-    private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, bool isFrontSide)
+    private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
@@ -480,8 +477,6 @@ public class GeometryRenderer : IDisposable
 
         RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-        Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
         if (facingSide.OffsetChanged || facingSector.PlaneHeightChanged || otherSector.PlaneHeightChanged || data == null || m_cacheOverride)
         {
