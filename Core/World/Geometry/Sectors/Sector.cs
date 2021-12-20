@@ -96,7 +96,7 @@ public class Sector
     public SectorDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
     public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ) ||
-        (TransferHeights != null && TransferHeights.ControlSector.PlaneHeightChanged);
+        (TransferHeights != null && (TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ)));
     public bool LightingChanged => DataChanges.HasFlag(SectorDataTypes.Light);
 
     public int SoundValidationCount;
