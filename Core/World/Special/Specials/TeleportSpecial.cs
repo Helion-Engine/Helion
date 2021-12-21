@@ -188,7 +188,7 @@ public class TeleportSpecial : ISpecial
             Line sourceLine = m_args.ActivateLineSpecial;
             foreach (Line line in m_world.FindByLineId(m_lineId))
             {
-                if (line.Id == sourceLine.Id)
+                if (line.Id == sourceLine.Id || !line.TwoSided)
                     continue;
 
                 double lineAngle = line.StartPosition.Angle(line.EndPosition) - sourceLine.StartPosition.Angle(sourceLine.EndPosition);
