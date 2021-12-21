@@ -40,7 +40,7 @@ public class MapGeometry
 
     public IEnumerable<Line> FindByLineId(int lineId)
     {
-        return m_idToLine.TryGetValue(lineId, out IList<Line>? sectors) ? sectors : Enumerable.Empty<Line>();
+        return m_idToLine.TryGetValue(lineId, out IList<Line>? lines) ? lines : Enumerable.Empty<Line>();
     }
 
     public void SetLineId(Line line, int lineId)
