@@ -244,6 +244,7 @@ public partial class Client
             return;
         }
 
+        m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         var skill = m_config.Game.Skill.Value;
         if (worldModel != null)
             skill = worldModel.Skill;
