@@ -42,7 +42,7 @@ public static class ScrollUtil
         }
 
         if (scrollSpeeds.ScrollSpeed.HasValue)
-            scrollSpeeds.ScrollSpeed = new Vec2D(scrollSpeeds.ScrollSpeed.Value.X, -scrollSpeeds.ScrollSpeed.Value.Y);
+            scrollSpeeds.ScrollSpeed = new Vec2D(scrollSpeeds.ScrollSpeed.Value.X, scrollSpeeds.ScrollSpeed.Value.Y);
 
         return scrollSpeeds;
     }
