@@ -98,7 +98,7 @@ public static class ConfigConverters
         T ThrowableEnumConverter(object obj)
         {
             // If we're passed an integer, see if it's one of the enumerations.
-            if (obj is int enumNumber)
+            if (int.TryParse(obj.ToString(), out int enumNumber))
             {
                 for (int i = 0; i < enumValues.Length; i++)
                 {
