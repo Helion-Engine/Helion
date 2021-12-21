@@ -5,6 +5,7 @@ using Helion.Menus.Base;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using MoreLinq;
 
@@ -98,6 +99,7 @@ public class NewGameSkillMenu : Menu
     private void DoNewGame(SkillLevel skillLevel)
     {
         m_config.Game.Skill.Set(skillLevel);
+        m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
     }
 }

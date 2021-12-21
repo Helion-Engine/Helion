@@ -8,6 +8,7 @@ namespace Helion.Models;
 public class WorldModel
 {
     public GameFilesModel Files { get; set; }
+    public IList<ConfigValueModel> ConfigValues { get; set; } = Array.Empty<ConfigValueModel>();
 
     public string MapName { get; set; } = string.Empty;
     public WorldState WorldState { get; set; }

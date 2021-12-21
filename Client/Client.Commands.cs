@@ -244,10 +244,11 @@ public partial class Client
             return;
         }
 
+        var skill = m_config.Game.Skill.Value;
         if (worldModel != null)
-            m_config.Game.Skill.Set(worldModel.Skill);
+            skill = worldModel.Skill;
 
-        SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(m_config.Game.Skill);
+        SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
         if (skillDef == null)
         {
             LogError($"Could not find skill definition for {m_config.Game.Skill}");

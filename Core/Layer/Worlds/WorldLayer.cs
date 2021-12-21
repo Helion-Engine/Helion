@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
@@ -8,6 +10,8 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
@@ -85,7 +89,31 @@ public partial class WorldLayer : IGameLayerParent
         if (world == null)
             return null;
 
+        ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
+        config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         return new WorldLayer(parent, config, console, archiveCollection, audioSystem, fpsTracker, world, mapInfoDef, profiler);
+    }
+
+    private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
+    {
+        config.Game.Skill.Set(archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
+
+        if (worldModel == null)
+            return;
+
+        foreach (var item in worldModel.ConfigValues)
+        {
+            (string path, ConfigComponent component)? configItem = config.FirstOrDefault(x => x.path.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
+
+            if (configItem == null)
+            {
+                Log.Error($"Invalid configuration path: {item.Key}");
+                continue;
+            }
+
+            if (configItem.Value.component.Value.Set(item.Value) == ConfigSetResult.NotSetByBadConversion)
+                Log.Error($"Bad configuartion value '{item.Value}' for '{configItem.Value.path}'.");
+        }
     }
 
     private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,

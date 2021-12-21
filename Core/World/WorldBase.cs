@@ -1804,12 +1804,13 @@ public abstract partial class WorldBase : IWorld
 
     public WorldModel ToWorldModel()
     {
-        List<SectorModel> sectorModels = new List<SectorModel>();
-        List<SectorDamageSpecialModel> sectorDamageSpecialModels = new List<SectorDamageSpecialModel>();
+        List<SectorModel> sectorModels = new();
+        List<SectorDamageSpecialModel> sectorDamageSpecialModels = new();
         SetSectorModels(sectorModels, sectorDamageSpecialModels);
 
         return new WorldModel()
         {
+            ConfigValues = GetConfigValuesModel(),
             Files = GetGameFilesModel(),
             MapName = MapName.ToString(),
             WorldState = WorldState,
@@ -1839,6 +1840,23 @@ public abstract partial class WorldBase : IWorld
         };
     }
 
+    private IList<ConfigValueModel> GetConfigValuesModel()
+    {
+        List<ConfigValueModel> items = new();
+        foreach (var (path, component) in Config)
+        {
+            if (!component.Attribute.Serialize)
+                continue;
+
+            items.Add(new ConfigValueModel()
+            {
+                Key = path,
+                Value = component.Value.ObjectValue
+            });
+        }
+        return items;
+    }
+
     public GameFilesModel GetGameFilesModel()
     {
         return new GameFilesModel()
@@ -1850,7 +1868,7 @@ public abstract partial class WorldBase : IWorld
 
     private IList<PlayerModel> GetPlayerModels()
     {
-        List<PlayerModel> playerModels = new List<PlayerModel>(EntityManager.Players.Count);
+        List<PlayerModel> playerModels = new(EntityManager.Players.Count);
         EntityManager.Players.ForEach(player => playerModels.Add(player.ToPlayerModel()));
         EntityManager.VoodooDolls.ForEach(player => playerModels.Add(player.ToPlayerModel()));
         return playerModels;
@@ -1867,7 +1885,7 @@ public abstract partial class WorldBase : IWorld
 
     private IList<FileModel> GetFileModels()
     {
-        List<FileModel> fileModels = new List<FileModel>();
+        List<FileModel> fileModels = new();
         var archives = ArchiveCollection.Archives;
         foreach (var archive in archives)
             fileModels.Add(archive.ToFileModel());
@@ -1877,7 +1895,7 @@ public abstract partial class WorldBase : IWorld
 
     private List<EntityModel> GetEntityModels()
     {
-        List<EntityModel> entityModels = new List<EntityModel>();
+        List<EntityModel> entityModels = new();
         EntityManager.Entities.ForEach(entity =>
         {
             if (!entity.IsPlayer)
@@ -1900,7 +1918,7 @@ public abstract partial class WorldBase : IWorld
 
     private List<LineModel> GetLineModels()
     {
-        List<LineModel> lineModels = new List<LineModel>();
+        List<LineModel> lineModels = new();
         for (int i = 0; i < Lines.Count; i++)
         {
             Line line = Lines[i];

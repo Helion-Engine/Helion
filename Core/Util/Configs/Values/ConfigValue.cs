@@ -43,6 +43,8 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     // For example, if we want this to only update on a world change, then
     // we stash away the change until then.
     private T? m_queuedChange;
+    // This is necessary becuase if T is a struct (int, double, enum) it won't actually be 'null'
+    private bool m_hasQueuedChange;
 
     public event EventHandler<T>? OnChanged;
     public event EventHandler<(T Before, T After)>? OnChangedBeforeAfter;
@@ -107,6 +109,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         if (SetFlags != ConfigSetFlags.Normal && !ignoreSetFlags)
         {
             m_queuedChange = newValue;
+            m_hasQueuedChange = true;
             return ConfigSetResult.Queued;
         }
 
@@ -116,12 +119,15 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         OnChanged?.Invoke(this, newValue);
         OnChangedBeforeAfter?.Invoke(this, (oldValue, newValue));
 
+        m_queuedChange = default(T);
+        m_hasQueuedChange = false;
+
         return ConfigSetResult.Set;
     }
 
     public void ApplyQueuedChange(ConfigSetFlags flagType)
     {
-        if (m_queuedChange == null)
+        if (m_queuedChange == null || !m_hasQueuedChange)
             return;
 
         if ((SetFlags & flagType) == flagType)

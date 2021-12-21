@@ -49,7 +49,7 @@ public class MapInfo
         for (int i = 0; i < m_skills.Count; i++)
         {
             if (m_skills[i].Name.Equals(skillDef.Name, StringComparison.OrdinalIgnoreCase))
-                return (SkillLevel)(i + 1);
+                return (SkillLevel)(i + (int)SkillLevel.VeryEasy);
         }
 
         return SkillLevel.None;
