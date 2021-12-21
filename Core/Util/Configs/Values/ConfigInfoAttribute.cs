@@ -22,9 +22,15 @@ public class ConfigInfoAttribute : Attribute
     /// </remarks>
     public readonly bool Save;
 
-    public ConfigInfoAttribute(string description, bool save = true)
+    /// <summary>
+    /// If true, serializes to the world state (save games).
+    /// </summary>
+    public readonly bool Serialize;
+
+    public ConfigInfoAttribute(string description, bool save = true, bool serialize = false)
     {
         Description = description;
         Save = save;
+        Serialize = serialize;
     }
 }

@@ -748,8 +748,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return false;
     }
 
-    public bool ShouldCheckDropOff() => !Flags.Float && !Flags.Dropoff;
-    // Allow drop off when monsters have momentum
+    public bool ShouldCheckDropOff()
+    {
+        if (Flags.Float || Flags.Dropoff)
+            return false;
+
+        // Only allow for non-monster things. Currently the physics code allows monsters to easily get stuck.
+        // There are boom maps that require item movement like this (e.g. Fractured Worlds MAP03 red key BFG)
+        if (World.Config.Compatibility.AllowItemDropoff)
+            return Definition.Properties.Health > 0 && Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+
+        return true;
+    }
+
     public bool CheckDropOff(TryMoveData tryMove)
     {
         if (!ShouldCheckDropOff())
