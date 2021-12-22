@@ -23,5 +23,6 @@ public interface IInputManager
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
     void Reset();
+    bool IsKeyContinuousHold(Key key);
     IConsumableInput Poll();
 }

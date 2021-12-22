@@ -21,6 +21,7 @@ public interface IConsumableInput
     bool ConsumeKeyPrevUp(Key key);
     bool ConsumeKeyPressed(Key key);
     bool ConsumeKeyReleased(Key key);
+    bool ConsumePressOrContinuousHold(Key key);
     ReadOnlySpan<char> ConsumeTypedCharacters();
     Vec2I ConsumeMouseMove();
     int ConsumeScroll();

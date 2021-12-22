@@ -17,8 +17,10 @@ public partial class ConsoleLayer
 {
     private const int NoInputMessageIndex = -1;
 
+    private readonly List<string> m_bestOptions = new();
     private DateTime m_lastTabTime = DateTime.Now;
     private int m_submittedInputIndex = NoInputMessageIndex;
+    private int m_bestOptionIndex = 0;
 
     public void HandleInput(IConsumableInput input)
     {
@@ -32,21 +34,25 @@ public partial class ConsoleLayer
             m_console.AddInput(c);
         input.ConsumeTypedCharacters();
 
-        if (input.ConsumeKeyPressed(Key.Backspace))
+        if (input.ConsumePressOrContinuousHold(Key.Backspace))
             m_console.RemoveInputCharacter();
-        if (input.ConsumeKeyPressed(Key.Up))
+        if (input.ConsumePressOrContinuousHold(Key.Up))
             SetToLessRecentInput();
-        if (input.ConsumeKeyPressed(Key.Down))
+        if (input.ConsumePressOrContinuousHold(Key.Down))
             SetToMoreRecentInput();
-        if (input.ConsumeKeyPressed(Key.Tab))
-            ApplyAutocomplete();
-        if (input.ConsumeKeyPressed(Key.PageUp))
+        if (input.ConsumePressOrContinuousHold(Key.PageUp))
             GoBackInMessageHistory();
-        if (input.ConsumeKeyPressed(Key.PageDown))
+        if (input.ConsumePressOrContinuousHold(Key.PageDown))
             GoForwardInMessageHistory();
+        if (input.ConsumeKeyPressed(Key.Tab))
+        {
+            ResetMessageHistory();
+            ApplyAutocomplete();
+        }
 
         if (input.ConsumeKeyPressed(Key.Enter))
         {
+            ResetMessageHistory();
             m_console.SubmitInputText();
             m_submittedInputIndex = NoInputMessageIndex;
         }
@@ -54,15 +60,14 @@ public partial class ConsoleLayer
         input.ConsumeAll();
     }
 
-    private void GoBackInMessageHistory()
-    {
+    private void GoBackInMessageHistory() =>
         m_messageRenderOffset = Math.Min(m_messageRenderOffset + 10, m_console.Messages.Count - 1);
-    }
 
-    private void GoForwardInMessageHistory()
-    {
+    private void GoForwardInMessageHistory() =>
         m_messageRenderOffset = Math.Max(0, m_messageRenderOffset - 10);
-    }
+
+    private void ResetMessageHistory() => 
+        m_messageRenderOffset = 0;
 
     private void ApplyAutocomplete()
     {
@@ -83,20 +88,30 @@ public partial class ConsoleLayer
     private void DoAutoCompleteFill()
     {
         string input = m_console.Input;
-        string? bestMatch = null;
 
-        foreach ((string command, _) in m_consoleCommands)
+        if (m_bestOptions.Count > 1 && input == m_bestOptions[m_bestOptionIndex])
+        {
+            m_console.ClearInputText();
+            m_bestOptionIndex = ++m_bestOptionIndex % m_bestOptions.Count;
+            m_console.AddInput(m_bestOptions[m_bestOptionIndex]);
+            return;
+        }
+
+        m_bestOptions.Clear();
+        m_bestOptionIndex = 0;
+
+        foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
             AssignIfBest(command);
-        foreach ((string path, _) in m_config)
-            AssignIfBest(path);
-        foreach (ICheat cheat in CheatManager.Instance)
+        foreach ((string path, _) in m_config.OrderBy(x => x.path))
+            AssignIfBestPath(path);
+        foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
             if (cheat.ConsoleCommand != null)
                 AssignIfBest(cheat.ConsoleCommand);
 
-        if (bestMatch != null)
+        if (m_bestOptions.Count > 0)
         {
             m_console.ClearInputText();
-            m_console.AddInput(bestMatch);
+            m_console.AddInput(m_bestOptions[0]);
         }
 
         void AssignIfBest(string item)
@@ -104,10 +119,25 @@ public partial class ConsoleLayer
             if (!item.StartsWith(input, StringComparison.OrdinalIgnoreCase))
                 return;
 
-            if (bestMatch == null)
-                bestMatch = item;
-            else if (string.Compare(item, bestMatch, StringComparison.Ordinal) < 0)
-                bestMatch = item;
+            if (m_bestOptions.Count == 0)
+            {
+                m_bestOptions.Add(item);
+                return;
+            }
+
+            m_bestOptions.Add(item);
+        }
+
+        void AssignIfBestPath(string path)
+        {
+            if (!path.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var partial = GetAutoCompletePathText(input, path);
+            if (m_bestOptions.Count > 0 && m_bestOptions[0].Equals(partial))
+                return;
+
+            m_bestOptions.Add(partial);
         }
     }
 
@@ -126,7 +156,7 @@ public partial class ConsoleLayer
 
         void SearchConsoleCommands()
         {
-            foreach ((string command, ConsoleCommandData data) in m_consoleCommands)
+            foreach ((string command, ConsoleCommandData data) in m_consoleCommands.OrderBy(x => x.command))
             {
                 if (command.EqualsIgnoreCase(input))
                 {
@@ -149,7 +179,7 @@ public partial class ConsoleLayer
 
         void SearchConfigValues()
         {
-            foreach ((string path, ConfigComponent component) in m_config)
+            foreach ((string path, ConfigComponent component) in m_config.OrderBy(x => x.path))
             {
                 if (path.EqualsIgnoreCase(input))
                 {
@@ -176,7 +206,7 @@ public partial class ConsoleLayer
 
         void SearchCheats()
         {
-            foreach (ICheat cheat in CheatManager.Instance)
+            foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
             {
                 string? cmd = cheat.ConsoleCommand;
                 if (cmd == null)
@@ -207,6 +237,24 @@ public partial class ConsoleLayer
             ColoredString str = ColoredStringBuilder.From(elements.ToArray());
             m_console.AddMessage(str);
         }
+    }
+
+    private string GetAutoCompletePathText(string input, string path)
+    {
+        int pathCount = input.Count(x => x == '.') + 1;
+        if (input.EndsWith('.'))
+            pathCount--;
+        int currentCount = 0;
+        for (int i = 0; i < path.Length; i++)
+        {
+            if (path[i] == '.')
+                currentCount++;
+
+            if (currentCount == pathCount)
+                return path[..(i+1)];
+        }
+
+        return path;
     }
 
     private static bool ConsumeControlV(IConsumableInput input)

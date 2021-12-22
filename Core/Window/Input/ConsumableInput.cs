@@ -93,6 +93,14 @@ public class ConsumableInput : IConsumableInput
         return Manager.IsKeyReleased(key);
     }
 
+    public bool ConsumePressOrContinuousHold(Key key)
+    {
+        if (Manager.IsKeyDown(key) && Manager.IsKeyContinuousHold(key))
+            return true;
+
+        return ConsumeKeyPressed(key);
+    }
+
     public ReadOnlySpan<char> ConsumeTypedCharacters()
     {
         if (m_allConsumed || m_typedCharsConsumed)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
@@ -16,7 +17,10 @@ public class InputManager : IInputManager
     private readonly HashSet<Key> m_inputDown = new();
     private readonly HashSet<Key> m_inputPrevDown = new();
     private readonly DynamicArray<char> m_typedCharacters = new();
+    private readonly Stopwatch m_keyHold = new();
+    private readonly Stopwatch m_keyDelay = new();
     private double m_mouseScroll;
+    private Key m_prevKeyDown;
 
     public int Scroll => (int)m_mouseScroll;
     public ReadOnlySpan<char> TypedCharacters => new(m_typedCharacters.Data, 0, m_typedCharacters.Length);
@@ -24,19 +28,42 @@ public class InputManager : IInputManager
     public InputManager()
     {
         m_consumableInput = new ConsumableInput(this);
+        m_prevKeyDown = Key.Unknown;
+    }
+
+    private void CheckContinuousKeyHold()
+    {
+        if (m_prevKeyDown == Key.Unknown || !IsKeyDown(m_prevKeyDown))
+        {
+            m_keyHold.Reset();
+            return;
+        }
+
+        if (!m_keyHold.IsRunning)
+        {
+            m_keyDelay.Restart();
+            m_keyHold.Start();
+        }
     }
 
     public void SetKeyDown(Key key)
     {
+        m_prevKeyDown = key;
         m_inputDown.Add(key);
+
+        CheckContinuousKeyHold();
     }
 
     public void SetKeyUp(Key key)
     {
+        if (m_prevKeyDown == key)
+            m_prevKeyDown = Key.Unknown;
+
         if (key == Key.PrintScreen)
             return;
 
         m_inputDown.Remove(key);
+        CheckContinuousKeyHold();
     }
 
     public void AddTypedCharacters(ReadOnlySpan<char> str)
@@ -64,6 +91,20 @@ public class InputManager : IInputManager
     public bool IsKeyReleased(Key key) => !IsKeyDown(key) && IsKeyPrevDown(key);
     public bool HasAnyKeyPressed() => m_inputDown.Any(IsKeyPressed);
     public bool HasAnyKeyDown() => m_inputDown.Any();
+
+    public bool IsKeyContinuousHold(Key key)
+    {
+        if (m_prevKeyDown != key)
+            return false;
+
+        if (m_keyHold.ElapsedMilliseconds > 700 && m_keyDelay.ElapsedMilliseconds > 20)
+        {
+            m_keyDelay.Restart();
+            return true;
+        }
+
+        return false;
+    }
 
     public void Reset()
     {
