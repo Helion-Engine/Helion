@@ -13,7 +13,6 @@ namespace Helion.Layer.Consoles;
 
 public partial class ConsoleLayer
 {
-    private const int FontSize = 32;
     private const string FontName = "Console";
     private const long FlashSpanNanos = 500 * 1000L * 1000L;
     private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
@@ -27,6 +26,8 @@ public partial class ConsoleLayer
         RenderInput(hud, out int inputHeight);
         RenderMessages(hud, inputHeight);
     }
+
+    private int FontSize => m_config.Console.FontSize;
 
     private void RenderBackground(IHudRenderContext hud)
     {
