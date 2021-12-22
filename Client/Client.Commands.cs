@@ -30,6 +30,24 @@ public partial class Client
 
     private GlobalData m_globalData = new();
 
+    [ConsoleCommand("commands", "Lists all available commands.")]
+    private void CommandListCommands(ConsoleCommandEventArgs args)
+    {
+        List<string> commands = new();
+        foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
+            commands.Add(command);
+
+        foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
+            if (cheat.ConsoleCommand != null)
+                commands.Add(cheat.ConsoleCommand);
+
+        foreach ((string path, _) in m_config.OrderBy(x => x.path))
+            commands.Add(path);
+
+        for (int i = 0; i < commands.Count; i++)
+            Log.Info(commands[i]);
+    }
+
     [ConsoleCommand("audioDevice", "Sets a new audio device; can list devices with 'audioDevices'")]
     [ConsoleCommandArg("deviceIndex", "The device number from 'audioDevices' command")]
     private void CommandSetAudioDevice(ConsoleCommandEventArgs args)
