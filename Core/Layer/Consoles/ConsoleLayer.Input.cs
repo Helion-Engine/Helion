@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Helion.Graphics.String;
+using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
@@ -74,7 +75,15 @@ public partial class ConsoleLayer
         const long DoubleTabMillisecondThreshold = 500;
 
         if (m_console.Input.Empty())
+        {
+            if (m_console.SubmittedInput.Count > 0 && 
+                !m_console.SubmittedInput.Last().Equals(Constants.ConsoleCommands.Commands, StringComparison.OrdinalIgnoreCase))
+            {
+                m_console.AddInput(Constants.ConsoleCommands.Commands);
+                m_console.SubmitInputText();
+            }
             return;
+        }
 
         TimeSpan delta = DateTime.Now - m_lastTabTime;
         if (delta.TotalMilliseconds < DoubleTabMillisecondThreshold)

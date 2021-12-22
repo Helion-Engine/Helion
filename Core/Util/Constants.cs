@@ -162,6 +162,11 @@ public static class Constants
         public const string CenterView = "CenterView";
     }
 
+    public static class ConsoleCommands
+    {
+        public const string Commands = "commands";
+    }
+
     public const double EntityShootDistance = 8192.0;
     public const double EntityMeleeDistance = 64.0;
     public const double DefaultSpreadAngle = 5.625 * Math.PI / 180.0;

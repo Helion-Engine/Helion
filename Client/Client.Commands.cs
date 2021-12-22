@@ -30,7 +30,7 @@ public partial class Client
 
     private GlobalData m_globalData = new();
 
-    [ConsoleCommand("commands", "Lists all available commands.")]
+    [ConsoleCommand(Constants.ConsoleCommands.Commands, "Lists all available commands.")]
     private void CommandListCommands(ConsoleCommandEventArgs args)
     {
         List<string> commands = new();
