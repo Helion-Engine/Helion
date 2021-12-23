@@ -15,13 +15,15 @@ public class TextureManager : ITickable
     public const int NoTextureIndex = 0;
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly Texture[] m_textures;
-    private readonly int[] m_translations;
+    private readonly List<Texture> m_textures;
+    private readonly List<int> m_translations;
     private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Animation> m_animations = new();
     private int m_skyIndex;
+    private Texture? m_defaultSkyTexture;
 
     public static TextureManager Instance { get; private set; } = null!;
 
@@ -34,8 +36,10 @@ public class TextureManager : ITickable
 
         var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
         int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
-        m_textures = new Texture[count];
-        m_translations = new int[count];
+        m_textures = new List<Texture>(count);
+        m_translations = new List<int>(count);
+        for (int i = 0; i < count; i++)
+            m_translations.Add(i);
 
         var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
         var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
@@ -56,11 +60,14 @@ public class TextureManager : ITickable
 
     public Texture GetDefaultSkyTexture()
     {
-        Texture texture = GetTexture(SkyTextureName, ResourceNamespace.Global);
-        if (texture.Image == null)
-            LoadTextureImage(texture.Index);
+        if (m_defaultSkyTexture != null)
+            return m_defaultSkyTexture;
 
-        return texture;
+        m_defaultSkyTexture = GetTexture(SkyTextureName, ResourceNamespace.Global);
+        if (m_defaultSkyTexture.Image == null)
+            LoadTextureImage(m_defaultSkyTexture.Index);
+
+        return m_defaultSkyTexture;
     }
 
     /// <summary>
@@ -154,7 +161,29 @@ public class TextureManager : ITickable
                 return texture;
         }
 
+        if (m_patchLookup.TryGetValue(name, out texture))
+            return texture;
+
+        // Doom allowed for direct patches to load...
+        if (TryCreateTextureFromPatch(name, out texture))
+            return texture!;
+
         return m_textures[Constants.NoTextureIndex];
+    }
+
+    private bool TryCreateTextureFromPatch(string name, out Texture? texture)
+    {
+        texture = null;
+        var image = m_archiveCollection.ImageRetriever.GetOnly(name, ResourceNamespace.Global);
+        if (image == null)
+            return false;
+
+        texture = new(name, ResourceNamespace.Textures, m_textures.Count);
+        texture.Image = image;
+        m_textures.Add(texture);
+        m_translations.Add(m_translations.Count);
+        m_patchLookup[name] = texture;
+        return true;
     }
 
     /// <summary>
@@ -179,7 +208,7 @@ public class TextureManager : ITickable
     {
         if (index == Constants.NoTextureIndex)
         {
-            Util.Assertion.Assert.Invariant(m_textures.Length > 1, "Invalid textures count");
+            Util.Assertion.Assert.Invariant(m_textures.Count > 1, "Invalid textures count");
             return m_textures[m_translations[1]];
         }
 
@@ -314,22 +343,19 @@ public class TextureManager : ITickable
 
     private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries)
     {
-        for (int i = 0; i < m_translations.Length; i++)
-            m_translations[i] = i;
-
-        m_textures[Constants.NoTextureIndex] = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
+        m_textures.Add(new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex));
         m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
 
         int index = Constants.NoTextureIndex + 1;
         foreach (TextureDefinition texture in textures)
         {
-            m_textures[index] = new Texture(texture.Name, texture.Namespace, index);
+            m_textures.Add(new Texture(texture.Name, texture.Namespace, index));
             m_textureLookup[texture.Name] = m_textures[index];
             index++;
         }
 
         // Load AASHITTY for information purposes - FloorRaiseByTexture needs it to emulate vanilla bug
-        if (m_textures.Length > 1)
+        if (m_textures.Count > 1)
         {
             Texture shitty = m_textures[1];
             shitty.Image = m_archiveCollection.ImageRetriever.GetOnly(shitty.Name, shitty.Namespace);
@@ -338,7 +364,7 @@ public class TextureManager : ITickable
         // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
         foreach (Entry flat in flatEntries)
         {
-            m_textures[index] = new Texture(flat.Path.Name, ResourceNamespace.Flats, index);
+            m_textures.Add(new Texture(flat.Path.Name, ResourceNamespace.Flats, index));
             m_flatLookup[flat.Path.Name] = m_textures[index];
 
             // TODO fix with MapInfo when implemented
