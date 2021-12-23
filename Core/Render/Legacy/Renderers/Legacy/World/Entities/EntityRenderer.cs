@@ -11,6 +11,7 @@ using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities;
@@ -29,6 +30,7 @@ public class EntityRenderer
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
+    private readonly HashSet<Vec2D> m_renderPositions = new();
     private bool m_drawDebugBox;
     private double m_tickFraction;
     private Entity? m_cameraEntity;
@@ -51,8 +53,6 @@ public class EntityRenderer
         PreloadAllTextures(world);
     }
 
-    private HashSet<Vec2D> m_renderPositions = new();
-
     public void Clear(WorldBase world, double tickFraction, Entity cameraEntity)
     {
         // I'm hitching a ride here so we don't keep making a bunch of
@@ -69,7 +69,7 @@ public class EntityRenderer
         m_renderPositions.Clear();
     }
 
-    public void RenderSubsector(Subsector subsector, in Vec2D position, in Vec2D viewDirection)
+    public void RenderSubsector(Sector viewSector, Subsector subsector, in Vec3D position, in Vec2D viewDirection)
     {
         foreach (Entity entity in subsector.Entities)
         {
@@ -81,12 +81,12 @@ public class EntityRenderer
 
             if (entity.Definition.Properties.Alpha < 1)
             {
-                entity.RenderDistance = entity.Position.XY.Distance(position);
+                entity.RenderDistance = entity.Position.XY.Distance(position.XY);
                 AlphaEntities.Add(entity);
                 continue;
             }
 
-            RenderEntity(entity, position, viewDirection);
+            RenderEntity(viewSector, entity, position, viewDirection);
             m_EntityDrawnTracker.MarkDrawn(entity);
         }
     }
@@ -130,7 +130,7 @@ public class EntityRenderer
     }
 
     private void AddSpriteQuad(in Vec2D viewDirection, in Vec3D entityCenterBottom, Entity entity,
-        GLLegacyTexture texture, bool mirror)
+        GLLegacyTexture texture, short lightLevel, bool mirror)
     {
         // We need to find the perpendicular vector from the entity so we
         // know where to place the quad vertices.
@@ -152,7 +152,6 @@ public class EntityRenderer
         float topZ = bottomZ + texture.Height;
         float leftU = mirror ? 1.0f : 0.0f;
         float rightU = mirror ? 0.0f : 1.0f;
-        short lightLevel = CalculateLightLevel(entity, entity.Sector.LightLevel);
         float alpha = (float)entity.Definition.Properties.Alpha;
         Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
         bool fuzz = entity.Definition.Flags.Shadow;
@@ -264,18 +263,19 @@ public class EntityRenderer
         }
     }
 
-    public void RenderEntity(Entity entity, in Vec2D position, in Vec2D viewDirection)
+    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position, in Vec2D viewDirection)
     {
         const double NudgeFactor = 0.0001;
         Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
         Vec2D entityPos = centerBottom.XY;
+        Vec2D position2D = position.XY;
 
         var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
         uint rotation;
 
         if (spriteDef != null && spriteDef.HasRotations)
         {
-            uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
+            uint viewAngle = ViewClipper.ToDiamondAngle(position2D, entityPos);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             rotation = CalculateRotation(viewAngle, entityAngle);
         }
@@ -286,7 +286,7 @@ public class EntityRenderer
 
         if (m_renderPositions.Contains(entityPos))
         {
-            double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
+            double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
             Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
             centerBottom.X -= nudgeAmount.X;
             centerBottom.Y -= nudgeAmount.Y;
@@ -312,6 +312,7 @@ public class EntityRenderer
             spriteRotation = m_textureManager.NullSpriteRotation;
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
-        AddSpriteQuad(viewDirection, centerBottom, entity, texture, spriteRotation.Mirror);
+        short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
+        AddSpriteQuad(viewDirection, centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
     }
 }

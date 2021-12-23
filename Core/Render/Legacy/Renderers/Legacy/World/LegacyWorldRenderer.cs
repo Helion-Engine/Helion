@@ -127,7 +127,7 @@ public class LegacyWorldRenderer : WorldRenderer
             IRenderObject renderObject = alphaObjects[i];
             if (renderObject.Type == RenderObjectType.Entity)
             {
-                m_entityRenderer.RenderEntity((Entity)renderObject, position, viewDirection);
+                m_entityRenderer.RenderEntity(m_viewSector, (Entity)renderObject, position3D, viewDirection);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {
@@ -185,7 +185,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
 
         m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position);
-        m_entityRenderer.RenderSubsector(subsector, position.XY, viewDirection);
+        m_entityRenderer.RenderSubsector(m_viewSector, subsector, position, viewDirection);
     }
 
     private void SetUniforms(RenderInfo renderInfo)
