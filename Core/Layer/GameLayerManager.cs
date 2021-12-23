@@ -182,8 +182,12 @@ public class GameLayerManager : IGameLayerParent
             ToggleConsoleLayer(input);
         ConsoleLayer?.HandleInput(input);
 
-        if (MenuLayer == null && input.ConsumeKeyPressed(Key.Escape))
+        if (ShouldCreateMenu(input))
+        {
+            if (ReadThisLayer != null)
+                Remove(ReadThisLayer);
             CreateMenuLayer();
+        }
 
         MenuLayer?.HandleInput(input);
         EndGameLayer?.HandleInput(input);
@@ -191,6 +195,21 @@ public class GameLayerManager : IGameLayerParent
         TitlepicLayer?.HandleInput(input);
         IntermissionLayer?.HandleInput(input);
         WorldLayer?.HandleInput(input);
+    }
+
+    private bool ShouldCreateMenu(IConsumableInput input)
+    {
+        if (MenuLayer != null)
+            return false;
+
+        if (TitlepicLayer != null && input.Manager.HasAnyKeyPressed())
+        {
+            // Have to eat the escape key if it exists, otherwise the menu will immediately close.
+            input.ConsumeKeyPressed(Key.Escape);
+            return true;
+        }
+        
+        return input.ConsumeKeyPressed(Key.Escape);
     }
 
     private void ToggleConsoleLayer(IConsumableInput input)
