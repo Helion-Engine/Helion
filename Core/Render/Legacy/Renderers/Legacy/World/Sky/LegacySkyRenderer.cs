@@ -56,22 +56,26 @@ public class LegacySkyRenderer : IDisposable
             skyComponent.Clear();
     }
 
-    public void Add(SkyGeometryVertex[] data, int? textureHandle)
+    public void Add(SkyGeometryVertex[] data, int? textureHandle, bool flipSkyTexture)
     {
         if (m_skyComponents.Count >= MaxSkyTextures)
             return;
 
         textureHandle ??= TextureManager.Instance.GetDefaultSkyTexture().Index;
+        int textureHandleLookup = textureHandle.Value;
+        // LMAO
+        if (flipSkyTexture)
+            textureHandleLookup += short.MaxValue;
 
-        if (m_skyComponents.TryGetValue(textureHandle.Value, out ISkyComponent? sky))
+        if (m_skyComponents.TryGetValue(textureHandleLookup, out ISkyComponent? sky))
         {
             sky.Add(data);
         }
         else
         {
             ISkyComponent newSky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl,
-                m_textureManager, textureHandle.Value);
-            m_skyComponents[textureHandle.Value] = newSky;
+                m_textureManager, textureHandle.Value, flipSkyTexture);
+            m_skyComponents[textureHandleLookup] = newSky;
             newSky.Add(data);
         }
     }

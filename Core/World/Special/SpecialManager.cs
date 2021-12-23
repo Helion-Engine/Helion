@@ -563,7 +563,7 @@ public class SpecialManager : ITickable, IDisposable
         if (line.Args.Arg1 == (int)ZDoomStaticInit.Sky)
         {
             foreach (Sector sector in m_world.FindBySectorTag(line.Args.Arg0))
-                sector.SetSkyTexture(line.Front.Upper.TextureHandle);
+                sector.SetSkyTexture(line.Front.Upper.TextureHandle, line.Args.Arg2 != 0);
         }
     }
 

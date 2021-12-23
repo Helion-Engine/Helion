@@ -345,7 +345,7 @@ public class GeometryRenderer : IDisposable
                 m_skyWallVertexLowerLookup[facingSide.Id] = data;
             }
 
-            m_skyRenderer.Add(data, otherSide.Sector.SkyTextureHandle);
+            m_skyRenderer.Add(data, otherSide.Sector.SkyTextureHandle, otherSide.Sector.FlipSkyTexture);
         }
         else
         {
@@ -411,7 +411,7 @@ public class GeometryRenderer : IDisposable
                 m_skyWallVertexUpperLookup[facingSide.Id] = data;
             }
 
-            m_skyRenderer.Add(data, plane.Sector.SkyTextureHandle);
+            m_skyRenderer.Add(data, plane.Sector.SkyTextureHandle, plane.Sector.FlipSkyTexture);
         }
         else
         {
@@ -468,7 +468,7 @@ public class GeometryRenderer : IDisposable
         }
 
         SkyGeometryVertex[] skyData = CreateSkyWallVertices(wall);
-        m_skyRenderer.Add(skyData, facingSide.Sector.SkyTextureHandle);
+        m_skyRenderer.Add(skyData, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
     }
 
     private static bool SkyUpperRenderFromFloorCheck(TwoSided twoSided, Sector facingSector, Sector otherSector)
@@ -597,7 +597,7 @@ public class GeometryRenderer : IDisposable
                 }
             }
 
-            m_skyRenderer.Add(data, subsector.Sector.SkyTextureHandle);
+            m_skyRenderer.Add(data, subsector.Sector.SkyTextureHandle, subsector.Sector.FlipSkyTexture);
         }
         else
         {

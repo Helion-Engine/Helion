@@ -23,11 +23,12 @@ public class SkySphereComponent : ISkyComponent
     private readonly VertexArrayObject m_geometryVao;
     private readonly SkySphereGeometryShader m_geometryShaderProgram;
     private readonly SkySphereRenderer m_skySphereRenderer;
+    private readonly bool m_flipSkyTexture;
 
     public bool HasGeometry => !m_geometryVbo.Empty;
 
     public SkySphereComponent(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
-        IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle)
+        IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle, bool flipSkyTexture)
     {
         m_config = config;
         gl = functions;
@@ -37,6 +38,8 @@ public class SkySphereComponent : ISkyComponent
         m_geometryVbo = new StreamVertexBuffer<SkyGeometryVertex>(capabilities, functions, m_geometryVao, "VBO: Sky sphere geometry");
         using (ShaderBuilder builder = SkySphereGeometryShader.MakeBuilder(functions))
             m_geometryShaderProgram = new SkySphereGeometryShader(functions, builder, GeometryAttributes);
+
+        m_flipSkyTexture = flipSkyTexture;
     }
 
     ~SkySphereComponent()

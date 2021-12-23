@@ -90,6 +90,7 @@ public class Sector
     public bool Secret { get; private set; }
     public int DamageAmount { get; private set; }
     public int? SkyTextureHandle { get; private set; }
+    public bool FlipSkyTexture { get; set; }
 
     public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
     public bool Has3DFloors => !Floors3D.Empty();
@@ -206,9 +207,10 @@ public class Sector
         }
     }
 
-    public void SetSkyTexture(int texture)
+    public void SetSkyTexture(int texture, bool flipped)
     {
         SkyTextureHandle = texture;
+        FlipSkyTexture = flipped;
         DataChanges |= SectorDataTypes.SkyTexture;
         SetRenderingChanged();
     }
