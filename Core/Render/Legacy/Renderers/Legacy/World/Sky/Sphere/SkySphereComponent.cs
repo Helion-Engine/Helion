@@ -75,7 +75,7 @@ public class SkySphereComponent : ISkyComponent
 
     public void RenderSky(RenderInfo renderInfo)
     {
-        m_skySphereRenderer.Render(renderInfo);
+        m_skySphereRenderer.Render(renderInfo, m_flipSkyTexture);
     }
 
     public void Dispose()

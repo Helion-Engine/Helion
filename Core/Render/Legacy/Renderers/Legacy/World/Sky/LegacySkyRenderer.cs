@@ -62,8 +62,10 @@ public class LegacySkyRenderer : IDisposable
             return;
 
         textureHandle ??= TextureManager.Instance.GetDefaultSkyTexture().Index;
+        
+        // This is a hack that is used to make us never have collisions. We will
+        // eventually do this right in the new renderer.
         int textureHandleLookup = textureHandle.Value;
-        // LMAO
         if (flipSkyTexture)
             textureHandleLookup += short.MaxValue;
 

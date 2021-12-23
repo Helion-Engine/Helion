@@ -19,6 +19,7 @@ public class SkySphereTexture : IDisposable
     private const int DefaultPaddingDivisor = 3;
 
     public float ScaleU = 1.0f;
+    public bool FlipU;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IGLFunctions gl;
     private readonly LegacyGLTextureManager m_textureManager;
