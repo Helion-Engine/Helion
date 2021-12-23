@@ -11,7 +11,6 @@ using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.World.Entities.Players;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
@@ -52,13 +51,13 @@ public class SkySphereRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void Render(RenderInfo renderInfo)
+    public void Render(RenderInfo renderInfo, bool flipSkyHorizontal)
     {
         m_sphereShaderProgram.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
         m_sphereShaderProgram.BoundTexture.Set(gl, 0);
-        SetUniforms(renderInfo);
+        SetUniforms(renderInfo, flipSkyHorizontal);
 
         DrawSphere(m_skyTexture.GetTexture());
 
@@ -141,7 +140,7 @@ public class SkySphereRenderer : IDisposable
         m_sphereVbo.UploadIfNeeded();
     }
 
-    private void SetUniforms(RenderInfo renderInfo)
+    private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
@@ -149,6 +148,7 @@ public class SkySphereRenderer : IDisposable
 
         m_sphereShaderProgram.Mvp.Set(gl, CalculateMvp(renderInfo));
         m_sphereShaderProgram.ScaleU.Set(gl, m_skyTexture.ScaleU);
+        m_sphereShaderProgram.FlipU.Set(gl, flipSkyHorizontal ? 1 : 0);
         m_sphereShaderProgram.HasInvulnerability.Set(gl, invulnerability ? 1 : 0);
     }
 
