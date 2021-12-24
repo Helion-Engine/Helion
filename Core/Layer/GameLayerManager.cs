@@ -217,7 +217,7 @@ public class GameLayerManager : IGameLayerParent
         input.ConsumeAll();
 
         if (ConsoleLayer == null)
-            Add(new ConsoleLayer(m_config, m_console, m_consoleCommands));
+            Add(new ConsoleLayer(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands));
         else
             Remove(ConsoleLayer);
     }

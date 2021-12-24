@@ -21,8 +21,6 @@ namespace Helion.Layer.Images;
 
 public class TitlepicLayer : IGameLayer
 {
-    private const string Titlepic = "TITLEPIC";
-
     private readonly GameLayerManager m_parent;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IConfig m_config;
@@ -53,7 +51,7 @@ public class TitlepicLayer : IGameLayer
         m_pageDuration = TimeSpan.FromSeconds(archiveCollection.Definitions.MapInfoDefinition.GameDefinition.TitleTime);
 
         m_stopwatch.Start();
-        List<string> pages = new() { Titlepic };
+        List<string> pages = new() { archiveCollection.GameInfo.TitlePage };
         pages.AddRange(archiveCollection.Definitions.MapInfoDefinition.GameDefinition.InfoPages);
         m_pages = pages;
 

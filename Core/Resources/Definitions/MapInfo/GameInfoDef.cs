@@ -21,4 +21,5 @@ public class GameInfoDef
     public bool DrawReadThis { get; set; }
     public int DefKickBack { get; set; } = 100;
     public string SkyFlatName { get; set; } = "F_SKY1";
+    public string TitlePage { get; set; } = "TITLEPIC";
 }

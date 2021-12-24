@@ -38,7 +38,6 @@ public partial class ConsoleLayer
     private void RenderConsoleBackground(IHudRenderContext hud)
     {
         const string ConsoleBackingImage = "CONBACK";
-        const string TitlepicImage = "TITLEPIC";
         const float BackgroundAlpha = 0.65f;
 
         int halfHeight = hud.Height / 2;
@@ -49,9 +48,9 @@ public partial class ConsoleLayer
             hud.Image(ConsoleBackingImage, drawArea);
             hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
         }
-        else if (hud.Textures.HasImage(TitlepicImage))
+        else if (hud.Textures.HasImage(m_backingImage))
         {
-            hud.Image(TitlepicImage, drawArea);
+            hud.Image(m_backingImage, drawArea);
             hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
         }
         else

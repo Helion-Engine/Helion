@@ -15,14 +15,16 @@ public partial class ConsoleLayer : IGameLayer
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly ConsoleCommands m_consoleCommands;
+    private readonly string m_backingImage;
     private int m_messageRenderOffset;
     private bool m_disposed;
 
-    public ConsoleLayer(IConfig config, HelionConsole console, ConsoleCommands consoleCommands)
+    public ConsoleLayer(string backingImage, IConfig config, HelionConsole console, ConsoleCommands consoleCommands)
     {
         m_config = config;
         m_console = console;
         m_consoleCommands = consoleCommands;
+        m_backingImage = backingImage;
 
         console.ClearInputText();
     }

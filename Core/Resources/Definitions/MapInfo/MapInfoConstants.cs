@@ -46,6 +46,7 @@ public partial class MapInfoDefinition
     private static readonly string GameWeaponSlotName = "WeaponSlot";
     private static readonly string GameDefKickBack = "DefKickback";
     private static readonly string GameSkyFlatName = "skyflatname";
+    private static readonly string GameTitlePageName = "TitlePage";
 
     private static readonly HashSet<string> GameInfoNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -65,6 +66,7 @@ public partial class MapInfoDefinition
         GameWeaponSlotName,
         GameDefKickBack,
         GameSkyFlatName,
+        GameTitlePageName
     };
 
     private static readonly string EpisodePicName = "picname";

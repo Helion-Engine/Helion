@@ -129,7 +129,7 @@ public partial class Client
 
         if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
         {
-            ConsoleLayer layer = new(m_config, m_console, m_consoleCommands);
+            ConsoleLayer layer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
             m_layerManager.Add(layer);
         }
     }
