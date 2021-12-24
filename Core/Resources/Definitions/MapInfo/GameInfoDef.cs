@@ -19,4 +19,5 @@ public class GameInfoDef
     public int TitleTime { get; set; } = 5;
     public int PageTime { get; set; } = 5;
     public bool DrawReadThis { get; set; }
+    public int DefKickBack { get; set; } = 100;
 }

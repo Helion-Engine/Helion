@@ -52,6 +52,7 @@ public interface IWorld : IDisposable
     SkillDef SkillDefinition { get; }
     ArchiveCollection ArchiveCollection { get; }
     MapInfoDef MapInfo { get; }
+    GameInfoDef GameInfo { get; }
     LevelStats LevelStats { get; }
     bool Paused { get; }
     public GlobalData GlobalData { get; }

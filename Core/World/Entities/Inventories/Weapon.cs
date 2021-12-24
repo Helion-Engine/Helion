@@ -57,6 +57,9 @@ public class Weapon : InventoryItem, ITickable
     private bool m_tryingToFire;
     private double m_raiseFraction;
 
+    public int KickBack => Definition.Properties.Weapons.DefaultKickBack ? Owner.World.GameInfo.DefKickBack : 
+        Definition.Properties.Weapons.KickBack;
+
     public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
         FrameStateModel? frameStateModel = null, FrameStateModel? flashStateModel = null) :
         base(definition, 1)

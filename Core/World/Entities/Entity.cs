@@ -94,6 +94,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
+    public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
     protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();

@@ -45,14 +45,14 @@ public class Inventory
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(owner.World.ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.WeaponSlots);
+        Weapons = new Weapons(owner.World.GameInfo.WeaponSlots);
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(owner.World.ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition.WeaponSlots);
+        Weapons = new Weapons(owner.World.GameInfo.WeaponSlots);
 
         foreach (InventoryItemModel item in playerModel.Inventory.Items)
         {

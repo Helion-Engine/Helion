@@ -94,6 +94,8 @@ public abstract partial class WorldBase : IWorld
     public ArchiveCollection ArchiveCollection { get; protected set; }
     public GlobalData GlobalData { get; }
 
+    public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
+
     protected readonly IAudioSystem AudioSystem;
     protected readonly MapGeometry Geometry;
     protected readonly PhysicsManager PhysicsManager;
@@ -821,7 +823,7 @@ public abstract partial class WorldBase : IWorld
             double pitch = 0.0;
 
             double angle = source.Position.Angle(target.Position);
-            double thrustAmount = damage * source.Definition.Properties.ProjectileKickBack * 0.125 / target.Properties.Mass;
+            double thrustAmount = damage * source.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
             // Silly vanilla doom feature that allows target to be thrown forward sometimes
             if (damage < 40 && damage > target.Health &&

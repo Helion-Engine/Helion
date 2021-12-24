@@ -7,9 +7,9 @@ public class WeaponProperty
     public int AmmoGive;
     public int AmmoGive1;
     public int AmmoGive2;
-    public string AmmoType = "";
-    public string AmmoType1 = "";
-    public string AmmoType2 = "";
+    public string AmmoType = string.Empty;
+    public string AmmoType1 = string.Empty;
+    public string AmmoType2 = string.Empty;
     public int AmmoUse;
     public int AmmoUse1;
     public int AmmoUse2;
@@ -22,11 +22,11 @@ public class WeaponProperty
     public double LookScale;
     public int MinSelectionAmmo1;
     public int MinSelectionAmmo2;
-    public string ReadySound = "";
+    public string ReadySound = string.Empty;
     public int SelectionOrder = int.MaxValue;
-    public string SisterWeapon = "";
+    public string SisterWeapon = string.Empty;
     public int SlotNumber;
     public double SlotPriority;
-    public string UpSound = "";
+    public string UpSound = string.Empty;
     public int YAdjust;
 }
