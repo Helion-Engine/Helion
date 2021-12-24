@@ -59,6 +59,7 @@ public class ArchiveCollection : IResources
     public LockDefinitions Locks => Definitions.LockDefininitions;
     public LanguageDefinition Language => Definitions.Language;
     public MapInfoDefinition MapInfo => Definitions.MapInfoDefinition;
+    public GameInfoDef GameInfo => Definitions.MapInfoDefinition.GameDefinition;
     public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
     public EntityDefinitionComposer EntityDefinitionComposer { get; }
     public IImageRetriever ImageRetriever { get; }

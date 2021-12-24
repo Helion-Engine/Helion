@@ -362,13 +362,14 @@ public class TextureManager : ITickable
         }
 
         // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
+        string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
         foreach (Entry flat in flatEntries)
         {
             m_textures.Add(new Texture(flat.Path.Name, ResourceNamespace.Flats, index));
             m_flatLookup[flat.Path.Name] = m_textures[index];
 
             // TODO fix with MapInfo when implemented
-            if (flat.Path.Name.Equals(Constants.SkyTexture, StringComparison.OrdinalIgnoreCase))
+            if (flat.Path.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
                 m_skyIndex = index;
 
             index++;

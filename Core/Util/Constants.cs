@@ -39,11 +39,6 @@ public static class Constants
     public static readonly int NoTextureIndex = 0;
 
     /// <summary>
-    /// The sky flat texture name.
-    /// </summary>
-    public static readonly string SkyTexture = "F_SKY1";
-
-    /// <summary>
     /// The name of the decorate player class.
     /// </summary>
     public static readonly string PlayerClass = "DoomPlayer";

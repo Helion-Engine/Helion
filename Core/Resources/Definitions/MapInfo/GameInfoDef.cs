@@ -20,4 +20,5 @@ public class GameInfoDef
     public int PageTime { get; set; } = 5;
     public bool DrawReadThis { get; set; }
     public int DefKickBack { get; set; } = 100;
+    public string SkyFlatName { get; set; } = "F_SKY1";
 }

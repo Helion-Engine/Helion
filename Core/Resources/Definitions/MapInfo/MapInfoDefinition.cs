@@ -433,6 +433,8 @@ public partial class MapInfoDefinition
                     gameDef.IntermissionMusic = parser.ConsumeString();
                 else if (item.Equals(GameDefKickBack, StringComparison.OrdinalIgnoreCase))
                     gameDef.DefKickBack = parser.ConsumeInteger();
+                else if (item.Equals(GameSkyFlatName, StringComparison.OrdinalIgnoreCase))
+                    gameDef.SkyFlatName = parser.ConsumeString();
                 else if (item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
                     ParseWeaponSlot(gameDef, parser);
             }
