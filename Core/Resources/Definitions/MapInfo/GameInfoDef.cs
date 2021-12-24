@@ -22,5 +22,9 @@ public class GameInfoDef
     public int DefKickBack { get; set; } = 100;
     public string SkyFlatName { get; set; } = "F_SKY1";
     public string TitlePage { get; set; } = "TITLEPIC";
+    public string ChatSound { get; set; } = "misc/chat";
     public bool IntermissionCounter { get; set; } = true;
+    public int AdvisoryTime { get; set; }
+    public int TelefogHeight { get; set; }
+
 }

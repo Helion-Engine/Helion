@@ -48,6 +48,10 @@ public partial class MapInfoDefinition
     private static readonly string GameSkyFlatName = "skyflatname";
     private static readonly string GameTitlePageName = "TitlePage";
     private static readonly string GameIntermissionCounterName = "IntermissionCounter";
+    private static readonly string GameChatSoundName = "ChatSound";
+    private static readonly string GameAdvisoryTimeName = "AdvisoryTime";
+    private static readonly string GameTelefogHeightName = "TelefogHeight";
+
 
     private static readonly HashSet<string> GameInfoNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -68,7 +72,11 @@ public partial class MapInfoDefinition
         GameDefKickBack,
         GameSkyFlatName,
         GameTitlePageName,
-        GameIntermissionCounterName
+        GameIntermissionCounterName,
+        GameChatSoundName,
+        GameAdvisoryTimeName,
+        GameTelefogHeightName,
+
     };
 
     private static readonly string EpisodePicName = "picname";

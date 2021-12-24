@@ -439,6 +439,12 @@ public partial class MapInfoDefinition
                     gameDef.TitlePage = parser.ConsumeString();
                 else if (item.Equals(GameIntermissionCounterName, StringComparison.OrdinalIgnoreCase))
                     gameDef.IntermissionCounter = parser.ConsumeBool();
+                else if (item.Equals(GameChatSoundName, StringComparison.OrdinalIgnoreCase))
+                    gameDef.ChatSound = parser.ConsumeString();
+                else if (item.Equals(GameAdvisoryTimeName, StringComparison.OrdinalIgnoreCase))
+                    gameDef.AdvisoryTime = parser.ConsumeInteger();
+                else if (item.Equals(GameTelefogHeightName, StringComparison.OrdinalIgnoreCase))
+                    gameDef.TelefogHeight = parser.ConsumeInteger();
                 else if (item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
                     ParseWeaponSlot(gameDef, parser);
             }
