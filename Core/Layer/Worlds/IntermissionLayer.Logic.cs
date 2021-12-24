@@ -131,28 +131,30 @@ public partial class IntermissionLayer
         {
         case IntermissionState.TallyingKills:
             m_levelPercents.KillCount = Math.Clamp(m_levelPercents.KillCount + StatAddAmount, 0, m_levelPercents.TotalMonsters);
-            if (m_levelPercents.KillCount >= m_levelPercents.TotalMonsters)
+            if (SkipTallyCount || m_levelPercents.KillCount >= m_levelPercents.TotalMonsters)
                 AdvanceTally();
             break;
 
         case IntermissionState.TallyingItems:
             m_levelPercents.ItemCount = Math.Clamp(m_levelPercents.ItemCount + StatAddAmount, 0, m_levelPercents.TotalItems);
-            if (m_levelPercents.ItemCount >= m_levelPercents.TotalItems)
+            if (SkipTallyCount || m_levelPercents.ItemCount >= m_levelPercents.TotalItems)
                 AdvanceTally();
             break;
 
         case IntermissionState.TallyingSecrets:
             m_levelPercents.SecretCount = Math.Clamp(m_levelPercents.SecretCount + StatAddAmount, 0, m_levelPercents.TotalSecrets);
-            if (m_levelPercents.SecretCount >= m_levelPercents.TotalSecrets)
+            if (SkipTallyCount || m_levelPercents.SecretCount >= m_levelPercents.TotalSecrets)
                 AdvanceTally();
             break;
 
         case IntermissionState.TallyingTime:
             LevelTimeSeconds = Math.Clamp(LevelTimeSeconds + TimeAddAmount, 0, m_totalLevelTime);
             ParTimeSeconds = Math.Clamp(ParTimeSeconds + TimeAddAmount, 0, CurrentMapInfo.ParTime);
-            if (LevelTimeSeconds >= m_totalLevelTime && ParTimeSeconds >= CurrentMapInfo.ParTime)
+            if (SkipTallyCount || LevelTimeSeconds >= m_totalLevelTime && ParTimeSeconds >= CurrentMapInfo.ParTime)
                 AdvanceTally();
             break;
         }
     }
+
+    private bool SkipTallyCount => !m_archiveCollection.GameInfo.IntermissionCounter;
 }

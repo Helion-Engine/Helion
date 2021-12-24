@@ -437,6 +437,8 @@ public partial class MapInfoDefinition
                     gameDef.SkyFlatName = parser.ConsumeString();
                 else if (item.Equals(GameTitlePageName, StringComparison.OrdinalIgnoreCase))
                     gameDef.TitlePage = parser.ConsumeString();
+                else if (item.Equals(GameIntermissionCounterName, StringComparison.OrdinalIgnoreCase))
+                    gameDef.IntermissionCounter = parser.ConsumeBool();
                 else if (item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
                     ParseWeaponSlot(gameDef, parser);
             }

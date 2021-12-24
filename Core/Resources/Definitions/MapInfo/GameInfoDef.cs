@@ -22,4 +22,5 @@ public class GameInfoDef
     public int DefKickBack { get; set; } = 100;
     public string SkyFlatName { get; set; } = "F_SKY1";
     public string TitlePage { get; set; } = "TITLEPIC";
+    public bool IntermissionCounter { get; set; } = true;
 }
