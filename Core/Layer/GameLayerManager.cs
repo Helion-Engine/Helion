@@ -37,6 +37,9 @@ public class GameLayerManager : IGameLayerParent
     public TitlepicLayer? TitlepicLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
+
+    private static readonly string[] MenuIgnoreCommands = new[] { Constants.Input.Screenshot, Constants.Input.Console };
+
     public WorldLayer? WorldLayer { get; private set; }
     private readonly IConfig m_config;
     private readonly IWindow m_window;
@@ -199,10 +202,11 @@ public class GameLayerManager : IGameLayerParent
 
     private bool ShouldCreateMenu(IConsumableInput input)
     {
-        if (MenuLayer != null)
+        if (MenuLayer != null || ConsoleLayer != null)
             return false;
 
-        if (TitlepicLayer != null && input.Manager.HasAnyKeyPressed())
+        if (TitlepicLayer != null && input.Manager.HasAnyKeyPressed() &&
+            !MenuIgnoreCommands.Any(x => m_config.Keys.IsCommandKeyDown(x, input)))
         {
             // Have to eat the escape key if it exists, otherwise the menu will immediately close.
             input.ConsumeKeyPressed(Key.Escape);

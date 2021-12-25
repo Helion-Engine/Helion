@@ -140,6 +140,17 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
+    public bool IsCommandKeyDown(string command, IConsumableInput input)
+    {
+        foreach (Key key in this[command])
+        {
+            if (input.Manager.IsKeyDown(key))
+                return true;
+        }
+
+        return false;
+    }
+
     private static bool ConsumeMouseWheel(Key key, IConsumableInput input)
     {
         if (key == Key.MouseWheelUp && input.Manager.Scroll > 0)

@@ -44,6 +44,14 @@ public interface IConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> C
     bool ConsumeCommandKeyDown(string command, IConsumableInput input);
 
     /// <summary>
+    /// Consumes the key for the mapped command if it is currently down.
+    /// </summary>
+    /// <param name="command">The command, which is not case sensitive.</param>
+    /// <param name="input">The consumable input.</param>
+    /// <returns>True if it was found to be down.</returns>
+    bool IsCommandKeyDown(string command, IConsumableInput input);
+
+    /// <summary>
     /// Unbinds all commands and keys that match this key. This means the
     /// key will be removed, and any alias that would point onto that key
     /// would be removed. This does not remove bindings to other keys.
