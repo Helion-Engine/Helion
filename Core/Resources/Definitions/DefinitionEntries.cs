@@ -76,6 +76,7 @@ public class DefinitionEntries
         m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
         m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
         m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
+        m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLangaugeCompatibility, entry);
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
@@ -125,6 +126,7 @@ public class DefinitionEntries
 
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
+    private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
 
     private void ParseDehacked(string text)

@@ -13,14 +13,26 @@ public class LanguageDefinition
     public CultureInfo CultureInfo { get; set; } = CultureInfo.CurrentCulture;
 
     private readonly Dictionary<string, string> m_lookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> m_compatLookup = new(StringComparer.OrdinalIgnoreCase);
+
+    // Used for compatibility when modifying language strings. E.g. BEX defines 'gotredskull'
+    // But zdoom uses 'gotredskul' with a single l
+    public void ParseCompatibility(string data)
+    {
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        while (!parser.IsDone())
+            m_compatLookup.Add(parser.ConsumeString(), parser.ConsumeString());
+    }
 
     public void Parse(string data)
     {
         data = GetCurrentLanguageSection(data);
 
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.Parse(data);
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
 
         while (!parser.IsDone())
         {
@@ -41,6 +53,9 @@ public class LanguageDefinition
 
     public bool SetValue(string key, string value)
     {
+        if (m_compatLookup.ContainsKey(key))
+            key = m_compatLookup[key];
+
         if (!m_lookup.ContainsKey(key))
             return false;
 
@@ -50,9 +65,9 @@ public class LanguageDefinition
 
     private string GetCurrentLanguageSection(string data)
     {
-        Regex currentLanguage = new Regex(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
-        Regex defaultLanguage = new Regex("\\[\\w+\\s+default]");
-        Regex anyLanguage = new Regex("\\[\\w+(\\s+default)?]");
+        Regex currentLanguage = new(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
+        Regex defaultLanguage = new("\\[\\w+\\s+default]");
+        Regex anyLanguage = new("\\[\\w+(\\s+default)?]");
 
         Match m = currentLanguage.Match(data);
         if (m.Success)
