@@ -275,6 +275,9 @@ public enum VanillaLineSpecialType
     WR_MonsterTeportNoFog,
     Unused,
     TransferSky,
-    // TODO
-    TransferSkyFlipped
+    TransferSkyFlipped,
+    StandardScrollMbf21 = 1024,
+    DisplacementScrollMbf21,
+    AccelerativeScrollMbf21,
+    Max
 }

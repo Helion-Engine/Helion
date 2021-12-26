@@ -1,4 +1,5 @@
 using Helion.Maps.Specials.Compatibility;
+using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Special;
@@ -12,8 +13,6 @@ public static class BoomLineSpecTranslator
         AnyKey = 0,
         AllKeys = 7
     }
-
-    private const int MaxVanilla = 272;
 
     // Constants, including masks and shifts from WinMBF.
     // Credit to Lee Killough et al.
@@ -78,7 +77,7 @@ public static class BoomLineSpecTranslator
     private const int PlatDirectionShift = 6;
     private const int PlatModelShift = 5;
 
-    public static bool IsBoomLineSpecial(ushort special) => special > MaxVanilla;
+    public static bool IsBoomLineSpecial(ushort special) => special >= (int)VanillaLineSpecialType.Max;
 
     public static ZDoomLineSpecialType Translate(LineFlags lineFlags, ushort special, int tag,
         ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility, out LineActivationType lineActivationType)

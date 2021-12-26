@@ -587,12 +587,7 @@ public class SpecialManager : ITickable, IDisposable
         IEnumerable<Line> lines = m_world.FindByLineId(setLine.Args.Arg0);
         ZDoomScroll flags = (ZDoomScroll)setLine.Args.Arg1;
 
-        ScrollSpeeds speeds;
-        if (flags == ZDoomScroll.None)
-            speeds = new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
-        else
-            speeds = ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
-
+        ScrollSpeeds speeds = GetScrollSpeedsFromLine(setLine, flags);
         if (!speeds.ScrollSpeed.HasValue)
             return;
 
@@ -616,6 +611,16 @@ public class SpecialManager : ITickable, IDisposable
 
             AddSpecial(new ScrollSpecial(line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
         }
+    }
+
+    private static ScrollSpeeds GetScrollSpeedsFromLine(Line setLine, ZDoomScroll flags)
+    {
+        if (flags == ZDoomScroll.None)
+            return new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
+        else if (flags.HasFlag(ZDoomScroll.OffsetSpeed))
+            return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
+        
+        return ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
     }
 
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)

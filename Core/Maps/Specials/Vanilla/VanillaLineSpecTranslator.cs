@@ -655,6 +655,21 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 return ZDoomLineSpecialType.TransferHeights;
 
+            case VanillaLineSpecialType.StandardScrollMbf21:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.OffsetSpeed;
+                return ZDoomLineSpecialType.ScrollTextureModel;
+
+            case VanillaLineSpecialType.AccelerativeScrollMbf21:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative | (int)ZDoomScroll.OffsetSpeed;
+                return ZDoomLineSpecialType.ScrollTextureModel;
+
+            case VanillaLineSpecialType.DisplacementScrollMbf21:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.OffsetSpeed;
+                return ZDoomLineSpecialType.ScrollTextureModel;
+
             default:
                 Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                 break;
@@ -1366,6 +1381,9 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.SectorSetCurrent:
             case VanillaLineSpecialType.SetPush:
             case VanillaLineSpecialType.TransferHeights:
+            case VanillaLineSpecialType.StandardScrollMbf21:
+            case VanillaLineSpecialType.AccelerativeScrollMbf21:
+            case VanillaLineSpecialType.DisplacementScrollMbf21:
                 activations = LineActivations.LevelStart;
                 return activations;
 
