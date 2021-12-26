@@ -118,6 +118,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual bool IsInvulnerable => Flags.Invulnerable;
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
+    public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
 
     private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
 

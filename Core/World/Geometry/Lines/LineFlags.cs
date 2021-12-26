@@ -22,7 +22,8 @@ public class LineFlags
 
         Blocking.Hitscan = false;
         Blocking.Monsters = flags.BlockPlayersAndMonsters || flags.BlockMonsters;
-        Blocking.Players = flags.BlockPlayersAndMonsters;
+        Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
+        Blocking.LandMonsters = flags.BlockLandMonsters;
         Blocking.Projectiles = false;
 
         Unpegged.Upper = flags.UpperUnpegged;

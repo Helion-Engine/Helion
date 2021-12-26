@@ -43,7 +43,7 @@ public class SectorDamageSpecial
 
     public virtual void Tick(Player player)
     {
-        if (player.Position.Z != m_sector.ToFloorZ(player.Position) || (m_world.Gametick & 31) != 0 || m_damage == 0)
+        if (player.OnSectorFloorZ(m_sector) || (m_world.Gametick & 31) != 0 || m_damage == 0)
             return;
 
         if (!player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
@@ -51,5 +51,5 @@ public class SectorDamageSpecial
     }
 
     public virtual SectorDamageSpecial Copy(Sector sector) =>
-        new SectorDamageSpecial(m_world, sector, m_damage, m_radSuitLeakChance);
+        new(m_world, sector, m_damage, m_radSuitLeakChance);
 }

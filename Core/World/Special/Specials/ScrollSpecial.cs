@@ -206,7 +206,7 @@ class ScrollSpecial : ISpecial
             foreach (var entity in sectorPlane.Sector.Entities)
             {
                 if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround ||
-                    entity.Position.Z != sectorPlane.Sector.ToFloorZ(entity.Position))
+                    !entity.OnSectorFloorZ(sectorPlane.Sector))
                     continue;
 
                 entity.Velocity.X += speed.X;

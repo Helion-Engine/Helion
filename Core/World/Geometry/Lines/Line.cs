@@ -170,7 +170,14 @@ public class Line : IBspUsableLine
         if (OneSided)
             return true;
 
-        return (!entity.IsPlayer && Flags.Blocking.Monsters && !entity.Flags.Missile) || (entity.IsPlayer && Flags.Blocking.Players);
+        if (!entity.IsPlayer && !entity.Flags.Missile &&
+            (Flags.Blocking.Monsters || (Flags.Blocking.LandMonsters && !entity.Flags.Float)))
+            return true;
+
+        if (entity.IsPlayer && Flags.Blocking.Players)
+            return true;
+
+        return false;
     }
 
     public void MarkSeenOnAutomap()

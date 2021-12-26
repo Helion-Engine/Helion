@@ -21,6 +21,7 @@ public class Inventory
     public static readonly string BasicArmorPickupClassName = "BASICARMORPICKUP";
     public static readonly string KeyClassName = "KEY";
     public static readonly string PowerupClassName = "POWERUPGIVER";
+    public static readonly string RadSuitClassName = "RADSUIT";
 
     /// <summary>
     /// All of the items owned by the player that are not a special type of

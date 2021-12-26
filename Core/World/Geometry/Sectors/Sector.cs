@@ -11,14 +11,11 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
-using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
-using Helion.Render.Legacy;
-using Helion.World.Geometry.Subsectors;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -103,6 +100,7 @@ public class Sector
     public int SoundValidationCount;
     public int SoundBlock;
     public Entity? SoundTarget;
+    public readonly InstantKillEffect InstantKillEffect;
 
     public double Friction = Constants.DefaultFriction;
 
@@ -120,6 +118,7 @@ public class Sector
         SectorSpecialType = sectorSpecial;
         Secret = sectorData.Secret;
         DamageAmount = sectorData.DamageAmount;
+        InstantKillEffect = sectorData.InstantKillEffect;
 
         floor.Sector = this;
         ceiling.Sector = this;

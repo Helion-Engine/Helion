@@ -19,6 +19,10 @@ public class MapLineFlags
     public const ushort BlockPlayersMask = 0x4000;
     public const ushort BlockEverythingMask = 0x8000;
 
+    // MBF21 Flags
+    public const ushort BlockLandMonstersMbf21 = 4096;
+    public const ushort BlockPlayersMbf21 = 8192;
+
     public bool BlockPlayersAndMonsters;
     public bool BlockMonsters;
     public bool UpperUnpegged;
@@ -31,6 +35,7 @@ public class MapLineFlags
     public bool RepeatSpecial;
     public bool BlockPlayers;
     public bool BlockEverything;
+    public bool BlockLandMonsters;
 
     public LineActivations Activations;
 
@@ -44,7 +49,6 @@ public class MapLineFlags
         BlockSound = (flags & BlockSoundMask) == BlockSoundMask;
         NoDrawAutomap = (flags & NoDrawAutomapMask) == NoDrawAutomapMask;
         AlwaysDrawAutomap = (flags & AlwaysDrawAutomapMask) == AlwaysDrawAutomapMask;
-
     }
 
     public static MapLineFlags Doom(ushort flags)
@@ -52,6 +56,8 @@ public class MapLineFlags
         return new MapLineFlags(flags)
         {
             PassThrough = (flags & UseThroughMask) == UseThroughMask,
+            BlockPlayers = (flags & BlockPlayersMbf21) == BlockPlayersMbf21,
+            BlockLandMonsters = (flags & BlockLandMonstersMbf21) == BlockLandMonstersMbf21
         };
     }
 

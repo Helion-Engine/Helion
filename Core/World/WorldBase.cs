@@ -48,6 +48,7 @@ using Helion.Dehacked;
 using Helion.Resources.Archives;
 using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
+using Helion.Maps.Specials;
 
 namespace Helion.World;
 
@@ -338,6 +339,9 @@ public abstract partial class WorldBase : IWorld
 
             if (entity.Respawn)
                 HandleRespawn(entity);
+
+            if (entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
+                InstantKillSector(entity);
         }
 
         Profiler.World.TickEntity.Stop();
@@ -362,7 +366,7 @@ public abstract partial class WorldBase : IWorld
             if (player.Sector.SectorDamageSpecial != null)
                 player.Sector.SectorDamageSpecial.Tick(player);
 
-            if (player.Sector.Secret && player.Sector.ToFloorZ(player.Position) == player.Position.Z)
+            if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
                 DisplayMessage(player, null, "$SECRETMESSAGE");
                 SoundManager.PlayStaticSound("misc/secret");
@@ -370,9 +374,56 @@ public abstract partial class WorldBase : IWorld
                 LevelStats.SecretCount++;
                 player.SecretsFound++;
             }
+
+            if (player.Sector.InstantKillEffect != InstantKillEffect.None && player.OnSectorFloorZ(player.Sector))
+                InstantKillSector(player);
         }
 
         Profiler.World.TickPlayer.Stop();
+    }
+
+    private void InstantKillSector(Entity entity)
+    {
+        if (entity.IsDead)
+            return;
+
+        InstantKillEffect effect = entity.Sector.InstantKillEffect;
+        if (!entity.IsPlayer && effect.HasFlag(InstantKillEffect.KillMonsters))
+        {
+            entity.ForceGib();
+            return;
+        }
+
+        if (entity.PlayerObj == null)
+            return;
+
+        Player player = entity.PlayerObj;
+        if (effect.HasFlag(InstantKillEffect.KillAllPlayersExit))
+        {
+            KillAllPlayers();
+            ExitLevel(LevelChangeType.Next);
+        }
+        if (effect.HasFlag(InstantKillEffect.KillAllPlayersSecretExit))
+            {
+            KillAllPlayers();
+            ExitLevel(LevelChangeType.SecretNext);
+        }
+        if (effect.HasFlag(InstantKillEffect.KillUnprotectedPlayer) && !player.Flags.Invulnerable &&
+            !player.Inventory.IsPowerupActive(PowerupType.IronFeet))
+            player.ForceGib();
+        if (effect.HasFlag(InstantKillEffect.KillPlayer))
+            player.ForceGib();
+    }
+
+    private void KillAllPlayers()
+    {
+        foreach (var player in EntityManager.Players)
+        {
+            if (player.IsVooDooDoll)
+                continue;
+
+            player.ForceGib();
+        }
     }
 
     public void Pause()
