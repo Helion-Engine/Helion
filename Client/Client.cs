@@ -194,6 +194,9 @@ public partial class Client : IDisposable
 
     private void HandleWinMouseMove(int deltaX, int deltaY)
     {
+        if (m_disposed)
+            return;
+
         bool focus = m_window.IsFocused && m_layerManager.ShouldFocus();
         m_window.SetGrabCursor(focus);
 
@@ -212,6 +215,8 @@ public partial class Client : IDisposable
         if (m_disposed)
             return;
 
+        m_window.SetGrabCursor(false);
+        m_window.WindowState = WindowState.Minimized;
         m_console.OnConsoleCommandEvent -= Console_OnCommand;
         m_window.RenderFrame -= Window_MainLoop;
         UnregisterConfigChanges();
@@ -296,15 +301,16 @@ public partial class Client : IDisposable
         {
             Logger errorLogger = LogManager.GetLogger(HelionLoggers.ErrorLoggerName);
             errorLogger.Error(e, "Fatal error occurred");
-
-            // TODO verify this doesn't prevent from loading on other platforms...
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                ShowFatalError(e.ToString());
+            ShowFatalError(e.ToString());
         }
     }
 
-    private static void ShowFatalError(string msg) =>
-        MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    private static void ShowFatalError(string msg)
+    {
+        // TODO verify this doesn't prevent from loading on other platforms...
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
 
     private static FileConfig ReadConfigFileOrTerminate(string path)
     {
