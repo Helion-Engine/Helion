@@ -120,6 +120,9 @@ public class EntityProperties
     public double XScale = 1.0;
     public double YScale = 1.0;
     public HealthProperty? HealthProperty;
+    public int? InfightingGroup;
+    public int? ProjectileGroup;
+    public int? SplashGroup;
 
     public EntityProperties()
     {
@@ -194,5 +197,8 @@ public class EntityProperties
         WoundHealth = properties.WoundHealth;
         YScale = properties.YScale;
         Speed = properties.Speed;
+        InfightingGroup = properties.InfightingGroup;
+        ProjectileGroup = properties.ProjectileGroup;
+        SplashGroup = properties.SplashGroup;
     }
 }

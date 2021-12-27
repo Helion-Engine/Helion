@@ -4648,6 +4648,9 @@ public partial class DehackedDefinition
     private static readonly string ActionSound = "Action sound";
     private static readonly string Bits = "Bits";
     private static readonly string RespawnFrame = "Respawn frame";
+    private static readonly string InfightingGroup = "Infighting group";
+    private static readonly string ProjectileGroup = "Projectile group";
+    private static readonly string SplashGroup = "Splash group";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";

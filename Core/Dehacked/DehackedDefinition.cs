@@ -171,6 +171,12 @@ public partial class DehackedDefinition
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
             else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
                 thing.Bits = GetThingBits(parser, Bits);
+            else if (line.StartsWith(InfightingGroup, StringComparison.OrdinalIgnoreCase))
+                thing.InfightingGroup = GetIntProperty(parser, InfightingGroup);
+            else if (line.StartsWith(ProjectileGroup, StringComparison.OrdinalIgnoreCase))
+                thing.ProjectileGroup = GetIntProperty(parser, ProjectileGroup);
+            else if (line.StartsWith(SplashGroup, StringComparison.OrdinalIgnoreCase))
+                thing.SplashGroup = GetIntProperty(parser, SplashGroup);
             else
                 UnknownWarning(parser, "thing type");
         }

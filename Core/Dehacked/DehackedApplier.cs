@@ -385,6 +385,10 @@ public class DehackedApplier
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FirstMovingFrame.Value, Constants.FrameStates.See);
             if (thing.RespawnFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, Constants.FrameStates.Raise);
+
+            properties.InfightingGroup = thing.InfightingGroup;
+            properties.ProjectileGroup = thing.ProjectileGroup;
+            properties.SplashGroup = thing.SplashGroup;
         }
     }
 

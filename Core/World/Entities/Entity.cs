@@ -21,6 +21,7 @@ using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Render.Legacy.Renderers.Legacy.World;
+using Helion.Util.Extensions;
 
 namespace Helion.World.Entities;
 
@@ -543,10 +544,22 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (isHitscan)
             return true;
 
-        if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
+        if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies &&
+            ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup))
             return false;
 
         return true;
+    }
+
+    public bool CanApplyRadiusExplosionDamage(Entity source) =>
+        !Properties.SplashGroup.NullableEquals(source.Properties.SplashGroup);
+
+    private static bool ProjectileGroupEquals(int? thisGroup, int? otherGroup)
+    {
+        if (thisGroup < 0 && otherGroup < 0)
+            return false;
+
+        return thisGroup.NullableEquals(otherGroup);
     }
 
     public virtual bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
@@ -560,7 +573,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (!CanDamage(source, isHitscan))
                 return false;
 
-            if (Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
+            if (WillRetaliateFrom(source) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
             {
                 if (!Flags.QuickToRetaliate)
                     Threshold = Properties.DefThreshold;
@@ -937,4 +950,16 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public virtual bool CanMakeSound() => true;
+
+    private bool WillRetaliateFrom(Entity source)
+    {
+        Entity damageSource = source.Owner ?? source;
+        if (damageSource.IsPlayer)
+            return true;
+
+        if (Properties.InfightingGroup.NullableEquals(damageSource.Properties.InfightingGroup))
+            return false;
+
+        return true;
+    }
 }

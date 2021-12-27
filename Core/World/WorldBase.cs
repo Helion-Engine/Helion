@@ -1096,15 +1096,16 @@ public abstract partial class WorldBase : IWorld
     {
         Thrust thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
         Vec2D pos2D = damageSource.Position.XY;
-        Vec2D radius2D = new Vec2D(radius, radius);
-        Box2D explosionBox = new Box2D(pos2D - radius2D, pos2D + radius2D);
+        Vec2D radius2D = new(radius, radius);
+        Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
         List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
             BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
         for (int i = 0; i < intersections.Count; i++)
         {
             BlockmapIntersect bi = intersections[i];
-            if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && CheckLineOfSight(bi.Entity, damageSource))
+            if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && bi.Entity.CanApplyRadiusExplosionDamage(damageSource) && 
+                CheckLineOfSight(bi.Entity, damageSource))
                 ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, thrust,
                     damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
         }
