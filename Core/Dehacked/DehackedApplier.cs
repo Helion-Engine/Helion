@@ -386,11 +386,18 @@ public class DehackedApplier
             if (thing.RespawnFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, Constants.FrameStates.Raise);
 
-            properties.InfightingGroup = thing.InfightingGroup;
-            properties.ProjectileGroup = thing.ProjectileGroup;
-            properties.SplashGroup = thing.SplashGroup;
+            if (IsGroupValid(properties.InfightingGroup))
+                properties.InfightingGroup = thing.InfightingGroup;
+            if (IsGroupValid(properties.ProjectileGroup))
+                properties.ProjectileGroup = thing.ProjectileGroup;
+            if (IsGroupValid(properties.SplashGroup))
+                properties.SplashGroup = thing.SplashGroup;
         }
     }
+
+    // DSDA Doom doesn't count zero
+    private static bool IsGroupValid(int? value) =>
+         value == null || value.Equals(Constants.DefaultGroupNumber);
 
     private static int GetThingSpeed(double speed, EntityDefinition definition)
     {

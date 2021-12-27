@@ -180,6 +180,7 @@ public static class Constants
     public const int TeleportOffsetDist = 16;
     public const int NullFrameIndex = 0;
     public const double DefaultFriction = 0.90625;
+    public const int DefaultGroupNumber = 0;
 
     public const int WeaponLowerSpeed = 6;
     public const int WeaponRaiseSpeed = 6;

@@ -544,19 +544,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (isHitscan)
             return true;
 
-        if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies &&
-            ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup))
+        if (Properties.ProjectileGroup.HasValue)
+            return !ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup);
+
+        if ((GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies))
             return false;
 
         return true;
     }
 
     public bool CanApplyRadiusExplosionDamage(Entity source) =>
-        !Properties.SplashGroup.NullableEquals(source.Properties.SplashGroup);
+        !Properties.SplashGroup.HasValue || !Properties.SplashGroup.NullableEquals(source.Properties.SplashGroup);
 
     private static bool ProjectileGroupEquals(int? thisGroup, int? otherGroup)
     {
-        if (thisGroup < 0 && otherGroup < 0)
+        if (thisGroup < 0)
             return false;
 
         return thisGroup.NullableEquals(otherGroup);
