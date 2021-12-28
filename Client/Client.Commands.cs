@@ -307,7 +307,7 @@ public partial class Client
         if (sender is not IWorld world)
             return;
 
-        if (m_config.Game.LevelStat)
+        if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
             WriteStatsFile(world);
 
         switch (e.ChangeType)
@@ -333,6 +333,9 @@ public partial class Client
                 break;
         }
     }
+
+    private static bool ShouldWriteStatsFile(LevelChangeType type) => 
+        type == LevelChangeType.Next || type == LevelChangeType.SecretNext;
 
     private static void ClearStatsFile()
     {
