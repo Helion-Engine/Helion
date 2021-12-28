@@ -268,7 +268,7 @@ public class SinglePlayerWorld : WorldBase
     public override bool EntityUse(Entity entity)
     {
         if (entity.IsPlayer && entity.IsDead)
-            ResetLevel();
+            ResetLevel(Config.Game.LoadLatestOnDeath);
 
         return base.EntityUse(entity);
     }

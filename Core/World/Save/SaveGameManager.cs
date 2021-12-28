@@ -6,12 +6,15 @@ using System.Linq;
 using Helion.Util.Extensions;
 using Helion.Resources.Archives.Collection;
 using Helion.World.Util;
+using Helion.Models;
 
 namespace Helion.World.Save;
 
 public class SaveGameManager
 {
     private readonly IConfig m_config;
+
+    public event EventHandler<WorldModel> GameSaved;
 
     public SaveGameManager(IConfig config)
     {
@@ -24,7 +27,7 @@ public class SaveGameManager
     public string WriteSaveGame(IWorld world, string title, SaveGame? existingSave)
     {
         string filename = existingSave?.FileName ?? GetNewSaveName();
-        SaveGame.WriteSaveGame(world, title, filename);
+        GameSaved?.Invoke(this, SaveGame.WriteSaveGame(world, title, filename));
         return filename;
     }
 

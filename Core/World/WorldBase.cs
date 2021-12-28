@@ -1299,9 +1299,10 @@ public abstract partial class WorldBase : IWorld
         return false;
     }
 
-    protected void ResetLevel()
+    protected void ResetLevel(bool loadLastWorldModel)
     {
-        LevelExit?.Invoke(this, new LevelChangeEvent(LevelChangeType.Reset));
+        LevelChangeType type = loadLastWorldModel ? LevelChangeType.ResetOrLoadLast : LevelChangeType.Reset;
+        LevelExit?.Invoke(this, new LevelChangeEvent(type));
     }
 
     protected virtual void PerformDispose()

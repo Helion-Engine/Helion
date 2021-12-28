@@ -30,5 +30,6 @@ public enum LevelChangeType
     Next,
     SecretNext,
     SpecificLevel,
-    Reset
+    Reset,
+    ResetOrLoadLast
 }

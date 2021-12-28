@@ -75,9 +75,9 @@ public class SaveGame
         return Encoding.UTF8.GetString(data);
     }
 
-    public static void WriteSaveGame(IWorld world, string title, string filename)
+    public static WorldModel WriteSaveGame(IWorld world, string title, string filename)
     {
-        SaveGameModel saveGameModel = new SaveGameModel()
+        SaveGameModel saveGameModel = new()
         {
             Text = title,
             MapName = world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection),
@@ -94,8 +94,10 @@ public class SaveGame
         using (Stream stream = entry.Open())
             stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(saveGameModel, DefaultSerializerSettings)));
 
+        WorldModel worldModel = world.ToWorldModel();
         entry = zipArchive.CreateEntry(WorldDataFile);
         using (Stream stream = entry.Open())
-            stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(world.ToWorldModel(), DefaultSerializerSettings)));
+            stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings)));
+        return worldModel;
     }
 }

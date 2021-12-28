@@ -12,6 +12,9 @@ public class ConfigGame
     [ConfigInfo("Whether vertical autoaiming should be used.")]
     public readonly ConfigValue<bool> AutoAim = new(true);
 
+    [ConfigInfo("The last loaded world state on death.")]
+    public readonly ConfigValue<bool> LoadLatestOnDeath = new(true);
+
     [ConfigInfo("Enables fast monsters.", save: false)]
     public readonly ConfigValue<bool> FastMonsters = new(false);
 

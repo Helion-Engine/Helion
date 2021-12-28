@@ -29,6 +29,7 @@ public partial class Client
     private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
     private GlobalData m_globalData = new();
+    private WorldModel? m_lastWorldModel;
 
     [ConsoleCommand(Constants.ConsoleCommands.Commands, "Lists all available commands.")]
     private void CommandListCommands(ConsoleCommandEventArgs args)
@@ -249,6 +250,7 @@ public partial class Client
 
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
     {
+        m_lastWorldModel = worldModel;
         IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
         if (map == null)
         {
@@ -324,6 +326,10 @@ public partial class Client
 
             case LevelChangeType.Reset:
                 LoadMap(world.MapInfo, null, NoPlayers);
+                break;
+
+            case LevelChangeType.ResetOrLoadLast:
+                LoadMap(world.MapInfo, m_lastWorldModel, NoPlayers);
                 break;
         }
     }

@@ -10,6 +10,7 @@ using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Layer;
+using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -64,6 +65,8 @@ public partial class Client : IDisposable
         m_window = new Window(config, archiveCollection, m_fpsTracker);
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
+
+        m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
 
         m_consoleCommands.RegisterMethodsOrThrow(this);
 
@@ -347,5 +350,10 @@ public partial class Client : IDisposable
             if (!config.Write(FileConfig.DefaultConfigPath))
                 Log.Error($"Unable to write config to {FileConfig.DefaultConfigPath}");
         }
+    }
+
+    private void SaveGameManager_GameSaved(object? sender, WorldModel worldModel)
+    {
+        m_lastWorldModel = worldModel;
     }
 }
