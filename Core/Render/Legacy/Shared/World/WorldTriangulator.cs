@@ -241,7 +241,7 @@ public static class WorldTriangulator
 
         if (line.Flags.Unpegged.Lower)
         {
-            double ceilZ = facingSide.Sector.Ceiling.Z;
+            double ceilZ = facingSide.Sector.Ceiling.PrevZ.Interpolate(facingSide.Sector.Ceiling.Z, tickFraction);
             float topDistFromCeil = (float)(ceilZ - topZ);
             float bottomDistFromCeil = (float)(ceilZ - bottomZ);
 
