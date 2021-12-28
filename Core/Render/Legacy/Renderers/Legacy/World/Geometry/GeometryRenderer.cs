@@ -575,8 +575,7 @@ public class GeometryRenderer : IDisposable
                 // Note that the subsector triangulator is supposed to realize when
                 // we're passing it a floor or ceiling and order the vertices for
                 // us such that it's always in counter-clockwise order.
-                WorldTriangulator.HandleSubsector(subsector, flat.Z, flat.PrevZ, flat.Facing, flat.SectorScrollData,
-                    texture.Dimension, m_tickFraction, m_subsectorVertices,
+                WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices,
                     floor ? flat.Z : MaxSky);
                 WorldVertex root = m_subsectorVertices[0];
                 List<SkyGeometryVertex> subData = new List<SkyGeometryVertex>();
@@ -605,8 +604,7 @@ public class GeometryRenderer : IDisposable
 
             if (FlatChanged(flat) || data == null || m_cacheOverride)
             {
-                WorldTriangulator.HandleSubsector(subsector, flat.Z, flat.PrevZ, flat.Facing, flat.SectorScrollData, 
-                    texture.Dimension, m_tickFraction, m_subsectorVertices);
+                WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
                 WorldVertex root = m_subsectorVertices[0];
                 List<LegacyVertex> subData = new List<LegacyVertex>();
                 for (int i = 1; i < m_subsectorVertices.Length - 1; i++)

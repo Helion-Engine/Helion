@@ -123,8 +123,7 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static void HandleSubsector(Subsector subsector, double z, double prevZ, SectorPlaneFace face,
-        SectorScrollData? scrollData, in Dimension textureDimension,
+    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
         double tickFraction, DynamicArray<WorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -133,7 +132,7 @@ public static class WorldTriangulator
         List<SubsectorSegment> edges = subsector.ClockwiseEdges;
         verticesToPopulate.Clear();
 
-        if (face == SectorPlaneFace.Ceiling)
+        if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
         {
             for (int i = 0; i < edges.Count; i++)
             {
@@ -141,12 +140,12 @@ public static class WorldTriangulator
 
                 // TODO: Interpolation and slopes needs a slight change in
                 //       how we store sector flat plane information.
-                z = prevZ.Interpolate(z, tickFraction);
+                double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
                 if (overrideZ != int.MaxValue)
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(scrollData, vertex, textureDimension, tickFraction);
+                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, tickFraction);
 
                 verticesToPopulate.Add(new WorldVertex(position, uv));
             }
@@ -162,12 +161,12 @@ public static class WorldTriangulator
 
                 // TODO: Interpolation and slopes needs a slight change in
                 //       how we store sector flat plane information.
-                z = prevZ.Interpolate(z, tickFraction);
+                double z = sectorPlane.PrevZ.Interpolate(sectorPlane.Z, tickFraction);
                 if (overrideZ != int.MaxValue)
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(scrollData, vertex, textureDimension, tickFraction);
+                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, tickFraction);
 
                 verticesToPopulate.Add(new WorldVertex(position, uv));
             }
