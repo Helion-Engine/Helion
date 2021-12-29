@@ -761,7 +761,7 @@ public abstract partial class WorldBase : IWorld
                 // Only move closer on a line hit
                 if (bi.Value.Entity == null && hitSector == null)
                     MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                HitscanHit(bi.Value, intersect, angle, distance, damage);
+                CreateBloodOrPulletPuff(bi.Value.Entity, intersect, angle, distance, damage);
             }
 
             if (bi.Value.Entity != null)
@@ -1044,6 +1044,33 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
+    public virtual void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
+    {
+        // THis currently just handles Ripper flag
+        if (!entity.Flags.Ripper || tryMove == null || tryMove.IntersectEntities2D.Count == 0)
+            return;
+
+        for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
+        {
+            Entity intersectEntity = tryMove.IntersectEntities2D[i];
+            if (!entity.Box.OverlapsZ(intersectEntity.Box) || ReferenceEquals(entity, intersectEntity) || 
+                ReferenceEquals(entity.Owner, intersectEntity))
+                continue;
+
+            RipDamage(entity, intersectEntity);
+        }
+    }
+
+    private void RipDamage(Entity source, Entity target)
+    {
+        int damage = source.Definition.Properties.Damage.Get(m_random);
+        if (DamageEntity(target, source, damage, true, Thrust.None))
+        {
+            CreateBloodOrPulletPuff(target, source.Position, source.AngleRadians, 0, damage, true);
+            // TODO add RipSound
+        }
+    }
+
     private static bool ShouldDieFromTouch(Entity entity, Entity blockingEntity)
     {
         // The documentation on Touchy is horrible
@@ -1312,9 +1339,9 @@ public abstract partial class WorldBase : IWorld
         SoundManager.Dispose();
     }
 
-    private void HitscanHit(in BlockmapIntersect bi, Vec3D intersect, double angle, double distance, int damage)
+    private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)
     {
-        bool bulletPuff = bi.Entity == null || bi.Entity.Definition.Flags.NoBlood;
+        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
         string className;
         if (bulletPuff)
         {
@@ -1323,40 +1350,59 @@ public abstract partial class WorldBase : IWorld
         }
         else
         {
-            className = bi.Entity!.GetBloodType();
+            className = entity!.GetBloodType();
         }
 
-        Entity? entity = EntityManager.Create(className, intersect);
-        if (entity == null)
+        Entity? create = EntityManager.Create(className, intersect);
+        if (create == null)
             return;
 
-        entity.AngleRadians = angle;
+        create.AngleRadians = angle;
         if (bulletPuff)
         {
-            entity.Velocity.Z = 1;
-            if (entity.Flags.Randomize)
-                entity.SetRandomizeTicks();
+            create.Velocity.Z = 1;
+            if (create.Flags.Randomize)
+                create.SetRandomizeTicks();
 
             // Doom would skip the initial sparking state of the bullet puff for punches
             // Bulletpuff decorate has a MELEESTATE for this
-            if (distance == Constants.EntityMeleeDistance)
-                entity.SetMeleeState();
+            if (attackDistance == Constants.EntityMeleeDistance)
+                create.SetMeleeState();
         }
         else
         {
-            entity.Velocity.Z = 2;
-
-            int offset = 0;
-            if (damage <= 12 && damage >= 9)
-                offset = 1;
-            else if (damage < 9)
-                offset = 2;
-
-            if (offset == 0)
-                entity.SetRandomizeTicks();
-            else
-                entity.FrameState.SetState(Constants.FrameStates.Spawn, offset);
+            SetBloodValues(entity, create, damage, ripper);
         }
+    }
+
+    private void SetBloodValues(Entity? entity, Entity blood, int damage, bool ripper)
+    {
+        if (ripper)
+        {
+            if (entity != null)
+            {
+                blood.Velocity.X = entity.Velocity.X / 2;
+                blood.Velocity.Y = entity.Velocity.Y / 2;
+            }
+
+            blood.Velocity.X += m_random.NextDiff() / 16.0;
+            blood.Velocity.Y += m_random.NextDiff() / 16.0;
+            blood.Velocity.Z += m_random.NextDiff() / 16.0;
+            return;
+        }
+
+        blood.Velocity.Z = 2;
+
+        int offset = 0;
+        if (damage <= 12 && damage >= 9)
+            offset = 1;
+        else if (damage < 9)
+            offset = 2;
+
+        if (offset == 0)
+            blood.SetRandomizeTicks();
+        else
+            blood.FrameState.SetState(Constants.FrameStates.Spawn, offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)

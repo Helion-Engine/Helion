@@ -704,6 +704,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (ReferenceEquals(this, other) || Owner == other || !other.Flags.Solid || other.Flags.NoClip)
             return false;
+
+        if (Flags.Ripper)
+            return false;
+
         return other.Flags.Solid;
     }
 
