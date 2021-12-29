@@ -53,7 +53,6 @@
     <Content Include="Assets\Actors\Doom\Explosives\BFGBall.txt" />
     <Content Include="Assets\Actors\Doom\Explosives\BFGExtra.txt" />
     <Content Include="Assets\Actors\Doom\Explosives\PlasmaBall.txt" />
-    <Content Include="Assets\Actors\Doom\Explosives\Rocket.txt" />
     <Content Include="Assets\Actors\Doom\Items\Ammo.txt" />
     <Content Include="Assets\Actors\Doom\Items\Armor.txt" />
     <Content Include="Assets\Actors\Doom\Items\Health.txt" />
