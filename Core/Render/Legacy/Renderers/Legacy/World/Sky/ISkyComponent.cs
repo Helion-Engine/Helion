@@ -27,7 +27,8 @@ public interface ISkyComponent : IDisposable
     /// should be counter-clockwise.
     /// </summary>
     /// <param name="vertices">Sky vertices.</param>
-    void Add(SkyGeometryVertex[] vertices);
+    /// <param name="length">The number of vertices to copy.</param>
+    void Add(SkyGeometryVertex[] vertices, int length);
 
     /// <summary>
     /// Renders the world geometry. It is assumed the stencil buffer can be

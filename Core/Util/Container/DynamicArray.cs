@@ -100,6 +100,23 @@ public class DynamicArray<T> : IEnumerable<T>
         Length += elements.Length;
     }
 
+    public void Add(T[] elements, int length)
+    {
+        EnsureCapacity(Length + length);
+
+        if (length < 10)
+        {
+            for (int i = 0; i < length; i++)
+                Data[Length + i] = elements[i];
+        }
+        else
+        {
+            Array.Copy(elements, 0, Data, Length, length);
+        }
+
+        Length += length;
+    }
+
     public void AddRange(IList<T> elements)
     {
         EnsureCapacity(Length + elements.Count);

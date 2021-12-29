@@ -48,6 +48,8 @@ public class Line : IBspUsableLine
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
 
+    private double? m_length;
+
     public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
     {
@@ -70,6 +72,16 @@ public class Line : IBspUsableLine
             back.Line = this;
             back.Sector.Lines.Add(this);
         }
+    }
+
+    // Same as Segment.Length, but caches the value.
+    public double GetLength()
+    {
+        if (m_length.HasValue)
+            return m_length.Value;
+
+        m_length = Segment.Length;
+        return m_length.Value;
     }
 
     public LineModel ToLineModel()

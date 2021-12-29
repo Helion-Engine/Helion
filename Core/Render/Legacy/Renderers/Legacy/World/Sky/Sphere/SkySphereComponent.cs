@@ -53,9 +53,9 @@ public class SkySphereComponent : ISkyComponent
         m_geometryVbo.Clear();
     }
 
-    public void Add(SkyGeometryVertex[] vertices)
+    public void Add(SkyGeometryVertex[] vertices, int length)
     {
-        m_geometryVbo.Add(vertices);
+        m_geometryVbo.Add(vertices, length);
     }
 
     public void RenderWorldGeometry(RenderInfo renderInfo)

@@ -31,7 +31,7 @@ public static class WorldTriangulator
         double topZ = overrideCeiling == NoOverride ? ceiling.PrevZ.Interpolate(ceiling.Z, tickFraction) : overrideCeiling;
         double bottomZ = overrideFloor == NoOverride ? floor.PrevZ.Interpolate(floor.Z, tickFraction) : overrideFloor;
 
-        double length = line.Segment.Length;
+        double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, tickFraction);
 
@@ -55,7 +55,7 @@ public static class WorldTriangulator
         double topZ = topFlat.PrevZ.Interpolate(topFlat.Z, tickFraction);
         double bottomZ = bottomFlat.PrevZ.Interpolate(bottomFlat.Z, tickFraction);
 
-        double length = line.Segment.Length;
+        double length = line.GetLength();
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, tickFraction);
 
         WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
@@ -86,7 +86,7 @@ public static class WorldTriangulator
 
         Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
         Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
-        double length = line.Segment.Length;
+        double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan, textureUVInverse, tickFraction);
 
         WorldVertex topLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleTopZ, uv.TopLeft.X, uv.TopLeft.Y);
@@ -111,7 +111,7 @@ public static class WorldTriangulator
         double bottomZ = bottomPlane.PrevZ.Interpolate(bottomPlane.Z, tickFraction);
 
         // TODO: If unchanging, we can pre-calculate the length.
-        double length = line.Segment.Length;
+        double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, tickFraction);
 

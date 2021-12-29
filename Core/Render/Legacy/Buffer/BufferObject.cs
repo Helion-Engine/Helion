@@ -135,6 +135,12 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Uploaded = false;
     }
 
+    public void Add(T[] elements, int length)
+    {
+        Data.Add(elements, length);
+        Uploaded = false;
+    }
+
     /// <summary>
     /// Performs an upload of the data if required.
     /// </summary>
