@@ -37,6 +37,7 @@ public class GeometryRenderer : IDisposable
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
     private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
+    private readonly SkyGeometryVertex[] m_skyWallVertices = new SkyGeometryVertex[6];
     private readonly ViewClipper m_viewClipper;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
@@ -360,7 +361,10 @@ public class GeometryRenderer : IDisposable
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
-                data = CreateSkyWallVertices(wall);
+                if (data == null)
+                    data = CreateSkyWallVertices(wall);
+                else
+                    SetSkyWallVertices(data, wall);
                 m_skyWallVertexLowerLookup[facingSide.Id] = data;
             }
 
@@ -434,7 +438,10 @@ public class GeometryRenderer : IDisposable
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction, MaxSky);
-                data = CreateSkyWallVertices(wall);
+                if (data == null)
+                    data = CreateSkyWallVertices(wall);
+                else
+                    SetSkyWallVertices(data, wall);
                 m_skyWallVertexUpperLookup[facingSide.Id] = data;
             }
 
@@ -502,8 +509,8 @@ public class GeometryRenderer : IDisposable
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
         }
 
-        SkyGeometryVertex[] skyData = CreateSkyWallVertices(wall);
-        m_skyRenderer.Add(skyData, skyData.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
+        SetSkyWallVertices(m_skyWallVertices, wall);
+        m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
     }
 
     private static bool SkyUpperRenderFromFloorCheck(TwoSided twoSided, Sector facingSector, Sector otherSector)
@@ -689,6 +696,33 @@ public class GeometryRenderer : IDisposable
             return m_floorChanged;
         else
             return m_ceilingChanged;
+    }
+
+    private static void SetSkyWallVertices(SkyGeometryVertex[] data, in WallVertices wv)
+    {
+        data[0].X = wv.TopLeft.X;
+        data[0].Y = wv.TopLeft.Y;
+        data[0].Z = wv.TopLeft.Z;
+
+        data[1].X = wv.BottomLeft.X;
+        data[1].Y = wv.BottomLeft.Y;
+        data[1].Z = wv.BottomLeft.Z;
+
+        data[2].X = wv.TopRight.X;
+        data[2].Y = wv.TopRight.Y;
+        data[2].Z = wv.TopRight.Z;
+
+        data[3].X = wv.TopRight.X;
+        data[3].Y = wv.TopRight.Y;
+        data[3].Z = wv.TopRight.Z;
+
+        data[4].X = wv.BottomLeft.X;
+        data[4].Y = wv.BottomLeft.Y;
+        data[4].Z = wv.BottomLeft.Z;
+
+        data[5].X = wv.BottomRight.X;
+        data[5].Y = wv.BottomRight.Y;
+        data[5].Z = wv.BottomRight.Z;
     }
 
     private static SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
