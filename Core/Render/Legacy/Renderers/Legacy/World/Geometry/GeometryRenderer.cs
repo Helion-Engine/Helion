@@ -36,6 +36,7 @@ public class GeometryRenderer : IDisposable
     private readonly DynamicArray<WorldVertex> m_subsectorVertices = new();
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
+    private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
     private readonly ViewClipper m_viewClipper;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
@@ -66,6 +67,15 @@ public class GeometryRenderer : IDisposable
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
+
+        for (int i = 0; i < m_wallVertices.Length; i++)
+        {
+            m_wallVertices[i].R = 1.0f;
+            m_wallVertices[i].G = 1.0f;
+            m_wallVertices[i].B = 1.0f;
+            m_wallVertices[i].Fuzz = 0;
+            m_wallVertices[i].Alpha = 1.0f;
+        }
     }
 
     ~GeometryRenderer()
@@ -243,7 +253,12 @@ public class GeometryRenderer : IDisposable
         if (side.OffsetChanged || side.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
         {
             WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, m_tickFraction);
-            if (data == null || m_cacheOverride)
+            if (m_cacheOverride)
+            {
+                data = m_wallVertices;
+                SetWallVertices(data, wall, GetRenderLightLevel(side));
+            }
+            else if (data == null)
                 data = GetWallVertices(wall, GetRenderLightLevel(side));
             else
                 SetWallVertices(data, wall, GetRenderLightLevel(side));
@@ -359,7 +374,12 @@ public class GeometryRenderer : IDisposable
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
-                if (data == null || m_cacheOverride)
+                if (m_cacheOverride)
+                {
+                    data = m_wallVertices;
+                    SetWallVertices(data, wall, GetRenderLightLevel(facingSide));
+                }
+                else if (data == null)
                     data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
                 else
                     SetWallVertices(data, wall, GetRenderLightLevel(facingSide));
@@ -428,7 +448,12 @@ public class GeometryRenderer : IDisposable
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
-                if (data == null || m_cacheOverride)
+                if (m_cacheOverride)
+                {
+                    data = m_wallVertices;
+                    SetWallVertices(data, wall, GetRenderLightLevel(facingSide));
+                }
+                else if (data == null)
                     data = GetWallVertices(wall, GetRenderLightLevel(facingSide));
                 else
                     SetWallVertices(data, wall, GetRenderLightLevel(facingSide));
@@ -512,9 +537,15 @@ public class GeometryRenderer : IDisposable
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
             // can exit early since nothing can be drawn.
-            if (nothingVisible)
+            if (!m_cacheOverride && nothingVisible)
                 data = Array.Empty<LegacyVertex>();
-            else if (data == null || m_cacheOverride)
+
+            else if (m_cacheOverride)
+            {
+                data = m_wallVertices;
+                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
+            }
+            else if (data == null)
                 data = GetWallVertices(wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
             else
                 SetWallVertices(data, wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
