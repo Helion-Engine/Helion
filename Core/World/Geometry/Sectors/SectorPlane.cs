@@ -179,6 +179,5 @@ public class SectorPlane : ISoundSource
         return Vec3D.Zero;
     }
 
-    public bool CanAttenuate(SoundInfo soundInfo) => true;
     public bool CanMakeSound() => true;
 }

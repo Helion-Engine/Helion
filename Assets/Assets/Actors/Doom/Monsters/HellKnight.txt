@@ -10,6 +10,7 @@ actor HellKnight : BaronOfHell 69
     SpawnID 113
     
     -BOSSDEATH
+    -E1M8BOSS
     
     States
     {

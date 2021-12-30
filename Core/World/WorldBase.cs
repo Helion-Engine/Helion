@@ -476,19 +476,33 @@ public abstract partial class WorldBase : IWorld
         switch (MapInfo.MapSpecial)
         {
             case MapSpecial.BaronSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, "BaronOfHell", 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E1M8Boss, 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.CyberdemonSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, "Cyberdemon", 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E2M8Boss || f.E4M6Boss, 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.SpiderMastermindSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, "SpiderMastermind", 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E3M8Boss || f.E4M8Boss, 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.Map07Special:
-                AddMonsterCountSpecial(m_bossDeathSpecials, "Fatso", 666, MapSpecialAction.LowerFloor);
-                AddMonsterCountSpecial(m_bossDeathSpecials, "Arachnotron", 667, MapSpecialAction.FloorRaiseByLowestTexture);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss1, 666, MapSpecialAction.LowerFloor);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss2, 667, MapSpecialAction.FloorRaiseByLowestTexture);
                 break;
         }
+    }
+
+    private IEnumerable<EntityDefinition> GetEntityDefinitionsByFlag(Func<EntityFlags, bool> isMatch)
+    {
+        foreach (var def in EntityManager.DefinitionComposer.GetEntityDefinitions())
+            if (isMatch(def.Flags))
+                yield return def;
+    }
+
+    private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag, 
+        MapSpecialAction mapSpecialAction)
+    {
+        foreach (var def in GetEntityDefinitionsByFlag(isMatch))
+            AddMonsterCountSpecial(monsterCountSpecials, def.Name, sectorTag, mapSpecialAction);
     }
 
     private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)

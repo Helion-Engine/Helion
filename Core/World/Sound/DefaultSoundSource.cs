@@ -1,13 +1,12 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 
 namespace Helion.World.Sound;
 
 public class DefaultSoundSource : ISoundSource
 {
-    public static readonly DefaultSoundSource Default = new DefaultSoundSource();
+    public static readonly DefaultSoundSource Default = new();
 
     private IAudioSource? m_audioSource;
     private readonly Vec3D m_position;
@@ -53,6 +52,5 @@ public class DefaultSoundSource : ISoundSource
         return m_audioSource;
     }
 
-    public bool CanAttenuate(SoundInfo soundInfo) => m_attenuate;
     public bool CanMakeSound() => true;
 }

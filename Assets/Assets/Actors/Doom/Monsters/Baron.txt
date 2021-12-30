@@ -17,6 +17,7 @@ actor BaronOfHell 3003
     MONSTER
     +BOSSDEATH
     +FLOORCLIP
+    +E1M8BOSS
     
     States
     {

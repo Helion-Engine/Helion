@@ -493,8 +493,22 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void PlaySeeSound()
     {
-        if (Definition.Properties.SeeSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
+        if (Definition.Properties.SeeSound.Length == 0)
+            return;
+
+        Attenuation attenuation = (Flags.FullVolSee  || Flags.Boss) ? Attenuation.None : Attenuation.Default;
+        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, 
+            DataCache.Instance.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
+    }
+
+    public void PlayDeathSound()
+    {
+        if (Definition.Properties.DeathSound.Length == 0)
+            return;
+
+        Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
+        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto,
+            DataCache.Instance.GetSoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
@@ -506,7 +520,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
+            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, 
+                DataCache.Instance.GetSoundParams(this, type: SoundType.Active));
     }
 
     public string GetSpeciesName()
@@ -880,9 +895,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (Flags.Missile)
         {
-            if (Definition.Properties.DeathSound.Length > 0)
-                SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
-
+            PlayDeathSound();
             Flags.Missile = false;
             Velocity = Vec3D.Zero;
         }
@@ -945,14 +958,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Vec3D? GetSoundVelocity()
     {
         return Velocity;
-    }
-
-    public bool CanAttenuate(SoundInfo soundInfo)
-    {
-        if (Flags.Boss && (soundInfo.Name.Equals(Definition.Properties.SeeSound, StringComparison.OrdinalIgnoreCase) || soundInfo.Name.Equals(Definition.Properties.DeathSound, StringComparison.OrdinalIgnoreCase)))
-            return false;
-
-        return true;
     }
 
     public virtual bool CanMakeSound() => true;

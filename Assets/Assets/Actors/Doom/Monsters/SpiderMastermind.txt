@@ -16,12 +16,15 @@ actor SpiderMastermind 7
     Speed 12
     
     MONSTER
-    +BOSS
     +BOSSDEATH
     +DONTMORPH
     +FLOORCLIP
     +MISSILEMORE
     +NORADIUSDMG
+    +FULLVOLSEE
+    +FULLVOLDEATH
+    +E3M8BOSS
+    +E4M8BOSS
     
     States
     {

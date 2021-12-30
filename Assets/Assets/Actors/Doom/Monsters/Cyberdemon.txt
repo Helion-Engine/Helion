@@ -15,12 +15,15 @@ actor Cyberdemon 16
     Speed 16
     
     MONSTER
-    +BOSS
     +BOSSDEATH
     +DONTMORPH
     +FLOORCLIP
     +MISSILEMORE
     +NORADIUSDMG
+    +FULLVOLSEE
+    +FULLVOLDEATH
+    +E2M8BOSS
+    +E4M6BOSS
     
     States
     {

@@ -254,4 +254,10 @@ public class ActorFlags
     public ActorWeaponFlags Weapon;
     public bool? WindThrust;
     public bool? ZdoomTrans;
+    public bool? E1M8Boss;
+    public bool? E2M8Boss;
+    public bool? E3M8Boss;
+    public bool? E4M6Boss;
+    public bool? E4M8Boss;
+    public bool? FullVolSee;
 }

@@ -141,7 +141,7 @@ public class DataCache
     }
 
     public SoundParams GetSoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default,
-        float volume = SoundParams.MaxVolume)
+        float volume = SoundParams.MaxVolume, SoundType type = SoundType.Default)
     {
         if (m_soundParams.Length > 0)
         {
@@ -150,6 +150,7 @@ public class DataCache
             soundParams.Loop = loop;
             soundParams.Attenuation = attenuation;
             soundParams.Volume = volume;
+            soundParams.SoundType = type;
             m_soundParams.RemoveLast();
             return soundParams;
         }

@@ -1919,7 +1919,7 @@ public static class EntityActionFunctions
             return;
 
         entity.SoundManager.CreateSoundOn(entity, entity.Definition.Properties.PainSound, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity));
+            DataCache.Instance.GetSoundParams(entity, type: SoundType.Pain));
     }
 
     private static void A_PlayerScream(Entity entity)
@@ -1936,12 +1936,7 @@ public static class EntityActionFunctions
 
     private static void A_Scream(Entity entity)
     {
-        if (entity.Definition.Properties.DeathSound.Length == 0)
-            return;
-
-        Attenuation attenuation = entity.Flags.Boss ? Attenuation.None : Attenuation.Default;
-        entity.SoundManager.CreateSoundOn(entity, entity.Definition.Properties.DeathSound, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
+        entity.PlayDeathSound();
     }
 
     private static void A_XScream(Entity entity)

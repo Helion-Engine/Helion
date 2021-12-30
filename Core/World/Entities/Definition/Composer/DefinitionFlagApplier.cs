@@ -652,5 +652,17 @@ public static class DefinitionFlagApplier
             definition.Flags.WindThrust = flags.WindThrust.Value;
         if (flags.ZdoomTrans != null)
             definition.Flags.ZdoomTrans = flags.ZdoomTrans.Value;
+        if (flags.E1M8Boss != null)
+            definition.Flags.E1M8Boss = flags.E1M8Boss.Value;
+        if (flags.E2M8Boss != null)
+            definition.Flags.E2M8Boss = flags.E2M8Boss.Value;
+        if (flags.E3M8Boss != null)
+            definition.Flags.E3M8Boss = flags.E3M8Boss.Value;
+        if (flags.E4M6Boss != null)
+            definition.Flags.E3M8Boss = flags.E4M6Boss.Value;
+        if (flags.E4M8Boss != null)
+            definition.Flags.E4M8Boss = flags.E4M8Boss.Value;
+        if (flags.FullVolSee != null)
+            definition.Flags.FullVolSee = flags.FullVolSee.Value;
     }
 }

@@ -17,12 +17,15 @@ public class SoundParams
     public float Volume { get; set; }
     public Attenuation Attenuation { get; set; }
     public SoundInfo? SoundInfo { get; set; }
+    public SoundType SoundType { get; set; }
 
-    public SoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, float volume = MaxVolume)
+    public SoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, float volume = MaxVolume,
+        SoundType type = SoundType.Default)
     {
         SoundSource = soundSource;
         Attenuation = attenuation;
         Volume = volume;
         Loop = loop;
+        SoundType = type;
     }
 }
