@@ -68,6 +68,7 @@ public class GeometryRenderer : IDisposable
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
+        m_viewSector = Sector.CreateDefault();
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
