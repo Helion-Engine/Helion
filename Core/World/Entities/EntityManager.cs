@@ -40,16 +40,16 @@ public class EntityManager : IDisposable
     public const int NoTid = 0;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
+    public readonly LinkableList<Entity> Entities = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
 
     private readonly WorldSoundManager m_soundManager;
-    private readonly Dictionary<int, ISet<Entity>> TidToEntity = new Dictionary<int, ISet<Entity>>();
+    private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
 
     public readonly EntityDefinitionComposer DefinitionComposer;
-    public readonly List<Player> Players = new List<Player>();
-    public readonly List<Player> VoodooDolls = new List<Player>();
+    public readonly List<Player> Players = new();
+    public readonly List<Player> VoodooDolls = new();
 
     private int m_id;
 
@@ -86,7 +86,7 @@ public class EntityManager : IDisposable
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = new Entity(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+        Entity entity = new(id, tid, definition, position, angle, sector, this, m_soundManager, World);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
             entity.Properties.Speed = entity.Definition.Properties.FastSpeed;
@@ -140,7 +140,7 @@ public class EntityManager : IDisposable
 
     public void PopulateFrom(IMap map, LevelStats levelStats)
     {
-        List<Entity> relinkEntities = new List<Entity>();
+        List<Entity> relinkEntities = new();
 
         foreach (IThing mapThing in map.GetThings())
         {
@@ -185,8 +185,8 @@ public class EntityManager : IDisposable
 
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
-        List<Player> players = new List<Player>();
-        Dictionary<int, Entity> entities = new Dictionary<int, Entity>();
+        List<Player> players = new();
+        Dictionary<int, Entity> entities = new();
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
@@ -229,12 +229,21 @@ public class EntityManager : IDisposable
         return new WorldModelPopulateResult(players, entities);
     }
 
+    public void FinalizeFromWorldLoad(Entity entity)
+    {
+        // Need to link again for clipping/stacked physics to be set correctly
+        entity.UnlinkFromWorld();
+        World.Link(entity);
+        PostProcessEntity(entity);
+        FinalizeEntity(entity);
+    }
+
     private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, Entity> entities, bool isVoodooDoll)
     {
         var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
         if (playerDefinition != null)
         {
-            Player player = new Player(playerModel, entities, playerDefinition, this, m_soundManager, World);
+            Player player = new(playerModel, entities, playerDefinition, this, m_soundManager, World);
             player.IsVooDooDoll = isVoodooDoll;
 
             var node = Entities.Add(player);
@@ -262,19 +271,13 @@ public class EntityManager : IDisposable
         if (mapThing.Flags.MultiPlayer)
             return false;
 
-        switch ((SkillLevel)World.SkillDefinition.SpawnFilter)
+        return (SkillLevel)World.SkillDefinition.SpawnFilter switch
         {
-            case SkillLevel.VeryEasy:
-            case SkillLevel.Easy:
-                return mapThing.Flags.Easy;
-            case SkillLevel.Medium:
-                return mapThing.Flags.Medium;
-            case SkillLevel.Hard:
-            case SkillLevel.Nightmare:
-                return mapThing.Flags.Hard;
-            default:
-                return false;
-        }
+            SkillLevel.VeryEasy or SkillLevel.Easy => mapThing.Flags.Easy,
+            SkillLevel.Medium => mapThing.Flags.Medium,
+            SkillLevel.Hard or SkillLevel.Nightmare => mapThing.Flags.Hard,
+            _ => false,
+        };
     }
 
     private static double GetPositionZ(Sector sector, in Vec3D position, double zHeight)
@@ -285,13 +288,8 @@ public class EntityManager : IDisposable
         return position.Z;
     }
 
-    private void FinishCreatingEntity(Entity entity, double zHeight)
+    private static void FinalizeEntity(Entity entity, double zHeight = 0)
     {
-        LinkableNode<Entity> node = Entities.Add(entity);
-        entity.EntityListNode = node;
-
-        World.Link(entity);
-
         if (entity.Flags.SpawnCeiling)
         {
             double offset = ZHeightSet(zHeight) ? -zHeight : 0;
@@ -299,6 +297,16 @@ public class EntityManager : IDisposable
         }
 
         entity.ResetInterpolation();
+    }
+
+    private void FinishCreatingEntity(Entity entity, double zHeight)
+    {
+        LinkableNode<Entity> node = Entities.Add(entity);
+        entity.EntityListNode = node;
+
+        World.Link(entity);
+        FinalizeEntity(entity, zHeight);
+
         entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
@@ -323,7 +331,7 @@ public class EntityManager : IDisposable
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, position, zHeight);
-        Player player = new Player(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
+        Player player = new(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
 
         var armor = DefinitionComposer.GetByName(Inventory.ArmorClassName);
         if (armor != null)
