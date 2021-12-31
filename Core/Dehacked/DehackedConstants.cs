@@ -515,6 +515,30 @@ public partial class DehackedDefinition
         TRANSLUCENT = 0x80000000,
     };
 
+    [Flags]
+    public enum Mbf21ThingFlags : uint
+    {
+        LOGRAV = 0x00001, // Lower gravity (1/8)
+        SHORTMRANGE = 0x00002, // Short missile range(archvile)
+        DMGIGNORED = 0x00004, //Other things ignore its attacks(archvile)
+        NORADIUSDMG = 0x00008, // Doesn't take splash damage (cyberdemon, mastermind)
+        FORCERADIUSDMG = 0x00010,  // Thing causes splash damage even if the target shouldn't
+        HIGHERMPROB = 0x00020, // Higher missile attack probability(cyberdemon)
+        RANGEHALF = 0x00040, // Use half distance for missile attack probability(cyberdemon, mastermind, revenant, lost soul)
+        NOTHRESHOLD = 0x00080, 	//Has no targeting threshold(archvile)
+        LONGMELEE = 0x00100, //	Has long melee range(revenant)
+        BOSS = 0x00200, 	// Full volume see / death sound & splash immunity(from heretic)
+        MAP07BOSS1 = 0x00400, // Tag 666 "boss" on doom 2 map 7 (mancubus)
+        MAP07BOSS2 = 0x00800, // Tag 667 "boss" on doom 2 map 7 (arachnotron)
+        E1M8BOSS = 0x01000, // E1M8 boss(baron)
+        E2M8BOSS = 0x02000, // E2M8 boss(cyberdemon)
+        E3M8BOSS = 0x04000, 	// E3M8 boss(mastermind)
+        E4M6BOSS = 0x08000, // E4M6 boss(cyberdemon)
+        E4M8BOSS = 0x10000, // E4M8 boss(mastermind)
+        RIP = 0x20000, 	// Ripper projectile(does not disappear on impact)
+        FULLVOLSOUNDS = 0x40000, 	// Full volume see / death sounds(cyberdemon, mastermind)
+    }
+
     public readonly IReadOnlyDictionary<string, uint> ThingPropertyStrings = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SPECIAL", 0x00000001 },
@@ -549,6 +573,29 @@ public partial class DehackedDefinition
         { "BOUNCES", 0x20000000 },
         { "FRIEND", 0x40000000 },
         { "TRANSLUCENT", 0x80000000 }
+    };
+
+    public readonly IReadOnlyDictionary<string, uint> ThingPropertyStringsMbf21 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "LOGRAV", 0x00000001 },
+        { "SHORTMRANGE", 0x00000002 },
+        { "DMGIGNORED", 0x00000004 },
+        { "NORADIUSDMG", 0x00000008 },
+        { "FORCERADIUSDMG", 0x00000010 },
+        { "HIGHERMPROB", 0x00000020 },
+        { "RANGEHALF", 0x00000040 },
+        { "NOTHRESHOLD", 0x00000080 },
+        { "LONGMELEE", 0x00000100 },
+        { "BOSS", 0x00000200 },
+        { "MAP07BOSS1", 0x00000400 },
+        { "MAP07BOSS2", 0x00000800 },
+        { "E1M8BOSS", 0x00001000 },
+        { "E2M8BOSS", 0x00002000 },
+        { "E3M8BOSS", 0x00004000 },
+        { "E4M6BOSS", 0x00008000 },
+        { "E4M8BOSS", 0x00010000 },
+        { "RIP", 0x00020000 },
+        { "FULLVOLSOUNDS", 0x00040000 },
     };
 
     public class FrameStateLookup
@@ -4651,6 +4698,7 @@ public partial class DehackedDefinition
     private static readonly string InfightingGroup = "Infighting group";
     private static readonly string ProjectileGroup = "Projectile group";
     private static readonly string SplashGroup = "Splash group";
+    private static readonly string Mbf21Bits = "MBF21 Bits";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";

@@ -977,6 +977,12 @@ public partial class DecorateParser
             case "ZDOOMTRANS":
                 m_currentDefinition.Flags.ZdoomTrans = flagValue;
                 break;
+            case "MAP07BOSS1":
+                m_currentDefinition.Flags.Map07Boss1 = flagValue;
+                break;
+            case "MAP07BOSS2":
+                m_currentDefinition.Flags.Map07Boss2 = flagValue;
+                break;
             case "E1M8BOSS":
                 m_currentDefinition.Flags.E1M8Boss = flagValue;
                 break;

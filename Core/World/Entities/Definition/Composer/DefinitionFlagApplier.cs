@@ -664,5 +664,9 @@ public static class DefinitionFlagApplier
             definition.Flags.E4M8Boss = flags.E4M8Boss.Value;
         if (flags.FullVolSee != null)
             definition.Flags.FullVolSee = flags.FullVolSee.Value;
+        if (flags.Map07Boss1 != null)
+            definition.Flags.Map07Boss1 = flags.Map07Boss1.Value;
+        if (flags.Map07Boss2 != null)
+            definition.Flags.Map07Boss2 = flags.Map07Boss2.Value;
     }
 }

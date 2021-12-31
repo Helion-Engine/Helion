@@ -254,6 +254,8 @@ public class ActorFlags
     public ActorWeaponFlags Weapon;
     public bool? WindThrust;
     public bool? ZdoomTrans;
+    public bool? Map07Boss1;
+    public bool? Map07Boss2;
     public bool? E1M8Boss;
     public bool? E2M8Boss;
     public bool? E3M8Boss;

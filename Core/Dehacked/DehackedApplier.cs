@@ -357,6 +357,8 @@ public class DehackedApplier
                 properties.Damage.Value = thing.MisileDamage.Value;
             if (thing.Bits.HasValue)
                 SetActorFlags(definition, thing.Bits.Value);
+            if (thing.Mbf21Bits.HasValue)
+                SetActorFlagsMbf21(definition, thing.Mbf21Bits.Value);
 
             if (thing.AlertSound.HasValue)
                 properties.SeeSound = GetSound(dehacked, thing.AlertSound.Value);
@@ -560,6 +562,36 @@ public class DehackedApplier
 
             frame.SetSprite(text.NewString);
         }
+    }
+
+    private static void SetActorFlagsMbf21(EntityDefinition def, uint value)
+    {
+        Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
+        if (thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV))
+            def.Properties.Gravity = 1 / 8.0;
+        if (thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE))
+            def.Properties.MaxTargetRange = 896; // Short missile range (archvile)
+        if (thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB))
+            def.Properties.MinMissileChance = 160; // Higher missile attack probability (cyberdemon)
+        if (thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE))
+            def.Properties.MeleeThreshold = 196; // Has long melee range (revenant)
+
+        def.Flags.NoTarget = thingProperties.HasFlag(Mbf21ThingFlags.DMGIGNORED);
+        def.Flags.NoRadiusDmg = thingProperties.HasFlag(Mbf21ThingFlags.NORADIUSDMG);
+        def.Flags.ForceRadiusDmg = thingProperties.HasFlag(Mbf21ThingFlags.FORCERADIUSDMG);
+        def.Flags.MissileMore = thingProperties.HasFlag(Mbf21ThingFlags.RANGEHALF);
+        def.Flags.QuickToRetaliate = thingProperties.HasFlag(Mbf21ThingFlags.NOTHRESHOLD);
+        def.Flags.Boss = thingProperties.HasFlag(Mbf21ThingFlags.BOSS);
+        def.Flags.Map07Boss1 = thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS1);
+        def.Flags.Map07Boss2 = thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS2);
+        def.Flags.E1M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E1M8BOSS);
+        def.Flags.E2M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E2M8BOSS);
+        def.Flags.E3M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E3M8BOSS);
+        def.Flags.E4M6Boss = thingProperties.HasFlag(Mbf21ThingFlags.E4M6BOSS);
+        def.Flags.E4M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E4M8BOSS);
+        def.Flags.Ripper = thingProperties.HasFlag(Mbf21ThingFlags.RIP);
+        def.Flags.FullVolSee = thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS);
+        def.Flags.FullVolDeath = thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS);
     }
 
     private static void SetActorFlags(EntityDefinition def, uint value)

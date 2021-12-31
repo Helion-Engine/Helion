@@ -26,6 +26,7 @@ public class DehackedThing
     public int? MisileDamage { get; set; }
     public int? ActionSound { get; set; }
     public uint? Bits { get; set; }
+    public uint? Mbf21Bits { get; set; }
     public int? RespawnFrame { get; set; }
     public int? InfightingGroup { get; set; }
     public int? ProjectileGroup { get; set; }

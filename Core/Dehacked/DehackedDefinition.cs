@@ -170,7 +170,9 @@ public partial class DehackedDefinition
             else if (line.StartsWith(RespawnFrame, StringComparison.OrdinalIgnoreCase))
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
             else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
-                thing.Bits = GetThingBits(parser, Bits);
+                thing.Bits = GetThingBits(parser, Bits, ThingPropertyStrings);
+            else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
+                thing.Mbf21Bits = GetThingBits(parser, Mbf21Bits, ThingPropertyStringsMbf21);
             else if (line.StartsWith(InfightingGroup, StringComparison.OrdinalIgnoreCase))
                 thing.InfightingGroup = GetIntProperty(parser, InfightingGroup);
             else if (line.StartsWith(ProjectileGroup, StringComparison.OrdinalIgnoreCase))
@@ -549,7 +551,7 @@ public partial class DehackedDefinition
         return false;
     }
 
-    private uint GetThingBits(SimpleParser parser, string property)
+    private static uint GetThingBits(SimpleParser parser, string property, IReadOnlyDictionary<string, uint> lookup)
     {
         ConsumeProperty(parser, property);
         parser.ConsumeString("=");
@@ -557,10 +559,10 @@ public partial class DehackedDefinition
         if (bits.HasValue)
             return bits.Value;
 
-        return ParseThingStringBits(parser);
+        return ParseThingStringBits(parser, lookup);
     }
 
-    private uint ParseThingStringBits(SimpleParser parser)
+    private static uint ParseThingStringBits(SimpleParser parser, IReadOnlyDictionary<string, uint> lookup)
     {
         uint bits = 0;
         string[] items = parser.ConsumeLine().Split(new string[] { "+", "|", "," }, StringSplitOptions.RemoveEmptyEntries);
@@ -568,7 +570,7 @@ public partial class DehackedDefinition
         foreach (string item in items)
         {
             string stringFlag = item.Trim();
-            if (ThingPropertyStrings.TryGetValue(stringFlag, out uint flag))
+            if (lookup.TryGetValue(stringFlag, out uint flag))
                 bits |= flag;
             else
                 Log.Warn($"Dehacked: Invalid thing flag {stringFlag}.");
