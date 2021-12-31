@@ -1145,13 +1145,23 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < intersections.Count; i++)
         {
             BlockmapIntersect bi = intersections[i];
-            if (bi.Entity != null && !bi.Entity.Flags.NoRadiusDmg && bi.Entity.CanApplyRadiusExplosionDamage(damageSource) && 
-                CheckLineOfSight(bi.Entity, damageSource))
+            if (bi.Entity != null && ShouldApplyExplosionDamage(bi.Entity, damageSource))
                 ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, thrust,
                     damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
         }
 
         DataCache.Instance.FreeBlockmapIntersectList(intersections);
+    }
+
+    private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
+    {
+        if (entity.Flags.NoRadiusDmg && !damageSource.Flags.ForceRadiusDmg)
+            return false;
+
+        if (!entity.CanApplyRadiusExplosionDamage(damageSource) || !CheckLineOfSight(entity, damageSource))
+            return false;
+
+        return true;
     }
 
     public virtual TryMoveData TryMoveXY(Entity entity, Vec2D position)
