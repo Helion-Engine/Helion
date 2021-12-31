@@ -14,7 +14,7 @@ public class SaveGameManager
 {
     private readonly IConfig m_config;
 
-    public event EventHandler<WorldModel> GameSaved;
+    public event EventHandler<WorldModel>? GameSaved;
 
     public SaveGameManager(IConfig config)
     {

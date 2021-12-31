@@ -12,16 +12,16 @@ public class LightFireFlickerDoom : SectorSpecialBase
     private int m_delay;
 
     public LightFireFlickerDoom(Sector sector, IRandom random, short minLightLevel)
+        : base(sector)
     {
-        Sector = sector;
         m_random = random;
         m_minBright = (short)(minLightLevel + 16);
         m_maxBright = Sector.LightLevel;
     }
 
     public LightFireFlickerDoom(Sector sector, IRandom random, LightFireFlickerDoomModel model)
+        : base(sector)
     {
-        Sector = sector;
         m_random = random;
         m_minBright = model.Min;
         m_maxBright = model.Max;

@@ -45,9 +45,9 @@ public class DataCache
 
     public void FreeLinkableNodeEntity(LinkableNode<Entity> node)
     {
-        node.Previous = null;
+        node.Previous = null!;
         node.Next = null;
-        node.Value = null;
+        node.Value = null!;
         m_entityNodes.Add(node);
     }
 
@@ -135,8 +135,8 @@ public class DataCache
 
     public void FreeAudioData(AudioData audioData)
     {
-        audioData.SoundSource = null;
-        audioData.SoundInfo = null;
+        audioData.SoundSource = null!;
+        audioData.SoundInfo = null!;
         m_audioData.Add(audioData);
     }
 
@@ -160,7 +160,7 @@ public class DataCache
 
     public void FreeSoundParams(SoundParams soundParams)
     {
-        soundParams.SoundSource = null;
+        soundParams.SoundSource = null!;
         soundParams.SoundInfo = null;
         m_soundParams.Add(soundParams);
     }
@@ -182,7 +182,7 @@ public class DataCache
     {
         audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
         audioSource.CacheFree();
-        audioSource.AudioData = null;
+        audioSource.AudioData = null!;
         m_audioSources.Add(audioSource);
     }
 }

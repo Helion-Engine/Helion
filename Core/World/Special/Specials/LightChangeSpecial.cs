@@ -12,8 +12,8 @@ public class LightChangeSpecial : SectorSpecialBase
     private readonly int m_max;
 
     public LightChangeSpecial(Sector sector, short lightLevel, int fadeTics)
+        : base(sector)
     {
-        Sector = sector;
         m_lightLevel = lightLevel;
 
         if (fadeTics > 0)
@@ -34,8 +34,8 @@ public class LightChangeSpecial : SectorSpecialBase
     }
 
     public LightChangeSpecial(Sector sector, LightChangeSpecialModel model)
+        : base(sector)
     {
-        Sector = sector;
         m_lightLevel = model.Light;
         m_step = model.Step;
         m_min = model.Min;

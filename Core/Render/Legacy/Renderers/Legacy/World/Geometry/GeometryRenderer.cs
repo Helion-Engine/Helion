@@ -212,7 +212,7 @@ public class GeometryRenderer : IDisposable
 
     private void AddLineClip(SubsectorSegment edge)
     {
-        if (edge.Line.OneSided)
+        if (edge.Line!.OneSided)
             m_viewClipper.AddLine(edge.Start, edge.End);
         else if (LineOpening.IsRenderingBlocked(edge.Line))
             m_viewClipper.AddLine(edge.Start, edge.End);

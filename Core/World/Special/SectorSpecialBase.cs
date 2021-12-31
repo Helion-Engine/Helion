@@ -8,6 +8,11 @@ public abstract class SectorSpecialBase : ISectorSpecial
 {
     public Sector Sector { get; protected set; }
 
+    public SectorSpecialBase(Sector sector)
+    {
+        Sector = sector;
+    }
+
     public abstract SpecialTickStatus Tick();
 
     public virtual void FinalizeDestroy()

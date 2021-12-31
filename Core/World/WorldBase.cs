@@ -1973,11 +1973,7 @@ public abstract partial class WorldBase : IWorld
             if (!component.Attribute.Serialize)
                 continue;
 
-            items.Add(new ConfigValueModel()
-            {
-                Key = path,
-                Value = component.Value.ObjectValue
-            });
+            items.Add(new ConfigValueModel(path, component.Value.ObjectValue));
         }
         return items;
     }

@@ -399,6 +399,12 @@ public class Inventory
 
     private void SortKeys()
     {
-        Keys.Sort((i1, i2) => i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value));
+        Keys.Sort((i1, i2) =>
+        {
+            if (!i1.Definition.EditorId.HasValue || !i2.Definition.EditorId.HasValue)
+                return 1;
+
+            return i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value);
+        });
     }
 }

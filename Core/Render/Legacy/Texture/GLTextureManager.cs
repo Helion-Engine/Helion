@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
@@ -80,9 +81,9 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
         Dispose();
     }
 
-    public bool TryGet(string name, out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
+    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out GLTextureType? texture))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out GLTextureType texture))
         {
             handle = texture;
             return true;

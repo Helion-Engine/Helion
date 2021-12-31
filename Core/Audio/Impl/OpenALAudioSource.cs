@@ -33,6 +33,8 @@ public class OpenALAudioSource : IAudioSource
     public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
     {
         Set(owner, buffer, audioData, soundParams);
+        Owner = owner;
+        AudioData = audioData;
     }
 
     public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)

@@ -13,8 +13,8 @@ public class LightStrobeSpecial : SectorSpecialBase
     private int m_delay;
 
     public LightStrobeSpecial(Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
+         : base(sector)
     {
-        Sector = sector;
         m_brightTics = brightTics;
         m_darkTics = darkTics;
         m_maxBright = sector.LightLevel;
@@ -28,8 +28,8 @@ public class LightStrobeSpecial : SectorSpecialBase
     }
 
     public LightStrobeSpecial(Sector sector, LightStrobeSpecialModel model)
+         : base(sector)
     {
-        Sector = sector;
         m_brightTics = model.BrightTics;
         m_darkTics = model.DarkTics;
         m_maxBright = model.Max;

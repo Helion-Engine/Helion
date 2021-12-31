@@ -12,12 +12,14 @@ public class OpenALDevice : IDisposable
 
     public OpenALDevice()
     {
+        OpenALDeviceName = string.Empty;
         DeviceName = string.Empty;
         CreateDefault();
     }
 
     public OpenALDevice(string deviceName)
     {
+        OpenALDeviceName = string.Empty;
         DeviceName = deviceName;
 
         if (!string.IsNullOrEmpty(deviceName))

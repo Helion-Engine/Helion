@@ -56,6 +56,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
         m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
             textureManager, m_viewClipper, m_worldDataManager);
+        m_viewSector = Sector.CreateDefault();
 
         using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
             m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);

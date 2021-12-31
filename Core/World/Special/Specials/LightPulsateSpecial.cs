@@ -13,8 +13,8 @@ public class LightPulsateSpecial : SectorSpecialBase
     private int m_inc;
 
     public LightPulsateSpecial(Sector sector, short minLightLevel)
+         : base(sector)
     {
-        Sector = sector;
         m_maxBright = sector.LightLevel;
         m_minBright = minLightLevel;
 
@@ -22,8 +22,8 @@ public class LightPulsateSpecial : SectorSpecialBase
     }
 
     public LightPulsateSpecial(Sector sector, LightPulsateSpecialModel model)
+         : base(sector)
     {
-        Sector = sector;
         m_maxBright = model.Max;
         m_minBright = model.Min;
         m_inc = model.Inc;
