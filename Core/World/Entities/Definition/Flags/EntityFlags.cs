@@ -324,13 +324,13 @@ public struct EntityFlags
     public bool ZdoomTrans { get => (Flags10 & FlagValue.Flag13) != 0; set { if (value) Flags10 |= FlagValue.Flag13; else Flags10 &= FlagValue.InvFlag13; } }
     public bool BossSpawnShot { get => (Flags10 & FlagValue.Flag14) != 0; set { if (value) Flags10 |= FlagValue.Flag14; else Flags10 &= FlagValue.InvFlag14; } }
     public bool Map07Boss1 { get => (Flags10 & FlagValue.Flag15) != 0; set { if (value) Flags10 |= FlagValue.Flag15; else Flags10 &= FlagValue.InvFlag15; } }
-    public bool Map07Boss2 { get => (Flags10 & FlagValue.Flag16) != 0; set { if (value) Flags10 |= FlagValue.Flag16; else Flags10 &= FlagValue.Flag16; } }
-    public bool E1M8Boss { get => (Flags10 & FlagValue.Flag17) != 0; set { if (value) Flags10 |= FlagValue.Flag17; else Flags10 &= FlagValue.Flag17; } }
-    public bool E2M8Boss { get => (Flags10 & FlagValue.Flag18) != 0; set { if (value) Flags10 |= FlagValue.Flag18; else Flags10 &= FlagValue.Flag18; } }
-    public bool E3M8Boss { get => (Flags10 & FlagValue.Flag19) != 0; set { if (value) Flags10 |= FlagValue.Flag19; else Flags10 &= FlagValue.Flag19; } }
-    public bool E4M6Boss { get => (Flags10 & FlagValue.Flag20) != 0; set { if (value) Flags10 |= FlagValue.Flag20; else Flags10 &= FlagValue.Flag20; } }
-    public bool E4M8Boss { get => (Flags10 & FlagValue.Flag21) != 0; set { if (value) Flags10 |= FlagValue.Flag21; else Flags10 &= FlagValue.Flag21; } }
-    public bool FullVolSee { get => (Flags10 & FlagValue.Flag22) != 0; set { if (value) Flags10 |= FlagValue.Flag22; else Flags10 &= FlagValue.Flag22; } }
+    public bool Map07Boss2 { get => (Flags10 & FlagValue.Flag16) != 0; set { if (value) Flags10 |= FlagValue.Flag16; else Flags10 &= FlagValue.InvFlag16; } }
+    public bool E1M8Boss { get => (Flags10 & FlagValue.Flag17) != 0; set { if (value) Flags10 |= FlagValue.Flag17; else Flags10 &= FlagValue.InvFlag17; } }
+    public bool E2M8Boss { get => (Flags10 & FlagValue.Flag18) != 0; set { if (value) Flags10 |= FlagValue.Flag18; else Flags10 &= FlagValue.InvFlag18; } }
+    public bool E3M8Boss { get => (Flags10 & FlagValue.Flag19) != 0; set { if (value) Flags10 |= FlagValue.Flag19; else Flags10 &= FlagValue.InvFlag19; } }
+    public bool E4M6Boss { get => (Flags10 & FlagValue.Flag20) != 0; set { if (value) Flags10 |= FlagValue.Flag20; else Flags10 &= FlagValue.InvFlag20; } }
+    public bool E4M8Boss { get => (Flags10 & FlagValue.Flag21) != 0; set { if (value) Flags10 |= FlagValue.Flag21; else Flags10 &= FlagValue.InvFlag21; } }
+    public bool FullVolSee { get => (Flags10 & FlagValue.Flag22) != 0; set { if (value) Flags10 |= FlagValue.Flag22; else Flags10 &= FlagValue.InvFlag22; } }
 
     public EntityFlags(EntityFlagsModel model)
     {
