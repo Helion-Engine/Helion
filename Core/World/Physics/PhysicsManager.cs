@@ -1220,7 +1220,7 @@ public class PhysicsManager
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
         if (entity.ShouldApplyGravity())
-            entity.Velocity.Z -= m_world.Gravity;
+            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
         if (entity.Velocity.Z == 0 && floatZ == 0)
