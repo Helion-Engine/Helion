@@ -29,7 +29,7 @@ class MonsterCountSpecial : ISpecial
 
     public SpecialTickStatus Tick()
     {
-        if (m_world.EntityAliveCount(EntityEditorId, true) == 0)
+        if (m_world.EntityAliveCount(EntityEditorId, false) == 0)
         {
             ExecuteSpecial();
             return SpecialTickStatus.Destroy;
