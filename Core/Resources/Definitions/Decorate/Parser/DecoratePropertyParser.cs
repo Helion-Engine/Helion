@@ -1084,333 +1084,336 @@ public partial class DecorateParser
     {
         switch (property.ToUpper())
         {
-        // To reduce logic and be efficient, we do combos in this switch
-        // statement as well since the property reader is the 'catch-all'.
-        case "MONSTER":
-            m_currentDefinition.Flags.Monster = true;
-            break;
-        case "PROJECTILE":
-            m_currentDefinition.Flags.Projectile = true;
-            break;
-        // These are 'flag' properties.
-        case "CLEARFLAGS":
-            m_currentDefinition.FlagProperties.ClearFlags = true;
-            break;
-        case "DEFAULTALPHA":
-            m_currentDefinition.FlagProperties.DefaultAlpha = true;
-            break;
-        case "SKIP_SUPER":
-            m_currentDefinition.FlagProperties.SkipSuper = true;
-            break;
-        // The rest are all properties now.
-        case "ACCURACY":
-            m_currentDefinition.Properties.Accuracy = ConsumeInteger();
-            break;
-        case "ACTIVATION":
-            m_currentDefinition.Properties.Activation = ConsumeDecorateSpecialActivationType();
-            break;
-        case "ACTIVESOUND":
-            m_currentDefinition.Properties.ActiveSound = ConsumeString();
-            break;
-        case "ALPHA":
-            m_currentDefinition.Properties.Alpha = ConsumeFloat();
-            break;
-        case "ARGS":
-            m_currentDefinition.Properties.Args = ConsumeSpecialArgs();
-            break;
-        case "ATTACKSOUND":
-            m_currentDefinition.Properties.AttackSound = ConsumeString();
-            break;
-        case "BLOODCOLOR":
-            m_currentDefinition.Properties.BloodColor = ConvertStringToColor(ConsumeString());
-            break;
-        case "BLOODTYPE":
-            m_currentDefinition.Properties.BloodType = ConsumeString();
-            break;
-        case "BOUNCECOUNT":
-            m_currentDefinition.Properties.BounceCount = ConsumeInteger();
-            break;
-        case "BOUNCEFACTOR":
-            m_currentDefinition.Properties.BounceFactor = ConsumeFloat();
-            break;
-        case "BOUNCESOUND":
-            m_currentDefinition.Properties.BounceSound = ConsumeString();
-            break;
-        case "BOUNCETYPE":
-            m_currentDefinition.Properties.BounceType = ConsumeDecorateBounceType();
-            break;
-        case "BURNHEIGHT":
-            m_currentDefinition.Properties.BurnHeight = ConsumeFloat();
-            break;
-        case "CAMERAHEIGHT":
-            m_currentDefinition.Properties.CameraHeight = ConsumeFloat();
-            break;
-        case "CONVERSATIONID":
-            m_currentDefinition.Properties.ConversationID = ConsumeInteger();
-            break;
-        case "CRUSHPAINSOUND":
-            m_currentDefinition.Properties.CrushPainSound = ConsumeString();
-            break;
-        case "DAMAGE":
-            m_currentDefinition.Properties.Damage = ConsumeDamageProperty();
-            break;
-        case "DAMAGEFACTOR":
-            if (PeekFloat())
-                m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeFloat());
-            else
-                m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeString(), ConsumeFloat());
-            break;
-        case "DAMAGETYPE":
-            m_currentDefinition.Properties.DamageType = ConsumeString();
-            break;
-        case "DEATHHEIGHT":
-            m_currentDefinition.Properties.DeathHeight = ConsumeFloat();
-            break;
-        case "DEATHSOUND":
-            m_currentDefinition.Properties.DeathSound = ConsumeString();
-            break;
-        case "DEATHTYPE":
-            m_currentDefinition.Properties.DeathType = ConsumeString();
-            break;
-        case "DECAL":
-            m_currentDefinition.Properties.Decal = ConsumeString();
-            break;
-        case "DEFTHRESHOLD":
-            m_currentDefinition.Properties.DefThreshold = ConsumeInteger();
-            break;
-        case "DROPITEM":
-            ConsumeAndHandleDropItem();
-            break;
-        case "DESIGNATEDTEAM":
-            m_currentDefinition.Properties.DesignatedTeam = ConsumeInteger();
-            break;
-        case "DISTANCECHECK":
-            m_currentDefinition.Properties.DistanceCheck = ConsumeString();
-            break;
-        case "EXPLOSIONDAMAGE":
-            m_currentDefinition.Properties.ExplosionDamage = ConsumeInteger();
-            break;
-        case "EXPLOSIONRADIUS":
-            m_currentDefinition.Properties.ExplosionRadius = ConsumeInteger();
-            break;
-        case "FASTSPEED":
-            m_currentDefinition.Properties.FastSpeed = ConsumeInteger();
-            break;
-        case "FLOATBOBPHASE":
-            m_currentDefinition.Properties.FloatBobPhase = ConsumeSignedFloat();
-            break;
-        case "FLOATBOBSTRENGTH":
-            m_currentDefinition.Properties.FloatBobStrength = ConsumeSignedFloat();
-            break;
-        case "FLOATSPEED":
-            m_currentDefinition.Properties.FloatSpeed = ConsumeFloat();
-            break;
-        case "FRICTION":
-            m_currentDefinition.Properties.Friction = ConsumeFloat();
-            break;
-        case "FRIENDLYSEEBLOCKS":
-            m_currentDefinition.Properties.FriendlySeeBlocks = ConsumeInteger();
-            break;
-        case "GAME":
-            m_currentDefinition.Properties.Game = ConsumeString();
-            break;
-        case "GIBHEALTH":
-            m_currentDefinition.Properties.GibHealth = ConsumeInteger();
-            break;
-        case "GRAVITY":
-            m_currentDefinition.Properties.Gravity = ConsumeFloat();
-            break;
-        case "HEALTH":
-            m_currentDefinition.Properties.Health = ConsumeInteger();
-            break;
-        case "HEIGHT":
-            m_currentDefinition.Properties.Height = ConsumeFloat();
-            break;
-        case "HITOBITUARY":
-            m_currentDefinition.Properties.HitObituary = ConsumeString();
-            break;
-        case "HOWLSOUND":
-            m_currentDefinition.Properties.HowlSound = ConsumeString();
-            break;
-        case "MASS":
-            m_currentDefinition.Properties.Mass = ConsumeFloat();
-            break;
-        case "MAXDROPOFFHEIGHT":
-            m_currentDefinition.Properties.MaxDropOffHeight = ConsumeFloat();
-            break;
-        case "MAXSTEPHEIGHT":
-            m_currentDefinition.Properties.MaxStepHeight = ConsumeFloat();
-            break;
-        case "MAXTARGETRANGE":
-            m_currentDefinition.Properties.MaxTargetRange = ConsumeInteger();
-            break;
-        case "MELEEDAMAGE":
-            m_currentDefinition.Properties.MeleeDamage = ConsumeInteger();
-            break;
-        case "MELEERANGE":
-            m_currentDefinition.Properties.MeleeRange = ConsumeInteger();
-            break;
-        case "MELEESOUND":
-            m_currentDefinition.Properties.MeleeSound = ConsumeString();
-            break;
-        case "MELEETHRESHOLD":
-            m_currentDefinition.Properties.MeleeThreshold = ConsumeInteger();
-            break;
-        case "MINMISSILECHANCE":
-            m_currentDefinition.Properties.MinMissileChance = ConsumeInteger();
-            break;
-        case "MISSILEHEIGHT":
-            m_currentDefinition.Properties.MissileHeight = ConsumeInteger();
-            break;
-        case "MISSILETYPE":
-            m_currentDefinition.Properties.MissileType = ConsumeInteger();
-            break;
-        case "OBITUARY":
-            m_currentDefinition.Properties.Obituary = ConsumeString();
-            break;
-        case "PAINCHANCE":
-            if (PeekFloat())
-                m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeFloat());
-            else
-                m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeString(), ConsumeFloat());
-            break;
-        case "PAINSOUND":
-            m_currentDefinition.Properties.PainSound = ConsumeString();
-            break;
-        case "PAINTHRESHOLD":
-            m_currentDefinition.Properties.PainThreshold = ConsumeInteger();
-            break;
-        case "PAINTYPE":
-            m_currentDefinition.Properties.PainType = ConsumeString();
-            break;
-        case "POISONDAMAGETYPE":
-            m_currentDefinition.Properties.PoisonDamageType = ConsumeString();
-            break;
-        case "PROJECTILEKICKBACK":
-            m_currentDefinition.Properties.ProjectileKickBack = ConsumeInteger();
-            break;
-        case "PROJECTILEPASSHEIGHT":
-            m_currentDefinition.Properties.ProjectilePassHeight = ConsumeSignedInteger();
-            break;
-        case "PUSHFACTOR":
-            m_currentDefinition.Properties.PushFactor = ConsumeFloat();
-            break;
-        case "RADIUS":
-            m_currentDefinition.Properties.Radius = ConsumeFloat();
-            break;
-        case "RADIUSDAMAGEFACTOR":
-            m_currentDefinition.Properties.RadiusDamageFactor = ConsumeFloat();
-            break;
-        case "REACTIONTIME":
-            m_currentDefinition.Properties.ReactionTime = ConsumeInteger();
-            break;
-        case "RENDERRADIUS":
-            m_currentDefinition.Properties.RenderRadius = ConsumeFloat();
-            break;
-        case "RENDERSTYLE":
-            m_currentDefinition.Properties.RenderStyle = ConsumeRenderStyle();
-            break;
-        case "RIPLEVELMAX":
-            m_currentDefinition.Properties.RipLevelMax = ConsumeInteger();
-            break;
-        case "RIPLEVELMIN":
-            m_currentDefinition.Properties.RipLevelMin = ConsumeInteger();
-            break;
-        case "RIPPERLEVEL":
-            m_currentDefinition.Properties.RipperLevel = ConsumeInteger();
-            break;
-        case "SCALE":
-            m_currentDefinition.Properties.Scale = ConsumeFloat();
-            break;
-        case "SEESOUND":
-            m_currentDefinition.Properties.SeeSound = ConsumeString();
-            break;
-        case "SELFDAMAGEFACTOR":
-            m_currentDefinition.Properties.SelfDamageFactor = ConsumeFloat();
-            break;
-        case "SPAWNID":
-            m_currentDefinition.Properties.SpawnId = ConsumeInteger();
-            break;
-        case "SPECIES":
-            m_currentDefinition.Properties.Species = ConsumeString();
-            break;
-        case "SPEED":
-            m_currentDefinition.Properties.Speed = ConsumeInteger();
-            break;
-        case "SPRITEANGLE":
-            m_currentDefinition.Properties.SpriteAngle = ConsumeInteger();
-            break;
-        case "SPRITEROTATION":
-            m_currentDefinition.Properties.SpriteRotation = ConsumeInteger();
-            break;
-        case "STAMINA":
-            m_currentDefinition.Properties.Stamina = ConsumeInteger();
-            break;
-        case "STEALTHALPHA":
-            m_currentDefinition.Properties.StealthAlpha = ConsumeFloat();
-            break;
-        case "STENCILCOLOR":
-            m_currentDefinition.Properties.StencilColor = ConsumeInteger();
-            break;
-        case "TAG":
-            m_currentDefinition.Properties.Tag = ConsumeString();
-            break;
-        case "TELEFOGDESTTYPE":
-            m_currentDefinition.Properties.TeleFogDestType = ConsumeString();
-            break;
-        case "TELEFOGSOURCETYPE":
-            m_currentDefinition.Properties.TeleFogSourceType = ConsumeString();
-            break;
-        case "THRESHOLD":
-            m_currentDefinition.Properties.Threshold = ConsumeInteger();
-            break;
-        case "TRANSLATION":
-            m_currentDefinition.Properties.Translation = ConsumeTranslationProperties();
-            break;
-        case "VSPEED":
-            m_currentDefinition.Properties.VSpeed = ConsumeInteger();
-            break;
-        case "VISIBLEANGLES":
-            m_currentDefinition.Properties.VisibleAngles = ConsumeVisibleAngles();
-            break;
-        case "VISIBLEPITCH":
-            m_currentDefinition.Properties.VisiblePitch = ConsumeVisiblePitch();
-            break;
-        case "VISIBLETOTEAM":
-            m_currentDefinition.Properties.VisibleToTeam = ConsumeInteger();
-            break;
-        case "VISIBLETOPLAYERCLASS":
-            m_currentDefinition.Properties.VisibleToPlayerClass = ConsumeVisibleToPlayerClass();
-            break;
-        case "WALLBOUNCEFACTOR":
-            m_currentDefinition.Properties.WallBounceFactor = ConsumeFloat();
-            break;
-        case "WALLBOUNCESOUND":
-            m_currentDefinition.Properties.WallBounceSound = ConsumeString();
-            break;
-        case "WEAVEINDEXXY":
-            int weaveXY = ConsumeInteger();
-            if (weaveXY < 0 || weaveXY >= 64)
-                throw MakeException($"Actor property WeaveIndexXY must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
-            m_currentDefinition.Properties.WeaveIndexXY = weaveXY;
-            break;
-        case "WEAVEINDEXZ":
-            int weaveZ = ConsumeInteger();
-            if (weaveZ < 0 || weaveZ >= 64)
-                throw MakeException($"Actor property WeaveIndexZ must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
-            m_currentDefinition.Properties.WeaveIndexZ = ConsumeInteger();
-            break;
-        case "WOUNDHEALTH":
-            m_currentDefinition.Properties.WoundHealth = ConsumeInteger();
-            break;
-        case "XSCALE":
-            m_currentDefinition.Properties.XScale = ConsumeFloat();
-            break;
-        case "YSCALE":
-            m_currentDefinition.Properties.YScale = ConsumeFloat();
-            break;
-        default:
-            throw MakeException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
+            // To reduce logic and be efficient, we do combos in this switch
+            // statement as well since the property reader is the 'catch-all'.
+            case "MONSTER":
+                m_currentDefinition.Flags.Monster = true;
+                break;
+            case "PROJECTILE":
+                m_currentDefinition.Flags.Projectile = true;
+                break;
+            // These are 'flag' properties.
+            case "CLEARFLAGS":
+                m_currentDefinition.FlagProperties.ClearFlags = true;
+                break;
+            case "DEFAULTALPHA":
+                m_currentDefinition.FlagProperties.DefaultAlpha = true;
+                break;
+            case "SKIP_SUPER":
+                m_currentDefinition.FlagProperties.SkipSuper = true;
+                break;
+            // The rest are all properties now.
+            case "ACCURACY":
+                m_currentDefinition.Properties.Accuracy = ConsumeInteger();
+                break;
+            case "ACTIVATION":
+                m_currentDefinition.Properties.Activation = ConsumeDecorateSpecialActivationType();
+                break;
+            case "ACTIVESOUND":
+                m_currentDefinition.Properties.ActiveSound = ConsumeString();
+                break;
+            case "ALPHA":
+                m_currentDefinition.Properties.Alpha = ConsumeFloat();
+                break;
+            case "ARGS":
+                m_currentDefinition.Properties.Args = ConsumeSpecialArgs();
+                break;
+            case "ATTACKSOUND":
+                m_currentDefinition.Properties.AttackSound = ConsumeString();
+                break;
+            case "BLOODCOLOR":
+                m_currentDefinition.Properties.BloodColor = ConvertStringToColor(ConsumeString());
+                break;
+            case "BLOODTYPE":
+                m_currentDefinition.Properties.BloodType = ConsumeString();
+                break;
+            case "BOUNCECOUNT":
+                m_currentDefinition.Properties.BounceCount = ConsumeInteger();
+                break;
+            case "BOUNCEFACTOR":
+                m_currentDefinition.Properties.BounceFactor = ConsumeFloat();
+                break;
+            case "BOUNCESOUND":
+                m_currentDefinition.Properties.BounceSound = ConsumeString();
+                break;
+            case "BOUNCETYPE":
+                m_currentDefinition.Properties.BounceType = ConsumeDecorateBounceType();
+                break;
+            case "BURNHEIGHT":
+                m_currentDefinition.Properties.BurnHeight = ConsumeFloat();
+                break;
+            case "CAMERAHEIGHT":
+                m_currentDefinition.Properties.CameraHeight = ConsumeFloat();
+                break;
+            case "CONVERSATIONID":
+                m_currentDefinition.Properties.ConversationID = ConsumeInteger();
+                break;
+            case "CRUSHPAINSOUND":
+                m_currentDefinition.Properties.CrushPainSound = ConsumeString();
+                break;
+            case "DAMAGE":
+                m_currentDefinition.Properties.Damage = ConsumeDamageProperty();
+                break;
+            case "DAMAGEFACTOR":
+                if (PeekFloat())
+                    m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeFloat());
+                else
+                    m_currentDefinition.Properties.DamageFactor = new DamageFactor(ConsumeString(), ConsumeFloat());
+                break;
+            case "DAMAGETYPE":
+                m_currentDefinition.Properties.DamageType = ConsumeString();
+                break;
+            case "DEATHHEIGHT":
+                m_currentDefinition.Properties.DeathHeight = ConsumeFloat();
+                break;
+            case "DEATHSOUND":
+                m_currentDefinition.Properties.DeathSound = ConsumeString();
+                break;
+            case "DEATHTYPE":
+                m_currentDefinition.Properties.DeathType = ConsumeString();
+                break;
+            case "DECAL":
+                m_currentDefinition.Properties.Decal = ConsumeString();
+                break;
+            case "DEFTHRESHOLD":
+                m_currentDefinition.Properties.DefThreshold = ConsumeInteger();
+                break;
+            case "DROPITEM":
+                ConsumeAndHandleDropItem();
+                break;
+            case "DESIGNATEDTEAM":
+                m_currentDefinition.Properties.DesignatedTeam = ConsumeInteger();
+                break;
+            case "DISTANCECHECK":
+                m_currentDefinition.Properties.DistanceCheck = ConsumeString();
+                break;
+            case "EXPLOSIONDAMAGE":
+                m_currentDefinition.Properties.ExplosionDamage = ConsumeInteger();
+                break;
+            case "EXPLOSIONRADIUS":
+                m_currentDefinition.Properties.ExplosionRadius = ConsumeInteger();
+                break;
+            case "FASTSPEED":
+                m_currentDefinition.Properties.FastSpeed = ConsumeInteger();
+                break;
+            case "FLOATBOBPHASE":
+                m_currentDefinition.Properties.FloatBobPhase = ConsumeSignedFloat();
+                break;
+            case "FLOATBOBSTRENGTH":
+                m_currentDefinition.Properties.FloatBobStrength = ConsumeSignedFloat();
+                break;
+            case "FLOATSPEED":
+                m_currentDefinition.Properties.FloatSpeed = ConsumeFloat();
+                break;
+            case "FRICTION":
+                m_currentDefinition.Properties.Friction = ConsumeFloat();
+                break;
+            case "FRIENDLYSEEBLOCKS":
+                m_currentDefinition.Properties.FriendlySeeBlocks = ConsumeInteger();
+                break;
+            case "GAME":
+                m_currentDefinition.Properties.Game = ConsumeString();
+                break;
+            case "GIBHEALTH":
+                m_currentDefinition.Properties.GibHealth = ConsumeInteger();
+                break;
+            case "GRAVITY":
+                m_currentDefinition.Properties.Gravity = ConsumeFloat();
+                break;
+            case "HEALTH":
+                m_currentDefinition.Properties.Health = ConsumeInteger();
+                break;
+            case "HEIGHT":
+                m_currentDefinition.Properties.Height = ConsumeFloat();
+                break;
+            case "HITOBITUARY":
+                m_currentDefinition.Properties.HitObituary = ConsumeString();
+                break;
+            case "HOWLSOUND":
+                m_currentDefinition.Properties.HowlSound = ConsumeString();
+                break;
+            case "MASS":
+                m_currentDefinition.Properties.Mass = ConsumeFloat();
+                break;
+            case "MAXDROPOFFHEIGHT":
+                m_currentDefinition.Properties.MaxDropOffHeight = ConsumeFloat();
+                break;
+            case "MAXSTEPHEIGHT":
+                m_currentDefinition.Properties.MaxStepHeight = ConsumeFloat();
+                break;
+            case "MAXTARGETRANGE":
+                m_currentDefinition.Properties.MaxTargetRange = ConsumeInteger();
+                break;
+            case "MELEEDAMAGE":
+                m_currentDefinition.Properties.MeleeDamage = ConsumeInteger();
+                break;
+            case "MELEERANGE":
+                m_currentDefinition.Properties.MeleeRange = ConsumeInteger();
+                break;
+            case "MELEESOUND":
+                m_currentDefinition.Properties.MeleeSound = ConsumeString();
+                break;
+            case "MELEETHRESHOLD":
+                m_currentDefinition.Properties.MeleeThreshold = ConsumeInteger();
+                break;
+            case "MINMISSILECHANCE":
+                m_currentDefinition.Properties.MinMissileChance = ConsumeInteger();
+                break;
+            case "MISSILEHEIGHT":
+                m_currentDefinition.Properties.MissileHeight = ConsumeInteger();
+                break;
+            case "MISSILETYPE":
+                m_currentDefinition.Properties.MissileType = ConsumeInteger();
+                break;
+            case "OBITUARY":
+                m_currentDefinition.Properties.Obituary = ConsumeString();
+                break;
+            case "PAINCHANCE":
+                if (PeekFloat())
+                    m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeFloat());
+                else
+                    m_currentDefinition.Properties.PainChance = new PainChanceProperty(ConsumeString(), ConsumeFloat());
+                break;
+            case "PAINSOUND":
+                m_currentDefinition.Properties.PainSound = ConsumeString();
+                break;
+            case "PAINTHRESHOLD":
+                m_currentDefinition.Properties.PainThreshold = ConsumeInteger();
+                break;
+            case "PAINTYPE":
+                m_currentDefinition.Properties.PainType = ConsumeString();
+                break;
+            case "POISONDAMAGETYPE":
+                m_currentDefinition.Properties.PoisonDamageType = ConsumeString();
+                break;
+            case "PROJECTILEKICKBACK":
+                m_currentDefinition.Properties.ProjectileKickBack = ConsumeInteger();
+                break;
+            case "PROJECTILEPASSHEIGHT":
+                m_currentDefinition.Properties.ProjectilePassHeight = ConsumeSignedInteger();
+                break;
+            case "PUSHFACTOR":
+                m_currentDefinition.Properties.PushFactor = ConsumeFloat();
+                break;
+            case "RADIUS":
+                m_currentDefinition.Properties.Radius = ConsumeFloat();
+                break;
+            case "RADIUSDAMAGEFACTOR":
+                m_currentDefinition.Properties.RadiusDamageFactor = ConsumeFloat();
+                break;
+            case "REACTIONTIME":
+                m_currentDefinition.Properties.ReactionTime = ConsumeInteger();
+                break;
+            case "RENDERRADIUS":
+                m_currentDefinition.Properties.RenderRadius = ConsumeFloat();
+                break;
+            case "RENDERSTYLE":
+                m_currentDefinition.Properties.RenderStyle = ConsumeRenderStyle();
+                break;
+            case "RIPLEVELMAX":
+                m_currentDefinition.Properties.RipLevelMax = ConsumeInteger();
+                break;
+            case "RIPLEVELMIN":
+                m_currentDefinition.Properties.RipLevelMin = ConsumeInteger();
+                break;
+            case "RIPPERLEVEL":
+                m_currentDefinition.Properties.RipperLevel = ConsumeInteger();
+                break;
+            case "SCALE":
+                m_currentDefinition.Properties.Scale = ConsumeFloat();
+                break;
+            case "SEESOUND":
+                m_currentDefinition.Properties.SeeSound = ConsumeString();
+                break;
+            case "SELFDAMAGEFACTOR":
+                m_currentDefinition.Properties.SelfDamageFactor = ConsumeFloat();
+                break;
+            case "SPAWNID":
+                m_currentDefinition.Properties.SpawnId = ConsumeInteger();
+                break;
+            case "SPECIES":
+                m_currentDefinition.Properties.Species = ConsumeString();
+                break;
+            case "SPEED":
+                m_currentDefinition.Properties.Speed = ConsumeInteger();
+                break;
+            case "SPRITEANGLE":
+                m_currentDefinition.Properties.SpriteAngle = ConsumeInteger();
+                break;
+            case "SPRITEROTATION":
+                m_currentDefinition.Properties.SpriteRotation = ConsumeInteger();
+                break;
+            case "STAMINA":
+                m_currentDefinition.Properties.Stamina = ConsumeInteger();
+                break;
+            case "STEALTHALPHA":
+                m_currentDefinition.Properties.StealthAlpha = ConsumeFloat();
+                break;
+            case "STENCILCOLOR":
+                m_currentDefinition.Properties.StencilColor = ConsumeInteger();
+                break;
+            case "TAG":
+                m_currentDefinition.Properties.Tag = ConsumeString();
+                break;
+            case "TELEFOGDESTTYPE":
+                m_currentDefinition.Properties.TeleFogDestType = ConsumeString();
+                break;
+            case "TELEFOGSOURCETYPE":
+                m_currentDefinition.Properties.TeleFogSourceType = ConsumeString();
+                break;
+            case "THRESHOLD":
+                m_currentDefinition.Properties.Threshold = ConsumeInteger();
+                break;
+            case "TRANSLATION":
+                m_currentDefinition.Properties.Translation = ConsumeTranslationProperties();
+                break;
+            case "VSPEED":
+                m_currentDefinition.Properties.VSpeed = ConsumeInteger();
+                break;
+            case "VISIBLEANGLES":
+                m_currentDefinition.Properties.VisibleAngles = ConsumeVisibleAngles();
+                break;
+            case "VISIBLEPITCH":
+                m_currentDefinition.Properties.VisiblePitch = ConsumeVisiblePitch();
+                break;
+            case "VISIBLETOTEAM":
+                m_currentDefinition.Properties.VisibleToTeam = ConsumeInteger();
+                break;
+            case "VISIBLETOPLAYERCLASS":
+                m_currentDefinition.Properties.VisibleToPlayerClass = ConsumeVisibleToPlayerClass();
+                break;
+            case "WALLBOUNCEFACTOR":
+                m_currentDefinition.Properties.WallBounceFactor = ConsumeFloat();
+                break;
+            case "WALLBOUNCESOUND":
+                m_currentDefinition.Properties.WallBounceSound = ConsumeString();
+                break;
+            case "WEAVEINDEXXY":
+                int weaveXY = ConsumeInteger();
+                if (weaveXY < 0 || weaveXY >= 64)
+                    throw MakeException($"Actor property WeaveIndexXY must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                m_currentDefinition.Properties.WeaveIndexXY = weaveXY;
+                break;
+            case "WEAVEINDEXZ":
+                int weaveZ = ConsumeInteger();
+                if (weaveZ < 0 || weaveZ >= 64)
+                    throw MakeException($"Actor property WeaveIndexZ must be in the range [0, 63] on actor '{m_currentDefinition.Name}'");
+                m_currentDefinition.Properties.WeaveIndexZ = ConsumeInteger();
+                break;
+            case "WOUNDHEALTH":
+                m_currentDefinition.Properties.WoundHealth = ConsumeInteger();
+                break;
+            case "XSCALE":
+                m_currentDefinition.Properties.XScale = ConsumeFloat();
+                break;
+            case "YSCALE":
+                m_currentDefinition.Properties.YScale = ConsumeFloat();
+                break;
+            case "RIPSOUND":
+                m_currentDefinition.Properties.RipSound = ConsumeString();
+                break;
+            default:
+                throw MakeException($"Unknown property '{property}' on actor '{m_currentDefinition.Name}'");
         }
     }
 }

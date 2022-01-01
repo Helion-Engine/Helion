@@ -40,7 +40,7 @@ public class ActorProperties
     public int? ExplosionDamage;
     public int? ExplosionRadius;
     public FakeInventoryProperty FakeInventoryProperty = default;
-    public int? FastSpeed;
+    public double? FastSpeed;
     public double? FloatBobPhase;
     public double? FloatBobStrength;
     public double? FloatSpeed;
@@ -94,7 +94,7 @@ public class ActorProperties
     public double? SelfDamageFactor;
     public int? SpawnId;
     public string? Species;
-    public int? Speed;
+    public double? Speed;
     public int? SpriteAngle;
     public int? SpriteRotation;
     public int? Stamina;
@@ -120,4 +120,5 @@ public class ActorProperties
     public int? WoundHealth;
     public double? XScale;
     public double? YScale;
+    public string? RipSound;
 }

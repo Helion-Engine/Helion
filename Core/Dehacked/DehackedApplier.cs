@@ -355,6 +355,10 @@ public class DehackedApplier
                 properties.Mass = thing.Mass.Value;
             if (thing.MisileDamage.HasValue)
                 properties.Damage.Value = thing.MisileDamage.Value;
+            if (thing.MeleeRange.HasValue)
+                properties.MeleeRange = thing.MeleeRange.Value;
+            if (thing.FastSpeed.HasValue)
+                properties.FastSpeed = thing.FastSpeed.Value;
             if (thing.Bits.HasValue)
                 SetActorFlags(definition, thing.Bits.Value);
             if (thing.Mbf21Bits.HasValue)
@@ -370,6 +374,8 @@ public class DehackedApplier
                 properties.DeathSound = GetSound(dehacked, thing.DeathSound.Value);
             if (thing.ActionSound.HasValue)
                 properties.ActiveSound = GetSound(dehacked, thing.ActionSound.Value);
+            if (thing.RipSound.HasValue)
+                properties.RipSound = GetSound(dehacked, thing.RipSound.Value);
 
             if (thing.CloseAttackFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, Constants.FrameStates.Melee);

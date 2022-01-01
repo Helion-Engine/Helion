@@ -1081,7 +1081,10 @@ public abstract partial class WorldBase : IWorld
         if (DamageEntity(target, source, damage, true, Thrust.None))
         {
             CreateBloodOrPulletPuff(target, source.Position, source.AngleRadians, 0, damage, true);
-            // TODO add RipSound
+            string sound = "misc/ripslop";
+            if (source.Properties.RipSound.Length > 0)
+                sound = source.Properties.RipSound;
+            SoundManager.CreateSoundOn(source, sound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(source));
         }
     }
 

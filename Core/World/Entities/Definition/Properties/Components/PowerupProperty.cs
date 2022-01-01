@@ -9,5 +9,5 @@ public class PowerupProperty
     public int Duration;
     public PowerupModeType Mode = PowerupModeType.None;
     public int Strength;
-    public string Type = "";
+    public string Type = string.Empty;
 }

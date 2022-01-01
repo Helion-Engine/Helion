@@ -179,6 +179,12 @@ public partial class DehackedDefinition
                 thing.ProjectileGroup = GetIntProperty(parser, ProjectileGroup);
             else if (line.StartsWith(SplashGroup, StringComparison.OrdinalIgnoreCase))
                 thing.SplashGroup = GetIntProperty(parser, SplashGroup);
+            else if (line.StartsWith(RipSound, StringComparison.OrdinalIgnoreCase))
+                thing.RipSound = GetIntProperty(parser, RipSound);
+            else if (line.StartsWith(FastSpeed, StringComparison.OrdinalIgnoreCase))
+                thing.FastSpeed = GetDoubleProperty(parser, FastSpeed);
+            else if (line.StartsWith(MeleeRange, StringComparison.OrdinalIgnoreCase))
+                thing.MeleeRange = GetDoubleProperty(parser, MeleeRange);
             else
                 UnknownWarning(parser, "thing type");
         }

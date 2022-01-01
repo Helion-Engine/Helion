@@ -1,21 +1,22 @@
+using System;
 using System.Collections.Generic;
 
 namespace Helion.World.Entities.Definition.Properties.Components;
 
 public class InventoryProperty
 {
-    public string AltHUDIcon = "";
+    public string AltHUDIcon = string.Empty;
     public int Amount;
     public bool DefMaxAmount;
-    public List<string> ForbiddenTo = new List<string>();
+    public IList<string> ForbiddenTo = Array.Empty<string>();
     public int GiveQuest;
     public int InterHubAmount;
-    public string Icon = "";
+    public string Icon = string.Empty;
     public int MaxAmount;
-    public string PickupFlash = "";
-    public string PickupMessage = "";
-    public string PickupSound = "";
+    public string PickupFlash = string.Empty;
+    public string PickupMessage = string.Empty;
+    public string PickupSound = string.Empty;
     public int RespawnTics;
-    public List<string> RestrictedTo = new List<string>();
-    public string UseSound = "";
+    public IList<string> RestrictedTo = Array.Empty<string>();
+    public string UseSound = string.Empty;
 }

@@ -14,14 +14,17 @@ public class DehackedThing
     public int? InjuryFrame { get; set; }
     public int? PainChance { get; set; }
     public int? PainSound { get; set; }
+    public int? RipSound { get; set; }
     public int? CloseAttackFrame { get; set; }
     public int? FarAttackFrame { get; set; }
     public int? DeathFrame { get; set; }
     public int? ExplodingFrame { get; set; }
     public int? DeathSound { get; set; }
     public double? Speed { get; set; }
+    public double? FastSpeed { get; set; }
     public double? Width { get; set; }
     public double? Height { get; set; }
+    public double? MeleeRange { get; set; }
     public int? Mass { get; set; }
     public int? MisileDamage { get; set; }
     public int? ActionSound { get; set; }
