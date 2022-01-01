@@ -575,14 +575,30 @@ public class GeometryRenderer : IDisposable
     // Alternatively, I could be dumb and this is dumb but it appears to work.
     private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
+        if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
+            return 0;
+
         double offset = 0;
+        if (facingSide.Line.Flags.Unpegged.Lower)
+        {
+            if (otherSide.Sector.TransferHeights != null)
+                offset = otherSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
+                    Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction));
+
+            if (facingSide.Sector.TransferHeights != null)
+                offset = Math.Max(offset, facingSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
+                    Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction)));
+
+            return offset;
+        }
+
         if (otherSide.Sector.TransferHeights != null)
-            offset = otherSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
-                Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction));
+            offset = otherSide.Sector.Ceiling.GetInterpolatedZ(m_tickFraction) -
+                Math.Max(otherSector.Ceiling.GetInterpolatedZ(m_tickFraction), facingSector.Ceiling.GetInterpolatedZ(m_tickFraction));
 
         if (facingSide.Sector.TransferHeights != null)
-            offset = Math.Max(offset, facingSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
-                Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction)));
+            offset = Math.Min(offset, facingSide.Sector.Ceiling.GetInterpolatedZ(m_tickFraction) -
+                Math.Min(otherSector.Ceiling.GetInterpolatedZ(m_tickFraction), facingSector.Ceiling.GetInterpolatedZ(m_tickFraction)));
 
         return offset;
     }
