@@ -140,6 +140,20 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
+    public bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input)
+    {
+        foreach (Key key in this[command])
+        {
+            if (input.ConsumeKeyPressed(key) || input.Manager.IsKeyContinuousHold(key))
+                return true;
+
+            if (ConsumeMouseWheel(key, input))
+                return true;
+        }
+
+        return false;
+    }
+
     public bool IsCommandKeyDown(string command, IConsumableInput input)
     {
         foreach (Key key in this[command])

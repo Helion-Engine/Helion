@@ -40,6 +40,11 @@ public partial class WorldLayer
         (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
     };
 
+    private bool IsCommandContinuousHold(string command, IConsumableInput input)
+    {
+        return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input);
+    }
+
     private bool IsCommandPressed(string command, IConsumableInput input)
     {
         return m_config.Keys.ConsumeCommandKeyPress(command, input);
@@ -82,17 +87,17 @@ public partial class WorldLayer
 
     private void HandleAutoMapInput(IConsumableInput input)
     {
-        if (IsCommandPressed(Constants.Input.AutoMapDecrease, input))
+        if (IsCommandContinuousHold(Constants.Input.AutoMapDecrease, input))
             ChangeAutoMapSize(false);
-        else if (IsCommandPressed(Constants.Input.AutoMapIncrease, input))
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapIncrease, input))
             ChangeAutoMapSize(true);
-        else if (IsCommandPressed(Constants.Input.AutoMapUp, input))
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapUp, input))
             ChangeAutoMapOffsetY(true);
-        else if (IsCommandPressed(Constants.Input.AutoMapDown, input))
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapDown, input))
             ChangeAutoMapOffsetY(false);
-        else if (IsCommandPressed(Constants.Input.AutoMapRight, input))
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapRight, input))
             ChangeAutoMapOffsetX(true);
-        else if (IsCommandPressed(Constants.Input.AutoMapLeft, input))
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapLeft, input))
             ChangeAutoMapOffsetX(false);
     }
 
@@ -108,7 +113,9 @@ public partial class WorldLayer
 
     private void ChangeAutoMapSize(bool increase)
     {
+        Log.Info("change size");
         m_autoMapScale += increase ? 0.1 : -0.1;
+        m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0, double.MaxValue);
     }
 
     private void HandleMovementInput(IConsumableInput input)
