@@ -78,6 +78,7 @@ public static class HexenGeometryBuilder
             Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
+            sectorData.Clear();
         }
     }
 

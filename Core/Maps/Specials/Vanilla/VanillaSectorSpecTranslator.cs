@@ -7,10 +7,7 @@ public static class VanillaSectorSpecTranslator
     public static ZDoomSectorSpecialType Translate(int sectorType, SectorData sectorData)
     {
         if (sectorType == 0)
-        {
-            sectorData.Clear();
             return ZDoomSectorSpecialType.None;
-        }
 
         VanillaSectorSpecialType type = (VanillaSectorSpecialType)SectorSpecialData.GetType(sectorType, SectorDataType.Boom);
         SectorSpecialData.SetSectorData(sectorType, sectorData, SectorDataType.Boom);

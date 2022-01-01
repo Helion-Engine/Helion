@@ -71,10 +71,7 @@ public static class SectorSpecialData
     public static void SetSectorData(int sectorType, SectorData sectorData, SectorDataType type)
     {
         if (sectorType == 0)
-        {
-            sectorData.Clear();
             return;
-        }
 
         ISectorBits bits = Bits[(int)type];
         sectorData.Secret = (sectorType & bits.SecretFlag) != 0;
