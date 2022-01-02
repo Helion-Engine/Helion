@@ -16,8 +16,8 @@ public class Subsector
     public readonly List<SubsectorSegment> ClockwiseEdges;
     public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
 
-    private bool m_floorChanged;
-    private bool m_ceilingChanged;
+    private bool m_floorChanged = false;
+    private bool m_ceilingChanged = false;
 
     public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
     {
@@ -28,7 +28,6 @@ public class Subsector
         BoundingBox = boundingBox;
         ClockwiseEdges = clockwiseEdges;
 
-        clockwiseEdges.ForEach(edge => edge.Subsector = this);
         sector.Floor.OnRenderingChanged += Floor_OnRenderingChanged;
         sector.Ceiling.OnRenderingChanged += Ceiling_OnRenderingChanged;
     }

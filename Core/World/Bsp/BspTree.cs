@@ -127,33 +127,38 @@ public class BspTree
     /// </summary>
     /// <param name="point">The point to get the subsector for.</param>
     /// <returns>The subsector for the provided point.</returns>
-    public Subsector ToSubsector(in Vec3D point)
+    public unsafe Subsector ToSubsector(in Vec3D point)
     {
         BspNodeCompact node = Root;
 
         while (true)
         {
-            if (node.Splitter.OnRight(point))
-            {
-                if (node.IsRightSubsector)
-                    return Subsectors[node.RightChildAsSubsector];
-                node = Nodes[node.RightChild];
-            }
-            else
-            {
-                if (node.IsLeftSubsector)
-                    return Subsectors[node.LeftChildAsSubsector];
-                node = Nodes[node.LeftChild];
-            }
+            int next = Convert.ToInt32(node.Splitter.OnRight(point));
+            uint nodeIndex = node.Children[next];
+
+            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
+                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
+
+            node = Nodes[nodeIndex];
         }
     }
 
-    /// <summary>
-    /// Gets the sector that maps onto the point provided.
-    /// </summary>
-    /// <param name="point">The point to get the sector for.</param>
-    /// <returns>The sector for the provided point.</returns>
-    public Sector ToSector(in Vec3D point) => ToSubsector(point).Sector;
+    public unsafe Sector ToSector(in Vec3D point)
+    {
+        BspNodeCompact node = Root;
+
+        while (true)
+        {
+            int next = Convert.ToInt32(node.Splitter.OnRight(point));
+            uint nodeIndex = node.Children[next];
+
+            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
+                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask].Sector;
+
+            node = Nodes[nodeIndex];
+        }
+    }
+
 
     private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
     {
@@ -197,7 +202,7 @@ public class BspTree
     {
         List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
 
-        List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => s.Struct).ToList();
+        List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => new Seg2D(s.Start, s.End)).ToList();
         Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
 
         Sector sector = GetSectorFrom(node, builder);
@@ -214,7 +219,7 @@ public class BspTree
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             Side? side = GetSideFromEdge(edge, builder);
-            SubsectorSegment subsectorEdge = new(Segments.Count, side, edge.Start, edge.End);
+            SubsectorSegment subsectorEdge = new(side, edge.Start, edge.End);
 
             returnSegments.Add(subsectorEdge);
             Segments.Add(subsectorEdge);

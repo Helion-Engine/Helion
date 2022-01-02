@@ -15,6 +15,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
@@ -116,7 +117,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Render(renderInfo);
     }
 
-    public void RenderSubsector(Sector viewSector, Subsector subsector, in Vec3D position)
+    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
     {
         m_viewSector = viewSector;
         m_floorChanged = subsector.CheckFloorRenderingChanged();
@@ -130,11 +131,11 @@ public class GeometryRenderer : IDisposable
             var sector = subsector.Sector.GetRenderSector(m_viewSector, position.Z);
             RenderFlat(subsector, sector.Floor, true);
             RenderFlat(subsector, sector.Ceiling, true);
-            RenderWalls(subsector, position);
+            RenderWalls(subsector, position, position.XY);
             return;
         }
 
-        RenderWalls(subsector, position);
+        RenderWalls(subsector, position, position.XY);
         RenderFlat(subsector, subsector.Sector.Floor, true);
         RenderFlat(subsector, subsector.Sector.Ceiling, false);
     }
@@ -169,29 +170,30 @@ public class GeometryRenderer : IDisposable
         TextureManager.Instance.LoadTextureImages(textures);
     }
 
-    private void RenderWalls(Subsector subsector, in Vec3D position)
+    private void RenderWalls(in Subsector subsector, in Vec3D position, Vec2D pos2D)
     {
         List<SubsectorSegment> edges = subsector.ClockwiseEdges;
         for (int i = 0; i < edges.Count; i++)
         {
             SubsectorSegment edge = edges[i];
-            if (edge.Line == null)
+            if (edge.Side == null)
                 continue;
 
-            if (m_lineDrawnTracker.HasDrawn(edge.Line))
+            Line line = edge.Side.Line;
+            if (m_lineDrawnTracker.HasDrawn(line))
             {
-                if (!edge.Line.Sky)
+                if (!line.Sky)
                     AddLineClip(edge);
                 continue;
             }
 
-            edge.Line.MarkSeenOnAutomap();
-
-            bool onFrontSide = edge.Line.Segment.OnRight(position.XY);
-            if (!onFrontSide && edge.Line.OneSided)
+            line.MarkSeenOnAutomap();
+                
+            bool onFrontSide = line.Segment.OnRight(pos2D);
+            if (!onFrontSide && line.OneSided)
                 continue;
 
-            Side? side = onFrontSide ? edge.Line.Front : edge.Line.Back;
+            Side? side = onFrontSide ? line.Front : line.Back;
             if (side == null)
                 throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
@@ -202,9 +204,9 @@ public class GeometryRenderer : IDisposable
             }
 
             RenderSide(side, onFrontSide);
-            m_lineDrawnTracker.MarkDrawn(edge.Line);
+            m_lineDrawnTracker.MarkDrawn(line);
 
-            edge.Line.Sky = m_skyOverride;
+            line.Sky = m_skyOverride;
             if (!m_skyOverride)
                 AddLineClip(edge);
         }
@@ -212,9 +214,9 @@ public class GeometryRenderer : IDisposable
 
     private void AddLineClip(SubsectorSegment edge)
     {
-        if (edge.Line!.OneSided)
+        if (edge.Side!.Line.OneSided)
             m_viewClipper.AddLine(edge.Start, edge.End);
-        else if (LineOpening.IsRenderingBlocked(edge.Line))
+        else if (LineOpening.IsRenderingBlocked(edge.Side.Line))
             m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
@@ -625,7 +627,7 @@ public class GeometryRenderer : IDisposable
         return (bottomZ, topZ);
     }
 
-    private void RenderFlat(Subsector subsector, SectorPlane flat, bool floor)
+    private void RenderFlat(in Subsector subsector, SectorPlane flat, bool floor)
     {
         // TODO: If we can't see it (dot product the plane) then exit.
         bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);

@@ -1,12 +1,14 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
+using System.Runtime.InteropServices;
 
 namespace Helion.World.Bsp;
 
 /// <summary>
 /// A cache aware BSP node that uses as little space as possible.
 /// </summary>
-public readonly struct BspNodeCompact
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct BspNodeCompact
 {
     /// <summary>
     /// The bit that is set in each child to indicate whether it is a node
@@ -20,51 +22,17 @@ public readonly struct BspNodeCompact
     public const uint SubsectorMask = 0x7FFFFFFFU;
 
     /// <summary>
-    /// A left child index, which is either an index to a subsector, or a
-    /// child node depending on whether <see cref="IsSubsectorBit"/> is
-    /// set.
-    /// </summary>
-    public readonly uint LeftChild;
-
-    /// <summary>
-    /// A right child index, which is either an index to a subsector, or a
-    /// child node depending on whether <see cref="IsSubsectorBit"/> is
-    /// set.
-    /// </summary>
-    public readonly uint RightChild;
-
-    /// <summary>
     /// The splitter that made this line, which is also used for finding
     /// out which side of the line a point is on.
     /// </summary>
-    public readonly Seg2D Splitter;
+    public Seg2D Splitter;
 
     /// <summary>
     /// The bounding box of this node.
     /// </summary>
-    public readonly Box2D BoundingBox;
+    public Box2D BoundingBox;
 
-    /// <summary>
-    /// True if the left child field is a subsector or not.
-    /// </summary>
-    public bool IsLeftSubsector => (LeftChild & IsSubsectorBit) == IsSubsectorBit;
-
-    /// <summary>
-    /// True if the right child field is a subsector not.
-    /// </summary>
-    public bool IsRightSubsector => (RightChild & IsSubsectorBit) == IsSubsectorBit;
-
-    /// <summary>
-    /// Gets the left child's index as if it were a subsector (without the
-    /// subsector bit set).
-    /// </summary>
-    public uint LeftChildAsSubsector => LeftChild & SubsectorMask;
-
-    /// <summary>
-    /// Gets the right child's index as if it were a subsector (without the
-    /// subsector bit set).
-    /// </summary>
-    public uint RightChildAsSubsector => RightChild & SubsectorMask;
+    public fixed uint Children[2];
 
     /// <summary>
     /// Creates a compact node from a left and right index.
@@ -77,9 +45,9 @@ public readonly struct BspNodeCompact
     /// the minimal size needed to contain every child under this.</param>
     public BspNodeCompact(uint leftChild, uint rightChild, Seg2D splitter, Box2D boundingBox)
     {
-        LeftChild = leftChild;
-        RightChild = rightChild;
         Splitter = splitter;
         BoundingBox = boundingBox;
+        Children[0] = leftChild;
+        Children[1] = rightChild;
     }
 }

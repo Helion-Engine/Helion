@@ -113,10 +113,10 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D position = renderInfo.Camera.Position.XY.Double;
         Vec3D position3D = renderInfo.Camera.Position.Double;
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_viewSector = world.BspTree.ToSubsector(position3D).Sector;
+        m_viewSector = world.BspTree.ToSector(position3D);
 
         m_viewClipper.Center = position;
-        RecursivelyRenderBsp(world.BspTree.Root, position3D, viewDirection, world);
+        RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
 
         // This will just render based on distance from their center point.
         // Not really correct, but mostly correct enough for now.
@@ -147,44 +147,27 @@ public class LegacyWorldRenderer : WorldRenderer
         return m_viewClipper.InsideAnyRange(first, second);
     }
 
-    private void RecursivelyRenderBsp(in BspNodeCompact node, in Vec3D position, in Vec2D viewDirection,
-        WorldBase world)
+    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, WorldBase world)
     {
-        if (Occluded(node.BoundingBox, position.XY))
-            return;
-        
-        // TODO: Consider changing to xor trick to avoid branching?
-        if (node.Splitter.OnRight(position))
+        Vec2D pos2D = position.XY;
+        while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
-            if (node.IsRightSubsector)
-                RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
-            else
-                RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, viewDirection, world);
+            fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
+            {
+                if (Occluded(node->BoundingBox, pos2D))
+                    return;
 
-            if (node.IsLeftSubsector)
-                RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
-            else
-                RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, viewDirection, world);
+                int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
+                int back = front ^ 1;
+
+                RecursivelyRenderBsp(node->Children[front], position, viewDirection, world);
+                nodeIndex = node->Children[back];
+            }
         }
-        else
-        {
-            if (node.IsLeftSubsector)
-                RenderSubsector(world.BspTree.Subsectors[node.LeftChildAsSubsector], position, viewDirection);
-            else
-                RecursivelyRenderBsp(world.BspTree.Nodes[node.LeftChild], position, viewDirection, world);
 
-            if (node.IsRightSubsector)
-                RenderSubsector(world.BspTree.Subsectors[node.RightChildAsSubsector], position, viewDirection);
-            else
-                RecursivelyRenderBsp(world.BspTree.Nodes[node.RightChild], position, viewDirection, world);
-        }
-    }
-
-    private void RenderSubsector(Subsector subsector, in Vec3D position, in Vec2D viewDirection)
-    {
-        if (Occluded(subsector.BoundingBox, position.XY))
+        Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
+        if (Occluded(subsector.BoundingBox, pos2D))
             return;
-
         m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position);
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position, viewDirection);
     }

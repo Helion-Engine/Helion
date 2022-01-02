@@ -802,7 +802,7 @@ public class PhysicsManager
         }
         else
         {
-            Sector sector = m_bspTree.ToSubsector(position.To3D(0)).Sector;
+            Sector sector = m_bspTree.ToSector(position.To3D(0));
             tryMove.HighestFloorZ = tryMove.DropOffZ = sector.ToFloorZ(position);
         }
 

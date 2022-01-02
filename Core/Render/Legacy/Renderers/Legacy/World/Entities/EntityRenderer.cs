@@ -69,7 +69,7 @@ public class EntityRenderer
         m_renderPositions.Clear();
     }
 
-    public void RenderSubsector(Sector viewSector, Subsector subsector, in Vec3D position, in Vec2D viewDirection)
+    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, in Vec2D viewDirection)
     {
         foreach (Entity entity in subsector.Entities)
         {

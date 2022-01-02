@@ -5,6 +5,7 @@ namespace Helion.World.Geometry.Sectors;
 [Flags]
 public enum SectorDataTypes
 {
+    None = 0,
     FloorZ = 1,
     CeilingZ = 2,
     Light = 4,
