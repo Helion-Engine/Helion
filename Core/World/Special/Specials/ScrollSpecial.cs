@@ -59,7 +59,9 @@ class ScrollSpecial : ISpecial
         if (accelSector != null)
             m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
 
-        SectorPlane.CreateScrollData();
+        // Only create if visually scrolling
+        if (type == ScrollType.Scroll)
+            SectorPlane.CreateScrollData();
     }
 
     public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
