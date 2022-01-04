@@ -548,8 +548,8 @@ public class GeometryRenderer : IDisposable
             // If the texture can't be drawn because the level has offsets that
             // are messed up (ex: offset causes it to be completely missing) we
             // can exit early since nothing can be drawn.
-            if (!m_cacheOverride && nothingVisible)
-                data = Array.Empty<LegacyVertex>();
+            if (nothingVisible)
+                return;
 
             else if (m_cacheOverride)
             {
