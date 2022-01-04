@@ -130,7 +130,7 @@ public class GeometryRenderer : IDisposable
             m_cacheOverride = true;
             var sector = subsector.Sector.GetRenderSector(m_viewSector, position.Z);
             RenderFlat(subsector, sector.Floor, true);
-            RenderFlat(subsector, sector.Ceiling, true);
+            RenderFlat(subsector, sector.Ceiling, false);
             RenderWalls(subsector, position, position.XY);
             return;
         }
@@ -675,7 +675,7 @@ public class GeometryRenderer : IDisposable
         {
             LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
 
-            if ((floor && m_position.Z < flat.Sector.ToFloorZ(m_position)) || (!floor && m_position.Z > flat.Sector.ToCeilingZ(m_position)))
+            if ((floor && m_position.Z < flat.Plane.ToZ(m_position)) || (!floor && m_position.Z > flat.Plane.ToZ(m_position)))
                 return;
 
             if (FlatChanged(flat) || data == null || m_cacheOverride)
