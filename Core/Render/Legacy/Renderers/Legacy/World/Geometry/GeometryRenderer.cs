@@ -170,7 +170,7 @@ public class GeometryRenderer : IDisposable
         TextureManager.Instance.LoadTextureImages(textures);
     }
 
-    private void RenderWalls(in Subsector subsector, in Vec3D position, Vec2D pos2D)
+    private void RenderWalls(Subsector subsector, in Vec3D position, Vec2D pos2D)
     {
         List<SubsectorSegment> edges = subsector.ClockwiseEdges;
         for (int i = 0; i < edges.Count; i++)
@@ -627,7 +627,7 @@ public class GeometryRenderer : IDisposable
         return (bottomZ, topZ);
     }
 
-    private void RenderFlat(in Subsector subsector, SectorPlane flat, bool floor)
+    private void RenderFlat(Subsector subsector, SectorPlane flat, bool floor)
     {
         // TODO: If we can't see it (dot product the plane) then exit.
         bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);
@@ -674,6 +674,9 @@ public class GeometryRenderer : IDisposable
         else
         {
             LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
+
+            if ((floor && m_position.Z < flat.Sector.ToFloorZ(m_position)) || (!floor && m_position.Z > flat.Sector.ToCeilingZ(m_position)))
+                return;
 
             if (FlatChanged(flat) || data == null || m_cacheOverride)
             {

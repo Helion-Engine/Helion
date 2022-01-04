@@ -123,7 +123,7 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static void HandleSubsector(in Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
+    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
         double tickFraction, DynamicArray<WorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
