@@ -41,6 +41,7 @@ public class TransferHeights
         switch (GetView(viewSector, viewZ))
         {
             case TransferHeightView.Top:
+                sector.Ceiling.Plane = ParentSector.Ceiling.Plane;
                 sector.Ceiling.Z = ParentSector.Ceiling.Z;
                 sector.Ceiling.PrevZ = ParentSector.Ceiling.PrevZ;
                 sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
@@ -48,6 +49,7 @@ public class TransferHeights
                 sector.Ceiling.Sector = ControlSector;
                 sector.LightLevel = ControlSector.LightLevel;
 
+                sector.Floor.Plane = ControlSector.Ceiling.Plane;
                 sector.Floor.Z = ControlSector.Ceiling.Z;
                 sector.Floor.PrevZ = ControlSector.Ceiling.PrevZ;
                 sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
@@ -57,6 +59,7 @@ public class TransferHeights
                 break;
 
             case TransferHeightView.Middle:
+                sector.Ceiling.Plane = ControlSector.Ceiling.Plane;
                 sector.Ceiling.Z = ControlSector.Ceiling.Z;
                 sector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
                 sector.Ceiling.TextureHandle = ParentSector.Ceiling.TextureHandle;
@@ -64,6 +67,7 @@ public class TransferHeights
                 sector.Ceiling.Sector = ParentSector;
                 sector.LightLevel = ParentSector.LightLevel;
 
+                sector.Floor.Plane = ControlSector.Floor.Plane;
                 sector.Floor.Z = ControlSector.Floor.Z;
                 sector.Floor.PrevZ = ControlSector.Floor.PrevZ;
                 sector.Floor.TextureHandle = ParentSector.Floor.TextureHandle;
@@ -73,6 +77,7 @@ public class TransferHeights
                 break;
 
             default:
+                sector.Ceiling.Plane = ControlSector.Floor.Plane;
                 sector.Ceiling.Z = ControlSector.Floor.Z;
                 sector.Ceiling.PrevZ = ControlSector.Floor.PrevZ;
                 sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
@@ -80,6 +85,7 @@ public class TransferHeights
                 sector.Ceiling.Sector = ControlSector;
                 sector.LightLevel = ControlSector.LightLevel;
 
+                sector.Floor.Plane = ParentSector.Floor.Plane;
                 sector.Floor.Z = ParentSector.Floor.Z;
                 sector.Floor.PrevZ = ParentSector.Floor.PrevZ;
                 sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;

@@ -4,7 +4,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Planes;
 
-public class PlaneD
+public struct PlaneD
 {
     public double A;
     public double B;

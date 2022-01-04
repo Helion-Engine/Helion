@@ -16,7 +16,7 @@ public class SectorPlane : ISoundSource
 {
     public readonly int Id;
     public readonly SectorPlaneFace Facing;
-    public readonly PlaneD Plane;
+    public PlaneD Plane;
     public Sector Sector { get; internal set; }
     public double Z;
     public double PrevZ;
@@ -27,8 +27,6 @@ public class SectorPlane : ISoundSource
     public event EventHandler? OnRenderingChanged;
 
     public SectorScrollData? SectorScrollData { get; private set; }
-
-    public bool Sloped => Plane != null;
 
     private IAudioSource? m_audio;
 

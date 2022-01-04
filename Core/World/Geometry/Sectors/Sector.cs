@@ -339,10 +339,10 @@ public class Sector
         return node;
     }
 
-    public double ToFloorZ(in Vec2D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
-    public double ToFloorZ(in Vec3D position) => Floor.Plane?.ToZ(position) ?? Floor.Z;
-    public double ToCeilingZ(in Vec2D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
-    public double ToCeilingZ(in Vec3D position) => Ceiling.Plane?.ToZ(position) ?? Ceiling.Z;
+    public double ToFloorZ(in Vec2D position) => Floor.Plane.ToZ(position);
+    public double ToFloorZ(in Vec3D position) => Floor.Plane.ToZ(position);
+    public double ToCeilingZ(in Vec2D position) => Ceiling.Plane.ToZ(position);
+    public double ToCeilingZ(in Vec3D position) => Ceiling.Plane.ToZ(position);
 
     // TODO implement when slopes exist
     public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
