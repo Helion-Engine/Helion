@@ -127,7 +127,8 @@ public class GeometryRenderer : IDisposable
 
         if (subsector.Sector.TransferHeights != null)
         {
-            m_cacheOverride = true;
+            // We can currently only cache one veiw position, middle should be the most common
+            m_cacheOverride = TransferHeights.GetView(m_viewSector, m_position.Z) != TransferHeights.TransferHeightView.Middle;
             var sector = subsector.Sector.GetRenderSector(m_viewSector, position.Z);
             RenderFlat(subsector, sector.Floor, true);
             RenderFlat(subsector, sector.Ceiling, false);

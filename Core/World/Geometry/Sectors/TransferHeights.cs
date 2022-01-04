@@ -2,7 +2,7 @@ namespace Helion.World.Geometry.Sectors;
 
 public class TransferHeights
 {
-    private enum TransferHeightView
+    public enum TransferHeightView
     {
         None,
         Top,
@@ -99,7 +99,7 @@ public class TransferHeights
         return sector;
     }
 
-    private static TransferHeightView GetView(Sector viewSector, double viewZ)
+    public static TransferHeightView GetView(Sector viewSector, double viewZ)
     {
         // Transfer heights works off the TransferHeights of the sector that the player is viewing from
         // This means that it does the calculations for what sector to rendering based on the TransferHeights of the sector you are viewing from...
