@@ -54,7 +54,8 @@ public class WorldSoundManager : SoundManager, ITickable
         if (soundParams.Attenuation == Attenuation.None)
             return 1;
 
-        if (soundSource is Entity entity && !entity.IsPlayer)
+        // Checking there is no owner, otherwise rockets set the see type and get bumped out by moving floors
+        if (soundSource is Entity entity && !entity.IsPlayer && entity.Owner == null)
         {
             switch (soundParams.SoundType)
             {
