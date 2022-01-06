@@ -14,14 +14,14 @@ using Helion.World.Entities;
 
 namespace Helion.Render.Legacy.Commands;
 
-public class RenderCommands : IEnumerable<IRenderCommand>
+public class RenderCommands
 {
     public readonly IConfig Config;
     public readonly Dimension WindowDimension;
     public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
     public readonly FpsTracker FpsTracker;
+    public readonly List<object> Commands = new();
     public ResolutionInfo ResolutionInfo { get; private set; }
-    private readonly List<IRenderCommand> m_commands = new();
     private readonly Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
     private Vec2I m_translateOffset = Vec2I.Zero;
@@ -40,7 +40,7 @@ public class RenderCommands : IEnumerable<IRenderCommand>
 
     public void Begin()
     {
-        m_commands.Clear();
+        Commands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
         m_scale = Vec2D.One;
@@ -49,12 +49,12 @@ public class RenderCommands : IEnumerable<IRenderCommand>
 
     public void Clear(Color color, bool depth = false, bool stencil = false)
     {
-        m_commands.Add(new ClearRenderCommand(true, depth, stencil, color));
+        Commands.Add(new ClearRenderCommand(true, depth, stencil, color));
     }
 
     public void ClearDepth()
     {
-        m_commands.Add(ClearRenderCommand.DepthOnly());
+        Commands.Add(ClearRenderCommand.DepthOnly());
     }
 
     public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
@@ -62,32 +62,32 @@ public class RenderCommands : IEnumerable<IRenderCommand>
     {
         ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
         DrawImageCommand cmd = new(textureName, drawArea, color, alpha, drawInvul);
-        m_commands.Add(cmd);
+        Commands.Add(cmd);
     }
 
     public void FillRect(ImageBox2I rectangle, Color color, float alpha)
     {
         ImageBox2I transformedRectangle = TranslateDimensions(rectangle);
         DrawShapeCommand command = new(transformedRectangle, color, alpha);
-        m_commands.Add(command);
+        Commands.Add(command);
     }
 
     public void DrawText(RenderableString str, int left, int top, float alpha)
     {
         ImageBox2I drawArea = TranslateDimensions(left, top, str.DrawArea);
         DrawTextCommand command = new(str, drawArea, alpha);
-        m_commands.Add(command);
+        Commands.Add(command);
     }
 
     public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale)
     {
-        m_commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
+        Commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)
     {
-        m_commands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
+        Commands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
     }
 
     /// <summary>
@@ -137,10 +137,6 @@ public class RenderCommands : IEnumerable<IRenderCommand>
             m_centeringOffsetX = (WindowDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
         }
     }
-
-    public IEnumerator<IRenderCommand> GetEnumerator() => m_commands.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private ImageBox2I TranslateDimensions(int x, int y, Dimension dimension)
     {

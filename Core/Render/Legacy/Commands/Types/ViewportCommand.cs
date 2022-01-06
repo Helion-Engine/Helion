@@ -3,7 +3,7 @@ using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record ViewportCommand : IRenderCommand
+public struct ViewportCommand
 {
     public readonly Dimension Dimension;
     public readonly Vec2I Offset;

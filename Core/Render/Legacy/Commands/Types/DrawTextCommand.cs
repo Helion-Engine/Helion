@@ -3,7 +3,7 @@ using Helion.Render.Legacy.Texture.Fonts;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record DrawTextCommand : IRenderCommand
+public struct DrawTextCommand
 {
     public readonly RenderableString Text;
     public readonly ImageBox2I DrawArea;

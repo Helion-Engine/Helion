@@ -3,7 +3,7 @@ using SystemColor = System.Drawing.Color;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record ClearRenderCommand : IRenderCommand
+public struct ClearRenderCommand
 {
     public static readonly Color DefaultClearColor = SystemColor.Black;
 

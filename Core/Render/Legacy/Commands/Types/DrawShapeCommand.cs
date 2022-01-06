@@ -3,7 +3,7 @@ using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record DrawShapeCommand : IRenderCommand
+public struct DrawShapeCommand
 {
     public readonly ImageBox2I Rectangle;
     public readonly Color Color;
