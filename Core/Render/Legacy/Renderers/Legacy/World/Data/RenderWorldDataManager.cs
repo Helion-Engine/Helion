@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Util;
-using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Data;
@@ -12,8 +11,8 @@ public class RenderWorldDataManager : IDisposable
 {
     private readonly GLCapabilities m_capabilities;
     private readonly IGLFunctions gl;
-    private readonly Dictionary<GLLegacyTexture, RenderWorldData> m_textureToWorldData = new Dictionary<GLLegacyTexture, RenderWorldData>();
-
+    private readonly Dictionary<GLLegacyTexture, RenderWorldData> m_textureToWorldData = new();
+    private readonly List<RenderWorldData> m_renderData = new();
     private readonly List<RenderWorldData> m_alphaRenderData = new();
 
     public RenderWorldDataManager(GLCapabilities capabilities, IGLFunctions functions)
@@ -33,8 +32,9 @@ public class RenderWorldDataManager : IDisposable
         if (m_textureToWorldData.TryGetValue(texture, out RenderWorldData? data))
             return data;
 
-        RenderWorldData newData = new RenderWorldData(m_capabilities, gl, texture);
+        RenderWorldData newData = new(m_capabilities, gl, texture);
         m_textureToWorldData[texture] = newData;
+        m_renderData.Add(newData);
         return newData;
     }
 
@@ -50,7 +50,8 @@ public class RenderWorldDataManager : IDisposable
 
     public void Clear()
     {
-        m_textureToWorldData.Values.ForEach(geometryData => geometryData.Clear());
+        for (int i = 0; i < m_renderData.Count; i++)
+            m_renderData[i].Clear();
         for (int i = 0; i < m_alphaRenderData.Count; i++)
             DataCache.Instance.FreeAlphaRenderWorldData(m_alphaRenderData[i]);
         m_alphaRenderData.Clear();
@@ -58,7 +59,8 @@ public class RenderWorldDataManager : IDisposable
 
     public void Draw()
     {
-        m_textureToWorldData.Values.ForEach(geometryData => geometryData.Draw());
+        for (int i = 0; i < m_renderData.Count; i++)
+            m_renderData[i].Draw();
         for (int i = 0; i < m_alphaRenderData.Count; i++)
             m_alphaRenderData[i].Draw();
     }
@@ -71,6 +73,7 @@ public class RenderWorldDataManager : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        m_textureToWorldData.Values.ForEach(geometryData => geometryData.Dispose());
+        for (int i = 0; i < m_renderData.Count; i++)
+            m_renderData[i].Dispose();
     }
 }
