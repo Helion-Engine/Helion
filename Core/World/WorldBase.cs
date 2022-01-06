@@ -305,10 +305,10 @@ public abstract partial class WorldBase : IWorld
         {
             TickEntities();
             TickPlayers();
+            SpecialManager.Tick();
 
             if (WorldState != WorldState.Exit)
             {
-                SpecialManager.Tick();
                 TextureManager.Instance.Tick();
                 SoundManager.Tick();
 
