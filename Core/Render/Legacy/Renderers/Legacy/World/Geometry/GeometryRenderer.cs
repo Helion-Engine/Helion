@@ -102,6 +102,44 @@ public class GeometryRenderer : IDisposable
         m_skyCeilingVertexLookup = new SkyGeometryVertex[world.BspTree.Subsectors.Length][];
         m_vertexFloorLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
         m_vertexCeilingLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
+
+        CacheData(world);
+
+        Clear(m_tickFraction);
+    }
+
+    private void CacheData(WorldBase world)
+    {
+        Vec2D pos = m_position.XY;
+        foreach (var subsector in world.BspTree.Subsectors)
+        {
+            if (subsector.Sector.TransferHeights != null)
+                continue;
+
+            m_viewSector = subsector.Sector;
+            List<SubsectorSegment> edges = subsector.ClockwiseEdges;
+            for (int i = 0; i < edges.Count; i++)
+            {
+                SubsectorSegment edge = edges[i];
+                if (edge.Side == null)
+                    continue;
+
+                if (edge.Side is TwoSided twoSided)
+                {
+                    RenderSide(twoSided, twoSided.IsFront);
+                    RenderSide(twoSided.PartnerSide, twoSided.PartnerSide.IsFront);
+                    continue;
+                }
+                
+                RenderSide(edge.Side, true);
+            }
+
+            // Set position Z within plane view so it's not culled
+            m_position.Z = subsector.Sector.Floor.Plane.ToZ(pos) + 1;
+            RenderFlat(subsector, subsector.Sector.Floor, true);
+            m_position.Z = subsector.Sector.Ceiling.Plane.ToZ(pos) - 1;
+            RenderFlat(subsector, subsector.Sector.Ceiling, false);
+        }
     }
 
     public void Clear(double tickFraction)
