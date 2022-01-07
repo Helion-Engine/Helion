@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
@@ -65,8 +66,11 @@ public class PushSpecial : ISpecial
         }
         else
         {
-            foreach (var entity in m_sector.Entities)
+            LinkableNode<Entity>? node = m_sector.Entities.Head;
+            while (node != null)
             {
+                Entity entity = node.Value;
+                node = node.Next;
                 Vec3D pushFactor = m_pushFactor;
                 if (m_type == PushType.Wind)
                 {

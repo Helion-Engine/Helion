@@ -22,6 +22,7 @@ using Helion.Util.Profiling;
 using Helion.Window;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
+using Helion.Util.Container;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -88,11 +89,18 @@ public class SinglePlayerWorld : WorldBase
             ApplyLineModels(worldModel);
             CreateDamageSpecials(worldModel);
 
-            EntityManager.Entities.ForEach(entity => Link(entity));
-            EntityManager.Entities.ForEach(entity =>
+            LinkableNode<Entity>? node = EntityManager.Entities.Head;
+            while (node != null)
             {
-                EntityManager.FinalizeFromWorldLoad(entity);
-            });
+                Link(node.Value);
+                node = node.Next;
+            }
+            node = EntityManager.Entities.Head;
+            while (node != null)
+            {
+                EntityManager.FinalizeFromWorldLoad(node.Value);
+                node = node.Next;
+            }
 
             SpecialManager.AddSpecialModels(worldModel.Specials);
         }

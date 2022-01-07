@@ -327,11 +327,14 @@ public class PhysicsManager
             return;
 
         // Check for stacked entities, so we can crush the stack
-        List<Entity> stackCrush = new List<Entity>();
-        foreach (Entity checkEntity in sector.Entities)
+        List<Entity> stackCrush = new();
+        LinkableNode<Entity>? node = sector.Entities.Head;
+        while (node != null)
         {
+            Entity checkEntity = node.Value;
             if (checkEntity.OverEntity != null && crushEntities.Contains(checkEntity.OverEntity))
                 stackCrush.Add(checkEntity);
+            node = node.Next;
         }
 
         stackCrush = stackCrush.Union(crushEntities).Distinct().ToList();
@@ -764,10 +767,13 @@ public class PhysicsManager
 
         while (currentOverEntity != null)
         {
-            foreach (var relinkEntity in entity.Sector.Entities)
+            LinkableNode<Entity>? node = entity.Sector.Entities.Head;
+            while (node != null)
             {
+                Entity relinkEntity = node.Value;
                 if (relinkEntity.OnEntity == entity)
                     ClampBetweenFloorAndCeiling(relinkEntity, false);
+                node = node.Next;
             }
 
             entity = currentOverEntity;

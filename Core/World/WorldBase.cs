@@ -326,8 +326,10 @@ public abstract partial class WorldBase : IWorld
     {
         Profiler.World.TickEntity.Start();
 
-        foreach (Entity entity in EntityManager.Entities)
+        LinkableNode<Entity>? node = EntityManager.Entities.Head;
+        while (node != null)
         {
+            Entity entity = node.Value;
             entity.Tick();
 
             if (WorldState == WorldState.Exit)
@@ -342,6 +344,7 @@ public abstract partial class WorldBase : IWorld
 
             if (entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
                 InstantKillSector(entity);
+            node = node.Next;
         }
 
         Profiler.World.TickEntity.Stop();
@@ -439,11 +442,12 @@ public abstract partial class WorldBase : IWorld
 
     private void ResetInterpolation()
     {
-        EntityManager.Entities.ForEach(entity =>
+        LinkableNode<Entity>? node = EntityManager.Entities.Head;
+        while (node != null)
         {
-            entity.ResetInterpolation();
-        });
-
+            node.Value.ResetInterpolation();
+            node = node.Next;
+        }
         SpecialManager.ResetInterpolation();
     }
 
@@ -519,10 +523,18 @@ public abstract partial class WorldBase : IWorld
 
     private void InitBossBrainTargets()
     {
+        List<Entity> targets = new();
+        LinkableNode<Entity>? node = EntityManager.Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
+                targets.Add(node.Value);
+            node = node.Next;
+        }
+
         // Doom chose for some reason to iterate in reverse order.
-        m_bossBrainTargets = EntityManager.Entities.Where(e => e.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
-            .Reverse()
-            .ToArray();
+        targets.Reverse();
+        m_bossBrainTargets = targets.ToArray();
     }
 
     public IEnumerable<Sector> FindBySectorTag(int tag) =>
@@ -2020,11 +2032,14 @@ public abstract partial class WorldBase : IWorld
     private List<EntityModel> GetEntityModels()
     {
         List<EntityModel> entityModels = new();
-        EntityManager.Entities.ForEach(entity =>
+        LinkableNode<Entity>? node = EntityManager.Entities.Head;
+        while (node != null)
         {
+            Entity entity = node.Value;
             if (!entity.IsPlayer)
                 entityModels.Add(entity.ToEntityModel(new EntityModel()));
-        });
+            node = node.Next;
+        }
         return entityModels;
     }
 

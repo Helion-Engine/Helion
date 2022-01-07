@@ -8,6 +8,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -537,10 +538,13 @@ public class SpecialManager : ITickable, IDisposable
 
     private static Entity? GetPusher(Sector sector)
     {
-        foreach (Entity entity in sector.Entities)
+        LinkableNode<Entity>? node = sector.Entities.Head;
+        while (node != null)
         {
+            Entity entity = node.Value;
             if (entity.Definition.EditorId == (int)EditorId.PointPusher || entity.Definition.EditorId == (int)EditorId.PointPuller)
                 return entity;
+            node = node.Next;
         }
 
         return null;

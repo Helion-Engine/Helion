@@ -8,6 +8,7 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using System;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 
 namespace Helion.World.Special.Specials;
 
@@ -216,13 +217,19 @@ public class TeleportSpecial : ISpecial
         if (m_tid == EntityManager.NoTid)
         {
             foreach (Sector sector in m_world.FindBySectorTag(m_tag))
-                foreach (Entity entity in sector.Entities)
+            {
+                LinkableNode<Entity>? node = sector.Entities.Head;
+                while (node != null)
+                {
+                    Entity entity = node.Value;
                     if (entity.Flags.IsTeleportSpot)
                     {
                         pos = entity.Position;
                         angle = entity.AngleRadians;
                         return true;
                     }
+                }
+            }
         }
         else if (m_tag == Sector.NoTag)
         {
@@ -237,13 +244,19 @@ public class TeleportSpecial : ISpecial
         else
         {
             foreach (Sector sector in m_world.FindBySectorTag(m_tag))
-                foreach (Entity entity in sector.Entities)
+            {
+                LinkableNode<Entity>? node = sector.Entities.Head;
+                while (node != null)
+                {
+                    Entity entity = node.Value;
                     if (entity.ThingId == m_tid && entity.Flags.IsTeleportSpot)
                     {
                         pos = entity.Position;
                         angle = entity.AngleRadians;
                         return true;
                     }
+                }
+            }
         }
 
         return false;

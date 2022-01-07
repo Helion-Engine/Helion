@@ -184,8 +184,12 @@ public class LegacyAutomapRenderer : IDisposable
         if (player == null || !player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
             return;
 
-        foreach (var entity in world.Entities)
-            DrawEntity(entity, renderInfo.TickFraction);
+        LinkableNode<Entity>? node = world.Entities.Head;
+        while (node != null)
+        {
+            DrawEntity(node.Value, renderInfo.TickFraction);
+            node = node.Next;
+        }
     }
 
     private void PopulateColoredLines(IWorld world, Player? player)

@@ -8,6 +8,7 @@ using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -71,8 +72,11 @@ public class EntityRenderer
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, in Vec2D viewDirection)
     {
-        foreach (Entity entity in subsector.Entities)
+        LinkableNode<Entity>? node = subsector.Entities.Head;
+        while (node != null)
         {
+            Entity entity = node.Value;
+            node = node.Next;
             if (m_drawDebugBox)
                 AddSpriteDebugBox(entity);
 

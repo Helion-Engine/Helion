@@ -71,7 +71,17 @@ public class EntityManager : IDisposable
         return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
     }
 
-    public Entity? FindById(int id) => Entities.FirstOrDefault(x => x.Id == id);
+    public Entity? FindById(int id)
+    {
+        LinkableNode<Entity>? node = Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Id == id)
+                return node.Value;
+            node = node.Next;
+        }
+        return null;
+    }
 
     public Entity? Create(string className, in Vec3D pos)
     {
@@ -344,7 +354,13 @@ public class EntityManager : IDisposable
 
     public void Dispose()
     {
-        Entities.ForEach(entity => entity.Dispose());
+        LinkableNode<Entity>? node = Entities.Head;
+        while (node != null)
+        {
+            node.Value.Dispose();
+            node = node.Next;
+        }
+
         GC.SuppressFinalize(this);
     }
 }

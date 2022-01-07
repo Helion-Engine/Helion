@@ -3,6 +3,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -205,8 +206,11 @@ class ScrollSpecial : ISpecial
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {
-            foreach (var entity in sectorPlane.Sector.Entities)
+            LinkableNode<Entity>? node = sectorPlane.Sector.Entities.Head;
+            while (node != null)
             {
+                Entity entity = node.Value;
+                node = node.Next;
                 if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround ||
                     !entity.OnSectorFloorZ(sectorPlane.Sector))
                     continue;
