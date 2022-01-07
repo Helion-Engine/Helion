@@ -1,23 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Vertex;
 
-public class VertexArrayAttributes : IEnumerable<VertexArrayAttribute>
+public class VertexArrayAttributes
 {
-    private readonly List<VertexArrayAttribute> m_attributes = new List<VertexArrayAttribute>();
-
-    public int Count => m_attributes.Count;
+    public VertexArrayAttribute[] AttributesArray;
+    public int Stride;
 
     public VertexArrayAttributes(params VertexArrayAttribute[] vaoAttributes)
     {
         Precondition(vaoAttributes.Length > 0, "Cannot have a VAO with no attributes");
 
-        m_attributes.AddRange(vaoAttributes);
+        AttributesArray = vaoAttributes;
+        Stride = 0;
+        for (int i = 0; i < vaoAttributes.Length; i++)
+            Stride += vaoAttributes[i].ByteLength();
     }
-
-    public IEnumerator<VertexArrayAttribute> GetEnumerator() => m_attributes.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

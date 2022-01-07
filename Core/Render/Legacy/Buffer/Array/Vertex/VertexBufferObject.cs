@@ -30,15 +30,14 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         {
             BindAnd(() =>
             {
-                int stride = vao.Attributes.Select(attr => attr.ByteLength()).Sum();
                 int offset = 0;
-                foreach (VertexArrayAttribute attr in vao.Attributes)
+                for (int i = 0; i < vao.Attributes.AttributesArray.Length; i++)
                 {
-                    attr.Enable(gl, stride, offset);
-                    offset += attr.ByteLength();
+                    vao.Attributes.AttributesArray[i].Enable(gl, vao.Attributes.Stride, offset);
+                    offset += vao.Attributes.AttributesArray[i].ByteLength();
                 }
 
-                Postcondition(stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
+                Postcondition(vao.Attributes.Stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
             });
         });
     }

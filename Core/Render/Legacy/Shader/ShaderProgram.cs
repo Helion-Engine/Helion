@@ -26,7 +26,11 @@ public class ShaderProgram : IDisposable
             builder.Fragment.AttachAnd(m_programId, () =>
             {
                 // TODO: This will cause us to not detach if any throw.
-                attributes.ForEach(attr => gl.BindAttribLocation(m_programId, attr.Index, attr.Name));
+                for (int i = 0; i < attributes.AttributesArray.Length; i++)
+                {
+                    var attr = attributes.AttributesArray[i];
+                    gl.BindAttribLocation(m_programId, attr.Index, attr.Name);
+                }
                 LinkProgramOrThrow();
                 AssertAttributesMatch(attributes);
             });
@@ -73,7 +77,7 @@ public class ShaderProgram : IDisposable
     private void AssertAttributesMatch(VertexArrayAttributes attributes)
     {
         gl.GetProgram(m_programId, GetProgramParameterType.ActiveAttributes, out int numAttributes);
-        Invariant(numAttributes == attributes.Count, "Attribute mismatch, shader attributes do not match VAO attribute size (did you forget some? or not remove some?)");
+        Invariant(numAttributes == attributes.AttributesArray.Length, "Attribute mismatch, shader attributes do not match VAO attribute size (did you forget some? or not remove some?)");
     }
 
     private void IndexUniformsOrThrow()
