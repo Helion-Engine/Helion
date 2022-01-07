@@ -3,7 +3,7 @@ using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record DrawImageCommand : IRenderCommand
+public struct DrawImageCommand
 {
     public readonly string TextureName;
     public readonly ImageBox2I DrawArea;

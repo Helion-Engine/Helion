@@ -110,7 +110,7 @@ public class GLLegacyRenderer : ILegacyRenderer
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
         Rectangle viewport = new Rectangle(0, 0, 800, 600);
-        foreach (IRenderCommand renderCommand in renderCommands)
+        foreach (object renderCommand in renderCommands.Commands)
         {
             switch (renderCommand)
             {

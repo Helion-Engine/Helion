@@ -5,7 +5,7 @@ using Helion.World.Entities;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
-public record DrawWorldCommand : IRenderCommand
+public struct DrawWorldCommand
 {
     public readonly WorldBase World;
     public readonly Camera Camera;
