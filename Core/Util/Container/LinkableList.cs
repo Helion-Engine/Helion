@@ -18,7 +18,7 @@ namespace Helion.Util.Container;
 /// having a pointer to the previous 'next pointer').
 /// </remarks>
 /// <typeparam name="T">The type contained in the nodes.</typeparam>
-public class LinkableList<T> : IEnumerable<T>
+public class LinkableList<T>
 {
     private readonly LinkableNode<T> m_dummyHead;
 
@@ -82,18 +82,6 @@ public class LinkableList<T> : IEnumerable<T>
 
         return false;
     }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-        LinkableNode<T>? node = Head;
-        while (node != null)
-        {
-            yield return node.Value;
-            node = node.Next;
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 /// <summary>

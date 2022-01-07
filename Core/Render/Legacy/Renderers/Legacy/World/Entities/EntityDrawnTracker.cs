@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Entities;
@@ -14,7 +15,7 @@ public class EntityDrawnTracker
 
     public void Reset(WorldBase world)
     {
-        int maxEntityId = world.Entities.Empty() ? -1 : world.Entities.Max(entity => entity.Id) + 1;
+        int maxEntityId = GetMax(world) + 1;
         if (maxEntityId > m_maxEntityId)
         {
             m_maxEntityId = maxEntityId;
@@ -22,6 +23,19 @@ public class EntityDrawnTracker
         }
 
         m_entityWasDrawn.SetAll(false);
+    }
+
+    private static int GetMax(WorldBase world)
+    {
+        int max = -1;
+        LinkableNode<Entity>? node = world.Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Id > max)
+                max = node.Value.Id;
+            node = node.Next;
+        }
+        return max;
     }
 
     public bool HasDrawn(Entity entity)

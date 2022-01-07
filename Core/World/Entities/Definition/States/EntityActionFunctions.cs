@@ -1374,7 +1374,7 @@ public static class EntityActionFunctions
         if (def == null || !def.EditorId.HasValue)
             return;
 
-        if (world.EntityAliveCount(def.EditorId.Value, false) == 0)
+        if (world.EntityAliveCount(def.EditorId.Value) == 0)
         {
             var sectors = world.Sectors.Where(x => x.Tag == 666);
             foreach (var sector in sectors)

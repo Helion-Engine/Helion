@@ -52,8 +52,11 @@ public class PhysicsManager
     private readonly EntityManager m_entityManager;
     private readonly WorldSoundManager m_soundManager;
     private readonly IRandom m_random;
-    private readonly LineOpening m_lineOpening = new LineOpening();
-    private readonly TryMoveData m_tryMoveData = new TryMoveData();
+    private readonly LineOpening m_lineOpening = new();
+    private readonly TryMoveData m_tryMoveData = new();
+    private readonly List<Entity> m_crushEntities = new();
+    private readonly List<Entity> m_sectorMoveEntities = new();
+    private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
 
     /// <summary>
     /// Creates a new physics manager which utilizes the arguments for any
@@ -112,7 +115,6 @@ public class PhysicsManager
 
         // Save the Z value because we are only checking if the dest is valid
         // If the move is invalid because of a blocking entity then it will not be set to destZ
-        List<Entity> crushEntities = new List<Entity>();
         Entity? highestBlockEntity = null;
         double? highestBlockHeight = 0.0;
         SectorMoveStatus status = SectorMoveStatus.Success;
@@ -128,9 +130,10 @@ public class PhysicsManager
 
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        var entities = sector.Entities.OrderBy(x => x.Box.Bottom).ThenBy(x => x.Id);
-        foreach (Entity entity in entities)
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
+        for(int i = 0; i < m_sectorMoveEntities.Count; i++)
         {
+            Entity entity = m_sectorMoveEntities[i];
             entity.SaveZ = entity.Position.Z;
             entity.PrevSaveZ = entity.PrevPosition.Z;
             entity.WasCrushing = entity.IsCrushing();
@@ -160,8 +163,9 @@ public class PhysicsManager
             }
         }
 
-        foreach (Entity entity in entities)
+        for (int i = 0; i < m_sectorMoveEntities.Count; i++)
         {
+            Entity entity = m_sectorMoveEntities[i];
             ClampBetweenFloorAndCeiling(entity);
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
@@ -201,7 +205,7 @@ public class PhysicsManager
                     }
 
                     status = SectorMoveStatus.Crush;
-                    crushEntities.Add(entity);
+                    m_crushEntities.Add(entity);
                 }
                 else if (CheckSectorMoveBlock(entity, moveType))
                 {
@@ -234,8 +238,9 @@ public class PhysicsManager
             }
 
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
-            foreach (var relinkEntity in entities)
+            for (int i = 0; i < m_sectorMoveEntities.Count; i++)
             {
+                Entity relinkEntity = m_sectorMoveEntities[i];
                 // Check for entities that may be dead from being crushed
                 if (relinkEntity.IsDisposed)
                     continue;
@@ -245,10 +250,22 @@ public class PhysicsManager
             }
         }
 
-        if (crush != null && crushEntities.Count > 0)
-            CrushEntities(crushEntities, sector, crush);
+        if (crush != null && m_crushEntities.Count > 0)
+            CrushEntities(m_crushEntities, sector, crush);
 
+        m_sectorMoveEntities.Clear();
         return status;
+    }
+
+    private void GetSectorMoveOrderedEntities(List<Entity> entites, Sector sector)
+    {
+        LinkableNode<Entity>? node = sector.Entities.Head;
+        while (node != null)
+        {
+            m_sectorMoveEntities.Add(node.Value);
+            node = node.Next;
+        }
+        entites.Sort(m_sectorMoveOrderComparer);
     }
 
     // Constants and logic from WinMBF.

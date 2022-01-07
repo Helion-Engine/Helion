@@ -1732,14 +1732,18 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public int EntityAliveCount(int editorId, bool deathStateComplete)
+    public int EntityAliveCount(int editorId)
     {
-        if (deathStateComplete)
-            return EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue &&
-                x.Definition.EditorId.Value == editorId && !x.IsDeathStateFinished);
-        else
-            return EntityManager.Entities.Count(x => x.Definition.EditorId.HasValue &&
-                x.Definition.EditorId.Value == editorId && !x.IsDead);
+        int count = 0;
+        LinkableNode<Entity>? node = Entities.Head;
+        while (node != null)
+        {
+            Entity entity = node.Value;
+            if (entity.Definition.EditorId.HasValue && entity.Definition.EditorId.Value == editorId && !entity.IsDead)
+                count++;
+            node = node.Next;
+        }
+        return count;
     }
 
     private void GiveCheatArmor(Player player, CheatType cheatType)
