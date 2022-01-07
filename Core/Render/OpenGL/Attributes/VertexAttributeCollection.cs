@@ -129,11 +129,4 @@ public class VertexAttributeCollection
         foreach (VertexAttributeElement attr in m_attributes)
             GL.DisableVertexAttribArray(attr.Location);
     }
-
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action();
-        Unbind();
-    }
 }

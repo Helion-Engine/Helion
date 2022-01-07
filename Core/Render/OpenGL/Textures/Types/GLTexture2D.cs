@@ -50,20 +50,19 @@ public class GLTexture2D : GLTexture
 
     private void SetInitialData(Dimension dimension, IntPtr? data = null)
     {
-        BindAnd(() =>
-        {
-            if (UsesMipmapTexParameter)
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1);
+        Bind();
+        if (UsesMipmapTexParameter)
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, 1);
 
-            SetWrapMode(TextureWrapMode.Clamp, Binding.DoNotBind);
-            SetFilterMode(TextureMinFilter.Nearest, TextureMagFilter.Nearest, Binding.DoNotBind);
+        SetWrapMode(TextureWrapMode.Clamp, Binding.DoNotBind);
+        SetFilterMode(TextureMinFilter.Nearest, TextureMagFilter.Nearest, Binding.DoNotBind);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, dimension.Width,
-                dimension.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
-                data ?? IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, dimension.Width,
+            dimension.Height, 0, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed,
+            data ?? IntPtr.Zero);
 
-            GenerateMipmaps(Binding.DoNotBind);
-        });
+        GenerateMipmaps(Binding.DoNotBind);
+        Unbind();
     }
 
     public void Upload(Vec2I origin, Image image, Mipmap mipmap, Binding bind)
@@ -153,13 +152,12 @@ public class GLTexture2D : GLTexture
     {
         Bitmap bitmap = new(Dimension.Width, Dimension.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-        BindAnd(() =>
+        Bind();
+        bitmap.WithLockedBits(data =>
         {
-            bitmap.WithLockedBits(data =>
-            {
-                GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Bgra, PixelType.Byte, data);
-            });
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Bgra, PixelType.Byte, data);
         });
+        Unbind();
 
         return bitmap;
     }

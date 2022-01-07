@@ -18,11 +18,10 @@ public class GLFontTexture : GLTexture2D
 
         if (font.IsTrueTypeFont)
         {
-            BindAnd(() =>
-            {
-                SetFilterMode(TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear, Binding.DoNotBind);
-                SetAnisotropicFilteringMode(16.0f, Binding.DoNotBind);
-            });
+            Bind();
+            SetFilterMode(TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear, Binding.DoNotBind);
+            SetAnisotropicFilteringMode(16.0f, Binding.DoNotBind);
+            Unbind();
         }
     }
 }

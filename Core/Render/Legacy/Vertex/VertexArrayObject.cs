@@ -19,7 +19,9 @@ public class VertexArrayObject : IDisposable
         Attributes = vaoAttributes;
         m_vaoId = gl.GenVertexArray();
 
-        BindAnd(() => { GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.VertexArray, m_vaoId, objectLabel); });
+        Bind();
+        GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.VertexArray, m_vaoId, objectLabel);
+        Unbind();
     }
 
     ~VertexArrayObject()
@@ -36,13 +38,6 @@ public class VertexArrayObject : IDisposable
     public void Unbind()
     {
         gl.BindVertexArray(0);
-    }
-
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action.Invoke();
-        Unbind();
     }
 
     public void Dispose()

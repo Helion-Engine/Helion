@@ -50,7 +50,7 @@ public class VertexBufferObject<TVertex> : BufferObject<TVertex> where TVertex :
 
     public void AddRange(DynamicArray<TVertex> elements)
     {
-        if (elements.Empty())
+        if (elements.Length == 0)
             return;
 
         Data.AddRange(elements);
@@ -95,13 +95,6 @@ public class VertexBufferObject<TVertex> : BufferObject<TVertex> where TVertex :
     public void Unbind()
     {
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-    }
-
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action();
-        Unbind();
     }
 
     public override void Dispose()

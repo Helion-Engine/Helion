@@ -6,7 +6,7 @@ using Helion.Util.Container;
 
 namespace Helion.Render.OpenGL.Buffers;
 
-public abstract class BufferObject<T> : IDisposable, IEnumerable<T> where T : struct
+public abstract class BufferObject<T> : IDisposable where T : struct
 {
     public static readonly int BytesPerElement = Marshal.SizeOf<T>();
 
@@ -23,8 +23,4 @@ public abstract class BufferObject<T> : IDisposable, IEnumerable<T> where T : st
     }
 
     public abstract void Dispose();
-
-    public IEnumerator<T> GetEnumerator() => Data.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

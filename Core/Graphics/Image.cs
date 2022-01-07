@@ -111,10 +111,11 @@ public class Image
             return null;
 
         Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
-        bitmap.WithLockedBits(bitmapDataPtr =>
-        {
-            Marshal.Copy(argb, 0, bitmapDataPtr, numBytes);
-        });
+
+        Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
+        BitmapData metadata = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
+        Marshal.Copy(argb, 0, metadata.Scan0, numBytes);
+        bitmap.UnlockBits(metadata);
 
         return new Image(bitmap, ImageType.Argb, offset, resourceNamespace);
     }
@@ -152,10 +153,10 @@ public class Image
         }
 
         Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
-        bitmap.WithLockedBits(bitmapDataPtr =>
-        {
-            Marshal.Copy(paletteData, 0, bitmapDataPtr, numBytes);
-        });
+        Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
+        BitmapData metadata = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
+        Marshal.Copy(paletteData, 0, metadata.Scan0, numBytes);
+        bitmap.UnlockBits(metadata);
 
         return new Image(bitmap, ImageType.Palette, offset, resourceNamespace);
     }
@@ -201,10 +202,10 @@ public class Image
         byte[] paletteBytes = new byte[numBytes];
         byte[] argbBytes = new byte[numBytes];
 
-        Bitmap.WithLockedBits(data =>
-        {
-            Marshal.Copy(data, paletteBytes, 0, numBytes);
-        });
+        Rectangle rect = new(0, 0, Bitmap.Width, Bitmap.Height);
+        BitmapData metadata = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, Bitmap.PixelFormat);
+        Marshal.Copy(metadata.Scan0, paletteBytes, 0, numBytes);
+        Bitmap.UnlockBits(metadata);
 
         Color[] colors = palette.DefaultLayer;
         int offset = 0;

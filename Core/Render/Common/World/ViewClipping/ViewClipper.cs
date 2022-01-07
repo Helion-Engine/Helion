@@ -22,7 +22,7 @@ namespace Helion.Render.Common.World.ViewClipping;
 /// use of this class, it should be cleared, and have the center set to the
 /// central view reference point.
 /// </remarks>
-public class ViewClipper : IEnumerable<ClipSpan>
+public class ViewClipper
 {
     private const uint DiamondScale = uint.MaxValue / 4;
     private const uint PiAngle = uint.MaxValue / 2;
@@ -155,12 +155,6 @@ public class ViewClipper : IEnumerable<ClipSpan>
             return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);
         return InRange(smallerAngle, largerAngle);
     }
-
-    /// <inheritdoc/>
-    public IEnumerator<ClipSpan> GetEnumerator() => m_nodes.GetEnumerator();
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
     /// Checks if the arc from the chord crosses the origin vector [1, 0].

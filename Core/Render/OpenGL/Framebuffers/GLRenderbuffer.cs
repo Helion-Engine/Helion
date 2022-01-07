@@ -34,11 +34,9 @@ public class GLRenderbuffer : IDisposable
 
     private void SetStorage(Dimension dimension)
     {
-        BindAnd(() =>
-        {
-            (int w, int h) = dimension;
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, w, h);
-        });
+        Bind();
+        GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.Depth24Stencil8, dimension.Width, dimension.Height);
+        Unbind();
     }
 
     public void Bind()
@@ -49,13 +47,6 @@ public class GLRenderbuffer : IDisposable
     public void Unbind()
     {
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
-    }
-
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action();
-        Unbind();
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
@@ -80,7 +81,9 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         gl = functions;
         BufferId = gl.GenBuffer();
 
-        BindAnd(() => { SetObjectLabel(capabilities, objectLabel); });
+        Bind();
+        SetObjectLabel(capabilities, objectLabel);
+        Unbind();
     }
 
     ~BufferObject()
@@ -193,17 +196,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         gl.BindBuffer(GetBufferType(), 0);
     }
 
-    /// <summary>
-    /// Performs an action between binding and unbinding.
-    /// </summary>
-    /// <param name="action">The action to perform.</param>
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action.Invoke();
-        Unbind();
-    }
-
     public void Dispose()
     {
         ReleaseUnmanagedResources();
@@ -234,6 +226,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// </summary>
     protected abstract void PerformUpload();
 
+    [Conditional("DEBUG")]
     private void SetObjectLabel(GLCapabilities capabilities, string objectLabel)
     {
         GLHelper.ObjectLabel(gl, capabilities, ObjectLabelType.Buffer, BufferId, objectLabel);

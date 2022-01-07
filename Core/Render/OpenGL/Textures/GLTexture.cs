@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -25,10 +26,9 @@ public class GLTexture : IDisposable
 
         // Supposedly binding the object is sufficient to have it created, which
         // is needed to allow the binding to work.
-        BindAnd(() =>
-        {
-            SetDebugLabel(DebugName);
-        });
+        Bind();
+        SetDebugLabel(DebugName);
+        Unbind();
     }
 
     ~GLTexture()
@@ -37,6 +37,7 @@ public class GLTexture : IDisposable
         PerformDispose();
     }
 
+    [Conditional("DEBUG")]
     public void SetDebugLabel(string textureName)
     {
         GLUtil.Label($"Texture: {textureName}", ObjectLabelIdentifier.Texture, TextureName);
@@ -50,11 +51,6 @@ public class GLTexture : IDisposable
     public void Unbind()
     {
         GL.BindTexture(Target, 0);
-    }
-
-    public void BindAnd(Action action)
-    {
-        BindConditional(Binding.Bind, action);
     }
 
     public void BindConditional(Binding binding, Action action)

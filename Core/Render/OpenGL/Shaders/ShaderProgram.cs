@@ -163,13 +163,6 @@ public abstract class ShaderProgram : IDisposable
         GL.UseProgram(0);
     }
 
-    public void BindAnd(Action action)
-    {
-        Bind();
-        action.Invoke();
-        Unbind();
-    }
-
     public void Dispose()
     {
         GC.SuppressFinalize(this);

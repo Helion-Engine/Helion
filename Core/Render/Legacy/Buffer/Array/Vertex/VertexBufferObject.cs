@@ -26,19 +26,17 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
 
     private void BindAttributes(VertexArrayObject vao)
     {
-        vao.BindAnd(() =>
+        vao.Bind();
+        Bind();
+        int offset = 0;
+        for (int i = 0; i < vao.Attributes.AttributesArray.Length; i++)
         {
-            BindAnd(() =>
-            {
-                int offset = 0;
-                for (int i = 0; i < vao.Attributes.AttributesArray.Length; i++)
-                {
-                    vao.Attributes.AttributesArray[i].Enable(gl, vao.Attributes.Stride, offset);
-                    offset += vao.Attributes.AttributesArray[i].ByteLength();
-                }
+            vao.Attributes.AttributesArray[i].Enable(gl, vao.Attributes.Stride, offset);
+            offset += vao.Attributes.AttributesArray[i].ByteLength();
+        }
 
-                Postcondition(vao.Attributes.Stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
-            });
-        });
+        Postcondition(vao.Attributes.Stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
+        Unbind();
+        vao.Unbind();
     }
 }

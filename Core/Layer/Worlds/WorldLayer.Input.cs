@@ -113,7 +113,6 @@ public partial class WorldLayer
 
     private void ChangeAutoMapSize(bool increase)
     {
-        Log.Info("change size");
         m_autoMapScale += increase ? 0.1 : -0.1;
         m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0, double.MaxValue);
     }

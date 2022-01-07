@@ -14,7 +14,7 @@ namespace Helion.Util.Container;
 /// low level array pinning (or use reflection but that's not worth it).
 /// </remarks>
 /// <typeparam name="T">The type to contain.</typeparam>
-public class DynamicArray<T> : IEnumerable<T>
+public class DynamicArray<T>
 {
     /// <summary>
     /// How many elements are in the array.
@@ -155,14 +155,6 @@ public class DynamicArray<T> : IEnumerable<T>
         if (Length > 0)
             Length--;
     }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-        for (int i = 0; i < Length; i++)
-            yield return Data[i];
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private void EnsureCapacity(int desiredCapacity)
     {

@@ -100,22 +100,22 @@ public class LegacyAutomapRenderer : IDisposable
 
         PopulateData(world, renderInfo, out Box2F worldBounds);
 
-        m_shader.BindAnd(() =>
+        m_shader.Bind();
+
+        m_shader.Mvp.Set(gl, CalculateMvp(renderInfo, worldBounds, world));
+
+        for (int i = 0; i < m_vboRanges.Count; i++)
         {
-            m_shader.Mvp.Set(gl, CalculateMvp(renderInfo, worldBounds, world));
+            (int first, vec3 color) = m_vboRanges[i];
+            int count = i == m_vboRanges.Count - 1 ? m_vbo.Count - first : m_vboRanges[i + 1].start - first;
 
-            for (int i = 0; i < m_vboRanges.Count; i++)
-            {
-                (int first, vec3 color) = m_vboRanges[i];
-                int count = i == m_vboRanges.Count - 1 ? m_vbo.Count - first : m_vboRanges[i + 1].start - first;
+            m_shader.Color.Set(gl, color);
+            m_vao.Bind();
+            GL.DrawArrays(PrimitiveType.Lines, first, count);
+            m_vao.Unbind();
+        }
 
-                m_shader.Color.Set(gl, color);
-                m_vao.BindAnd(() =>
-                {
-                    GL.DrawArrays(PrimitiveType.Lines, first, count);
-                });
-            }
-        });
+        m_shader.Unbind();
     }
 
     private mat4 CalculateMvp(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
@@ -339,8 +339,8 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
-        foreach (vec2 point in m_entityPoints)
-            array.Add(point);
+        for (int i = 0; i < m_entityPoints.Length; i++)
+            array.Add(m_entityPoints[i]);
 
         void AddSquare(float startX, float startY, float width, float height)
         {
@@ -372,15 +372,15 @@ public class LegacyAutomapRenderer : IDisposable
         for (int i = 0; i < m_colorEnumToLines.Count; i++)
         {
             DynamicArray<vec2> lines = m_colorEnumToLines[i];
-            if (lines.Empty())
+            if (lines.Length == 0)
                 continue;
 
             AutomapColor color = (AutomapColor)i;
             vec3 colorVec = color.ToColor();
             m_vboRanges.Add((m_vbo.Count, colorVec));
 
-            foreach (vec2 line in lines)
-                AddLine(line);
+            for (int j = 0; j < lines.Length; j++)
+                AddLine(lines[j]);
         }
 
         // This is a backup case in the event there are no lines.
