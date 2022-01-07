@@ -46,8 +46,9 @@ public class GLLegacyImageDrawInfoProvider : IImageDrawInfoProvider
         bool notFirstChar = false;
         int rowsOfCharacters = 1;
 
-        foreach (ColoredChar c in str)
+        for (int i = 0; i < str.Characters.Count; i++)
         {
+            ColoredChar c= str.Characters[i];
             int charWidth = (int)(fontTexture.Font.Get(c.Char).Area.Width * scaleFactor);
 
             if (notFirstChar && currentWidth + charWidth >= maxWidth)
@@ -72,8 +73,8 @@ public class GLLegacyImageDrawInfoProvider : IImageDrawInfoProvider
         GLFontTexture<GLLegacyTexture> fontTexture = m_textureManager.GetFont(font);
 
         int width = 0;
-        foreach (var c in str)
-            width += fontTexture.Font.Get(c.Char).Area.Width;
+        for (int i = 0; i < str.Characters.Count; i++)        
+            width += fontTexture.Font.Get(str.Characters[i].Char).Area.Width;
         return new Rectangle(topLeft.X, topLeft.Y, width, fontTexture.Height);
     }
 }

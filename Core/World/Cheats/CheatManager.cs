@@ -8,11 +8,11 @@ using Helion.World.Entities.Players;
 
 namespace Helion.World.Cheats;
 
-public class CheatManager : IEnumerable<ICheat>
+public class CheatManager
 {
     private const string BeholdActivated = "$STSTR_BEHOLDX";
 
-    private static readonly ICheat[] Cheats =
+    public static readonly ICheat[] Cheats =
     {
         new LevelCheat("$STSTR_CLEV", "idclev", CheatType.ChangeLevel),
         new LevelCheat("$STSTR_MUS", "idmus", CheatType.ChangeMusic),
@@ -106,7 +106,4 @@ public class CheatManager : IEnumerable<ICheat>
             }
         }
     }
-
-    public IEnumerator<ICheat> GetEnumerator() => ((IEnumerable<ICheat>)Cheats).GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

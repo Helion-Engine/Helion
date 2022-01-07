@@ -26,12 +26,4 @@ public class ConfigAliasMapping : IConfigAliasMapping
     {
         return m_nameToComponent.TryGetValue(name, out configValue);
     }
-
-    public IEnumerator<(string name, IConfigValue value)> GetEnumerator()
-    {
-        foreach ((string pathName, IConfigValue configValue) in m_nameToComponent)
-            yield return (pathName, configValue);
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

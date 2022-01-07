@@ -342,7 +342,7 @@ public class GLHudRenderer : IHudRenderContext
         window = both ?? window;
         anchor = both ?? anchor;
 
-        if (text.Length == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
+        if (text.Characters.Count == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
             return;
 
         Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text.String, fontHandle, fontSize,
@@ -368,7 +368,7 @@ public class GLHudRenderer : IHudRenderContext
 
         for (int i = 0; i < chars.Length; i++)
         {
-            ByteColor byteColor = new(text[i].Color);
+            ByteColor byteColor = new(text.Characters[i].Color);
             AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
         }
 

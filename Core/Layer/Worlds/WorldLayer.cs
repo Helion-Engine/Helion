@@ -101,18 +101,17 @@ public partial class WorldLayer : IGameLayerParent
         if (worldModel == null)
             return;
 
-        foreach (var item in worldModel.ConfigValues)
+        var components = config.GetComponents();
+        foreach (var configModel in worldModel.ConfigValues)
         {
-            (string path, ConfigComponent component)? configItem = config.FirstOrDefault(x => x.path.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
-
-            if (configItem == null)
+            if (!components.TryGetValue(configModel.Key, out ConfigComponent? component))
             {
-                Log.Error($"Invalid configuration path: {item.Key}");
+                Log.Error($"Invalid configuration path: {configModel.Key}");
                 continue;
             }
 
-            if (configItem.Value.component.Value.Set(item.Value) == ConfigSetResult.NotSetByBadConversion)
-                Log.Error($"Bad configuartion value '{item.Value}' for '{configItem.Value.path}'.");
+            if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
+                Log.Error($"Bad configuartion value '{configModel.Value}' for '{configModel.Key}'.");
         }
     }
 

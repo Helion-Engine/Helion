@@ -1987,7 +1987,7 @@ public abstract partial class WorldBase : IWorld
     private IList<ConfigValueModel> GetConfigValuesModel()
     {
         List<ConfigValueModel> items = new();
-        foreach (var (path, component) in Config)
+        foreach (var (path, component) in Config.GetComponents())
         {
             if (!component.Attribute.Serialize)
                 continue;

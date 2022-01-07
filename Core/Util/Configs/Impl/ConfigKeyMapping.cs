@@ -194,11 +194,5 @@ public class ConfigKeyMapping : IConfigKeyMapping
         m_keyToCommands.Remove(key);
     }
 
-    public IEnumerator<(Key Key, IEnumerable<string> Commands)> GetEnumerator()
-    {
-        foreach ((Key key, HashSet<string> commands) in m_keyToCommands)
-            yield return (key, commands);
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public Dictionary<Key, HashSet<string>> GetKeyMapping() => m_keyToCommands;
 }

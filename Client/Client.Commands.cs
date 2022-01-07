@@ -38,11 +38,11 @@ public partial class Client
         foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
             commands.Add(command);
 
-        foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
+        foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
             if (cheat.ConsoleCommand != null)
                 commands.Add(cheat.ConsoleCommand);
 
-        foreach ((string path, _) in m_config.OrderBy(x => x.path))
+        foreach (string path in m_config.GetComponents().Keys.OrderBy(x => x))
             commands.Add(path);
 
         for (int i = 0; i < commands.Count; i++)

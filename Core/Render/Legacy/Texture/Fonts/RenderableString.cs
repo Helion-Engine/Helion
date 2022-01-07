@@ -63,8 +63,9 @@ public class RenderableString
         List<RenderableGlyph> currentSentence = new();
         List<RenderableSentence> sentences = new();
 
-        foreach (ColoredChar c in str)
+        for (int i = 0; i < str.Characters.Count; i++)
         {
+            ColoredChar c = str.Characters[i];
             Glyph glyph = font.Get(c.Char);
             (int glyphW, int glyphH) = glyph.Area.Dimension;
 

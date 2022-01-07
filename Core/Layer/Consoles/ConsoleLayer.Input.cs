@@ -111,9 +111,9 @@ public partial class ConsoleLayer
 
         foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
             AssignIfBest(command);
-        foreach ((string path, _) in m_config.OrderBy(x => x.path))
+        foreach (string path in m_config.GetComponents().Keys.OrderBy(x => x))
             AssignIfBestPath(path);
-        foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
+        foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
             if (cheat.ConsoleCommand != null)
                 AssignIfBest(cheat.ConsoleCommand);
 
@@ -188,7 +188,7 @@ public partial class ConsoleLayer
 
         void SearchConfigValues()
         {
-            foreach ((string path, ConfigComponent component) in m_config.OrderBy(x => x.path))
+            foreach ((string path, ConfigComponent component) in m_config.GetComponents().OrderBy(x => x.Key))
             {
                 if (path.EqualsIgnoreCase(input))
                 {
@@ -215,7 +215,7 @@ public partial class ConsoleLayer
 
         void SearchCheats()
         {
-            foreach (ICheat cheat in CheatManager.Instance.OrderBy(x => x.ConsoleCommand))
+            foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
             {
                 string? cmd = cheat.ConsoleCommand;
                 if (cmd == null)

@@ -9,7 +9,7 @@ namespace Helion.Graphics.Fonts;
 /// <summary>
 /// A collection of glyphs with rendering information.
 /// </summary>
-public class Font : IEnumerable<Glyph>
+public class Font
 {
     public const char DefaultChar = '?';
 
@@ -38,10 +38,6 @@ public class Font : IEnumerable<Glyph>
     public Glyph Get(char c) => TryGet(c, out Glyph result) ? result : m_defaultGlyph;
 
     public bool TryGet(char c, out Glyph glyph) => m_glyphs.TryGetValue(c, out glyph);
-
-    public IEnumerator<Glyph> GetEnumerator() => m_glyphs.Values.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override string ToString() => $"{Name}, Glyphs: {m_glyphs.Count}, Atlas: {Image.Dimension}";
 }

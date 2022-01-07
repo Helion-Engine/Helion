@@ -173,7 +173,7 @@ public class HelionConsole : Target
     /// <param name="message">The message to add.</param>
     public void AddMessage(ColoredString message)
     {
-        if (message.Empty)
+        if (message.Characters.Count == 0)
             return;
 
         Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime()));

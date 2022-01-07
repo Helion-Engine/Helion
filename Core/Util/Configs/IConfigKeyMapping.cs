@@ -7,7 +7,7 @@ namespace Helion.Util.Configs;
 /// <summary>
 /// A bi-directional mapping of keys to commands.
 /// </summary>
-public interface IConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> Commands)>
+public interface IConfigKeyMapping
 {
     /// <summary>
     /// Whether any keys have been set. This is intended to be a marker for
@@ -71,4 +71,6 @@ public interface IConfigKeyMapping : IEnumerable<(Key Key, IEnumerable<string> C
     /// </remarks>
     /// <param name="key">The key to unbind.</param>
     void UnbindAll(Key key);
+
+    Dictionary<Key, HashSet<string>> GetKeyMapping();
 }

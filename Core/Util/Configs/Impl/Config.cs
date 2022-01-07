@@ -131,5 +131,5 @@ public class Config : IConfig
             yield return (path, component);
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public Dictionary<string, ConfigComponent> GetComponents() => Components;
 }

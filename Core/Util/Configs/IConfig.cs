@@ -8,7 +8,7 @@ namespace Helion.Util.Configs;
 /// <summary>
 /// A configuration file which contains dynamic runtime information.
 /// </summary>
-public interface IConfig : IEnumerable<(string path, ConfigComponent component)>
+public interface IConfig
 {
     ConfigAudio Audio { get; }
     ConfigCompat Compatibility { get; }
@@ -40,4 +40,6 @@ public interface IConfig : IEnumerable<(string path, ConfigComponent component)>
     /// <param name="setFlags">The flags that signify what config values
     /// should be applied, provided they match the flag bits provided.</param>
     void ApplyQueuedChanges(ConfigSetFlags setFlags);
+
+    Dictionary<string, ConfigComponent> GetComponents();
 }
