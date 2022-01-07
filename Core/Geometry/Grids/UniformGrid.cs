@@ -24,7 +24,7 @@ public enum GridIterationStatus
 /// </summary>
 /// <typeparam name="T">The block component for each grid element.
 /// </typeparam>
-public class UniformGrid<T> : IEnumerable<T> where T : new()
+public class UniformGrid<T> where T : new()
 {
     // TODO: This should not be hardcoded.
     private const int Dimension = 128;
@@ -44,7 +44,7 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
     /// </summary>
     public readonly Box2D Bounds;
 
-    private readonly T[] blocks;
+    public readonly T[] Blocks;
 
     /// <summary>
     /// The origin of the grid.
@@ -66,9 +66,9 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
         Width = (int)(sides.X / Dimension);
         Height = (int)(sides.Y / Dimension);
 
-        blocks = new T[TotalBlocks];
+        Blocks = new T[TotalBlocks];
         for (int i = 0; i < TotalBlocks; i++)
-            blocks[i] = new T();
+            Blocks[i] = new T();
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
     /// <param name="index">The index of the block.</param>
     /// <exception cref="System.IndexOutOfRangeException">if the index is
     /// out of range.</exception>
-    public T this[int index] => blocks[index];
+    public T this[int index] => Blocks[index];
 
     /// <summary>
     /// Gets the block at the coordinates provided.
@@ -89,7 +89,7 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
     /// <returns>The block at the location.</returns>
     /// <exception cref="System.IndexOutOfRangeException">if the indices
     /// are out of range.</exception>
-    public T this[int row, int col] => blocks[(row * Width) + col];
+    public T this[int row, int col] => Blocks[(row * Width) + col];
 
     /// <summary>
     /// Performs iteration over the grid for the segment provided. The
@@ -198,12 +198,12 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
             error -= (blockUnitStart.Y - Math.Floor(blockUnitStart.Y)) * absDelta.X;
         }
 
-        if (numBlocks > blocks.Length)
-            numBlocks = blocks.Length;
+        if (numBlocks > Blocks.Length)
+            numBlocks = Blocks.Length;
 
-        for (int i = 0; i < numBlocks && blockIndex < blocks.Length && blockIndex > 0; i++)
+        for (int i = 0; i < numBlocks && blockIndex < Blocks.Length && blockIndex > 0; i++)
         {
-            T gridElement = blocks[blockIndex];
+            T gridElement = Blocks[blockIndex];
             if (func(gridElement) == GridIterationStatus.Stop)
                 return true;
 
@@ -261,9 +261,9 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
         for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
         {
             int currentIndex = baseIndex;
-            for (int x = blockUnitStart.X; x < blockUnitEnd.X && currentIndex < blocks.Length; x++)
+            for (int x = blockUnitStart.X; x < blockUnitEnd.X && currentIndex < Blocks.Length; x++)
             {
-                if (func(blocks[currentIndex]) == GridIterationStatus.Stop)
+                if (func(Blocks[currentIndex]) == GridIterationStatus.Stop)
                     return true;
                 currentIndex++;
             }
@@ -273,10 +273,6 @@ public class UniformGrid<T> : IEnumerable<T> where T : new()
 
         return false;
     }
-
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)blocks).GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private static Box2D ToBounds(Box2D bounds)
     {

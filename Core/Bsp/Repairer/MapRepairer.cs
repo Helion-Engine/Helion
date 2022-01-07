@@ -130,7 +130,7 @@ public class MapRepairer
             // function (the sum of `i = 1..(n choose 2) of i` has n^4 as a
             // highest order term). Breaking out wont avoid O(n^4) but all
             // maps thus far don't trigger this pathological case anyways.
-            foreach (MapBlock block in m_blocks)
+            foreach (MapBlock block in m_blocks.Blocks)
             {
                 foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
                 {
@@ -171,7 +171,7 @@ public class MapRepairer
             List<BspSegment> segsToRemove = new List<BspSegment>();
             List<BspSegment> segsToAdd = new List<BspSegment>();
 
-            foreach (MapBlock block in m_blocks)
+            foreach (MapBlock block in m_blocks.Blocks)
             {
                 foreach ((BspSegment firstSeg, BspSegment secondSeg) in block.Segments.PairCombinations())
                 {
