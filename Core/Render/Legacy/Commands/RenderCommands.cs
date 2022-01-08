@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
@@ -14,18 +15,48 @@ using Helion.World.Entities;
 
 namespace Helion.Render.Legacy.Commands;
 
+public enum RenderCommandType
+{
+    Clear,
+    World,
+    Image,
+    Text,
+    Shape,
+    Viewport
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct RenderCommand
+{
+    public RenderCommand(RenderCommandType type, int index)
+    {
+        Type = type;
+        Index = index;
+    }
+
+    public RenderCommandType Type;
+    public int Index;
+};
+
 public class RenderCommands
 {
     public readonly IConfig Config;
     public readonly Dimension WindowDimension;
     public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
     public readonly FpsTracker FpsTracker;
-    public readonly List<object> Commands = new();
     public ResolutionInfo ResolutionInfo { get; private set; }
     private readonly Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
     private Vec2I m_translateOffset = Vec2I.Zero;
     private int m_centeringOffsetX;
+
+    public List<RenderCommand> Commands = new();
+    public List<ClearRenderCommand> ClearCommands = new();
+    public List<DrawWorldCommand> WorldCommands = new();
+    public List<DrawImageCommand> ImageCommands = new();
+    public List<ViewportCommand> ViewportCommands = new();
+    public List<DrawTextCommand> TextCommands = new();
+    public List<DrawShapeCommand> ShapeCommands = new();
 
     public RenderCommands(IConfig config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
         FpsTracker fpsTracker)
@@ -41,6 +72,12 @@ public class RenderCommands
     public void Begin()
     {
         Commands.Clear();
+        ClearCommands.Clear();
+        WorldCommands.Clear();
+        ImageCommands.Clear();
+        ViewportCommands.Clear();
+        TextCommands.Clear();
+        ShapeCommands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
         m_scale = Vec2D.One;
@@ -49,12 +86,14 @@ public class RenderCommands
 
     public void Clear(Color color, bool depth = false, bool stencil = false)
     {
-        Commands.Add(new ClearRenderCommand(true, depth, stencil, color));
+        Commands.Add(new RenderCommand(RenderCommandType.Clear, ClearCommands.Count));
+        ClearCommands.Add(new ClearRenderCommand(true, depth, stencil, color));
     }
 
     public void ClearDepth()
     {
-        Commands.Add(ClearRenderCommand.DepthOnly());
+        Commands.Add(new RenderCommand(RenderCommandType.Clear, ClearCommands.Count));
+        ClearCommands.Add(ClearRenderCommand.DepthOnly());
     }
 
     public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
@@ -62,32 +101,37 @@ public class RenderCommands
     {
         ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
         DrawImageCommand cmd = new(textureName, drawArea, color, alpha, drawInvul);
-        Commands.Add(cmd);
+        Commands.Add(new RenderCommand(RenderCommandType.Image, ImageCommands.Count));
+        ImageCommands.Add(cmd);
     }
 
     public void FillRect(ImageBox2I rectangle, Color color, float alpha)
     {
         ImageBox2I transformedRectangle = TranslateDimensions(rectangle);
         DrawShapeCommand command = new(transformedRectangle, color, alpha);
-        Commands.Add(command);
+        Commands.Add(new RenderCommand(RenderCommandType.Shape, ShapeCommands.Count));
+        ShapeCommands.Add(command);
     }
 
     public void DrawText(RenderableString str, int left, int top, float alpha)
     {
         ImageBox2I drawArea = TranslateDimensions(left, top, str.DrawArea);
         DrawTextCommand command = new(str, drawArea, alpha);
-        Commands.Add(command);
+        Commands.Add(new RenderCommand(RenderCommandType.Text, TextCommands.Count));
+        TextCommands.Add(command);
     }
 
     public void DrawWorld(WorldBase world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale)
     {
-        Commands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
+        Commands.Add(new RenderCommand(RenderCommandType.World, WorldCommands.Count));
+        WorldCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)
     {
-        Commands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
+        Commands.Add(new RenderCommand(RenderCommandType.Viewport, ViewportCommands.Count));
+        ViewportCommands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
     }
 
     /// <summary>

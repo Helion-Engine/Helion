@@ -109,32 +109,33 @@ public class GLLegacyRenderer : ILegacyRenderer
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
-        Rectangle viewport = new Rectangle(0, 0, 800, 600);
-        foreach (object renderCommand in renderCommands.Commands)
+        Rectangle viewport = new(0, 0, 800, 600);
+        for (int i = 0; i < renderCommands.Commands.Count; i++)
         {
-            switch (renderCommand)
+            RenderCommand cmd = renderCommands.Commands[i];
+            switch (cmd.Type)
             {
-            case ClearRenderCommand cmd:
-                HandleClearCommand(cmd);
-                break;
-            case DrawImageCommand cmd:
-                HandleDrawImage(cmd);
-                break;
-            case DrawShapeCommand cmd:
-                HandleDrawShape(cmd);
-                break;
-            case DrawTextCommand cmd:
-                HandleDrawText(cmd);
-                break;
-            case DrawWorldCommand cmd:
-                HandleRenderWorldCommand(cmd, viewport);
-                break;
-            case ViewportCommand cmd:
-                HandleViewportCommand(cmd, out viewport);
-                break;
-            default:
-                Fail($"Unsupported render command type: {renderCommand}");
-                break;
+                case RenderCommandType.Image:
+                    HandleDrawImage(renderCommands.ImageCommands[cmd.Index]);
+                    break;
+                case RenderCommandType.Shape:
+                    HandleDrawShape(renderCommands.ShapeCommands[cmd.Index]);
+                    break;
+                case RenderCommandType.Text:
+                    HandleDrawText(renderCommands.TextCommands[cmd.Index]);
+                    break;
+                case RenderCommandType.Clear:
+                    HandleClearCommand(renderCommands.ClearCommands[cmd.Index]);
+                    break;
+                case RenderCommandType.World:
+                    HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], viewport);
+                    break;
+                case RenderCommandType.Viewport:
+                    HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out viewport);
+                    break;
+                default:
+                    Fail($"Unsupported render command type: {cmd.Type}");
+                    break;
             }
         }
 

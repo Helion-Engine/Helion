@@ -2,19 +2,21 @@ using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Shared;
 using Helion.World;
 using Helion.World.Entities;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct DrawWorldCommand
 {
-    public readonly WorldBase World;
-    public readonly Camera Camera;
+    public readonly bool DrawAutomap;
     public readonly int Gametick;
     public readonly float GametickFraction;
-    public readonly Entity ViewerEntity;
-    public readonly bool DrawAutomap;
-    public readonly Vec2I AutomapOffset;
     public readonly double AutomapScale;
+    public readonly Vec2I AutomapOffset;
+    public readonly WorldBase World;
+    public readonly Camera Camera;
+    public readonly Entity ViewerEntity;
 
     public DrawWorldCommand(WorldBase world, Camera camera, int gametick, float gametickFraction,
         Entity viewerEntity, bool drawAutomap, Vec2I automapOffset, double automapScale)

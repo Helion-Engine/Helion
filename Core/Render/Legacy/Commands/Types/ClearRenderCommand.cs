@@ -1,8 +1,10 @@
 using System.Drawing;
+using System.Runtime.InteropServices;
 using SystemColor = System.Drawing.Color;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct ClearRenderCommand
 {
     public static readonly Color DefaultClearColor = SystemColor.Black;

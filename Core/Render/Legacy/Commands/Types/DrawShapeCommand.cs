@@ -1,8 +1,10 @@
 using System.Drawing;
+using System.Runtime.InteropServices;
 using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Legacy.Commands.Types;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct DrawShapeCommand
 {
     public readonly ImageBox2I Rectangle;
