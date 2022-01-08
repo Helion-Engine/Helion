@@ -11,12 +11,13 @@ public class RenderWorldDataManager : IDisposable
 {
     private readonly GLCapabilities m_capabilities;
     private readonly IGLFunctions gl;
-    private readonly Dictionary<GLLegacyTexture, RenderWorldData> m_textureToWorldData = new();
+    private RenderWorldData?[] m_allRenderData;
     private readonly List<RenderWorldData> m_renderData = new();
     private readonly List<RenderWorldData> m_alphaRenderData = new();
 
     public RenderWorldDataManager(GLCapabilities capabilities, IGLFunctions functions)
     {
+        m_allRenderData = new RenderWorldData[1024];
         m_capabilities = capabilities;
         gl = functions;
     }
@@ -29,11 +30,15 @@ public class RenderWorldDataManager : IDisposable
 
     public RenderWorldData GetRenderData(GLLegacyTexture texture)
     {
-        if (m_textureToWorldData.TryGetValue(texture, out RenderWorldData? data))
+        if (m_allRenderData.Length < texture.TextureId)
+            m_allRenderData = new RenderWorldData[m_allRenderData.Length * 2];
+
+        RenderWorldData? data = m_allRenderData[texture.TextureId];
+        if (data != null)
             return data;
 
         RenderWorldData newData = new(m_capabilities, gl, texture);
-        m_textureToWorldData[texture] = newData;
+        m_allRenderData[texture.TextureId] = newData;       
         m_renderData.Add(newData);
         return newData;
     }
