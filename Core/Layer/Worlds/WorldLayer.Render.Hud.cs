@@ -45,6 +45,8 @@ public partial class WorldLayer
     private float m_scale = 1.0f;
     private Dimension m_viewport;
 
+    private readonly List<(ColoredString message, float alpha)> m_messages = new();
+
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud)
     {
         m_scale = (float)m_config.Hud.Scale.Value;
@@ -261,8 +263,9 @@ public partial class WorldLayer
         List<InventoryItem> keys = Player.Inventory.GetKeys();
         y += m_padding;
 
-        foreach (InventoryItem key in keys)
+        for (int i = 0; i < keys.Count; i++)
         {
+            InventoryItem key = keys[i];
             string icon = key.Definition.Properties.Inventory.Icon;
             if (!hud.Textures.HasImage(icon))
                 continue;
@@ -393,28 +396,30 @@ public partial class WorldLayer
     private void DrawFullHudKeys(IHudRenderContext hud)
     {
         const int OffsetX = 239;
+        var keys = Player.Inventory.GetKeys();
 
-        foreach (InventoryItem key in Player.Inventory.GetKeys())
+        for (int i = 0; i < keys.Count; i++)
         {
+            InventoryItem key = keys[i];
             DrawKeyIfOwned(hud, key, "BlueSkull", "BlueCard", OffsetX, 171);
             DrawKeyIfOwned(hud, key, "YellowSkull", "YellowCard", OffsetX, 181);
             DrawKeyIfOwned(hud, key, "RedSkull", "RedCard", OffsetX, 191);
         }
     }
 
-    private void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName,
+    private static void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName,
         string keyName, int x, int y)
     {
         string imageName = key.Definition.Properties.Inventory.Icon;
 
-        foreach (string name in new[] { skullKeyName, keyName })
+        if (key.Definition.Name.EqualsIgnoreCase(skullKeyName) && hud.Textures.HasImage(imageName))
         {
-            if (key.Definition.Name.EqualsIgnoreCase(name) && hud.Textures.HasImage(imageName))
-            {
-                hud.Image(imageName, (x, y));
-                break;
-            }
+            hud.Image(imageName, (x, y));
+            return;
         }
+
+        if (key.Definition.Name.EqualsIgnoreCase(keyName) && hud.Textures.HasImage(imageName))
+            hud.Image(imageName, (x, y));
     }
 
     private void DrawFullTotalAmmo(IHudRenderContext hud)
@@ -451,9 +456,13 @@ public partial class WorldLayer
         // will draw the later ones at the top. Otherwise if we were to do
         // forward iteration without the stack, then they get drawn in the
         // reverse order and fading begins at the wrong end.
-        Stack<(ColoredString message, float alpha)> messages = new();
-        foreach (ConsoleMessage msg in m_console.Messages)
+
+        LinkedListNode<ConsoleMessage>? node = m_console.Messages.First;
+        while (node != null)
         {
+            ConsoleMessage msg = node.Value;
+            node = node.Next;
+
             if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, World, m_console))
                 break;
 
@@ -461,16 +470,18 @@ public partial class WorldLayer
             if (timeSinceMessage > MaxVisibleTimeNanos)
                 break;
 
-            messages.Push((msg.Message, CalculateFade(timeSinceMessage)));
+            m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
             messagesDrawn++;
         }
 
-        foreach ((ColoredString message, float alpha) in messages)
+        for (int i = 0; i < m_messages.Count; i++)
         {
-            hud.Text(message, SmallHudFont, 8, (LeftOffset, offsetY),
-                out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: alpha);
+            hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset, offsetY),
+                out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
             offsetY += drawArea.Height + MessageSpacing;
         }
+
+        m_messages.Clear();
     }
 
     private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console)

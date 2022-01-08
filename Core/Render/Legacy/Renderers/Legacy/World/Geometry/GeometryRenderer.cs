@@ -111,16 +111,17 @@ public class GeometryRenderer : IDisposable
     private void CacheData(WorldBase world)
     {
         Vec2D pos = m_position.XY;
-        foreach (var subsector in world.BspTree.Subsectors)
+        for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
+            Subsector subsector = world.BspTree.Subsectors[i];
             if (subsector.Sector.TransferHeights != null)
                 continue;
 
             m_viewSector = subsector.Sector;
             List<SubsectorSegment> edges = subsector.ClockwiseEdges;
-            for (int i = 0; i < edges.Count; i++)
+            for (int j = 0; j < edges.Count; j++)
             {
-                SubsectorSegment edge = edges[i];
+                SubsectorSegment edge = edges[j];
                 if (edge.Side == null)
                     continue;
 

@@ -87,24 +87,28 @@ public class LegacyHudRenderer : HudRenderer
     {
         GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(text.Font.Name);
 
-        foreach (RenderableGlyph glyph in text.Sentences.SelectMany(s => s.Glyphs))
+        for (int i = 0; i < text.Sentences.Count; i++)
         {
-            float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);
-            float top = drawArea.Top + (float)(glyph.Location.Top * drawArea.Height);
-            float right = drawArea.Left + (float)(glyph.Location.Right * drawArea.Width);
-            float bottom = drawArea.Top + (float)(glyph.Location.Bottom * drawArea.Height);
-            float uvLeft = (float)glyph.UV.Left;
-            float uvTop = (float)glyph.UV.Top;
-            float uvRight = (float)glyph.UV.Right;
-            float uvBottom = (float)glyph.UV.Bottom;
+            for (int j = 0; j < text.Sentences[i].Glyphs.Count; j++)
+            {
+                RenderableGlyph glyph = text.Sentences[i].Glyphs[j];
+                float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);
+                float top = drawArea.Top + (float)(glyph.Location.Top * drawArea.Height);
+                float right = drawArea.Left + (float)(glyph.Location.Right * drawArea.Width);
+                float bottom = drawArea.Top + (float)(glyph.Location.Bottom * drawArea.Height);
+                float uvLeft = (float)glyph.UV.Left;
+                float uvTop = (float)glyph.UV.Top;
+                float uvRight = (float)glyph.UV.Right;
+                float uvBottom = (float)glyph.UV.Bottom;
 
-            HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph);
-            HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph);
-            HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph);
-            HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph);
+                HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph);
+                HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph);
+                HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph);
+                HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph);
 
-            HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
-            m_drawBuffer.Add(font.Texture, quad);
+                HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
+                m_drawBuffer.Add(font.Texture, quad);
+            }
         }
 
         DrawDepth += 1.0f;
@@ -124,8 +128,9 @@ public class LegacyHudRenderer : HudRenderer
         m_shaderProgram.Mvp.Set(gl, CreateMvp(viewport));
 
         // TODO: Bind VAO and VBO out here and not constantly bind/unbind?
-        foreach (HudDrawBufferData data in m_drawBuffer.DrawBuffer)
+        for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
+            HudDrawBufferData data = m_drawBuffer.DrawBuffer[i];
             UploadVerticesToVbo(data);
 
             data.Texture.Bind();

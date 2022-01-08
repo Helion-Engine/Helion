@@ -22,6 +22,7 @@ public class LegacySkyRenderer : IDisposable
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly IGLFunctions gl;
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
+    private readonly List<ISkyComponent> m_skyComponentsList = new();
 
     public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -41,19 +42,20 @@ public class LegacySkyRenderer : IDisposable
 
     public void Reset()
     {
-        foreach (ISkyComponent skyComponent in m_skyComponents.Values)
+        for (int i = 0; i < m_skyComponentsList.Count; i++)
         {
-            skyComponent.Clear();
-            skyComponent.Dispose();
+            m_skyComponentsList[i].Clear();
+            m_skyComponentsList[i].Dispose();
         }
 
         m_skyComponents.Clear();
+        m_skyComponentsList.Clear();
     }
 
     public void Clear()
     {
-        foreach (ISkyComponent skyComponent in m_skyComponents.Values)
-            skyComponent.Clear();
+        for (int i = 0; i < m_skyComponentsList.Count; i++)
+            m_skyComponentsList[i].Clear();
     }
 
     public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, bool flipSkyTexture)
@@ -78,6 +80,7 @@ public class LegacySkyRenderer : IDisposable
             ISkyComponent newSky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl,
                 m_textureManager, textureHandle.Value, flipSkyTexture);
             m_skyComponents[textureHandleLookup] = newSky;
+            m_skyComponentsList.Add(newSky);
             newSky.Add(data, length);
         }
     }
@@ -89,8 +92,9 @@ public class LegacySkyRenderer : IDisposable
         gl.StencilOp(StencilOpType.Keep, StencilOpType.Keep, StencilOpType.Replace);
 
         int index = 1;
-        foreach (ISkyComponent sky in m_skyComponents.Values)
+        for (int i = 0; i < m_skyComponentsList.Count; i++)
         {
+            ISkyComponent sky = m_skyComponentsList[i];
             if (!sky.HasGeometry)
                 continue;
 
@@ -122,8 +126,8 @@ public class LegacySkyRenderer : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        foreach (ISkyComponent skyComponent in m_skyComponents.Values)
-            skyComponent.Dispose();
+        for (int i = 0; i < m_skyComponentsList.Count; i++)
+            m_skyComponentsList[i].Dispose();
 
         m_skyComponents.Clear();
     }

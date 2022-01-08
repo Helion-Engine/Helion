@@ -205,8 +205,9 @@ public class LegacyAutomapRenderer : IDisposable
                 player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings);
         }
 
-        foreach (Line line in world.Lines)
+        for (int i = 0; i < world.Lines.Count; i++)
         {
+            Line line = world.Lines[i];
             if (!line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
