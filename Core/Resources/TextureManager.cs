@@ -228,8 +228,9 @@ public class TextureManager : ITickable
 
     public void Tick()
     {
-        foreach (Animation anim in m_animations)
+        for (int i = 0; i < m_animations.Count; i++)
         {
+            Animation anim = m_animations[i];
             var components = anim.AnimatedTexture.Components;
 
             anim.Tics++;
