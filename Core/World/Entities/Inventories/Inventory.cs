@@ -23,12 +23,24 @@ public class Inventory
     public static readonly string PowerupClassName = "POWERUPGIVER";
     public static readonly string RadSuitClassName = "RADSUIT";
 
+    private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
+
+    private static List<string> GetPowerEnumValues()
+    {
+        List<string> values = new();
+        var enumValues = Enum.GetValues(typeof(PowerupType));
+        foreach (PowerupType value in enumValues)
+            values.Add(value.ToString());
+        return values;
+    }
+
     /// <summary>
     /// All of the items owned by the player that are not a special type of
     /// item (ex: weapons, which need more logic).
     /// </summary>
-    private readonly Dictionary<string, InventoryItem> Items = new Dictionary<string, InventoryItem>(StringComparer.OrdinalIgnoreCase);
-    private readonly List<InventoryItem> Keys = new List<InventoryItem>();
+    private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<InventoryItem> ItemList = new();
+    private readonly List<InventoryItem> Keys = new();
     private readonly EntityDefinitionComposer EntityDefinitionComposer;
     private readonly Player Owner;
 
@@ -55,20 +67,20 @@ public class Inventory
         EntityDefinitionComposer = composer;
         Weapons = new Weapons(owner.World.GameInfo.WeaponSlots);
 
-        foreach (InventoryItemModel item in playerModel.Inventory.Items)
+        for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {
+            InventoryItemModel item = playerModel.Inventory.Items[i];
             EntityDefinition? definition = EntityDefinitionComposer.GetByName(item.Name);
             if (definition != null)
             {
-                InventoryItem inventoryItem = new InventoryItem(definition, item.Amount);
-                Items.Add(definition.Name, inventoryItem);
-                if (definition.IsType(KeyClassName))
-                    Keys.Add(inventoryItem);
+                InventoryItem inventoryItem = new(definition, item.Amount);
+                AddItem(definition, inventoryItem);
             }
         }
 
-        foreach (string weaponName in playerModel.Inventory.Weapons)
+        for (int i = 0; i < playerModel.Inventory.Weapons.Count; i++)
         {
+            string weaponName = playerModel.Inventory.Weapons[i];
             EntityDefinition? definition = EntityDefinitionComposer.GetByName(weaponName);
             if (definition != null)
             {
@@ -79,8 +91,9 @@ public class Inventory
             }
         }
 
-        foreach (var powerupModel in playerModel.Inventory.Powerups)
+        for (int i = 0; i < playerModel.Inventory.Powerups.Count; i++)
         {
+            var powerupModel = playerModel.Inventory.Powerups[i];
             EntityDefinition? definition = EntityDefinitionComposer.GetByName(powerupModel.Name);
             if (definition == null)
                 continue;
@@ -94,19 +107,20 @@ public class Inventory
 
     public InventoryModel ToInventoryModel()
     {
-        List<InventoryItemModel> inventoryItems = new List<InventoryItemModel>();
-        foreach (var item in Items)
+        List<InventoryItemModel> inventoryItems = new();
+        for (int i = 0; i < ItemList.Count; i++)
         {
+            var item = ItemList[i];
             inventoryItems.Add(new InventoryItemModel()
             {
-                Name = item.Value.Definition.Name.ToString(),
-                Amount = item.Value.Amount
+                Name = item.Definition.Name.ToString(),
+                Amount = item.Amount
             });
         }
 
-        List<PowerupModel> powerupModels = new List<PowerupModel>();
-        foreach (var powerup in Powerups)
-            powerupModels.Add(powerup.ToPowerupModel());
+        List<PowerupModel> powerupModels = new();
+        for (int i = 0; i < Powerups.Count; i++)
+            powerupModels.Add(Powerups[i].ToPowerupModel());
 
         return new InventoryModel()
         {
@@ -150,8 +164,8 @@ public class Inventory
 
     public void ClearPowerups()
     {
-        foreach (IPowerup powerup in Powerups)
-            Remove(powerup.EntityDefinition.Name, 1);
+        for (int i = 0; i < Powerups.Count; i++)
+            Remove(Powerups[i].EntityDefinition.Name, 1);
         Powerups.Clear();
         PowerupEffectColor = null;
         PowerupEffectColorMap = null;
@@ -225,14 +239,11 @@ public class Inventory
             if (findDefinition == null)
                 return false;
 
-            InventoryItem inventoryItem = new InventoryItem(findDefinition, isKey ? 1 : amount);
-            Items[name] = inventoryItem;
+            InventoryItem inventoryItem = new(findDefinition, isKey ? 1 : amount);
+            AddItem(findDefinition, inventoryItem);
 
             if (isKey)
-            {
-                Keys.Add(inventoryItem);
                 SortKeys();
-            }
         }
 
         return true;
@@ -290,12 +301,10 @@ public class Inventory
 
     private static PowerupType GetPowerupType(string type)
     {
-        Array values = Enum.GetValues(typeof(PowerupType));
-
-        foreach (Enum value in values)
+        for (int i = 0; i < PowerupEnumStringValues.Count; i++)
         {
-            if (value.ToString().Equals(type, StringComparison.OrdinalIgnoreCase))
-                return (PowerupType)value;
+            if (PowerupEnumStringValues[i].Equals(type, StringComparison.OrdinalIgnoreCase))
+                return (PowerupType)i;
         }
 
         return PowerupType.None;
@@ -340,13 +349,15 @@ public class Inventory
 
     public void ClearKeys()
     {
-        Keys.ForEach(x => Items.Remove(x.Definition.Name));
+        for (int i = 0; i < Keys.Count; i++)
+            RemoveItem(Keys[i].Definition.Name);
         Keys.Clear();
     }
 
     public void Clear()
     {
         Items.Clear();
+        ItemList.Clear();
         Keys.Clear();
     }
 
@@ -354,7 +365,7 @@ public class Inventory
 
     public bool HasAnyItem(IEnumerable<string> names) => names.Any(x => HasItem(x));
 
-    public bool HasItemOfClass(string name) => Items.Any(x => x.Value.Definition.IsType(name));
+    public bool HasItemOfClass(string name) => ItemList.Any(x => x.Definition.IsType(name));
 
     public int Amount(string name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 
@@ -368,7 +379,7 @@ public class Inventory
             if (amount < item.Amount)
                 item.Amount -= amount;
             else
-                Items.Remove(name);
+                RemoveItem(name);
 
             if (item.Definition.IsType(KeyClassName))
             {
@@ -384,13 +395,8 @@ public class Inventory
         Weapons.Remove(name);
     }
 
-    public List<InventoryItem> GetInventoryItems() => Items.Values.ToList();
+    public List<InventoryItem> GetInventoryItems() => ItemList;
     public List<InventoryItem> GetKeys() => Keys;
-
-    public void RemoveAll(string name)
-    {
-        Items.Remove(name);
-    }
 
     private static IEnumerable<EntityDefinition> GetAmmoTypes(EntityDefinitionComposer definitionComposer)
     {
@@ -406,5 +412,25 @@ public class Inventory
 
             return i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value);
         });
+    }
+
+    private void RemoveItem(string name)
+    {
+        if (!Items.TryGetValue(name, out InventoryItem? item))
+            return;
+
+        Items.Remove(name);
+        ItemList.Remove(item);
+    }
+
+    private void AddItem(EntityDefinition definition, InventoryItem item)
+    {
+        if (Items.ContainsKey(definition.Name))
+            return;
+
+        Items[definition.Name] = item;
+        ItemList.Add(item);
+        if (definition.IsType(KeyClassName))
+            Keys.Add(item);
     }
 }
