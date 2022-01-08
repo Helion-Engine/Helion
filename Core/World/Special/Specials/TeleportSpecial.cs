@@ -222,6 +222,7 @@ public class TeleportSpecial : ISpecial
                 while (node != null)
                 {
                     Entity entity = node.Value;
+                    node = node.Next;
                     if (entity.Flags.IsTeleportSpot)
                     {
                         pos = entity.Position;
@@ -249,6 +250,7 @@ public class TeleportSpecial : ISpecial
                 while (node != null)
                 {
                     Entity entity = node.Value;
+                    node = node.Next;
                     if (entity.ThingId == m_tid && entity.Flags.IsTeleportSpot)
                     {
                         pos = entity.Position;
