@@ -23,6 +23,8 @@ public class Side : IRenderObject
     public bool OffsetChanged { get; set; }
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
+    public bool IsTwoSided => Line.Back != null;
+    public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
 
     public SideScrollData? ScrollData { get; set; }
 

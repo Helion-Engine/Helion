@@ -17,18 +17,18 @@ public static class SwitchManager
         (int, WallLocation) switchSet = GetLineLineSwitchTexture(definition, line);
         if (switchSet.Item1 != Constants.NoTextureIndex)
         {
-            if (line.Front is TwoSided twoSided)
+            if (line.Back != null)
             {
                 switch (switchSet.Item2)
                 {
                     case WallLocation.Upper:
-                        twoSided.Upper.SetTexture(switchSet.Item1, SideDataTypes.UpperTexture);
+                        line.Front.Upper.SetTexture(switchSet.Item1, SideDataTypes.UpperTexture);
                         break;
                     case WallLocation.Middle:
-                        twoSided.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
+                        line.Front.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
                         break;
                     case WallLocation.Lower:
-                        twoSided.Lower.SetTexture(switchSet.Item1, SideDataTypes.LowerTexture);
+                        line.Front.Lower.SetTexture(switchSet.Item1, SideDataTypes.LowerTexture);
                         break;
                 }
             }
@@ -41,18 +41,20 @@ public static class SwitchManager
 
     private static (int, WallLocation) GetLineLineSwitchTexture(DefinitionEntries definition, Line line)
     {
-        if (line.Front is TwoSided twoSided)
+        if (line.Back != null)
         {
-            foreach (var animSwitch in definition.Animdefs.AnimatedSwitches)
+            Side side = line.Front;
+            for (int i = 0; i < definition.Animdefs.AnimatedSwitches.Count; i++)
             {
-                if (twoSided.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(twoSided.Upper.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(twoSided.Upper.TextureHandle), WallLocation.Upper);
+                var animSwitch = definition.Animdefs.AnimatedSwitches[i];
+                if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
+                    return (animSwitch.GetOpposingTexture(side.Upper.TextureHandle), WallLocation.Upper);
 
-                if (twoSided.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(twoSided.Middle.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(twoSided.Middle.TextureHandle), WallLocation.Middle);
+                if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
+                    return (animSwitch.GetOpposingTexture(side.Middle.TextureHandle), WallLocation.Middle);
 
-                if (twoSided.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(twoSided.Lower.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(twoSided.Lower.TextureHandle), WallLocation.Lower);
+                if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
+                    return (animSwitch.GetOpposingTexture(side.Lower.TextureHandle), WallLocation.Lower);
             }
         }
         else

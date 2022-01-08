@@ -43,7 +43,7 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static WallVertices HandleTwoSidedLower(TwoSided facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
+    public static WallVertices HandleTwoSidedLower(Side facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
         in Vec2F textureUVInverse, bool isFrontSide, double tickFraction)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
@@ -66,7 +66,7 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
-    public static WallVertices HandleTwoSidedMiddle(TwoSided facingSide,
+    public static WallVertices HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ,
         bool isFrontSide, out bool nothingVisible, double tickFraction, double offset = 0)
     {
@@ -173,7 +173,7 @@ public static class WorldTriangulator
         }
     }
 
-    private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, TwoSided facingSide, double bottomOpeningZ,
+    private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ,
         double topOpeningZ, in Dimension textureDimension, double offset)
     {
         double topZ = topOpeningZ;

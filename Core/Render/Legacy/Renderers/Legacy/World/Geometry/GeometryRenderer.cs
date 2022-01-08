@@ -125,10 +125,10 @@ public class GeometryRenderer : IDisposable
                 if (edge.Side == null)
                     continue;
 
-                if (edge.Side is TwoSided twoSided)
+                if (edge.Side.IsTwoSided)
                 {
-                    RenderSide(twoSided, twoSided.IsFront);
-                    RenderSide(twoSided.PartnerSide, twoSided.PartnerSide.IsFront);
+                    RenderSide(edge.Side, edge.Side.IsFront);
+                    RenderSide(edge.Side.PartnerSide!, edge.Side.PartnerSide!.IsFront);
                     continue;
                 }
                 
@@ -262,24 +262,24 @@ public class GeometryRenderer : IDisposable
 
     public void RenderAlphaSide(Side side, bool isFrontSide, in Vec3D position)
     {
-        if (side is not TwoSided twoSided)
+        if (side.Line.Back == null)
             return;
 
-        if (twoSided.Middle.TextureHandle != Constants.NoTextureIndex)
+        if (side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
-            Sector facingSector = twoSided.Sector.GetRenderSector(m_viewSector, m_position.Z);
-            Sector otherSector = twoSided.PartnerSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-            RenderTwoSidedMiddle(twoSided, twoSided.PartnerSide, facingSector, otherSector, isFrontSide);
+            Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            Sector otherSector = side.PartnerSide!.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide);
         }
     }
 
     public void RenderSide(Side side, bool isFrontSide)
     {
         m_skyOverride = false;
-        if (side is not TwoSided twoSided)
-            RenderOneSided(side);
+        if (side.IsTwoSided)
+            RenderTwoSided(side, isFrontSide);
         else
-            RenderTwoSided(twoSided, isFrontSide);
+            RenderOneSided(side);
     }
 
     private void RenderOneSided(Side side)
@@ -292,7 +292,7 @@ public class GeometryRenderer : IDisposable
 
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
-        RenderSkySide(side, null, renderSector, null, texture);
+        RenderSkySide(side, renderSector, null, texture);
 
         if (side.OffsetChanged || side.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
         {
@@ -340,9 +340,9 @@ public class GeometryRenderer : IDisposable
             data[i].LightLevelUnit = lightLevel;
     }
 
-    private void RenderTwoSided(TwoSided facingSide, bool isFrontSide)
+    private void RenderTwoSided(Side facingSide, bool isFrontSide)
     {
-        TwoSided otherSide = facingSide.PartnerSide;
+        Side otherSide = facingSide.PartnerSide!;
         Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
@@ -361,7 +361,7 @@ public class GeometryRenderer : IDisposable
         return facingZ < otherZ;
     }
 
-    private bool UpperIsVisible(TwoSided facingSide, Sector facingSector, Sector otherSector)
+    private bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         if (TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle))
         {
@@ -380,7 +380,7 @@ public class GeometryRenderer : IDisposable
         return facingZ > otherZ;
     }
 
-    private void RenderTwoSidedLower(TwoSided facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    private void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall lowerWall = facingSide.Lower;
@@ -444,7 +444,7 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderTwoSidedUpper(TwoSided facingSide, TwoSided otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    private void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         SectorPlane plane = otherSector.Ceiling;
@@ -465,7 +465,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
 
-        RenderSkySide(facingSide, facingSide, facingSector, otherSector, texture);
+        RenderSkySide(facingSide, facingSector, otherSector, texture);
 
         if (isSky)
         {
@@ -521,7 +521,7 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderSkySide(Side facingSide, TwoSided? twoSided, Sector facingSector, Sector? otherSector, GLLegacyTexture texture)
+    private void RenderSkySide(Side facingSide, Sector facingSector, Sector? otherSector, GLLegacyTexture texture)
     {
         if (otherSector == null)
         {
@@ -535,16 +535,16 @@ public class GeometryRenderer : IDisposable
                 return;
         }
 
-        bool isFront = twoSided == null || twoSided.IsFront;
+        bool isFront = facingSide.IsFront;
         WallVertices wall;
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
-        if (twoSided != null && otherSector != null && LineOpening.IsRenderingBlocked(twoSided.Line) &&
-            SkyUpperRenderFromFloorCheck(twoSided, facingSector, otherSector))
+        if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
+            SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
             wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, m_tickFraction,
-                overrideFloor: twoSided.PartnerSide.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
+                overrideFloor: facingSide.PartnerSide!.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
         }
         else
         {
@@ -556,7 +556,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
     }
 
-    private static bool SkyUpperRenderFromFloorCheck(TwoSided twoSided, Sector facingSector, Sector otherSector)
+    private static bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
     {
         if (twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
             return true;
@@ -568,7 +568,7 @@ public class GeometryRenderer : IDisposable
         return false;
     }
 
-    private void RenderTwoSidedMiddle(TwoSided facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    private void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;

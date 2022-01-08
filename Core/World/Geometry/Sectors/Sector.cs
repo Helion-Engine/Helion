@@ -642,13 +642,13 @@ public class Sector
             Line line = Lines[i];
             if (line.TwoSided)
             {
-                TwoSided twoSided = (TwoSided)line.Front;
-                min = GetShortestTextureHeight(textureManager, twoSided, byLowerTx, config.VanillaShortestTexture, min);
+                Side side = line.Front;
+                min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
 
                 if (line.Back != null)
                 {
-                    twoSided = (TwoSided)line.Back;
-                    min = GetShortestTextureHeight(textureManager, twoSided, byLowerTx, config.VanillaShortestTexture, min);
+                    side = line.Back;
+                    min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);
                 }
             }
         }
@@ -662,10 +662,10 @@ public class Sector
         return min;
     }
 
-    private static double GetShortestTextureHeight(TextureManager textureManager, TwoSided twoSided, bool byLowerTx,
+    private static double GetShortestTextureHeight(TextureManager textureManager, Side side, bool byLowerTx,
         bool compat, double currentHeight)
     {
-        var wall = byLowerTx ? twoSided.Lower : twoSided.Upper;
+        var wall = byLowerTx ? side.Lower : side.Upper;
 
         if (wall.TextureHandle == Constants.NoTextureIndex && (!byLowerTx || !compat))
             return currentHeight;

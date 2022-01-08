@@ -104,7 +104,7 @@ public static class DoomGeometryBuilder
         return (front, null);
     }
 
-    private static TwoSided CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
+    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
     {
         // This is okay because of how we create sectors corresponding
         // to their list index. If this is wrong then someone broke the
@@ -123,7 +123,7 @@ public static class DoomGeometryBuilder
         builder.Walls.Add(upper);
         builder.Walls.Add(lower);
 
-        TwoSided side = new TwoSided(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
+        Side side = new(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
         builder.Sides.Add(side);
 
         nextSideId++;
@@ -137,8 +137,8 @@ public static class DoomGeometryBuilder
         if (doomLine.Back == null)
             return CreateSingleSide(doomLine, builder, ref nextSideId);
 
-        TwoSided front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
-        TwoSided back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
+        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
+        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
         return (front, back);
     }
 
