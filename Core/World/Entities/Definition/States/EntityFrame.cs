@@ -15,12 +15,20 @@ public class EntityFrame
     public int Ticks { get; set; }
     public bool IsInvisible { get; private set; }
     public readonly EntityFrameProperties Properties;
-    public  ActionFunction? ActionFunction { get; set; }
+    public ActionFunction? ActionFunction { get; set; }
     public int NextFrameIndex { get; set; }
     public ActorStateBranch BranchType { get; set; }
 
     public int DehackedMisc1 { get; set; }
     public int DehackedMisc2 { get; set; }
+    public int DehackedArgs1 { get; set; }
+    public int DehackedArgs2 { get; set; }
+    public int DehackedArgs3 { get; set; }
+    public int DehackedArgs4 { get; set; }
+    public int DehackedArgs5 { get; set; }
+    public int DehackedArgs6 { get; set; }
+    public int DehackedArgs7 { get; set; }
+    public int DehackedArgs8 { get; set; }
     public int MasterFrameIndex { get; set; }
     public int VanillaIndex { get; set; }
     public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];

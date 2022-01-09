@@ -219,11 +219,74 @@ public partial class DehackedDefinition
                 frame.Unknown2 = GetIntProperty(parser, Unknown2);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
                 frame.Mbf21Bits = GetBits(parser, Mbf21Bits, FramePropertyStringsMbf21);
+            else if (IsArgs(line))
+                SetFrameArgs(parser, line, frame);
             else
                 UnknownWarning(parser, "frame type");
         }
 
         Frames.Add(frame);
+    }
+
+    private static void SetFrameArgs(SimpleParser parser, string line, DehackedFrame frame)
+    {
+        const string FrameArgWarning = "Dehacked: Bad frame arg: ";
+        if (line.Length < 5)
+            return;
+
+        if (!int.TryParse(line.AsSpan(4, 1), out int index))
+        {
+            Log.Warn($"{FrameArgWarning}{line}");
+            return;
+        }
+
+        if (index < 1 || index > 8)
+        {
+            Log.Warn($"Dehacked: Bad frame arg: {line}");
+            return;
+        }
+
+        parser.ConsumeString();
+        parser.Consume('=');
+        int value = parser.ConsumeInteger();
+
+        switch (index)
+        {
+            case 1:
+                frame.Args1 = value;
+                break;
+            case 2:
+                frame.Args2 = value;
+                break;
+            case 3:
+                frame.Args3 = value;
+                break;
+            case 4:
+                frame.Args4 = value;
+                break;
+            case 5:
+                frame.Args5 = value;
+                break;
+            case 6:
+                frame.Args6 = value;
+                break;
+            case 7:
+                frame.Args7 = value;
+                break;
+            case 8:
+                frame.Args8 = value;
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static bool IsArgs(string line)
+    {
+        if (line.Length < 5 || !line.StartsWith("ARGS", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return char.IsDigit(line[4]);
     }
 
     private void ParseAmmo(SimpleParser parser)

@@ -267,10 +267,17 @@ public class DehackedApplier
                 }
             }
 
-            if (frame.Unknown1.HasValue)
-                entityFrame.DehackedMisc1 = frame.Unknown1.Value;
-            if (frame.Unknown2.HasValue)
-                entityFrame.DehackedMisc2 = frame.Unknown2.Value;
+            entityFrame.DehackedMisc1 = frame.Unknown1;
+            entityFrame.DehackedMisc2 = frame.Unknown2;
+            entityFrame.DehackedArgs1 = frame.Args1;
+            entityFrame.DehackedArgs2 = frame.Args2;
+            entityFrame.DehackedArgs3 = frame.Args3;
+            entityFrame.DehackedArgs4 = frame.Args4;
+            entityFrame.DehackedArgs5 = frame.Args5;
+            entityFrame.DehackedArgs6 = frame.Args6;
+            entityFrame.DehackedArgs7 = frame.Args7;
+            entityFrame.DehackedArgs8 = frame.Args8;
+
             if (frame.Mbf21Bits.HasValue)
                 ApplyFrameMbf21Bits(entityFrame, frame.Mbf21Bits.Value);
         }
