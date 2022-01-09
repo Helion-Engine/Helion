@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
-using Helion.Util;
+using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using MoreLinq.Extensions;
@@ -251,23 +251,56 @@ public class AnimdefsParser
     {
         // TODO: This needs to be looped, because we could have an ON
         // definition followed by an OFF.
-
         string upperSwitchName = parser.ConsumeString();
-        bool on = true;
+        if (CheckGame(parser, upperSwitchName, out IWadBaseType iwad))
+            upperSwitchName = parser.ConsumeString();
 
+        bool on = true;
         if (!parser.ConsumeIf("ON"))
         {
             parser.ConsumeString("OFF");
             on = false;
         }
 
-        AnimatedSwitch animatedSwitch = new(upperSwitchName);
+        AnimatedSwitch animatedSwitch = new(upperSwitchName, iwad);
         ConsumeAllSwitchPicAndSounds(parser, animatedSwitch, on);
 
         if (animatedSwitch.On.Empty())
             throw parser.MakeException($"Found no animated definitions for switch {upperSwitchName}");
 
         AnimatedSwitches.Add(animatedSwitch);
+    }
+
+    private static bool CheckGame(SimpleParser parser, string name, out IWadBaseType type)
+    {
+        type = IWadBaseType.None;
+        if (name.Equals("Doom", StringComparison.OrdinalIgnoreCase))
+        {
+            type = IWadBaseType.Doom2;
+            int? number = parser.ConsumeIfInt();
+            if (number.HasValue && number.Value == 1)
+                type = IWadBaseType.Doom1;
+            return true;
+        }
+        else if (name.Equals("Chex", StringComparison.OrdinalIgnoreCase) || name.Equals("Chex Quest", StringComparison.OrdinalIgnoreCase))
+        {
+            type = IWadBaseType.ChexQuest;
+            parser.ConsumeIfInt();
+            return true;
+        }
+        else if (name.Equals("Heretic", StringComparison.OrdinalIgnoreCase) || name.Equals("Hexen", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Strife", StringComparison.OrdinalIgnoreCase))
+        {
+            // we will probably never support these, just set to Doom2
+            type = IWadBaseType.Doom2;
+            return true;
+        }
+        else if (name.Equals("Any", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private void ConsumeDefinition(SimpleParser parser)

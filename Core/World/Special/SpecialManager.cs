@@ -124,7 +124,7 @@ public class SpecialManager : ITickable, IDisposable
         if (args.ActivationContext == ActivationContext.CrossLine)
             return false;
 
-        return !args.ActivateLineSpecial.Activated && SwitchManager.IsLineSwitch(m_world.ArchiveCollection.Definitions, args.ActivateLineSpecial);
+        return !args.ActivateLineSpecial.Activated && SwitchManager.IsLineSwitch(m_world.ArchiveCollection, args.ActivateLineSpecial);
     }
 
     private static SwitchType GetSwitchType(LineSpecial lineSpecial)

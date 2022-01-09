@@ -60,9 +60,6 @@ public partial class Client
                 ShowFatalError("Failed to load IWAD.");
             else
                 ShowFatalError("Failed to load files.");
-
-            throw new Exception("hi");
-            //Process.GetCurrentProcess().Kill();
         }
     }
 

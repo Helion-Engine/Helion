@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Resources.IWad;
 using Helion.Util;
 
 namespace Helion.Resources.Definitions.Animdefs.Textures;
@@ -10,10 +11,12 @@ public class AnimatedSwitch
     public readonly IList<AnimatedTextureComponent> Off = new List<AnimatedTextureComponent>();
     public string? Sound;
     public int StartTextureIndex;
+    public IWadBaseType IWad;
 
-    public AnimatedSwitch(string texture)
+    public AnimatedSwitch(string texture, IWadBaseType iwad = IWadBaseType.None)
     {
         Texture = texture;
+        IWad = iwad;
    }
 
     public bool IsMatch(int textureIndex)

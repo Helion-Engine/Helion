@@ -1,6 +1,8 @@
 using System.Linq;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
@@ -10,11 +12,11 @@ namespace Helion.World.Special.Switches;
 
 public static class SwitchManager
 {
-    public static bool IsLineSwitch(DefinitionEntries definition, Line line) => GetLineLineSwitchTexture(definition, line).Item1 != Constants.NoTextureIndex;
+    public static bool IsLineSwitch(ArchiveCollection archiveCollection, Line line) => GetLineLineSwitchTexture(archiveCollection, line).Item1 != Constants.NoTextureIndex;
 
-    public static void SetLineSwitch(DefinitionEntries definition, Line line)
+    public static void SetLineSwitch(ArchiveCollection archiveCollection, Line line)
     {
-        (int, WallLocation) switchSet = GetLineLineSwitchTexture(definition, line);
+        (int, WallLocation) switchSet = GetLineLineSwitchTexture(archiveCollection, line);
         if (switchSet.Item1 != Constants.NoTextureIndex)
         {
             if (line.Back != null)
@@ -39,14 +41,17 @@ public static class SwitchManager
         }
     }
 
-    private static (int, WallLocation) GetLineLineSwitchTexture(DefinitionEntries definition, Line line)
+    private static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line)
     {
         if (line.Back != null)
         {
             Side side = line.Front;
-            for (int i = 0; i < definition.Animdefs.AnimatedSwitches.Count; i++)
+            for (int i = 0; i < archiveCollection.Definitions.Animdefs.AnimatedSwitches.Count; i++)
             {
-                var animSwitch = definition.Animdefs.AnimatedSwitches[i];
+                var animSwitch = archiveCollection.Definitions.Animdefs.AnimatedSwitches[i];
+                if (animSwitch.IWad != IWadBaseType.None && animSwitch.IWad != archiveCollection.IWadType)
+                    continue;
+
                 if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
                     return (animSwitch.GetOpposingTexture(side.Upper.TextureHandle), WallLocation.Upper);
 
@@ -59,8 +64,10 @@ public static class SwitchManager
         }
         else
         {
-            var switchList = definition.Animdefs.AnimatedSwitches;
-            AnimatedSwitch? animSwitch = switchList.FirstOrDefault(sw => sw.IsMatch(line.Front.Middle.TextureHandle));
+            var switchList = archiveCollection.Definitions.Animdefs.AnimatedSwitches;
+            AnimatedSwitch? animSwitch = switchList.FirstOrDefault(sw => 
+                (sw.IWad == IWadBaseType.None || sw.IWad == archiveCollection.IWadType) &&
+                sw.IsMatch(line.Front.Middle.TextureHandle));
             if (animSwitch != null)
                 return (animSwitch.GetOpposingTexture(line.Front.Middle.TextureHandle), WallLocation.Middle);
         }
