@@ -4786,6 +4786,7 @@ public partial class DehackedDefinition
     private static readonly string IDKFAArmorClass = "IDKFA Armor Class";
     private static readonly string BFGCellsPerShot = "BFG Cells/Shot";
     private static readonly string MonstersInfight = "Monsters Infight";
+    private static readonly string AmmoPerShot = "Ammo per shot";
 
     private static readonly string SoundOffset = "Offset";
     private static readonly string SoundZeroOne = "Zero/One";

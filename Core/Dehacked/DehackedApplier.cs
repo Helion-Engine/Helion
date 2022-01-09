@@ -118,6 +118,8 @@ public class DehackedApplier
                 ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, Constants.FrameStates.Flash);
             if (weapon.AmmoType.HasValue)
                 SetWeaponAmmo(weaponDef, weapon.AmmoType.Value);
+            if (weapon.AmmoPerShot.HasValue)
+                weaponDef.Properties.Weapons.AmmoUse = weapon.AmmoPerShot.Value;
             if (weapon.Mbf21Bits.HasValue)
                 ApplyWeaponMbf21Bits(weaponDef, weapon.Mbf21Bits.Value);
         }

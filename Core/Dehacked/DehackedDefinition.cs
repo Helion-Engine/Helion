@@ -333,6 +333,8 @@ public partial class DehackedDefinition
                 weapon.ShootingFrame = GetIntProperty(parser, ShootingFrame);
             else if (line.StartsWith(FiringFrame, StringComparison.OrdinalIgnoreCase))
                 weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
+            else if (line.StartsWith(AmmoPerShot, StringComparison.OrdinalIgnoreCase))
+                weapon.AmmoPerShot = GetIntProperty(parser, AmmoPerShot);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
                 weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
             else
