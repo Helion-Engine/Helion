@@ -550,6 +550,12 @@ public partial class DehackedDefinition
         NOAUTOSWITCHTO = 0x020, // Cannot be switched to when ammo is picked up
     }
 
+    [Flags]
+    public enum Mbf21FrameFlags : uint
+    {
+        SKILL5FAST = 0x001,   // Tics halve on nightmare skill (demon)
+    }
+
     public readonly IReadOnlyDictionary<string, uint> ThingPropertyStrings = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SPECIAL", 0x00000001 },
@@ -617,6 +623,11 @@ public partial class DehackedDefinition
         { "FLEEMELEE", 0x00000008 },
         { "AUTOSWITCHFROM", 0x00000010 },
         { "NOAUTOSWITCHTO", 0x00000020 },
+    };
+
+    public readonly IReadOnlyDictionary<string, uint> FramePropertyStringsMbf21 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "SKILL5FAST", 0x00000001 },
     };
 
     public class FrameStateLookup

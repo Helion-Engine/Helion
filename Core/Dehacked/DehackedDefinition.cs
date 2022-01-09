@@ -217,6 +217,8 @@ public partial class DehackedDefinition
                 frame.Unknown1 = GetIntProperty(parser, Unknown1);
             else if (line.StartsWith(Unknown2, StringComparison.OrdinalIgnoreCase))
                 frame.Unknown2 = GetIntProperty(parser, Unknown2);
+            else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
+                frame.Mbf21Bits = GetBits(parser, Mbf21Bits, FramePropertyStringsMbf21);
             else
                 UnknownWarning(parser, "frame type");
         }

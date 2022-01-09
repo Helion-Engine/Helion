@@ -271,7 +271,15 @@ public class DehackedApplier
                 entityFrame.DehackedMisc1 = frame.Unknown1.Value;
             if (frame.Unknown2.HasValue)
                 entityFrame.DehackedMisc2 = frame.Unknown2.Value;
+            if (frame.Mbf21Bits.HasValue)
+                ApplyFrameMbf21Bits(entityFrame, frame.Mbf21Bits.Value);
         }
+    }
+
+    private static void ApplyFrameMbf21Bits(EntityFrame entityFrame, uint value)
+    {
+        Mbf21FrameFlags flags = (Mbf21FrameFlags)value;
+        entityFrame.Properties.Fast = flags.HasFlag(Mbf21FrameFlags.SKILL5FAST);
     }
 
     private void SetSprite(EntityFrame entityFrame, DehackedDefinition dehacked, int spriteNumber)
