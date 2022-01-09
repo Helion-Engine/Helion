@@ -86,6 +86,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool OnGround;
     public bool Refire;
+    public bool AttackDown;
     // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
     public bool ClippedWithEntity;
     public bool MoveLinked;

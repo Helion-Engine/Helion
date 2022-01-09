@@ -539,6 +539,17 @@ public partial class DehackedDefinition
         FULLVOLSOUNDS = 0x40000, 	// Full volume see / death sounds(cyberdemon, mastermind)
     }
 
+    [Flags]
+    public enum Mbf21WeaponFlags : uint
+    {
+        NOTHRUST = 0x001, 	// Doesn't thrust things
+        SILENT = 0x002, // eapon is silent
+        NOAUTOFIRE = 0x004, // 	Weapon won't autofire when swapped to
+        FLEEMELEE =	0x008, // Monsters consider it a melee weapon
+        AUTOSWITCHFROM = 0x010, // Can be switched away from when ammo is picked up
+        NOAUTOSWITCHTO = 0x020, // Cannot be switched to when ammo is picked up
+    }
+
     public readonly IReadOnlyDictionary<string, uint> ThingPropertyStrings = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SPECIAL", 0x00000001 },
@@ -596,6 +607,16 @@ public partial class DehackedDefinition
         { "E4M8BOSS", 0x00010000 },
         { "RIP", 0x00020000 },
         { "FULLVOLSOUNDS", 0x00040000 },
+    };
+
+    public readonly IReadOnlyDictionary<string, uint> WeaponPropertyStringsMbf21 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "NOTHRUST", 0x00000001 },
+        { "SILENT", 0x00000002 },
+        { "NOAUTOFIRE", 0x00000004 },
+        { "FLEEMELEE", 0x00000008 },
+        { "AUTOSWITCHFROM", 0x00000010 },
+        { "NOAUTOSWITCHTO", 0x00000020 },
     };
 
     public class FrameStateLookup

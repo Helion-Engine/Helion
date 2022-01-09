@@ -170,9 +170,9 @@ public partial class DehackedDefinition
             else if (line.StartsWith(RespawnFrame, StringComparison.OrdinalIgnoreCase))
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
             else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
-                thing.Bits = GetThingBits(parser, Bits, ThingPropertyStrings);
+                thing.Bits = GetBits(parser, Bits, ThingPropertyStrings);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
-                thing.Mbf21Bits = GetThingBits(parser, Mbf21Bits, ThingPropertyStringsMbf21);
+                thing.Mbf21Bits = GetBits(parser, Mbf21Bits, ThingPropertyStringsMbf21);
             else if (line.StartsWith(InfightingGroup, StringComparison.OrdinalIgnoreCase))
                 thing.InfightingGroup = GetIntProperty(parser, InfightingGroup);
             else if (line.StartsWith(ProjectileGroup, StringComparison.OrdinalIgnoreCase))
@@ -268,6 +268,8 @@ public partial class DehackedDefinition
                 weapon.ShootingFrame = GetIntProperty(parser, ShootingFrame);
             else if (line.StartsWith(FiringFrame, StringComparison.OrdinalIgnoreCase))
                 weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
+            else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
+                weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
             else
                 UnknownWarning(parser, "weapon type");
         }
@@ -557,7 +559,7 @@ public partial class DehackedDefinition
         return false;
     }
 
-    private static uint GetThingBits(SimpleParser parser, string property, IReadOnlyDictionary<string, uint> lookup)
+    private static uint GetBits(SimpleParser parser, string property, IReadOnlyDictionary<string, uint> lookup)
     {
         ConsumeProperty(parser, property);
         parser.ConsumeString("=");
@@ -565,10 +567,10 @@ public partial class DehackedDefinition
         if (bits.HasValue)
             return bits.Value;
 
-        return ParseThingStringBits(parser, lookup);
+        return ParseStringBits(parser, lookup);
     }
 
-    private static uint ParseThingStringBits(SimpleParser parser, IReadOnlyDictionary<string, uint> lookup)
+    private static uint ParseStringBits(SimpleParser parser, IReadOnlyDictionary<string, uint> lookup)
     {
         uint bits = 0;
         string[] items = parser.ConsumeLine().Split(new string[] { "+", "|", "," }, StringSplitOptions.RemoveEmptyEntries);

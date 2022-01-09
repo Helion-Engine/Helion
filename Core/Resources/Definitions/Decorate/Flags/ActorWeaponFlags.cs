@@ -17,7 +17,7 @@ public struct ActorWeaponFlags
     public bool? NoAutofire;
     public bool? NoDeathDeselect;
     public bool? NoDeathInput;
-    public bool? NoAutoSwitch;
+    public bool? NoAutoSwitchTo;
     public bool? PoweredUp;
     public bool? PrimaryUsesBoth;
     public bool? ReadySndHalf;

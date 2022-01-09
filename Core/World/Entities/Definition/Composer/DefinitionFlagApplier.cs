@@ -634,8 +634,8 @@ public static class DefinitionFlagApplier
             definition.Flags.WeaponNoDeathDeselect = flags.Weapon.NoDeathDeselect.Value;
         if (flags.Weapon.NoDeathInput != null)
             definition.Flags.WeaponNoDeathInput = flags.Weapon.NoDeathInput.Value;
-        if (flags.Weapon.NoAutoSwitch != null)
-            definition.Flags.WeaponNoAutoSwitch = flags.Weapon.NoAutoSwitch.Value;
+        if (flags.Weapon.NoAutoSwitchTo != null)
+            definition.Flags.WeaponNoAutoSwitch = flags.Weapon.NoAutoSwitchTo.Value;
         if (flags.Weapon.PoweredUp != null)
             definition.Flags.WeaponPoweredUp = flags.Weapon.PoweredUp.Value;
         if (flags.Weapon.PrimaryUsesBoth != null)

@@ -531,11 +531,13 @@ public class Player : Entity
 
         if (TickCommand.Has(TickCommands.Attack))
         {
-            if (FireWeapon())
+            if (FireWeapon() && Weapon != null && !Weapon.Definition.Flags.WeaponNoAlert)
                 World.NoiseAlert(this);
+            AttackDown = true;
         }
         else
         {
+            AttackDown = false;
             Refire = false;
         }
 
@@ -824,9 +826,7 @@ public class Player : Entity
 
     private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
     {
-        // TODO the hardcoded checks are probably defined somewhere
-        if (Weapon != null && !Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase)
-            && !Weapon.Definition.Name.Equals("PISTOL", StringComparison.OrdinalIgnoreCase))
+        if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon)
             return;
 
         string name = Inventory.GetBaseInventoryName(ammoDef);
@@ -840,10 +840,10 @@ public class Player : Entity
             if (Weapon == null ||
                 ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
             {
-                // Only switch to rocket launcher on fist (see above todo)
-                if (Weapon != null && !Weapon.Definition.Name.Equals("FIST", StringComparison.OrdinalIgnoreCase) &&
-                    ammoWeapon.Definition.Name.Equals("ROCKETLAUNCHER", StringComparison.OrdinalIgnoreCase))
+                // Only switch to rocket launcher on fist.
+                if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon && ammoWeapon.Definition.Flags.WeaponNoAutoSwitch)
                     return;
+
                 ChangeWeapon(ammoWeapon);
             }
         }
@@ -869,7 +869,8 @@ public class Player : Entity
         var weapons = GetSelectionOrderedWeapons();
         foreach (Weapon weapon in weapons)
         {
-            if (weapon != Weapon && CheckAmmo(weapon))
+            if (weapon != Weapon && CheckAmmo(weapon) &&
+                !weapon.Definition.Flags.WeaponNoAutoSwitch)
             {
                 ChangeWeapon(weapon);
                 break;
@@ -969,7 +970,7 @@ public class Player : Entity
         if (Weapon == null)
             return;
 
-        if (Weapon.ReadyToFire)
+        if (Weapon.ReadyState)
             ForceLowerWeapon(setTop);
     }
 

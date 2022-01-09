@@ -199,8 +199,8 @@ public partial class DecorateParser
         case "NODEATHINPUT":
             m_currentDefinition.Flags.Weapon.NoDeathInput = flagValue;
             break;
-        case "NOAUTOSWITCH":
-            m_currentDefinition.Flags.Weapon.NoAutoSwitch = flagValue;
+        case "NOAUTOSWITCHTO":
+            m_currentDefinition.Flags.Weapon.NoAutoSwitchTo = flagValue;
             break;
         case "POWEREDUP":
             m_currentDefinition.Flags.Weapon.PoweredUp = flagValue;

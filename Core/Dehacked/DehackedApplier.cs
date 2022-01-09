@@ -118,7 +118,25 @@ public class DehackedApplier
                 ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, Constants.FrameStates.Flash);
             if (weapon.AmmoType.HasValue)
                 SetWeaponAmmo(weaponDef, weapon.AmmoType.Value);
+            if (weapon.Mbf21Bits.HasValue)
+                ApplyWeaponMbf21Bits(weaponDef, weapon.Mbf21Bits.Value);
         }
+    }
+
+    private static void ApplyWeaponMbf21Bits(EntityDefinition weaponDef, uint value)
+    {
+        Mbf21WeaponFlags flags = (Mbf21WeaponFlags)value;
+        if (flags.HasFlag(Mbf21WeaponFlags.NOTHRUST))
+        {
+            weaponDef.Properties.Weapons.DefaultKickBack = false;
+            weaponDef.Properties.Weapons.KickBack = 0;
+        }
+
+        weaponDef.Flags.WeaponNoAlert = flags.HasFlag(Mbf21WeaponFlags.SILENT);
+        weaponDef.Flags.WeaponNoAutofire = flags.HasFlag(Mbf21WeaponFlags.NOAUTOFIRE);
+        weaponDef.Flags.WeaponMeleeWeapon = flags.HasFlag(Mbf21WeaponFlags.FLEEMELEE);
+        weaponDef.Flags.WeaponWimpyWeapon = flags.HasFlag(Mbf21WeaponFlags.AUTOSWITCHFROM);
+        weaponDef.Flags.WeaponNoAutoSwitch = flags.HasFlag(Mbf21WeaponFlags.NOAUTOSWITCHTO);
     }
 
     private static void SetWeaponAmmo(EntityDefinition weaponDef, int ammoType)

@@ -160,6 +160,8 @@ public static class DefinitionPropertyApplier
             definition.Properties.Weapons.ReadySound = properties.Weapons.ReadySound;
         if (properties.Weapons.UpSound != null)
             definition.Properties.Weapons.UpSound = properties.Weapons.UpSound;
+        if (properties.Weapons.KickBack != null)
+            definition.Properties.Weapons.KickBack = properties.Weapons.KickBack.Value;
 
         if (properties.Ammo.BackpackAmount.HasValue)
             definition.Properties.Ammo.BackpackAmount = properties.Ammo.BackpackAmount.Value;
