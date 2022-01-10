@@ -73,8 +73,9 @@ public interface IWorld : IDisposable
     bool CanActivate(Entity entity, Line line, ActivationContext context);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
-    Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0);
-    void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim);
+    Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, double zOffset = 0.0);
+    void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
+        Func<int>? damageFunc = null);
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
     bool DamageEntity(Entity target, Entity? source, int damage, bool isHitscan, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);

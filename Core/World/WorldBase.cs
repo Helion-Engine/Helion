@@ -695,18 +695,17 @@ public abstract partial class WorldBase : IWorld
     public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
-    public virtual Entity? FireProjectile(Entity shooter, double pitch, double distance, bool autoAim, string projectClassName, double zOffset = 0.0)
+    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, double zOffset = 0.0)
     {
         Player? player = shooter.PlayerObj;
         if (player != null)
             player.DescreaseAmmo();
 
-        double angle = shooter.AngleRadians;
         Vec3D start = shooter.ProjectileAttackPos;
         start.Z += zOffset;
 
         if (autoAim && player != null &&
-            GetAutoAimAngle(shooter, start, shooter.AngleRadians, distance, out double autoAimPitch, out double autoAimAngle,
+            GetAutoAimAngle(shooter, start, shooter.AngleRadians, autoAimDistance, out double autoAimPitch, out double autoAimAngle,
                 out _, tracers: Constants.AutoAimTracers))
         {
             pitch = autoAimPitch;
@@ -742,10 +741,11 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
-    public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim)
+    public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
+        Func<int>? damageFunc = null)
     {
-        if (shooter.PlayerObj != null)
-            shooter.PlayerObj.DescreaseAmmo();
+        if (damageFunc == null)
+            damageFunc = DefaultDamage;
 
         if (autoAim)
         {
@@ -757,20 +757,22 @@ public abstract partial class WorldBase : IWorld
 
         if (!shooter.Refire && bulletCount == 1)
         {
-            int damage = 5 * ((m_random.NextByte() % 3) + 1);
+            int damage = damageFunc();
             FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);
         }
         else
         {
             for (int i = 0; i < bulletCount; i++)
             {
-                int damage = 5 * ((m_random.NextByte() % 3) + 1);
+                int damage = damageFunc();
                 double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
                 double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
                 FireHitscan(shooter, angle, newPitch, distance, damage);
             }
         }
     }
+
+    private int DefaultDamage() => 5 * ((m_random.NextByte() % 3) + 1);
 
     public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
     {

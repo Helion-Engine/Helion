@@ -193,6 +193,17 @@ public class Inventory
             SetPriorityPowerupEffects();
     }
 
+    public bool Add(string name, int amount, EntityFlags? flags = null)
+    {
+        if (amount <= 0)
+            return false;
+
+        if (!Items.TryGetValue(name, out InventoryItem? item))
+            return false;
+
+        return Add(item.Definition, amount, flags);
+    }
+
     public bool Add(EntityDefinition definition, int amount, EntityFlags? flags = null)
     {
         if (amount <= 0)

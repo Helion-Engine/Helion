@@ -1018,6 +1018,22 @@ public class Player : Entity
         Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, Weapon.Definition.Properties.Weapons.AmmoUse);
     }
 
+    public void DecreaseAmmo(int amount)
+    {
+        if (Weapon == null)
+            return;
+
+        Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, amount);
+    }
+
+    public void AddAmmo(int amount)
+    {
+        if (Weapon == null)
+            return;
+
+        Inventory.Add(Weapon.Definition.Properties.Weapons.AmmoType, amount);
+    }
+
     public override bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
     {
         if (Inventory.IsPowerupActive(PowerupType.Invulnerable))
