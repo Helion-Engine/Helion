@@ -1,5 +1,7 @@
+using Helion.Util;
 using System;
 using System.Collections.Generic;
+using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
 namespace Helion.Dehacked;
 
@@ -4702,6 +4704,24 @@ public partial class DehackedDefinition
         BexParName,
         BexSoundName,
         BexSpriteName
+    };
+
+    public struct DefaultArgs
+    {
+        public int Args1;
+        public int Args2;
+        public int Args3;
+        public int Args4;
+        public int Args5;
+        public int Args6;
+        public int Args7;
+        public int Args8;
+    }
+
+    public static readonly Dictionary<ActionFunction, DefaultArgs> DefaultFrameArgs = new()
+    {
+        { A_WeaponBulletAttack, new DefaultArgs() { Args3 = 1, Args4 = 5, Args5 = 3 } },
+        { A_WeaponMeleeAttack, new DefaultArgs() { Args1 = 2, Args2 = 10, Args3 = 65536 } },
     };
 
     private static readonly string IDNumber = "ID #";

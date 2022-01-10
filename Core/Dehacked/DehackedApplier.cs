@@ -51,8 +51,8 @@ public class DehackedApplier
         ApplyBexSprites(dehacked);
 
         ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
-        ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
         ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
+        ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
         ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer);
         ApplyAmmo(dehacked, composer);
         ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
@@ -269,20 +269,43 @@ public class DehackedApplier
                 }
             }
 
+            if (entityFrame.ActionFunction != null && DefaultFrameArgs.TryGetValue(entityFrame.ActionFunction, out DefaultArgs defaultArgs))
+                ApplyDefaultArgs(frame, defaultArgs);
+
             entityFrame.DehackedMisc1 = frame.Unknown1;
             entityFrame.DehackedMisc2 = frame.Unknown2;
-            entityFrame.DehackedArgs1 = frame.Args1;
-            entityFrame.DehackedArgs2 = frame.Args2;
-            entityFrame.DehackedArgs3 = frame.Args3;
-            entityFrame.DehackedArgs4 = frame.Args4;
-            entityFrame.DehackedArgs5 = frame.Args5;
-            entityFrame.DehackedArgs6 = frame.Args6;
-            entityFrame.DehackedArgs7 = frame.Args7;
-            entityFrame.DehackedArgs8 = frame.Args8;
+            entityFrame.DehackedArgs1 = frame.Args1 ?? 0;
+            entityFrame.DehackedArgs2 = frame.Args2 ?? 0;
+            entityFrame.DehackedArgs3 = frame.Args3 ?? 0;
+            entityFrame.DehackedArgs4 = frame.Args4 ?? 0;
+            entityFrame.DehackedArgs5 = frame.Args5 ?? 0;
+            entityFrame.DehackedArgs6 = frame.Args6 ?? 0;
+            entityFrame.DehackedArgs7 = frame.Args7 ?? 0;
+            entityFrame.DehackedArgs8 = frame.Args8 ?? 0;
 
             if (frame.Mbf21Bits.HasValue)
                 ApplyFrameMbf21Bits(entityFrame, frame.Mbf21Bits.Value);
         }
+    }
+
+    private static void ApplyDefaultArgs(DehackedFrame frame, in DefaultArgs defaultArgs)
+    {
+        if (!frame.Args1.HasValue)
+            frame.Args1 = defaultArgs.Args1;
+        if (!frame.Args2.HasValue)
+            frame.Args2 = defaultArgs.Args2;
+        if (!frame.Args3.HasValue)
+            frame.Args3 = defaultArgs.Args3;
+        if (!frame.Args4.HasValue)
+            frame.Args4 = defaultArgs.Args4;
+        if (!frame.Args5.HasValue)
+            frame.Args5 = defaultArgs.Args5;
+        if (!frame.Args6.HasValue)
+            frame.Args6 = defaultArgs.Args6;
+        if (!frame.Args7.HasValue)
+            frame.Args7 = defaultArgs.Args7;
+        if (!frame.Args8.HasValue)
+            frame.Args8 = defaultArgs.Args8;
     }
 
     private static void ApplyFrameMbf21Bits(EntityFrame entityFrame, uint value)

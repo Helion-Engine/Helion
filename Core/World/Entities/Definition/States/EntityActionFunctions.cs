@@ -2843,7 +2843,7 @@ public static class EntityActionFunctions
             createdEntity.Tracer = autoAimEntity;
     }
 
-    private static void A_WeaponBulletAttack(Entity entity)
+    public static void A_WeaponBulletAttack(Entity entity)
     {
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
@@ -2851,23 +2851,23 @@ public static class EntityActionFunctions
         double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs1));
         double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs2));
         int bullets = frame.DehackedArgs3;
-        int damage = frame.DehackedArgs4 == 0 ? 5 : frame.DehackedArgs4;
-        int mod = frame.DehackedArgs5 == 0 ? 3 : frame.DehackedArgs5;
+        int damage = frame.DehackedArgs4;
+        int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
         entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageFunction);
         int DamageFunction() => damage * ((entity.World.Random.NextByte() % mod) + 1);
     }
 
-    private static void A_WeaponMeleeAttack(Entity entity)
+    public static void A_WeaponMeleeAttack(Entity entity)
     {
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
-        int damage = frame.DehackedArgs1 == 0 ? 2 : frame.DehackedArgs1;
-        int mod = frame.DehackedArgs2 == 0 ? 10 : frame.DehackedArgs2;
-        double berserkFactor = frame.DehackedArgs3 == 0 ? 1.0 : MathHelper.FromFixed(frame.DehackedArgs3);
+        int damage = frame.DehackedArgs1;
+        int mod = Math.Clamp(frame.DehackedArgs2, 1, int.MaxValue);
+        double berserkFactor = MathHelper.FromFixed(frame.DehackedArgs3);
         int sound = frame.DehackedArgs4;
-        double range = frame.DehackedArgs5 == 0 ? Constants.EntityMeleeDistance : MathHelper.FromFixed(frame.DehackedArgs5);
+        double range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
 
         GetDehackedSound(entity, sound, out string hitSound);
         PlayerMelee(entity.PlayerObj, damage, mod, berserkFactor, range, hitSound);
@@ -2908,7 +2908,7 @@ public static class EntityActionFunctions
             entity.PlayerObj!.DecreaseAmmo(amount);
     }
 
-    private static void A_CheckAmmo(Entity entity)
+    public static void A_CheckAmmo(Entity entity)
     {
         if (!GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
