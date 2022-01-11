@@ -20,11 +20,11 @@ public class DehackedThing
     public int? DeathFrame { get; set; }
     public int? ExplodingFrame { get; set; }
     public int? DeathSound { get; set; }
-    public double? Speed { get; set; }
-    public double? FastSpeed { get; set; }
-    public double? Width { get; set; }
-    public double? Height { get; set; }
-    public double? MeleeRange { get; set; }
+    public int? Speed { get; set; }
+    public int? FastSpeed { get; set; }
+    public int? Width { get; set; }
+    public int? Height { get; set; }
+    public int? MeleeRange { get; set; }
     public int? Mass { get; set; }
     public int? MisileDamage { get; set; }
     public int? ActionSound { get; set; }

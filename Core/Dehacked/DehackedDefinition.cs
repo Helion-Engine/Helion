@@ -156,11 +156,11 @@ public partial class DehackedDefinition
             else if (line.StartsWith(DeathSound, StringComparison.OrdinalIgnoreCase))
                 thing.DeathSound = GetIntProperty(parser, DeathSound);
             else if (line.StartsWith(Speed, StringComparison.OrdinalIgnoreCase))
-                thing.Speed = GetDoubleProperty(parser, Speed);
+                thing.Speed = GetIntProperty(parser, Speed);
             else if (line.StartsWith(Width, StringComparison.OrdinalIgnoreCase))
-                thing.Width = GetDoubleProperty(parser, Width);
+                thing.Width = GetIntProperty(parser, Width);
             else if (line.StartsWith(Height, StringComparison.OrdinalIgnoreCase))
-                thing.Height = GetDoubleProperty(parser, Height);
+                thing.Height = GetIntProperty(parser, Height);
             else if (line.StartsWith(Mass, StringComparison.OrdinalIgnoreCase))
                 thing.Mass = GetIntProperty(parser, Mass);
             else if (line.StartsWith(MisileDamage, StringComparison.OrdinalIgnoreCase))
@@ -182,9 +182,9 @@ public partial class DehackedDefinition
             else if (line.StartsWith(RipSound, StringComparison.OrdinalIgnoreCase))
                 thing.RipSound = GetIntProperty(parser, RipSound);
             else if (line.StartsWith(FastSpeed, StringComparison.OrdinalIgnoreCase))
-                thing.FastSpeed = GetDoubleProperty(parser, FastSpeed);
+                thing.FastSpeed = GetIntProperty(parser, FastSpeed);
             else if (line.StartsWith(MeleeRange, StringComparison.OrdinalIgnoreCase))
-                thing.MeleeRange = GetDoubleProperty(parser, MeleeRange);
+                thing.MeleeRange = GetIntProperty(parser, MeleeRange);
             else
                 UnknownWarning(parser, "thing type");
         }
@@ -665,14 +665,21 @@ public partial class DehackedDefinition
     {
         ConsumeProperty(parser, property);
         parser.ConsumeString("=");
-        return parser.ConsumeInteger();
-    }
+        int? value = parser.ConsumeIfInt();
+        if (value != null)
+            return value.Value;
 
-    public static double GetDoubleProperty(SimpleParser parser, string property)
-    {
-        ConsumeProperty(parser, property);
-        parser.ConsumeString("=");
-        return parser.ConsumeDouble();
+        // Dehacked parsers used sscanf which would read until a non digit was hit.
+        // Consume int expects the entire token to be an integer.
+        string data = parser.ConsumeString();
+        int end = 0;
+        while (char.IsDigit(data[end]))
+            end++;
+
+        if (!int.TryParse(data.AsSpan(0, end), out int i))
+            throw new Exception($"Expected an integer but got {data}");
+
+        return i;
     }
 
     private static void ConsumeProperty(SimpleParser parser, string property)
