@@ -286,6 +286,8 @@ public partial class MapInfoDefinition
         sky.Name = parser.ConsumeString();
         if (!MapNames.Contains(parser.PeekString()) && parser.PeekInteger(out _))
             sky.ScrollSpeed = parser.ConsumeInteger();
+        else if (parser.ConsumeIf(","))
+            sky.ScrollSpeed = parser.ConsumeInteger();
         return sky;
     }
 
