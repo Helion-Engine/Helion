@@ -73,7 +73,7 @@ public class PK3 : Archive, IDisposable
 
         EntryPath entryPath = new EntryPath(forwardSlashPath);
         ResourceNamespace resourceNamespace = NamespaceFromEntryPath(forwardSlashPath);
-        Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace));
+        Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, Entries.Count));
     }
 
     private ResourceNamespace NamespaceFromEntryPath(string forwardSlashPath)

@@ -111,7 +111,7 @@ public class Wad : Archive, IDisposable
             }
 
             WadEntryPath entryPath = new WadEntryPath(upperName);
-            Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace));
+            Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace, Entries.Count));
         }
     }
 }

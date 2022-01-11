@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 
@@ -84,8 +85,9 @@ public class ArchiveCollectionEntries
         return m_namespaceNameEntries.Get(name, priorityNamespace);
     }
 
+    // WARNING: Should only be used sparingly on startup. Never at runtime. This list is allocated each time.
     public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
     {
-        return m_namespaceNameEntries.GetValues(resourceNamespace);
+        return m_namespaceNameEntries.GetValues(resourceNamespace).OrderBy(x => x.Index).ToList();
     }
 }

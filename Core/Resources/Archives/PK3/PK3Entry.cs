@@ -8,8 +8,8 @@ public class PK3Entry : Entry
     public readonly PK3 Parent;
     public readonly ZipArchiveEntry ZipEntry;
 
-    public PK3Entry(PK3 pk3, ZipArchiveEntry zipEntry, IEntryPath path, ResourceNamespace resourceNamespace)
-        : base(path, resourceNamespace)
+    public PK3Entry(PK3 pk3, ZipArchiveEntry zipEntry, IEntryPath path, ResourceNamespace resourceNamespace, int index)
+        : base(path, resourceNamespace, index)
     {
         Parent = pk3;
         ZipEntry = zipEntry;

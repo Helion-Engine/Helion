@@ -22,10 +22,13 @@ public abstract class Entry
     /// </summary>
     public ResourceNamespace Namespace { get; }
 
-    protected Entry(IEntryPath path, ResourceNamespace resourceNamespace)
+    public int Index { get; }
+
+    protected Entry(IEntryPath path, ResourceNamespace resourceNamespace, int index)
     {
         Path = path;
         Namespace = resourceNamespace;
+        Index = index;
     }
 
     /// <summary>

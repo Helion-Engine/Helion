@@ -8,8 +8,8 @@ public class WadEntry : Entry
     public readonly int Offset;
     public readonly int Size;
 
-    public WadEntry(Wad wad, int offset, int size, IEntryPath path, ResourceNamespace resourceNamespace)
-        : base(path, resourceNamespace)
+    public WadEntry(Wad wad, int offset, int size, IEntryPath path, ResourceNamespace resourceNamespace, int index)
+        : base(path, resourceNamespace, index)
     {
         Parent = wad;
         Offset = offset;
