@@ -30,8 +30,12 @@ public class RenderWorldDataManager : IDisposable
 
     public RenderWorldData GetRenderData(GLLegacyTexture texture)
     {
-        if (m_allRenderData.Length < texture.TextureId)
+        if (m_allRenderData.Length <= texture.TextureId)
+        {
+            var original = m_allRenderData;
             m_allRenderData = new RenderWorldData[m_allRenderData.Length * 2];
+            Array.Copy(original, m_allRenderData, original.Length);
+        }
 
         RenderWorldData? data = m_allRenderData[texture.TextureId];
         if (data != null)
