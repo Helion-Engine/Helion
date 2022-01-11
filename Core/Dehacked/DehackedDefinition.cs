@@ -34,6 +34,7 @@ public partial class DehackedDefinition
         data = data.Replace('\0', ' ');
         SimpleParser parser = new();
         parser.SetSpecialChars(new char[] { '=' });
+        parser.SetCommentCallback(IsComment);
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
 
         ParseHeader(parser);
@@ -83,6 +84,8 @@ public partial class DehackedDefinition
                 UnknownWarning(parser, "type", item);
         }
     }
+
+    private static bool IsComment(string line, int i) => i == 0 && line[i] == '#';
 
     private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
     {

@@ -27,10 +27,11 @@ public class SimpleParser
         public int EndIndex { get; private set; }
     }
 
-    private readonly List<ParserToken> m_tokens = new List<ParserToken>();
-    private readonly HashSet<char> m_special = new HashSet<char>();
+    private readonly List<ParserToken> m_tokens = new();
+    private readonly HashSet<char> m_special = new();
     private readonly ParseType m_parseType;
     private string[] m_lines = Array.Empty<string>();
+    private Func<string, int, bool>? m_commentCallback;
 
     private int m_index = 0;
 
@@ -53,6 +54,9 @@ public class SimpleParser
         m_special.Clear();
         special.ForEach(x => m_special.Add(x));
     }
+
+    public void SetCommentCallback(Func<string, int, bool> callback) =>
+        m_commentCallback = callback;
 
     public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
     {
@@ -183,8 +187,8 @@ public class SimpleParser
     private static bool IsStartMultiLineComment(string line, int i)
         => line[i] == '/' && CheckNext(line, i, '*');
 
-    private static bool IsSingleLineComment(string line, int i)
-        => line[i] == '/' && CheckNext(line, i, '/');
+    private bool IsSingleLineComment(string line, int i)
+        => (m_commentCallback != null && m_commentCallback(line, i)) || (line[i] == '/' && CheckNext(line, i, '/'));
 
     private bool CheckSplit(char c)
     {
