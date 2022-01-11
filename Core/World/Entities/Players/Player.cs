@@ -532,7 +532,7 @@ public class Player : Entity
         if (TickCommand.Has(TickCommands.Attack))
         {
             if (FireWeapon() && Weapon != null && !Weapon.Definition.Flags.WeaponNoAlert)
-                World.NoiseAlert(this);
+                World.NoiseAlert(this, this);
             AttackDown = true;
         }
         else

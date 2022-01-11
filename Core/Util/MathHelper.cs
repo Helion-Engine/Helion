@@ -317,7 +317,7 @@ public static class MathHelper
     }
 
     /// <summary>
-    /// Converts fixed point integer 16.16 to dbouel.
+    /// Converts fixed point integer 16.16 to double.
     /// </summary>
     /// <param name="value">Fixed point value to convert.</param>
     /// <returns>Converted double.</returns>

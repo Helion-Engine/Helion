@@ -242,10 +242,10 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
-    public void NoiseAlert(Entity target)
+    public void NoiseAlert(Entity target, Entity source)
     {
         m_soundCount++;
-        RecursiveSound(target, target.Sector, 0);
+        RecursiveSound(target, source.Sector, 0);
     }
 
     public void RecursiveSound(Entity target, Sector sector, int block)

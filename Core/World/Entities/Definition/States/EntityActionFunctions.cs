@@ -379,6 +379,12 @@ public static class EntityActionFunctions
         ["A_RefireTo"] = A_RefireTo,
         ["A_GunFlashTo"] = A_GunFlashTo,
         ["A_WeaponAlert"] = A_WeaponAlert,
+        ["A_SpawnObject"] = A_SpawnObject,
+        ["A_MonsterProjectile"] = A_MonsterProjectile,
+        ["A_MonsterBulletAttack"] = A_MonsterBulletAttack,
+        ["A_MonsterMeleeAttack"] = A_MonsterMeleeAttack,
+        ["A_RadiusDamage"] = A_RadiusDamage,
+        ["A_NoiseAlert"] = A_NoiseAlert,
     };
 
     public static ActionFunction? Find(string? actionFuncName)
@@ -2826,21 +2832,8 @@ public static class EntityActionFunctions
         double pitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs3));
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-
-        Vec3D pos = entity.ProjectileAttackPos;
-        pos.Z += zOffset;
-        Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians + angle, pitch, 0, false, name, zOffset);
-        if (createdEntity == null)
-            return;
-
-        if (offsetXY != 0)
-        {
-            Vec2D offset = Vec2D.UnitCircle(angle) * offsetXY;
-            createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
-        }
-
-        if (entity.World.GetAutoAimEntity(entity, entity.ProjectileAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out _, out Entity? autoAimEntity))
-            createdEntity.Tracer = autoAimEntity;
+        entity.World.GetAutoAimEntity(entity, entity.ProjectileAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out _, out Entity? autoAimEntity);
+        CreateProjectile(entity, name, angle, pitch, offsetXY, zOffset, autoAimEntity);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)
@@ -2961,7 +2954,117 @@ public static class EntityActionFunctions
 
     private static void A_WeaponAlert(Entity entity)
     {
-        entity.World.NoiseAlert(entity);
+        entity.World.NoiseAlert(entity, entity);
+    }
+
+    private static void A_SpawnObject(Entity entity)
+    {
+        if (!GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
+            return;
+
+        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
+        double xOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
+        double yOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
+        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
+        double xVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs6);
+        double yVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs7);
+        double zVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs8);
+
+        Vec3D pos = entity.Position + new Vec3D(xOffset, yOffset, zOffset);
+        Entity? createdEntity = entity.World.EntityManager.Create(name, pos);
+        if (createdEntity == null)
+            return;
+
+        entity.AngleRadians = angle;
+        entity.Velocity.X = xVelocity;
+        entity.Velocity.Y = yVelocity;
+        entity.Velocity.Z = zVelocity;
+    }
+
+    private static void A_MonsterProjectile(Entity entity)
+    {
+        if (entity.Target == null|| !GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
+            return;
+
+        double angle = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+        double pitchOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
+        double offsetXY = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
+        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
+
+        A_FaceTarget(entity);
+        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out Entity? autoAimEntity);
+        CreateProjectile(entity, name, angle, pitch + pitchOffset, offsetXY, zOffset, autoAimEntity);
+    }
+
+    private static void A_MonsterBulletAttack(Entity entity)
+    {
+        if (entity.Target == null)
+            return;
+
+        double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
+        double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
+        int bullets = entity.Frame.DehackedArgs3;
+        int damage = entity.Frame.DehackedArgs4;
+        int mod = Math.Clamp(entity.Frame.DehackedArgs5, 0, int.MaxValue);
+
+        A_FaceTarget(entity);
+        entity.PlayAttackSound();
+        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+
+        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageFunction);
+        int DamageFunction() => damage * ((entity.World.Random.NextByte() % mod) + 1);
+    }
+
+    private static void A_MonsterMeleeAttack(Entity entity)
+    {
+        if (entity.Target == null)
+            return;
+
+        int damage = entity.Frame.DehackedArgs1;
+        int mod = Math.Clamp(entity.Frame.DehackedArgs2, 1, int.MaxValue);
+        int sound = entity.Frame.DehackedArgs3;
+        double range = entity.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.Frame.DehackedArgs4);
+
+        if (entity.InMeleeRange(entity.Target, range))
+        {
+            damage = (entity.World.Random.NextByte() % mod + 1) * damage;
+            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            GetDehackedSound(entity, sound, out string hitSound);
+            if (hitSound.Length > 0)
+                entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, DataCache.Instance.GetSoundParams(entity));
+        }
+    }
+
+    private static void A_RadiusDamage(Entity entity)
+    {
+        // TODO ugh...
+        int damage = entity.Frame.DehackedArgs1;
+        entity.World.RadiusExplosion(entity, entity, entity.Frame.DehackedArgs2);
+    }
+
+    private static void A_NoiseAlert(Entity entity)
+    {
+        if (entity.Target == null)
+            return;
+
+        entity.World.NoiseAlert(entity.Target, entity);
+    }
+
+    private static void CreateProjectile(Entity entity, string name, double angle, double pitch, double offsetXY, double zOffset, Entity? autoAimEntity)
+    {
+        Vec3D pos = entity.ProjectileAttackPos;
+        pos.Z += zOffset;
+        Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians + angle, pitch, 0, false, name, zOffset);
+        if (createdEntity == null)
+            return;
+
+        if (offsetXY != 0)
+        {
+            Vec2D offset = Vec2D.UnitCircle(angle) * offsetXY;
+            createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
+        }
+
+        createdEntity.Tracer = autoAimEntity;
     }
 
     private static void PlayerMelee(Player player, int damageBase, int mod, double berserkFactor, double range, string hitSound)
@@ -2977,7 +3080,7 @@ public static class EntityActionFunctions
 
         player.AngleRadians = player.Position.Angle(hitEntity.Position);
         if (hitSound.Length > 0)
-            player.World.SoundManager.CreateSoundOn(player, hitSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(player));
+            player.World.SoundManager.CreateSoundOn(player, hitSound, SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(player));
     }
 
     private static bool GetPlayerWeaponFrame(Entity entity, [NotNullWhen(true)] out EntityFrame? frame)

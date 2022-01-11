@@ -296,14 +296,20 @@ public partial class Entity
         return 0.0;
     }
 
-    public bool InMeleeRange(Entity? entity)
+    public bool InMeleeRange(Entity? entity, double range = -1)
     {
-        if (entity == null || Properties.MeleeRange == 0 || IsFriend(entity))
+        if (entity == null)
+            return false;
+
+        if (range == -1)
+            range = Properties.MeleeRange;
+
+        if (range == 0 || IsFriend(entity))
             return false;
 
         double distance = Position.ApproximateDistance2D(entity.Position);
 
-        if (distance >= Properties.MeleeRange + entity.Radius)
+        if (distance >= range + entity.Radius)
             return false;
 
         if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))

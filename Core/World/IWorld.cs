@@ -98,7 +98,7 @@ public interface IWorld : IDisposable
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
     int EntityAliveCount(int editorId);
-    void NoiseAlert(Entity target);
+    void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
