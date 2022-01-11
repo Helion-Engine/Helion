@@ -477,7 +477,13 @@ public partial class DehackedDefinition
         "skeleton/sight",
         "skeleton/attack",
         "misc/chat",
-        "misc/teamchat"
+        "misc/teamchat",
+        "dog/sight",
+        "dog/attack",
+        "dog/active",
+        "dog/death",
+        "dog/pain",
+        "misc/secret",
     };
 
     [Flags]
