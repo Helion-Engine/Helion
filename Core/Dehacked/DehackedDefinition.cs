@@ -673,7 +673,7 @@ public partial class DehackedDefinition
         // Consume int expects the entire token to be an integer.
         string data = parser.ConsumeString();
         int end = 0;
-        while (char.IsDigit(data[end]))
+        while (end < data.Length && char.IsDigit(data[end]))
             end++;
 
         if (!int.TryParse(data.AsSpan(0, end), out int i))
