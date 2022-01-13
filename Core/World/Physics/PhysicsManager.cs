@@ -57,6 +57,7 @@ public class PhysicsManager
     private readonly List<Entity> m_crushEntities = new();
     private readonly List<Entity> m_sectorMoveEntities = new();
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
+    private readonly List<Entity> m_stackCrush = new();
 
     /// <summary>
     /// Creates a new physics manager which utilizes the arguments for any
@@ -253,6 +254,7 @@ public class PhysicsManager
         if (crush != null && m_crushEntities.Count > 0)
             CrushEntities(m_crushEntities, sector, crush);
 
+        m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
         return status;
     }
@@ -344,20 +346,25 @@ public class PhysicsManager
             return;
 
         // Check for stacked entities, so we can crush the stack
-        List<Entity> stackCrush = new();
         LinkableNode<Entity>? node = sector.Entities.Head;
         while (node != null)
         {
             Entity checkEntity = node.Value;
             if (checkEntity.OverEntity != null && crushEntities.Contains(checkEntity.OverEntity))
-                stackCrush.Add(checkEntity);
+                m_stackCrush.Add(checkEntity);
             node = node.Next;
         }
 
-        stackCrush = stackCrush.Union(crushEntities).Distinct().ToList();
-
-        foreach (Entity crushEntity in stackCrush)
+        for (int i = 0; i < crushEntities.Count; i++)
         {
+            if (m_stackCrush.Contains(crushEntities[i]))
+                continue;
+            m_stackCrush.Add(crushEntities[i]);
+        }
+
+        for (int i = 0; i < m_stackCrush.Count; i++)
+        {
+            Entity crushEntity = m_stackCrush[i];
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
 
             if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, false) &&
@@ -373,6 +380,8 @@ public class PhysicsManager
                 }
             }
         }
+
+        m_stackCrush.Clear();
     }
 
     private void SetToGiblets(Entity entity)
