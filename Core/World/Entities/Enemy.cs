@@ -118,7 +118,8 @@ public partial class Entity
         Flags.CanPass = true;
         Assert.Precondition(Target != null, "Target is null");
 
-        MoveDir[] dir = new MoveDir[2];
+        MoveDir dir0;
+        MoveDir dir1;
         MoveDir oldDirection = m_direction;
         MoveDir oppositeDirection = OppositeDirections[(int)m_direction];
         MoveDir tdir;
@@ -127,20 +128,20 @@ public partial class Entity
         double dy = Target!.Position.Y - Position.Y;
 
         if (dx > 10)
-            dir[0] = MoveDir.East;
+            dir0 = MoveDir.East;
         else if (dx < -10)
-            dir[0] = MoveDir.West;
+            dir0 = MoveDir.West;
         else
-            dir[0] = MoveDir.None;
+            dir0 = MoveDir.None;
 
         if (dy < -10)
-            dir[1] = MoveDir.South;
+            dir1 = MoveDir.South;
         else if (dy > 10)
-            dir[1] = MoveDir.North;
+            dir1 = MoveDir.North;
         else
-            dir[1] = MoveDir.None;
+            dir1 = MoveDir.None;
 
-        if (dir[0] != MoveDir.None && dir[1] != MoveDir.None)
+        if (dir0 != MoveDir.None && dir1 != MoveDir.None)
         {
             int index = 0;
             if (dy < 0)
@@ -154,26 +155,26 @@ public partial class Entity
 
         if (EntityManager.World.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
         {
-            tdir = dir[0];
-            dir[0] = dir[1];
-            dir[1] = tdir;
+            tdir = dir0;
+            dir0 = dir1;
+            dir1 = tdir;
         }
 
-        if (dir[0] == oppositeDirection)
-            dir[0] = MoveDir.None;
-        if (dir[1] == oppositeDirection)
-            dir[1] = MoveDir.None;
+        if (dir0 == oppositeDirection)
+            dir0 = MoveDir.None;
+        if (dir1 == oppositeDirection)
+            dir1 = MoveDir.None;
 
-        if (dir[0] != MoveDir.None)
+        if (dir0 != MoveDir.None)
         {
-            m_direction = dir[0];
+            m_direction = dir0;
             if (TryWalk())
                 return;  // either moved forward or attacked
         }
 
-        if (dir[1] != MoveDir.None)
+        if (dir1 != MoveDir.None)
         {
-            m_direction = dir[1];
+            m_direction = dir1;
             if (TryWalk())
                 return;
         }
