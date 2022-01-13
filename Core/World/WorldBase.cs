@@ -193,7 +193,7 @@ public abstract partial class WorldBase : IWorld
             if (player.IsDead)
                 continue;
 
-            if (!allaround && !InFieldOfView(entity, player))
+            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, player))
                 continue;
 
             if (CheckLineOfSight(entity, player))
@@ -217,7 +217,7 @@ public abstract partial class WorldBase : IWorld
             if (ReferenceEquals(entity, checkEntity) || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
                 continue;
 
-            if (!allaround && !InFieldOfView(entity, checkEntity))
+            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, checkEntity))
                 continue;
 
             if (CheckLineOfSight(entity, checkEntity))
@@ -229,19 +229,6 @@ public abstract partial class WorldBase : IWorld
 
     public double GetMoveFactor(Entity entity) => 
         PhysicsManager.GetMoveFactor(entity);
-
-    private static bool InFieldOfView(Entity from, Entity to)
-    {
-        double distance = from.Position.ApproximateDistance2D(to.Position);
-        Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
-        Vec2D entityToTarget = to.Position.XY - from.Position.XY;
-
-        // Not in front 180 FOV
-        if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
-            return false;
-
-        return true;
-    }
 
     public void NoiseAlert(Entity target, Entity source)
     {
@@ -1149,6 +1136,28 @@ public abstract partial class WorldBase : IWorld
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
         DataCache.Instance.FreeBlockmapIntersectList(intersections);
         return  status != TraversalPitchStatus.Blocked;
+    }
+
+    public virtual bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians)
+    {
+        Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
+        Vec2D entityToTarget = to.Position.XY - from.Position.XY;
+        entityToTarget.Normalize();
+        var angle = Math.Acos(entityToTarget.Dot(entityLookingVector));
+        return angle < fieldOfViewRadians/2;
+    }
+
+    private static bool InFieldOfViewOrInMeleeDistance(Entity from, Entity to)
+    {
+        double distance = from.Position.ApproximateDistance2D(to.Position);
+        Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
+        Vec2D entityToTarget = to.Position.XY - from.Position.XY;
+
+        // Not in front 180 FOV
+        if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
+            return false;
+
+        return true;
     }
 
     public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius)

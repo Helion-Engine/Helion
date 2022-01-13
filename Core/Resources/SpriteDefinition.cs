@@ -23,6 +23,9 @@ public class SpriteDefinition
 
         foreach (var entry in entries)
         {
+            if (entry.Path.Name.Length < 6)
+                continue;
+
             frame = entry.Path.Name[4] - 'A';
             rotation = entry.Path.Name[5] - '0';
 

@@ -387,6 +387,13 @@ public static class EntityActionFunctions
         ["A_JumpIfTargetCloser"] = A_JumpIfTargetCloser,
         ["A_AddFlags"] = A_AddFlags,
         ["A_RemoveFlags"] = A_RemoveFlags,
+        ["A_SeekTracer"] = A_SeekTracer,
+        ["A_FindTracer"] = A_FindTracer,
+        ["A_ClearTracer"] = A_ClearTracer,
+        ["A_JumpIfHealthBelow"] = A_JumpIfHealthBelow,
+        ["A_JumpIfTargetInSight"] = A_JumpIfTargetInSight,
+        ["A_JumpIfTracerInSight"] = A_JumpIfTracerInSight,
+        ["A_JumpIfFlagsSet"] = A_JumpIfFlagsSet,
     };
 
     public static ActionFunction? Find(string? actionFuncName)
@@ -1382,11 +1389,6 @@ public static class EntityActionFunctions
     }
 
     private static void A_JumpIfTargetOutsideMeleeRange(Entity entity)
-    {
-         // TODO
-    }
-
-    private static void A_JumpIfTracerCloser(Entity entity)
     {
          // TODO
     }
@@ -3046,6 +3048,42 @@ public static class EntityActionFunctions
             A_Chase(entity);
     }
 
+    private static void A_SeekTracer(Entity entity)
+    {
+
+    }
+
+    private static void A_FindTracer(Entity entity)
+    {
+
+    }
+
+    private static void A_ClearTracer(Entity entity)
+    {
+        entity.Tracer = null;
+    }
+
+    private static void A_JumpIfHealthBelow(Entity entity)
+    {
+        int state = entity.Frame.DehackedArgs1;
+        int health = entity.Frame.DehackedArgs2;
+
+        var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (entity.Health < health && entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+            entity.FrameState.SetState(newFrame);
+
+    }
+
+    private static void A_JumpIfTargetInSight(Entity entity)
+    {
+        if (entity.Target == null)
+            return;
+
+        int state = entity.Frame.DehackedArgs1;
+        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
+        JumpToStateIfInSight(entity, entity.Target, state, fov);
+    }
+
     private static void A_JumpIfTargetCloser(Entity entity)
     {
         if (entity.Target == null)
@@ -3057,6 +3095,46 @@ public static class EntityActionFunctions
         var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (distance > entity.Position.ApproximateDistance2D(entity.Target.Position) &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+            entity.FrameState.SetState(newFrame);
+    }
+
+    private static void A_JumpIfTracerInSight(Entity entity)
+    {
+        if (entity.Tracer == null)
+            return;
+
+        int state = entity.Frame.DehackedArgs1;
+        double fov = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+        JumpToStateIfInSight(entity, entity.Tracer, state, fov);
+    }
+
+    private static void A_JumpIfTracerCloser(Entity entity)
+    {
+        if (entity.Tracer == null)
+            return;
+
+        int state = entity.Frame.DehackedArgs1;
+        double distance = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+
+        var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (distance > entity.Position.ApproximateDistance2D(entity.Tracer.Position) &&
+            entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+            entity.FrameState.SetState(newFrame);
+    }
+
+    private static void A_JumpIfFlagsSet(Entity entity)
+    {
+        int state = entity.Frame.DehackedArgs1;
+        uint flags = (uint)entity.Frame.DehackedArgs2;
+        uint flags2 = (uint)entity.Frame.DehackedArgs3;
+
+        if (flags != 0 && !DehackedApplier.CheckEntityFlags(entity.Flags, flags))
+            return;
+        if (flags2 != 0 && !DehackedApplier.CheckEntityFlagsMbf21(entity, flags))
+            return;
+
+        var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
             entity.FrameState.SetState(newFrame);
     }
 
@@ -3076,6 +3154,21 @@ public static class EntityActionFunctions
 
         DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
         DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
+    }
+
+    private static void JumpToStateIfInSight(Entity from, Entity to, int state, double fov)
+    {
+        var entityFrameTable = from.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (!entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+            return;
+
+        if (fov != 0 && !from.World.InFieldOfView(from, to, fov))
+            return;
+
+        if (!from.World.CheckLineOfSight(from, to))
+            return;
+
+        from.FrameState.SetState(newFrame);
     }
 
     private static void CreateProjectile(Entity entity, string name, double angle, double pitch, double offsetXY, double zOffset, Entity? autoAimEntity)
