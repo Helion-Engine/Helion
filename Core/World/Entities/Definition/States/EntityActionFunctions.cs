@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Audio;
 using Helion.Dehacked;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
@@ -22,7 +21,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
 using NLog;
@@ -385,6 +383,10 @@ public static class EntityActionFunctions
         ["A_MonsterMeleeAttack"] = A_MonsterMeleeAttack,
         ["A_RadiusDamage"] = A_RadiusDamage,
         ["A_NoiseAlert"] = A_NoiseAlert,
+        ["A_HealChase"] = A_HealChase,
+        ["A_JumpIfTargetCloser"] = A_JumpIfTargetCloser,
+        ["A_AddFlags"] = A_AddFlags,
+        ["A_RemoveFlags"] = A_RemoveFlags,
     };
 
     public static ActionFunction? Find(string? actionFuncName)
@@ -1014,7 +1016,7 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_FaceTarget(Entity entity)
+    public static void A_FaceTarget(Entity entity)
     {
         if (entity.Target == null)
             return;
@@ -2560,38 +2562,15 @@ public static class EntityActionFunctions
 
     private static void A_VileChase(Entity entity)
     {
-        Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
-        List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
-
-        for (int i = 0; i < intersections.Count; i++)
+        EntityFrame? healState = entity.FrameState.GetStateFrame(Constants.FrameStates.Heal);
+        if (healState == null)
         {
-            BlockmapIntersect bi = intersections[i];
-
-            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
-                continue;
-
-            if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
-                continue;
-
-            bi.Entity.Flags.Solid = true;
-            bi.Entity.SetHeight(entity.Definition.Properties.Height);
-
-            Entity? saveTarget = entity.Target;
-            entity.Target = bi.Entity;
-            A_FaceTarget(entity);
-            entity.Target = saveTarget;
-            entity.SetHealState();
-
-            entity.SoundManager.CreateSoundOn(bi.Entity, "vile/raise", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
-            bi.Entity.SetRaiseState();
-            bi.Entity.Flags.Friendly = entity.Flags.Friendly;
-            break;
+            A_Chase(entity);
+            return;
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
-
-        A_Chase(entity);
+        if (!entity.World.HealChase(entity, healState, "vile/raise"))
+            A_Chase(entity);
     }
 
     private static void A_VileStart(Entity entity)
@@ -3048,6 +3027,55 @@ public static class EntityActionFunctions
             return;
 
         entity.World.NoiseAlert(entity.Target, entity);
+    }
+
+    private static void A_HealChase(Entity entity)
+    {
+        int state = entity.Frame.DehackedArgs1;
+        int sound = entity.Frame.DehackedArgs2;
+
+        var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (!entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+        {
+            A_Chase(entity);
+            return;
+        }
+
+        GetDehackedSound(entity, sound, out string healSound);
+        if (entity.World.HealChase(entity, newFrame, healSound))
+            A_Chase(entity);
+    }
+
+    private static void A_JumpIfTargetCloser(Entity entity)
+    {
+        if (entity.Target == null)
+            return;
+
+        int state = entity.Frame.DehackedArgs1;
+        double distance = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+
+        var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
+        if (distance > entity.Position.ApproximateDistance2D(entity.Target.Position) &&
+            entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
+            entity.FrameState.SetState(newFrame);
+    }
+
+    private static void A_AddFlags(Entity entity)
+    {
+        uint flags1 = (uint)entity.Frame.DehackedArgs1;
+        uint flags2 = (uint)entity.Frame.DehackedArgs2;
+
+        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, false);
+        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, false);
+    }
+
+    private static void A_RemoveFlags(Entity entity)
+    {
+        uint flags1 = ~(uint)entity.Frame.DehackedArgs1;
+        uint flags2 = ~(uint)entity.Frame.DehackedArgs2;
+
+        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
+        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
     }
 
     private static void CreateProjectile(Entity entity, string name, double angle, double pitch, double offsetXY, double zOffset, Entity? autoAimEntity)

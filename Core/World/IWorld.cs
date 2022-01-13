@@ -23,6 +23,7 @@ using Helion.World.Cheats;
 using Helion.World.Stats;
 using Helion.World.Special;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.States;
 
 namespace Helion.World;
 
@@ -103,6 +104,7 @@ public interface IWorld : IDisposable
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
     double GetMoveFactor(Entity entity);
+    bool HealChase(Entity entity, EntityFrame healState, string healSound);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

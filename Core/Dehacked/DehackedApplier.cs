@@ -7,6 +7,8 @@ using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
@@ -418,9 +420,20 @@ public class DehackedApplier
             if (thing.FastSpeed.HasValue)
                 properties.FastSpeed = thing.FastSpeed.Value;
             if (thing.Bits.HasValue)
-                SetActorFlags(definition, thing.Bits.Value);
+            {
+                if (thing.Number == 83)
+                {
+                    int lol = 1;
+                }
+
+                ClearEntityFlags(ref definition.Flags);
+                SetEntityFlags(definition.Properties, ref definition.Flags, thing.Bits.Value, false);
+            }
             if (thing.Mbf21Bits.HasValue)
-                SetActorFlagsMbf21(definition, thing.Mbf21Bits.Value);
+            {
+                ClearEntityFlagsMbf21(ref definition.Flags);
+                SetEntityFlagsMbf21(definition.Properties, ref definition.Flags, thing.Mbf21Bits.Value, false);
+            }
 
             if (thing.AlertSound.HasValue)
                 properties.SeeSound = GetSound(dehacked, thing.AlertSound.Value);
@@ -628,76 +641,131 @@ public class DehackedApplier
         }
     }
 
-    private static void SetActorFlagsMbf21(EntityDefinition def, uint value)
+    private static void ClearEntityFlagsMbf21(ref EntityFlags flags)
     {
-        Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
-        if (thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV))
-            def.Properties.Gravity = 1 / 8.0;
-        if (thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE))
-            def.Properties.MaxTargetRange = 896; // Short missile range (archvile)
-        if (thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB))
-            def.Properties.MinMissileChance = 160; // Higher missile attack probability (cyberdemon)
-        if (thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE))
-            def.Properties.MeleeThreshold = 196; // Has long melee range (revenant)
-
-        def.Flags.NoTarget = thingProperties.HasFlag(Mbf21ThingFlags.DMGIGNORED);
-        def.Flags.NoRadiusDmg = thingProperties.HasFlag(Mbf21ThingFlags.NORADIUSDMG);
-        def.Flags.ForceRadiusDmg = thingProperties.HasFlag(Mbf21ThingFlags.FORCERADIUSDMG);
-        def.Flags.MissileMore = thingProperties.HasFlag(Mbf21ThingFlags.RANGEHALF);
-        def.Flags.QuickToRetaliate = thingProperties.HasFlag(Mbf21ThingFlags.NOTHRESHOLD);
-        def.Flags.Boss = thingProperties.HasFlag(Mbf21ThingFlags.BOSS);
-        def.Flags.Map07Boss1 = thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS1);
-        def.Flags.Map07Boss2 = thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS2);
-        def.Flags.E1M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E1M8BOSS);
-        def.Flags.E2M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E2M8BOSS);
-        def.Flags.E3M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E3M8BOSS);
-        def.Flags.E4M6Boss = thingProperties.HasFlag(Mbf21ThingFlags.E4M6BOSS);
-        def.Flags.E4M8Boss = thingProperties.HasFlag(Mbf21ThingFlags.E4M8BOSS);
-        def.Flags.Ripper = thingProperties.HasFlag(Mbf21ThingFlags.RIP);
-        def.Flags.FullVolSee = thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS);
-        def.Flags.FullVolDeath = thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS);
+        flags.NoTarget = false;
+        flags.NoRadiusDmg = false;
+        flags.ForceRadiusDmg = false;
+        flags.MissileMore = false;
+        flags.QuickToRetaliate = false;
+        flags.Boss = false;
+        flags.Map07Boss1 = false;
+        flags.Map07Boss2 = false;
+        flags.E1M8Boss = false;
+        flags.E2M8Boss = false;
+        flags.E3M8Boss = false;
+        flags.E4M6Boss = false;
+        flags.E4M8Boss = false;
+        flags.Ripper = false;
+        flags.FullVolSee = false;
+        flags.FullVolDeath = false;
     }
 
-    private static void SetActorFlags(EntityDefinition def, uint value)
+    public static void SetEntityFlagsMbf21(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
     {
-        bool hadShadow = def.Flags.Shadow;
+        Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
+        properties.Gravity = thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
+        properties.MaxTargetRange = thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE) ? 896 : 0; // Short missile range (archvile)
+        properties.MinMissileChance = thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB) ? 160 : 200; // Higher missile attack probability (cyberdemon)
+        properties.MeleeThreshold = thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE) ? 196 : 0; // Has long melee range (revenant)
+
+        flags.NoTarget = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.DMGIGNORED), opAnd);
+        flags.NoRadiusDmg = GetNewFlagValue(flags.NoRadiusDmg, thingProperties.HasFlag(Mbf21ThingFlags.NORADIUSDMG), opAnd);
+        flags.ForceRadiusDmg = GetNewFlagValue(flags.ForceRadiusDmg, thingProperties.HasFlag(Mbf21ThingFlags.FORCERADIUSDMG), opAnd);
+        flags.MissileMore = GetNewFlagValue(flags.MissileMore, thingProperties.HasFlag(Mbf21ThingFlags.RANGEHALF), opAnd);
+        flags.QuickToRetaliate = GetNewFlagValue(flags.QuickToRetaliate, thingProperties.HasFlag(Mbf21ThingFlags.NOTHRESHOLD), opAnd);
+        flags.Boss = GetNewFlagValue(flags.Boss, thingProperties.HasFlag(Mbf21ThingFlags.BOSS), opAnd);
+        flags.Map07Boss1 = GetNewFlagValue(flags.Map07Boss1, thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS1), opAnd);
+        flags.Map07Boss2 = GetNewFlagValue(flags.Map07Boss2, thingProperties.HasFlag(Mbf21ThingFlags.MAP07BOSS2), opAnd);
+        flags.E1M8Boss = GetNewFlagValue(flags.E1M8Boss, thingProperties.HasFlag(Mbf21ThingFlags.E1M8BOSS), opAnd);
+        flags.E2M8Boss = GetNewFlagValue(flags.E2M8Boss, thingProperties.HasFlag(Mbf21ThingFlags.E2M8BOSS), opAnd);
+        flags.E3M8Boss = GetNewFlagValue(flags.E2M8Boss, thingProperties.HasFlag(Mbf21ThingFlags.E2M8BOSS), opAnd);
+        flags.E4M6Boss = GetNewFlagValue(flags.E4M6Boss, thingProperties.HasFlag(Mbf21ThingFlags.E4M6BOSS), opAnd);
+        flags.E4M8Boss = GetNewFlagValue(flags.E4M8Boss, thingProperties.HasFlag(Mbf21ThingFlags.E4M8BOSS), opAnd);
+        flags.Ripper = GetNewFlagValue(flags.Ripper, thingProperties.HasFlag(Mbf21ThingFlags.RIP), opAnd);
+        flags.FullVolSee = GetNewFlagValue(flags.FullVolSee, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
+        flags.FullVolDeath = GetNewFlagValue(flags.FullVolDeath, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
+    }
+
+    private static bool GetNewFlagValue(bool existingFlag, bool newFlag, bool opAnd)
+    {
+        if (opAnd)
+            return newFlag && existingFlag;
+
+        return newFlag || existingFlag;
+    }
+
+    private static void ClearEntityFlags(ref EntityFlags flags)
+    {
+        flags.Special = false;
+        flags.Solid = false;
+        flags.Shootable = false;
+        flags.NoSector = false;
+        flags.NoBlockmap = false;
+        flags.Ambush = false;
+        flags.JustHit = false;
+        flags.JustAttacked = false;
+        flags.SpawnCeiling = false;
+        flags.NoGravity = false;
+        flags.Dropoff = false;
+        flags.Pickup = false;
+        flags.NoClip = false;
+        flags.SlidesOnWalls = false;
+        flags.Float = false;
+        flags.Teleport = false;
+        flags.Missile = false;
+        flags.Dropped = false;
+        flags.Shadow = false;
+        flags.NoBlood = false;
+        flags.Corpse = false;
+        flags.CountKill = false;
+        flags.CountItem = false;
+        flags.Skullfly = false;
+        flags.NotDMatch = false;
+        flags.Touchy = false;
+        flags.MbfBouncer = false;
+        flags.Friendly = false;
+    }
+
+    public static void SetEntityFlags(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
+    {
+        bool hadShadow = flags.Shadow;
 
         ThingProperties thingProperties = (ThingProperties)value;
-        def.Flags.Special = thingProperties.HasFlag(ThingProperties.SPECIAL);
-        def.Flags.Solid = thingProperties.HasFlag(ThingProperties.SOLID);
-        def.Flags.Shootable = thingProperties.HasFlag(ThingProperties.SHOOTABLE);
-        def.Flags.NoSector = thingProperties.HasFlag(ThingProperties.NOSECTOR);
-        def.Flags.NoBlockmap = thingProperties.HasFlag(ThingProperties.NOBLOCKMAP);
-        def.Flags.Ambush = thingProperties.HasFlag(ThingProperties.AMBUSH);
-        def.Flags.JustHit = thingProperties.HasFlag(ThingProperties.JUSTHIT);
-        def.Flags.JustAttacked = thingProperties.HasFlag(ThingProperties.JUSTATTACKED);
-        def.Flags.SpawnCeiling = thingProperties.HasFlag(ThingProperties.SPAWNCEILING);
-        def.Flags.NoGravity = thingProperties.HasFlag(ThingProperties.NOGRAVITY);
-        def.Flags.Dropoff = thingProperties.HasFlag(ThingProperties.DROPOFF);
-        def.Flags.Pickup = thingProperties.HasFlag(ThingProperties.PICKUP);
-        def.Flags.NoClip = thingProperties.HasFlag(ThingProperties.NOCLIP);
-        def.Flags.SlidesOnWalls = thingProperties.HasFlag(ThingProperties.SLIDE);
-        def.Flags.Float = thingProperties.HasFlag(ThingProperties.FLOAT);
-        def.Flags.Teleport = thingProperties.HasFlag(ThingProperties.TELEPORT);
-        def.Flags.Missile = thingProperties.HasFlag(ThingProperties.MISSILE);
-        def.Flags.Dropped = thingProperties.HasFlag(ThingProperties.DROPPED);
-        def.Flags.Shadow = thingProperties.HasFlag(ThingProperties.SHADOW);
-        def.Flags.NoBlood = thingProperties.HasFlag(ThingProperties.NOBLOOD);
-        def.Flags.Corpse = thingProperties.HasFlag(ThingProperties.CORPSE);
-        def.Flags.CountKill = thingProperties.HasFlag(ThingProperties.COUNTKILL);
-        def.Flags.CountItem = thingProperties.HasFlag(ThingProperties.COUNTITEM);
-        def.Flags.Skullfly = thingProperties.HasFlag(ThingProperties.SKULLFLY);
-        def.Flags.NotDMatch = thingProperties.HasFlag(ThingProperties.NOTDMATCH);
-        def.Flags.NotDMatch = thingProperties.HasFlag(ThingProperties.NOTDMATCH);
-        def.Flags.Touchy = thingProperties.HasFlag(ThingProperties.TOUCHY);
-        def.Flags.MbfBouncer = thingProperties.HasFlag(ThingProperties.BOUNCES);
-        def.Flags.Friendly = thingProperties.HasFlag(ThingProperties.FRIEND);
+        flags.Special = GetNewFlagValue(flags.Special, thingProperties.HasFlag(ThingProperties.SPECIAL), opAnd);
+        flags.Solid = GetNewFlagValue(flags.Solid, thingProperties.HasFlag(ThingProperties.SOLID), opAnd);
+        flags.Shootable = GetNewFlagValue(flags.Shootable, thingProperties.HasFlag(ThingProperties.SHOOTABLE), opAnd);
+        flags.NoSector = GetNewFlagValue(flags.NoSector, thingProperties.HasFlag(ThingProperties.NOSECTOR), opAnd);
+        flags.NoBlockmap = GetNewFlagValue(flags.NoBlockmap, thingProperties.HasFlag(ThingProperties.NOBLOCKMAP), opAnd);
+        flags.Ambush = GetNewFlagValue(flags.Ambush, thingProperties.HasFlag(ThingProperties.AMBUSH), opAnd);
+        flags.JustHit = GetNewFlagValue(flags.JustHit, thingProperties.HasFlag(ThingProperties.JUSTHIT), opAnd);
+        flags.JustAttacked = GetNewFlagValue(flags.JustAttacked, thingProperties.HasFlag(ThingProperties.JUSTATTACKED), opAnd);
+        flags.SpawnCeiling = GetNewFlagValue(flags.SpawnCeiling, thingProperties.HasFlag(ThingProperties.SPAWNCEILING), opAnd);
+        flags.NoGravity = GetNewFlagValue(flags.NoGravity, thingProperties.HasFlag(ThingProperties.NOGRAVITY), opAnd);
+        flags.Dropoff = GetNewFlagValue(flags.Dropoff, thingProperties.HasFlag(ThingProperties.DROPOFF), opAnd);
+        flags.Pickup = GetNewFlagValue(flags.Pickup, thingProperties.HasFlag(ThingProperties.PICKUP), opAnd);
+        flags.NoClip = GetNewFlagValue(flags.NoClip, thingProperties.HasFlag(ThingProperties.NOCLIP), opAnd);
+        flags.SlidesOnWalls = GetNewFlagValue(flags.SlidesOnWalls, thingProperties.HasFlag(ThingProperties.SLIDE), opAnd);
+        flags.Float = GetNewFlagValue(flags.Float, thingProperties.HasFlag(ThingProperties.FLOAT), opAnd);
+        flags.Teleport = GetNewFlagValue(flags.Teleport, thingProperties.HasFlag(ThingProperties.TELEPORT), opAnd);
+        flags.Missile = GetNewFlagValue(flags.Missile, thingProperties.HasFlag(ThingProperties.MISSILE), opAnd);
+        flags.Dropped = GetNewFlagValue(flags.Dropped, thingProperties.HasFlag(ThingProperties.DROPPED), opAnd);
+        flags.Shadow = GetNewFlagValue(flags.Shadow, thingProperties.HasFlag(ThingProperties.SHADOW), opAnd);
+        flags.NoBlood = GetNewFlagValue(flags.NoBlood, thingProperties.HasFlag(ThingProperties.NOBLOOD), opAnd);
+        flags.Corpse = GetNewFlagValue(flags.Corpse, thingProperties.HasFlag(ThingProperties.CORPSE), opAnd);
+        flags.CountKill = GetNewFlagValue(flags.CountKill, thingProperties.HasFlag(ThingProperties.COUNTKILL), opAnd);
+        flags.CountItem = GetNewFlagValue(flags.CountItem, thingProperties.HasFlag(ThingProperties.COUNTITEM), opAnd);
+        flags.Skullfly = GetNewFlagValue(flags.Skullfly, thingProperties.HasFlag(ThingProperties.SKULLFLY), opAnd);
+        flags.NotDMatch = GetNewFlagValue(flags.NotDMatch, thingProperties.HasFlag(ThingProperties.NOTDMATCH), opAnd);
+        flags.Touchy = GetNewFlagValue(flags.Touchy, thingProperties.HasFlag(ThingProperties.TOUCHY), opAnd);
+        flags.MbfBouncer = GetNewFlagValue(flags.MbfBouncer, thingProperties.HasFlag(ThingProperties.BOUNCES), opAnd);
+        flags.Friendly = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.FRIEND), opAnd);
 
         // Apply correct alpha with shadow flag changes
-        if (hadShadow && !def.Flags.Shadow)
-            def.Properties.Alpha = 1;
-        else if (!hadShadow && def.Flags.Shadow)
-            def.Properties.Alpha = 0.4;
+        if (hadShadow && !flags.Shadow)
+            properties.Alpha = 1;
+        else if (!hadShadow && flags.Shadow)
+            properties.Alpha = 0.4;
 
         // TODO can we support these?
         //if (thingProperties.HasFlag(ThingProperties.TRANSLATION1))

@@ -49,6 +49,7 @@ using Helion.Resources.Archives;
 using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
+using Helion.World.Entities.Definition.States;
 
 namespace Helion.World;
 
@@ -1746,6 +1747,45 @@ public abstract partial class WorldBase : IWorld
             node = node.Next;
         }
         return count;
+    }
+
+    public bool HealChase(Entity entity, EntityFrame healState, string healSound)
+    {
+        Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
+        List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
+            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
+
+        for (int i = 0; i < intersections.Count; i++)
+        {
+            BlockmapIntersect bi = intersections[i];
+
+            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
+                continue;
+
+            if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
+                continue;
+
+            bi.Entity.Flags.Solid = true;
+            bi.Entity.SetHeight(entity.Definition.Properties.Height);
+
+            Entity? saveTarget = entity.Target;
+            entity.Target = bi.Entity;
+            EntityActionFunctions.A_FaceTarget(entity);
+            entity.Target = saveTarget;
+            entity.FrameState.SetState(healState);
+
+            if (healSound.Length > 0)
+                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+
+            bi.Entity.SetRaiseState();
+            bi.Entity.Flags.Friendly = entity.Flags.Friendly;
+
+            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            return true;
+        }
+
+        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        return false;
     }
 
     private void GiveCheatArmor(Player player, CheatType cheatType)
