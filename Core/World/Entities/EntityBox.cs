@@ -8,8 +8,8 @@ namespace Helion.World.Entities;
 public class EntityBox : BoundingBox3D
 {
     private Vec3D m_centerBottom;
-    public double Radius { get; }
-    public double Height { get; private set; }
+    public double Radius;
+    public double Height;
 
     public double Top => Max.Z;
     public double Bottom => Min.Z;
@@ -22,6 +22,15 @@ public class EntityBox : BoundingBox3D
         m_centerBottom = centerBottom;
         Radius = radius;
         Height = height;
+    }
+
+    public void Set(Vec3D centerBottom, double radius, double height)
+    {
+        Radius = radius;
+        Height = height;
+        m_centerBottom = centerBottom;
+        m_Min = CalculateMin(centerBottom, radius);
+        m_Max = CalculateMax(centerBottom, radius, height);
     }
 
     private static Vec3D CalculateMin(Vec3D centerBottom, double radius)

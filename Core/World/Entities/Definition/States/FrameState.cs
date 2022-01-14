@@ -17,11 +17,11 @@ public class FrameState : ITickable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public EntityFrame Frame => m_frameTable.Frames[m_frameIndex];
-    private readonly Entity m_entity;
-    private readonly EntityDefinition m_definition;
-    private readonly EntityManager m_entityManager;
-    private readonly EntityFrameTable m_frameTable;
-    private readonly bool m_destroyOnStop;
+    private Entity m_entity;
+    private EntityDefinition m_definition;
+    private EntityManager m_entityManager;
+    private EntityFrameTable m_frameTable;
+    private bool m_destroyOnStop;
     private int m_frameIndex;
     private int m_tics;
     private int m_stackCount;
@@ -48,6 +48,38 @@ public class FrameState : ITickable
         m_frameIndex = frameStateModel.FrameIndex;
         m_tics = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
+    }
+
+    public void Set(Entity entity, EntityDefinition definition,
+        EntityManager entityManager, bool destroyOnStop = true)
+    {
+        m_entity = entity;
+        m_definition = definition;
+        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
+        m_entityManager = entityManager;
+        m_destroyOnStop = destroyOnStop;
+    }
+
+    public void Set(Entity entity, EntityDefinition definition,
+        EntityManager entityManager, FrameStateModel frameStateModel)
+    {
+        m_entity = entity;
+        m_definition = definition;
+        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
+        m_entityManager = entityManager;
+        m_frameIndex = frameStateModel.FrameIndex;
+        m_tics = frameStateModel.Tics;
+        m_destroyOnStop = frameStateModel.Destroy;
+    }
+
+public void Clear()
+    {
+        m_entity = null!;
+        m_definition = null!;
+        m_frameTable = null!;
+        m_entityManager = null!;
+        m_frameIndex = -1;
+        m_tics = -1;
     }
 
     public EntityFrame? GetStateFrame(string label)

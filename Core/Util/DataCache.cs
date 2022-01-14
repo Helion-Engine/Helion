@@ -11,14 +11,25 @@ using System.Collections.Generic;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Renderers.Legacy.World.Data;
 using Helion.Render.Legacy.Texture.Legacy;
+using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Definition;
+using Helion.Models;
+using Helion.Geometry.Vectors;
+using NLog;
 
 namespace Helion.Util;
 
 public class DataCache
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
     public static DataCache Instance { get; } = new DataCache();
 
-    private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new DynamicArray<LinkableNode<Entity>>(1024);
+    private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(1024);
+    private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(1024);
+    private readonly DynamicArray<List<Sector>> m_sectorLists = new(1024);
+    private readonly DynamicArray<FrameState> m_frameStates = new(1024);
+    private readonly DynamicArray<EntityBox> m_entityBoxes = new(1024);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new();
     private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
@@ -51,14 +62,87 @@ public class DataCache
         m_entityNodes.Add(node);
     }
 
+    public List<LinkableNode<Entity>> GetLinkableNodeEntityList()
+    {
+        if (m_entityListNodes.Length > 0)
+            return m_entityListNodes.RemoveLast();
+
+        return new List<LinkableNode<Entity>>();
+    }
+
+    public void FreeLinkableNodeEntityList(List<LinkableNode<Entity>> list)
+    {
+        list.Clear();
+        m_entityListNodes.Add(list);
+    }
+
+    public List<Sector> GetSectorList()
+    {
+        if (m_sectorLists.Length > 0)
+            return m_sectorLists.RemoveLast();
+
+        return new List<Sector>();
+    }
+
+    public void FreeSectorList(List<Sector> list)
+    {
+        list.Clear();
+        m_sectorLists.Add(list);
+    }
+
+    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
+        EntityManager entityManager, bool destroyOnStop = true)
+    {
+        if (m_frameStates.Length > 0)
+        {
+            FrameState frameState = m_frameStates.RemoveLast();
+            frameState.Set(entity, definition, entityManager, destroyOnStop);
+            return frameState;
+        }
+
+        return new FrameState(entity, definition, entityManager, destroyOnStop);
+    }
+
+    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
+        EntityManager entityManager, FrameStateModel frameStateModel)
+    {
+        if (m_frameStates.Length > 0)
+        {
+            FrameState frameState = m_frameStates.RemoveLast();
+            frameState.Set(entity, definition, entityManager, frameStateModel);
+            return frameState;
+        }
+
+        return new FrameState(entity, definition, entityManager, frameStateModel);
+    }
+
+    public void FreeFrameState(FrameState frameState)
+    {
+        frameState.Clear();
+        m_frameStates.Add(frameState);
+    }
+
+    public EntityBox GetEntityBox(Vec3D centerBottom, double radius, double height)
+    {
+        if (m_entityBoxes.Length > 0)
+        {
+            EntityBox box = m_entityBoxes.RemoveLast();
+            box.Set(centerBottom, radius, height);
+            return box;
+        }
+
+        return new EntityBox(centerBottom, radius, height);
+    }
+
+    public void FreeEntityBox(EntityBox box)
+    {
+        m_entityBoxes.Add(box);
+    }
+
     public List<BlockmapIntersect> GetBlockmapIntersectList()
     {
         if (m_blockmapLists.Length > 0)
-        {
-            List<BlockmapIntersect> list = m_blockmapLists.Data[m_blockmapLists.Length - 1];
-            m_blockmapLists.RemoveLast();
-            return list;
-        }
+            return m_blockmapLists.RemoveLast();
 
         return new List<BlockmapIntersect>();
     }
@@ -74,11 +158,7 @@ public class DataCache
         if (m_alphaRender.TryGetValue(texture, out var data))
         {
             if (data.Length > 0)
-            {
-                var renderWorldData = data.Data[data.Length - 1];
-                data.RemoveLast();
-                return renderWorldData;
-            }
+                return data.RemoveLast();
 
             return new RenderWorldData(capabilities, functions, texture);
         }
@@ -99,11 +179,7 @@ public class DataCache
     public HashSet<Sector> GetSectorSet()
     {
         if (m_sectorSet.Length > 0)
-        {
-            HashSet<Sector> set = m_sectorSet.Data[m_sectorSet.Length - 1];
-            m_sectorSet.RemoveLast();
-            return set;
-        }
+            return m_sectorSet.RemoveLast();
 
         return new HashSet<Sector>();
     }
@@ -119,14 +195,13 @@ public class DataCache
     {
         if (m_audioData.Length > 0)
         {
-            AudioData audioData = m_audioData.Data[m_audioData.Length - 1];
+            AudioData audioData = m_audioData.RemoveLast();
             audioData.SoundSource = soundSource;
             audioData.SoundInfo = soundInfo;
             audioData.SoundChannelType = channel;
             audioData.Attenuation = attenuation;
             audioData.Priority = priority;
             audioData.Loop = loop;
-            m_audioData.RemoveLast();
             return audioData;
         }
 
@@ -145,13 +220,12 @@ public class DataCache
     {
         if (m_soundParams.Length > 0)
         {
-            SoundParams soundParams = m_soundParams[m_soundParams.Length - 1];
+            SoundParams soundParams = m_soundParams.RemoveLast();
             soundParams.SoundSource = soundSource;
             soundParams.Loop = loop;
             soundParams.Attenuation = attenuation;
             soundParams.Volume = volume;
-            soundParams.SoundType = type;
-            m_soundParams.RemoveLast();
+            soundParams.SoundType = type;            
             return soundParams;
         }
 
@@ -169,9 +243,8 @@ public class DataCache
     {
         if (m_audioSources.Length > 0)
         {
-            OpenALAudioSource audioSource = (OpenALAudioSource)m_audioSources[m_audioSources.Length - 1];
-            audioSource.Set(owner, buffer, audioData, soundParams);
-            m_audioSources.RemoveLast();
+            OpenALAudioSource audioSource = (OpenALAudioSource)m_audioSources.RemoveLast();
+            audioSource.Set(owner, buffer, audioData, soundParams);            
             return audioSource;
         }
 

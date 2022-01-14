@@ -150,10 +150,13 @@ public class DynamicArray<T>
         Length = size;
     }
 
-    public void RemoveLast()
+    public T RemoveLast()
     {
-        if (Length > 0)
-            Length--;
+        if (Length == 0)
+            throw new InvalidOperationException("No data to remove.");
+        T data = Data[Length - 1];
+        Length--;
+        return data;
     }
 
     private void EnsureCapacity(int desiredCapacity)

@@ -22,6 +22,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Render.Legacy.Renderers.Legacy.World;
 using Helion.Util.Extensions;
+using Helion.Geometry.Boxes;
 
 namespace Helion.World.Entities;
 
@@ -68,7 +69,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public List<Sector> IntersectSectors = new List<Sector>();
+    public List<Sector> IntersectSectors;
     // The entity we are standing on.
     public Entity? OnEntity;
     // The entity standing on our head.
@@ -99,8 +100,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    protected internal List<LinkableNode<Entity>> BlockmapNodes = new List<LinkableNode<Entity>>();
-    protected internal List<LinkableNode<Entity>> SectorNodes = new List<LinkableNode<Entity>>();
+    protected internal List<LinkableNode<Entity>> BlockmapNodes;
+    protected internal List<LinkableNode<Entity>> SectorNodes;
     protected internal LinkableNode<Entity>? SubsectorNode;
     protected internal LinkableNode<Entity>? EntityListNode;
     internal bool IsDisposed { get; private set; }
@@ -154,14 +155,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Threshold = Properties.Threshold;
         ReactionTime = Properties.ReactionTime;
 
-        FrameState = new FrameState(this, definition, entityManager);
         World = world;
         EntityManager = entityManager;
         SoundManager = soundManager;
 
         AngleRadians = angleRadians;
-        Box = new EntityBox(position, Radius, definition.Properties.Height);
-        PrevPosition = Box.Position;
+        Box = DataCache.Instance.GetEntityBox(position, Radius, definition.Properties.Height);
+        PrevPosition = Position;
         Sector = sector;
         LowestCeilingZ = sector.Ceiling.Z;
         HighestFloorZ = sector.Floor.Z;
@@ -172,6 +172,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         CheckOnGround();
 
         Properties.Threshold = 0;
+
+        FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager);
+        BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
+        SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
+        IntersectSectors = DataCache.Instance.GetSectorList();
     }
 
     public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager,
@@ -188,13 +193,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Health = entityModel.Health;
         Armor = entityModel.Armor;
 
-        FrameState = new FrameState(this, definition, entityManager, entityModel.Frame);
         World = world;
         EntityManager = entityManager;
         SoundManager = soundManager;
 
         AngleRadians = entityModel.AngleRadians;
-        Box = new EntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
+        Box = DataCache.Instance.GetEntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
         PrevPosition = entityModel.Box.GetCenter();
         Velocity = entityModel.GetVelocity();
         SpawnPoint = entityModel.GetSpawnPoint();
@@ -216,6 +220,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+
+        FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager, entityModel.Frame);
+        BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
+        SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
+        IntersectSectors = DataCache.Instance.GetSectorList();
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -888,6 +897,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         UnlinkFromWorld();
         EntityListNode?.Unlink();
+        DataCache.Instance.FreeEntityBox(Box);
+        DataCache.Instance.FreeFrameState(FrameState);
+        DataCache.Instance.FreeLinkableNodeEntityList(BlockmapNodes);
+        DataCache.Instance.FreeLinkableNodeEntityList(SectorNodes);
+        DataCache.Instance.FreeSectorList(IntersectSectors);
         IsDisposed = true;
         GC.SuppressFinalize(this);
     }
