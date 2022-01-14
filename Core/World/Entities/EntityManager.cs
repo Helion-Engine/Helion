@@ -201,14 +201,17 @@ public class EntityManager : IDisposable
         {
             var entityModel = worldModel.Entities[i];
             var definition = DefinitionComposer.GetByName(entityModel.Name);
-            if (definition != null)
+            if (definition == null)
             {
-                var entity = new Entity(entityModel, definition, this, m_soundManager, World);
-                var node = Entities.Add(entity);
-                entity.EntityListNode = node;
-
-                entities.Add(entity.Id, entity);
+                Log.Error($"Failed to find entity definition for:{entityModel.Name}");
+                continue;
             }
+
+            var entity = new Entity(entityModel, definition, this, m_soundManager, World);
+            var node = Entities.Add(entity);
+            entity.EntityListNode = node;
+
+            entities.Add(entityModel.Id, entity);
         }
 
         for (int i = 0; i < worldModel.Players.Count; i++)
@@ -226,7 +229,8 @@ public class EntityManager : IDisposable
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
-            var entity = entities[entityModel.Id];
+            if (!entities.TryGetValue(entityModel.Id, out Entity? entity))
+                continue;
 
             if (entityModel.Owner.HasValue)
                 entities.TryGetValue(entityModel.Owner.Value, out entity.Owner);
