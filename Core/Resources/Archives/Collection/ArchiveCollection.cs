@@ -249,7 +249,7 @@ public class ArchiveCollection : IResources
     {
         if (Definitions.DehackedDefinition != null)
         {
-            DehackedApplier dehackedApplier = new(Definitions);
+            DehackedApplier dehackedApplier = new(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
         }
     }

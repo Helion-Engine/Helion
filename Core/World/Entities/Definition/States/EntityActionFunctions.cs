@@ -2655,28 +2655,6 @@ public static class EntityActionFunctions
         PlayDehackedSound(entity, soundIndex, attenuation);
     }
 
-    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation)
-    {
-        if (!GetDehackedSound(entity, soundIndex, out string soundName))
-            return;
-
-        entity.World.SoundManager.CreateSoundOn(entity, soundName, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
-    }
-
-    private static bool GetDehackedSound(Entity entity, int soundIndex, out string soundName)
-    {
-        var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
-        if (dehacked == null || soundIndex < 0 || soundIndex >= dehacked.SoundStrings.Length)
-        {
-            soundName = string.Empty;
-            return false;
-        }
-
-        soundName = dehacked.SoundStrings[soundIndex];
-        return true;
-    }
-
     private static void A_Detonate(Entity entity)
     {
         entity.World.RadiusExplosion(entity, entity.Target ?? entity, entity.Properties.Damage.Value);
@@ -2690,18 +2668,6 @@ public static class EntityActionFunctions
         Vec3D pos = entity.Position;
         pos.Z += entity.Frame.DehackedMisc2;
         entity.World.EntityManager.Create(name, pos);
-    }
-
-    private static bool GetDehackedActorName(Entity entity, int index, [NotNullWhen(true)]  out string? name)
-    {
-        name = null;
-        var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
-        int actorIndex = index;
-        if (dehacked == null || actorIndex < 0 || actorIndex >= dehacked.ActorNames.Length)
-            return false;
-
-        name = dehacked.ActorNames[actorIndex];
-        return true;
     }
 
     private static void A_Face(Entity entity)
@@ -3171,6 +3137,18 @@ public static class EntityActionFunctions
         from.FrameState.SetState(newFrame);
     }
 
+    private static bool GetDehackedActorName(Entity entity, int index, [NotNullWhen(true)] out string? name)
+    {
+        var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
+        if (dehacked == null)
+        {
+            name = null;
+            return false;
+        }
+
+        return dehacked.GetEntityDefinitionName(index, out name);
+    }
+
     private static void CreateProjectile(Entity entity, string name, double angle, double pitch, double offsetXY, double zOffset, Entity? autoAimEntity)
     {
         Vec3D pos = entity.ProjectileAttackPos;
@@ -3215,4 +3193,26 @@ public static class EntityActionFunctions
         frame = entity.PlayerObj.Weapon.FrameState.Frame;
         return true;
     }
+
+    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation)
+    {
+        if (!GetDehackedSound(entity, soundIndex, out string soundName))
+            return;
+
+        entity.World.SoundManager.CreateSoundOn(entity, soundName, SoundChannelType.Auto,
+            DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
+    }
+
+    private static bool GetDehackedSound(Entity entity, int soundIndex, out string soundName)
+    {
+        var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
+        if (dehacked == null)
+        {
+            soundName = null;
+            return false;
+        }
+
+        return dehacked.GetSoundName(soundIndex, out soundName);
+    }
+
 }

@@ -1,7 +1,10 @@
 using Helion.Util.Parser;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -23,6 +26,11 @@ public partial class DehackedDefinition
     public readonly List<BexPar> BexPars = new();
     public readonly List<BexItem> BexSounds = new();
     public readonly List<BexItem> BexSprites = new();
+
+    public readonly Dictionary<int, string> NewSoundLookup = new();
+    public readonly Dictionary<int, string> NewSpriteLookup = new();
+    public readonly Dictionary<int, EntityDefinition> NewThingLookup = new();
+    public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
 
     public DehackedCheat? Cheat { get; private set; }
     public DehackedMisc? Misc { get; private set; }
@@ -83,6 +91,42 @@ public partial class DehackedDefinition
             else
                 UnknownWarning(parser, "type", item);
         }
+    }
+
+    public bool GetEntityDefinitionName(int thingNumber, [NotNullWhen(true)] out string? name)
+    {
+        name = null;
+        int index = thingNumber - 1;
+        if (index < 0)
+            return false;
+
+        if (index < ActorNames.Length)
+        {
+            name = ActorNames[index];
+            return true;
+        }
+
+        if (NewThingLookup.TryGetValue(index, out EntityDefinition? def))
+        {
+            name = def.Name;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool GetSoundName(int soundIndex, [NotNullWhen(true)] out string? soundName)
+    {
+        if (soundIndex >= 0 && soundIndex < SoundStrings.Length)
+        {
+            soundName = SoundStrings[soundIndex];
+            return true;
+        }
+
+        if (NewSoundLookup.TryGetValue(soundIndex, out soundName))
+            return true;
+        
+        return false;
     }
 
     private static bool IsComment(string line, int i) => i == 0 && line[i] == '#';
