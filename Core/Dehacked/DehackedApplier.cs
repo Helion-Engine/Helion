@@ -41,7 +41,7 @@ public class DehackedApplier
         {
             string name = $"deh/{i}";
             NewSoundLookup[DehExtraSoundStart + i] = name;
-            definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"free{i.ToString().PadLeft(3, '0')}", 0));
+            definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"dsfre{i.ToString().PadLeft(3, '0')}", 0));
         }
     }
 
