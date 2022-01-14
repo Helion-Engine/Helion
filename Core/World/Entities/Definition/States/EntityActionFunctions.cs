@@ -2933,7 +2933,7 @@ public static class EntityActionFunctions
         if (entity.Target == null|| !GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
             return;
 
-        double angle = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
         double pitchOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
         double offsetXY = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
@@ -3094,7 +3094,7 @@ public static class EntityActionFunctions
         uint flags = (uint)entity.Frame.DehackedArgs2;
         uint flags2 = (uint)entity.Frame.DehackedArgs3;
 
-        if (flags != 0 && !DehackedApplier.CheckEntityFlags(entity.Flags, flags))
+        if (flags != 0 && !DehackedApplier.CheckEntityFlags(entity, flags))
             return;
         if (flags2 != 0 && !DehackedApplier.CheckEntityFlagsMbf21(entity, flags))
             return;

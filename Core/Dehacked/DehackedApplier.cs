@@ -14,7 +14,6 @@ using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using static Helion.Dehacked.DehackedDefinition;
@@ -29,6 +28,9 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
+    // There isn't anything great to map this to, so this value is tweaked from the shadow alpha to check if it's set for dehacked flag compatibility.
+    private const double TranslucentValue = 0.38;
+    private const double ShadowTranslucentValue = 0.4;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -762,74 +764,80 @@ public class DehackedApplier
         if (hadShadow && !flags.Shadow)
             properties.Alpha = 1;
         else if (!hadShadow && flags.Shadow)
-            properties.Alpha = 0.4;
+            properties.Alpha = ShadowTranslucentValue;
+
+        if (thingProperties.HasFlag(ThingProperties.TRANSLUCENT))
+            properties.Alpha = TranslucentValue;
+        else if (!flags.Shadow)
+            properties.Alpha = 1;
 
         // TODO can we support these?
         //ThingProperties.TRANSLATION1
         //ThingProperties.TRANSLATION2
         //ThingProperties.INFLOAT
-        //ThingProperties.TRANSLUCENT
     }
 
-    public static bool CheckEntityFlags(in EntityFlags entityFlags, uint flags)
+    public static bool CheckEntityFlags(Entity entity, uint flags)
     {
         // This could have been a lookup but it would have to to map to a property, invoking would likely be slow and this happens at runtime.
         ThingProperties thingProperties = (ThingProperties)flags;
-        if (thingProperties.HasFlag(ThingProperties.SPECIAL) && !entityFlags.Special)
+        if (thingProperties.HasFlag(ThingProperties.SPECIAL) && !entity.Flags.Special)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SOLID) && !entityFlags.Solid)
+        if (thingProperties.HasFlag(ThingProperties.SOLID) && !entity.Flags.Solid)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SHOOTABLE) && !entityFlags.Shootable)
+        if (thingProperties.HasFlag(ThingProperties.SHOOTABLE) && !entity.Flags.Shootable)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOSECTOR) && !entityFlags.NoSector)
+        if (thingProperties.HasFlag(ThingProperties.NOSECTOR) && !entity.Flags.NoSector)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOBLOCKMAP) && !entityFlags.NoBlockmap)
+        if (thingProperties.HasFlag(ThingProperties.NOBLOCKMAP) && !entity.Flags.NoBlockmap)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.AMBUSH) && !entityFlags.Ambush)
+        if (thingProperties.HasFlag(ThingProperties.AMBUSH) && !entity.Flags.Ambush)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.JUSTHIT) && !entityFlags.JustHit)
+        if (thingProperties.HasFlag(ThingProperties.JUSTHIT) && !entity.Flags.JustHit)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.JUSTATTACKED) && !entityFlags.JustAttacked)
+        if (thingProperties.HasFlag(ThingProperties.JUSTATTACKED) && !entity.Flags.JustAttacked)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SPAWNCEILING) && !entityFlags.SpawnCeiling)
+        if (thingProperties.HasFlag(ThingProperties.SPAWNCEILING) && !entity.Flags.SpawnCeiling)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOGRAVITY) && !entityFlags.NoGravity)
+        if (thingProperties.HasFlag(ThingProperties.NOGRAVITY) && !entity.Flags.NoGravity)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.DROPOFF) && !entityFlags.Dropoff)
+        if (thingProperties.HasFlag(ThingProperties.DROPOFF) && !entity.Flags.Dropoff)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.PICKUP) && !entityFlags.Pickup)
+        if (thingProperties.HasFlag(ThingProperties.PICKUP) && !entity.Flags.Pickup)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOCLIP) && !entityFlags.NoClip)
+        if (thingProperties.HasFlag(ThingProperties.NOCLIP) && !entity.Flags.NoClip)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SLIDE) && !entityFlags.SlidesOnWalls)
+        if (thingProperties.HasFlag(ThingProperties.SLIDE) && !entity.Flags.SlidesOnWalls)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.FLOAT) && !entityFlags.Float)
+        if (thingProperties.HasFlag(ThingProperties.FLOAT) && !entity.Flags.Float)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.TELEPORT) && !entityFlags.Teleport)
+        if (thingProperties.HasFlag(ThingProperties.TELEPORT) && !entity.Flags.Teleport)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.MISSILE) && !entityFlags.Missile)
+        if (thingProperties.HasFlag(ThingProperties.MISSILE) && !entity.Flags.Missile)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.DROPPED) && !entityFlags.Dropped)
+        if (thingProperties.HasFlag(ThingProperties.DROPPED) && !entity.Flags.Dropped)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SHADOW) && !entityFlags.Shadow)
+        if (thingProperties.HasFlag(ThingProperties.SHADOW) && !entity.Flags.Shadow)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOBLOOD) && !entityFlags.NoBlood)
+        if (thingProperties.HasFlag(ThingProperties.NOBLOOD) && !entity.Flags.NoBlood)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.CORPSE) && !entityFlags.Corpse)
+        if (thingProperties.HasFlag(ThingProperties.CORPSE) && !entity.Flags.Corpse)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.COUNTKILL) && !entityFlags.CountKill)
+        if (thingProperties.HasFlag(ThingProperties.COUNTKILL) && !entity.Flags.CountKill)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.COUNTITEM) && !entityFlags.CountItem)
+        if (thingProperties.HasFlag(ThingProperties.COUNTITEM) && !entity.Flags.CountItem)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.SKULLFLY) && !entityFlags.Skullfly)
+        if (thingProperties.HasFlag(ThingProperties.SKULLFLY) && !entity.Flags.Skullfly)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.NOTDMATCH) && !entityFlags.NotDMatch)
+        if (thingProperties.HasFlag(ThingProperties.NOTDMATCH) && !entity.Flags.NotDMatch)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.TOUCHY) && !entityFlags.Touchy)
+        if (thingProperties.HasFlag(ThingProperties.TOUCHY) && !entity.Flags.Touchy)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.BOUNCES) && !entityFlags.MbfBouncer)
+        if (thingProperties.HasFlag(ThingProperties.BOUNCES) && !entity.Flags.MbfBouncer)
             return false;
-        if (thingProperties.HasFlag(ThingProperties.FRIEND) && !entityFlags.Friendly)
+        if (thingProperties.HasFlag(ThingProperties.FRIEND) && !entity.Flags.Friendly)
+            return false;
+        if (thingProperties.HasFlag(ThingProperties.TRANSLUCENT) && entity.Properties.Alpha != TranslucentValue)
             return false;
 
         return true;
