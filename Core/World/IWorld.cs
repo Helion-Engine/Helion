@@ -27,6 +27,8 @@ using Helion.World.Entities.Definition.States;
 
 namespace Helion.World;
 
+public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
+
 public interface IWorld : IDisposable
 {
     string MapName { get; }
@@ -106,6 +108,8 @@ public interface IWorld : IDisposable
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
     double GetMoveFactor(Entity entity);
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
+    void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
+    void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

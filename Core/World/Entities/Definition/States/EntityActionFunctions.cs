@@ -2392,26 +2392,11 @@ public static class EntityActionFunctions
 
     private static void A_Tracer(Entity entity)
     {
-        if (entity.Tracer == null || entity.Tracer.IsDead)
-            return;
-
         if ((entity.World.Gametick & 3) != 0)
             return;
 
         SpawnTracerPuff(entity);
-        SetTracerAngle(entity);
-
-        double z = entity.Velocity.Z;
-        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.Speed;
-        entity.Velocity.Z = z;
-
-        double distance = entity.Position.ApproximateDistance2D(entity.Tracer.Position);
-        double slope = GetTracerSlope(entity.Tracer.Position.Z + 40 - entity.Position.Z, distance, entity.Definition.Properties.Speed);
-
-        if (slope < entity.Velocity.Z)
-            entity.Velocity.Z -= 0.125;
-        else
-            entity.Velocity.Z += 0.125;
+        entity.World.TracerSeek(entity, Math.PI, Constants.TracerAngle, DoomTracerVelocity);
     }
 
     private static void SpawnTracerPuff(Entity entity)
@@ -2427,39 +2412,16 @@ public static class EntityActionFunctions
         }
     }
 
-    private static void SetTracerAngle(Entity entity)
+    private static double DoomTracerVelocity(Entity tracer, Entity target)
     {
-        if (entity.Tracer == null)
-            return;
-        // Doom's angles were always 0-360 and did not allow negatives (thank you arithmetic overflow)
-        // To keep this code familiar GetPositiveAngle will keep angle between 0 and 2pi
-        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Position));
-        double currentAngle = MathHelper.GetPositiveAngle(entity.AngleRadians);
-        double diff = MathHelper.GetPositiveAngle(exact - currentAngle);
+        double distance = tracer.Position.ApproximateDistance2D(target.Position);
+        double z = target.Position.Z - tracer.Position.Z + 40;
+        double slope = GetTracerSlope(z, distance, tracer.Definition.Properties.Speed);
 
-        if (!MathHelper.AreEqual(exact, currentAngle))
-        {
-            if (diff > Math.PI)
-            {
-                entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians - Constants.TracerAngle);
-                if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) < Math.PI)
-                    entity.AngleRadians = exact;
-            }
-            else
-            {
-                entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians + Constants.TracerAngle);
-                if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) > Math.PI)
-                    entity.AngleRadians = exact;
-            }
-        }
-    }
+        if (slope < tracer.Velocity.Z)
+            return tracer.Velocity.Z - 0.125;
 
-    private static double GetTracerSlope(double z, double distance, double speed)
-    {
-        distance /= speed;
-        if (distance < 1)
-            distance = 1;
-        return z / distance;
+        return tracer.Velocity.Z + 0.125;
     }
 
     private static void A_Tracer2(Entity entity)
@@ -2809,7 +2771,7 @@ public static class EntityActionFunctions
         int sound = frame.DehackedArgs4;
         double range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
 
-        GetDehackedSound(entity, sound, out string hitSound);
+        GetDehackedSound(entity, sound, out string? hitSound);
         PlayerMelee(entity.PlayerObj, damage, mod, berserkFactor, range, hitSound);
     }
 
@@ -2976,7 +2938,7 @@ public static class EntityActionFunctions
         {
             damage = (entity.World.Random.NextByte() % mod + 1) * damage;
             entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
-            GetDehackedSound(entity, sound, out string hitSound);
+            GetDehackedSound(entity, sound, out string? hitSound);
             if (hitSound.Length > 0)
                 entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, DataCache.Instance.GetSoundParams(entity));
         }
@@ -3009,19 +2971,34 @@ public static class EntityActionFunctions
             return;
         }
 
-        GetDehackedSound(entity, sound, out string healSound);
+        GetDehackedSound(entity, sound, out string? healSound);
         if (entity.World.HealChase(entity, newFrame, healSound))
             A_Chase(entity);
     }
 
     private static void A_SeekTracer(Entity entity)
     {
+        double threshold = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
+        double maxTurnAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
 
+        entity.World.TracerSeek(entity, threshold, maxTurnAngle, SeekTracerVelocityZ);
+    }
+
+    private static double SeekTracerVelocityZ(Entity tracer, Entity target)
+    {
+        double distance = tracer.Position.ApproximateDistance2D(target.Position);
+        double z = target.Position.Z + (target.Height / 2) - tracer.Position.Z;
+        return GetTracerSlope(z, distance, tracer.Definition.Properties.Speed);
     }
 
     private static void A_FindTracer(Entity entity)
     {
+        if (entity.Tracer != null)
+            return;
 
+        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
+        int blocks = entity.Frame.DehackedArgs2 == 0 ? 10 : entity.Frame.DehackedArgs2;
+        entity.World.SetNewTracerTarget(entity, fov, blocks * 128);
     }
 
     private static void A_ClearTracer(Entity entity)
@@ -3037,7 +3014,6 @@ public static class EntityActionFunctions
         var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entity.Health < health && entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
             entity.FrameState.SetState(newFrame);
-
     }
 
     private static void A_JumpIfTargetInSight(Entity entity)
@@ -3206,13 +3182,20 @@ public static class EntityActionFunctions
     private static bool GetDehackedSound(Entity entity, int soundIndex, out string soundName)
     {
         var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
-        if (dehacked == null)
+        if (dehacked == null || !dehacked.GetSoundName(soundIndex, out soundName))
         {
-            soundName = null;
+            soundName = string.Empty;
             return false;
         }
 
-        return dehacked.GetSoundName(soundIndex, out soundName);
+        return true;
     }
 
+    private static double GetTracerSlope(double z, double distance, double speed)
+    {
+        distance /= speed;
+        if (distance < 1)
+            distance = 1;
+        return z / distance;
+    }
 }

@@ -50,6 +50,7 @@ using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
+using Helion.Geometry.Grids;
 
 namespace Helion.World;
 
@@ -1795,6 +1796,80 @@ public abstract partial class WorldBase : IWorld
 
         DataCache.Instance.FreeBlockmapIntersectList(intersections);
         return false;
+    }
+
+    public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
+    {
+        if (entity.Tracer == null || entity.Tracer.IsDead)
+            return;
+
+        SetTracerAngle(entity, threshold, maxTurnAngle);
+
+        double z = entity.Velocity.Z;
+        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.Speed;
+        entity.Velocity.Z = z;
+
+        entity.Velocity.Z = velocityZ(entity, entity.Tracer);
+    }
+
+    public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
+    {
+        Entity owner = entity.Owner ?? entity;
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
+            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Shootable);
+
+        for (int i= 0; i < intersections.Count; i++)
+        {
+            Entity? checkEntity = intersections[i].Entity;
+            if (checkEntity == null || !owner.ValidEnemyTarget(checkEntity))
+                continue;
+
+            if (fieldOfViewRadians > 0 && !InFieldOfView(entity, checkEntity, fieldOfViewRadians))
+                continue;
+
+            if (!CheckLineOfSight(entity, checkEntity))
+                continue;
+
+            entity.Tracer = checkEntity;
+            break;
+        }
+
+        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+    }
+
+    private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)
+    {
+        if (entity.Tracer == null)
+            return;
+        // Doom's angles were always 0-360 and did not allow negatives (thank you arithmetic overflow)
+        // To keep this code familiar GetPositiveAngle will keep angle between 0 and 2pi
+        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Position));
+        double currentAngle = MathHelper.GetPositiveAngle(entity.AngleRadians);
+        double diff = MathHelper.GetPositiveAngle(exact - currentAngle);
+
+        if (!MathHelper.AreEqual(exact, currentAngle))
+        {
+            if (diff > Math.PI)
+            {
+                entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians - maxTurnAngle);
+                if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) < threshold)
+                    entity.AngleRadians = exact;
+            }
+            else
+            {
+                entity.AngleRadians = MathHelper.GetPositiveAngle(entity.AngleRadians + maxTurnAngle);
+                if (MathHelper.GetPositiveAngle(exact - entity.AngleRadians) > threshold)
+                    entity.AngleRadians = exact;
+            }
+        }
+    }
+
+    private static double GetTracerSlope(double z, double distance, double speed)
+    {
+        distance /= speed;
+        if (distance < 1)
+            distance = 1;
+        return z / distance;
     }
 
     private void GiveCheatArmor(Player player, CheatType cheatType)
