@@ -51,9 +51,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Vec3D PrevPosition;
     public Vec3D SpawnPoint;
     public Vec3D Position => Box.Position;
-    public Vec3D CenterPoint => new Vec3D(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
-    public Vec3D ProjectileAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + 32);
-    public Vec3D HitscanAttackPos => new Vec3D(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
+    public Vec3D CenterPoint => new(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
+    public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
+    public Vec3D HitscanAttackPos => new(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
     public Vec3D Velocity = Vec3D.Zero;
     public int Health;
     public int Armor;
@@ -123,7 +123,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
 
-    private readonly IAudioSource?[] m_soundChannels = new IAudioSource[MaxSoundChannels];
+    private readonly IAudioSource?[] m_soundChannels;
 
     /// <summary>
     /// Creates an entity with the following information.
@@ -173,6 +173,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Properties.Threshold = 0;
 
+        m_soundChannels = DataCache.Instance.GetEntityAudioSources();
         FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager);
         BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
         SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
@@ -221,6 +222,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
+        m_soundChannels = DataCache.Instance.GetEntityAudioSources();
         FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager, entityModel.Frame);
         BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
         SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
@@ -897,6 +899,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         UnlinkFromWorld();
         EntityListNode?.Unlink();
+        DataCache.Instance.FreeEntityAudioSources(m_soundChannels);
         DataCache.Instance.FreeEntityBox(Box);
         DataCache.Instance.FreeFrameState(FrameState);
         DataCache.Instance.FreeLinkableNodeEntityList(BlockmapNodes);

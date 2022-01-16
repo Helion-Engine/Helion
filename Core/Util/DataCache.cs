@@ -21,15 +21,17 @@ namespace Helion.Util;
 
 public class DataCache
 {
+    private const int DefaultLength = 1024;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static DataCache Instance { get; } = new DataCache();
 
-    private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(1024);
-    private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(1024);
-    private readonly DynamicArray<List<Sector>> m_sectorLists = new(1024);
-    private readonly DynamicArray<FrameState> m_frameStates = new(1024);
-    private readonly DynamicArray<EntityBox> m_entityBoxes = new(1024);
+    private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
+    private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
+    private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
+    private readonly DynamicArray<FrameState> m_frameStates = new(DefaultLength);
+    private readonly DynamicArray<EntityBox> m_entityBoxes = new(DefaultLength);
+    private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new();
     private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
@@ -139,6 +141,21 @@ public class DataCache
         m_entityBoxes.Add(box);
     }
 
+    public IAudioSource?[] GetEntityAudioSources()
+    {
+        if (m_entityAudioSources.Length > 0)
+            return m_entityAudioSources.RemoveLast();
+
+        return new IAudioSource[Entity.MaxSoundChannels];
+    }
+
+    public void FreeEntityAudioSources(IAudioSource?[] sources)
+    {
+        for (int i = 0; i < sources.Length; i++)
+            sources[i] = null;
+        m_entityAudioSources.Add(sources);
+    }
+
     public List<BlockmapIntersect> GetBlockmapIntersectList()
     {
         if (m_blockmapLists.Length > 0)
@@ -164,7 +181,7 @@ public class DataCache
         }
         else
         {
-            RenderWorldData renderWorldData = new RenderWorldData(capabilities, functions, texture);
+            RenderWorldData renderWorldData = new(capabilities, functions, texture);
             m_alphaRender.Add(texture, new DynamicArray<RenderWorldData>());
             return renderWorldData;
         }
