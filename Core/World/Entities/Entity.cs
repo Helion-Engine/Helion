@@ -398,6 +398,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         FrameState.Tick();
 
+        if (IsDisposed)
+            return;
+
         if (Flags.CountKill && IsDeathStateFinished)
         {
             if (World.SkillDefinition.RespawnTime.Seconds == 0)
