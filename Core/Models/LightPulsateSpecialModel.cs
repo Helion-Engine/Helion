@@ -16,6 +16,6 @@ public class LightPulsateSpecialModel : ISpecialModel
         if (!world.IsSectorIdValid(SectorId))
             return null;
 
-        return new LightPulsateSpecial(world.Sectors[SectorId], this);
+        return new LightPulsateSpecial(world, world.Sectors[SectorId], this);
     }
 }

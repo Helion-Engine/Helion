@@ -18,6 +18,6 @@ public class LightStrobeSpecialModel : ISpecialModel
         if (!world.IsSectorIdValid(SectorId))
             return null;
 
-        return new LightStrobeSpecial(world.Sectors[SectorId], this);
+        return new LightStrobeSpecial(world, world.Sectors[SectorId], this);
     }
 }

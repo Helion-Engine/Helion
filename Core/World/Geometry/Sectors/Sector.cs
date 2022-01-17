@@ -79,6 +79,8 @@ public class Sector
 
     public SectorMoveSpecial? ActiveFloorMove;
     public SectorMoveSpecial? ActiveCeilingMove;
+    public int RenderGametick;
+    public int ChangeGametick;
 
     /// <summary>
     /// The special sector type.
@@ -97,6 +99,8 @@ public class Sector
         (TransferHeights != null && (TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ)));
     public bool LightingChanged => DataChanges.HasFlag(SectorDataTypes.Light);
 
+    public int RenderLightChangeGametick;
+    public int LastRenderGametick;
     public int SoundValidationCount;
     public int SoundBlock;
     public Entity? SoundTarget;
@@ -140,44 +144,41 @@ public class Sector
         return TransferHeights.GetRenderSector(sector, viewZ);
     }
 
-    public void SetTransferFloorLight(Sector sector)
+    public void SetTransferFloorLight(Sector sector, int gametick)
     {
         m_transferFloorLightSector = sector;
-        SetFloorLightLevel(Floor.LightLevel, true);
+        SetFloorLightLevel(Floor.LightLevel, gametick);
     }
 
-    public void SetTransferCeilingLight(Sector sector)
+    public void SetTransferCeilingLight(Sector sector, int gametick)
     {
         m_transferCeilingLightSector = sector;
-        SetCeilingLightLevel(Floor.LightLevel, true);
+        SetCeilingLightLevel(Floor.LightLevel, gametick);
     }
 
     public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
 
-    public void SetLightLevel(short lightLevel)
+    public void SetLightLevel(short lightLevel, int gametick)
     {
         DataChanges |= SectorDataTypes.Light;
         LightLevel = lightLevel;
         Floor.LightLevel = lightLevel;
         Ceiling.LightLevel = lightLevel;
-        SetRenderingChanged();
+        RenderLightChangeGametick = gametick;
     }
 
-    public void SetFloorLightLevel(short lightLevel, bool flagRenderingChange)
+    public void SetFloorLightLevel(short lightLevel, int gametick)
     {
         DataChanges |= SectorDataTypes.Light;
         Floor.LightLevel = lightLevel;
-        if (flagRenderingChange)
-            SetRenderingChanged();
     }
 
-    public void SetCeilingLightLevel(short lightLevel, bool flagRenderingChange)
+    public void SetCeilingLightLevel(short lightLevel, int gametick)
     {
         DataChanges |= SectorDataTypes.Light;
         Ceiling.LightLevel = lightLevel;
-        if (flagRenderingChange)
-            SetRenderingChanged();
+        RenderLightChangeGametick = gametick;
     }
 
     public void SetSectorSpecialType(ZDoomSectorSpecialType type)
@@ -197,21 +198,19 @@ public class Sector
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
         {
             DataChanges |= SectorDataTypes.FloorTexture;
-            Floor.SetRenderingChanged();
         }
         else
         {
             DataChanges |= SectorDataTypes.CeilingTexture;
-            Ceiling.SetRenderingChanged();
         }
     }
 
-    public void SetSkyTexture(int texture, bool flipped)
+    public void SetSkyTexture(int texture, bool flipped, int gametick)
     {
         SkyTextureHandle = texture;
         FlipSkyTexture = flipped;
         DataChanges |= SectorDataTypes.SkyTexture;
-        SetRenderingChanged();
+        RenderLightChangeGametick = gametick;
     }
 
     public void SetTransferHeights(Sector controlSector)
@@ -295,11 +294,11 @@ public class Sector
             if (DataChanges.HasFlag(SectorDataTypes.Light))
             {
                 if (sectorModel.LightLevel.HasValue)
-                    SetLightLevel(sectorModel.LightLevel.Value);
+                    SetLightLevel(sectorModel.LightLevel.Value, 0);
                 if (sectorModel.FloorLightLevel.HasValue)
-                    SetFloorLightLevel(sectorModel.FloorLightLevel.Value, false);
+                    SetFloorLightLevel(sectorModel.FloorLightLevel.Value, 0);
                 if (sectorModel.CeilingLightLevel.HasValue)
-                    SetCeilingLightLevel(sectorModel.CeilingLightLevel.Value, false);
+                    SetCeilingLightLevel(sectorModel.CeilingLightLevel.Value, 0);
             }
 
             if (DataChanges.HasFlag(SectorDataTypes.FloorTexture) && sectorModel.FloorTexture.HasValue)
@@ -679,12 +678,6 @@ public class Sector
             return texture.Image.Height;
 
         return currentHeight;
-    }
-
-    private void SetRenderingChanged()
-    {
-        Floor.SetRenderingChanged();
-        Ceiling.SetRenderingChanged();
     }
 
     public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;

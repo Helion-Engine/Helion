@@ -12,8 +12,8 @@ public class LightStrobeSpecial : SectorSpecialBase
     private readonly int m_darkTics;
     private int m_delay;
 
-    public LightStrobeSpecial(Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
-         : base(sector)
+    public LightStrobeSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
+         : base(world, sector)
     {
         m_brightTics = brightTics;
         m_darkTics = darkTics;
@@ -27,8 +27,8 @@ public class LightStrobeSpecial : SectorSpecialBase
             m_delay = random.NextByte() & 0x07;
     }
 
-    public LightStrobeSpecial(Sector sector, LightStrobeSpecialModel model)
-         : base(sector)
+    public LightStrobeSpecial(IWorld world, Sector sector, LightStrobeSpecialModel model)
+         : base(world, sector)
     {
         m_brightTics = model.BrightTics;
         m_darkTics = model.DarkTics;
@@ -60,12 +60,12 @@ public class LightStrobeSpecial : SectorSpecialBase
 
         if (Sector.LightLevel == m_maxBright)
         {
-            Sector.SetLightLevel(m_minBright);
+            Sector.SetLightLevel(m_minBright, World.Gametick);
             m_delay = m_darkTics;
         }
         else if (Sector.LightLevel == m_minBright)
         {
-            Sector.SetLightLevel(m_maxBright);
+            Sector.SetLightLevel(m_maxBright, World.Gametick);
             m_delay = m_brightTics;
         }
 

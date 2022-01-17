@@ -164,12 +164,16 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         if (IsPaused)
         {
+            if (SectorPlane.PrevZ != SectorPlane.Z)
+                SectorPlane.SetSectorMoveChanged(m_world.Gametick);
             SectorPlane.PrevZ = SectorPlane.Z;
             return SpecialTickStatus.Continue;
         }
 
         if (DelayTics > 0)
         {
+            if (SectorPlane.PrevZ != SectorPlane.Z)
+                SectorPlane.SetSectorMoveChanged(m_world.Gametick);
             SectorPlane.PrevZ = SectorPlane.Z;
             DelayTics--;
             return SpecialTickStatus.Continue;
@@ -266,6 +270,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
     public virtual void FinalizeDestroy()
     {
+        SectorPlane.SetSectorMoveChanged(m_world.Gametick);
         SectorPlane.PrevZ = SectorPlane.Z;
     }
 
@@ -356,7 +361,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private void SetSectorDataChange()
     {
-        SectorPlane.SetRenderingChanged();
+        SectorPlane.SetSectorMoveChanged(m_world.Gametick);
         if (MoveData.SectorMoveType == SectorPlaneFace.Floor)
             Sector.DataChanges |= SectorDataTypes.FloorZ;
         else

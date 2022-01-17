@@ -8,16 +8,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Subsectors;
 
-public class Subsector
+public struct Subsector
 {
     public readonly int Id;
     public readonly Sector Sector;
     public readonly Box2D BoundingBox;
     public readonly List<SubsectorSegment> ClockwiseEdges;
-    public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-
-    private bool m_floorChanged = false;
-    private bool m_ceilingChanged = false;
+    public readonly LinkableList<Entity> Entities = new();
 
     public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
     {
@@ -27,32 +24,7 @@ public class Subsector
         Sector = sector;
         BoundingBox = boundingBox;
         ClockwiseEdges = clockwiseEdges;
-
-        sector.Floor.OnRenderingChanged += Floor_OnRenderingChanged;
-        sector.Ceiling.OnRenderingChanged += Ceiling_OnRenderingChanged;
     }
-
-    public bool CheckFloorRenderingChanged()
-    {
-        if (!m_floorChanged)
-            return false;
-
-        m_floorChanged = Sector.Floor.CheckRenderingChanged();
-        return true;
-    }
-
-    public bool CheckCeilingRenderingChanged()
-    {
-        if (!m_ceilingChanged)
-            return false;
-
-        m_ceilingChanged = Sector.Ceiling.CheckRenderingChanged();
-        return true;
-    }
-
-    private void Ceiling_OnRenderingChanged(object? sender, System.EventArgs e) => m_ceilingChanged = true;
-
-    private void Floor_OnRenderingChanged(object? sender, System.EventArgs e) => m_floorChanged = true;
 
     public LinkableNode<Entity> Link(Entity entity)
     {

@@ -12,8 +12,8 @@ public class LightPulsateSpecial : SectorSpecialBase
     private readonly short m_minBright;
     private int m_inc;
 
-    public LightPulsateSpecial(Sector sector, short minLightLevel)
-         : base(sector)
+    public LightPulsateSpecial(IWorld world, Sector sector, short minLightLevel)
+         : base(world, sector)
     {
         m_maxBright = sector.LightLevel;
         m_minBright = minLightLevel;
@@ -21,8 +21,8 @@ public class LightPulsateSpecial : SectorSpecialBase
         m_inc = -DoomPulsateValue;
     }
 
-    public LightPulsateSpecial(Sector sector, LightPulsateSpecialModel model)
-         : base(sector)
+    public LightPulsateSpecial(IWorld world, Sector sector, LightPulsateSpecialModel model)
+         : base(world, sector)
     {
         m_maxBright = model.Max;
         m_minBright = model.Min;
@@ -44,7 +44,7 @@ public class LightPulsateSpecial : SectorSpecialBase
     {
         int lightLevel = Sector.LightLevel + m_inc;
         lightLevel = MathHelper.Clamp(lightLevel, m_minBright, short.MaxValue);
-        Sector.SetLightLevel((short)lightLevel);
+        Sector.SetLightLevel((short)lightLevel, World.Gametick);
 
         if ((m_inc < 0 && Sector.LightLevel <= m_minBright) || (m_inc > 0 && Sector.LightLevel >= m_maxBright))
             m_inc = -m_inc;

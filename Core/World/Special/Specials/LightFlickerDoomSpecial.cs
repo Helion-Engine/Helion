@@ -11,16 +11,16 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
     private readonly short m_minBright;
     private int m_delay;
 
-    public LightFlickerDoomSpecial(Sector sector, IRandom random, short minLightLevel)
-         : base(sector)
+    public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel)
+         : base(world, sector)
     {
         m_random = random;
         m_maxBright = sector.LightLevel;
         m_minBright = minLightLevel;
     }
 
-    public LightFlickerDoomSpecial(Sector sector, IRandom random, LightFlickerDoomSpecialModel model)
-         : base(sector)
+    public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, LightFlickerDoomSpecialModel model)
+         : base(world, sector)
     {
         m_random = random;
         m_maxBright = model.Max;
@@ -49,12 +49,12 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
 
         if (Sector.LightLevel == m_maxBright)
         {
-            Sector.SetLightLevel(m_minBright);
+            Sector.SetLightLevel(m_minBright, World.Gametick);
             m_delay = (m_random.NextByte() & 7) + 1;
         }
         else
         {
-            Sector.SetLightLevel(m_maxBright);
+            Sector.SetLightLevel(m_maxBright, World.Gametick);
             m_delay = (m_random.NextByte() & 31) + 1;
         }
 

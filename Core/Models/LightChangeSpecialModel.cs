@@ -18,6 +18,6 @@ public class LightChangeSpecialModel : ISpecialModel
         if (!world.IsSectorIdValid(SectorId))
             return null;
 
-        return new LightChangeSpecial(world.Sectors[SectorId], this);
+        return new LightChangeSpecial(world, world.Sectors[SectorId], this);
     }
 }

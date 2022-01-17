@@ -11,8 +11,8 @@ public class LightChangeSpecial : SectorSpecialBase
     private readonly int m_min;
     private readonly int m_max;
 
-    public LightChangeSpecial(Sector sector, short lightLevel, int fadeTics)
-        : base(sector)
+    public LightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)
+        : base(world, sector)
     {
         m_lightLevel = lightLevel;
 
@@ -33,8 +33,8 @@ public class LightChangeSpecial : SectorSpecialBase
         }
     }
 
-    public LightChangeSpecial(Sector sector, LightChangeSpecialModel model)
-        : base(sector)
+    public LightChangeSpecial(IWorld world, Sector sector, LightChangeSpecialModel model)
+        : base(world, sector)
     {
         m_lightLevel = model.Light;
         m_step = model.Step;
@@ -57,7 +57,7 @@ public class LightChangeSpecial : SectorSpecialBase
     public override SpecialTickStatus Tick()
     {
         int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
-        Sector.SetLightLevel((short)set);
+        Sector.SetLightLevel((short)set, World.Gametick);
 
         if (set == m_lightLevel)
             return SpecialTickStatus.Destroy;

@@ -22,9 +22,9 @@ public class SectorPlane : ISoundSource
     public double PrevZ;
     public int TextureHandle { get; set; }
     public short LightLevel { get; set; }
+    public int LastRenderChangeGametick;
+    public int LastRenderGametick;
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
-    public bool RenderingChanged { get; private set; }
-    public event EventHandler? OnRenderingChanged;
 
     public SectorScrollData? SectorScrollData { get; private set; }
 
@@ -51,30 +51,24 @@ public class SectorPlane : ISoundSource
 
     public double GetInterpolatedZ(double t) => PrevZ.Interpolate(Z, t);
 
-    public void SetRenderingChanged()
-    {
-        RenderingChanged = true;
-        OnRenderingChanged?.Invoke(this, EventArgs.Empty);
-    }
+    public void SetSectorMoveChanged(int gametick) => LastRenderChangeGametick = gametick;
 
     public bool CheckRenderingChanged()
     {
-        if (SectorScrollData != null)
+        if (LastRenderChangeGametick >= LastRenderGametick)
             return true;
-
-        if (!RenderingChanged)
-            return false;
 
         if (PrevZ != Z)
             return true;
 
-        RenderingChanged = false;
-        return true;
+        if (SectorScrollData != null)
+            return true;
+
+        return false;
     }
 
     public void CreateScrollData()
     {
-        SetRenderingChanged();
         SectorScrollData = new();
     }
 

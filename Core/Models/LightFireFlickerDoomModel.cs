@@ -16,6 +16,6 @@ public class LightFireFlickerDoomModel : ISpecialModel
         if (!world.IsSectorIdValid(SectorId))
             return null;
 
-        return new LightFireFlickerDoom(world.Sectors[SectorId], world.Random, this);
+        return new LightFireFlickerDoom(world, world.Sectors[SectorId], world.Random, this);
     }
 }

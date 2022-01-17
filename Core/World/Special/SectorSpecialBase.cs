@@ -7,9 +7,11 @@ namespace Helion.World.Special;
 public abstract class SectorSpecialBase : ISectorSpecial
 {
     public Sector Sector { get; protected set; }
+    public IWorld World { get; protected set; }
 
-    public SectorSpecialBase(Sector sector)
+    public SectorSpecialBase(IWorld world, Sector sector)
     {
+        World = world;
         Sector = sector;
     }
 

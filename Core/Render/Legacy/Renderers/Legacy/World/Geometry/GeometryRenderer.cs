@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
@@ -49,6 +50,8 @@ public class GeometryRenderer : IDisposable
     private bool m_cacheOverride;
     private Vec3D m_position;
     private Sector m_viewSector;
+    private WorldBase m_world;
+
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -59,6 +62,9 @@ public class GeometryRenderer : IDisposable
     private LegacyVertex[][] m_vertexCeilingLookup = Array.Empty<LegacyVertex[]>();
     private SkyGeometryVertex[][] m_skyFloorVertexLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[][] m_skyCeilingVertexLookup = Array.Empty<SkyGeometryVertex[]>();
+
+    private List<Subsector>?[] m_subsectors = Array.Empty<List<Subsector>>();
+    private BitArray m_renderedSectors = new(0);
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
@@ -89,8 +95,10 @@ public class GeometryRenderer : IDisposable
 
     public void UpdateTo(WorldBase world)
     {
+        m_world = world;
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
+        m_renderedSectors = new BitArray(world.Sectors.Count);
         PreloadAllTextures(world);
 
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];
@@ -102,9 +110,9 @@ public class GeometryRenderer : IDisposable
         m_skyCeilingVertexLookup = new SkyGeometryVertex[world.BspTree.Subsectors.Length][];
         m_vertexFloorLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
         m_vertexCeilingLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
+        m_subsectors = new List<Subsector>[world.BspTree.Subsectors.Length];
 
         CacheData(world);
-
         Clear(m_tickFraction);
     }
 
@@ -114,6 +122,15 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
+            List<Subsector>? subsectors = m_subsectors[subsector.Sector.Id];
+            if (subsectors == null)
+            {
+                subsectors = new();
+                m_subsectors[subsector.Sector.Id] = subsectors;
+            }
+
+            subsectors.Add(subsector);
+
             if (subsector.Sector.TransferHeights != null)
                 continue;
 
@@ -148,6 +165,7 @@ public class GeometryRenderer : IDisposable
         m_tickFraction = tickFraction;
         m_skyRenderer.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
+        m_renderedSectors.SetAll(false);
         AlphaSides.Clear();
     }
 
@@ -159,8 +177,8 @@ public class GeometryRenderer : IDisposable
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
     {
         m_viewSector = viewSector;
-        m_floorChanged = subsector.CheckFloorRenderingChanged();
-        m_ceilingChanged = subsector.CheckCeilingRenderingChanged();
+        m_floorChanged = subsector.Sector.Floor.CheckRenderingChanged();
+        m_ceilingChanged = subsector.Sector.Ceiling.CheckRenderingChanged();
         m_position = position;
         m_cacheOverride = false;
 
@@ -168,16 +186,40 @@ public class GeometryRenderer : IDisposable
         {
             // We can currently only cache one veiw position, middle should be the most common
             m_cacheOverride = TransferHeights.GetView(m_viewSector, m_position.Z) != TransferHeights.TransferHeightView.Middle;
-            var sector = subsector.Sector.GetRenderSector(m_viewSector, position.Z);
-            RenderFlat(subsector, sector.Floor, true);
-            RenderFlat(subsector, sector.Ceiling, false);
             RenderWalls(subsector, position, position.XY);
+            RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z));
             return;
         }
 
         RenderWalls(subsector, position, position.XY);
-        RenderFlat(subsector, subsector.Sector.Floor, true);
-        RenderFlat(subsector, subsector.Sector.Ceiling, false);
+        RenderSectorFlats(subsector.Sector, subsector.Sector);
+    }
+
+    private void RenderSectorFlats(Sector sector, Sector renderSector)
+    {
+        List<Subsector>? subsectors = m_subsectors[sector.Id];
+        if (subsectors == null || m_renderedSectors.Get(sector.Id))
+            return;
+
+        sector.LastRenderGametick = m_world.Gametick;
+
+        bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
+        bool ceilingVisible = m_position.Z <= renderSector.ToCeilingZ(m_position);
+        if (floorVisible)
+            sector.Floor.LastRenderGametick = m_world.Gametick;
+        if (ceilingVisible)
+            sector.Ceiling.LastRenderGametick = m_world.Gametick;
+
+        for (int i = 0; i < subsectors.Count; i++)
+        {
+            Subsector renderSubsector = subsectors[i];
+            if (floorVisible)
+                RenderFlat(renderSubsector, renderSector.Floor, true);
+            if (ceilingVisible)
+                RenderFlat(renderSubsector, renderSector.Ceiling, false);
+        }
+
+        m_renderedSectors.Set(sector.Id, true);
     }
 
     public void Dispose()
@@ -714,9 +756,6 @@ public class GeometryRenderer : IDisposable
         else
         {
             LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
-
-            if ((floor && m_position.Z < flat.Plane.ToZ(m_position)) || (!floor && m_position.Z > flat.Plane.ToZ(m_position)))
-                return;
 
             if (FlatChanged(flat) || data == null || m_cacheOverride)
             {
