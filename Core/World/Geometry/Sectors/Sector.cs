@@ -97,7 +97,17 @@ public class Sector
     public bool DataChanged => DataChanges > 0;
     public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ) ||
         (TransferHeights != null && (TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ)));
-    public bool LightingChanged => DataChanges.HasFlag(SectorDataTypes.Light);
+
+    public bool LightingChanged()
+    {
+        if (!DataChanges.HasFlag(SectorDataTypes.Light))
+            return false;
+
+        if (RenderLightChangeGametick >= LastRenderGametick - 1)
+            return true;
+
+        return false;
+    }
 
     public int RenderLightChangeGametick;
     public int LastRenderGametick;

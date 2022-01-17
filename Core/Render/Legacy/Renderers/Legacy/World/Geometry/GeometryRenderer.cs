@@ -352,7 +352,7 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[side.Id] = data;
         }
-        else if (side.Sector.LightingChanged)
+        else if (side.Sector.LightingChanged())
         {
             SetLightToVertices(data, GetRenderLightLevel(side));
         }
@@ -476,7 +476,7 @@ public class GeometryRenderer : IDisposable
                 if (!m_cacheOverride)
                     m_vertexLowerLookup[facingSide.Id] = data;
             }
-            else if (facingSide.Sector.LightingChanged)
+            else if (facingSide.Sector.LightingChanged())
             {
                 SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
@@ -553,7 +553,7 @@ public class GeometryRenderer : IDisposable
                 if (!m_cacheOverride)
                     m_vertexUpperLookup[facingSide.Id] = data;
             }
-            else if (facingSide.Sector.LightingChanged)
+            else if (facingSide.Sector.LightingChanged())
             {
                 SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
@@ -645,7 +645,7 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
         }
-        else if (facingSide.Sector.LightingChanged)
+        else if (facingSide.Sector.LightingChanged())
         {
             SetLightToVertices(data, GetRenderLightLevel(facingSide));
         }
@@ -782,7 +782,7 @@ public class GeometryRenderer : IDisposable
                 else
                     m_vertexCeilingLookup[subsector.Id] = data;
             }
-            else if (flat.Sector.LightingChanged)
+            else if (flat.Sector.LightingChanged())
             {
                 SetLightToVertices(data, flat.RenderLightLevel);
             }

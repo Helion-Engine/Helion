@@ -55,7 +55,7 @@ public class SectorPlane : ISoundSource
 
     public bool CheckRenderingChanged()
     {
-        if (LastRenderChangeGametick >= LastRenderGametick)
+        if (LastRenderChangeGametick >= LastRenderGametick - 1)
             return true;
 
         if (PrevZ != Z)
