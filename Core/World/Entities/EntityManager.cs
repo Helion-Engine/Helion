@@ -53,6 +53,8 @@ public class EntityManager : IDisposable
 
     private int m_id;
 
+    public int MaxId => m_id;
+
     public EntityManager(IWorld world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
     {
         World = world;
