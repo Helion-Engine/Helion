@@ -5,7 +5,7 @@ namespace Helion.World.Special.SectorMovement;
 
 public class SectorMoveData
 {
-    public SectorPlaneFace SectorMoveType { get; set; }
+    public SectorPlaneFace SectorMoveType;
     public readonly MoveRepetition MoveRepetition;
     public readonly double Speed;
     public readonly double ReturnSpeed;
@@ -17,6 +17,7 @@ public class SectorMoveData
     public readonly MoveDirection StartDirection;
     // If an entity will block movement then do not calculate the difference, movement is blocked entirely.
     public readonly bool CompatibilityBlockMovement;
+    public readonly bool ClearDamage;
 
     public const int InstantToggleSpeed = int.MaxValue;
 
@@ -26,7 +27,8 @@ public class SectorMoveData
         int? ceilingChangeTextureHandle = null,
         SectorDamageSpecial? damageSpecial = null,
         double? returnSpeed = null,
-        bool compatibilityBlockMovement = false)
+        bool compatibilityBlockMovement = false,
+        bool clearDamage = false)
     {
         SectorMoveType = moveType;
         StartDirection = startDirection;
@@ -39,5 +41,6 @@ public class SectorMoveData
         DamageSpecial = damageSpecial;
         ReturnSpeed = returnSpeed ?? speed;
         CompatibilityBlockMovement = compatibilityBlockMovement;
+        ClearDamage = clearDamage;
     }
 }

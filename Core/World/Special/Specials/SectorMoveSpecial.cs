@@ -200,6 +200,9 @@ public class SectorMoveSpecial : ISectorSpecial
             if (MoveData.DamageSpecial != null)
                 Sector.SectorDamageSpecial = MoveData.DamageSpecial;
 
+            if (MoveData.ClearDamage)
+                Sector.SectorDamageSpecial = null;
+
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
 

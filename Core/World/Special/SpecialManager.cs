@@ -353,10 +353,10 @@ public class SpecialManager : ITickable, IDisposable
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
-    public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null)
+    public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null, bool clearDamage = false)
     {
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneFace.Floor,
-            MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture), DefaultFloorSound);
+            MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, clearDamage: clearDamage), DefaultFloorSound);
     }
 
     public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -1388,7 +1388,8 @@ public class SpecialManager : ITickable, IDisposable
         var destSector = donutSectors[2];
 
         AddSpecial(CreateFloorLowerSpecial(lowerSector, lowerSector.Floor.Z - destSector.Floor.Z, line.Args.Arg1 * SpeedFactor));
-        AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args.Arg2 * SpeedFactor, destSector.Floor.TextureHandle));
+        AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args.Arg2 * SpeedFactor, 
+            floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
     }
 
     private IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
