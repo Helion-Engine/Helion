@@ -184,18 +184,23 @@ public class GeometryRenderer : IDisposable
 
         if (subsector.Sector.TransferHeights != null)
         {
+            m_floorChanged = m_floorChanged || subsector.Sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
+            m_ceilingChanged = m_ceilingChanged || subsector.Sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
+
             // We can currently only cache one veiw position, middle should be the most common
             m_cacheOverride = TransferHeights.GetView(m_viewSector, m_position.Z) != TransferHeights.TransferHeightView.Middle;
             RenderWalls(subsector, position, position.XY);
-            RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z));
+            RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
 
         RenderWalls(subsector, position, position.XY);
-        RenderSectorFlats(subsector.Sector, subsector.Sector);
+        RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
-    private void RenderSectorFlats(Sector sector, Sector renderSector)
+    // The set sector is optional for the transfer heights control sector.
+    // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
+    private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
     {
         List<Subsector>? subsectors = m_subsectors[sector.Id];
         if (subsectors == null || m_renderedSectors.Get(sector.Id))
@@ -206,9 +211,15 @@ public class GeometryRenderer : IDisposable
         bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
         bool ceilingVisible = m_position.Z <= renderSector.ToCeilingZ(m_position);
         if (floorVisible)
+        {
             sector.Floor.LastRenderGametick = m_world.Gametick;
+            set.Floor.LastRenderGametick = m_world.Gametick;
+        }
         if (ceilingVisible)
+        {
             sector.Ceiling.LastRenderGametick = m_world.Gametick;
+            set.Ceiling.LastRenderGametick = m_world.Gametick;
+        }
 
         for (int i = 0; i < subsectors.Count; i++)
         {
@@ -336,7 +347,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = renderSector.Ceiling;
         RenderSkySide(side, renderSector, null, texture);
 
-        if (side.OffsetChanged || side.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
+        if (side.OffsetChanged || side.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
         {
             WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, m_tickFraction);
             if (m_cacheOverride)
@@ -442,7 +453,7 @@ public class GeometryRenderer : IDisposable
         {
             SkyGeometryVertex[]? data = m_skyWallVertexLowerLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
+            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -459,7 +470,7 @@ public class GeometryRenderer : IDisposable
         {
             LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
+            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -519,7 +530,7 @@ public class GeometryRenderer : IDisposable
                 return;
             }
 
-            if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null)
+            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction, MaxSky);
@@ -536,7 +547,7 @@ public class GeometryRenderer : IDisposable
         {
             LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.PlaneHeightChanged || otherSide.Sector.PlaneHeightChanged || data == null || m_cacheOverride)
+            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -619,7 +630,7 @@ public class GeometryRenderer : IDisposable
         RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-        if (facingSide.OffsetChanged || facingSector.PlaneHeightChanged || otherSector.PlaneHeightChanged || data == null || m_cacheOverride)
+        if (facingSide.OffsetChanged || facingSector.CheckRenderingChanged() || otherSector.CheckRenderingChanged() || data == null || m_cacheOverride)
         {
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);

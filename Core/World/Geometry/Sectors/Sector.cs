@@ -95,19 +95,6 @@ public class Sector
     public bool Has3DFloors => !Floors3D.Empty();
     public SectorDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
-    public bool PlaneHeightChanged => DataChanges.HasFlag(SectorDataTypes.FloorZ) || DataChanges.HasFlag(SectorDataTypes.CeilingZ) ||
-        (TransferHeights != null && (TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ)));
-
-    public bool LightingChanged()
-    {
-        if (!DataChanges.HasFlag(SectorDataTypes.Light))
-            return false;
-
-        if (RenderLightChangeGametick >= LastRenderGametick - 1)
-            return true;
-
-        return false;
-    }
 
     public int RenderLightChangeGametick;
     public int LastRenderGametick;
@@ -164,6 +151,37 @@ public class Sector
     {
         m_transferCeilingLightSector = sector;
         SetCeilingLightLevel(Floor.LightLevel, gametick);
+    }
+
+    public bool LightingChanged()
+    {
+        if (RenderLightChangeGametick >= LastRenderGametick - 1)
+            return true;
+
+        if (m_transferFloorLightSector.Id != Id && m_transferFloorLightSector.RenderLightChangeGametick >= m_transferFloorLightSector.LastRenderGametick - 1)
+            return true;
+
+        if (m_transferCeilingLightSector.Id != Id && m_transferCeilingLightSector.RenderLightChangeGametick >= m_transferCeilingLightSector.LastRenderGametick - 1)
+            return true;
+
+        if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged())
+            return true;
+
+        return false;
+    }
+
+    public bool CheckRenderingChanged()
+    {
+        if (Floor.LastRenderChangeGametick >= LastRenderGametick - 1 || Floor.PrevZ != Floor.Z)
+            return true;
+
+        if (Ceiling.LastRenderChangeGametick >= LastRenderGametick - 1 || Ceiling.PrevZ != Ceiling.Z)
+            return true;
+
+        if (TransferHeights != null)
+            return TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ);
+
+        return false;
     }
 
     public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
