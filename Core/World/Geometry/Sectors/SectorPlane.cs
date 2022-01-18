@@ -8,7 +8,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
 using Helion.World.Special.Specials;
 using System;
-using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -72,10 +71,11 @@ public class SectorPlane : ISoundSource
         SectorScrollData = new();
     }
 
-    public void SetTexture(int texture)
+    public void SetTexture(int texture, int gametick)
     {
         TextureHandle = texture;
         Sector.PlaneTextureChange(this);
+        LastRenderChangeGametick = gametick;
     }
 
     public Vec3D GetSoundSource(Entity listener, SectorPlaneFace type)

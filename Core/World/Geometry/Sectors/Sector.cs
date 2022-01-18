@@ -206,13 +206,9 @@ public class Sector
     public void PlaneTextureChange(SectorPlane sectorPlane)
     {
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
-        {
             DataChanges |= SectorDataTypes.FloorTexture;
-        }
         else
-        {
             DataChanges |= SectorDataTypes.CeilingTexture;
-        }
     }
 
     public void SetSkyTexture(int texture, bool flipped, int gametick)
@@ -220,7 +216,7 @@ public class Sector
         SkyTextureHandle = texture;
         FlipSkyTexture = flipped;
         DataChanges |= SectorDataTypes.SkyTexture;
-        RenderLightChangeGametick = gametick;
+        ChangeGametick = gametick;
     }
 
     public void SetTransferHeights(Sector controlSector)
@@ -312,10 +308,10 @@ public class Sector
             }
 
             if (DataChanges.HasFlag(SectorDataTypes.FloorTexture) && sectorModel.FloorTexture.HasValue)
-                Floor.SetTexture(sectorModel.FloorTexture.Value);
+                Floor.SetTexture(sectorModel.FloorTexture.Value, 0);
 
             if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture) && sectorModel.CeilingTexture.HasValue)
-                Ceiling.SetTexture(sectorModel.CeilingTexture.Value);
+                Ceiling.SetTexture(sectorModel.CeilingTexture.Value, 0);
 
             if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
                 SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
@@ -397,12 +393,12 @@ public class Sector
             ActiveCeilingMove = special;
     }
 
-    public void SetTexture(SectorPlaneFace planeType, int texture)
+    public void SetTexture(SectorPlaneFace planeType, int texture, int gametick)
     {
         if (planeType == SectorPlaneFace.Floor)
-            Floor.SetTexture(texture);
+            Floor.SetTexture(texture, gametick);
         else
-            Ceiling.SetTexture(texture);
+            Ceiling.SetTexture(texture, gametick);
     }
 
     public SectorDamageSpecial? SectorDamageSpecial { get; set; }

@@ -1347,7 +1347,7 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {
         double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
-        sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle);
+        sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle, m_world.Gametick);
         sector.SectorDamageSpecial = null;
 
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
