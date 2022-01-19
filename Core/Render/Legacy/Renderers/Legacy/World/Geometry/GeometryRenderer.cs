@@ -47,6 +47,8 @@ public class GeometryRenderer : IDisposable
     private bool m_skyOverride;
     private bool m_floorChanged;
     private bool m_ceilingChanged;
+    private bool m_sectorChangedLine;
+    private bool m_lightChangedLine;
     private bool m_cacheOverride;
     private Vec3D m_position;
     private Sector m_viewSector;
@@ -337,6 +339,10 @@ public class GeometryRenderer : IDisposable
 
     private void RenderOneSided(Side side)
     {
+        m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
+        m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
+        side.LastRenderGametick = m_world.Gametick;
+
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
         LegacyVertex[]? data = m_vertexLookup[side.Id];
@@ -347,7 +353,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = renderSector.Ceiling;
         RenderSkySide(side, renderSector, null, texture);
 
-        if (side.OffsetChanged || side.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
+        if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, m_tickFraction);
             if (m_cacheOverride)
@@ -363,7 +369,7 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[side.Id] = data;
         }
-        else if (side.Sector.LightingChanged())
+        else if (m_sectorChangedLine)
         {
             SetLightToVertices(data, GetRenderLightLevel(side));
         }
@@ -398,6 +404,10 @@ public class GeometryRenderer : IDisposable
         Side otherSide = facingSide.PartnerSide!;
         Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
+
+        m_sectorChangedLine = otherSector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSector.CheckRenderingChanged(facingSide.LastRenderGametick);
+        m_lightChangedLine = facingSector.LightingChanged(facingSide.LastRenderGametick);
+        facingSide.LastRenderGametick = m_world.Gametick;
 
         if (LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide);
@@ -453,7 +463,7 @@ public class GeometryRenderer : IDisposable
         {
             SkyGeometryVertex[]? data = m_skyWallVertexLowerLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null)
+            if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -470,7 +480,7 @@ public class GeometryRenderer : IDisposable
         {
             LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
+            if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -487,7 +497,7 @@ public class GeometryRenderer : IDisposable
                 if (!m_cacheOverride)
                     m_vertexLowerLookup[facingSide.Id] = data;
             }
-            else if (facingSide.Sector.LightingChanged())
+            else if (m_lightChangedLine)
             {
                 SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
@@ -530,7 +540,7 @@ public class GeometryRenderer : IDisposable
                 return;
             }
 
-            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null)
+            if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction, MaxSky);
@@ -547,7 +557,7 @@ public class GeometryRenderer : IDisposable
         {
             LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
-            if (facingSide.OffsetChanged || facingSide.Sector.CheckRenderingChanged() || otherSide.Sector.CheckRenderingChanged() || data == null || m_cacheOverride)
+            if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
@@ -564,7 +574,7 @@ public class GeometryRenderer : IDisposable
                 if (!m_cacheOverride)
                     m_vertexUpperLookup[facingSide.Id] = data;
             }
-            else if (facingSide.Sector.LightingChanged())
+            else if (m_lightChangedLine)
             {
                 SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
@@ -630,7 +640,7 @@ public class GeometryRenderer : IDisposable
         RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
-        if (facingSide.OffsetChanged || facingSector.CheckRenderingChanged() || otherSector.CheckRenderingChanged() || data == null || m_cacheOverride)
+        if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
@@ -656,7 +666,7 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
         }
-        else if (facingSide.Sector.LightingChanged())
+        else if (m_lightChangedLine)
         {
             SetLightToVertices(data, GetRenderLightLevel(facingSide));
         }

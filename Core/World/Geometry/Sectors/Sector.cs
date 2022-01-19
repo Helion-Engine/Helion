@@ -153,29 +153,33 @@ public class Sector
         SetCeilingLightLevel(Floor.LightLevel, gametick);
     }
 
-    public bool LightingChanged()
+    public bool LightingChanged() => LightingChanged(LastRenderGametick);
+
+    public bool LightingChanged(int gametick)
     {
-        if (RenderLightChangeGametick >= LastRenderGametick - 1)
+        if (RenderLightChangeGametick >= gametick - 1)
             return true;
 
-        if (m_transferFloorLightSector.Id != Id && m_transferFloorLightSector.RenderLightChangeGametick >= m_transferFloorLightSector.LastRenderGametick - 1)
+        if (m_transferFloorLightSector.Id != Id && m_transferFloorLightSector.RenderLightChangeGametick >= gametick - 1)
             return true;
 
-        if (m_transferCeilingLightSector.Id != Id && m_transferCeilingLightSector.RenderLightChangeGametick >= m_transferCeilingLightSector.LastRenderGametick - 1)
+        if (m_transferCeilingLightSector.Id != Id && m_transferCeilingLightSector.RenderLightChangeGametick >= gametick - 1)
             return true;
 
-        if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged())
+        if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged(gametick))
             return true;
 
         return false;
     }
 
-    public bool CheckRenderingChanged()
+    public bool CheckRenderingChanged() => CheckRenderingChanged(LastRenderGametick);
+
+    public bool CheckRenderingChanged(int gametick)
     {
-        if (Floor.LastRenderChangeGametick >= LastRenderGametick - 1 || Floor.PrevZ != Floor.Z)
+        if (Floor.LastRenderChangeGametick >= gametick - 1 || Floor.PrevZ != Floor.Z)
             return true;
 
-        if (Ceiling.LastRenderChangeGametick >= LastRenderGametick - 1 || Ceiling.PrevZ != Ceiling.Z)
+        if (Ceiling.LastRenderChangeGametick >= gametick - 1 || Ceiling.PrevZ != Ceiling.Z)
             return true;
 
         if (TransferHeights != null)
