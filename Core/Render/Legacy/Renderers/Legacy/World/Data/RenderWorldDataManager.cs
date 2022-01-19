@@ -33,7 +33,7 @@ public class RenderWorldDataManager : IDisposable
         if (m_allRenderData.Length <= texture.TextureId)
         {
             var original = m_allRenderData;
-            m_allRenderData = new RenderWorldData[m_allRenderData.Length * 2];
+            m_allRenderData = new RenderWorldData[texture.TextureId + 1024];
             Array.Copy(original, m_allRenderData, original.Length);
         }
 
