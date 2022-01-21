@@ -170,7 +170,7 @@ public class PhysicsManager
             ClampBetweenFloorAndCeiling(entity);
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
-            if (entity.IsPlayer)
+            if (entity.IsPlayer && !entity.Flags.NoClip)
                 IsPositionValid(entity, entity.Position.XY, m_tryMoveData);
 
             if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
