@@ -474,7 +474,7 @@ public partial class WorldLayer
             messagesDrawn++;
         }
 
-        for (int i = 0; i < m_messages.Count; i++)
+        for (int i = m_messages.Count - 1; i >= 0; i--)
         {
             hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset, offsetY),
                 out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
