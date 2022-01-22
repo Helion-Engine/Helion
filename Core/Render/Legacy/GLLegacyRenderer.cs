@@ -45,6 +45,7 @@ public class GLLegacyRenderer : ILegacyRenderer
     private readonly IGLTextureManager m_textureManager;
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
+    private readonly RenderInfo m_renderInfo = new();
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
@@ -329,9 +330,9 @@ public class GLLegacyRenderer : ILegacyRenderer
 
         DrawHudImagesIfAnyQueued(viewport);
 
-        RenderInfo renderInfo = new(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
+        m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale);
-        m_worldRenderer.Render(cmd.World, renderInfo);
+        m_worldRenderer.Render(cmd.World, m_renderInfo);
     }
 
     private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)

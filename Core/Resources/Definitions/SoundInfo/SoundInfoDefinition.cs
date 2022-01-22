@@ -84,8 +84,33 @@ public class SoundInfoDefinition
             ParseLimit(parser);
         else if (type.Equals("$random", StringComparison.OrdinalIgnoreCase))
             ParseRandom(parser);
+        else if (type.Equals("$rolloff", StringComparison.OrdinalIgnoreCase))
+            ParseRolloff(parser);
+        else if (type.Equals("$playeralias", StringComparison.OrdinalIgnoreCase))
+            ParsePlayerAlias(parser);
         else
-            throw new ParserException(parser.GetCurrentLine(), 0, 0, "Bad command.");
+            throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo - Bad command. {type}");
+    }
+
+    private void ParsePlayerAlias(SimpleParser parser)
+    {
+        string playerClass = parser.ConsumeString();
+        string gender = parser.ConsumeString();
+        string logicalName = parser.ConsumeString();
+        string otherLogicalSound = parser.ConsumeString();
+    }
+
+    private void ParseRolloff(SimpleParser parser)
+    {
+        string sound = parser.ConsumeString();
+
+        if (parser.PeekInteger(out int i))
+        {
+            parser.ConsumeInteger();
+            return;
+        }
+
+        parser.ConsumeString();
     }
 
     private void ParsePitchShift(SimpleParser parser)

@@ -402,6 +402,8 @@ public class Player : Entity
     public Camera GetCamera(double t)
     {
         Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
+        //Vec3D viewPos = GetViewPosition();
+        //Vec3D position = viewPos.Interpolate(viewPos + Velocity, t);
 
         // When rendering, we always want the most up-to-date values. We
         // would only want to interpolate here if looking at another player

@@ -10,6 +10,7 @@
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <LangVersion>preview</LangVersion>
 	<TieredCompilation>false</TieredCompilation>
+	<AssemblyName>Helion</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
