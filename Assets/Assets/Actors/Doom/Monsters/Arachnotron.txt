@@ -16,6 +16,7 @@ actor Arachnotron 68
     MONSTER
     +BOSSDEATH
     +FLOORCLIP
+    +MAP07BOSS2
     
     States
     {
