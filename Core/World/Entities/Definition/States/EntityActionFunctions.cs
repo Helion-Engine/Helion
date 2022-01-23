@@ -1000,7 +1000,7 @@ public static class EntityActionFunctions
         // Pass through owner if set (usually a projectile)
         // Barrels pass through who shot them (Target)
         Entity? attackSource = entity.Owner ?? entity.Target;
-        entity.World.RadiusExplosion(entity, attackSource ?? entity, 128);
+        entity.World.RadiusExplosion(entity, attackSource ?? entity, 128, 128);
     }
 
     private static void A_ExtChase(Entity entity)
@@ -2521,7 +2521,7 @@ public static class EntityActionFunctions
         newPos.Y -= unit.Y * 24;
 
         entity.Tracer.SetPosition(newPos);
-        entity.World.RadiusExplosion(entity.Tracer, entity, 70);
+        entity.World.RadiusExplosion(entity.Tracer, entity, 70, 70);
     }
 
     private static void A_VileChase(Entity entity)
@@ -2619,7 +2619,7 @@ public static class EntityActionFunctions
 
     private static void A_Detonate(Entity entity)
     {
-        entity.World.RadiusExplosion(entity, entity.Target ?? entity, entity.Properties.Damage.Value);
+        entity.World.RadiusExplosion(entity, entity.Target ?? entity, entity.Properties.Damage.Value, entity.Properties.Damage.Value);
     }
 
     private static void A_Spawn(Entity entity)
@@ -2946,9 +2946,8 @@ public static class EntityActionFunctions
 
     private static void A_RadiusDamage(Entity entity)
     {
-        // TODO ugh...
-        int damage = entity.Frame.DehackedArgs1;
-        entity.World.RadiusExplosion(entity, entity, entity.Frame.DehackedArgs2);
+        int maxDamage = entity.Frame.DehackedArgs1;
+        entity.World.RadiusExplosion(entity, entity, entity.Frame.DehackedArgs2, maxDamage);
     }
 
     private static void A_NoiseAlert(Entity entity)

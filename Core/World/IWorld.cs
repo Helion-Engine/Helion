@@ -87,7 +87,7 @@ public interface IWorld : IDisposable
     void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
-    void RadiusExplosion(Entity damageSource, Entity attackSource, int radius);
+    void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     TryMoveData TryMoveXY(Entity entity, Vec2D position);
     bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,

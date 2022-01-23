@@ -1161,7 +1161,7 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
-    public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius)
+    public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage)
     {
         Thrust thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
         Vec2D pos2D = damageSource.Position.XY;
@@ -1174,7 +1174,7 @@ public abstract partial class WorldBase : IWorld
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Entity != null && ShouldApplyExplosionDamage(bi.Entity, damageSource))
-                ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, thrust,
+                ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, maxDamage, thrust,
                     damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
         }
 
@@ -1323,7 +1323,7 @@ public abstract partial class WorldBase : IWorld
         return false;
     }
 
-    private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, Thrust thrust,
+    private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
     {
         double distance;
@@ -1349,13 +1349,13 @@ public abstract partial class WorldBase : IWorld
                 distance = entity.Position.Distance(source.Position) - entity.Radius;
         }
 
-        int damage = (int)(radius - distance);
-        if (damage <= 0)
+        int applyDamage = Math.Clamp((int)(radius - distance), 0, maxDamage);
+        if (applyDamage <= 0)
             return;
 
         Entity? originalOwner = source.Owner;
         source.Owner = attackSource;
-        DamageEntity(entity, source, damage, false, thrust);
+        DamageEntity(entity, source, applyDamage, false, thrust);
         source.Owner = originalOwner;
     }
 
