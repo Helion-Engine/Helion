@@ -5,13 +5,19 @@ namespace Helion.Render.Common.Context;
 
 public class HudRenderContext
 {
-    public readonly Dimension Dimension;
+    public Dimension Dimension;
 
     [Obsolete("Only here as a hack for the old renderer")]
-    public bool DrawInvul { get; set; }
+    public bool DrawInvul;
 
     public HudRenderContext(Dimension dimension)
     {
         Dimension = dimension;
+    }
+
+    public void Set(Dimension dimension)
+    {
+        Dimension = dimension;
+        DrawInvul = false;
     }
 }

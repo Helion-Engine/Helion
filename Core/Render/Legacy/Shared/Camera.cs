@@ -30,24 +30,24 @@ public class Camera
     /// <summary>
     /// The current camera position.
     /// </summary>
-    public readonly Vec3F Position;
+    public Vec3F Position;
 
     /// <summary>
     /// The directional vector we're facing. This is made up from the yaw
     /// and pitch.
     /// </summary>
-    public readonly Vec3F Direction;
+    public Vec3F Direction;
 
     /// <summary>
     /// The horizontal viewing angle, where zero radians is equal to facing
     /// east, and proceeds counter clockwise.
     /// </summary>
-    public readonly float YawRadians;
+    public float YawRadians;
 
     /// <summary>
     /// The vertical viewing pitch, where zero radians is at a horizontal.
     /// </summary>
-    public readonly float PitchRadians;
+    public float PitchRadians;
 
     /// <summary>
     /// Creates a camera at the location with the angles provided.
@@ -59,6 +59,14 @@ public class Camera
     /// This should be between [-pi/2, pi/2], or else it will be clamped
     /// to that range.</param>
     public Camera(Vec3F position, float yawRadians, float pitchRadians)
+    {
+        Position = position;
+        YawRadians = ClampYaw(yawRadians);
+        PitchRadians = ClampPitch(pitchRadians);
+        Direction = DirectionFrom(yawRadians, pitchRadians);
+    }
+
+    public void Set(Vec3F position, float yawRadians, float pitchRadians)
     {
         Position = position;
         YawRadians = ClampYaw(yawRadians);

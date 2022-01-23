@@ -18,6 +18,7 @@ namespace Helion.Render.Legacy;
 
 public class GLLegacyWorldRenderContext : IWorldRenderContext
 {
+    private readonly Shared.Camera m_oldCamera = new(Vec3F.Zero, 0, 0);
     private readonly RenderCommands m_commands;
     private WorldRenderContext? m_context;
 
@@ -38,11 +39,11 @@ public class GLLegacyWorldRenderContext : IWorldRenderContext
 
         Camera camera = m_context.Camera;
         Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
-        Shared.Camera oldCamera = new(cameraPosition, camera.YawRadians, camera.PitchRadians);
+        m_oldCamera.Set(cameraPosition, camera.YawRadians, camera.PitchRadians);
 
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.
-        m_commands.DrawWorld(singlePlayerWorld, oldCamera, world.Gametick, m_context.InterpolationFrac,
+        m_commands.DrawWorld(singlePlayerWorld, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
             singlePlayerWorld.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
             m_context?.AutomapScale ?? 1.0);
     }

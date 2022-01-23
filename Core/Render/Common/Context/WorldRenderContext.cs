@@ -8,7 +8,7 @@ namespace Helion.Render.Common.Context;
 public class WorldRenderContext
 {
     public readonly Camera Camera;
-    public readonly float InterpolationFrac;
+    public float InterpolationFrac;
     public Dimension Viewport { get; } = (640, 480);
 
     [Obsolete("This is a hack for the old legacy renderer")]
@@ -26,5 +26,13 @@ public class WorldRenderContext
     {
         Camera = camera;
         InterpolationFrac = interpolationFrac;
+    }
+
+    public void Set(float interpolationFrac, bool drawAutomap, Vec2I automapOffset, double automapScale)
+    {
+        InterpolationFrac = interpolationFrac;
+        DrawAutomap = drawAutomap;
+        AutomapOffset = automapOffset;
+        AutomapScale = automapScale;
     }
 }

@@ -7,6 +7,10 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
+    private readonly Camera m_camera = new(Vec3F.Zero, 0, 0);
+    private readonly WorldRenderContext m_worldContext;
+    private readonly HudRenderContext m_hudContext;
+
     public void Render(IRenderableSurfaceContext ctx)
     {
         DrawWorld(ctx);
@@ -22,34 +26,24 @@ public partial class WorldLayer
 
         // TODO: Workaround until later...
         var oldCamera = World.Player.GetCamera(m_lastTickInfo.Fraction);
-        Vec3F position = oldCamera.Position;
-        float yawRadians = oldCamera.YawRadians;
-        float pitchRadians = oldCamera.PitchRadians;
-        Camera camera = new(position, yawRadians, pitchRadians);
+        m_camera.Set(oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
+        m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
 
-        WorldRenderContext worldContext = new(camera, m_lastTickInfo.Fraction)
-        {
-            // NOTE: This is temporary because of the old renderer. This will
-            // go away when it gets removed.
-            DrawAutomap = m_drawAutomap,
-            AutomapOffset = m_autoMapOffset,
-            AutomapScale = m_autoMapScale
-        };
-
-        ctx.World(worldContext, worldRenderer =>
-        {
-            worldRenderer.Draw(World);
-        });
-
+        ctx.World(m_worldContext, RenderWorld);
         m_profiler.Render.World.Stop();
+
+        void RenderWorld(IWorldRenderContext context)
+        {
+            context.Draw(World);
+        }
     }
 
     private void DrawAutomapAndHud(IRenderableSurfaceContext ctx)
     {
         m_profiler.Render.Hud.Start();
 
-        HudRenderContext hudContext = new(ctx.Surface.Dimension);
-        ctx.Hud(hudContext, hud =>
+        m_hudContext.Set(ctx.Surface.Dimension);
+        ctx.Hud(m_hudContext, hud =>
         {
             if (m_drawAutomap)
             {
@@ -58,7 +52,7 @@ public partial class WorldLayer
             }
 
             ctx.ClearDepth();
-            DrawHud(hudContext, hud);
+            DrawHud(m_hudContext, hud);
         });
 
         m_profiler.Render.Hud.Stop();

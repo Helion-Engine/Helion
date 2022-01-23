@@ -64,6 +64,8 @@ public class Player : Entity
     private Entity? m_killer;
     private bool m_interpolateAngle;
 
+    private Camera? m_camera;
+
     public Inventory Inventory { get; private set; }
     public Weapon? Weapon { get; private set; }
     public Weapon? PendingWeapon { get; private set; }
@@ -401,10 +403,10 @@ public class Player : Entity
 
     public Camera GetCamera(double t)
     {
-        Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
-        //Vec3D viewPos = GetViewPosition();
-        //Vec3D position = viewPos.Interpolate(viewPos + Velocity, t);
+        if (m_camera == null)
+            m_camera = new(Vec3F.Zero, 0, 0);
 
+        Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
         // When rendering, we always want the most up-to-date values. We
         // would only want to interpolate here if looking at another player
         // and would likely need to add more logic for wrapping around if
@@ -428,15 +430,16 @@ public class Player : Entity
             float yaw = (float)(prev + t * (current - prev));
             float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
 
-            return new Camera(position.Float, yaw, pitch);
+            m_camera.Set(position.Float, yaw, pitch);
         }
         else
         {
             float yaw = (float)AngleRadians;
             float pitch = (float)PitchRadians;
-
-            return new Camera(position.Float, yaw, pitch);
+            m_camera.Set(position.Float, yaw, pitch);
         }
+
+        return m_camera;
     }
 
     public override void Tick()

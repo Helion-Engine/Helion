@@ -32,6 +32,15 @@ public class Camera
         m_prevPosition = position;
     }
 
+    public void Set(Vec3F position, float yawRadians, float pitchRadians)
+    {
+        m_position = position;
+        Direction = Vec3F.UnitSphere(yawRadians, pitchRadians);
+        m_yawRadians = ClampYaw(yawRadians);
+        m_pitchRadians = ClampPitch(pitchRadians);
+        m_prevPosition = position;
+    }
+
     public Camera(Player player, double frac)
     {
         m_position = player.GetPrevViewPosition().Interpolate(player.GetViewPosition(), frac).Float;

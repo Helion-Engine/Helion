@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Models;
@@ -54,6 +55,8 @@ public partial class WorldLayer : IGameLayerParent
     public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
     {
+        m_worldContext = new(m_camera, 0);
+        m_hudContext = new(new Dimension());
         m_config = config;
         m_console = console;
         m_archiveCollection = archiveCollection;
