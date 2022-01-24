@@ -22,4 +22,7 @@ public class ConfigHud
 
     [ConfigInfo("The size of the status bar.")]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
+
+    [ConfigInfo("If the world stats should be rendered.")]
+    public readonly ConfigValue<bool> ShowStats = new(false);
 }

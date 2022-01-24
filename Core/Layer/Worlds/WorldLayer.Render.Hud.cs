@@ -47,7 +47,7 @@ public partial class WorldLayer
 
     private readonly List<(ColoredString message, float alpha)> m_messages = new();
 
-    private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud)
+    private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
         m_scale = (float)m_config.Hud.Scale.Value;
         m_padding = (int)(4 * m_scale);
@@ -56,9 +56,62 @@ public partial class WorldLayer
 
         DrawFPS(hud, out int topRightY);
         DrawPosition(hud, ref topRightY);
+        DrawStatInfo(hud, automapVisible, (0, topRightY + m_padding), ref topRightY);
         DrawBottomHud(hud, topRightY, hudContext);
         DrawHudEffectsDeprecated(hud);
         DrawRecentConsoleMessages(hud);
+    }
+
+    private static readonly string[] StatLabels = new string[] { "Kills: ", "Items: ", "Secrets: " };
+    private readonly string[] StatValues = new string[] { string.Empty, string.Empty, string.Empty };
+
+    private void DrawStatInfo(IHudRenderContext hud, bool automapVisible, Vec2I start, ref int topRightY)
+    {
+        if (!m_config.Hud.ShowStats && !automapVisible)
+            return;
+
+        const int InfoFontSize = 16;
+        start.X = -m_padding;
+        Vec2I labelPos = start;
+        int maxLabelWidth = 0;
+        int maxValueWidth = 0;
+        var align = Align.TopRight;
+
+        StatValues[0] = $"{World.LevelStats.KillCount} / {World.LevelStats.TotalMonsters}";
+        StatValues[1] = $"{World.LevelStats.ItemCount} / {World.LevelStats.TotalItems}";
+        StatValues[2] = $"{World.LevelStats.SecretCount} / {World.LevelStats.TotalSecrets}";
+
+        for (int i = 0; i < StatLabels.Length; i++)
+        {
+            maxLabelWidth = Math.Max(hud.MeasureText(StatLabels[i], ConsoleFont, InfoFontSize).Width, maxLabelWidth);
+            maxValueWidth = Math.Max(hud.MeasureText(StatValues[i], ConsoleFont, InfoFontSize).Width, maxValueWidth);
+        }
+
+        labelPos.X = -(maxValueWidth + m_padding);
+
+        for (int i = 0; i < StatLabels.Length; i++)
+        {
+            hud.Text(StatLabels[i], ConsoleFont, InfoFontSize, labelPos, out Dimension labelDim,
+                TextAlign.Right, both: align);
+            labelPos.Y += labelDim.Height;
+        }
+
+        labelPos = start;
+        hud.Text(StatValues[0], ConsoleFont, InfoFontSize, labelPos, out Dimension dim,
+            TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters));
+        labelPos.Y += dim.Height;
+        hud.Text(StatValues[1], ConsoleFont, InfoFontSize, labelPos, out dim,
+            TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems));
+        labelPos.Y += dim.Height;
+        hud.Text(StatValues[2], ConsoleFont, InfoFontSize, labelPos, out dim,
+            TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets));
+        labelPos.Y += dim.Height + m_padding;
+
+        hud.Text(TimeSpan.FromSeconds(World.LevelTime / 35).ToString(), ConsoleFont, InfoFontSize, labelPos, out dim,
+            TextAlign.Right, both: align, color: Color.White);
+        labelPos.Y += dim.Height;
+
+        topRightY = labelPos.Y;
     }
 
     [Obsolete("Will be moved to a post-processing step in a shader")]
@@ -89,7 +142,7 @@ public partial class WorldLayer
         void DrawFpsValue(string prefix, double fps, ref int y)
         {
             string avgFps = $"{prefix}FPS: {(int)Math.Round(fps)}";
-            hud.Text(avgFps, ConsoleFont, DebugFontSize, (-1, y), out Dimension avgArea,
+            hud.Text(avgFps, ConsoleFont, DebugFontSize, (-m_padding, y), out Dimension avgArea,
                 TextAlign.Right, both: Align.TopRight);
             y += avgArea.Height + FpsMessageSpacing;
         }
@@ -108,7 +161,7 @@ public partial class WorldLayer
         void DrawCoordinate(char axis, double position, ref int y)
         {
             hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, DebugFontSize,
-                (-1, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
+                (-m_padding, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
                 color: Color.White);
             y += area.Height + FpsMessageSpacing;
         }
@@ -134,12 +187,12 @@ public partial class WorldLayer
 
         switch (m_config.Hud.StatusBarSize.Value)
         {
-        case StatusBarSizeType.Minimal:
-            DrawMinimalStatusBar(hud, topRightY);
-            break;
-        case StatusBarSizeType.Full:
-            DrawFullStatusBar(hud);
-            break;
+            case StatusBarSizeType.Minimal:
+                DrawMinimalStatusBar(hud, topRightY);
+                break;
+            case StatusBarSizeType.Full:
+                DrawFullStatusBar(hud);
+                break;
         }
     }
 
@@ -217,6 +270,14 @@ public partial class WorldLayer
         DrawMinimalHudAmmo(hud);
     }
 
+
+    private static Color GetStatColor(int current, int total)
+    {
+        if (current >= total)
+            return Color.LightGreen;
+        return Color.White;
+    }
+
     private void DrawMinimalHudHealthAndArmor(IHudRenderContext hud)
     {
         const string Medkit = "MEDIA0";
@@ -234,8 +295,9 @@ public partial class WorldLayer
 
         // This is to make sure the face never moves (even if the health changes).
         x += hud.MeasureText("9999", LargeHudFont, m_fontHeight).Width;
+        int highestX = x;
 
-        DrawFace(hud, (x, y), Align.BottomLeft, true);
+        DrawFace(hud, (x, y), out HudBox faceArea, Align.BottomLeft, true);
 
         if (Player.Armor > 0)
         {
@@ -253,9 +315,9 @@ public partial class WorldLayer
         }
     }
 
-    private void DrawFace(IHudRenderContext hud, Vec2I origin, Align? both = null, bool scaleDraw = false)
+    private void DrawFace(IHudRenderContext hud, Vec2I origin, out HudBox area, Align? both = null, bool scaleDraw = false)
     {
-        hud.Image(Player.StatusBar.GetFacePatch(), origin, both: both, scale: scaleDraw ? m_scale : 1.0f);
+        hud.Image(Player.StatusBar.GetFacePatch(), origin, out area, both: both, scale: scaleDraw ? m_scale : 1.0f);
     }
 
     private void DrawMinimalHudKeys(IHudRenderContext hud, int y)
@@ -335,12 +397,14 @@ public partial class WorldLayer
             }
         }, ResolutionScale.None);
 
+        HudBox statBox = new();
+
         hud.DoomVirtualResolution(() =>
         {
-            hud.Image(StatusBar, (0, 0), both: Align.BottomLeft);
+            hud.Image(StatusBar, (0, 0), out statBox, both: Align.BottomLeft);
             DrawFullHudHealthArmorAmmo(hud);
             DrawFullHudWeaponSlots(hud);
-            DrawFace(hud, (FullHudFaceX, FullHudFaceY));
+            DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
             DrawFullHudKeys(hud);
             DrawFullTotalAmmo(hud);
         });

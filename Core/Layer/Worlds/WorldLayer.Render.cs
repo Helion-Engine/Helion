@@ -52,7 +52,7 @@ public partial class WorldLayer
             }
 
             ctx.ClearDepth();
-            DrawHud(m_hudContext, hud);
+            DrawHud(m_hudContext, hud, m_drawAutomap);
         });
 
         m_profiler.Render.Hud.Stop();
