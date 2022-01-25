@@ -864,9 +864,45 @@ public class PhysicsManager
 
         GridIterationStatus CheckForBlockers(Block block)
         {
-            // This may need to come after if we want to do plasma bumping.
             for (int i = 0; i < block.Lines.Count; i++)
             {
+                if (entity.Flags.Solid || entity.Flags.Missile)
+                {
+                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
+                    {
+                        Entity nextEntity = entityNode.Value;
+                        if (ReferenceEquals(entity, nextEntity))
+                        {
+                            entityNode = entityNode.Next;
+                            continue;
+                        }
+
+                        if (nextEntity.Box.Overlaps2D(nextBox))
+                        {
+                            tryMove.IntersectEntities2D.Add(nextEntity);
+                            bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
+
+                            // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
+                            // This flag can be modified by dehacked
+                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Flags.Special)
+                            {
+                                // Set the next node - this pickup can be removed from the list
+                                entityNode = entityNode.Next;
+                                m_world.PerformItemPickup(entity, nextEntity);
+                                continue;
+                            }
+                            else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
+                            {
+                                tryMove.Success = false;
+                                entity.BlockingEntity = nextEntity;
+                                return GridIterationStatus.Stop;
+                            }
+                        }
+
+                        entityNode = entityNode.Next;
+                    }
+                }
+
                 Line line = block.Lines[i];
                 if (line.Segment.Intersects(nextBox))
                 {
@@ -888,43 +924,6 @@ public class PhysicsManager
                         else
                             tryMove.AddImpactSpecialLine(line);
                     }
-                }
-            }
-
-            if (entity.Flags.Solid || entity.Flags.Missile)
-            {
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
-                {
-                    Entity nextEntity = entityNode.Value;
-                    if (ReferenceEquals(entity, nextEntity))
-                    {
-                        entityNode = entityNode.Next;
-                        continue;
-                    }
-
-                    if (nextEntity.Box.Overlaps2D(nextBox))
-                    {
-                        tryMove.IntersectEntities2D.Add(nextEntity);
-                        bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
-
-                        // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
-                        // This flag can be modified by dehacked
-                        if (overlapsZ && entity.Flags.Pickup && nextEntity.Flags.Special)
-                        {
-                            // Set the next node - this pickup can be removed from the list
-                            entityNode = entityNode.Next;
-                            m_world.PerformItemPickup(entity, nextEntity);
-                            continue;
-                        }
-                        else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
-                        {
-                            tryMove.Success = false;
-                            entity.BlockingEntity = nextEntity;
-                            return GridIterationStatus.Stop;
-                        }
-                    }
-
-                    entityNode = entityNode.Next;
                 }
             }
 
