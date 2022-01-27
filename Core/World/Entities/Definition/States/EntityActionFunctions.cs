@@ -571,7 +571,7 @@ public static class EntityActionFunctions
         entity.World.CurrentBossTarget %= targets.Length;
 
         double pitch = entity.PitchTo(target);
-        Entity? spawnShot = entity.World.FireProjectile(entity, entity.AngleRadians, pitch, 0.0, false, "SpawnShot");
+        Entity? spawnShot = entity.World.FireProjectile(entity, entity.AngleRadians, pitch, 0.0, false, "SpawnShot", out _);
 
         if (spawnShot != null)
         {
@@ -657,7 +657,7 @@ public static class EntityActionFunctions
             return;
         }
 
-        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "BaronBall");
+        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "BaronBall", out _);
     }
 
     private static void A_BspiAttack(Entity entity)
@@ -666,7 +666,7 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma");
+        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target), Constants.EntityShootDistance, false, "ArachnotronPlasma", out _);
     }
 
     private static void A_BulletAttack(Entity entity)
@@ -942,7 +942,7 @@ public static class EntityActionFunctions
 
         A_FaceTarget(entity);
         entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "Rocket");
+            Constants.EntityShootDistance, false, "Rocket", out _);
     }
 
     private static void A_DamageChildren(Entity entity)
@@ -1088,11 +1088,11 @@ public static class EntityActionFunctions
 
         entity.AngleRadians = baseAngle + fireSpread1;
         entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "FatShot");
+            Constants.EntityShootDistance, false, "FatShot", out _);
 
         entity.AngleRadians = baseAngle + fireSpread2;
         entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "FatShot");
+            Constants.EntityShootDistance, false, "FatShot", out _);
 
         entity.AngleRadians = baseAngle;
     }
@@ -1132,7 +1132,7 @@ public static class EntityActionFunctions
         // TODO not sure of difference between A_FireBFG and A_FireOldBFG
         if (entity.PlayerObj != null)
             entity.PlayerObj.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "BFGBall");
+                entity.World.Config.Game.AutoAim, "BFGBall", out _);
     }
 
     private static void A_FireBullets(Entity entity)
@@ -1168,7 +1168,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "Rocket");
+                entity.World.Config.Game.AutoAim, "Rocket", out _);
         }
     }
 
@@ -1176,7 +1176,7 @@ public static class EntityActionFunctions
     {
         // TODO not sure of difference between A_FireBFG and A_FireOldBFG
         if (entity.PlayerObj != null)
-            entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall");
+            entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall", out _);
     }
 
     private static void A_FirePistol(Entity entity)
@@ -1197,7 +1197,7 @@ public static class EntityActionFunctions
         {
             entity.PlayerObj.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
             entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "PlasmaBall");
+                entity.World.Config.Game.AutoAim, "PlasmaBall", out _);
         }
     }
 
@@ -1305,7 +1305,7 @@ public static class EntityActionFunctions
         }
 
         entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "CacodemonBall");
+            Constants.EntityShootDistance, false, "CacodemonBall", out _);
     }
 
     private static void A_HideThing(Entity entity)
@@ -2229,7 +2229,7 @@ public static class EntityActionFunctions
             return;
 
         Entity? fireball = entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "RevenantTracer", 16);
+            Constants.EntityShootDistance, false, "RevenantTracer", out _, zOffset: 16);
 
         if (fireball != null)
             fireball.Tracer = entity.Target;
@@ -2450,7 +2450,7 @@ public static class EntityActionFunctions
         }
 
         entity.World.FireProjectile(entity, entity.AngleRadians, entity.PitchTo(entity.ProjectileAttackPos, entity.Target),
-            Constants.EntityShootDistance, false, "DoomImpBall");
+            Constants.EntityShootDistance, false, "DoomImpBall", out _);
     }
 
     private static void A_TurretLook(Entity entity)
@@ -2680,7 +2680,7 @@ public static class EntityActionFunctions
 
                 entity.AngleRadians = entity.Position.Angle(firePos);
                 double pitch = entity.Position.Pitch(firePos, entity.Position.XY.Distance(firePos.XY));
-                Entity? projectile = entity.World.FireProjectile(entity, entity.AngleRadians, pitch, 0, false, "FatShot");
+                Entity? projectile = entity.World.FireProjectile(entity, entity.AngleRadians, pitch, 0, false, "FatShot", out _);
                 if (projectile != null)
                 {
                     projectile.Velocity *= velocity;
@@ -2731,7 +2731,7 @@ public static class EntityActionFunctions
 
     private static void A_WeaponProjectile(Entity entity)
     {
-        if (!GetPlayerWeaponFrame(entity, out EntityFrame? frame))
+        if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
         if (!GetDehackedActorName(entity, frame.DehackedArgs1, out string? name))
@@ -2741,8 +2741,7 @@ public static class EntityActionFunctions
         double pitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs3));
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        entity.World.GetAutoAimEntity(entity, entity.ProjectileAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out _, out Entity? autoAimEntity);
-        CreateProjectile(entity, name, angle, pitch, offsetXY, zOffset, autoAimEntity);
+        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)
@@ -2871,28 +2870,36 @@ public static class EntityActionFunctions
         if (!GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
             return;
 
-        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        double xOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
-        double yOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
-        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
-        double xVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs6);
-        double yVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs7);
-        double zVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs8);
+        double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
+        Vec3D unit = Vec3D.UnitSphere(angle, 0);
+        Vec3D offset = new Vec3D(MathHelper.FromFixed(entity.Frame.DehackedArgs3), MathHelper.FromFixed(entity.Frame.DehackedArgs4), MathHelper.FromFixed(entity.Frame.DehackedArgs5)) * unit;
+        Vec3D velocity = new Vec3D(MathHelper.FromFixed(entity.Frame.DehackedArgs6), MathHelper.FromFixed(entity.Frame.DehackedArgs7), MathHelper.FromFixed(entity.Frame.DehackedArgs8)) * unit;
 
-        Vec3D pos = entity.Position + new Vec3D(xOffset, yOffset, zOffset);
-        Entity? createdEntity = entity.World.EntityManager.Create(name, pos);
+        Entity? createdEntity = entity.World.EntityManager.Create(name, entity.Position + offset);
         if (createdEntity == null)
             return;
 
-        entity.AngleRadians = angle;
-        entity.Velocity.X = xVelocity;
-        entity.Velocity.Y = yVelocity;
-        entity.Velocity.Z = zVelocity;
+        createdEntity.AngleRadians = angle;
+        createdEntity.Velocity = velocity;
+
+        if (!createdEntity.Flags.Missile)
+            return;
+
+        if (entity.Flags.Missile)
+        {
+            createdEntity.Target = entity.Target;
+            createdEntity.Tracer = entity.Tracer;
+        }
+        else
+        {
+            createdEntity.Target = entity;
+            createdEntity.Tracer = entity.Tracer;
+        }
     }
 
     private static void A_MonsterProjectile(Entity entity)
     {
-        if (entity.Target == null|| !GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
+        if (entity.Target == null || !GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
             return;
 
         double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
@@ -2901,8 +2908,7 @@ public static class EntityActionFunctions
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out Entity? autoAimEntity);
-        CreateProjectile(entity, name, angle, pitch + pitchOffset, offsetXY, zOffset, autoAimEntity);
+        FireProjectile(entity, entity.Target, name, angle, pitchOffset, offsetXY, zOffset);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
@@ -3124,17 +3130,23 @@ public static class EntityActionFunctions
         return dehacked.GetEntityDefinitionName(index, out name);
     }
 
-    private static void CreateProjectile(Entity entity, string name, double angle, double pitch, double offsetXY, double zOffset, Entity? autoAimEntity)
+    private static void FireProjectile(Entity entity, Entity? target, string name, double addAngle, double addPitch, double offsetXY, double zOffset)
     {
-        Vec3D pos = entity.ProjectileAttackPos;
-        pos.Z += zOffset;
-        Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians + angle, pitch, 0, false, name, zOffset);
+        double firePitch = 0;
+        if (entity.PlayerObj != null)
+            firePitch = entity.PlayerObj.PitchRadians;
+
+        if (target != null)
+            firePitch = entity.PitchTo(entity.ProjectileAttackPos, target);
+
+        Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, true, name, 
+            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
         if (createdEntity == null)
             return;
 
         if (offsetXY != 0)
         {
-            Vec2D offset = Vec2D.UnitCircle(angle) * offsetXY;
+            Vec2D offset = Vec2D.UnitCircle(createdEntity.AngleRadians) * offsetXY;
             createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
         }
 

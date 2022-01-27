@@ -684,8 +684,10 @@ public abstract partial class WorldBase : IWorld
     public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
-    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, double zOffset = 0.0)
+    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
+        double addAngle = 0, double addPitch = 0, double zOffset = 0)
     {
+        autoAimEntity = null;
         Player? player = shooter.PlayerObj;
         if (player != null)
             player.DescreaseAmmo();
@@ -695,11 +697,14 @@ public abstract partial class WorldBase : IWorld
 
         if (autoAim && player != null &&
             GetAutoAimAngle(shooter, start, shooter.AngleRadians, autoAimDistance, out double autoAimPitch, out double autoAimAngle,
-                out _, tracers: Constants.AutoAimTracers))
+                out autoAimEntity, tracers: Constants.AutoAimTracers))
         {
             pitch = autoAimPitch;
             angle = autoAimAngle;
         }
+
+        pitch += addPitch;
+        angle += addAngle;
 
         var projectileDef = EntityManager.DefinitionComposer.GetByName(projectClassName);
         if (projectileDef != null)
