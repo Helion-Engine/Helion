@@ -605,7 +605,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (!CanDamage(source, isHitscan))
                 return false;
 
-            if (WillRetaliateFrom(source) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
+            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
             {
                 if (!Flags.QuickToRetaliate)
                     Threshold = Properties.DefThreshold;
@@ -983,9 +983,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public virtual bool CanMakeSound() => true;
 
-    private bool WillRetaliateFrom(Entity source)
+    private bool WillRetaliateFrom(Entity damageSource)
     {
-        Entity damageSource = source.Owner ?? source;
         if (damageSource.IsPlayer)
             return true;
 

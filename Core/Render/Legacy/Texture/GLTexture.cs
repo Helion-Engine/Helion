@@ -42,7 +42,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 
     ~GLTexture()
     {
-        FailedToDispose(this);
+        //FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 
