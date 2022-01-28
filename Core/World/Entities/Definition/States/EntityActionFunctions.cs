@@ -2887,7 +2887,7 @@ public static class EntityActionFunctions
 
         if (entity.Flags.Missile)
         {
-            createdEntity.Target = entity.Target;
+            createdEntity.Owner = entity.Owner;
             createdEntity.Tracer = entity.Tracer;
         }
         else
@@ -2953,7 +2953,8 @@ public static class EntityActionFunctions
     private static void A_RadiusDamage(Entity entity)
     {
         int maxDamage = entity.Frame.DehackedArgs1;
-        entity.World.RadiusExplosion(entity, entity, entity.Frame.DehackedArgs2, maxDamage);
+        Entity? attackSource = entity.Owner ?? entity.Target;
+        entity.World.RadiusExplosion(entity, attackSource ?? entity, entity.Frame.DehackedArgs2, maxDamage);
     }
 
     private static void A_NoiseAlert(Entity entity)
