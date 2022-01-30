@@ -936,6 +936,9 @@ public class PhysicsManager
         if (ReferenceEquals(this, other))
             return false;
 
+        if (m_world.Config.Compatibility.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
+            return true;
+
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
             // This entity is higher than the other entity and requires step up checking
