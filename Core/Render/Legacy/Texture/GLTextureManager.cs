@@ -192,7 +192,7 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
             return NullSpriteRotation;
 
         if (spriteRotation.Texture.RenderStore == null)
-            spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, null, ResourceNamespace.Sprites);
+            spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
 
         return spriteRotation;
     }
@@ -257,15 +257,21 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
 
     protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace)
     {
+        GLTextureType? texture;
         if (name != null)
-            DeleteOldTextureIfAny(name, resourceNamespace);
+        {
+            texture = m_textureTracker.GetOnly(name, resourceNamespace);
+            if (texture != null)
+                return texture;
+        }
 
-        GLTextureType texture;
         if (image == null)
+        {
             texture = NullTexture;
-        else
-            texture = GenerateTexture(image, name ?? "", resourceNamespace);
+            return texture;
+        }
 
+        texture = GenerateTexture(image, name ?? string.Empty, resourceNamespace);
         if (name != null)
             m_textureTracker.Insert(name, resourceNamespace, texture);
 
@@ -313,13 +319,6 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
 
         Font font = new(NullFontName, glyphs, Image.NullImage);
         return GenerateFont(font, NullFontName);
-    }
-
-    private void DeleteOldTextureIfAny(string name, ResourceNamespace resourceNamespace)
-    {
-        GLTextureType? texture = m_textureTracker.GetOnly(name, resourceNamespace);
-        if (texture != null)
-            DeleteTexture(texture, name, resourceNamespace);
     }
 
     private GLFontTexture<GLTextureType> CreateNewFont(Font font, string name)

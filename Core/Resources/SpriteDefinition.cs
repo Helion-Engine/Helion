@@ -48,13 +48,13 @@ public class SpriteDefinition
         if (frame >= MaxFrames)
             return;
 
-        Texture texture = new Texture(string.Empty, ResourceNamespace.Sprites, 0);
+        Texture texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
         texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
         if (rotation == 0)
         {
-            SpriteRotation sr = new SpriteRotation(texture, mirror);
+            SpriteRotation sr = new(texture, mirror);
             for (int i = 0; i < 8; i++)
                 m_spriteRotations[frame, i] = sr;
         }
