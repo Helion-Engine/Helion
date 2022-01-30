@@ -31,6 +31,7 @@ public class Line : IBspUsableLine
     public bool DataChanged => DataChanges > 0;
     // Rendering hax...
     public bool Sky;
+    public int BlockmapCount;
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;

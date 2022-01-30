@@ -15,8 +15,7 @@ public class BlockmapTraverser
 {
     private readonly BlockMap m_blockmap;
 
-    private readonly HashSet<int> m_lineMap = new HashSet<int>();
-    private readonly HashSet<int> m_entityMap = new HashSet<int>();
+    private int m_blockmapCount;
 
     public BlockmapTraverser(BlockMap blockmap)
     {
@@ -38,11 +37,10 @@ public class BlockmapTraverser
         List<BlockmapIntersect> intersections = DataCache.Instance.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         Vec2D center = default;
-        m_lineMap.Clear();
-        m_entityMap.Clear();
 
         bool stopOnOneSidedLine = (flags & BlockmapTraverseFlags.StopOnOneSidedLine) != 0;
         bool hitOneSidedIterate = false;
+        m_blockmapCount++;
 
         if (box != null)
         {
@@ -63,12 +61,12 @@ public class BlockmapTraverser
                 for (int i = 0; i < block.Lines.Count; i++)
                 {
                     Line line = block.Lines[i];
-                    if (m_lineMap.Contains(line.Id))
+                    if (line.BlockmapCount == m_blockmapCount)
                         continue;
 
                     if (seg != null && line.Segment.Intersection(seg.Value, out double t))
                     {
-                        m_lineMap.Add(line.Id);
+                        line.BlockmapCount = m_blockmapCount;
                         intersect = line.Segment.FromTime(t);
 
                         if (stopOnOneSidedLine && (line.OneSided || LineOpening.GetOpeningHeight(line) <= 0))
@@ -82,7 +80,7 @@ public class BlockmapTraverser
                     else if (box != null && line.Segment.Intersects(box.Value))
                     {
                         // TODO there currently isn't a way to calculate the intersection/distance... right now the only function that uses it doesn't need it (RadiusExplosion in PhysicsManager)
-                        m_lineMap.Add(line.Id);
+                        line.BlockmapCount = m_blockmapCount;
                         intersections.Add(new BlockmapIntersect(line, default, 0.0));
                     }
                 }
@@ -105,17 +103,17 @@ public class BlockmapTraverser
                             continue;
                     }
 
-                    if (m_entityMap.Contains(entity.Id))
+                    if (entity.BlockmapCount == m_blockmapCount)
                         continue;
 
                     if (seg != null && entity.Box.Intersects(seg.Value.Start, seg.Value.End, ref intersect))
                     {
-                        m_entityMap.Add(entity.Id);
+                        entity.BlockmapCount = m_blockmapCount;
                         intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
                     }
                     else if (box != null && entity.Box.Overlaps2D(box.Value))
                     {
-                        m_entityMap.Add(entity.Id);
+                        entity.BlockmapCount = m_blockmapCount;
                         Vec2D pos = entity.Position.XY;
                         intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
                     }

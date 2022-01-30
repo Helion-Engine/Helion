@@ -92,6 +92,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool ClippedWithEntity;
     public bool MoveLinked;
     public bool Respawn;
+    public int BlockmapCount;
 
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Entity;
