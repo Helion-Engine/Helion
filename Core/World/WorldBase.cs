@@ -2010,10 +2010,10 @@ public abstract partial class WorldBase : IWorld
 
     private void ApplyVooDooDamage(Player player, int damage, bool setPainState)
     {
-        if (EntityManager.VoodooDolls.Count == 0)
+        if (EntityManager.VoodooDolls.Count == 0 || player.IsSyncVooDoo)
             return;
 
-        SyncVooDollsWithPlayer(player.PlayerNumber);
+        SyncVooDooDollsWithPlayer(player.PlayerNumber);
 
         foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
         {
@@ -2022,14 +2022,16 @@ public abstract partial class WorldBase : IWorld
 
             updatePlayer.Damage(null, damage, setPainState, false);
         }
+
+        CompleteVooDooDollSync();
     }
 
     private void ApplyVooDooKill(Player player, Entity? source, bool forceGib)
     {
-        if (EntityManager.VoodooDolls.Count == 0)
+        if (EntityManager.VoodooDolls.Count == 0 || player.IsSyncVooDoo)
             return;
 
-        SyncVooDollsWithPlayer(player.PlayerNumber);
+        SyncVooDooDollsWithPlayer(player.PlayerNumber);
 
         foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
         {
@@ -2041,6 +2043,8 @@ public abstract partial class WorldBase : IWorld
             else
                 updatePlayer.Kill(source);
         }
+
+        CompleteVooDooDollSync();
     }
 
     private void GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
@@ -2048,7 +2052,7 @@ public abstract partial class WorldBase : IWorld
         if (EntityManager.VoodooDolls.Count == 0)
             return;
 
-        SyncVooDollsWithPlayer(player.PlayerNumber);
+        SyncVooDooDollsWithPlayer(player.PlayerNumber);
 
         foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
         {
@@ -2062,16 +2066,33 @@ public abstract partial class WorldBase : IWorld
                     DataCache.Instance.GetSoundParams(updatePlayer));
             }
         }
+
+        CompleteVooDooDollSync();
     }
 
-    private void SyncVooDollsWithPlayer(int playerNumber)
+    private void SyncVooDooDollsWithPlayer(int playerNumber)
     {
         Player? realPlayer = GetRealPlayer(playerNumber);
         if (realPlayer == null)
             return;
 
+        foreach (var player in EntityManager.Players)
+            player.IsSyncVooDoo = true;
+
         foreach (var voodooDoll in EntityManager.VoodooDolls)
+        {
+            voodooDoll.IsSyncVooDoo = true;
             voodooDoll.VodooSync(realPlayer);
+        }
+    }
+
+    private void CompleteVooDooDollSync()
+    {
+        foreach (var player in EntityManager.Players)
+            player.IsSyncVooDoo = false;
+
+        foreach (var voodooDoll in EntityManager.VoodooDolls)
+            voodooDoll.IsSyncVooDoo = false;
     }
 
     private Player? GetRealPlayer(int playerNumber)
