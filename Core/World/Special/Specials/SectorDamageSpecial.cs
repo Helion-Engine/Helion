@@ -11,6 +11,7 @@ public class SectorDamageSpecial
     protected readonly Sector m_sector;
     protected readonly int m_damage;
     private readonly int m_radSuitLeakChance;
+    protected bool m_alwaysDamage;
 
     public SectorDamageSpecial(IWorld world, Sector sector, int damage, int radSuitLeakChance = 0)
     {
@@ -46,7 +47,7 @@ public class SectorDamageSpecial
         if (!player.OnSectorFloorZ(m_sector) || (m_world.Gametick & 31) != 0 || m_damage == 0)
             return;
 
-        if (!player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
+        if (m_alwaysDamage || !player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
             m_world.DamageEntity(player, null, m_damage, false, sectorSource: m_sector);
     }
 

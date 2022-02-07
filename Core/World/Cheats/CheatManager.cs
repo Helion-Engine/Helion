@@ -58,9 +58,15 @@ public class CheatManager
         cheat.SetCode(code, index);
     }
 
-    public void ActivateCheat(Player player, CheatType cheatType)
+    public void ActivateCheat(Player player, CheatType cheatType) =>
+        SetCheat(player, cheatType, true);
+
+    public void DeactivateCheat(Player player, CheatType cheatType) =>
+        SetCheat(player, cheatType, false);
+
+    private void SetCheat(Player player, CheatType cheatType, bool activate)
     {
-        if (!m_cheatLookup.ContainsKey(cheatType))
+        if (!m_cheatLookup.ContainsKey(cheatType) || (!activate && !player.Cheats.IsCheatActive(cheatType)))
             return;
 
         ICheat cheat = m_cheatLookup[cheatType];

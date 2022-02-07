@@ -1,4 +1,5 @@
 using Helion.Models;
+using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 
@@ -9,11 +10,13 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
     public SectorDamageEndSpecial(IWorld world, Sector sector, int damage)
         : base(world, sector, damage)
     {
+        m_alwaysDamage = true;
     }
 
     public SectorDamageEndSpecial(IWorld world, Sector sector, SectorDamageSpecialModel model)
         : base(world, sector, model)
     {
+        m_alwaysDamage = true;
     }
 
     public override SectorDamageSpecialModel ToSectorDamageSpecialModel()
@@ -25,6 +28,7 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
 
     public override void Tick(Player player)
     {
+        CheatManager.Instance.DeactivateCheat(player, CheatType.God);
         base.Tick(player);
 
         if (player.Health <= 10)
