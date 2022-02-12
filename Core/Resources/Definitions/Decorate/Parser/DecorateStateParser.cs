@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
@@ -170,16 +171,24 @@ public partial class DecorateParser
         }
     }
 
-    private void ConsumeActionFunctionArgumentsIfAny()
+    private List<object> m_argList = new();
+    private StringBuilder m_argStringBuilder = new();
+
+    private IList<object> ConsumeActionFunctionArguments()
     {
         if (!ConsumeIf('('))
-            return;
+            return Array.Empty<object>();
+
+        const string quote = "\"";
+        m_argList.Clear();
+        m_argStringBuilder.Clear();
 
         // For now we're just going to consume everything, and will do an
         // implementation later when we can make an AST.
         int rightParenToFind = 1;
         while (rightParenToFind > 0)
         {
+            m_argStringBuilder.Clear();
             if (ConsumeIf(')'))
             {
                 rightParenToFind--;
@@ -192,8 +201,46 @@ public partial class DecorateParser
                 continue;
             }
 
-            Consume();
+            if (ConsumeIf(','))
+                continue;
+
+            if (ConsumeIf(quote))
+            {
+                while (true)
+                {
+                    string text = ConsumeString();
+                    if (text == quote)
+                        break;
+
+                    m_argStringBuilder.Append(text);
+                }
+            }
+            else
+            {
+
+                m_argList.Add(ConsumeActionParam());
+                continue;
+            }
+
+            m_argList.Add(m_argStringBuilder.ToString());
         }
+
+        if (m_argList.Count == 0)
+            return Array.Empty<object>();
+
+        return m_argList.ToList();
+    }
+
+    private object ConsumeActionParam()
+    {
+        int? iValue = ConsumeIfInt();
+        if (iValue != null)
+            return iValue;
+        double? dValue = ConsumeIfFloat();
+        if (dValue != null)
+            return dValue;
+
+        return ConsumeString();
     }
 
     private ActorActionFunction? ConsumeActionFunctionIfAny()
@@ -208,9 +255,7 @@ public partial class DecorateParser
         if (upperText.StartsWith("A_") || ActionSpecialHelper.Exists(upperText))
         {
             string functionName = ConsumeIdentifier();
-            ConsumeActionFunctionArgumentsIfAny();
-
-            return new ActorActionFunction(functionName);
+            return new ActorActionFunction(functionName, ConsumeActionFunctionArguments());
         }
 
         return null;

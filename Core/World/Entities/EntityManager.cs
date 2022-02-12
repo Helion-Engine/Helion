@@ -116,6 +116,9 @@ public class EntityManager : IDisposable
 
     public void Destroy(Entity entity)
     {
+        if (entity.IsDisposed)
+            return;
+
         // TODO: Remove from spawns if it is a spawn.
 
         // To avoid more object allocation and deallocation, I'm going to

@@ -554,6 +554,13 @@ public abstract class ParserBase
         return ConsumeSignedInteger();
     }
 
+    protected double? ConsumeIfFloat()
+    {
+        if (!PeekFloat())
+            return null;
+        return ConsumeSignedFloat();
+    }
+
     /// <summary>
     /// Will keep peeking for the character, and invoking the action if the
     /// peeking does not find it. As soon as it finds the character, it

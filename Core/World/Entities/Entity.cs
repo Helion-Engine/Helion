@@ -80,6 +80,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public SectorPlane? BlockingSectorPlane;
     public Entity? Target;
     public Entity? Tracer;
+    public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
     public int Threshold;

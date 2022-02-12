@@ -135,10 +135,10 @@ public static class DefinitionStateApplier
             if (indicesWithLabels.Contains(currentFrameOffset))
                 lastLabelIndex = absoluteFrameOffset;
 
-            EntityFrameProperties properties = new EntityFrameProperties(frame.Properties);
+            EntityFrameProperties properties = new(frame.Properties);
             ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
-            EntityFrame entityFrame = new EntityFrame(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
-                actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName);
+            EntityFrame entityFrame = new(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
+                actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName, frame.ActionFunction?.Args);
 
             HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
 

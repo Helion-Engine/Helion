@@ -20,7 +20,8 @@ public class Inventory
     public static readonly string BasicArmorBonusClassName = "BASICARMORBONUS";
     public static readonly string BasicArmorPickupClassName = "BASICARMORPICKUP";
     public static readonly string KeyClassName = "KEY";
-    public static readonly string PowerupClassName = "POWERUPGIVER";
+    public static readonly string PowerupGiverClassName = "POWERUPGIVER";
+    public static readonly string PowerupClassName = "POWERUP";
     public static readonly string RadSuitClassName = "RADSUIT";
 
     private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
@@ -141,7 +142,7 @@ public class Inventory
 
     // See TODO in Inventory.Add for this berserk check
     public static bool IsPowerup(EntityDefinition def) =>
-        def.IsType(PowerupClassName) ||
+        def.IsType(PowerupGiverClassName) ||
         !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
         def.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase) ||
         def.IsType("MapRevealer");
@@ -209,20 +210,10 @@ public class Inventory
         if (amount <= 0)
             return false;
 
-        // TODO test hack until A_GiveInventory and Pickup states are implemented
-        bool overridehack = false;
-        if (definition.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase))
-        {
-            overridehack = true;
-            GiveBerserk(definition);
-        }
-        else if (definition.Name.Equals("MEGASPHERE", StringComparison.OrdinalIgnoreCase))
-        {
-            GiveMegasphere();
-        }
-
-        if (definition.IsType(PowerupClassName) || overridehack)
-            AddPowerup(definition);
+        if (definition.IsType(PowerupGiverClassName))
+            AddPowerupGiver(definition);
+        else if (definition.IsType(PowerupClassName))
+            AddPowerup(definition);        
 
         string name = GetBaseInventoryName(definition);
         int maxAmount = definition.Properties.Inventory.MaxAmount;
@@ -260,26 +251,6 @@ public class Inventory
         return true;
     }
 
-    private void GiveMegasphere()
-    {
-        EntityDefinition? definition = EntityDefinitionComposer.GetByName("BlueArmorForMegasphere");
-        if (definition != null)
-            Owner.GiveItem(definition, null);
-        definition = EntityDefinitionComposer.GetByName("MegasphereHealth");
-        if (definition != null)
-            Owner.GiveItem(definition, null);
-    }
-
-    private void GiveBerserk(EntityDefinition definition)
-    {
-        definition.Properties.Powerup.Type = "Strength";
-        Weapon? fist = Owner.Inventory.Weapons.GetWeapon("FIST");
-        if (fist != null)
-            Owner.ChangeWeapon(fist);
-        if (Owner.Health < 100)
-            Owner.Health = 100;
-    }
-
     public bool SetAmount(EntityDefinition definition, int amount)
     {
         if (!Items.TryGetValue(definition.Name, out InventoryItem? item))
@@ -291,11 +262,28 @@ public class Inventory
 
     private void AddPowerup(EntityDefinition definition)
     {
+        if (definition.ParentClassNames.Count == 0)
+            return;
+
+        EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName(definition.ParentClassNames[^1]);
+        if (powerupDef == null)
+            return;
+
+        DoGivePowerup(powerupDef, definition.Name.Replace("Power", string.Empty, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void AddPowerupGiver(EntityDefinition definition)
+    {
         EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName("Power" + definition.Properties.Powerup.Type);
         if (powerupDef == null)
             return;
 
-        PowerupType powerupType = GetPowerupType(definition.Properties.Powerup.Type);
+        DoGivePowerup(powerupDef, definition.Properties.Powerup.Type);
+    }
+
+    private void DoGivePowerup(EntityDefinition powerupDef, string type)
+    {
+        PowerupType powerupType = GetPowerupType(type);
         if (powerupType == PowerupType.None)
             return;
 

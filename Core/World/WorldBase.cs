@@ -993,6 +993,9 @@ public abstract partial class WorldBase : IWorld
         if (!GiveItem(entity.PlayerObj, item, item.Flags, out EntityDefinition definition))
             return;
 
+        item.PickupPlayer = entity.PlayerObj;
+        item.FrameState.SetState("Pickup", warn: false);
+
         if (item.Flags.CountItem)
         {
             LevelStats.ItemCount++;

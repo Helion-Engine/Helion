@@ -13,7 +13,6 @@ namespace Helion.World.Entities.Definition.States;
 public class FrameState : ITickable
 {
     private const int InfiniteLoopLimit = 10000;
-    private const int StackLimit = 100;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public EntityFrame Frame => m_frameTable.Frames[m_frameIndex];
@@ -24,7 +23,6 @@ public class FrameState : ITickable
     private bool m_destroyOnStop;
     private int m_frameIndex;
     private int m_tics;
-    private int m_stackCount;
 
     public int CurrentTick => m_tics;
 
@@ -72,7 +70,7 @@ public class FrameState : ITickable
         m_destroyOnStop = frameStateModel.Destroy;
     }
 
-public void Clear()
+    public void Clear()
     {
         m_entity = null!;
         m_definition = null!;
@@ -128,30 +126,56 @@ public void Clear()
 
     private void SetFrameIndex(int index, bool executeActionFunction)
     {
-        m_frameIndex = index;
-        m_tics = Frame.Ticks;
+        int loopCount = 0;
+        EntityFrame frame;
 
-        if (m_entity.World.SkillDefinition.IsFastMonsters(m_entity.World.Config) && Frame.Properties.Fast)
-            m_tics /= 2;
-
-        if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
-            m_tics *= 2;
-
-        EntityFrame frame = Frame;
-        if (executeActionFunction)
+        while (true)
         {
-            m_stackCount++;
-            if (m_stackCount > StackLimit)
-            {
-                LogStackError();
-                return;
-            }
-            frame.ActionFunction?.Invoke(m_entity);
-        }
+            m_frameIndex = index;
+            m_tics = Frame.Ticks;
 
-        // Vanilla just forced the state, if executeActionFunction is false then don't check to remove the entity.
-        if (executeActionFunction && m_destroyOnStop && frame.IsNullFrame)
-            m_entityManager.Destroy(m_entity);
+            if (m_entity.World.SkillDefinition.IsFastMonsters(m_entity.World.Config) && Frame.Properties.Fast)
+                m_tics /= 2;
+
+            if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
+                m_tics *= 2;
+
+            frame = Frame;
+            if (executeActionFunction)
+            {
+                // Vanilla just forced the state, if executeActionFunction is false then don't check to remove the entity.
+                if (m_destroyOnStop && frame.IsNullFrame)
+                {
+                    m_entityManager.Destroy(m_entity);
+                    return;
+                }
+
+                loopCount++;
+                if (loopCount > InfiniteLoopLimit)
+                {
+                    LogStackError();
+                    return;
+                }
+
+                frame.ActionFunction?.Invoke(m_entity);
+                frame = Frame;
+
+                if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
+                {
+                    if (m_destroyOnStop)
+                    {
+                        m_entityManager.Destroy(m_entity);
+                        return;
+                    }
+                    break;
+                }
+            }
+
+            if (frame.Ticks != 0)
+                break;
+
+            index = frame.NextFrameIndex;
+        }
     }
 
     private void LogStackError()
@@ -166,44 +190,12 @@ public void Clear()
     public void Tick()
     {
         Precondition(m_frameIndex >= 0 && m_frameIndex < m_frameTable.Frames.Count, "Out of range frame index for entity");
-
-        m_stackCount = 0;
         if (m_tics == -1)
             return;
 
-        int frameCounter = 0;
-        while (frameCounter < InfiniteLoopLimit)
-        {
-            EntityFrame frame = Frame;
-            m_tics--;
-            if (m_tics <= 0)
-            {
-                // If we don't have a Stop label at a -1 frame, then the
-                // entity should be removed from the map.
-                if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
-                {
-                    if (m_destroyOnStop)
-                        m_entityManager.Destroy(m_entity);
-                    return;
-                }
-
-                SetFrameIndex(frame.NextFrameIndex, true);
-            }
-
-            // We need to keep looping if this frame has no tick length
-            // for consumption. To achieve this, we only break out if
-            // the frame we just executed has at least 1 tick duration.
-            if (frame.Ticks != 0)
-                break;
-
-            frameCounter++;
-        }
-
-        if (frameCounter >= InfiniteLoopLimit)
-        {
-            Log.Warn("Infinite loop detected in actor {0}, removing actor", m_definition.Name);
-            m_entityManager.Destroy(m_entity);
-        }
+        m_tics--;
+        if (m_tics <= 0)
+            SetFrameIndex(Frame.NextFrameIndex, true);
     }
 
     public FrameStateModel ToFrameStateModel()

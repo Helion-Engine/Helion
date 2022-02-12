@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
@@ -31,13 +32,14 @@ public class EntityFrame
     public int DehackedArgs8 { get; set; }
     public int MasterFrameIndex { get; set; }
     public int VanillaIndex { get; set; }
+    public FrameArgs Args { get; set; } = FrameArgs.Default;
     public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
     public bool IsNullFrame => MasterFrameIndex == Constants.NullFrameIndex;
 
     private readonly EntityFrameTable m_table;
 
     public EntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, EntityFrameProperties properties,
-        ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName)
+        ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName, IList<object>? frameArgs = null)
     {
         Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");
         m_table = table;
@@ -50,6 +52,10 @@ public class EntityFrame
         ActionFunction = actionFunction;
         NextFrameIndex = nextFrameIndex;
         BranchType = ActorStateBranch.None;
+
+        if (frameArgs != null)
+            Args = new FrameArgs(frameArgs);
+
         CheckSetInvisible();
     }
 
