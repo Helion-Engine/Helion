@@ -16,8 +16,6 @@ using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
-using System.Diagnostics;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util;
 
@@ -41,8 +39,6 @@ public class DataCache
     private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
 
-    private readonly Dictionary<string, HashSet<object>> m_debugVerify = new();
-
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {
         LinkableNode<Entity> node;
@@ -50,16 +46,14 @@ public class DataCache
         {
             node = m_entityNodes.RemoveLast();
             node.Value = entity;
-            GetDebug(nameof(GetLinkableNodeEntity), node);
             return node;
         }
-
+        
         return new LinkableNode<Entity> { Value = entity };
     }
 
     public void FreeLinkableNodeEntity(LinkableNode<Entity> node)
     {
-        AddDebug(nameof(GetLinkableNodeEntity), node);
         node.Previous = null!;
         node.Next = null;
         node.Value = null!;
@@ -69,18 +63,13 @@ public class DataCache
     public List<LinkableNode<Entity>> GetLinkableNodeEntityList()
     {
         if (m_entityListNodes.Length > 0)
-        {
-            var list = m_entityListNodes.RemoveLast();
-            GetDebug(nameof(GetLinkableNodeEntityList), list);
-            return list;
-        }
+            return m_entityListNodes.RemoveLast();
 
         return new List<LinkableNode<Entity>>();
     }
 
     public void FreeLinkableNodeEntityList(List<LinkableNode<Entity>> list)
     {
-        AddDebug(nameof(GetLinkableNodeEntityList), list);
         list.Clear();
         m_entityListNodes.Add(list);
     }
@@ -281,24 +270,5 @@ public class DataCache
         audioSource.CacheFree();
         audioSource.AudioData = null!;
         m_audioSources.Add(audioSource);
-    }
-
-    [Conditional("DEBUG")]
-    private void GetDebug(string key, object obj)
-    {
-        if (!m_debugVerify.ContainsKey(key))
-            m_debugVerify.Add(key, new HashSet<object>());
-
-        m_debugVerify[key].Remove(obj);
-    }
-
-    [Conditional("DEBUG")]
-    private void AddDebug(string key, object obj)
-    {
-        if (!m_debugVerify.ContainsKey(key))
-            m_debugVerify.Add(key, new HashSet<object>());
-
-        Precondition(!m_debugVerify[key].Contains(obj), "Object was already freed to the cache.");
-        m_debugVerify[key].Add(obj);
     }
 }
