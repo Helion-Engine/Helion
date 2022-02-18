@@ -144,7 +144,7 @@ public class Inventory
     public static bool IsPowerup(EntityDefinition def) =>
         def.IsType(PowerupGiverClassName) ||
         !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
-        def.Name.Equals("BERSERK", StringComparison.OrdinalIgnoreCase) ||
+        def.IsType("Powerup") ||
         def.IsType("MapRevealer");
 
     public bool IsPowerupActive(PowerupType type)
