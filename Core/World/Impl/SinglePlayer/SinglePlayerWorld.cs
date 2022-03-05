@@ -110,6 +110,9 @@ public class SinglePlayerWorld : WorldBase
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
+
+        // Right now lazy loading from zip causes a noticeable delay. Preload to prevent stutter.
+        SoundManager.CacheSound("misc/secret");
     }
 
     public override void Tick()

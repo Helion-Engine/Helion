@@ -70,6 +70,11 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         PerformDispose();
     }
 
+    public void CacheSound(string sound)
+    {
+        GetBuffer(sound);
+    }
+
     public IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams)
     {
         if (m_sources.Count >= MaxSounds)

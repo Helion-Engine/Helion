@@ -72,6 +72,13 @@ public class SoundManager : IDisposable
         AudioManager.Dispose();
     }
 
+    public void CacheSound(string name)
+    {
+        SoundInfo? soundInfo = GetSoundInfo(null, name);
+        if (soundInfo != null)
+            AudioManager.CacheSound(soundInfo.EntryName);
+    }
+
     public void Pause()
     {
         LinkedListNode<IAudioSource>? node = PlayingSounds.First;

@@ -44,6 +44,7 @@ public interface IAudioSourceManager : IDisposable
     /// <returns>null if it could not be created.</returns>
     IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams);
 
+    void CacheSound(string name);
     void SetListener(Vec3D pos, double angle, double pitch);
     void PlayGroup(IEnumerable<IAudioSource> audioSources);
     void DeviceChanging();
