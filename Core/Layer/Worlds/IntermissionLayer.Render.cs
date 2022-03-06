@@ -129,23 +129,24 @@ public partial class IntermissionLayer
     {
         const string FinishedImage = "WIF";
         const string NowEnteringImage = "WIENTER";
-        const int topPaddingY = 4;
+        const int topPaddingY = 5;
+        const int topMargin = 2;
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, topPaddingY), out HudBox drawArea, both: Align.TopMiddle);
+            hud.Image(NowEnteringImage, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
             hud.Image(NextMapInfo.TitlePatch, (0, drawArea.Height + topPaddingY + 1), both: Align.TopMiddle);
         }
         else
         {
-            hud.Image(CurrentMapInfo.TitlePatch, (0, topPaddingY), out HudBox drawArea, both: Align.TopMiddle);
+            hud.Image(CurrentMapInfo.TitlePatch, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
             hud.Image(FinishedImage, (0, drawArea.Height + topPaddingY + 1), both: Align.TopMiddle);
         }
     }
 
     private void DrawStatistics(IHudRenderContext hud)
     {
-        const int LeftOffsetX = 40;
+        const int LeftOffsetX = 50;
         const int RightOffsetX = 280;
         const int OffsetY = 50;
         const int RowOffsetY = 18;
@@ -174,10 +175,9 @@ public partial class IntermissionLayer
 
     private void DrawTime(IHudRenderContext hud)
     {
-        const int LeftOffsetTimeX = 40;
+        const int LeftOffsetTimeX = 8;
         const int RightOffsetLevelTimeX = 150;
-        const int LeftOffsetParX = 180;
-        const int RightOffsetParTimeX = 280;
+        const int LeftOffsetParX = 168;
         const int OffsetY = 40;
         const int TotalOffsetY = 20;
 
@@ -190,7 +190,7 @@ public partial class IntermissionLayer
         if (ParTimeSeconds != 0)
         {
             hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft);
-            RenderTime(ParTimeSeconds, RightOffsetParTimeX, -OffsetY);
+            RenderTime(ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
         }
 
         if (IntermissionState >= IntermissionState.ShowAllStats)
