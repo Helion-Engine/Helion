@@ -31,6 +31,7 @@ public partial class IntermissionLayer : IGameLayer
     public string IntermissionPic { get; private set; }
     public IntermissionDef? IntermissionDef { get; private set; }
     public IntermissionState IntermissionState { get; private set; } = IntermissionState.Started;
+    private readonly GameLayerManager m_gameLayerManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SoundManager m_soundManager;
     private readonly IMusicPlayer m_musicPlayer;
@@ -48,9 +49,10 @@ public partial class IntermissionLayer : IGameLayer
     public double SecretPercent => m_levelPercents.SecretCount;
     private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
-    public IntermissionLayer(IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer,
+    public IntermissionLayer(GameLayerManager parent, IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer,
         MapInfoDef currentMapInfo, MapInfoDef? nextMapInfo)
     {
+        m_gameLayerManager = parent;
         World = world;
         CurrentMapInfo = currentMapInfo;
         NextMapInfo = nextMapInfo;

@@ -375,7 +375,7 @@ public partial class Client
         }
         else
         {
-            IntermissionLayer intermissionLayer = new(world, m_soundManager, m_audioSystem.Music,
+            IntermissionLayer intermissionLayer = new(m_layerManager, world, m_soundManager, m_audioSystem.Music,
                 world.MapInfo, nextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);

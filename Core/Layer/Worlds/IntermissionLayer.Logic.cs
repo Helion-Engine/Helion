@@ -22,7 +22,7 @@ public partial class IntermissionLayer
 
     private void Tick()
     {
-        if (m_exited)
+        if (m_exited || m_gameLayerManager.HasMenuOrConsole())
             return;
 
         m_tics++;

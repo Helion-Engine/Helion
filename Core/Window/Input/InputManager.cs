@@ -91,6 +91,7 @@ public class InputManager : IInputManager
     public bool IsKeyReleased(Key key) => !IsKeyDown(key) && IsKeyPrevDown(key);
     public bool HasAnyKeyPressed() => m_inputDown.Any(IsKeyPressed);
     public bool HasAnyKeyDown() => m_inputDown.Any();
+    public IEnumerable<Key> GetPressedKeys() => m_inputDown.Where(IsKeyPressed);
 
     public bool IsKeyContinuousHold(Key key)
     {

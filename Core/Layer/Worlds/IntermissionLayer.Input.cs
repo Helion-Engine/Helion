@@ -11,7 +11,10 @@ public partial class IntermissionLayer
         if (IntermissionState == IntermissionState.Complete)
             return;
 
-        bool pressedKey = input.Manager.HasAnyKeyPressed();
+        if (m_gameLayerManager.HasMenuOrConsole())
+            return;
+
+        bool pressedKey = input.HasAnyKeyPressed();
         input.ConsumeAll();
 
         if (pressedKey)

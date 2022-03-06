@@ -77,6 +77,8 @@ public class GameLayerManager : IGameLayerParent
         PerformDispose();
     }
 
+    public bool HasMenuOrConsole() => MenuLayer != null || ConsoleLayer != null;
+
     public bool ShouldFocus()
     {
         if (ConsoleLayer != null)

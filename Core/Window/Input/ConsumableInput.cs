@@ -124,6 +124,19 @@ public class ConsumableInput : IConsumableInput
         return result;
     }
 
+    public bool HasAnyKeyPressed()
+    {
+        foreach (var key in m_inputManager.GetPressedKeys())
+        {
+            if (m_inputConsumed.Contains(key))
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
     internal void Reset()
     {
         m_inputConsumed.Clear();
