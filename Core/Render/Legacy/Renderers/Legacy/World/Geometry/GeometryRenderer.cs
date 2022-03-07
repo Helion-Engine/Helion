@@ -322,8 +322,11 @@ public class GeometryRenderer : IDisposable
 
         if (side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
+            Side otherSide = side.PartnerSide!;
+            m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametick) || side.Sector.CheckRenderingChanged(side.LastRenderGametick);
+            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
             Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
-            Sector otherSector = side.PartnerSide!.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
             RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide);
         }
     }
@@ -405,8 +408,8 @@ public class GeometryRenderer : IDisposable
         Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
-        m_sectorChangedLine = otherSector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSector.CheckRenderingChanged(facingSide.LastRenderGametick);
-        m_lightChangedLine = facingSector.LightingChanged(facingSide.LastRenderGametick);
+        m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
+        m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
 
         if (LowerIsVisible(facingSector, otherSector))
