@@ -219,46 +219,46 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateLiftSpecial(Sector sector, double speed, int delay, SectorDest dest = SectorDest.LowestAdjacentFloor)
     {
-        double destZ = GetDestZ(sector, dest);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, dest);
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), LiftSound);
     }
 
     public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
     {
-        double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay);
     }
 
     public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay)
     {
-        double destZ = GetDestZ(sector, SectorDest.Floor);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
     {
-        double destZ = GetDestZ(sector, SectorDest.NextHighestCeiling) - VanillaConstants.DoorDestOffset;
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.NextHighestCeiling) - VanillaConstants.DoorDestOffset;
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
     }
 
     public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
     {
-        double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0);
     }
 
     public SectorMoveSpecial CreateDoorCloseSpecial(Sector sector, double speed)
     {
-        double destZ = GetDestZ(sector, SectorDest.Floor);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0)
     {
-        double destZ = GetDestZ(sector, sectorDest);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
         if (adjust != 0)
             destZ = destZ + adjust - 128;
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
@@ -273,7 +273,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
     {
-        double destZ = GetDestZ(sector, sectorDest);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
         TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneFace.Floor, destZ,
             out int floorChangeTexture, out SectorDamageSpecial? damageSpecial);
 
@@ -291,7 +291,7 @@ public class SpecialManager : ITickable, IDisposable
         if (sectorDest == SectorDest.None)
             destZ = startZ + amount;
         else
-            destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling, start);
+            destZ = GetDestZ(sector, planeType, sectorDest, start);
 
         // Ugh... why
         if (start == MoveDirection.Down && sectorDest == SectorDest.HighestAdjacentFloor)
@@ -348,7 +348,8 @@ public class SpecialManager : ITickable, IDisposable
     {
         // There is a single type that raises to lowest adjacent ceiling
         // Need to include this sector's height in the check so the floor doesn't run through the ceiling
-        double destZ = GetDestZ(sector, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
+        //double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
@@ -361,7 +362,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
     {
-        double destZ = GetDestZ(sector, sectorDest);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, sectorDest);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
@@ -374,7 +375,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateCeilingRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
     {
-        double destZ = GetDestZ(sector, sectorDest);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, sectorDest);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
@@ -387,8 +388,8 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreatePerpetualMovingFloorSpecial(Sector sector, double speed, int delay, int lip)
     {
-        double lowZ = GetDestZ(sector, SectorDest.LowestAdjacentFloor);
-        double highZ = GetDestZ(sector, SectorDest.HighestAdjacentFloor);
+        double lowZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.LowestAdjacentFloor);
+        double highZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.HighestAdjacentFloor);
         if (lowZ > sector.Floor.Z)
             lowZ = sector.Floor.Z;
         if (highZ < sector.Floor.Z)
@@ -1189,7 +1190,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private ISpecial? CreateEleveatorToNearest(Sector sector, MoveDirection direction, double speed)
     {
-        double destZ = GetDestZ(sector, direction == MoveDirection.Up ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, direction == MoveDirection.Up ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor);
         return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
     }
 
@@ -1209,7 +1210,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private ISpecial? CreatePlatToggleCeiling(Sector sector)
     {
-        double destZ = GetDestZ(sector, SectorDest.Ceiling);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,
             MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, compatibilityBlockMovement: true));
     }
@@ -1346,7 +1347,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {
-        double destZ = GetDestZ(sector, SectorDest.NextHighestFloor);
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.NextHighestFloor);
         sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle, m_world.Gametick);
         sector.SectorDamageSpecial = null;
 
@@ -1372,7 +1373,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
     {
-        double destZ = GetDestZ(sector, SectorDest.LowestAdjacentCeiling) - DefaultCrushLip;
+        double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.LowestAdjacentCeiling) - DefaultCrushLip;
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up,
             MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), CrusherSoundNoRepeat);
     }
@@ -1402,7 +1403,7 @@ public class SpecialManager : ITickable, IDisposable
         return Enumerable.Empty<Sector>();
     }
 
-    private double GetDestZ(Sector sector, SectorDest destination, bool includeThis = false, MoveDirection start = MoveDirection.None)
+    private double GetDestZ(Sector sector, SectorPlaneFace planeType, SectorDest destination, MoveDirection start = MoveDirection.None)
     {
         switch (destination)
         {
@@ -1411,7 +1412,7 @@ public class SpecialManager : ITickable, IDisposable
             case SectorDest.HighestAdjacentFloor:
                 return GetHighestFloorDestZ(sector);
             case SectorDest.LowestAdjacentCeiling:
-                return GetLowestCeilingDestZ(sector, includeThis);
+                return GetLowestCeilingDestZ(sector, destination == SectorDest.LowestAdjacentCeiling && planeType == SectorPlaneFace.Floor);
             case SectorDest.HighestAdjacentCeiling:
                 return GetHighestCeilingDestZ(sector);
             case SectorDest.NextLowestFloor:
