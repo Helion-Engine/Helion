@@ -9,7 +9,7 @@ public partial class EndGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        if (input.Manager.HasAnyKeyPressed())
+        if (input.HasAnyKeyPressed())
             AdvanceState();
     }
 

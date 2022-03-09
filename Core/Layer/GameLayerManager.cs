@@ -198,10 +198,13 @@ public class GameLayerManager : IGameLayerParent
         }
 
         MenuLayer?.HandleInput(input);
-        EndGameLayer?.HandleInput(input);
-        ReadThisLayer?.HandleInput(input);
-        TitlepicLayer?.HandleInput(input);
-        IntermissionLayer?.HandleInput(input);
+        if (!HasMenuOrConsole())
+        {
+            EndGameLayer?.HandleInput(input);
+            ReadThisLayer?.HandleInput(input);
+            TitlepicLayer?.HandleInput(input);
+            IntermissionLayer?.HandleInput(input);
+        }
         WorldLayer?.HandleInput(input);
     }
 
@@ -210,7 +213,9 @@ public class GameLayerManager : IGameLayerParent
         if (MenuLayer != null || ConsoleLayer != null)
             return false;
 
-        if (TitlepicLayer != null && input.Manager.HasAnyKeyPressed() &&
+        bool hasMenuInput = (ReadThisLayer != null && input.ConsumeKeyDown(Key.Escape)) || input.Manager.HasAnyKeyPressed();
+
+        if (TitlepicLayer != null && hasMenuInput &&
             !MenuIgnoreCommands.Any(x => m_config.Keys.IsCommandKeyDown(x, input)))
         {
             // Have to eat the escape key if it exists, otherwise the menu will immediately close.
@@ -257,7 +262,7 @@ public class GameLayerManager : IGameLayerParent
         IntermissionLayer?.RunLogic();
         WorldLayer?.RunLogic();
 
-        if (m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
+        if (!HasMenuOrConsole() && m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
         {
             m_stopwatch.Restart();
             EndGameLayer?.OnTick();
