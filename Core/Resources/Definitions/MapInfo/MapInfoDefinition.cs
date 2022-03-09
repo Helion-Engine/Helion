@@ -91,6 +91,10 @@ public partial class MapInfoDefinition
             int defLine = parser.GetCurrentLine();
             mapDef.MapName = parser.ConsumeString();
 
+            MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
+            if (existing != null)
+                mapDef = existing;
+
             if (parser.Peek("lookup"))
             {
                 parser.ConsumeString();
