@@ -158,6 +158,9 @@ public class FrameState : ITickable
                 }
 
                 frame.ActionFunction?.Invoke(m_entity);
+                if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
+                    return;
+
                 frame = Frame;
 
                 if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
