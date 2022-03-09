@@ -35,6 +35,8 @@ public class ViewClipper
     /// </summary>
     public Vec2D Center { private get; set; } = Vec2D.Zero;
 
+    public IEnumerable<ClipSpan> Elements => m_nodes;
+
     /// <summary>
     /// Takes two positions and finds the diamond angle that exists from
     /// start to end. This is also known as the vector angle, but the

@@ -48,7 +48,7 @@ public class ViewClipperTest
         clipper.InsideAnyRange(Right, Left).Should().BeFalse();
         clipper.InsideAnyRange(Left, Bottom).Should().BeFalse();
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(1);
 
         uint startAngle = clipper.GetDiamondAngle(Right);
@@ -107,7 +107,7 @@ public class ViewClipperTest
         clipper.InsideAnyRange(Left, Bottom).Should().BeTrue();
         clipper.InsideAnyRange(Bottom, Left).Should().BeTrue();
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(2);
 
         uint rightAngle = clipper.GetDiamondAngle(Right);
@@ -137,7 +137,7 @@ public class ViewClipperTest
         clipper.AddLine(Left, Bottom);
         clipper.AddLine(Top, Left);
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(1);
 
         uint topAngle = clipper.GetDiamondAngle(Top);
@@ -161,7 +161,7 @@ public class ViewClipperTest
         clipper.AddLine(second, fourth);
         clipper.AddLine(first, third);
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(first);
@@ -185,7 +185,7 @@ public class ViewClipperTest
         clipper.AddLine(first, third);
         clipper.AddLine(second, fourth);
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(first);
@@ -204,7 +204,7 @@ public class ViewClipperTest
         clipper.AddLine(Top, Left);
         clipper.AddLine(Left, Bottom);
 
-        List<ClipSpan> spans = clipper.ToList();
+        List<ClipSpan> spans = clipper.Elements.ToList();
         spans.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(Top);
@@ -222,15 +222,15 @@ public class ViewClipperTest
         ViewClipper clipper = new();
 
         clipper.AddLine(Right, Top);
-        clipper.Should().HaveCount(1);
+        clipper.Elements.Should().HaveCount(1);
 
         clipper.AddLine(Left, Bottom);
-        clipper.Should().HaveCount(2);
+        clipper.Elements.Should().HaveCount(2);
 
         clipper.AddLine(Top, Left);
 
-        List<ClipSpan> spans = clipper.ToList();
-        clipper.Should().HaveCount(1);
+        List<ClipSpan> spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(Right);
         uint secondAngle = clipper.GetDiamondAngle(Bottom);
@@ -247,17 +247,17 @@ public class ViewClipperTest
         ViewClipper clipper = new();
 
         clipper.AddLine(Right, Top);
-        clipper.Should().HaveCount(1);
+        clipper.Elements.Should().HaveCount(1);
 
         clipper.AddLine(Left, Bottom);
-        clipper.Should().HaveCount(2);
+        clipper.Elements.Should().HaveCount(2);
 
         Vec2D topRight = new Vec2D(1, 2);
         Vec2D bottomLeft = new Vec2D(-2, -1);
         clipper.AddLine(topRight, bottomLeft);
 
-        List<ClipSpan> spans = clipper.ToList();
-        clipper.Should().HaveCount(1);
+        List<ClipSpan> spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(Right);
         uint secondAngle = clipper.GetDiamondAngle(Bottom);
@@ -276,19 +276,19 @@ public class ViewClipperTest
         Vec2D first = new Vec2D(1, 1);
         Vec2D second = new Vec2D(1, 2);
         clipper.AddLine(first, second);
-        clipper.Should().HaveCount(1);
+        clipper.Elements.Should().HaveCount(1);
 
         Vec2D third = Top;
         Vec2D fourth = new Vec2D(-1, 5);
         clipper.AddLine(third, fourth);
-        clipper.Should().HaveCount(2);
+        clipper.Elements.Should().HaveCount(2);
 
         Vec2D beginning = new Vec2D(5, 1);
         Vec2D end = new Vec2D(-1, 4);
         clipper.AddLine(beginning, end);
 
-        List<ClipSpan> spans = clipper.ToList();
-        clipper.Should().HaveCount(1);
+        List<ClipSpan> spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(1);
 
         uint firstAngle = clipper.GetDiamondAngle(beginning);
         uint secondAngle = clipper.GetDiamondAngle(end);
@@ -347,34 +347,34 @@ public class ViewClipperTest
         // Add everything in the forward direction
         //-----------------------------------------------------------------
         clipper.AddLine(vecB, vecC);
-        List<ClipSpan> spans = clipper.ToList();
-        clipper.Should().HaveCount(1);
+        List<ClipSpan> spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(1);
         AssertSpanEquals(spans[0], b, c);
 
         clipper.AddLine(vecF, vecG);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(2);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(2);
         AssertSpanEquals(spans[0], b, c);
         AssertSpanEquals(spans[1], f, g);
 
         clipper.AddLine(vecD, vecL);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecJ, vecJ);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(4);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(4);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], j, j);
         AssertSpanEquals(spans[3], l, uint.MaxValue);
 
         clipper.AddLine(vecI, vecI);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(5);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(5);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], i, i);
@@ -382,22 +382,22 @@ public class ViewClipperTest
         AssertSpanEquals(spans[4], l, uint.MaxValue);
 
         clipper.AddLine(vecC, vecI);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecB, vecE);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecK, vecM);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], k, uint.MaxValue);
@@ -406,37 +406,37 @@ public class ViewClipperTest
         // Add everything in reverse
         //-----------------------------------------------------------------
         clipper.Clear();
-        clipper.Should().HaveCount(0);
+        clipper.Elements.Should().HaveCount(0);
 
         clipper.AddLine(vecC, vecB);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(1);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(1);
         AssertSpanEquals(spans[0], b, c);
 
         clipper.AddLine(vecG, vecF);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(2);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(2);
         AssertSpanEquals(spans[0], b, c);
         AssertSpanEquals(spans[1], f, g);
 
         clipper.AddLine(vecL, vecD);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecJ, vecJ);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(4);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(4);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], j, j);
         AssertSpanEquals(spans[3], l, uint.MaxValue);
 
         clipper.AddLine(vecI, vecI);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(5);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(5);
         AssertSpanEquals(spans[0], 0, d);
         AssertSpanEquals(spans[1], f, g);
         AssertSpanEquals(spans[2], i, i);
@@ -444,22 +444,22 @@ public class ViewClipperTest
         AssertSpanEquals(spans[4], l, uint.MaxValue);
 
         clipper.AddLine(vecI, vecC);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecE, vecB);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], l, uint.MaxValue);
 
         clipper.AddLine(vecM, vecK);
-        spans = clipper.ToList();
-        clipper.Should().HaveCount(3);
+        spans = clipper.Elements.ToList();
+        clipper.Elements.Should().HaveCount(3);
         AssertSpanEquals(spans[0], 0, i);
         AssertSpanEquals(spans[1], j, j);
         AssertSpanEquals(spans[2], k, uint.MaxValue);

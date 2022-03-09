@@ -24,14 +24,14 @@ public class RGBColoredStringDecoderTest
             for (int i = startIndex; i < endIndex; i++)
             {
                 char expectedChar = str[i - startIndex];
-                colorStr[i].Char.Should().Be(expectedChar);
-                colorStr[i].Color.Should().Be(color);
+                colorStr.Characters[i].Char.Should().Be(expectedChar);
+                colorStr.Characters[i].Color.Should().Be(color);
             }
 
             startIndex = endIndex;
         }
 
-        colorStr.Length.Should().Be(endIndex);
+        colorStr.Characters.Count.Should().Be(endIndex);
     }
 
     [Fact(DisplayName = "Checks empty string")]
