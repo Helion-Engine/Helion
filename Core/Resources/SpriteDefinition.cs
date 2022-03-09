@@ -65,9 +65,6 @@ public class SpriteDefinition
             if (rotation < 0 || rotation >= MaxRotations)
                 return;
 
-            if (m_spriteRotations[frame, rotation] != null)
-                return;
-
             m_spriteRotations[frame, rotation] = new SpriteRotation(texture, mirror);
         }
     }
