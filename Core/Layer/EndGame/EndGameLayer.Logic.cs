@@ -88,25 +88,35 @@ public partial class EndGameLayer
 
         m_castFrameCount++;
         bool setNewState = false;
-        switch (m_castEntityState)
-        {
-            case CastEntityState.See:
-                if (m_castFrameCount == 12)
-                {
-                    m_castFrameCount = 0;
-                    SetCastEntityState(CastEntityState.Attack, true);
-                    setNewState = true;
-                }
-                break;
 
-            case CastEntityState.Attack:
-                if (m_castFrameCount == 24 || m_castEntity.FrameState.IsState(Constants.FrameStates.See))
-                {
-                    m_castFrameCount = 0;
-                    SetCastEntityState(CastEntityState.See, false);
-                    setNewState = true;
-                }
-                break;
+        if (m_castEntity.Definition.Name.EqualsIgnoreCase("DoomPlayer") && m_castEntityState == CastEntityState.Attack)
+        {
+            m_castFrameCount = 0;
+            SetCastEntityState(CastEntityState.See, false);
+            setNewState = true;
+        }
+        else
+        {
+            switch (m_castEntityState)
+            {
+                case CastEntityState.See:
+                    if (m_castFrameCount == 12)
+                    {
+                        m_castFrameCount = 0;
+                        SetCastEntityState(CastEntityState.Attack, true);
+                        setNewState = true;
+                    }
+                    break;
+
+                case CastEntityState.Attack:
+                    if (m_castFrameCount == 24 || m_castEntity.FrameState.IsState(Constants.FrameStates.See))
+                    {
+                        m_castFrameCount = 0;
+                        SetCastEntityState(CastEntityState.See, false);
+                        setNewState = true;
+                    }
+                    break;
+            }
         }
 
         string sound = GetCastEntitySound();
@@ -206,7 +216,7 @@ public partial class EndGameLayer
             return "grunt/attack";
         if (name.EqualsIgnoreCase("ShotgunGuy") && frameDiff == 1)
             return "shotguy/attack";
-        if (name.EqualsIgnoreCase("ChaingunGuy") && (frameDiff == 1 || frameDiff == 3))
+        if (name.EqualsIgnoreCase("ChaingunGuy") && (frameDiff == 1 || frameDiff == 2 || frameDiff == 3))
             return "chainguy/attack";
         else if (name.EqualsIgnoreCase("DoomImp") && frameDiff == 2)
             return "imp/melee";
@@ -230,8 +240,8 @@ public partial class EndGameLayer
             return "spider/attack";
         else if (name.EqualsIgnoreCase("Cyberdemon") && (frameDiff == 1 || frameDiff == 3 || frameDiff == 5))
             return "weapons/rocklf";
-        else if (name.EqualsIgnoreCase("DoomPlayer") && frameDiff == 1)
-            return "weapons/shotgf";
+        else if (name.EqualsIgnoreCase("DoomPlayer") && frameDiff == 0)
+            return "weapons/sshotf";
         else if (name.EqualsIgnoreCase("Revenant"))
         {
             bool melee = ShouldUseMeleeState(m_castEntity, m_castIsMelee);
@@ -242,10 +252,6 @@ public partial class EndGameLayer
             else if (!melee && frameDiff == 1)
                 return "skeleton/attack";
         }
-
-        //  case S_SKEL_FIST2: sfx = sfx_skeswg; break;
-        //case S_SKEL_FIST4: sfx = sfx_skepch; break;
-        //case S_SKEL_MISS2: sfx = sfx_skeatk; break;
 
         return string.Empty;
     }

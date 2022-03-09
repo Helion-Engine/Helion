@@ -99,9 +99,11 @@ public partial class EndGameLayer
     private void DrawCastMonsterText(IHudRenderContext hud)
     {
         const string font = "SmallFont";
-        Dimension size = hud.MeasureText(Cast[m_castIndex].DisplayName, font, 8);
+        const int fontSize = 8;
+        string text = World.ArchiveCollection.Language.GetMessage(Cast[m_castIndex].DisplayName);
+        Dimension size = hud.MeasureText(text, font, fontSize);
         Vec2I offset = new(160 - (size.Width / 2), 180);
-        hud.Text(Cast[m_castIndex].DisplayName, font, 8, offset);
+        hud.Text(text, font, fontSize, offset);
     }
 
     private void SetPage(IHudRenderContext hud)
