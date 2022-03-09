@@ -147,10 +147,9 @@ public partial class EndGameLayer
     {
         ctx.ClearDepth();
         hud.Clear(Color.Black);
-
+        DrawBackground(flat, hud);
         hud.DoomVirtualResolution(() =>
         {
-            DrawBackground(flat, hud);
             DrawText(displayText, ticker, showAllText, hud);
         });
     }
