@@ -88,6 +88,19 @@ public class FrameState : ITickable
         return null;
     }
 
+    // Only for end game cast - really shouldn't be used.
+    public void SetFrameIndexByLabel(string label)
+    {
+        if (m_definition.States.Labels.TryGetValue(label, out int index))
+            m_frameIndex = index;
+    }
+
+    // Only for end game cast - really shouldn't be used.
+    public void SetFrameIndex(int index)
+    {
+        m_frameIndex = index;
+    }
+
     public bool SetState(string label, int offset = 0, bool warn = true, bool executeActionFunction = true)
     {
         if (m_definition.States.Labels.TryGetValue(label, out int index))

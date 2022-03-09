@@ -8,5 +8,6 @@ internal enum EndGameDrawState
     ImageScroll,
     Delay,
     TheEnd,
-    Complete
+    Complete,
+    Cast
 }

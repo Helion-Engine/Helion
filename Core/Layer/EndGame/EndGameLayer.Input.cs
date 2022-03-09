@@ -17,6 +17,12 @@ public partial class EndGameLayer
     {
         m_forceState = true;
 
+        if (m_drawState == EndGameDrawState.Cast && m_castEntityState != CastEntityState.Death)
+        {
+            SetCastEntityState(CastEntityState.Death, true);
+            return;
+        }
+
         if (m_invokedNextMapFunc)
             return;
 

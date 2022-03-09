@@ -158,7 +158,8 @@ public class DefinitionEntries
             var logMessages = e.LogToReadableMessage(text);
             foreach (var message in logMessages)
                 Log.Error(message);
-            throw;
+            // TODO this hard crashes with no dialog
+            //throw;
         }
     }
 

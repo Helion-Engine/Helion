@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Boxes;
@@ -49,6 +50,7 @@ public class GameLayerManager : IGameLayerParent
     private readonly SoundManager m_soundManager;
     private readonly SaveGameManager m_saveGameManager;
     private readonly Profiler m_profiler;
+    private readonly Stopwatch m_stopwatch = new();
     private bool m_disposed;
 
     private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
@@ -69,6 +71,7 @@ public class GameLayerManager : IGameLayerParent
         m_soundManager = soundManager;
         m_saveGameManager = saveGameManager;
         m_profiler = profiler;
+        m_stopwatch.Start();
     }
 
     ~GameLayerManager()
@@ -253,6 +256,12 @@ public class GameLayerManager : IGameLayerParent
         TitlepicLayer?.RunLogic();
         IntermissionLayer?.RunLogic();
         WorldLayer?.RunLogic();
+
+        if (m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
+        {
+            m_stopwatch.Restart();
+            EndGameLayer?.OnTick();
+        }
     }
 
     public void Render(IRenderer renderer)

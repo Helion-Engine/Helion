@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.String;
+using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
+using Helion.World.Entities.Definition.States;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Layer.EndGame;
@@ -42,6 +47,10 @@ public partial class EndGameLayer
             bool showAllText = m_drawState > EndGameDrawState.Text;
             Draw(m_flatImage, m_displayText, m_ticker, showAllText, hud, ctx);
         }
+        else if (m_drawState == EndGameDrawState.Cast)
+        {
+            DrawCast(ctx, hud);
+        }
         else
         {
             hud.DoomVirtualResolution(() =>
@@ -52,6 +61,47 @@ public partial class EndGameLayer
                     hud.Image(TheEndImages[m_theEndImageIndex], m_theEndOffset, Align.Center);
             });
         }
+    }
+
+    private void DrawCast(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    {
+        ctx.ClearDepth();
+        hud.Clear(Color.Black);
+
+        hud.DoomVirtualResolution(() =>
+        {
+            hud.Image("BOSSBACK", Vec2I.Zero);
+            DrawCastMonsterText(hud);
+
+            if (m_castEntity == null)
+                return;
+
+            if (hud.Textures is not LegacyGLTextureManager textureManager)
+                return;
+
+            var spriteDef = textureManager.GetSpriteDefinition(m_castEntity.Frame.Sprite);
+            if (spriteDef == null)
+                return;
+
+            var spriteRotation = textureManager.GetSpriteRotation(spriteDef, m_castEntity.Frame.Frame, 0);
+            if (spriteRotation == null)
+                return;
+
+            string image = spriteRotation.Texture.Name;
+            if (!hud.Textures.TryGet(image, out var handle))
+                return;
+
+            Vec2I offset = new(160, 170);
+            hud.Image(image, offset + RenderDimensions.TranslateDoomOffset(handle.Offset));
+        });
+    }
+
+    private void DrawCastMonsterText(IHudRenderContext hud)
+    {
+        const string font = "SmallFont";
+        Dimension size = hud.MeasureText(Cast[m_castIndex].DisplayName, font, 8);
+        Vec2I offset = new(160 - (size.Width / 2), 180);
+        hud.Text(Cast[m_castIndex].DisplayName, font, 8, offset);
     }
 
     private void SetPage(IHudRenderContext hud)
@@ -77,6 +127,10 @@ public partial class EndGameLayer
         else if (next.EqualsIgnoreCase("EndGame4"))
         {
             m_images = new[] { "ENDPIC" };
+        }
+        else if (next.EqualsIgnoreCase("EndGameC"))
+        {
+            m_endGameType = EndGameType.Cast;
         }
         else
         {

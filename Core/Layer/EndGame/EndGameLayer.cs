@@ -10,6 +10,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
 using Helion.World;
+using Helion.World.Entities;
 using NLog;
 
 namespace Helion.Layer.EndGame;
@@ -26,6 +27,27 @@ public partial class EndGameLayer : IGameLayer
     private static readonly IList<string> TheEndImages = new[]
     {
         "END0", "END1", "END2", "END3", "END4", "END5", "END6"
+    };
+
+    private static readonly IList<CastData> Cast = new[]
+    {
+        new CastData("ZombieMan", "ZombieMan"),
+        new CastData("ShotgunGuy", "Shotgun Guy"),
+        new CastData("ChaingunGuy", "Heavy Weapons Dude"),
+        new CastData("DoomImp", "Imp"),
+        new CastData("Demon", "Demon"),
+        new CastData("LostSoul", "Lost Soul"),
+        new CastData("Cacodemon", "Cacodemon"),
+        new CastData("HellKnight", "Hell Knight"),
+        new CastData("BaronOfHell", "Baron Of Hell"),
+        new CastData("Arachnotron", "Arachnotron"),
+        new CastData("PainElemental", "Pain Elemental"),
+        new CastData("Revenant", "Revenant"),
+        new CastData("Fatso", "Mancubus"),
+        new CastData("Archvile", "Archvile"),
+        new CastData("SpiderMastermind", "Spider Mastermind"),
+        new CastData("Cyberdemon", "Cyberdemon"),
+        new CastData("DoomPlayer", "Our Hero"),
     };
 
     public event EventHandler? Exited;
@@ -45,6 +67,15 @@ public partial class EndGameLayer : IGameLayer
     private int m_xOffset;
     private int m_xOffsetStop;
     private int m_theEndImageIndex;
+
+    private EndGameType m_endGameType;
+    private int m_castIndex = -1;
+    private bool m_castMelee;
+    private bool m_castIsMelee;
+    private Entity? m_castEntity;
+    private CastEntityState m_castEntityState;
+    private int m_castEntityFrameTicks;
+    private int m_castFrameCount;
 
     public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, SoundManager soundManager, IWorld world,
         ClusterDef cluster, MapInfoDef? nextMapInfo)
