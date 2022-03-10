@@ -2686,7 +2686,7 @@ public static class EntityActionFunctions
         double misc1 = entity.Frame.DehackedMisc1 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc1) : 4;
         double misc2 = entity.Frame.DehackedMisc2 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc2) : 0.5;
 
-        Vec3D velocity = new Vec3D(misc2, misc2, misc2);
+        Vec3D velocity = new(misc2, misc2, misc2);
         Vec3D oldPos = entity.Position;
         double oldAngle = entity.AngleRadians;
 
@@ -2702,10 +2702,14 @@ public static class EntityActionFunctions
                 firePos.Z += MathHelper.ApproximateDistance(i, j) * misc1;
 
                 entity.AngleRadians = entity.Position.Angle(firePos);
-                double pitch = entity.Position.Pitch(firePos, entity.Position.XY.Distance(firePos.XY));
-                Entity? projectile = entity.World.FireProjectile(entity, entity.AngleRadians, pitch, 0, false, "FatShot", out _);
+                Entity? projectile = entity.World.FireProjectile(entity, entity.AngleRadians, 0, 0, false, "FatShot", out _);                
                 if (projectile != null)
                 {
+                    // Need to use fixed point calculations to get this right
+                    int dist = MathHelper.ToFixed(entity.Position.ApproximateDistance2D(firePos));
+                    dist /= MathHelper.ToFixed(projectile.Definition.Properties.Speed);
+                    dist = Math.Clamp(dist, 1, int.MaxValue);
+                    projectile.Velocity.Z = MathHelper.FromFixed(MathHelper.ToFixed(firePos.Z - entity.Position.Z) / dist);
                     projectile.Velocity *= velocity;
                     projectile.Flags.NoGravity = false;
                 }
