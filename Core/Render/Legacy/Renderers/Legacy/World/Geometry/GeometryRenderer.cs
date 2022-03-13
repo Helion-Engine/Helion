@@ -372,7 +372,7 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[side.Id] = data;
         }
-        else if (m_sectorChangedLine)
+        else if (m_lightChangedLine)
         {
             SetLightToVertices(data, GetRenderLightLevel(side));
         }
