@@ -37,4 +37,48 @@ public static class StringExtensions
     {
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
+
+    public static bool StartsWithIgnoreCase(this string text, string other)
+    {
+        return text.StartsWith(other, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool EndsWithIgnoreCase(this string text, string other)
+    {
+        return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool GetLastFolder(this string path, out ReadOnlySpan<char> folder)
+    {
+        int endIndex = LastIndexOf(path, path.Length - 1, '/', '\\');
+        if (endIndex == -1)
+        {
+            folder = new ReadOnlySpan<char>();
+            return false;
+        }
+
+        int startIndex = LastIndexOf(path, endIndex - 1, '/', '\\');
+        if (startIndex == endIndex)
+        {
+            folder = new ReadOnlySpan<char>();
+            return false;
+        }
+
+        folder = path.AsSpan(startIndex + 1, endIndex - startIndex - 1);
+        return true;
+    }
+
+    private static int LastIndexOf(string text, int start, char value, char alt)
+    {
+        int startIndex = -1;
+        for (int i = start; i >= 0; i--)
+        {
+            if (text[i] != value && text[i] != alt)
+                continue;
+            startIndex = i;
+            break;
+        }
+
+        return startIndex;
+    }
 }

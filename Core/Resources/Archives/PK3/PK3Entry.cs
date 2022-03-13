@@ -5,7 +5,7 @@ namespace Helion.Resources.Archives;
 
 public class PK3Entry : Entry
 {
-    public readonly PK3 Parent;
+    public override PK3 Parent { get; }
     public readonly ZipArchiveEntry ZipEntry;
 
     public PK3Entry(PK3 pk3, ZipArchiveEntry zipEntry, IEntryPath path, ResourceNamespace resourceNamespace, int index)
@@ -18,5 +18,10 @@ public class PK3Entry : Entry
     public override byte[] ReadData()
     {
         return Parent.ReadData(this);
+    }
+
+    public override void ExtractToFile(string path)
+    {
+        ZipEntry.ExtractToFile(path, true);
     }
 }

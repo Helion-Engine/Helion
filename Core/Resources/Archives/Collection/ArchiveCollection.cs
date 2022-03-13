@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Helion.Dehacked;
@@ -70,6 +71,9 @@ public class ArchiveCollection : IResources
     private readonly IArchiveLocator m_archiveLocator;
     private readonly List<Archive> m_archives = new();
     private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
+    private string m_lastLoadedMapName = string.Empty;
+    private IMap? m_lastLoadedMap;
+    private bool m_lastLoadedMapIsTemp;
 
     public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
     {
@@ -103,7 +107,7 @@ public class ArchiveCollection : IResources
         {
             Archive archive = m_archives[i];
             foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
-                if (mapEntryCollection.Name.Equals(mapName, StringComparison.OrdinalIgnoreCase))
+                if (mapEntryCollection.Name.EqualsIgnoreCase(mapName))
                     return mapEntryCollection;
         }
 
@@ -112,12 +116,29 @@ public class ArchiveCollection : IResources
 
     public IMap? FindMap(string mapName)
     {
+        if (m_lastLoadedMapName.EqualsIgnoreCase(mapName) && m_lastLoadedMap != null)
+            return m_lastLoadedMap;
+
+        ClearLastLoadedTempMap();
+
+        string mapPathEquals = $"maps/{mapName}.wad";
+        string mapPathEnds = $"/maps/{mapName}.wad";
+
         for (int i = m_archives.Count - 1; i >= 0; i--)
         {
             Archive archive = m_archives[i];
+            Entry? mapEntry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.EndsWithIgnoreCase(mapPathEnds) || x.Path.FullPath.EqualsIgnoreCase(mapPathEquals));
+
+            if (mapEntry != null && ExtractAndLoadEmbeddedMapEntry(mapEntry, mapName, out IMap? map))
+            {
+                m_lastLoadedMapIsTemp = true;
+                SetMapLoaded(mapName, map);
+                return map;
+            }
+
             foreach (var mapEntryCollection in new ArchiveMapIterator(archive))
             {
-                if (!mapEntryCollection.Name.Equals(mapName, StringComparison.OrdinalIgnoreCase))
+                if (!mapEntryCollection.Name.EqualsIgnoreCase(mapName))
                     continue;
 
                 CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(archive, mapName);
@@ -128,9 +149,13 @@ public class ArchiveCollection : IResources
                 // confusing to the user in the case where they ask for the
                 // most recent map which is corrupt, but then get some
                 // earlier map in the pack which is not corrupt.
-                IMap? map = MapReader.Read(archive, mapEntryCollection, compat);
+                map = MapReader.Read(archive, mapEntryCollection, compat);
                 if (map != null)
+                {
+                    m_lastLoadedMapIsTemp = false;
+                    SetMapLoaded(mapName, map);
                     return map;
+                }
 
                 Log.Warn("Unable to use map {0}, it is corrupt", mapName);
                 return null;
@@ -138,6 +163,45 @@ public class ArchiveCollection : IResources
         }
 
         return null;
+    }
+
+    private void ClearLastLoadedTempMap()
+    {
+        if (!m_lastLoadedMapIsTemp || m_lastLoadedMap == null)
+            return;
+
+        TempFileManager.DeleteFile(m_lastLoadedMap.Archive.OriginalFilePath);
+        m_lastLoadedMap.Archive.Dispose();
+        m_lastLoadedMap = null;
+        m_lastLoadedMapIsTemp = false;
+    }
+
+    private void SetMapLoaded(string mapName, IMap? extractedMap)
+    {
+        m_lastLoadedMap = extractedMap;
+        m_lastLoadedMapName = mapName;
+    }
+
+    private bool ExtractAndLoadEmbeddedMapEntry(Entry mapEntry, string mapName, [NotNullWhen(true)] out IMap? map)
+    {
+        map = null;
+        string file = ExtractEmbeddedFile(mapEntry);
+        Archive? mapArchive = LoadArchive(file);
+        if (mapArchive == null)
+            return false;
+
+        var mapIterator = new ArchiveMapIterator(mapArchive);
+        if (!mapIterator.Any())
+        {
+            mapArchive.Dispose();
+            return false;
+        }
+
+        var mapEntryCollection = mapIterator.First();
+        CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(mapArchive, mapName);
+        map = MapReader.Read(mapArchive, mapEntryCollection, compat);
+        mapArchive.Dispose();
+        return map != null;
     }
 
     public Font? GetFont(string name)
@@ -165,7 +229,7 @@ public class ArchiveCollection : IResources
     public Archive? GetArchiveByFileName(string fileName)
     {
         foreach (var archive in m_archives)
-            if (Path.GetFileName(archive.OriginalFilePath).Equals(fileName, StringComparison.OrdinalIgnoreCase))
+            if (Path.GetFileName(archive.OriginalFilePath).EqualsIgnoreCase(fileName))
                 return archive;
         return null;
     }
@@ -173,10 +237,9 @@ public class ArchiveCollection : IResources
     public void Dispose()
     {
         foreach (var archive in m_archives)
-        {
-            if (archive is IDisposable disposable)
-                disposable.Dispose();
-        }
+            archive.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null)
@@ -216,6 +279,8 @@ public class ArchiveCollection : IResources
             m_archives.Add(archive);
         }
 
+        m_archives.AddRange(LoadEmbeddedArchives(m_archives));
+
         ProcessAndIndexEntries(iwadArchive, m_archives);
         IWadType = GetIWadInfo().IWadBaseType;
 
@@ -238,6 +303,75 @@ public class ArchiveCollection : IResources
         }
 
         return true;
+    }
+
+    private List<Archive> LoadEmbeddedArchives(List<Archive> archives)
+    {
+        // Loads all embedded wad files, with the exception of wads in a maps/ directory.
+        List<string> files = new();
+        List<Archive> embeddedArchives = new();
+        foreach (var archive in archives)
+        {
+            if (archive is Wad)
+                continue;
+
+            var entries = archive.Entries.Where(x => ShouldExtractWadEntry(x));
+            if (!entries.Any())
+                continue;
+
+            ExtractEmbeddedFiles(files, entries);
+            LoadEmbeddedFiles(files, embeddedArchives, archive);
+
+            files.Clear();
+        }
+
+        return embeddedArchives;
+    }
+
+    private void LoadEmbeddedFiles(List<string> files, List<Archive> embeddedArchives, Archive archive)
+    {
+        foreach (string file in files)
+        {
+            Archive? newArchive = LoadArchive(file);
+            if (newArchive == null)
+                continue;
+
+            newArchive.ExtractedFrom = archive;
+            embeddedArchives.Add(newArchive);
+        }
+    }
+
+    private static bool ShouldExtractWadEntry(Entry entry)
+    {
+        const string MapsPath = "maps/";
+        const string MapsFolder = "maps";
+        string path = entry.Path.FullPath;
+        if (!path.EndsWithIgnoreCase(".wad"))
+            return false;
+
+        if (path.StartsWithIgnoreCase(MapsPath))
+            return false;
+
+        if (!path.GetLastFolder(out var folder))
+            return false;
+
+        return !folder.Equals(MapsFolder, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void ExtractEmbeddedFiles(List<string> files, IEnumerable<Entry> entries)
+    {
+        foreach (var entry in entries)
+            files.Add(ExtractEmbeddedFile(entry));
+    }
+
+    private static string ExtractEmbeddedFile(Entry entry)
+    {
+        if (entry.IsDirectFile())
+            return entry.Path.FullPath;
+
+        string file = TempFileManager.GetFile();
+        entry.ExtractToFile(file);
+        return file;
     }
 
     private IWadInfo GetIWadInfo()

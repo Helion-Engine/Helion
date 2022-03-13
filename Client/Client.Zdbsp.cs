@@ -2,6 +2,8 @@ using Helion.Bsp.External;
 using Helion.Maps;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -11,17 +13,18 @@ namespace Helion.Client;
 public partial class Client
 {
     private string m_lastMapName = string.Empty;
-    private ArchiveCollection? m_lastBspCollection;
-    private readonly Stopwatch m_stopwatch = new Stopwatch();
 
-    private bool RunZdbsp(IMap map, string mapName, out IMap? outputMap)
+    private ArchiveCollection? m_lastBspCollection;
+    private readonly Stopwatch m_stopwatch = new();
+
+    private bool RunZdbsp(IMap map, string mapName, MapInfoDef mapInfoDef, out IMap? outputMap)
     {
-        string outputFile = Path.GetFullPath("output.wad");
+        string outputFile = TempFileManager.GetFile();
         outputMap = null;
 
         try
         {
-            if (m_lastBspCollection != null && File.Exists(outputFile) && m_lastMapName.Equals(mapName, StringComparison.OrdinalIgnoreCase))
+            if (m_lastBspCollection != null && File.Exists(outputFile) && m_lastMapName.Equals(mapInfoDef.MapName, StringComparison.OrdinalIgnoreCase))
             {
                 outputMap = m_lastBspCollection.FindMap(mapName);
                 return outputMap != null;
@@ -40,10 +43,14 @@ public partial class Client
             foreach (string line in output.Split(Environment.NewLine))
                 Log.Debug($"    {line}");
 
-            m_lastMapName = mapName;
+            m_lastMapName = mapInfoDef.MapName;
 
             Log.Info("Loading compiled map...");
             m_stopwatch.Restart();
+
+            if (m_lastBspCollection != null)
+                m_lastBspCollection.Dispose();
+
             m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new());
             if (!m_lastBspCollection.Load(new string[] { outputFile }, loadDefaultAssets: false))
                 return false;
@@ -66,7 +73,6 @@ public partial class Client
         if (m_lastBspCollection != null)
             m_lastBspCollection.Dispose();
 
-        if (File.Exists(outputFile))
-            File.Delete(outputFile);
+        TempFileManager.DeleteFile(outputFile);
     }
 }

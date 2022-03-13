@@ -6,6 +6,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
+using Helion.Resources.Archives.Directories;
 
 namespace Helion.Resources.Archives.Locator;
 
@@ -52,25 +53,22 @@ public class FilesystemArchiveLocator : IArchiveLocator
 
     public Archive? Locate(string uri)
     {
-        string extension = Path.GetExtension(uri);
-        if (extension.Empty())
-        {
-            Log.Error("Missing extension, cannot determine archive type from: {0}", uri);
-            return null;
-        }
-
+        bool exists = false;
         foreach (string basePath in m_paths)
         {
-            string path = basePath + uri;
-
-            if (!File.Exists(path))
+            string path = Path.Combine(basePath, uri);
+            if (!CheckPathExists(path))
                 continue;
+
+            exists = true;
 
             try
             {
-                if (extension.Equals(".wad", StringComparison.OrdinalIgnoreCase))
+                if (IsDirectory(path))
+                    return new DirectoryArchive(new EntryPath(path));
+                if (IsWad(path))
                     return new Wad(new EntryPath(path));
-                if (extension.Equals(".pk3", StringComparison.OrdinalIgnoreCase))
+                if (IsPk3(path))
                     return new PK3(new EntryPath(path));
             }
             catch (Exception e)
@@ -80,8 +78,43 @@ public class FilesystemArchiveLocator : IArchiveLocator
             }
         }
 
-        Log.Error("Either could not find {0}, or the extension is not supported", uri);
+        Log.Error("Could not load {0}. The file {1}.", uri, exists ? "type is not supported" : "does not exist");
         return null;
+    }
+
+    private static bool IsDirectory(string path)
+    {
+        FileAttributes attr = File.GetAttributes(path);
+        return (attr & FileAttributes.Directory) == FileAttributes.Directory;
+    }
+
+    private static bool CheckPathExists(string path)
+    {
+        return File.Exists(path) || Directory.Exists(path);
+    }
+
+    private static BinaryReader GetBinaryReader(string path)
+    {
+        return new(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+    }
+
+    private static bool IsWad(string path)
+    {
+        using BinaryReader reader = GetBinaryReader(path);
+        const int iwadValue = 1145132873;
+        const int pwadVallue = 1145132880;
+        if (reader.BaseStream.Length < 4)
+            return false;
+        uint headerValue = reader.ReadUInt32();
+        return headerValue == iwadValue || headerValue == pwadVallue;
+    }
+
+    private static bool IsPk3(string path)
+    {
+        using BinaryReader reader = GetBinaryReader(path);
+        if (reader.BaseStream.Length < 4)
+            return false;
+        return reader.ReadUInt32() == 0x04034b50;
     }
 
     private static string EnsureEndsWithDirectorySeparator(string path)

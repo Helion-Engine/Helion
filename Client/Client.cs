@@ -349,6 +349,8 @@ public partial class Client : IDisposable
         {
             if (!config.Write(FileConfig.DefaultConfigPath))
                 Log.Error($"Unable to write config to {FileConfig.DefaultConfigPath}");
+
+            TempFileManager.DeleteAllFiles();
         }
     }
 

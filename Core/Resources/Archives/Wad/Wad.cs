@@ -12,7 +12,7 @@ namespace Helion.Resources.Archives;
 /// <summary>
 /// A wad specific archive implementation.
 /// </summary>
-public class Wad : Archive, IDisposable
+public class Wad : Archive
 {
     private const int LumpTableEntryBytes = 16;
 
@@ -55,7 +55,7 @@ public class Wad : Archive, IDisposable
         return m_byteReader.ReadBytes(entry.Size);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         m_byteReader.Close();
         m_byteReader.Dispose();

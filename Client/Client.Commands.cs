@@ -258,7 +258,7 @@ public partial class Client
             return;
         }
 
-        if (!RunZdbsp(map, mapInfoDef.MapName, out map))
+        if (!RunZdbsp(map, map.Name, mapInfoDef, out map))
         {
             Log.Error("Failed to run zdbsp.");
             return;

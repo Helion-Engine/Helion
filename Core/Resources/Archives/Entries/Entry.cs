@@ -10,6 +10,8 @@ public abstract class Entry
     /// </summary>
     public IEntryPath Path { get; }
 
+    public abstract Archive Parent { get; }
+
     /// <summary>
     /// Reads all the raw data for this entry.
     /// </summary>
@@ -42,6 +44,7 @@ public abstract class Entry
     /// entries, false otherwise (implying it's a terminal node in the
     /// archive tree).</returns>
     public virtual bool IsDirectory() => false;
-
+    public virtual bool IsDirectFile() => false;
+    public abstract void ExtractToFile(string path);
     public override string ToString() => $"{Path}";
 }
