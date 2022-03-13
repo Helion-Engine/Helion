@@ -88,7 +88,7 @@ public class GameLayerManager : IGameLayerParent
             return false;
 
         if (TitlepicLayer != null)
-            return MenuLayer != null;
+            return MenuLayer == null;
 
         if (WorldLayer != null)
             return WorldLayer.ShouldFocus;
