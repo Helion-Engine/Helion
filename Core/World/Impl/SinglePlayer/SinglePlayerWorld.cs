@@ -204,7 +204,7 @@ public class SinglePlayerWorld : WorldBase
         if (string.IsNullOrWhiteSpace(entryName))
             return false;
 
-        Entry? entry = archiveCollection.Entries.FindByName(entryName);
+        Entry? entry = archiveCollection.Entries.FindByName(archiveCollection.Definitions.Language.GetMessage(entryName));
         if (entry == null)
         {
             Log.Warn("Cannot find music track: {0}", entryName);
