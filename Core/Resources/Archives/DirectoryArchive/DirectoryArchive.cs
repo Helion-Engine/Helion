@@ -33,8 +33,8 @@ namespace Helion.Resources.Archives.Directories
             {
                 foreach (string file in Directory.GetFiles(directory))
                 {
-                    string cleanPath = CleanPath(file);
-                    Entries.Add(new DirectoryArchiveEntry(this, cleanPath, new EntryPath(cleanPath), NamespaceFromEntryPath(cleanPath), Entries.Count));
+                    EntryPath entryPath = new(file);
+                    Entries.Add(new DirectoryArchiveEntry(this, entryPath.FullPath, entryPath, NamespaceFromEntryPath(entryPath.FullPath), Entries.Count));
                 }
 
                 foreach (string dir in Directory.GetDirectories(directory))

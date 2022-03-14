@@ -45,15 +45,6 @@ public abstract class Archive : IDisposable
         return ResourceNamespace.Global;
     }
 
-    protected static string CleanPath(string path)
-    {
-        // Windows generates paths with its backward slashes, so we have
-        // to handle this. A big problem with this however is that any
-        // sprites that use the backslash as part of the sprite name will
-        // get toasted by this.
-        return path.Replace('\\', '/');
-    }
-
     /// <summary>
     /// All the entries in this archive.
     /// </summary>

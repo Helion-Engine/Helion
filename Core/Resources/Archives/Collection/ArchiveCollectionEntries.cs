@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 
@@ -44,7 +45,12 @@ public class ArchiveCollectionEntries
         if (ns == ResourceNamespace.Global && m_nameToEntries.ContainsKey(entry.Path.Name))
             ns = m_nameToEntries[entry.Path.Name].Namespace;
 
-        m_pathToEntry[entry.Path.FullPath] = entry;
+        string fullPath = entry.Path.FullPath;
+        // Lookups for directory paths need to be relative to the directory
+        if (entry.Parent is DirectoryArchive)
+            fullPath = entry.Path.FullPath[(entry.Parent.Path.FullPath.Length + 1)..];
+
+        m_pathToEntry[fullPath] = entry;
         m_nameToEntries[entry.Path.Name] = entry;
         m_namespaceNameEntries.Insert(entry.Path.Name, ns, entry);
     }
