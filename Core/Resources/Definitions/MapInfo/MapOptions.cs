@@ -10,5 +10,7 @@ public enum MapOptions
     NoJump,
     NoFreelook,
     NoInfighting,
-    TotalInfighting
+    TotalInfighting,
+    ResetHealth,
+    ResetInventory
 }

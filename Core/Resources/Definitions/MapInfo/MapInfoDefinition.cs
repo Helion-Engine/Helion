@@ -174,6 +174,10 @@ public partial class MapInfoDefinition
                 mapDef.MapSpecialAction = MapSpecialAction.ExitLevel;
             else if (item.Equals("specialaction_opendoor", StringComparison.OrdinalIgnoreCase))
                 mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
+            else if (item.Equals("ResetHealth"))
+                mapDef.SetOption(MapOptions.ResetHealth, true);
+            else if (item.Equals("ResetInventory"))
+                mapDef.SetOption(MapOptions.ResetInventory, true);
             else if (item.Equals("normalinfighting", StringComparison.OrdinalIgnoreCase))
             {
                 mapDef.SetOption(MapOptions.NoInfighting, false);

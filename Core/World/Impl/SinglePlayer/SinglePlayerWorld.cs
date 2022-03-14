@@ -58,7 +58,7 @@ public class SinglePlayerWorld : WorldBase
                 player.SetDefaultInventory();
             }
 
-            if (existingPlayer != null && !existingPlayer.IsDead)
+            if (existingPlayer != null && !existingPlayer.IsDead && !mapDef.HasOption(MapOptions.ResetInventory))
             {
                 Player.CopyProperties(existingPlayer);
                 Player.Inventory.ClearKeys();
@@ -68,6 +68,9 @@ public class SinglePlayerWorld : WorldBase
             {
                 Player.SetDefaultInventory();
             }
+
+            if (mapDef.HasOption(MapOptions.ResetHealth))
+                Player.Health = Player.Properties.Health;
         }
         else
         {
