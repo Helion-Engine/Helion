@@ -448,17 +448,17 @@ public class SimpleParser
         }
         else
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             for (int i = token.Line; i < token.EndLine + 1; i++)
             {
                 if (i == token.EndLine)
                 {
-                    sb.Append(m_lines[i].Substring(0, token.EndIndex));
+                    sb.Append(m_lines[i].AsSpan(0, token.EndIndex));
                 }
                 else
                 {
                     if (i == token.Line)
-                        sb.Append(m_lines[i].Substring(token.Index));
+                        sb.Append(m_lines[i].AsSpan(token.Index));
                     else
                         sb.Append(m_lines[i]);
 

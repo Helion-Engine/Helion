@@ -39,6 +39,8 @@ public class TextureDefinition
     /// </summary>
     public int Height => Dimension.Height;
 
+    public readonly TextureOptions Options;
+
     /// <summary>
     /// Creates a new texture definition.
     /// </summary>
@@ -48,13 +50,15 @@ public class TextureDefinition
     /// </param>
     /// <param name="components">A list of all the sub-images that make up
     /// this definition.</param>
+    /// <param name="options">The options for this texture.</param>
     public TextureDefinition(string name, Dimension dimension, ResourceNamespace resourceNamespace,
-        IList<TextureDefinitionComponent> components)
+        IList<TextureDefinitionComponent> components, TextureOptions? options = null)
     {
         Name = name;
         Dimension = dimension;
         Components = components;
         Namespace = resourceNamespace;
+        Options = options ?? TextureOptions.Default;
     }
 
     /// <inheritdoc/>

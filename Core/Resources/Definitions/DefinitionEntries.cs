@@ -46,11 +46,13 @@ public class DefinitionEntries
     public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
     public readonly ConfigCompat ConfigCompatibility;
     public readonly EntityFrameTable EntityFrameTable = new();
+    public readonly TexturesDefinition TexturesDef = new();
+
     public DehackedDefinition? DehackedDefinition { get; set; }
 
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
     private readonly ArchiveCollection m_archiveCollection;
-    private PnamesTextureXCollection m_pnamesTextureXCollection = new PnamesTextureXCollection();
+    private PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
 
@@ -80,6 +82,7 @@ public class DefinitionEntries
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
+        m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
     }
 
     public void ParseDehackedPatch(string data)
@@ -128,6 +131,13 @@ public class DefinitionEntries
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+
+    private void ParseTextures(string text)
+    {
+        TexturesDef.Parse(text);
+        foreach (var texture in TexturesDef.Textures)
+            Textures.Insert(texture.Name, ResourceNamespace.Textures, texture);
+    }
 
     private void ParseDehacked(string text)
     {

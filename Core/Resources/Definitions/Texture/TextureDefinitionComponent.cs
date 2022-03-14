@@ -18,15 +18,19 @@ public class TextureDefinitionComponent
     /// </summary>
     public Vec2I Offset;
 
+    public readonly TextureComponentOptions Options;
+
     /// <summary>
     /// Creates a new texture definition component.
     /// </summary>
     /// <param name="name">The name of the component.</param>
     /// <param name="offset">The offsets relative to the top left of the
     /// texture definition image.</param>
-    public TextureDefinitionComponent(string name, Vec2I offset)
+    /// <param name="options">The options for the component.</param>
+    public TextureDefinitionComponent(string name, Vec2I offset, TextureComponentOptions? options = null)
     {
         Name = name;
         Offset = offset;
+        Options = options ?? TextureComponentOptions.Default;
     }
 }
