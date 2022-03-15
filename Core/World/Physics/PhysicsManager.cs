@@ -1258,7 +1258,7 @@ public class PhysicsManager
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
         if (entity.ShouldApplyGravity())
-            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
+            entity.Velocity.Z -= GetGravityValue(entity);
 
         double floatZ = entity.GetEnemyFloatMove();
         if (noVelocity && floatZ == 0)
@@ -1276,5 +1276,15 @@ public class PhysicsManager
 
         if (entity.OverEntity != null)
             HandleStackedEntityPhysics(entity);
+    }
+
+    private double GetGravityValue(Entity entity)
+    {
+        // Doom applied double the gravity the first time, likely because it wasn't applied to the velocity the first tick.
+        // It's all very silly but this can affect hitting/missing ledges.
+        double gravity = m_world.Gravity * entity.Properties.Gravity;
+        if (entity.Velocity.Z == 0)
+            gravity *= 2;
+        return gravity;
     }
 }
