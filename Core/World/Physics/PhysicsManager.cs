@@ -1251,13 +1251,17 @@ public class PhysicsManager
         entity.BlockingLine = null;
         entity.BlockingSectorPlane = null;
 
+        // Have to check this first. Doom modifies the position first and then velocity.
+        // This means z velocity isn't applied until the next tick after moving off a ledge.
+        bool noVelocity = entity.Velocity.Z == 0;
+
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
         if (entity.ShouldApplyGravity())
             entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
-        if (entity.Velocity.Z == 0 && floatZ == 0)
+        if (noVelocity && floatZ == 0)
             return;
 
         Vec3D previousVelocity = entity.Velocity;
