@@ -1253,12 +1253,13 @@ public class PhysicsManager
 
         // Have to check this first. Doom modifies the position first and then velocity.
         // This means z velocity isn't applied until the next tick after moving off a ledge.
+        // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
         bool noVelocity = entity.Velocity.Z == 0;
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
         if (entity.ShouldApplyGravity())
-            entity.Velocity.Z -= GetGravityValue(entity);
+            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
         if (noVelocity && floatZ == 0)
@@ -1276,15 +1277,5 @@ public class PhysicsManager
 
         if (entity.OverEntity != null)
             HandleStackedEntityPhysics(entity);
-    }
-
-    private double GetGravityValue(Entity entity)
-    {
-        // Doom applied double the gravity the first time, likely because it wasn't applied to the velocity the first tick.
-        // It's all very silly but this can affect hitting/missing ledges.
-        double gravity = m_world.Gravity * entity.Properties.Gravity;
-        if (entity.Velocity.Z == 0)
-            gravity *= 2;
-        return gravity;
     }
 }
