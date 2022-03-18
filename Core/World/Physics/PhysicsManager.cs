@@ -94,7 +94,7 @@ public class PhysicsManager
         if (!entity.Flags.NoSector)
             LinkToSectors(entity, tryMove);
 
-        ClampBetweenFloorAndCeiling(entity, clampToLinkedSectors);
+        ClampBetweenFloorAndCeiling(entity, smoothZ: true, clampToLinkedSectors);
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class PhysicsManager
                 entity.PrevPosition.Z = entity.Position.Z;
             }
 
-            ClampBetweenFloorAndCeiling(entity);
+            ClampBetweenFloorAndCeiling(entity, smoothZ: false);
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.Height > entity.LowestCeilingZ)
@@ -167,7 +167,7 @@ public class PhysicsManager
         for (int i = 0; i < m_sectorMoveEntities.Count; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
-            ClampBetweenFloorAndCeiling(entity);
+            ClampBetweenFloorAndCeiling(entity, smoothZ: false);
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
             if (entity.IsPlayer && !entity.Flags.NoClip)
@@ -499,7 +499,7 @@ public class PhysicsManager
         entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
     }
 
-    private void ClampBetweenFloorAndCeiling(Entity entity, bool clampToLinkedSectors = true)
+    private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ, bool clampToLinkedSectors = true)
     {
         // TODO fixme
         if (entity.Definition.Name.Equals("BulletPuff", StringComparison.OrdinalIgnoreCase))
@@ -507,7 +507,6 @@ public class PhysicsManager
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
 
-        object lastHighestFloorObject = entity.HighestFloorObject;
         SetEntityBoundsZ(entity, clampToLinkedSectors);
 
         double lowestCeil = entity.LowestCeilingZ;
@@ -536,7 +535,7 @@ public class PhysicsManager
             if (entity.OnEntity != null)
                 entity.OnEntity.OverEntity = entity;
 
-            SetEntityOnFloorOrEntity(entity, highestFloor, lastHighestFloorObject != entity.HighestFloorObject);
+            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ);
 
             if (clippedFloor)
             {
@@ -789,7 +788,7 @@ public class PhysicsManager
         Entity? currentOverEntity = entity.OverEntity;
 
         if (entity.OnEntity != null)
-            ClampBetweenFloorAndCeiling(entity.OnEntity);
+            ClampBetweenFloorAndCeiling(entity.OnEntity, smoothZ: false);
 
         while (currentOverEntity != null)
         {
@@ -1270,7 +1269,7 @@ public class PhysicsManager
         entity.SetZ(newZ, false);
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
-        ClampBetweenFloorAndCeiling(entity, entity.MoveLinked);
+        ClampBetweenFloorAndCeiling(entity, smoothZ: true, entity.MoveLinked);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
