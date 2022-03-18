@@ -94,10 +94,10 @@ public struct Seg2D
     }
     public double PerpDot(Vec3D point) => PerpDot(point.XY);
     public double PerpDot(Vector3D point) => PerpDot(point.XY);
-    public bool OnRight(Vec2D point) => PerpDot(point) < 0;
-    public bool OnRight(Vector2D point) => PerpDot(point) < 0;
-    public bool OnRight(Vec3D point) => PerpDot(point.XY) < 0;
-    public bool OnRight(Vector3D point) => PerpDot(point.XY) < 0;
+    public bool OnRight(Vec2D point) => PerpDot(point) <= 0;
+    public bool OnRight(Vector2D point) => PerpDot(point) <= 0;
+    public bool OnRight(Vec3D point) => PerpDot(point.XY) <= 0;
+    public bool OnRight(Vector3D point) => PerpDot(point.XY) <= 0;
     public bool OnRight(Seg2D seg) => OnRight(seg.Start) && OnRight(seg.End);
     public bool OnRight(Segment2D seg) => OnRight(seg.Start) && OnRight(seg.End);
     public bool OnRight<T>(SegmentT2D<T> seg) where T : Vector2D => OnRight(seg.Start) && OnRight(seg.End);
