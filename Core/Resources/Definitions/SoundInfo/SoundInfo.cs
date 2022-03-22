@@ -4,18 +4,21 @@ namespace Helion.Resources.Definitions.SoundInfo;
 
 public class SoundInfo
 {
+    public const int NoPitch = -1;
+
     public readonly string Name;
     public readonly string EntryName;
-    public readonly int PitchShiftRange;
     public readonly bool PlayerEntry;
-    public int Limit { get; set; } = 0;
-    public int PitchShift { get; set; } = 0;
 
-    public SoundInfo(string name, string entry, int pitchShiftRange, bool playerEntry = false)
+    public int PitchShift { get; set; }
+    public int Limit { get; set; } = 0;
+    public float PitchSet { get; set; }
+
+    public SoundInfo(string name, string entry, int pitchShift, bool playerEntry = false)
     {
         Name = name;
         EntryName = entry;
-        PitchShiftRange = pitchShiftRange;
+        PitchShift = pitchShift;
         PlayerEntry = playerEntry;
     }
 

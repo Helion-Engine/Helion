@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
@@ -241,14 +242,14 @@ public class SoundManager : IDisposable
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
         return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto, 
-            DataCache.Instance.GetSoundParams(soundSource, attenuation: Attenuation.None));
+            DataCache.Instance.GetSoundParams(soundSource, attenuation: Attenuation.None), out _);
     }
 
     protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound,
-        SoundChannelType channel, SoundParams soundParams)
+        SoundChannelType channel, SoundParams soundParams, out SoundInfo? soundInfo)
     {
         Precondition((int)channel < Entity.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
-        SoundInfo? soundInfo = GetSoundInfo(source, sound);
+        soundInfo = GetSoundInfo(source, sound);
         if (soundInfo == null)
         {
             DataCache.Instance.FreeSoundParams(soundParams);

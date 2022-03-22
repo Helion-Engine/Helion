@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
@@ -5,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
@@ -41,7 +43,59 @@ public class WorldSoundManager : SoundManager, ITickable
         if (!soundSource.CanMakeSound())
             return null;
 
-        return CreateSound(soundSource, soundSource.GetSoundPosition(m_world.ListenerEntity), soundSource.GetSoundVelocity(), sound, channel, soundParams);
+        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.ListenerEntity), soundSource.GetSoundVelocity(),
+            sound, channel, soundParams, out SoundInfo? soundInfo);
+        if (source == null)
+            return source;
+
+        if (soundInfo != null)
+            SetPitchModifiers(soundSource, source, soundInfo);
+
+        if (m_world.Config.Audio.Pitch != 1)
+            source.SetPitch(source.GetPitch() * (float)m_world.Config.Audio.Pitch);
+
+        return source;
+    }
+
+    private void SetPitchModifiers(ISoundSource soundSource, IAudioSource source, SoundInfo soundInfo)
+    {
+        bool pitchSet = soundInfo.PitchSet > 0;
+        if (pitchSet)
+        {
+            source.SetPitch(soundInfo.PitchSet);
+            return;
+        }
+
+        if (ShouldRandomizePitch(soundSource))
+        {
+            int pitchShift = 1 << soundInfo.PitchShift;
+            if (pitchShift > 1)
+                SetPitchShift(source, pitchShift);
+        }
+    }
+
+    private void SetPitchShift(IAudioSource source, int pitchShift)
+    {
+        // Doom's default pitch shift range is 4.
+        // Default add value is 16 and clamp value is 31.
+        // Saw is modified to 3 (with 8 add and 15 clamp).
+        const float NormalPitch = 128f;
+        int clamp = pitchShift * 2 - 1;
+        int rand = (int)Math.Clamp((m_world.Random.NextByte() & clamp) * m_world.Config.Audio.RandomPitchScale, 1, 255);
+        int add = (int)Math.Clamp(pitchShift * m_world.Config.Audio.RandomPitchScale, 1, 255);
+        float pitch = Math.Clamp(NormalPitch + add - rand, 0, 255);
+        source.SetPitch(pitch / NormalPitch);
+    }
+
+    private bool ShouldRandomizePitch(ISoundSource soundSource)
+    {
+        if (m_world.Config.Audio.RandomizePitch == RandomPitch.None)
+            return false;
+
+        if (m_world.Config.Audio.RandomizePitch == RandomPitch.All)
+            return true;
+
+        return soundSource is Entity entity && (entity.Flags.CountKill || entity.Flags.IsMonster);
     }
 
     protected override int GetPriority(ISoundSource soundSource, SoundInfo soundInfo, SoundParams soundParams)

@@ -202,7 +202,7 @@ public partial class ConsoleLayer
                     {
                         EmitMessage((Color.SaddleBrown, "Eligible values:"));
                         foreach (object? enumValue in Enum.GetValues(componentType))
-                            EmitMessage((Color.SaddleBrown, $"    {enumValue}"));
+                            EmitMessage((Color.SaddleBrown, $"    {(int)enumValue} ({enumValue})"));
                     }
                 }
                 else if (path.StartsWith(input, StringComparison.OrdinalIgnoreCase))

@@ -17,4 +17,13 @@ public class ConfigAudio
 
     [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
     public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
+
+    [ConfigInfo("Randomize sound pitch.")]
+    public readonly ConfigValue<RandomPitch> RandomizePitch = new(RandomPitch.None);
+
+    [ConfigInfo("Randomized pitch scale value.")]
+    public readonly ConfigValue<double> RandomPitchScale = new(1, Clamp(0.1, 10));
+
+    [ConfigInfo("Scale sound pitch.")]
+    public readonly ConfigValue<double> Pitch = new(1, Clamp(0.1, 10));
 }

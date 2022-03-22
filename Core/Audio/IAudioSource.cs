@@ -30,6 +30,9 @@ public interface IAudioSource : IDisposable
     /// </summary>
     void SetVelocity(Vec3F velocity);
 
+    float GetPitch();
+    void SetPitch(float pitch);
+
     AudioData AudioData { get; set; }
 
     /// <summary>

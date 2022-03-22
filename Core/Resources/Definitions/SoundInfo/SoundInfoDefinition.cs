@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 
@@ -34,7 +35,7 @@ public class SoundInfoDefinition
                 return null;
         }
 
-        if (name.StartsWith("player/", System.StringComparison.OrdinalIgnoreCase) &&
+        if (name.StartsWith("player/", StringComparison.OrdinalIgnoreCase) &&
             m_playerCompatLookup.TryGetValue(name, out string? playerCompat) && playerCompat != null)
             name = playerCompat;
 
@@ -47,7 +48,7 @@ public class SoundInfoDefinition
 
     public void Parse(string data)
     {
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.Parse(data);
 
         while (!parser.IsDone())
@@ -68,28 +69,96 @@ public class SoundInfoDefinition
     {
         string type = parser.ConsumeString();
 
-        if (type.Equals("$playercompat", StringComparison.OrdinalIgnoreCase))
+        if (type.EqualsIgnoreCase("$playercompat"))
             ParsePlayerCompat(parser);
-        else if (type.Equals("$playersound", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$playersound"))
             ParsePlayerSound(parser);
-        else if (type.Equals("$playersounddup", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$playersounddup"))
             ParsePlayerSoundDup(parser);
-        else if (type.Equals("$pitchshift", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$pitchshift"))
             ParsePitchShift(parser);
-        else if (type.Equals("$pitchshiftrange", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$pitchshiftrange"))
             m_pitchShiftRange = parser.ConsumeInteger();
-        else if (type.Equals("$alias", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$pitchset"))
+            ParsePitchSet(parser);
+        else if (type.EqualsIgnoreCase("$alias"))
             ParseAlias(parser);
-        else if (type.Equals("$limit", StringComparison.OrdinalIgnoreCase))
+        else if (type.Equals("$limit"))
             ParseLimit(parser);
-        else if (type.Equals("$random", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$random"))
             ParseRandom(parser);
-        else if (type.Equals("$rolloff", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$rolloff"))
             ParseRolloff(parser);
-        else if (type.Equals("$playeralias", StringComparison.OrdinalIgnoreCase))
+        else if (type.EqualsIgnoreCase("$playeralias"))
             ParsePlayerAlias(parser);
+        else if (type.EqualsIgnoreCase("$ambient"))
+            ParseAmbient(parser);
+        else if (type.EqualsIgnoreCase("$archivepath"))
+            ParseArchivePath(parser);
+        else if (type.EqualsIgnoreCase("$attenuation"))
+            ParseAttenuation(parser);
+        else if (type.EqualsIgnoreCase("$attenuation"))
+            ParseAttenuation(parser);
+        else if (type.EqualsIgnoreCase("$edfoverride"))
+            ParseIgnore(parser);
+        else if (type.EqualsIgnoreCase("$ifdoom"))
+            ParseIgnore(parser);
+        else if (type.EqualsIgnoreCase("$ifheretic"))
+            ParseIgnore(parser);
+        else if (type.EqualsIgnoreCase("$ifhexen"))
+            ParseIgnore(parser);
+        else if (type.EqualsIgnoreCase("$ifstrife"))
+            ParseIgnore(parser);
+        else if (type.EqualsIgnoreCase("$map"))
+            ParseIgnore(parser, 2);
+        else if (type.EqualsIgnoreCase("$mididevice"))
+            ParseIgnore(parser, 2);
+        else if (type.EqualsIgnoreCase("$musicalias"))
+            ParseIgnore(parser, 2);
+        else if (type.EqualsIgnoreCase("$musicvolume"))
+            ParseIgnore(parser, 2);
+        else if (type.EqualsIgnoreCase("$registered"))
+            ParseIgnore(parser, 0);
+        else if (type.EqualsIgnoreCase("$singular"))
+            ParseIgnore(parser, 1);
+        else if (type.EqualsIgnoreCase("$volume"))
+            ParseIgnore(parser, 2);
         else
             throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo - Bad command. {type}");
+    }
+
+    private void ParseIgnore(SimpleParser parser, int argCount = 0)
+    {
+        for (int i = 0; i < argCount; i++)
+            parser.ConsumeString();
+    }
+
+    private void ParseAttenuation(SimpleParser parser)
+    {
+        parser.ConsumeDouble();
+    }
+
+    private void ParseArchivePath(SimpleParser parser)
+    {
+        parser.ConsumeString();
+    }
+
+    private void ParseAmbient(SimpleParser parser)
+    {
+        // Not supported
+        int index = parser.ConsumeInteger();
+        string logicalSound = parser.ConsumeString();
+        string type = parser.ConsumeString();
+        string mode = parser.ConsumeString();
+        double volume = parser.ConsumeDouble();
+    }
+
+    private void ParsePitchSet(SimpleParser parser)
+    {
+        string key = parser.ConsumeString();
+        double pitch = parser.ConsumeDouble();
+        if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
+            soundInfo.PitchSet = (float)pitch;
     }
 
     private void ParsePlayerAlias(SimpleParser parser)

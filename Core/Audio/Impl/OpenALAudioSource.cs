@@ -92,6 +92,21 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Setting sound position");
     }
 
+    public float GetPitch()
+    {
+        OpenALDebug.Start("Getting sound position");
+        AL.GetSource(m_sourceId, ALSourcef.Pitch, out float pitch);
+        OpenALDebug.End("Getting sound position");
+        return pitch;
+    }
+
+    public void SetPitch(float pitch)
+    {
+        OpenALDebug.Start("Setting sound pitch");
+        AL.Source(m_sourceId, ALSourcef.Pitch, pitch);
+        OpenALDebug.End("Setting sound pitch");
+    }
+
     public Vec3F GetPosition()
     {
         OpenALDebug.Start("Getting sound position");
