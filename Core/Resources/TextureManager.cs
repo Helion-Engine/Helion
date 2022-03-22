@@ -266,7 +266,7 @@ public class TextureManager : ITickable
 
         foreach (var boomSwitch in m_archiveCollection.Definitions.BoomSwitches.Switches)
         {
-            AnimatedSwitch sw = new AnimatedSwitch(boomSwitch.Off);
+            AnimatedSwitch sw = new(boomSwitch.Off);
             sw.StartTextureIndex = GetTexture(sw.Texture, ResourceNamespace.Global).Index;
             sw.On.Add(new AnimatedTextureComponent(boomSwitch.On, 0, 0, GetTexture(boomSwitch.On, ResourceNamespace.Global).Index));
             sw.Off.Add(new AnimatedTextureComponent(boomSwitch.Off, 0, 0, GetTexture(boomSwitch.Off, ResourceNamespace.Global).Index));
@@ -288,11 +288,22 @@ public class TextureManager : ITickable
                 continue;
 
             foreach (var component in animTexture.Components)
-                component.TextureIndex = GetTexture(component.Texture, ResourceNamespace.Global).Index;
+            {
+                if (component.ConfiguredTextureIndex != Constants.NoTextureIndex)
+                {
+                    Texture texture = GetTexture(component.ConfiguredTexture, animTexture.Namespace);
+                    component.TextureIndex = texture.Index + component.ConfiguredTextureIndex - 1;
+                    component.Texture = GetTexture(component.TextureIndex).Name;
+                }
 
-            Animation animation = new Animation(animTexture, animTexture.Components[0].TextureIndex);
-            m_animations.Add(animation);
+                component.TextureIndex = GetTexture(component.Texture, animTexture.Namespace).Index;
+            }
+
+            Animation animation = new(animTexture, animTexture.Components[0].TextureIndex);
             CreateComponentAnimations(animation);
+
+            if (!HasAnimation(animTexture.Components[0].TextureIndex))
+                m_animations.Add(animation);
         }
     }
 
@@ -311,13 +322,13 @@ public class TextureManager : ITickable
             if (endIndex <= startIndex)
                 continue;
 
-            Animation animation = new Animation(new AnimatedTexture(GetTexture(startIndex).Name.ToString(), false, resNamespace), startIndex);
+            Animation animation = new(new AnimatedTexture(GetTexture(startIndex).Name, false, resNamespace), startIndex);
             m_animations.Add(animation);
 
             for (int i = startIndex; i <= endIndex; i++)
             {
                 Texture texture = GetTexture(i);
-                var component = new AnimatedTextureComponent(texture.Name.ToString(),
+                var component = new AnimatedTextureComponent(texture.Name,
                     animTexture.Tics, animTexture.Tics, textureIndex: i);
                 animation.AnimatedTexture.Components.Add(component);
             }
@@ -325,12 +336,16 @@ public class TextureManager : ITickable
             CreateComponentAnimations(animation);
         }
     }
+
     private void CreateComponentAnimations(Animation animation)
     {
         for (int i = 1; i < animation.AnimatedTexture.Components.Count; i++)
         {
             int nextAnimIndex = animation.AnimatedTexture.Components[i].TextureIndex;
-            Animation nextAnim = new Animation(new AnimatedTexture(GetTexture(nextAnimIndex).Name.ToString(), false,
+            if (HasAnimation(nextAnimIndex))
+                continue;
+
+            Animation nextAnim = new(new AnimatedTexture(GetTexture(nextAnimIndex).Name, false,
                 animation.AnimatedTexture.Namespace), nextAnimIndex);
             m_animations.Add(nextAnim);
 
@@ -342,6 +357,9 @@ public class TextureManager : ITickable
             }
         }
     }
+
+    private bool HasAnimation(int translationIndex) =>
+        m_animations.Any(x => x.TranslationIndex == translationIndex);
 
     private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries)
     {

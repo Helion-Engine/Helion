@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.Boom;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -16,10 +17,11 @@ public class AnimdefsParser
     public readonly IList<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
     public readonly IList<AnimatedWarpTexture> WarpTextures = new List<AnimatedWarpTexture>();
     public readonly IList<AnimatedCameraTexture> CameraTextures = new List<AnimatedCameraTexture>();
+    public readonly IList<BoomAnimatedTexture> BoomAnimatedTextures = new List<BoomAnimatedTexture>();
 
     public void Parse(Entry entry)
     {
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.Parse(entry.ReadDataAsString());
 
         while (!parser.IsDone())
@@ -129,7 +131,10 @@ public class AnimdefsParser
     private void ConsumePicOrRangeDefinition(SimpleParser parser, AnimatedTexture texture, bool isRange)
     {
         if (parser.PeekInteger(out _))
-            throw parser.MakeException("Animdefs texture/flat pic index type not supported currently");
+        {
+            ParseAnimatedIndex(parser, texture);
+            return;
+        }
 
         string name = parser.ConsumeString();
 
@@ -161,6 +166,14 @@ public class AnimdefsParser
         }
         else
             texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
+    }
+
+    private static void ParseAnimatedIndex(SimpleParser parser, AnimatedTexture texture)
+    {
+        int index = parser.ConsumeInteger();
+        parser.ConsumeString("tics");
+        int tics = parser.ConsumeInteger();
+        texture.Components.Add(new AnimatedTextureComponent(texture.Name, tics, tics, index));
     }
 
     private void ConsumeGraphicAnimation(SimpleParser parser, ResourceNamespace resourceNamespace)
