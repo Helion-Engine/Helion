@@ -23,13 +23,9 @@ public class Zdbsp
     public bool Run(string map, out string output)
     {
         output = string.Empty;
-        string? path = GetZdbspPath();
-        if (string.IsNullOrEmpty(path))
-            return false;
-
         ProcessStartInfo info = new()
         {
-            FileName = Path.Combine(path, "zdbsp.exe"),
+            FileName = Path.Combine("Managed", "zdbsp.exe"),
             Arguments = CreateArgs(map),
             UseShellExecute = false,
             RedirectStandardOutput = true,
@@ -51,24 +47,6 @@ public class Zdbsp
         output = sb.ToString();
         process.WaitForExit();
         return true;
-    }
-
-    private static string? GetZdbspPath()
-    {
-        string platform;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            platform = "win";
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            platform = "linux";
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            platform = "osx";
-        else
-            return null;
-
-        if (Environment.Is64BitOperatingSystem)
-            return Path.Combine("runtimes", $"{platform}-x64", "native");
-        else
-            return Path.Combine("runtimes", $"{platform}-x86", "native");
     }
 
     private string CreateArgs(string map)
