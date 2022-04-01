@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Helion.Audio;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NFluidsynth;
@@ -15,6 +16,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     private readonly Settings m_settings;
     private readonly IConfig m_config;
     private string m_lastDataHash = string.Empty;
+    private string m_lastFile = string.Empty;
     private Player? m_player;
     private Thread? m_thread;
     private bool m_disposed;
@@ -69,10 +71,13 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         Stop();
 
-        const string file = "temp.mid";
-        File.WriteAllBytes(file, data);
+        if (!string.IsNullOrEmpty(m_lastFile))
+            TempFileManager.DeleteFile(m_lastFile);
+
+        m_lastFile = TempFileManager.GetFile();
+        File.WriteAllBytes(m_lastFile, data);
         m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-        m_thread.Start(new PlayParams() { File = file, Loop = loop });
+        m_thread.Start(new PlayParams() { File = m_lastFile, Loop = loop });
 
         return true;
     }
