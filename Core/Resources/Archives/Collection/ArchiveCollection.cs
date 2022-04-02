@@ -284,21 +284,24 @@ public class ArchiveCollection : IResources
         ProcessAndIndexEntries(iwadArchive, m_archives);
         IWadType = GetIWadInfo().IWadBaseType;
 
-        // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
-        EntityDefinitionComposer.LoadAllDefinitions();
-        ApplyDehackedPatch();
-
-        if (dehackedPatch != null)
+        if (loadDefaultAssets)
         {
-            try
+            // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
+            EntityDefinitionComposer.LoadAllDefinitions();
+            ApplyDehackedPatch();
+
+            if (dehackedPatch != null)
             {
-                Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
-                ApplyDehackedPatch();
-            }
-            catch (IOException)
-            {
-                Log.Error($"Unable to open dehacked patch {dehackedPatch}");
-                return false;
+                try
+                {
+                    Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
+                    ApplyDehackedPatch();
+                }
+                catch (IOException)
+                {
+                    Log.Error($"Unable to open dehacked patch {dehackedPatch}");
+                    return false;
+                }
             }
         }
 
