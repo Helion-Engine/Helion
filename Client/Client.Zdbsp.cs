@@ -7,6 +7,7 @@ using Helion.Util;
 using System;
 using System.Diagnostics;
 using System.IO;
+using zdbspSharp;
 
 namespace Helion.Client;
 
@@ -34,14 +35,12 @@ public partial class Client
 
             Log.Info($"Building nodes [{map.Archive.OriginalFilePath}]...");
             m_stopwatch.Restart();
-            Zdbsp zdbsp = new(map.Archive.OriginalFilePath, outputFile);
-            zdbsp.Run(mapName, out string output);
+            if (!RunZdbsp(map.Archive.OriginalFilePath, mapName, outputFile))
+                return false;
 
             m_stopwatch.Stop();
             Log.Info($"Completed nodes {m_stopwatch.Elapsed}");
             Log.Debug("Zdbsp output:");
-            foreach (string line in output.Split(Environment.NewLine))
-                Log.Debug($"    {line}");
 
             m_lastMapName = mapInfoDef.MapName;
 
@@ -63,6 +62,32 @@ public partial class Client
         catch (Exception e)
         {
             Log.Error($"Zdbsp critical failure: {e.Message}");
+        }
+
+        return false;
+    }
+
+    private static bool RunZdbsp(string file, string map, string outputFile)
+    {
+        using FWadReader inwad = new(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        using FWadWriter outwad = new(File.Open(outputFile, FileMode.CreateNew), inwad.IsIWAD());
+
+        ProcessorOptions options = new()
+        {
+            GLOnly = true,
+            BuildGLNodes = true,
+            ConformNodes = false
+        };
+
+        int lumpCount = inwad.NumLumps();
+        for (int i = 0; i < lumpCount - 1; i++)
+        {
+            if (!inwad.IsMap(i) || !inwad.LumpName(i).EqualsIgnoreCase(map))
+                continue;
+
+            FProcessor builder = new(inwad, i, options);
+            builder.Write(outwad);
+            return true;
         }
 
         return false;
