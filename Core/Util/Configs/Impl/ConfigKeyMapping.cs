@@ -21,6 +21,8 @@ public class ConfigKeyMapping : IConfigKeyMapping
     private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
     private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
 
+    public Dictionary<Key, HashSet<string>> GetKeyToCommandsDictionary() => m_keyToCommands;
+
     public IReadOnlySet<string> this[Key key] =>
         m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ?
             commands :

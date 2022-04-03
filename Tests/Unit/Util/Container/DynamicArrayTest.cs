@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Helion.Util.Container;
+using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.Util.Container;
@@ -70,20 +71,20 @@ public class DynamicArrayTest
         array.Data.Should().Equal(1, -5, 4, default(int));
         int capacity = array.Capacity;
 
-        array.RemoveLast();
+        array.RemoveLast().Should().Be(4);
         array.Data.Should().Equal(1, -5, 4, default(int));
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(2);
 
-        array.RemoveLast();
-        array.RemoveLast();
+        array.RemoveLast().Should().Be(-5);
+        array.RemoveLast().Should().Be(1);
         array.Data.Should().Equal(1, -5, 4, default(int));
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(0);
 
-        // Last remove should not do anything.
-        array.RemoveLast();
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        // No more elements, RemoveLast should throw
+        Action a = () => array.RemoveLast();
+        a.Should().Throw<InvalidOperationException>();
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(0);
     }

@@ -83,12 +83,10 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Look up by key")]
     public void LookUpByKey()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.A, "first" },
-            { Key.A, "second" },
-            { Key.B, "third" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.A, "first");
+        keys.Add(Key.A, "second");
+        keys.Add(Key.B, "third");
 
         keys[Key.A].Should().Equal("first", "second");
         keys[Key.B].Should().Equal("third");
@@ -98,12 +96,10 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Look up by command")]
     public void LookUpByCommand()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.A, "first" },
-            { Key.A, "second" },
-            { Key.B, "first" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.A, "first");
+        keys.Add(Key.A, "second");
+        keys.Add(Key.B, "first");
 
         keys["first"].Should().Equal(Key.A, Key.B);
         keys["second"].Should().Equal(Key.A);
@@ -130,10 +126,9 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Can add existing key mapping to a new command")]
     public void AddExistingMappingNewCommand()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.A, "a" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.A, "a");
+
         keys[Key.A].Should().Equal("a");
         keys["a"].Should().Equal(Key.A);
 
@@ -146,10 +141,9 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Can add an existing command to a new key")]
     public void AddExistingMappingNewKey()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.A, "a" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.A, "a");
+
         keys[Key.A].Should().Equal("a");
         keys["a"].Should().Equal(Key.A);
 
@@ -162,10 +156,8 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Can consume a key press for a command")]
     public void CanConsumeKeyCommandPress()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.C, "something" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.C, "something");
 
         var input = Substitute.For<IConsumableInput>();
         input.ConsumeKeyPressed(Arg.Is(Key.C)).Returns(true);
@@ -177,10 +169,8 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Can consume key down for a command")]
     public void CanConsumeKeyDownCommand()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.C, "something" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.C, "something");
 
         var input = Substitute.For<IConsumableInput>();
         input.ConsumeKeyDown(Arg.Is(Key.C)).Returns(true);
@@ -192,12 +182,10 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Can unbind all")]
     public void CanUnbindAll()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.C, "something" },
-            { Key.C, "another" },
-            { Key.F, "something" },
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.C, "something");
+        keys.Add(Key.C, "another");
+        keys.Add(Key.F, "something");
 
         // Nothing changes if there's no binding.
         keys.UnbindAll(Key.A);
@@ -214,12 +202,10 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Unbind all marks change if key was bound")]
     public void UnbindAllMarksChangedIfKeyBound()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.C, "something" },
-            { Key.C, "another" },
-            { Key.F, "something" },
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.C, "something");
+        keys.Add(Key.C, "another");
+        keys.Add(Key.F, "something");
 
         keys.ClearChanged();
 
@@ -243,10 +229,8 @@ public class ConfigKeyMappingTest
     [Fact(DisplayName = "Adding a new command marks a change")]
     public void AddNewCommandMarksChanged()
     {
-        ConfigKeyMapping keys = new()
-        {
-            { Key.A, "yes" }
-        };
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.A, "yes");
         keys.ClearChanged();
         keys.Changed.Should().BeFalse();
 
@@ -268,7 +252,7 @@ public class ConfigKeyMappingTest
             foreach (string value in values)
                 keys.Add(key, value);
 
-        var actual = keys.ToDictionary();
+        var actual = keys.GetKeyToCommandsDictionary();
         actual.Count.Should().Be(expected.Count);
 
         foreach ((Key key, List<string> values) in expected)

@@ -36,7 +36,7 @@ public class ConfigAliasMappingTest
     {
         ConfigAliasMapping mapping = new(m_config);
 
-        Dictionary<string, IConfigValue> actual = mapping.ToDictionary();
+        Dictionary<string, IConfigValue> actual = mapping.GetDictionary();
         m_expectedMapping.Count.Should().Be(actual.Count);
 
         foreach ((string key, IConfigValue value) in m_expectedMapping)

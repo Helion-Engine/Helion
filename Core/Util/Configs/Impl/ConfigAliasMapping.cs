@@ -26,4 +26,6 @@ public class ConfigAliasMapping : IConfigAliasMapping
     {
         return m_nameToComponent.TryGetValue(name, out configValue);
     }
+
+    public Dictionary<string, IConfigValue> GetDictionary() => m_nameToComponent;
 }

@@ -49,16 +49,6 @@ public class LinkableListTest
         list.Contains(7).Should().BeFalse();
     }
 
-    [Fact(DisplayName = "Can iterate over list elements")]
-    public void IterateOver()
-    {
-        LinkableList<int> list = new();
-        list.Add(5);
-        list.Add(10);
-
-        list.ToList().Should().Equal(10, 5);
-    }
-
     [Fact(DisplayName = "Can unlink node from front")]
     public void CanUnlinkFront()
     {
