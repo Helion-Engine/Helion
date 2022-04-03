@@ -1,4 +1,4 @@
-// THIS FILE WAS AUTO-GENERATED.
+﻿// THIS FILE WAS AUTO-GENERATED.
 // CHANGES WILL NOT BE PROPAGATED.
 // ----------------------------------------------------------------------------
 
@@ -11,106 +11,106 @@ using Helion.Geometry.Vectors;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Geometry.Boxes;
-
-public class BoundingBox2F
+namespace Helion.Geometry.Boxes
 {
-    protected Vec2F m_Min;
-    protected Vec2F m_Max;
-
-    public Vec2F Min => m_Min;
-    public Vec2F Max => m_Max;
-    public Vec2F TopLeft => new(Min.X, Max.Y);
-    public Vec2F BottomLeft => Min;
-    public Vec2F BottomRight => new(Max.X, Min.Y);
-    public Vec2F TopRight => Max;
-    public float Top => Max.Y;
-    public float Bottom => Min.Y;
-    public float Left => Min.X;
-    public float Right => Max.X;
-    public float Width => Max.X - Min.X;
-    public float Height => Max.Y - Min.Y;
-    public Box2I Int => new(Min.Int, Max.Int);
-    public Box2D Double => new(Min.Double, Max.Double);
-    public Box2F Struct => new(Min, Max);
-    public Vec2F Sides => Max - Min;
-
-    public BoundingBox2F(Vec2F min, Vec2F max)
+    public class BoundingBox2F
     {
-        Precondition(min.X <= max.X, "Bounding box min X > max X");
-        Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+        protected Vec2F m_Min;
+        protected Vec2F m_Max;
 
-        m_Min = min;
-        m_Max = max;
-    }
+        public Vec2F Min => m_Min;
+        public Vec2F Max => m_Max;
+        public Vec2F TopLeft => new(Min.X, Max.Y);
+        public Vec2F BottomLeft => Min;
+        public Vec2F BottomRight => new(Max.X, Min.Y);
+        public Vec2F TopRight => Max;
+        public float Top => Max.Y;
+        public float Bottom => Min.Y;
+        public float Left => Min.X;
+        public float Right => Max.X;
+        public float Width => Max.X - Min.X;
+        public float Height => Max.Y - Min.Y;
+        public Box2I Int => new(Min.Int, Max.Int);
+        public Box2D Double => new(Min.Double, Max.Double);
+        public Box2F Struct => new(Min, Max);
+        public Vec2F Sides => Max - Min;
 
-    public BoundingBox2F(Vec2F min, Vector2F max)
-    {
-        Precondition(min.X <= max.X, "Bounding box min X > max X");
-        Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+        public BoundingBox2F(Vec2F min, Vec2F max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
-        m_Min = min;
-        m_Max = max.Struct;
-    }
+            m_Min = min;
+            m_Max = max;
+        }
 
-    public BoundingBox2F(Vector2F min, Vec2F max)
-    {
-        Precondition(min.X <= max.X, "Bounding box min X > max X");
-        Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+        public BoundingBox2F(Vec2F min, Vector2F max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
-        m_Min = min.Struct;
-        m_Max = max;
-    }
+            m_Min = min;
+            m_Max = max.Struct;
+        }
 
-    public BoundingBox2F(Vector2F min, Vector2F max)
-    {
-        Precondition(min.X <= max.X, "Bounding box min X > max X");
-        Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+        public BoundingBox2F(Vector2F min, Vec2F max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
-        m_Min = min.Struct;
-        m_Max = max.Struct;
-    }
+            m_Min = min.Struct;
+            m_Max = max;
+        }
 
-    public BoundingBox2F(Vec2F center, float radius)
-    {
-        Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+        public BoundingBox2F(Vector2F min, Vector2F max)
+        {
+            Precondition(min.X <= max.X, "Bounding box min X > max X");
+            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
-        m_Min = new(center.X - radius, center.Y - radius);
-        m_Max = new(center.X + radius, center.Y + radius);
-    }
+            m_Min = min.Struct;
+            m_Max = max.Struct;
+        }
 
-    public BoundingBox2F(Vector2F center, float radius)
-    {
-        Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+        public BoundingBox2F(Vec2F center, float radius)
+        {
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
 
-        m_Min = new(center.X - radius, center.Y - radius);
-        m_Max = new(center.X + radius, center.Y + radius);
-    }
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
+        }
 
-    public void Deconstruct(out Vec2F min, out Vec2F max)
-    {
-        min = Min;
-        max = Max;
-    }
+        public BoundingBox2F(Vector2F center, float radius)
+        {
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
 
-    public static Box2F operator *(BoundingBox2F self, float scale) => new(self.Min * scale, self.Max * scale);
-    public static Box2F operator /(BoundingBox2F self, float divisor) => new(self.Min / divisor, self.Max / divisor);
-    public static Box2F operator +(BoundingBox2F self, Vec2F offset) => new(self.Min + offset, self.Max + offset);
-    public static Box2F operator +(BoundingBox2F self, Vector2F offset) => new(self.Min + offset, self.Max + offset);
-    public static Box2F operator -(BoundingBox2F self, Vec2F offset) => new(self.Min - offset, self.Max - offset);
-    public static Box2F operator -(BoundingBox2F self, Vector2F offset) => new(self.Min - offset, self.Max - offset);
+            m_Min = new(center.X - radius, center.Y - radius);
+            m_Max = new(center.X + radius, center.Y + radius);
+        }
 
-    public bool Contains(Vec2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
-    public bool Contains(Vector2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
-    public bool Contains(Vec3F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
-    public bool Contains(Vector3F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
-    public bool Overlaps(in Box2F box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
-    public bool Overlaps(BoundingBox2F box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
-    public bool Intersects(Seg2F seg) => seg.Intersects(this);
-    public bool Intersects(Segment2F seg) => seg.Intersects(this);
-    public bool Intersects<T>(SegmentT2F<T> seg) where T : Vector2F => seg.Intersects(this);
-    public Seg2F GetSpanningEdge(Vector2F position) => GetSpanningEdge(position.Struct);
-    public Seg2F GetSpanningEdge(Vec2F position)
+        public void Deconstruct(out Vec2F min, out Vec2F max)
+        {
+            min = Min;
+            max = Max;
+        }
+
+        public static Box2F operator *(BoundingBox2F self, float scale) => new(self.Min * scale, self.Max * scale);
+        public static Box2F operator /(BoundingBox2F self, float divisor) => new(self.Min / divisor, self.Max / divisor);
+        public static Box2F operator +(BoundingBox2F self, Vec2F offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2F operator +(BoundingBox2F self, Vector2F offset) => new(self.Min + offset, self.Max + offset);
+        public static Box2F operator -(BoundingBox2F self, Vec2F offset) => new(self.Min - offset, self.Max - offset);
+        public static Box2F operator -(BoundingBox2F self, Vector2F offset) => new(self.Min - offset, self.Max - offset);
+
+        public bool Contains(Vec2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector2F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vec3F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Contains(Vector3F point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
+        public bool Overlaps(in Box2F box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        public bool Overlaps(BoundingBox2F box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
+        public bool Intersects(Seg2F seg) => seg.Intersects(this);
+        public bool Intersects(Segment2F seg) => seg.Intersects(this);
+        public bool Intersects<T>(SegmentT2F<T> seg) where T : Vector2F => seg.Intersects(this);
+        public Seg2F GetSpanningEdge(Vector2F position) => GetSpanningEdge(position.Struct);
+        public Seg2F GetSpanningEdge(Vec2F position)
         {
             // This is best understood by asking ourselves how we'd classify
             // where we are along a 1D line. Suppose we want to find out which
@@ -175,33 +175,34 @@ public class BoundingBox2F
             }
         }
 
-    public Box2F Combine(params Box2F[] boxes)
-    {
-        Vec2F min = Min;
-        Vec2F max = Max;
-        for (int i = 0; i < boxes.Length; i++)
+        public Box2F Combine(params Box2F[] boxes)
         {
-            Box2F box = boxes[i];
-            min.X = min.X.Min(box.Min.X);
-            min.Y = min.Y.Min(box.Min.Y);
-            max.X = max.X.Max(box.Max.X);
-            max.Y = max.Y.Max(box.Max.Y);
+            Vec2F min = Min;
+            Vec2F max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                Box2F box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+            }
+            return new(min, max);
         }
-        return new(min, max);
-    }
-    public Box2F Combine(params BoundingBox2F[] boxes)
-    {
-        Vec2F min = Min;
-        Vec2F max = Max;
-        for (int i = 0; i < boxes.Length; i++)
+        public Box2F Combine(params BoundingBox2F[] boxes)
         {
-            BoundingBox2F box = boxes[i];
-            min.X = min.X.Min(box.Min.X);
-            min.Y = min.Y.Min(box.Min.Y);
-            max.X = max.X.Max(box.Max.X);
-            max.Y = max.Y.Max(box.Max.Y);
+            Vec2F min = Min;
+            Vec2F max = Max;
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                BoundingBox2F box = boxes[i];
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+            }
+            return new(min, max);
         }
-        return new(min, max);
+        public override string ToString() => $"({Min}), ({Max})";
     }
-    public override string ToString() => $"({Min}), ({Max})";
 }

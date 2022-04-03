@@ -1,4 +1,4 @@
-// THIS FILE WAS AUTO-GENERATED.
+﻿// THIS FILE WAS AUTO-GENERATED.
 // CHANGES WILL NOT BE PROPAGATED.
 // ----------------------------------------------------------------------------
 
@@ -10,92 +10,93 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Util.Extensions;
 
-namespace Helion.Geometry.Vectors;
-
-public class Vector2Fixed
+namespace Helion.Geometry.Vectors
 {
-    public static readonly Vector2Fixed Zero = new(Fixed.Zero(), Fixed.Zero());
-    public static readonly Vector2Fixed One = new(Fixed.One(), Fixed.One());
-
-    public Fixed X;
-    public Fixed Y;
-
-    public Fixed U => X;
-    public Fixed V => Y;
-    public Vec2I Int => new(X.ToInt(), Y.ToInt());
-    public Vec2F Float => new(X.ToFloat(), Y.ToFloat());
-    public Vec2D Double => new(X.ToDouble(), Y.ToDouble());
-    public Vec2Fixed Struct => new(X, Y);
-    public IEnumerable<Fixed> Values => GetEnumerableValues();
-
-    public Vector2Fixed(Fixed x, Fixed y)
+    public class Vector2Fixed
     {
-        X = x;
-        Y = y;
-    }
+        public static readonly Vector2Fixed Zero = new(Fixed.Zero(), Fixed.Zero());
+        public static readonly Vector2Fixed One = new(Fixed.One(), Fixed.One());
 
-    public void Deconstruct(out Fixed x, out Fixed y)
-    {
-        x = X;
-        y = Y;
-    }
+        public Fixed X;
+        public Fixed Y;
 
-    public Fixed this[int index]
-    {
-        get
+        public Fixed U => X;
+        public Fixed V => Y;
+        public Vec2I Int => new(X.ToInt(), Y.ToInt());
+        public Vec2F Float => new(X.ToFloat(), Y.ToFloat());
+        public Vec2D Double => new(X.ToDouble(), Y.ToDouble());
+        public Vec2Fixed Struct => new(X, Y);
+        public IEnumerable<Fixed> Values => GetEnumerableValues();
+
+        public Vector2Fixed(Fixed x, Fixed y)
         {
-            return index switch
-            {
-                0 => X,
-                1 => Y,
-                _ => throw new IndexOutOfRangeException()
-            }
-            ;
+            X = x;
+            Y = y;
         }
-        set
+
+        public void Deconstruct(out Fixed x, out Fixed y)
         {
-            switch (index)
+            x = X;
+            y = Y;
+        }
+
+        public Fixed this[int index]
+        {
+            get
             {
-                case 0:
-                    X = value;
-                    break;
-                case 1:
-                    Y = value;
-                    break;
-                default:
-                    throw new IndexOutOfRangeException();
+                return index switch
+                {
+                    0 => X,
+                    1 => Y,
+                    _ => throw new IndexOutOfRangeException()
+                }
+                ;
+            }
+            set
+            {
+                switch (index)
+                {
+                    case 0:
+                        X = value;
+                        break;
+                    case 1:
+                        Y = value;
+                        break;
+                    default:
+                        throw new IndexOutOfRangeException();
+                }
             }
         }
+
+        public static Vec2Fixed operator -(Vector2Fixed self) => new(-self.X, -self.Y);
+        public static Vec2Fixed operator +(Vector2Fixed self, Vec2Fixed other) => new(self.X + other.X, self.Y + other.Y);
+        public static Vec2Fixed operator +(Vector2Fixed self, Vector2Fixed other) => new(self.X + other.X, self.Y + other.Y);
+        public static Vec2Fixed operator -(Vector2Fixed self, Vec2Fixed other) => new(self.X - other.X, self.Y - other.Y);
+        public static Vec2Fixed operator -(Vector2Fixed self, Vector2Fixed other) => new(self.X - other.X, self.Y - other.Y);
+        public static Vec2Fixed operator *(Vector2Fixed self, Vec2Fixed other) => new(self.X * other.X, self.Y * other.Y);
+        public static Vec2Fixed operator *(Vector2Fixed self, Vector2Fixed other) => new(self.X * other.X, self.Y * other.Y);
+        public static Vec2Fixed operator *(Vector2Fixed self, Fixed value) => new(self.X * value, self.Y * value);
+        public static Vec2Fixed operator *(Fixed value, Vector2Fixed self) => new(self.X * value, self.Y * value);
+        public static Vec2Fixed operator /(Vector2Fixed self, Vec2Fixed other) => new(self.X / other.X, self.Y / other.Y);
+        public static Vec2Fixed operator /(Vector2Fixed self, Vector2Fixed other) => new(self.X / other.X, self.Y / other.Y);
+        public static Vec2Fixed operator /(Vector2Fixed self, Fixed value) => new(self.X / value, self.Y / value);
+
+        public Vec2Fixed WithX(Fixed x) => new(x, Y);
+        public Vec2Fixed WithY(Fixed y) => new(X, y);
+        public Vec3Fixed To3D(Fixed z) => new(X, Y, z);
+
+        public Vec2Fixed Abs() => new(X.Abs(), Y.Abs());
+        public Fixed Dot(Vec2Fixed other) => (X * other.X) + (Y * other.Y);
+        public Fixed Dot(Vector2Fixed other) => (X * other.X) + (Y * other.Y);
+
+        private IEnumerable<Fixed> GetEnumerableValues()
+        {
+            yield return X;
+            yield return Y;
+        }
+
+        public override string ToString() => $"{X}, {Y}";
+        public override bool Equals(object? obj) => obj is Vector2Fixed v && X == v.X && Y == v.Y;
+        public override int GetHashCode() => HashCode.Combine(X, Y);
     }
-
-    public static Vec2Fixed operator -(Vector2Fixed self) => new(-self.X, -self.Y);
-    public static Vec2Fixed operator +(Vector2Fixed self, Vec2Fixed other) => new(self.X + other.X, self.Y + other.Y);
-    public static Vec2Fixed operator +(Vector2Fixed self, Vector2Fixed other) => new(self.X + other.X, self.Y + other.Y);
-    public static Vec2Fixed operator -(Vector2Fixed self, Vec2Fixed other) => new(self.X - other.X, self.Y - other.Y);
-    public static Vec2Fixed operator -(Vector2Fixed self, Vector2Fixed other) => new(self.X - other.X, self.Y - other.Y);
-    public static Vec2Fixed operator *(Vector2Fixed self, Vec2Fixed other) => new(self.X * other.X, self.Y * other.Y);
-    public static Vec2Fixed operator *(Vector2Fixed self, Vector2Fixed other) => new(self.X * other.X, self.Y * other.Y);
-    public static Vec2Fixed operator *(Vector2Fixed self, Fixed value) => new(self.X * value, self.Y * value);
-    public static Vec2Fixed operator *(Fixed value, Vector2Fixed self) => new(self.X * value, self.Y * value);
-    public static Vec2Fixed operator /(Vector2Fixed self, Vec2Fixed other) => new(self.X / other.X, self.Y / other.Y);
-    public static Vec2Fixed operator /(Vector2Fixed self, Vector2Fixed other) => new(self.X / other.X, self.Y / other.Y);
-    public static Vec2Fixed operator /(Vector2Fixed self, Fixed value) => new(self.X / value, self.Y / value);
-
-    public Vec2Fixed WithX(Fixed x) => new(x, Y);
-    public Vec2Fixed WithY(Fixed y) => new(X, y);
-    public Vec3Fixed To3D(Fixed z) => new(X, Y, z);
-
-    public Vec2Fixed Abs() => new(X.Abs(), Y.Abs());
-    public Fixed Dot(Vec2Fixed other) => (X * other.X) + (Y * other.Y);
-    public Fixed Dot(Vector2Fixed other) => (X * other.X) + (Y * other.Y);
-
-    private IEnumerable<Fixed> GetEnumerableValues()
-    {
-        yield return X;
-        yield return Y;
-    }
-
-    public override string ToString() => $"{X}, {Y}";
-    public override bool Equals(object? obj) => obj is Vector2Fixed v && X == v.X && Y == v.Y;
-    public override int GetHashCode() => HashCode.Combine(X, Y);
 }

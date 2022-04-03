@@ -9,11 +9,11 @@ public class PrimitiveExtensionsGenerator
     {
         string primitive = type.PrimitiveType().ToLower();
 
-        if (type.IsSigned())
-        {
-            w.WriteLine($"public static bool DifferentSign(this {primitive} first, {primitive} second) => (first ^ second) < 0;");
-            w.WriteLine();
-        }
+        //if (type.IsSigned())
+        //{
+        //    w.WriteLine($"public static bool DifferentSign(this {primitive} first, {primitive} second) => (first ^ second) < 0;");
+        //    w.WriteLine();
+        //}
 
         if (type.IsFloatingPointPrimitive())
         {
