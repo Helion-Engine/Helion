@@ -97,6 +97,8 @@ public class IWadInfo
         VanillaCompatibility = vanillaCompatibility;
     }
 
+    public static IWadInfo GetIWadInfo(IWadType type) => InfoFromType(type);
+
     public static IWadInfo GetIWadInfo(string fileName)
     {
         string? md5 = Files.CalculateMD5(fileName);
@@ -106,6 +108,11 @@ public class IWadInfo
         if (!MD5Lookup.TryGetValue(md5, out IWadType iwadType))
             return DefaultIWadInfo;
 
+        return InfoFromType(iwadType);
+    }
+
+    private static IWadInfo InfoFromType(IWadType iwadType)
+    {
         IWadBaseType baseType = (IWadBaseType)iwadType;
         if (iwadType == IWadType.DoomShareware || iwadType == IWadType.DoomRegistered)
             baseType = IWadBaseType.Doom1;

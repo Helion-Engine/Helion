@@ -118,14 +118,19 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.WR_OpenDoorFastClose:
             case VanillaLineSpecialType.SR_OpenDoorClose:
             case VanillaLineSpecialType.SR_OpenDoorFastClose:
-            case VanillaLineSpecialType.S1_OpenDoorClose:
-            case VanillaLineSpecialType.S1_OpenDoorFastClose:
             case VanillaLineSpecialType.DR_OpenDoorFastClose:
             case VanillaLineSpecialType.W1_OpenDoorFastClose:
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                 argsToMutate.Arg2 = GetDelay(type);
                 lineFlags.Activations |= LineActivations.Monster;
+                return ZDoomLineSpecialType.DoorOpenClose;
+
+            case VanillaLineSpecialType.S1_OpenDoorClose:
+            case VanillaLineSpecialType.S1_OpenDoorFastClose:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                argsToMutate.Arg2 = GetDelay(type);
                 return ZDoomLineSpecialType.DoorOpenClose;
 
             case VanillaLineSpecialType.W1_CloseDoor:

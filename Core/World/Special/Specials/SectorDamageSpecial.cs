@@ -7,6 +7,10 @@ namespace Helion.World.Special.Specials;
 
 public class SectorDamageSpecial
 {
+    public int Damage => m_damage;
+    public int RadSuitLeakChance => m_radSuitLeakChance;
+    public bool AlwaysDamage => m_alwaysDamage;
+
     protected readonly IWorld m_world;
     protected readonly Sector m_sector;
     protected readonly int m_damage;

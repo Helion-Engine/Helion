@@ -18,10 +18,13 @@ public class SectorMoveSpecial : ISectorSpecial
     public SectorPlane SectorPlane { get; protected set; }
     public bool IsPaused { get; private set; }
     public SectorMoveStatus MoveStatus { get; private set; }
+    public MoveDirection MoveDirection => m_direction;
+    public int DelayTics { get; protected set; }
+    public double MoveSpeed => m_speed;
+    public bool IsCrushing => m_crushing;
 
     protected readonly IWorld m_world;
     protected double DestZ;
-    protected int DelayTics;
 
     private readonly double m_startZ;
     private readonly double m_minZ;

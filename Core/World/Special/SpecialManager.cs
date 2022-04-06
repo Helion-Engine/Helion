@@ -207,6 +207,36 @@ public class SpecialManager : ITickable, IDisposable
         m_specials.AddLast(special);
     }
 
+    public ISpecial? FindSpecialBySector(Sector sector)
+    {
+        var node = m_specials.First;
+        while (node != null)
+        {
+            if (node.Value is SectorSpecialBase sectorSpecial && sectorSpecial.Sector.Id == sector.Id)
+                return sectorSpecial;
+            else if (node.Value is SectorMoveSpecial moveSpecial && moveSpecial.Sector.Id == sector.Id)
+                return moveSpecial;
+
+            node = node.Next;
+        }
+
+        return null;
+    }
+
+    public bool RemoveSpecial(ISpecial special)
+    {
+        if (!m_specials.Remove(special))
+            return false;
+
+        if (special is ISectorSpecial sectorSpecial)
+        {
+            m_destroyedMoveSpecials.Add(sectorSpecial);
+            sectorSpecial.Sector.ClearActiveMoveSpecial();
+        }
+
+        return true;
+    }
+
     public void AddSpecialModels(IList<ISpecialModel> specialModels)
     {
         for (int i = 0; i < specialModels.Count; i++)

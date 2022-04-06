@@ -55,6 +55,9 @@ public partial class Entity
 
     public bool SetNewTarget(bool allaround)
     {
+        if (IsFrozen)
+            return false;
+
         Entity? newTarget = null;
         if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
         {
@@ -236,7 +239,7 @@ public partial class Entity
 
     public bool MoveEnemy(out TryMoveData? tryMove)
     {
-        if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
+        if (m_direction == MoveDir.None || (!Flags.Float && !OnGround) || IsFrozen)
         {
             tryMove = null;
             return false;
