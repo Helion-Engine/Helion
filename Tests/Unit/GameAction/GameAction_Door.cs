@@ -69,6 +69,9 @@ namespace Helion.Tests.Unit.GameAction
                 doorSector.Ceiling.Z.Should().Be(z);
             });
 
+            if (moveTicks == 0)
+                world.Tick();
+
             doorSector.ActiveCeilingMove.Should().BeNull();
         }
 
