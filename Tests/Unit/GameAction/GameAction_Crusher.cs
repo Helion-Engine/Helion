@@ -2,20 +2,35 @@
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using Helion.World.Special.Specials;
 
 namespace Helion.Tests.Unit.GameAction
 {
     public static partial class GameActions
     {
-        public static void RunCrusherCeiling(WorldBase world, Sector sector, int speed, bool slowDownOnCrush)
+        public static void RunCrusherCeiling(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true) =>
+            RunCrusherPlane(world, sector, sector.Ceiling, speed, slowDownOnCrush, destZ, repeat);
+
+        public static void RunCrusherFloor(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true) =>
+            RunCrusherPlane(world, sector, sector.Floor, speed, slowDownOnCrush, destZ, repeat);
+
+        public static void RunCrusherPlane(WorldBase world, Sector sector, SectorPlane plane, int speed, bool slowDownOnCrush,
+            double setDestZ = double.MaxValue, bool repeat = true)
         {
-            var moveSpecial = sector.ActiveCeilingMove!;
-            moveSpecial.MoveDirection.Should().Be(MoveDirection.Down);
-            double floorZ = sector.Floor.Z + 8;
-            double move = GetMovementPerTick(speed);
+            var moveSpecial = (sector.GetActiveMoveSpecial(plane)! as SectorMoveSpecial)!;
+            MoveDirection startDir = sector.Ceiling.Equals(plane) ? MoveDirection.Down : MoveDirection.Up;
+            MoveDirection altDir = startDir == MoveDirection.Down ? MoveDirection.Up : MoveDirection.Down;
+            moveSpecial.MoveDirection.Should().Be(startDir);
+
+            double destZ = moveSpecial.MoveDirection == MoveDirection.Down ? sector.Floor.Z + 8 : sector.Ceiling.Z - 8;
+            if (setDestZ != double.MaxValue)
+                destZ = setDestZ;
+            double move = startDir == MoveDirection.Down ? -GetMovementPerTick(speed) : GetMovementPerTick(speed);
+            double slowMove = startDir == MoveDirection.Down ? -0.1 : 0.1;
+
             bool isCrushing = false;
 
-            TickWorld(world, () => { return sector.Ceiling.Z != floorZ; }, () =>
+            TickWorld(world, () => { return plane.Z != destZ; }, () =>
             {
                 // Crusher will slow down once hitting a thing until it returns.
                 if (slowDownOnCrush && !isCrushing)
@@ -24,7 +39,7 @@ namespace Helion.Tests.Unit.GameAction
                     while (node != null)
                     {
                         var entity = node.Value;
-                        if (!entity.IsDead && entity.IsCrushing())
+                        if (entity.Flags.Shootable && entity.IsCrushing())
                         {
                             isCrushing = true;
                             break;
@@ -35,9 +50,9 @@ namespace Helion.Tests.Unit.GameAction
                 }
 
                 if (isCrushing)
-                    moveSpecial.MoveSpeed.Should().Be(-0.1);
+                    moveSpecial.MoveSpeed.Should().Be(slowMove);
                 else
-                    moveSpecial.MoveSpeed.Should().Be(-move);
+                    moveSpecial.MoveSpeed.Should().Be(move);
             });
 
             var node = sector.Entities.Head;
@@ -47,17 +62,24 @@ namespace Helion.Tests.Unit.GameAction
                 node = node.Next;
             }
 
+            if (!repeat)
+            {
+                sector.GetActiveMoveSpecial(plane).Should().BeNull();
+                return;
+            }
+
             // Crushers keep moving
+            move = -move;
             moveSpecial.Should().NotBeNull();
-            moveSpecial.MoveDirection.Should().Be(MoveDirection.Up);
+            moveSpecial.MoveDirection.Should().Be(altDir);
             moveSpecial.MoveSpeed.Should().Be(move);
 
             // Check alternating movement
-            TickWorld(world, () => { return moveSpecial.MoveDirection == MoveDirection.Up; }, 
+            TickWorld(world, () => { return moveSpecial.MoveDirection == altDir; }, 
                 () => { });
 
             moveSpecial.Should().NotBeNull();
-            moveSpecial.MoveDirection.Should().Be(MoveDirection.Down);
+            moveSpecial.MoveDirection.Should().Be(startDir);
         }
     }
 }

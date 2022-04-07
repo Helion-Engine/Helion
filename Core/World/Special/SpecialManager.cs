@@ -223,6 +223,20 @@ public class SpecialManager : ITickable, IDisposable
         return null;
     }
 
+    public ScrollSpecial? FindLineScrollSpecial(Line line)
+    {
+        var node = m_specials.First;
+        while (node != null)
+        {
+            if (node.Value is ScrollSpecial scrollSpecial && scrollSpecial.Line != null && scrollSpecial.Line.Id == line.Id)
+                return scrollSpecial;
+
+            node = node.Next;
+        }
+
+        return null;
+    }
+
     public bool RemoveSpecial(ISpecial special)
     {
         if (!m_specials.Remove(special))
