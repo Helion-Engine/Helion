@@ -907,6 +907,10 @@ namespace Helion.Tests.Unit.GameAction
             else
                 GameActions.RunFloorRaise(World, sector, 80, 8, isSpecDestroyed: false);
 
+            // Monsters can't deactivate
+            GameActions.EntityCrossLine(World, Monster, DeactivateLine);
+            special.IsPaused.Should().BeFalse();
+
             GameActions.EntityCrossLine(World, Player, DeactivateLine, forceActivation: true);
             special.Should().NotBeNull();
             special.IsPaused.Should().BeTrue();
@@ -1310,5 +1314,245 @@ namespace Helion.Tests.Unit.GameAction
             sector.Floor.LightLevel.Should().Be(96);
             sector.Ceiling.LightLevel.Should().Be(96);
         }
+
+        [Fact(DisplayName = "Doom Action 82 (WR) Lower floor to lowest")]
+        public void Action82()
+        {
+            const int Line = 1731;
+            Sector sector = GameActions.GetSectorByTag(World, 82);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunFloorLower(World, sector, 0, 8);
+                sector.Floor.Z = 64;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 83 (WR) Lower floor to highest")]
+        public void Action83()
+        {
+            const int Line = 1753;
+            Sector sector = GameActions.GetSectorByTag(World, 83);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunFloorLower(World, sector, 64, 8);
+                sector.Floor.Z = 96;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 84 (WR) Lower floor to lowest tx")]
+        public void Action84()
+        {
+            const int Line = 1775;
+            Sector sector = GameActions.GetSectorByTag(World, 84);
+            GameActions.CheckPlaneTexture(World, sector.Floor, "FLAT14");
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunFloorLower(World, sector, -32, 8);
+                GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR0_1");
+                sector.Floor.Z = 64;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 86 (WR) Open door")]
+        public void Action86()
+        {
+            const int DoorLine = 323;
+            Sector sector = GameActions.GetSectorByTag(World, 86);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
+                GameActions.RunDoorOpenStay(World, sector, 128, VanillaConstants.DoorSlowSpeed);
+                sector.Ceiling.Z = 0;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 88 (WR) Start moving floor")]
+        public void Action87()
+        {
+            const int Line = 1801;
+            Sector sector = GameActions.GetSectorByTag(World, 87);
+            sector.ActiveFloorMove.Should().BeNull();
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line);
+                GameActions.RunPerpetualMovingFloor(World, sector, 0, 96, 8, VanillaConstants.LiftDelay);
+                World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+                sector.Floor.Z = 64;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 89 (WR) Stop moving floor")]
+        public void Action89()
+        {
+            const int ActivateLine = 1801;
+            const int DeactivateLine = 1799;
+            Sector sector = GameActions.GetSectorByTag(World, 87);
+            sector.ActiveFloorMove.Should().BeNull();
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, ActivateLine);
+
+                sector.ActiveFloorMove.Should().NotBeNull();
+                var special = sector.ActiveFloorMove!;
+
+                // Start direction is randomized
+                MoveDirection dir = special.MoveDirection;
+
+                // Only move partially
+                if (dir == MoveDirection.Down)
+                    GameActions.RunFloorLower(World, sector, 32, 8, isSpecDestroyed: false);
+                else
+                    GameActions.RunFloorRaise(World, sector, 80, 8, isSpecDestroyed: false);
+
+                // Monsters can't deactivate
+                GameActions.EntityCrossLine(World, Monster, DeactivateLine);
+                special.IsPaused.Should().BeFalse();
+
+                GameActions.EntityCrossLine(World, Player, DeactivateLine);
+                special.Should().NotBeNull();
+                special.IsPaused.Should().BeTrue();
+
+                World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+                sector.Floor.Z = 64;
+            }
+        }
+
+        [Fact(DisplayName = "Doom Action 88 (WR) Lift")]
+        public void Action88()
+        {
+            const int Line = 2628;
+            Sector sector = GameActions.GetSectorByTag(World, 88);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunLift(World, sector, 64, 0, VanillaConstants.LiftFastSpeed, VanillaConstants.LiftDelay);
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, true);
+        }
+
+        [Fact(DisplayName = "Doom Action 90 (WR) Door open close")]
+        public void Action90()
+        {
+            const int Line = 301;
+            Sector sector = GameActions.GetSectorByTag(World, 90);
+            sector.ActiveCeilingMove.Should().BeNull();
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunDoorOpenClose(World, sector, 128, VanillaConstants.DoorSlowSpeed);
+            }
+        }
+
+        [Fact(DisplayName = "Doom Action 91 (WR) Raise floor to lowest ceiling")]
+        public void Action91()
+        {
+            const int Line = 1836;
+            Sector sector = GameActions.GetSectorByTag(World, 91);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunFloorRaise(World, sector, 64, 8);
+                sector.Floor.Z = 8;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 92 (WR) Raise floor 24")]
+        public void Action92()
+        {
+            const int Line = 1847;
+            Sector sector = GameActions.GetSectorByTag(World, 92);
+
+            double destZ = 8;
+            for (int i = 0; i < 4; i++)
+            {
+                destZ += 24;
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunFloorRaise(World, sector, destZ, 8);
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 93 (WR) Raise floor 24 tx ty")]
+        public void Action93()
+        {
+            const int Line = 1843;
+            Sector sector = GameActions.GetSectorByTag(World, 93);
+            GameActions.CheckPlaneTexture(World, sector.Floor, "FLAT14");
+            sector.SectorDamageSpecial.Should().BeNull();
+
+            double destZ = -24;
+            for (int i = 0; i < 4; i++)
+            {
+                destZ += 24;
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR1_6");
+                sector.SectorDamageSpecial.Should().NotBeNull();
+                sector.SectorDamageSpecial!.Damage.Should().Be(5);
+                GameActions.RunFloorRaise(World, sector, destZ, 8);
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 94 (WR) Fast crusher ceiling")]
+        public void Action94()
+        {
+            const int Line = 1874;
+            Sector sector = GameActions.GetSectorByTag(World, 94);
+
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunCrusherFloor(World, sector, 8, slowDownOnCrush: false, destZ: 112, repeat: false);
+                sector.Floor.Z = 8;
+            }
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 95 (WR) Raise floor to next higher")]
+        public void Action95()
+        {
+            const int Line = 1900;
+            Sector sector = GameActions.GetSectorByTag(World, 95);
+            sector.ActiveFloorMove.Should().BeNull();
+
+            GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+            GameActions.RunFloorRaise(World, sector, 32, 4);
+
+            GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+            GameActions.RunFloorRaise(World, sector, 64, 4);
+
+            GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+            sector.ActiveFloorMove.Should().BeNull();
+
+            GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
     }
-}           
+}
