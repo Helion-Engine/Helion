@@ -9,6 +9,9 @@ public class ConfigGame
     [ConfigInfo("If the player should always run.")]
     public readonly ConfigValue<bool> AlwaysRun = new(true);
 
+    [ConfigInfo("If the player should automatically use lines when bumping.")]
+    public readonly ConfigValue<bool> BumpUse = new(false);
+
     [ConfigInfo("Whether vertical autoaiming should be used.")]
     public readonly ConfigValue<bool> AutoAim = new(true);
 

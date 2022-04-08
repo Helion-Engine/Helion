@@ -109,6 +109,7 @@ public abstract partial class WorldBase : IWorld
     private int m_exitTicks;
     private int m_easyBossBrain;
     private int m_soundCount;
+    private int m_lastBumpActivateGametick = 0;
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
@@ -600,36 +601,36 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < intersections.Count; i++)
         {
             BlockmapIntersect bi = intersections[i];
-            if (bi.Line != null)
+            if (bi.Line == null)
+                continue;
+
+            if (bi.Line.Segment.OnRight(start))
             {
-                if (bi.Line.Segment.OnRight(start))
+                if (bi.Line.HasSpecial)
+                    activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
+
+                if (activateSuccess && !bi.Line.Flags.PassThrough)
+                    break;
+
+                if (bi.Line.Back == null)
                 {
-                    if (bi.Line.HasSpecial)
-                        activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
+                    hitBlockLine = true;
+                    break;
+                }
+            }
 
-                    if (activateSuccess && !bi.Line.Flags.PassThrough)
-                        break;
-
-                    if (bi.Line.Back == null)
-                    {
-                        hitBlockLine = true;
-                        break;
-                    }
+            if (bi.Line.Back != null)
+            {
+                LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
+                if (opening.OpeningHeight <= 0)
+                {
+                    hitBlockLine = true;
+                    break;
                 }
 
-                if (bi.Line.Back != null)
-                {
-                    LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
-                    if (opening.OpeningHeight <= 0)
-                    {
-                        hitBlockLine = true;
-                        break;
-                    }
-
-                    // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
-                    if (!opening.CanPassOrStepThrough(entity))
-                        hitBlockLine = true;
-                }
+                // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
+                if (!opening.CanPassOrStepThrough(entity))
+                    hitBlockLine = true;
             }
         }
 
@@ -640,6 +641,48 @@ public abstract partial class WorldBase : IWorld
 
         return activateSuccess;
     }
+
+    private void PlayerBumpUse(Entity entity)
+    {
+        if (Gametick - m_lastBumpActivateGametick < 16)
+            return;
+
+        bool shouldUse = false;
+        Vec2D start = entity.Position.XY;
+        Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+
+        for (int i = 0; i < intersections.Count; i++)
+        {
+            BlockmapIntersect bi = intersections[i];
+            if (bi.Line == null)
+                continue;
+
+            bool specialActivate = bi.Line.HasSpecial && bi.Line.Segment.OnRight(start);
+            if (specialActivate)
+                shouldUse = true;
+
+            if (bi.Line.Back == null)
+                continue;
+
+            // This is mostly for doors. They can be reversed so ignore it if it's in motion.
+            if (specialActivate && SideHasActiveMove(bi.Line.Back.Sector))
+            {
+                shouldUse = false;
+                break;
+            }
+        }
+
+        if (shouldUse)
+        {
+            EntityUse(entity);
+            m_lastBumpActivateGametick = Gametick;
+        }
+
+        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+    }
+
+    private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
 
     public bool CanActivate(Entity entity, Line line, ActivationContext context)
     {
@@ -1025,6 +1068,9 @@ public abstract partial class WorldBase : IWorld
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
                 ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall);
+
+            if (entity.IsPlayer && Config.Game.BumpUse)
+                PlayerBumpUse(entity);
         }
 
         if (entity.ShouldDieOnCollison())
