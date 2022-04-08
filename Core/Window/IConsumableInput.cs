@@ -25,5 +25,6 @@ public interface IConsumableInput
     bool HasAnyKeyPressed();
     ReadOnlySpan<char> ConsumeTypedCharacters();
     Vec2I ConsumeMouseMove();
+    Vec2I GetMouseMove();
     int ConsumeScroll();
 }

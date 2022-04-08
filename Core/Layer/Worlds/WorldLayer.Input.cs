@@ -128,6 +128,10 @@ public partial class WorldLayer
         foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
             if (IsCommandDown(command, input))
                 m_tickCommand.Add(tickCommand, true);
+
+        int yMove = input.GetMouseMove().Y;
+        if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
+            m_tickCommand.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
     }
 
     private void ChangeHudSize(bool increase)

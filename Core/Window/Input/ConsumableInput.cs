@@ -117,6 +117,8 @@ public class ConsumableInput : IConsumableInput
         return result;
     }
 
+    public Vec2I GetMouseMove() => m_mouseMove;
+
     public int ConsumeScroll()
     {
         int result = m_mouseScroll;

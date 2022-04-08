@@ -23,6 +23,9 @@ public class ConfigMouse
     [ConfigInfo("A scale for both the pitch and yaw, meaning this affects both axes.")]
     public readonly ConfigValue<double> Sensitivity = new(1.0);
 
+    [ConfigInfo("Forward/backward movement speed.")]
+    public readonly ConfigValue<double> ForwardBackwardSpeed = new(0, GreaterOrEqual(0.0));
+
     [ConfigInfo("The horizontal sensitivity. This is multiplied by the sensitivity value for a final calculation.")]
     public readonly ConfigValue<double> Yaw = new(1.0);
 }
