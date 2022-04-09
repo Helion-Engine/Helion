@@ -249,6 +249,14 @@ namespace Helion.Tests.Unit.GameAction
             player.Inventory.Remove(item, 1);
         }
 
+        public static double MoveZ(double z, double move, double dest)
+        {
+            if (move < 0)
+                return Math.Clamp(z + move, dest, double.MaxValue);
+
+            return Math.Clamp(z + move, double.MinValue, dest);
+        }
+
         public static SinglePlayerWorld LoadMap(string resourceZip, string mapName, 
             IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium)
         {

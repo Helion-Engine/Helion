@@ -61,7 +61,7 @@ namespace Helion.Tests.Unit.GameAction
 
             TickWorld(world, moveTicks, () =>
             {
-                z += move;
+                z = MoveZ(z, move, destZ);
                 plane.Z.Should().Be(z);
             });
 

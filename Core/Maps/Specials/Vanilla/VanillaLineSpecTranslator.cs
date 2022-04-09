@@ -112,8 +112,14 @@ public static class VanillaLineSpecTranslator
                 HandleDoor(type, tag, ref argsToMutate, ref compatibility);
                 return ZDoomLineSpecialType.DoorLockedRaise;
 
-            case VanillaLineSpecialType.W1_DoorOpenClose:
             case VanillaLineSpecialType.DR_DoorOpenClose:
+            case VanillaLineSpecialType.W1_DoorOpenClose:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = GetSectorMoveSpeed(type);
+                argsToMutate.Arg2 = GetDelay(type);
+                lineFlags.Activations |= LineActivations.Monster;
+                return ZDoomLineSpecialType.DoorOpenClose;
+
             case VanillaLineSpecialType.WR_OpenDoorClose:
             case VanillaLineSpecialType.WR_OpenDoorFastClose:
             case VanillaLineSpecialType.SR_OpenDoorClose:
@@ -123,7 +129,6 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                 argsToMutate.Arg2 = GetDelay(type);
-                lineFlags.Activations |= LineActivations.Monster;
                 return ZDoomLineSpecialType.DoorOpenClose;
 
             case VanillaLineSpecialType.S1_OpenDoorClose:

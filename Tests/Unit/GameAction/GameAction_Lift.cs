@@ -14,17 +14,18 @@ namespace Helion.Tests.Unit.GameAction
             double z = sector.Floor.Z;
 
             int moveTicks = CalculateMoveTicks(z, destZ, speed);
-            double move = GetMovementPerTick(speed);
+            double move = -GetMovementPerTick(speed);
 
             TickWorld(world, moveTicks, () =>
             {
-                z -= move;
+                z = MoveZ(z, move, destZ);
                 sector.Floor.Z.Should().Be(z);
             });
 
             if (delay > 0)
             {
-                sector.ActiveFloorMove.DelayTics.Should().Be(delay);
+                sector.ActiveFloorMove.Should().NotBeNull();
+                sector.ActiveFloorMove!.DelayTics.Should().Be(delay);
 
                 TickWorld(world, delay, () =>
                 {
@@ -32,10 +33,11 @@ namespace Helion.Tests.Unit.GameAction
                 });
             }
 
+            move = -move;
             moveTicks = CalculateMoveTicks(sector.Floor.Z, startZ, speed);
             TickWorld(world, moveTicks, () =>
             {
-                z += move;
+                z = MoveZ(z, move, startZ);
                 sector.Floor.Z.Should().Be(z);
             });
 
