@@ -4,6 +4,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Resources;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -205,7 +206,26 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, true);
         }
 
-        // Action11 is EndLevel
+        [Fact(DisplayName = "Doom Action 11 (S) End level")]
+        public void Action11()
+        {
+            bool exited = false;
+            World.LevelExit += World_LevelExit;
+
+            const int Line = 4159;
+            GameActions.EntityUseLine(World, Player, Line);
+            GameActions.TickWorld(World, 35);
+            World.LevelExit -= World_LevelExit;
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                exited = true;
+                e.ChangeType.Should().Be(LevelChangeType.Next);
+            }
+
+            exited.Should().BeTrue();
+        }
 
         [Fact(DisplayName = "Doom Action 12 (W1) Light level match brightest adjacent")]
         public void Action12()
@@ -866,8 +886,68 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.CheckMonsterUseActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
         }
 
-        // Action51 is EndLevel
-        // Action52 is EndLevel
+        [Fact(DisplayName = "Doom Action 51 (S) End level secret")]
+        public void Action51()
+        {
+            bool exited = false;
+            World.LevelExit += World_LevelExit;
+
+            const int Line = 4161;
+            GameActions.EntityUseLine(World, Player, Line);
+            GameActions.TickWorld(World, 35);
+            World.LevelExit -= World_LevelExit;
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                exited = true;
+                e.ChangeType.Should().Be(LevelChangeType.SecretNext);
+            }
+
+            exited.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Doom Action 52 (W) End level")]
+        public void Action52()
+        {
+            bool exited = false;
+            World.LevelExit += World_LevelExit;
+
+            const int Line = 4129;
+            GameActions.EntityCrossLine(World, Player, Line);
+            GameActions.TickWorld(World, 35);
+            World.LevelExit -= World_LevelExit;
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                exited = true;
+                e.ChangeType.Should().Be(LevelChangeType.Next);
+            }
+
+            exited.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Doom Action 124 (W) End level secret 2")]
+        public void Action124()
+        {
+            bool exited = false;
+            World.LevelExit += World_LevelExit;
+
+            const int Line = 4135;
+            GameActions.EntityCrossLine(World, Player, Line);
+            GameActions.TickWorld(World, 35);
+            World.LevelExit -= World_LevelExit;
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                exited = true;
+                e.ChangeType.Should().Be(LevelChangeType.SecretNext);
+            }
+
+            exited.Should().BeTrue();
+        }
 
         [Fact(DisplayName = "Doom Action 53 (W1) Start moving floor")]
         public void Action53()
@@ -1198,7 +1278,8 @@ namespace Helion.Tests.Unit.GameAction
             for (int i = 0; i < 2; i++)
             {
                 GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
-                GameActions.RunDoorClose(World, sector, 0, VanillaConstants.DoorSlowSpeed);
+                GameActions.RunDoorClose(World, sector, 0, VanillaConstants.DoorSlowSpeed, false);
+                sector.Ceiling.Z = 120;
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);

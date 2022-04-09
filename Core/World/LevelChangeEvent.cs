@@ -8,6 +8,7 @@ public class LevelChangeEvent
     public readonly LevelChangeType ChangeType;
     public readonly int LevelNumber = 1;
     public readonly WorldModel? WorldModel;
+    public bool Cancel { get; set; } = false;
 
     public LevelChangeEvent(LevelChangeType levelChangeType)
     {

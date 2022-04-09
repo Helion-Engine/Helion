@@ -286,8 +286,12 @@ public abstract partial class WorldBase : IWorld
             m_exitTicks--;
             if (m_exitTicks == 0)
             {
-                LevelExit?.Invoke(this, new LevelChangeEvent(m_levelChangeType));
-                WorldState = WorldState.Exited;
+                LevelChangeEvent changeEvent = new(m_levelChangeType);
+                LevelExit?.Invoke(this, changeEvent);
+                if (changeEvent.Cancel)
+                    WorldState = WorldState.Normal;
+                else
+                    WorldState = WorldState.Exited;
             }
         }
         else if (WorldState == WorldState.Normal)

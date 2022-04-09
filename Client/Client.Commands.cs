@@ -306,7 +306,7 @@ public partial class Client
 
     private void World_LevelExit(object? sender, LevelChangeEvent e)
     {
-        if (sender is not IWorld world)
+        if (sender is not IWorld world || e.Cancel)
             return;
 
         if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
