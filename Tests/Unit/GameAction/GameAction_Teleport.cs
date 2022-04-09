@@ -14,5 +14,13 @@ namespace Helion.Tests.Unit.GameAction
             entity.Sector.Id.Should().Be(sector.Id);
             entity.Position.Should().Be(teleportLanding.Position);
         }
+
+        public static void CheckNoTeleport(WorldBase world, Entity entity, Sector sector, int teleportLandingId)
+        {
+            Entity teleportLanding = GetEntity(world, teleportLandingId);
+            world.Tick();
+            entity.Sector.Id.Should().NotBe(sector.Id);
+            entity.Position.Should().NotBe(teleportLanding.Position);
+        }
     }
 }

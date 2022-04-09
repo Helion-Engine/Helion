@@ -219,7 +219,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public static void CheckNoReactivateEntityUse(WorldBase world, Entity entity, int lineId, Sector sector, SectorPlane plane)
         {
-            EntityUseLine(world, entity, lineId);
+            EntityUseLine(world, entity, lineId).Should().BeFalse();
             sector.GetActiveMoveSpecial(plane).Should().BeNull();
         }
 
