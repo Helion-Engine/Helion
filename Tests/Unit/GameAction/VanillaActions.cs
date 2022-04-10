@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.Vanilla;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -15,9 +14,7 @@ using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using MoreLinq;
-using System;
 using System.Drawing;
-using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction

@@ -3,7 +3,6 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
-using System;
 
 namespace Helion.Tests.Unit.GameAction
 {
