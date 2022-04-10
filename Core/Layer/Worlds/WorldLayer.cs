@@ -118,7 +118,7 @@ public partial class WorldLayer : IGameLayerParent
         }
     }
 
-    private static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
+    public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
         Player? existingPlayer, WorldModel? worldModel)
     {

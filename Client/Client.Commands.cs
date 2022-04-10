@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Helion.Bsp.Zdbsp;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Worlds;
@@ -29,6 +30,7 @@ public partial class Client
     private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
     private GlobalData m_globalData = new();
+    private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
 
     [ConsoleCommand(Constants.ConsoleCommands.Commands, "Lists all available commands.")]
@@ -258,7 +260,7 @@ public partial class Client
             return;
         }
 
-        if (!RunZdbsp(map, map.Name, mapInfoDef, out map))
+        if (!m_zdbsp.RunZdbsp(map, map.Name, mapInfoDef, out map))
         {
             Log.Error("Failed to run zdbsp.");
             return;
@@ -304,7 +306,7 @@ public partial class Client
 
     private void World_LevelExit(object? sender, LevelChangeEvent e)
     {
-        if (sender is not IWorld world)
+        if (sender is not IWorld world || e.Cancel)
             return;
 
         if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))

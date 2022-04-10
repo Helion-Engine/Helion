@@ -74,6 +74,7 @@ public class ArchiveCollection : IResources
     private string m_lastLoadedMapName = string.Empty;
     private IMap? m_lastLoadedMap;
     private bool m_lastLoadedMapIsTemp;
+    private IWadInfo? m_overrideIWadInfo;
 
     public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
     {
@@ -379,6 +380,9 @@ public class ArchiveCollection : IResources
 
     private IWadInfo GetIWadInfo()
     {
+        if (m_overrideIWadInfo != null)
+            return m_overrideIWadInfo;
+
         return IWad?.IWadInfo ?? IWadInfo.DefaultIWadInfo;
     }
 
@@ -417,6 +421,19 @@ public class ArchiveCollection : IResources
 
         Log.Info("Loaded {0}", filePath);
         return archive;
+    }
+
+    // Really only intended for unit tests
+    public void LoadIWadInfo(IWadType type)
+    {
+        IWadInfo info = IWadInfo.GetIWadInfo(type);
+        m_overrideIWadInfo = info;
+        var archive = Assets;
+        if (archive == null)
+            return;
+
+        Definitions.LoadMapInfo(archive, m_overrideIWadInfo.MapInfoResource);
+        Definitions.LoadDecorate(archive, m_overrideIWadInfo.DecorateResource);
     }
 
     private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)

@@ -12,6 +12,11 @@ public class LightStrobeSpecial : SectorSpecialBase
     private readonly int m_darkTics;
     private int m_delay;
 
+    public short MaxBright => m_maxBright;
+    public short MinBright => m_minBright;
+    public int BrightTicks => m_brightTics;
+    public int DarkTicks => m_darkTics;
+
     public LightStrobeSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
          : base(world, sector)
     {

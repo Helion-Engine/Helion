@@ -28,6 +28,8 @@ public class TextureManager : ITickable
     public static TextureManager Instance { get; private set; } = null!;
 
     public string SkyTextureName { get; set; }
+    public bool UnitTest { get; set; }
+    public int NullCompatibilityTextureIndex { get; set; } = 1;
 
     private TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
     {
@@ -146,6 +148,9 @@ public class TextureManager : ITickable
         if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
             return m_textures[Constants.NoTextureIndex];
 
+        if (UnitTest)
+            HandleUnitTestAdd(name, resourceNamespace);
+
         Texture? texture;
         if (resourceNamespace == ResourceNamespace.Global)
         {
@@ -170,6 +175,28 @@ public class TextureManager : ITickable
             return texture!;
 
         return m_textures[Constants.NoTextureIndex];
+    }
+
+    private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
+    {
+        Texture? addedTexture = null;
+        // Have to set indicies even if texture doesn't exist. Otherwise stair builder testing will break because it depends on the texture.
+        if (resourceNamespace == ResourceNamespace.Flats && !m_flatLookup.ContainsKey(name))
+        {
+            addedTexture = new Texture(name, resourceNamespace, m_textures.Count);
+            m_flatLookup[name] = addedTexture;
+        }
+        else if (!m_textureLookup.ContainsKey(name))
+        {
+            addedTexture = new Texture(name, resourceNamespace, m_textures.Count);
+            m_textureLookup[name] = addedTexture;
+        }
+
+        if (addedTexture != null)
+        {
+            m_textures.Add(addedTexture);
+            m_translations.Add(m_translations.Count);
+        }
     }
 
     private bool TryCreateTextureFromPatch(string name, out Texture? texture)
@@ -209,8 +236,8 @@ public class TextureManager : ITickable
     {
         if (index == Constants.NoTextureIndex)
         {
-            Util.Assertion.Assert.Invariant(m_textures.Count > 1, "Invalid textures count");
-            return m_textures[m_translations[1]];
+            Util.Assertion.Assert.Invariant(m_textures.Count > NullCompatibilityTextureIndex, "Invalid textures count");
+            return m_textures[m_translations[NullCompatibilityTextureIndex]];
         }
 
         return m_textures[m_translations[index]];

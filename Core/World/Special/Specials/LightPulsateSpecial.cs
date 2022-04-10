@@ -8,15 +8,15 @@ public class LightPulsateSpecial : SectorSpecialBase
 {
     private const int DoomPulsateValue = 8;
 
-    private readonly short m_maxBright;
-    private readonly short m_minBright;
+    public readonly short MaxBright;
+    public readonly short MinBright;
     private int m_inc;
 
     public LightPulsateSpecial(IWorld world, Sector sector, short minLightLevel)
          : base(world, sector)
     {
-        m_maxBright = sector.LightLevel;
-        m_minBright = minLightLevel;
+        MaxBright = sector.LightLevel;
+        MinBright = minLightLevel;
 
         m_inc = -DoomPulsateValue;
     }
@@ -24,8 +24,8 @@ public class LightPulsateSpecial : SectorSpecialBase
     public LightPulsateSpecial(IWorld world, Sector sector, LightPulsateSpecialModel model)
          : base(world, sector)
     {
-        m_maxBright = model.Max;
-        m_minBright = model.Min;
+        MaxBright = model.Max;
+        MinBright = model.Min;
         m_inc = model.Inc;
     }
 
@@ -34,8 +34,8 @@ public class LightPulsateSpecial : SectorSpecialBase
         return new LightPulsateSpecialModel()
         {
             SectorId = Sector.Id,
-            Max = m_maxBright,
-            Min = m_minBright,
+            Max = MaxBright,
+            Min = MinBright,
             Inc = m_inc
         };
     }
@@ -43,10 +43,10 @@ public class LightPulsateSpecial : SectorSpecialBase
     public override SpecialTickStatus Tick()
     {
         int lightLevel = Sector.LightLevel + m_inc;
-        lightLevel = MathHelper.Clamp(lightLevel, m_minBright, short.MaxValue);
+        lightLevel = MathHelper.Clamp(lightLevel, MinBright, short.MaxValue);
         Sector.SetLightLevel((short)lightLevel, World.Gametick);
 
-        if ((m_inc < 0 && Sector.LightLevel <= m_minBright) || (m_inc > 0 && Sector.LightLevel >= m_maxBright))
+        if ((m_inc < 0 && Sector.LightLevel <= MinBright) || (m_inc > 0 && Sector.LightLevel >= MaxBright))
             m_inc = -m_inc;
 
         return SpecialTickStatus.Continue;

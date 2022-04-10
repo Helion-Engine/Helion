@@ -19,10 +19,12 @@ public enum ScrollType
     Carry
 }
 
-class ScrollSpecial : ISpecial
+public class ScrollSpecial : ISpecial
 {
     public readonly SectorPlane? SectorPlane;
     public readonly Line? Line;
+
+    public Vec2D Speed => m_speed;
 
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
