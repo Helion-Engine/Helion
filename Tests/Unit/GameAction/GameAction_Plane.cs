@@ -2,6 +2,7 @@
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,10 +20,10 @@ namespace Helion.Tests.Unit.GameAction
             RunPlane(world, ceilingSector, destZ, speed, MoveDirection.Down, ceilingSector.Ceiling, isSpecDestroyed);
 
         // Does not verify speeds, returns when there are no ActiveFloorMove or ActiveCeilingMove attached to the sectors.
-        public static void RunSectorPlaneSpecials(WorldBase world, IEnumerable<Sector> sectors)
+        public static void RunSectorPlaneSpecials(WorldBase world, IEnumerable<Sector> sectors, Action? onTick = null)
         {
             TickWorld(world, () => { return sectors.Any(x => x.ActiveFloorMove != null || x.ActiveCeilingMove != null); },
-                () => { });
+                () => { onTick?.Invoke(); });
         }
 
         public static void RunPerpetualMovingFloor(WorldBase world, Sector sector, double lowZ, double highZ, int speed, int delay)

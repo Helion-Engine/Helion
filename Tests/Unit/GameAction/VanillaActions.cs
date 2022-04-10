@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -45,6 +46,10 @@ namespace Helion.Tests.Unit.GameAction
             SetUnitTestTextures();
             CheatManager.Instance.ActivateCheat(Player, CheatType.God);
             StaticWorld = World;
+
+            int[] pauseSectors = new int[] { 726, 643 };
+            foreach (int sector in pauseSectors)
+                GameActions.GetSector(World, sector).ActiveCeilingMove?.Pause();
         }
 
         private static void SetUnitTestTextures()
@@ -150,7 +155,7 @@ namespace Helion.Tests.Unit.GameAction
             Sector sector = GameActions.GetSectorByTag(World, 5);
             sector.ActiveFloorMove.Should().NotBeNull();
 
-            GameActions.RunFloorRaise(World, sector, 64, VanillaConstants.SectorSlowSpeed);
+            GameActions.RunFloorRaise(World, sector, 64, 8);
 
             GameActions.CheckNoReactivateEntityCross(World, Player, Line, sector, sector.Floor);
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -164,7 +169,7 @@ namespace Helion.Tests.Unit.GameAction
             Sector sector = GameActions.GetSectorByTag(World, 6);
             sector.ActiveCeilingMove.Should().NotBeNull();
 
-            GameActions.RunCrusherCeiling(World, sector, VanillaConstants.SectorFastSpeed, false);
+            GameActions.RunCrusherCeiling(World, sector, 16, false);
         }
 
         [Fact(DisplayName = "Doom Action 7 (S1) Raise stairs 8")]
@@ -173,7 +178,7 @@ namespace Helion.Tests.Unit.GameAction
             const int Line = 2957;
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
             int[] stairIds = new int[] { 663, 664, 665, 661 };
-            GameActions.RunStairs(World, stairIds, 8, 8, VanillaConstants.StairSlowSpeed);
+            GameActions.RunStairs(World, stairIds, 8, 8, 2);
         }
 
         [Fact(DisplayName = "Doom Action 8 (W1) Raise stairs 8")]
@@ -182,7 +187,7 @@ namespace Helion.Tests.Unit.GameAction
             const int Line = 2870;
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
             int[] stairIds = new int[] { 650, 651, 652, 648 };
-            GameActions.RunStairs(World, stairIds, 0, 8, VanillaConstants.StairSlowSpeed);
+            GameActions.RunStairs(World, stairIds, 0, 8, 2);
         }
 
         [Fact(DisplayName = "Doom Action 9 (S1) Donut")]
@@ -190,7 +195,30 @@ namespace Helion.Tests.Unit.GameAction
         {
             const int Line = 815;
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
-            // TODO
+            var lowerSector = GameActions.GetSector(World, 220);
+            var raiseSector = GameActions.GetSector(World, 219);
+            GameActions.CheckPlaneTexture(World, lowerSector.Floor, "SLIME15");
+            GameActions.CheckPlaneTexture(World, raiseSector.Floor, "NUKAGE1");
+            raiseSector.SectorDamageSpecial.Should().NotBeNull();
+            raiseSector.SectorDamageSpecial!.Damage.Should().Be(10);
+
+            Sector[] sectors = new[] { lowerSector, raiseSector };
+            GameActions.RunSectorPlaneSpecials(World, sectors, () =>
+            {
+                if (raiseSector.Floor.Z != 0)
+                {
+                    GameActions.CheckPlaneTexture(World, raiseSector.Floor, "NUKAGE1");
+                    raiseSector.SectorDamageSpecial.Should().NotBeNull();
+                    raiseSector.SectorDamageSpecial!.Damage.Should().Be(10);
+                }
+            });
+
+            GameActions.CheckPlaneTexture(World, lowerSector.Floor, "SLIME15");
+            GameActions.CheckPlaneTexture(World, raiseSector.Floor, "FLOOR0_1");
+            raiseSector.SectorDamageSpecial.Should().BeNull();
+
+            GameActions.CheckNoReactivateEntityUse(World, Player, Line, lowerSector, lowerSector.Floor);
+            GameActions.CheckMonsterUseActivation(World, Monster, Line, lowerSector, lowerSector.Floor, false);
         }
 
         [Fact(DisplayName = "Doom Action 10 (W1) Lift")]
@@ -280,7 +308,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
 
-            GameActions.RunFloorRaise(World, sector, 16, VanillaConstants.FloorSlowSpeed);
+            GameActions.RunFloorRaise(World, sector, 16, 4);
             GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR1_6");
         }
 
@@ -294,7 +322,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
 
-            GameActions.RunFloorRaise(World, sector, 8, VanillaConstants.FloorSlowSpeed);
+            GameActions.RunFloorRaise(World, sector, 8, 4);
             GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR1_6");
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -344,7 +372,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
 
-            GameActions.RunFloorRaise(World, sector, 64, VanillaConstants.SectorSlowSpeed);
+            GameActions.RunFloorRaise(World, sector, 64, 8);
             GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Floor, false);
         }
 
@@ -357,7 +385,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
 
-            GameActions.RunFloorLower(World, sector, 64, VanillaConstants.SectorSlowSpeed);
+            GameActions.RunFloorLower(World, sector, 64, 8);
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
         }
 
@@ -372,7 +400,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
             GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR1_6");
 
-            GameActions.RunFloorRaise(World, sector, 32, VanillaConstants.FloorSlowSpeed);
+            GameActions.RunFloorRaise(World, sector, 32, 4);
             GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Floor, false);
         }
 
@@ -1700,24 +1728,27 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
         }
 
-        // TODO wtf?
-        //[Fact(DisplayName = "Doom Action 26 (SR) Door blue key")]
-        //public void Action99()
-        //{
-        //    const string KeyCard = "BlueCard";
-        //    const int Line = 366;
-        //    GameActions.EntityUseLine(World, Player, Line).Should().BeFalse();
-        //    Sector sector = GameActions.GetSectorByTag(World, 99);
-        //    sector.ActiveCeilingMove.Should().BeNull();
+        [Fact(DisplayName = "Doom Action 99 (SR) Door blue key")]
+        public void Action99()
+        {
+            const string KeyCard = "BlueCard";
+            const int Line = 366;
+            GameActions.EntityUseLine(World, Player, Line).Should().BeFalse();
+            Sector sector = GameActions.GetSectorByTag(World, 99);
+            sector.ActiveCeilingMove.Should().BeNull();
 
-        //    GameActions.GiveItem(Player, KeyCard);
-        //    GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
-        //    sector.ActiveCeilingMove.Should().NotBeNull();
+            GameActions.GiveItem(Player, KeyCard);
+            for (int i = 0; i < 2; i++)
+            {
+                GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
+                GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
+                sector.Ceiling.Z = 0;
+            }
 
-        //    GameActions.RemoveItem(Player, KeyCard);
-        //    GameActions.RunDoorOpenClose(World, sector, 128, VanillaConstants.DoorFastSpeed);
-        //    GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Ceiling, false);
-        //}
+            GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Ceiling, false);
+            GameActions.RemoveItem(Player, KeyCard);
+        }
+
 
         [Fact(DisplayName = "Doom Action 100 (W1) Raise stairs fast 16")]
         public void Action100()
@@ -1725,7 +1756,7 @@ namespace Helion.Tests.Unit.GameAction
             const int Line = 2896;
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
             int[] stairIds = new int[] { 657, 658, 659, 655 };
-            GameActions.RunStairs(World, stairIds, 0, 16, VanillaConstants.StairSlowSpeed);
+            GameActions.RunStairs(World, stairIds, 0, 16, 2);
 
             var sector = GameActions.GetSector(World, 657);
             GameActions.CheckNoReactivateEntityCross(World, Player, Line, sector, sector.Floor);
@@ -2328,6 +2359,233 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.CheckNoReactivateEntityUse(World, Player, Line, sector, sector.Floor);
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
+        }
+
+        [Fact(DisplayName = "Doom Action 141 (W1) Quiet crusher ceiling")]
+        public void Action141()
+        {
+            const int Line = 3240;
+            GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
+            Sector sector = GameActions.GetSectorByTag(World, 141);
+            sector.ActiveCeilingMove.Should().NotBeNull();
+
+            GameActions.RunCrusherCeiling(World, sector, 8, true);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 1 - Lights blink random")]
+        public void SectorType1()
+        {
+            var sector = GameActions.GetSector(World, 779);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightFlickerDoomSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 2 - Lights strobe")]
+        public void SectorType2()
+        {
+            var sector = GameActions.GetSector(World, 780);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightStrobeSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+            light!.BrightTicks.Should().Be(5);
+            light!.DarkTicks.Should().Be(15);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 3 - Lights strobe")]
+        public void SectorType3()
+        {
+            var sector = GameActions.GetSector(World, 781);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightStrobeSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+            light!.BrightTicks.Should().Be(5);
+            light!.DarkTicks.Should().Be(35);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 4 - Lights blink random")]
+        public void SectorType4()
+        {
+            var sector = GameActions.GetSector(World, 791);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightStrobeSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(192);
+            light!.MinBright.Should().Be(0);
+            light!.BrightTicks.Should().Be(5);
+            light!.DarkTicks.Should().Be(35);
+
+            sector.SectorDamageSpecial.Should().NotBeNull();
+            sector.SectorDamageSpecial!.Damage.Should().Be(20);
+            sector.SectorDamageSpecial!.RadSuitLeakChance.Should().Be(5);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 5 - 5/10% damage")]
+        public void SectorType5()
+        {
+            var sector = GameActions.GetSector(World, 792);
+            sector.SectorDamageSpecial.Should().NotBeNull();
+            sector.SectorDamageSpecial!.Damage.Should().Be(10);
+            sector.SectorDamageSpecial!.RadSuitLeakChance.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 7 - 2/5% damage")]
+        public void SectorType7()
+        {
+            var sector = GameActions.GetSector(World, 793);
+            sector.SectorDamageSpecial.Should().NotBeNull();
+            sector.SectorDamageSpecial!.Damage.Should().Be(5);
+            sector.SectorDamageSpecial!.RadSuitLeakChance.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 8 - Lights pulsate")]
+        public void SectorType8()
+        {
+            var sector = GameActions.GetSector(World, 782);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightPulsateSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 9 - Secret")]
+        public void SectorType9()
+        {
+            var sector = GameActions.GetSector(World, 804);
+            sector.Secret.Should().BeTrue();
+            World.LevelStats.SecretCount.Should().Be(0);
+            World.LevelStats.TotalSecrets.Should().Be(1);
+
+            GameActions.SetEntityToLine(World, Player, 3972, 64);
+            World.Tick();
+            World.LevelStats.SecretCount.Should().Be(1);
+            World.LevelStats.TotalSecrets.Should().Be(1);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 10 - Door close 30 seconds")]
+        public void SectorType10()
+        {
+            // This sector is paused on test init so it can be resumed and tested here.
+            int delaySeconds = 35 * 30;
+            var sector = GameActions.GetSector(World, 726);
+            sector.ActiveCeilingMove.Should().NotBeNull();
+            var special = sector.ActiveCeilingMove!;
+            special.DelayTics.Should().Be(delaySeconds);
+            special.Resume();
+            GameActions.TickWorld(World, delaySeconds);
+            GameActions.RunDoorClose(World, sector, 0, 16);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 11 - 10/20% damage end level")]
+        public void SectorType11()
+        {
+            bool exited = false;
+            var sector = GameActions.GetSector(World, 794);
+            sector.SectorDamageSpecial.Should().NotBeNull();
+            sector.SectorDamageSpecial!.Damage.Should().Be(20);
+            sector.SectorDamageSpecial!.RadSuitLeakChance.Should().Be(0);
+
+            World.LevelExit += World_LevelExit;
+
+            GameActions.SetEntityToLine(World, Player, 3866, 64);
+            Player.Sector.Id.Should().Be(794);
+            Player.IsDead.Should().BeFalse();
+
+            // Player in god mode should still take damage in this special.
+            GameActions.TickWorld(World, () => { return !exited; }, () => { });
+            Player.Health.Should().Be(1);
+            exited.Should().BeTrue();
+            World.LevelExit -= World_LevelExit;
+
+            void World_LevelExit(object? sender, LevelChangeEvent e)
+            {
+                e.Cancel = true;
+                exited = true;
+                e.ChangeType.Should().Be(LevelChangeType.Next);
+            }
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 12 - Lights strobe 1 second")]
+        public void SectorType12()
+        {
+            var sector = GameActions.GetSector(World, 783);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightStrobeSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+            light!.DarkTicks.Should().Be(35);
+            light!.BrightTicks.Should().Be(5);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 13 - Lights strobe 1/4 second")]
+        public void SectorType13()
+        {
+            var sector = GameActions.GetSector(World, 784);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightStrobeSpecial;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(128);
+            light!.DarkTicks.Should().Be(15);
+            light!.BrightTicks.Should().Be(5);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 14 - Door open and close 5 minutes")]
+        public void SectorType14()
+        {
+            // This sector is paused on test init so it can be resumed and tested here.
+            int delaySeconds = 35 * 60 * 5;
+            var sector = GameActions.GetSector(World, 643);
+            sector.ActiveCeilingMove.Should().NotBeNull();
+            var special = sector.ActiveCeilingMove!;
+            special.DelayTics.Should().Be(delaySeconds);
+            special.Resume();
+            GameActions.TickWorld(World, delaySeconds);
+            GameActions.RunDoorOpenClose(World, sector, 0, 128, 16);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 16 - 10/20% damage")]
+        public void SectorType16()
+        {
+            var sector = GameActions.GetSector(World, 795);
+            sector.SectorDamageSpecial.Should().NotBeNull();
+            sector.SectorDamageSpecial!.Damage.Should().Be(20);
+            sector.SectorDamageSpecial!.RadSuitLeakChance.Should().Be(5);
+        }
+
+        [Fact(DisplayName = "Doom Sector Type 17 - Lights flicker")]
+        public void SectorType17()
+        {
+            var sector = GameActions.GetSector(World, 785);
+            ISpecial? special = World.SpecialManager.FindSpecialBySector(sector);
+            special.Should().NotBeNull();
+
+            var light = special as LightFireFlickerDoom;
+            light.Should().NotBeNull();
+            light!.MaxBright.Should().Be(256);
+            light!.MinBright.Should().Be(144);
         }
     }
 }

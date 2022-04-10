@@ -6,25 +6,26 @@ namespace Helion.World.Special.Specials;
 
 public class LightFireFlickerDoom : SectorSpecialBase
 {
+    public readonly short MinBright;
+    public readonly short MaxBright;
+
     private readonly IRandom m_random;
-    private readonly short m_minBright;
-    private readonly short m_maxBright;
     private int m_delay;
 
     public LightFireFlickerDoom(IWorld world, Sector sector, IRandom random, short minLightLevel)
         : base(world, sector)
     {
         m_random = random;
-        m_minBright = (short)(minLightLevel + 16);
-        m_maxBright = Sector.LightLevel;
+        MinBright = (short)(minLightLevel + 16);
+        MaxBright = Sector.LightLevel;
     }
 
     public LightFireFlickerDoom(IWorld world, Sector sector, IRandom random, LightFireFlickerDoomModel model)
         : base(world, sector)
     {
         m_random = random;
-        m_minBright = model.Min;
-        m_maxBright = model.Max;
+        MinBright = model.Min;
+        MaxBright = model.Max;
         m_delay = model.Delay;
     }
 
@@ -32,8 +33,8 @@ public class LightFireFlickerDoom : SectorSpecialBase
     {
         return new LightFireFlickerDoomModel()
         {
-            Min = m_minBright,
-            Max = m_maxBright,
+            Min = MinBright,
+            Max = MaxBright,
             Delay = m_delay
         };
     }
@@ -48,10 +49,10 @@ public class LightFireFlickerDoom : SectorSpecialBase
 
         int change = (m_random.NextByte() & 3) * 16;
 
-        if (Sector.LightLevel - change < m_minBright)
-            Sector.SetLightLevel(m_minBright, World.Gametick);
+        if (Sector.LightLevel - change < MinBright)
+            Sector.SetLightLevel(MinBright, World.Gametick);
         else
-            Sector.SetLightLevel((short)(m_maxBright - change), World.Gametick);
+            Sector.SetLightLevel((short)(MaxBright - change), World.Gametick);
 
         m_delay = 4;
 

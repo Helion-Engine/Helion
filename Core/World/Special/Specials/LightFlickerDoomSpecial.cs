@@ -6,26 +6,27 @@ namespace Helion.World.Special.Specials;
 
 public class LightFlickerDoomSpecial : SectorSpecialBase
 {
+    public readonly short MaxBright;
+    public readonly short MinBright;
+    public int Delay { get; private set; }
+
     private readonly IRandom m_random;
-    private readonly short m_maxBright;
-    private readonly short m_minBright;
-    private int m_delay;
 
     public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel)
          : base(world, sector)
     {
         m_random = random;
-        m_maxBright = sector.LightLevel;
-        m_minBright = minLightLevel;
+        MaxBright = sector.LightLevel;
+        MinBright = minLightLevel;
     }
 
     public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, LightFlickerDoomSpecialModel model)
          : base(world, sector)
     {
         m_random = random;
-        m_maxBright = model.Max;
-        m_minBright = model.Min;
-        m_delay = model.Delay;
+        MaxBright = model.Max;
+        MinBright = model.Min;
+        Delay = model.Delay;
     }
 
     public override ISpecialModel? ToSpecialModel()
@@ -33,29 +34,29 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
         return new LightFlickerDoomSpecialModel()
         {
             SectorId = Sector.Id,
-            Max = m_maxBright,
-            Min = m_minBright,
-            Delay = m_delay
+            Max = MaxBright,
+            Min = MinBright,
+            Delay = Delay
         };
     }
 
     public override SpecialTickStatus Tick()
     {
-        if (m_delay > 0)
+        if (Delay > 0)
         {
-            m_delay--;
+            Delay--;
             return SpecialTickStatus.Continue;
         }
 
-        if (Sector.LightLevel == m_maxBright)
+        if (Sector.LightLevel == MaxBright)
         {
-            Sector.SetLightLevel(m_minBright, World.Gametick);
-            m_delay = (m_random.NextByte() & 7) + 1;
+            Sector.SetLightLevel(MinBright, World.Gametick);
+            Delay = (m_random.NextByte() & 7) + 1;
         }
         else
         {
-            Sector.SetLightLevel(m_maxBright, World.Gametick);
-            m_delay = (m_random.NextByte() & 31) + 1;
+            Sector.SetLightLevel(MaxBright, World.Gametick);
+            Delay = (m_random.NextByte() & 31) + 1;
         }
 
         return SpecialTickStatus.Continue;
