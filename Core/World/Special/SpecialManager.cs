@@ -268,7 +268,7 @@ public class SpecialManager : ITickable, IDisposable
             MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), LiftSound);
     }
 
-    public ISpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
+    public SectorMoveSpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay);
@@ -738,7 +738,7 @@ public class SpecialManager : ITickable, IDisposable
                 break;
 
             case ZDoomSectorSpecialType.DoorRaiseIn5Minutes:
-                AddDelayedSpecial(CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor), 35 * 60 * 5);
+                AddDelayedSpecial(CreateDoorOpenCloseSpecial(sector, VanillaConstants.DoorSlowSpeed * SpeedFactor, VanillaConstants.DoorDelay), 35 * 60 * 5);
                 break;
 
             case ZDoomSectorSpecialType.LightFireFlicker:
