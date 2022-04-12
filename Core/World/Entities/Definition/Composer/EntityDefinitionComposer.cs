@@ -28,10 +28,11 @@ public class EntityDefinitionComposer
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly AvailableIndexTracker m_indexTracker = new AvailableIndexTracker();
+    private readonly AvailableIndexTracker m_indexTracker = new();
     private readonly Dictionary<string, EntityDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<EntityDefinition> m_listDefinitions = new List<EntityDefinition>();
-    private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new Dictionary<int, EntityDefinition>();
+    private readonly List<EntityDefinition> m_listDefinitions = new();
+    private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new();
+    private readonly DefinitionStateApplier m_definitionStateApplier = new();
 
     public EntityDefinitionComposer(ArchiveCollection archiveCollection)
     {
@@ -191,7 +192,7 @@ public class EntityDefinitionComposer
         EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
         ApplyFlagsAndPropertiesFrom(definition, definitions);
-        DefinitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
+        m_definitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
 
         // TODO: Check if well formed after everything was added.
 

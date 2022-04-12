@@ -11,13 +11,13 @@ using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
 namespace Helion.World.Entities.Definition.Composer;
 
-public static class DefinitionStateApplier
+public class DefinitionStateApplier
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private static readonly Dictionary<string, EntityFrame> ProcessedFrames = new();
-    private static readonly List<UnresolvedGotoFrame> UnresolvedGotoFrames = new();
-    private static readonly List<string> ModifiedLabels = new();
+    private readonly Dictionary<string, EntityFrame> ProcessedFrames = new();
+    private readonly List<UnresolvedGotoFrame> UnresolvedGotoFrames = new();
+    private readonly List<string> ModifiedLabels = new();
 
     private class FrameLabel
     {
@@ -29,7 +29,7 @@ public static class DefinitionStateApplier
         public int Index { get; set; }
     }
 
-    public static void Apply(EntityFrameTable entityFrameTable, EntityDefinition definition, IList<ActorDefinition> actorDefinitions)
+    public void Apply(EntityFrameTable entityFrameTable, EntityDefinition definition, IList<ActorDefinition> actorDefinitions)
     {
         if (actorDefinitions.Count < 2 || actorDefinitions[0] == null)
         {
@@ -106,7 +106,7 @@ public static class DefinitionStateApplier
 
     private static string GetProcessedFrameKey(string name, int frame) =>  $"{name}::{frame}";
 
-    private static void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
+    private void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
         IList<UnresolvedGotoFrame> unresolvedGotoFrames, Dictionary<string, FrameLabel> masterLabelTable, int offset,
         string vanillaActorName)
     {
@@ -162,7 +162,7 @@ public static class DefinitionStateApplier
         }
     }
 
-    private static void UpdateMasterLabelTable(int frameOffset, EntityFrame frame, Dictionary<string, FrameLabel> masterLabelTable,
+    private void UpdateMasterLabelTable(int frameOffset, EntityFrame frame, Dictionary<string, FrameLabel> masterLabelTable,
         out List<string> modifiedLabels)
     {
         ModifiedLabels.Clear();
@@ -242,7 +242,7 @@ public static class DefinitionStateApplier
         }
     }
 
-    private static int FindGotoOverrideOffset(IDictionary<string, FrameLabel> masterLabelTable, ActorFlowOverride flowOverride,
+    private int FindGotoOverrideOffset(IDictionary<string, FrameLabel> masterLabelTable, ActorFlowOverride flowOverride,
         string upperImmediateParentName)
     {
         if (flowOverride.Label == null)
@@ -267,7 +267,7 @@ public static class DefinitionStateApplier
         return GetProcessedFrameMasterIndex(key) + offset;
     }
 
-    private static int GetProcessedFrameMasterIndex(string key)
+    private int GetProcessedFrameMasterIndex(string key)
     {
         if (!ProcessedFrames.TryGetValue(key, out EntityFrame? entityFrame))
         {
@@ -278,7 +278,7 @@ public static class DefinitionStateApplier
         return entityFrame.MasterFrameIndex;
     }
 
-    private static void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
+    private void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
         IDictionary<string, FrameLabel> masterLabelTable)
     {
         foreach ((string label, ActorFlowOverride flowOverride) in current.States.FlowOverrides)
@@ -334,7 +334,7 @@ public static class DefinitionStateApplier
         }
     }
 
-    private static void ApplyActorDefinition(EntityFrameTable entityFrameTable, EntityDefinition definition, ActorDefinition current,
+    private void ApplyActorDefinition(EntityFrameTable entityFrameTable, EntityDefinition definition, ActorDefinition current,
         ActorDefinition parent, Dictionary<string, FrameLabel> masterLabelTable, int offset, string vanillaActorName, bool includeGenericLabels)
     {
         UnresolvedGotoFrames.Clear();
