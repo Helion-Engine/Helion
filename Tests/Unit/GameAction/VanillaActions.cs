@@ -19,6 +19,7 @@ using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
 {
+    [Collection("GameActions")]
     public class VanillaActions
     {
         private static readonly string ResourceZip = "Resources/vandacts.zip";
@@ -28,25 +29,21 @@ namespace Helion.Tests.Unit.GameAction
         private Player Player => World.Player;
         private Entity Monster => GameActions.GetEntity(World, 1);
 
-        private static SinglePlayerWorld? StaticWorld = null;
-
         public VanillaActions()
         {
-            // This is to save time so we aren't loading the data off disk each time.
-            if (StaticWorld != null)
-            {
-                World = StaticWorld;
-                return;
-            }
+            World = WorldAllocator.LoadMap(ResourceZip, "vandacts.wad", MapName, WorldInit, IWadType.Doom2);
+        }
 
-            World = GameActions.LoadMap(ResourceZip, MapName, IWadType.Doom2);
+        private void WorldInit(SinglePlayerWorld world)
+        {
             SetUnitTestTextures();
-            CheatManager.Instance.ActivateCheat(Player, CheatType.God);
-            StaticWorld = World;
+            CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
 
             int[] pauseSectors = new int[] { 726, 643 };
             foreach (int sector in pauseSectors)
-                GameActions.GetSector(World, sector).ActiveCeilingMove?.Pause();
+                GameActions.GetSector(world, sector).ActiveCeilingMove?.Pause();
+
+            world.Config.Compatibility.VanillaSectorPhysics.Set(true);
         }
 
         private static void SetUnitTestTextures()
@@ -579,7 +576,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
             sectors.ForEach(x => x.ActiveFloorMove.Should().BeNull());
-            sectors.ForEach(x => x.Floor.Z = 0);
+            sectors.ForEach(x => x.Floor.SetZ(0));
         }
 
         [Fact(DisplayName = "Doom Action 30 (S1) Raise floor by shortest lower (vanilla compatbility)")]
@@ -607,7 +604,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
             sectors.ForEach(x => x.ActiveFloorMove.Should().BeNull());
-            sectors.ForEach(x => x.Floor.Z = 0);
+            sectors.ForEach(x => x.Floor.SetZ(0));
         }
 
         [Fact(DisplayName = "Doom Action 31 (D1) Open door stay")]
@@ -856,7 +853,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.PlayerFirePistol(World, Player).Should().BeTrue();
             GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorSlowSpeed, true);
 
-            sector.Ceiling.Z = 0;
+            sector.Ceiling.SetZ(0);
             GameActions.PlayerFirePistol(World, Player).Should().BeTrue();
             GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorSlowSpeed, true);
         }
@@ -986,7 +983,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.EntityCrossLine(World, Player, Line, forceActivation: true);
             GameActions.RunPerpetualMovingFloor(World, sector, 0, 96, 8, VanillaConstants.LiftDelay);
             World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
-            sector.Floor.Z = 64;
+            sector.Floor.SetZ(64);
 
             GameActions.CheckNoReactivateEntityCross(World, Player, Line, sector, sector.Floor);
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1023,7 +1020,7 @@ namespace Helion.Tests.Unit.GameAction
             special.IsPaused.Should().BeTrue();
 
             World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
-            sector.Floor.Z = 64;
+            sector.Floor.SetZ(64);
         }
 
         [Fact(DisplayName = "Doom Action 55 (W1) Crusher floor raise 8 below lowest ceiling")]
@@ -1258,7 +1255,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunCeilingLower(World, sector, 8, 8);
-                sector.Ceiling.Z = 120;
+                sector.Ceiling.SetZ(120);
             }
         }
 
@@ -1274,7 +1271,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.ForceStopSectorSpecial(World, sector);
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Ceiling, false);
-            sector.Ceiling.Z = 120;
+            sector.Ceiling.SetZ(120);
         }
 
         [Fact(DisplayName = "Doom Action 74 (WR) Stop crusher ceiling")]
@@ -1293,7 +1290,7 @@ namespace Helion.Tests.Unit.GameAction
             sector.ActiveCeilingMove.Should().NotBeNull();
             sector.ActiveCeilingMove!.IsPaused.Should().BeTrue();
             GameActions.ForceStopSectorSpecial(World, sector);
-            sector.Ceiling.Z = 120;
+            sector.Ceiling.SetZ(120);
         }
 
         [Fact(DisplayName = "Doom Action 75 (WR) Close door")]
@@ -1306,7 +1303,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorClose(World, sector, 0, VanillaConstants.DoorSlowSpeed, false);
-                sector.Ceiling.Z = 120;
+                sector.Ceiling.SetZ(120);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
@@ -1340,7 +1337,7 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunCrusherCeiling(World, sector, 16, slowDownOnCrush: false);
                 GameActions.ForceStopSectorSpecial(World, sector);
-                sector.Ceiling.Z = 128;
+                sector.Ceiling.SetZ(128);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Ceiling, false);
@@ -1435,7 +1432,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorLower(World, sector, 0, 8);
-                sector.Floor.Z = 64;
+                sector.Floor.SetZ(64);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1451,7 +1448,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorLower(World, sector, 64, 8);
-                sector.Floor.Z = 96;
+                sector.Floor.SetZ(96);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1469,7 +1466,7 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorLower(World, sector, -32, 8);
                 GameActions.CheckPlaneTexture(World, sector.Floor, "FLOOR0_1");
-                sector.Floor.Z = 64;
+                sector.Floor.SetZ(64);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1485,7 +1482,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorOpenStay(World, sector, 128, VanillaConstants.DoorSlowSpeed);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
@@ -1503,7 +1500,7 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.EntityCrossLine(World, Player, Line);
                 GameActions.RunPerpetualMovingFloor(World, sector, 0, 96, 8, VanillaConstants.LiftDelay);
                 World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
-                sector.Floor.Z = 64;
+                sector.Floor.SetZ(64);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1542,7 +1539,7 @@ namespace Helion.Tests.Unit.GameAction
                 special.IsPaused.Should().BeTrue();
 
                 World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
-                sector.Floor.Z = 64;
+                sector.Floor.SetZ(64);
             }
         }
 
@@ -1587,7 +1584,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorRaise(World, sector, 64, 8);
-                sector.Floor.Z = 8;
+                sector.Floor.SetZ(8);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1642,7 +1639,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunCrusherFloor(World, sector, 8, slowDownOnCrush: false, destZ: 112, repeat: false);
-                sector.Floor.Z = 8;
+                sector.Floor.SetZ(8);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1690,7 +1687,7 @@ namespace Helion.Tests.Unit.GameAction
                 sectors[0].Floor.Z.Should().Be(24);
                 sectors[1].Floor.Z.Should().Be(32);
                 sectors[2].Floor.Z.Should().Be(72);
-                sectors.ForEach(x => x.Floor.Z = 0);
+                sectors.ForEach(x => x.Floor.SetZ(0));
             }
         }
 
@@ -1719,7 +1716,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorLower(World, sector, 72, 32);
-                sector.Floor.Z = 96;
+                sector.Floor.SetZ(96);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -1739,7 +1736,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
 
             GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Ceiling, false);
@@ -1848,7 +1845,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
@@ -1864,7 +1861,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorClose(World, sector, 0, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 120;
+                sector.Ceiling.SetZ(120);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, DoorLine, sector, sector.Ceiling, false);
@@ -1955,7 +1952,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorOpenClose(World, sector, 0, 128, VanillaConstants.DoorFastSpeed);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
         }
 
@@ -1969,7 +1966,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
         }
 
@@ -1983,7 +1980,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, DoorLine).Should().BeTrue();
                 GameActions.RunDoorClose(World, sector, 0, VanillaConstants.DoorFastSpeed);
-                sector.Ceiling.Z = 120;
+                sector.Ceiling.SetZ(120);
             }
         }
 
@@ -2136,7 +2133,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorRaise(World, sector, 64, 8);
-                sector.Floor.Z = 8;
+                sector.Floor.SetZ(8);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -2152,7 +2149,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorRaise(World, sector, 64, 32);
-                sector.Floor.Z = 8;
+                sector.Floor.SetZ(8);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -2193,7 +2190,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunFloorRaise(World, sector, 64, 32);
-                sector.Floor.Z = 8;
+                sector.Floor.SetZ(8);
             }
         }
 
@@ -2229,7 +2226,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
 
             GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Ceiling, false);
@@ -2268,7 +2265,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
                 GameActions.RunDoorOpen(World, sector, 128, VanillaConstants.DoorFastSpeed, true);
-                sector.Ceiling.Z = 0;
+                sector.Ceiling.SetZ(0);
             }
 
             GameActions.CheckMonsterUseActivation(World, Monster, Line, sector, sector.Ceiling, false);

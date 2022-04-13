@@ -270,8 +270,13 @@ public abstract partial class WorldBase : IWorld
     public void Link(Entity entity)
     {
         Precondition(entity.SectorNodes.Empty() && entity.BlockmapNodes.Empty(), "Forgot to unlink entity before linking");
-
         PhysicsManager.LinkToWorld(entity, null, false);
+    }
+
+    public void LinkClamped(Entity entity)
+    {
+        Precondition(entity.SectorNodes.Empty() && entity.BlockmapNodes.Empty(), "Forgot to unlink entity before linking");
+        PhysicsManager.LinkToWorld(entity, null, true);
     }
 
     public virtual void Tick()

@@ -36,6 +36,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="Resources\physics.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Resources\vandacts.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

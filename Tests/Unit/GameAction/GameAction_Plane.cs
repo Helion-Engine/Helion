@@ -26,6 +26,12 @@ namespace Helion.Tests.Unit.GameAction
                 () => { onTick?.Invoke(); });
         }
 
+        public static void RunSectorPlaneSpecial(WorldBase world, Sector sector, Action? onTick = null)
+        {
+            TickWorld(world, () => { return sector.ActiveFloorMove != null || sector.ActiveCeilingMove != null; },
+                () => { onTick?.Invoke(); });
+        }
+
         public static void RunPerpetualMovingFloor(WorldBase world, Sector sector, double lowZ, double highZ, int speed, int delay)
         {
             sector.ActiveFloorMove.Should().NotBeNull();

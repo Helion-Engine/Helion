@@ -106,7 +106,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     protected internal List<LinkableNode<Entity>> SectorNodes;
     protected internal LinkableNode<Entity>? SubsectorNode;
     protected internal LinkableNode<Entity>? EntityListNode;
-    internal bool IsDisposed { get; private set; }
+    public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
     public double SaveZ;

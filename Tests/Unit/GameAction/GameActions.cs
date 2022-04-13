@@ -1,24 +1,16 @@
 ﻿using FluentAssertions;
-using Helion.Audio.Impl;
-using Helion.Bsp.Zdbsp;
 using Helion.Geometry.Vectors;
-using Helion.Layer.Worlds;
-using Helion.Maps.Shared;
 using Helion.Resources;
-using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Locator;
-using Helion.Resources.IWad;
 using Helion.Util;
-using Helion.Util.Configs.Impl;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Physics;
 using System;
-using System.IO;
-using System.IO.Compression;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Helion.Tests.Unit.GameAction
@@ -43,6 +35,28 @@ namespace Helion.Tests.Unit.GameAction
             }
 
             throw new NullReferenceException();
+        }
+
+        public static readonly List<Entity> CreatedEntities = new();
+
+        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos)
+        {
+            var createdEntity = world.EntityManager.Create(name, pos);
+            createdEntity.Should().NotBeNull();
+            createdEntity!.FrozenTics = int.MaxValue;
+            CreatedEntities.Add(createdEntity);
+            return createdEntity!;
+        }
+
+        public static void DestroyCreatedEntities(WorldBase world)
+        {
+            foreach (var entity in CreatedEntities)
+            {
+                if (entity.IsDisposed)
+                    continue;
+
+                world.EntityManager.Destroy(entity);
+            }
         }
 
         public static bool SetEntityToLine(WorldBase world, Entity entity, int lineId, double distanceBeforeLine)
@@ -99,6 +113,14 @@ namespace Helion.Tests.Unit.GameAction
             return success;
         }
 
+        // Activates the line given the context. Will force even if not repeatable.
+        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context)
+        {
+            Line line = GetLine(world, lineId);
+            line.SetActivated(false);
+            return world.ActivateSpecialLine(entity, line, context);
+        }
+
         public static bool PlayerFirePistol(WorldBase world, Player player)
         {
             var pistol = player.Inventory.Weapons.GetWeapon("PISTOL");
@@ -131,7 +153,7 @@ namespace Helion.Tests.Unit.GameAction
             return true;
         }
 
-        private static void SetEntityOutOfBounds(WorldBase world, Entity entity)
+        public static void SetEntityOutOfBounds(WorldBase world, Entity entity)
         {
             // Move them very far away to not mess with physics
             Vec3D pos = new(16000, 16000, 0);
@@ -257,44 +279,15 @@ namespace Helion.Tests.Unit.GameAction
             return Math.Clamp(z + move, double.MinValue, dest);
         }
 
-        public static SinglePlayerWorld LoadMap(string resourceZip, string mapName, 
-            IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium)
+        public static void SetEntityPosition(WorldBase world, Entity entity, Vec2D pos) =>
+            SetEntityPosition(world, entity, pos.To3D(0));
+
+        public static void SetEntityPosition(WorldBase world, Entity entity, Vec3D pos)
         {
-            using ZipArchive archive = ZipFile.OpenRead(resourceZip);
-            archive.ExtractToDirectory(Directory.GetCurrentDirectory(), true);
-
-            var config = new Config();
-            config.Compatibility.VanillaSectorPhysics.Set(true);
-            var profiler = new Helion.Util.Profiling.Profiler();
-            var audioSystem = new MockAudioSystem();
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility);
-            archiveCollection.Load(new string[] { "vandacts.wad" }, null);
-            archiveCollection.LoadIWadInfo(iwadType);
-
-            var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
-            var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
-            if (skillDef == null)
-                throw new Exception("Failed to load skill definition");
-
-            var map = archiveCollection.FindMap(mapDef.MapName);
-            if (map == null)
-                throw new Exception("Failed to load map");
-
-            Zdbsp zdbsp = new();
-            if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
-                throw new Exception("Failed to create bsp");
-
-            // Not the greatest dependency...
-            TextureManager.Init(archiveCollection, mapDef);
-            TextureManager.Instance.UnitTest = true;
-
-            SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, skillDef, outputMap, 
-                null, null);
-            if (world == null)
-                throw new Exception("Failed to create world");
-
-            world.Start(null);
-            return world;
+            entity.UnlinkFromWorld();
+            entity.PrevPosition = pos;
+            entity.SetPosition(pos);
+            world.LinkClamped(entity);
         }
     }
 }
