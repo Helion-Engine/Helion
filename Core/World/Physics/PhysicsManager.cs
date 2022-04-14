@@ -231,7 +231,7 @@ public class PhysicsManager
             else
             {
                 diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
-                if (speed < 0)
+                if (destZ < startZ)
                     diff = -diff;
 
                 sectorPlane.Z = startZ + diff;
