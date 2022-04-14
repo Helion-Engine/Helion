@@ -13,7 +13,7 @@ using Xunit;
 namespace Helion.Tests.Unit.GameAction
 {
     [Collection("GameActions")]
-    public class PhysicsLifts
+    public partial class Physics
     {
         private static readonly string ResourceZip = "Resources/physics.zip";
 
@@ -30,7 +30,7 @@ namespace Helion.Tests.Unit.GameAction
         private static readonly Vec2D LiftCenter2 = new(256, 416);
         private static readonly Vec2D LiftCenter3 = new(-128, 416);
 
-        public PhysicsLifts()
+        public Physics()
         {
             World = WorldAllocator.LoadMap(ResourceZip, "physics.wad", MapName, WorldInit, IWadType.Doom2);
         }
@@ -306,6 +306,27 @@ namespace Helion.Tests.Unit.GameAction
             });
 
             GameActions.DestroyCreatedEntities(World);
+        }
+
+        [Fact(DisplayName = "Lift movement with init linked monster")]
+        public void TestInitLinking()
+        {
+            // The monster will start at -128 clipped into the lift.
+            // Because doom initialized thigngs forced to the floor on their center when the lift activates it will be forced to the lift height.
+            var sector = GameActions.GetSectorByTag(World, 1);
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(64, 456, -128));
+            monster.Position.Z.Should().Be(-128);
+            GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+            var floorMove = sector.ActiveFloorMove!;
+
+            GameActions.TickWorld(World, () => { return floorMove.MoveStatus != SectorMoveStatus.Blocked; }, () =>
+            {
+                monster.Position.Z.Should().Be(sector.Floor.Z);
+            });
+
+            GameActions.DestroyCreatedEntities(World);
+            GameActions.RunSectorPlaneSpecial(World, sector);
         }
     }
 }
