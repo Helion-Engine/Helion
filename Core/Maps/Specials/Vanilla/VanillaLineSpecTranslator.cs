@@ -13,9 +13,9 @@ public static class VanillaLineSpecTranslator
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, int tag,
-        ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility? compatibility)
+        ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility compatibility)
     {
-        compatibility = null;
+        compatibility = LineSpecialCompatibility.DefaultVanilla;
         lineActivationType = GetLineTagActivation(type);
         if (type == VanillaLineSpecialType.None)
         {

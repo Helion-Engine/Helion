@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
@@ -300,11 +301,15 @@ public class SpecialManager : ITickable, IDisposable
             MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed, true));
     }
 
-    public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0)
+    public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0, LineSpecialCompatibility? compat = null)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
-        if (adjust != 0)
+        // Oof, ZDoom
+        if (compat?.IsVanilla == false)
+            destZ += adjust - 128;
+        else if (adjust != 0)
             destZ = destZ + adjust - 128;
+
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
@@ -1069,7 +1074,7 @@ public class SpecialManager : ITickable, IDisposable
                 return CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
 
             case ZDoomLineSpecialType.FloorLowerToHighest:
-                return CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args.Arg2);
+                return CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Special.LineSpecialCompatibility);
 
             case ZDoomLineSpecialType.FloorLowerToNearest:
                 return CreateFloorLowerSpecial(sector, SectorDest.NextLowestFloor, line.SpeedArg * SpeedFactor);
@@ -1447,7 +1452,8 @@ public class SpecialManager : ITickable, IDisposable
         return Enumerable.Empty<Sector>();
     }
 
-    private double GetDestZ(Sector sector, SectorPlaneFace planeType, SectorDest destination, MoveDirection start = MoveDirection.None)
+    private double GetDestZ(Sector sector, SectorPlaneFace planeType, SectorDest destination, MoveDirection start = MoveDirection.None,
+        LineSpecialCompatibility? compat = null)
     {
         switch (destination)
         {

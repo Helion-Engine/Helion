@@ -31,19 +31,14 @@ public class LineSpecial
     private readonly bool m_ceilingMove;
     private readonly LineActivationType m_lineActivationType;
 
-    public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, null)
+    public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, LineSpecialCompatibility.Default)
     {
     }
 
-    public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility? compatibility)
+    public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility compatibility)
     {
         LineSpecialType = type;
-
-        if (compatibility == null)
-            LineSpecialCompatibility = LineSpecialCompatibility.Default;
-        else
-            LineSpecialCompatibility = compatibility;
-
+        LineSpecialCompatibility = compatibility;
         m_lineActivationType = lineActivationType;
         m_moveSpecial = SetMoveSpecial();
         m_sectorStopMove = SetSectorStopSpecial();
@@ -72,7 +67,7 @@ public class LineSpecial
         }
     }
 
-    public static LineSpecialCompatibility? GetCompatibility(HexenLine hexenLine)
+    public static LineSpecialCompatibility GetCompatibility(HexenLine hexenLine)
     {
         if (hexenLine.LineType == ZDoomLineSpecialType.DoorLockedRaise)
         {
@@ -82,7 +77,7 @@ public class LineSpecial
             return new LineSpecialCompatibility() { CompatibilityType = type };
         }
 
-        return null;
+        return LineSpecialCompatibility.Default;
     }
 
     public bool CanActivateByTag => (m_lineActivationType & LineActivationType.Tag) != 0;

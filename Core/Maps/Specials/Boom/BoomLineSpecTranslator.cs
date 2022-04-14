@@ -80,9 +80,9 @@ public static class BoomLineSpecTranslator
     public static bool IsBoomLineSpecial(ushort special) => special >= (int)VanillaLineSpecialType.Max;
 
     public static ZDoomLineSpecialType Translate(LineFlags lineFlags, ushort special, int tag,
-        ref SpecialArgs argsToMutate, out LineSpecialCompatibility? compatibility, out LineActivationType lineActivationType)
+        ref SpecialArgs argsToMutate, out LineSpecialCompatibility compatibility, out LineActivationType lineActivationType)
     {
-        compatibility = null;
+        compatibility = LineSpecialCompatibility.DefaultVanilla;
         lineActivationType = LineActivationType.Any;
 
         if (special <= CrusherBase || special >= GenericEnd)

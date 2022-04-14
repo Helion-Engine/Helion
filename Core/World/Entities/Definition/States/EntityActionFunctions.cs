@@ -2730,12 +2730,12 @@ public static class EntityActionFunctions
         SpecialArgs specialArgs = new();
         var flags = new LineFlags(MapLineFlags.Doom(0));
         var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)entity.Frame.DehackedMisc1,
-            entity.Frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility? compat);
+            entity.Frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
 
         if (specialType == ZDoomLineSpecialType.None)
             return;
 
-        LineSpecial lineSpecial = new LineSpecial(specialType, activationType, compat);
+        LineSpecial lineSpecial = new(specialType, activationType, compat);
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
         if (m_dummyLine == null)
@@ -2744,7 +2744,7 @@ public static class EntityActionFunctions
         m_dummyLine.Args = specialArgs;
         m_dummyLine.Flags = flags;
 
-        EntityActivateSpecialEventArgs args = new EntityActivateSpecialEventArgs(ActivationContext.CrossLine, entity, m_dummyLine);
+        EntityActivateSpecialEventArgs args = new(ActivationContext.CrossLine, entity, m_dummyLine);
         entity.World.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 

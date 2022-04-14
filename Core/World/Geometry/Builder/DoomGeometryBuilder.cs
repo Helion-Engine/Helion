@@ -156,11 +156,11 @@ public static class DoomGeometryBuilder
 
             (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
 
-            Seg2D seg = new Seg2D(doomLine.Start.Position, doomLine.End.Position);
-            LineFlags flags = new LineFlags(doomLine.Flags);
+            Seg2D seg = new(doomLine.Start.Position, doomLine.End.Position);
+            LineFlags flags = new(doomLine.Flags);
             SpecialArgs specialArgs = default;
             ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, doomLine.SectorTag,
-                ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility? compatibility);
+                ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compatibility);
 
             LineSpecial special;
             if (zdoomType == ZDoomLineSpecialType.None)
@@ -168,7 +168,7 @@ public static class DoomGeometryBuilder
             else
                 special = new LineSpecial(zdoomType, activationType, compatibility);
 
-            Line line = new Line(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
+            Line line = new(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
             builder.Lines.Add(line);
             builder.MapLines[line.MapId] = line;

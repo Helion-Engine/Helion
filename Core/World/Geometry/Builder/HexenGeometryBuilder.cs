@@ -173,18 +173,18 @@ public static class HexenGeometryBuilder
 
             (Side front, Side? back) = CreateSides(hexenLine, builder, ref nextSideId);
 
-            Seg2D seg = new Seg2D(hexenLine.Start.Position, hexenLine.End.Position);
-            LineFlags flags = new LineFlags(hexenLine.Flags);
+            Seg2D seg = new(hexenLine.Start.Position, hexenLine.End.Position);
+            LineFlags flags = new(hexenLine.Flags);
             LineSpecial special;
             if (hexenLine.LineType == ZDoomLineSpecialType.None)
                 special = LineSpecial.Default;
             else
                 special = new LineSpecial(hexenLine.LineType, LineActivationType.Any, LineSpecial.GetCompatibility(hexenLine));
 
-            SpecialArgs specialArgs = new SpecialArgs(hexenLine.Args);
+            SpecialArgs specialArgs = new(hexenLine.Args);
             LineSpecial.ValidateActivationFlags(special.LineSpecialType, flags);
 
-            Line line = new Line(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
+            Line line = new(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
             builder.Lines.Add(line);
             builder.MapLines[line.MapId] = line;
         }
