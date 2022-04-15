@@ -768,7 +768,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         // Applying gravity if we are on another entity.
         // This prevents issues with this entity floating
         // when the entity beneath is no longer blocking.
-        return OnEntity != null || !OnGround;
+        return !OnGround;
     }
 
     public bool ShouldApplyFriction()

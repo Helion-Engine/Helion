@@ -508,6 +508,7 @@ public class PhysicsManager
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
 
+        double prevHighestFloorZ = entity.HighestFloorZ;
         SetEntityBoundsZ(entity, clampToLinkedSectors, m_onEntities);
 
         double lowestCeil = entity.LowestCeilingZ;
@@ -536,7 +537,7 @@ public class PhysicsManager
             foreach (Entity onEntity in m_onEntities)
                 onEntity.OverEntity = entity;
 
-            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ);
+            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
 
             if (clippedFloor)
             {
@@ -1277,7 +1278,8 @@ public class PhysicsManager
             entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
-        if (noVelocity && floatZ == 0)
+        // Only return if OnEntity is null. Need to apply clamping to pevent issues with this entity floating when the entity beneath is no longer blocking.
+        if (noVelocity && floatZ == 0 && entity.OnEntity == null)
             return;
 
         Vec3D previousVelocity = entity.Velocity;
