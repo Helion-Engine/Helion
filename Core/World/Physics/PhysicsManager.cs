@@ -56,6 +56,7 @@ public class PhysicsManager
     private readonly TryMoveData m_tryMoveData = new();
     private readonly List<Entity> m_crushEntities = new();
     private readonly List<Entity> m_sectorMoveEntities = new();
+    private readonly List<Entity> m_onEntities = new();
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly List<Entity> m_stackCrush = new();
 
@@ -487,7 +488,7 @@ public class PhysicsManager
         return m_lineOpening;
     }
 
-    private void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
+    private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
     {
         // Additionally check to smooth camera when stepping up to an entity
         entity.SetZ(floorZ, smoothZ);
@@ -507,7 +508,7 @@ public class PhysicsManager
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
 
-        SetEntityBoundsZ(entity, clampToLinkedSectors);
+        SetEntityBoundsZ(entity, clampToLinkedSectors, m_onEntities);
 
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
@@ -532,8 +533,8 @@ public class PhysicsManager
                 entity.OnEntity = highestEntity;
             }
 
-            if (entity.OnEntity != null)
-                entity.OnEntity.OverEntity = entity;
+            foreach (Entity onEntity in m_onEntities)
+                onEntity.OverEntity = entity;
 
             SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ);
 
@@ -545,9 +546,11 @@ public class PhysicsManager
                     entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
             }
         }
+
+        m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors)
+    private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors, List<Entity> onEntities)
     {
         Sector highestFloor = entity.Sector;
         Sector lowestCeiling = entity.Sector;
@@ -595,6 +598,7 @@ public class PhysicsManager
                 bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
                 bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
                 bool clipped = false;
+                bool addedOnEntity = false;
                 if (above && entity.Box.Bottom < intersectEntity.Box.Top)
                     clipped = true;
                 else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
@@ -610,10 +614,15 @@ public class PhysicsManager
                 {
                     // Need to check clipping coming from above, if we're above
                     // or clipped through then this is our floor.
-                    if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top > highestFloorZ)
+                    if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top >= highestFloorZ)
                     {
+                        addedOnEntity = true;
+                        if (highestFloorEntity != null && highestFloorEntity.Box.Top < highestFloorZ)
+                            onEntities.Clear();
+
                         highestFloorEntity = intersectEntity;
                         highestFloorZ = intersectEntity.Box.Top;
+                        onEntities.Add(highestFloorEntity);
                     }
                 }
                 else if (below)
@@ -627,10 +636,14 @@ public class PhysicsManager
                 }
 
                 // Need to check if we can step up to this floor.
-                if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top > highestFloorZ)
+                if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top >= highestFloorZ && !addedOnEntity)
                 {
+                    if (highestFloorEntity != null && highestFloorEntity.Box.Top < highestFloorZ)
+                        onEntities.Clear();
+
                     highestFloorEntity = intersectEntity;
                     highestFloorZ = intersectEntity.Box.Top;
+                    onEntities.Add(highestFloorEntity);
                 }
             }
 
@@ -786,6 +799,9 @@ public class PhysicsManager
     private void HandleStackedEntityPhysics(Entity entity)
     {
         Entity? currentOverEntity = entity.OverEntity;
+
+        if (entity.OverEntity != null && entity.OverEntity.Box.Bottom > entity.Box.Top)
+            entity.OverEntity = null;      
 
         if (entity.OnEntity != null)
             ClampBetweenFloorAndCeiling(entity.OnEntity, smoothZ: false);
