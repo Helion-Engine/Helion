@@ -1,10 +1,5 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Resources.IWad;
-using Helion.World;
-using Helion.World.Cheats;
-using Helion.World.Entities.Players;
-using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using System;
@@ -15,32 +10,6 @@ namespace Helion.Tests.Unit.GameAction
     [Collection("GameActions")]
     public partial class Physics
     {
-        private static readonly string ResourceZip = "Resources/physics.zip";
-
-        private static readonly string MapName = "MAP01";
-        private static readonly string Zombieman = "ZOMBIEMAN";
-        private readonly SinglePlayerWorld World;
-        private Player Player => World.Player;
-
-        private const int LiftLine1 = 10;
-        private const int LiftLine2 = 16;
-        private const int LiftLine3 = 23;
-        private static readonly Vec2D LiftCenter1 = new(64, 416);
-        private static readonly Vec2D LiftBlock1 = new(64, 448);
-        private static readonly Vec2D LiftCenter2 = new(256, 416);
-        private static readonly Vec2D LiftCenter3 = new(-128, 416);
-
-        public Physics()
-        {
-            World = WorldAllocator.LoadMap(ResourceZip, "physics.wad", MapName, WorldInit, IWadType.Doom2);
-        }
-
-        private void WorldInit(SinglePlayerWorld world)
-        {
-            CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
-        }
-
-
         [Fact(DisplayName = "Lift movement slow")]
         public void LiftMovementSlow()
         {
@@ -53,8 +22,6 @@ namespace Helion.Tests.Unit.GameAction
             {
                 monster.Position.Z.Should().Be(sector.Floor.Z);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement fast")]
@@ -69,8 +36,6 @@ namespace Helion.Tests.Unit.GameAction
             {
                 monster.Position.Z.Should().Be(sector.Floor.Z);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement turbo")]
@@ -92,8 +57,6 @@ namespace Helion.Tests.Unit.GameAction
                 if (floorMove.DelayTics == 0 && floorMove.MoveDirection == MoveDirection.Up)
                     monster.Position.Z.Should().Be(sector.Floor.Z);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement slow clipped with other entities")]
@@ -112,8 +75,6 @@ namespace Helion.Tests.Unit.GameAction
                 monster1.Position.Z.Should().Be(sector.Floor.Z);
                 monster2.Position.Z.Should().Be(sector.Floor.Z);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement blocked")]
@@ -156,7 +117,6 @@ namespace Helion.Tests.Unit.GameAction
 
             moveBlocked.Should().BeTrue();
             hitCheckComplete.Should().BeTrue();
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement with stacked entities")]
@@ -188,8 +148,6 @@ namespace Helion.Tests.Unit.GameAction
                 monster2.Position.Z.Should().Be(sector.Floor.Z + monster1.Height);
                 monster3.Position.Z.Should().Be(sector.Floor.Z + monster1.Height * 2);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement blocked by stacked entities")]
@@ -241,7 +199,6 @@ namespace Helion.Tests.Unit.GameAction
             sector.Floor.Z.Should().Be(sector.Ceiling.Z - (monster1.Height * 3));
 
             sector.Ceiling.SetZ(ceilingZ);
-            GameActions.DestroyCreatedEntities(World);
             GameActions.RunSectorPlaneSpecial(World, sector);
         }
 
@@ -273,8 +230,6 @@ namespace Helion.Tests.Unit.GameAction
 
             droppedClip.IsDisposed.Should().BeTrue();
             regularClip.IsDisposed.Should().BeFalse();
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement with dead monsters")]
@@ -304,15 +259,13 @@ namespace Helion.Tests.Unit.GameAction
 
                 monster.Position.Z.Should().Be(sector.Floor.Z);
             });
-
-            GameActions.DestroyCreatedEntities(World);
         }
 
         [Fact(DisplayName = "Lift movement with init linked monster")]
         public void TestInitLinking()
         {
             // The monster will start at -128 clipped into the lift.
-            // Because doom initialized thigngs forced to the floor on their center when the lift activates it will be forced to the lift height.
+            // Because doom initialized things forced to the floor on their center when the lift activates it will be forced to the lift height.
             var sector = GameActions.GetSectorByTag(World, 1);
             var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(64, 456, -128));
             monster.Position.Z.Should().Be(-128);
@@ -325,6 +278,7 @@ namespace Helion.Tests.Unit.GameAction
                 monster.Position.Z.Should().Be(sector.Floor.Z);
             });
 
+            // Need to destroy the monster for the lift to complete.
             GameActions.DestroyCreatedEntities(World);
             GameActions.RunSectorPlaneSpecial(World, sector);
         }
