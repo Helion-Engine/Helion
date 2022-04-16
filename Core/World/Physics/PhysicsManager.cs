@@ -548,6 +548,7 @@ public class PhysicsManager
             }
         }
 
+        entity.CheckOnGround();
         m_onEntities.Clear();
     }
 
@@ -665,8 +666,6 @@ public class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
-
-        entity.CheckOnGround();
     }
 
     private void LinkToSectors(Entity entity, TryMoveData? tryMove)
