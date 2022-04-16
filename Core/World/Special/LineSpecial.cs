@@ -56,6 +56,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollTextureRight:
             case ZDoomLineSpecialType.ScrollTextureUp:
             case ZDoomLineSpecialType.ScrollTextureDown:
+            case ZDoomLineSpecialType.ScrollFloor:
+            case ZDoomLineSpecialType.ScrollCeiling:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 
