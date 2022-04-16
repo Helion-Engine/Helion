@@ -172,6 +172,14 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D velocity = distance * Vec3D.UnitSphere(entity.AngleRadians, 0);
             entity.Velocity = velocity;
             world.Tick();
+            entity.Velocity = Vec3D.Zero;
+        }
+
+        public static void MoveEntity(WorldBase world, Entity entity, Vec2D pos)
+        {
+            double distance = entity.Position.XY.Distance(pos);
+            entity.AngleRadians = entity.Position.XY.Angle(pos);
+            MoveEntity(world, entity, distance);
         }
 
         public static void TickWorld(WorldBase world, int ticks)

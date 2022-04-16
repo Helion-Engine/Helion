@@ -31,6 +31,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public void Dispose()
         {
+            Player.Velocity = Vec3D.Zero;
             GameActions.DestroyCreatedEntities(World);
             GC.SuppressFinalize(this);
         }
@@ -39,6 +40,5 @@ namespace Helion.Tests.Unit.GameAction
         {
             CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
         }
-
     }
 }
