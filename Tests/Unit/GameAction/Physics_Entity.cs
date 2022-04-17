@@ -33,8 +33,8 @@ namespace Helion.Tests.Unit.GameAction
             bottom2.OverEntity.Should().Be(top);
         }
 
-        [Fact(DisplayName = "OnEntity/OverEntity simple stack change")]
-        public void StackEntityChange()
+        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity dies")]
+        public void StackEntityChangeKill()
         {
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
@@ -43,7 +43,26 @@ namespace Helion.Tests.Unit.GameAction
             bottom.OverEntity.Should().Be(top);
 
             bottom.Kill(null);
-            
+
+            top.OnEntity.Should().BeNull();
+            bottom.OverEntity.Should().BeNull();
+
+            World.Tick();
+
+            top.Velocity.Z.Should().NotBe(0);
+        }
+
+        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity pves")]
+        public void StackEntityChangeMove()
+        {
+            var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
+            var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
+
+            top.OnEntity.Should().Be(bottom);
+            bottom.OverEntity.Should().Be(top);
+
+            GameActions.MoveEntity(World, bottom, new Vec2D(-928, 768));
+
             top.OnEntity.Should().BeNull();
             bottom.OverEntity.Should().BeNull();
 
@@ -69,6 +88,72 @@ namespace Helion.Tests.Unit.GameAction
             top1.OnEntity.Should().BeNull();
             top2.OnEntity.Should().BeNull();
             bottom.OverEntity.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Entity can move partially clipped")]
+        public void PartiallyClippedEntityMovement()
+        {
+            Vec3D pos1 = new(-928, 256, 0);
+            Vec3D pos2 = pos1 + new Vec3D(32, 0, 0);
+            GameActions.CreateEntity(World, "Zombieman", pos1);
+            var moveEntity = GameActions.CreateEntity(World, "Zombieman", pos2);
+            GameActions.MoveEntity(World, moveEntity, moveEntity.Position.XY + new Vec2D(32, 0));
+            moveEntity.Position.X.Should().Be(-864);
+            moveEntity.Position.Y.Should().Be(256);
+            moveEntity.Position.Z.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Entity can't move clipped")]
+        public void ClippedEntityMovement()
+        {
+            Vec3D pos1 = new(-928, 256, 0);
+            Vec3D pos2 = pos1 + new Vec3D(16, 0, 0);
+            GameActions.CreateEntity(World, "Zombieman", pos1);
+            var moveEntity = GameActions.CreateEntity(World, "Zombieman", pos2);
+            GameActions.MoveEntity(World, moveEntity, moveEntity.Position.XY + new Vec2D(32, 0));
+            moveEntity.Position.Should().Be(pos2);
+        }
+
+        [Fact(DisplayName = "Entity can move partially clipped from wall")]
+        public void PartiallyClippedWallMovement()
+        {
+            Vec3D pos1 = new(-928, 1076, 0);
+            Vec3D pos2 = new(-928, 1068, 0);
+            var moveEntity = GameActions.CreateEntity(World, "Zombieman", pos1);
+            GameActions.MoveEntity(World, moveEntity, pos2.XY);
+            moveEntity.Position.Should().Be(pos2);
+        }
+
+        [Fact(DisplayName = "Entity can walk down stairs")]
+        public void EntityWalkStairs()
+        {
+            Vec3D pos1 = new(-1172, -224, 96);
+            var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
+            GameActions.SetEntityPosition(World, Player, new Vec3D(-1632, -224, 48));
+            GameActions.SetEntityTarget(moveEntity, Player);
+
+            double previousX = moveEntity.Position.X;
+            GameActions.TickWorld(World, () => { return moveEntity.Position.X > -1348; }, () =>
+            {
+                moveEntity.Position.X.Should().BeLessOrEqualTo(previousX);
+            });
+
+            moveEntity.Position.X.Should().Be(-1348);
+        }
+
+        [Fact(DisplayName = "Entity can float through obstacles")]
+        public void CacodemonFloatMovement()
+        {
+            Vec3D pos1 = new(-1536, 256, 0);
+            var moveEntity = GameActions.CreateEntity(World, "Cacodemon", pos1, frozen: false);
+            GameActions.SetEntityPosition(World, Player, new Vec3D(-512, 256, 0));
+            GameActions.SetEntityTarget(moveEntity, Player);
+
+            GameActions.TickWorld(World, () => { return moveEntity.Position.X < -1056; }, () => { });
+
+            moveEntity.Position.X.Should().Be(-1056);
+            moveEntity.Position.Y.Should().Be(256);
+            moveEntity.Position.Z.Should().Be(192);
         }
     }
 }

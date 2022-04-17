@@ -39,12 +39,13 @@ namespace Helion.Tests.Unit.GameAction
 
         public static readonly List<Entity> CreatedEntities = new();
 
-        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos)
+        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true)
         {
             var createdEntity = world.EntityManager.Create(name, pos);
             createdEntity.Should().NotBeNull();
-            createdEntity!.FrozenTics = int.MaxValue;
-            CreatedEntities.Add(createdEntity);
+            if (frozen)
+                createdEntity!.FrozenTics = int.MaxValue;
+            CreatedEntities.Add(createdEntity!);
             return createdEntity!;
         }
 
@@ -296,6 +297,12 @@ namespace Helion.Tests.Unit.GameAction
             entity.PrevPosition = pos;
             entity.SetPosition(pos);
             world.LinkClamped(entity);
+        }
+
+        public static void SetEntityTarget(Entity source, Entity target)
+        {
+            source.Target = target;
+            source.SetSeeState();
         }
     }
 }
