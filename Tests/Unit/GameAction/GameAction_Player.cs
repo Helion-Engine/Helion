@@ -1,6 +1,9 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Entities.Players;
+using Helion.World.Impl.SinglePlayer;
+using System;
 
 namespace Helion.Tests.Unit.GameAction
 {
@@ -21,6 +24,27 @@ namespace Helion.Tests.Unit.GameAction
                 player.Position.Z.Should().Be(z + jumpOffsets[index]);
                 index++;
             });
+        }
+
+        public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null)
+        {
+            if (!timeout.HasValue)
+                timeout = TimeSpan.FromSeconds(60);
+
+            world.Player.AngleRadians = angle;
+            world.Player.Velocity = Vec3D.Zero;
+            TickCommand cmd = new();
+            int runTicks = 0;
+            while (runWhile())
+            {
+                cmd.Add(TickCommands.Forward);
+                world.SetTickCommand(cmd);
+                world.Tick();
+                runTicks++;
+
+                if (runTicks > 35 * timeout.Value.TotalSeconds)
+                    throw new Exception($"Tick world ran for more than {timeout.Value.TotalSeconds} seconds");
+            }
         }
     }
 }

@@ -155,5 +155,29 @@ namespace Helion.Tests.Unit.GameAction
             moveEntity.Position.Y.Should().Be(256);
             moveEntity.Position.Z.Should().Be(192);
         }
+
+        [Fact(DisplayName = "Monster can walk on bridge")]
+        public void MonsterBridgeWalk()
+        {
+            Vec3D pos1 = new(1168, 1064, 24);
+            Vec3D moveTo = pos1 + new Vec3D(16, 0, 0);
+            var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
+            moveEntity.OnEntity.Should().NotBeNull();
+            moveEntity.OnGround.Should().BeTrue();
+
+            GameActions.MoveEntity(World, moveEntity, moveTo.XY);
+            moveEntity.Position.Should().Be(moveTo);
+        }
+
+        [Fact(DisplayName = "Monster can't drop off high ledges")]
+        public void MonsterDropOff()
+        {
+            Vec3D pos1 = new(1120, 1072, 25);
+            Vec3D moveTo = pos1 + new Vec3D(0, 32, 0);
+            var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
+
+            GameActions.MoveEntity(World, moveEntity, moveTo.XY);
+            moveEntity.Position.Should().Be(pos1);
+        }
     }
 }

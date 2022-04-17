@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Xunit;
@@ -176,6 +177,27 @@ namespace Helion.Tests.Unit.GameAction
                 Player.OnGround.Should().BeTrue();
             }
         }
+
+        [Fact(DisplayName = "Player can run on ledges")]
+        public void LedgeRun()
+        {
+            // This one is designed to fail if we are missing doom's gravity skip
+            // See comment in PhysicsManager.MoveZ near noVelocity variable
+            GameActions.SetEntityPosition(World, Player, new Vec3D(1104, 1312, 0));
+            GameActions.PlayerRunForward(World, GetAngle(Bearing.East), () => { return Player.Position.X < 1760; });
+
+            Player.Position.X.Should().BeGreaterOrEqualTo(1760);
+        }
+
+        private enum Bearing
+        {
+            North,
+            East,
+            South,
+            West
+        }
+
+        private static double GetAngle(Bearing bearing) => MathHelper.QuarterPi * (int)bearing;
 
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)
         {
