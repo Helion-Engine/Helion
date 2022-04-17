@@ -429,7 +429,7 @@ public class PhysicsManager
     public void HandleEntityDeath(Entity deathEntity)
     {
         if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
-            HandleStackedEntityPhysics(deathEntity);
+            StackedEntityMoveZ(deathEntity);
     }
 
     private static int CalculateSteps(Vec2D velocity, double radius)
@@ -509,7 +509,9 @@ public class PhysicsManager
             return;
 
         double prevHighestFloorZ = entity.HighestFloorZ;
+        Entity? prevOnEntity = entity.OnEntity;
         SetEntityBoundsZ(entity, clampToLinkedSectors, m_onEntities);
+        entity.OnEntity = null;
 
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
@@ -547,6 +549,9 @@ public class PhysicsManager
                     entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
             }
         }
+
+        if (prevOnEntity != null && prevOnEntity != entity.OnEntity)
+            prevOnEntity.OverEntity = null;
 
         entity.CheckOnGround();
         m_onEntities.Clear();
@@ -749,6 +754,7 @@ public class PhysicsManager
         Vec2D stepDelta = velocity / numMoves;
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
+        bool stacked = entity.OnEntity != null || entity.OverEntity != null;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -786,8 +792,8 @@ public class PhysicsManager
             break;
         }
 
-        if (success && entity.OverEntity != null)
-            HandleStackedEntityPhysics(entity);
+        if (stacked)
+            StackedEntityMoveXY(entity);
 
         if (!success)
             m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
@@ -796,7 +802,20 @@ public class PhysicsManager
         return m_tryMoveData;
     }
 
-    private void HandleStackedEntityPhysics(Entity entity)
+    private void StackedEntityMoveXY(Entity entity)
+    {
+        if (!entity.Flags.CanPass || entity.Flags.NoClip)
+            return;
+
+        Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(previousBox,
+            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.NotCorpse);
+
+        foreach (var intersection in intersections)
+            ClampBetweenFloorAndCeiling(intersection.Entity!, smoothZ: false);
+    }
+
+    private void StackedEntityMoveZ(Entity entity)
     {
         Entity? currentOverEntity = entity.OverEntity;
 
@@ -1270,6 +1289,7 @@ public class PhysicsManager
         // This means z velocity isn't applied until the next tick after moving off a ledge.
         // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
         bool noVelocity = entity.Velocity.Z == 0;
+        bool stacked = entity.OnEntity != null || entity.OverEntity != null;
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
@@ -1291,7 +1311,7 @@ public class PhysicsManager
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
 
-        if (entity.OverEntity != null)
-            HandleStackedEntityPhysics(entity);
+        if (stacked)
+            StackedEntityMoveZ(entity);
     }
 }
