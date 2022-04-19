@@ -37,6 +37,22 @@ namespace Helion.Tests.Unit.GameAction
             throw new NullReferenceException();
         }
 
+        public static List<Entity> GetSectorEntities(WorldBase world, int sectorId, string? type = null)
+        {
+            List<Entity> entities = new();
+            var sector = GetSector(world, sectorId);
+
+            var node = sector.Entities.Head;
+            while (node != null)
+            {
+                if (string.IsNullOrEmpty(type) || node.Value.Definition.Name.Equals(type, StringComparison.OrdinalIgnoreCase))
+                    entities.Add(node.Value);
+                node = node.Next;
+            }
+
+            return entities;
+        }
+
         public static readonly List<Entity> CreatedEntities = new();
 
         public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true)
