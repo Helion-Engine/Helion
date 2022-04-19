@@ -368,7 +368,7 @@ public class PhysicsManager
             Entity crushEntity = m_stackCrush[i];
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
 
-            if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, false) &&
+            if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, DamageType.Normal) &&
                 !crushEntity.Flags.NoBlood)
             {
                 Vec3D pos = crushEntity.Position;

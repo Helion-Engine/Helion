@@ -426,10 +426,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public void ForceGib() =>
-        Damage(null, ForceGibDamage, false, false);
+        Damage(null, ForceGibDamage, false, DamageType.AlwaysApply);
 
     public void Kill(Entity? source) =>
-        Damage(source, Health, false, false);
+        Damage(source, Health, false, DamageType.AlwaysApply);
 
     private void KillInternal(Entity? source)
     {
@@ -562,8 +562,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return speciesDef.Name;
     }
 
-    public virtual bool CanDamage(Entity source, bool isHitscan)
+    public virtual bool CanDamage(Entity source, DamageType damageType)
     {
+        if (damageType == DamageType.AlwaysApply)
+            return true;
+
         Entity damageSource = source.Owner ?? source;
         if (damageSource.IsPlayer)
             return true;
@@ -573,7 +576,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (World.MapInfo.HasOption(MapOptions.NoInfighting))
             return false;
 
-        if (isHitscan)
+        if (damageType == DamageType.Hitscan)
             return true;
 
         if (Properties.ProjectileGroup.HasValue)
@@ -596,7 +599,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return thisGroup.NullableEquals(otherGroup);
     }
 
-    public virtual bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
+    public virtual bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)
     {
         if (damage <= 0 || Flags.Invulnerable)
             return false;
@@ -604,7 +607,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (source != null)
         {
             Entity damageSource = source.Owner ?? source;
-            if (!CanDamage(source, isHitscan))
+            if (!CanDamage(source, damageType))
                 return false;
 
             if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
@@ -842,7 +845,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (BlockingEntity != null)
             {
                 int damage = Properties.Damage.Get(World.Random);
-                EntityManager.World.DamageEntity(BlockingEntity, this, damage, false, Thrust.Horizontal);
+                EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.Normal, Thrust.Horizontal);
             }
 
             // Bounce off plane if it's the only thing blocking

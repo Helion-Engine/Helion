@@ -376,7 +376,7 @@ public class Player : Entity
         m_killer = null;
     }
 
-    public override bool CanDamage(Entity source, bool isHitscan)
+    public override bool CanDamage(Entity source, DamageType damageType)
     {
         // Always return true for now - this will likely change with multiplayer options
         return true;
@@ -1040,7 +1040,7 @@ public class Player : Entity
         Inventory.Add(Weapon.Definition.Properties.Weapons.AmmoType, amount);
     }
 
-    public override bool Damage(Entity? source, int damage, bool setPainState, bool isHitscan)
+    public override bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)
     {
         if (Inventory.IsPowerupActive(PowerupType.Invulnerable))
             return false;
@@ -1050,7 +1050,7 @@ public class Player : Entity
 
         damage = World.SkillDefinition.GetDamage(damage);
 
-        bool damageApplied = base.Damage(source, damage, setPainState, isHitscan);
+        bool damageApplied = base.Damage(source, damage, setPainState, damageType);
         if (damageApplied)
         {
             Attacker = source?.Owner ?? source;

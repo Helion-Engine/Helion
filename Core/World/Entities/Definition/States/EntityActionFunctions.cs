@@ -481,7 +481,7 @@ public static class EntityActionFunctions
                 damage += (entity.World.Random.NextByte() & 7) + 1;
 
             entity.World.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
-            entity.World.DamageEntity(hitEntity, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(hitEntity, entity, damage, DamageType.Normal, Thrust.Horizontal);
         }
     }
 
@@ -652,7 +652,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
             entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             return;
         }
@@ -1311,7 +1311,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             int damage = ((entity.EntityManager.World.Random.NextByte() % 6) + 1) * 10;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
             entity.PlayAttackSound();
             return;
         }
@@ -1910,7 +1910,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
         }
     }
 
@@ -2237,7 +2237,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
             entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
         }
     }
@@ -2463,7 +2463,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
             entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
             return;
         }
@@ -2528,7 +2528,7 @@ public static class EntityActionFunctions
             return;
 
         entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
-        entity.World.DamageEntity(entity.Target, entity, 20, false, Thrust.Horizontal);
+        entity.World.DamageEntity(entity.Target, entity, 20, DamageType.Normal, Thrust.Horizontal);
         entity.Target.Velocity.Z = 1000.0 / entity.Target.Definition.Properties.Mass;
 
         if (entity.Tracer == null)
@@ -2674,7 +2674,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target))
         {
             PlayDehackedSound(entity, entity.Frame.DehackedMisc2, Attenuation.Default);
-            entity.World.DamageEntity(entity.Target, entity, entity.Frame.DehackedMisc1, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, entity.Frame.DehackedMisc1, DamageType.Normal, Thrust.Horizontal);
         }
     }
 
@@ -2970,7 +2970,7 @@ public static class EntityActionFunctions
         if (entity.InMeleeRange(entity.Target, range))
         {
             damage = (entity.World.Random.NextByte() % mod + 1) * damage;
-            entity.World.DamageEntity(entity.Target, entity, damage, false, Thrust.Horizontal);
+            entity.World.DamageEntity(entity.Target, entity, damage, DamageType.Normal, Thrust.Horizontal);
             GetDehackedSound(entity, sound, out string? hitSound);
             if (hitSound.Length > 0)
                 entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, DataCache.Instance.GetSoundParams(entity));

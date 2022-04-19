@@ -840,7 +840,7 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Value.Entity != null)
             {
-                DamageEntity(bi.Value.Entity, shooter, damage, true, Thrust.Horizontal);
+                DamageEntity(bi.Value.Entity, shooter, damage, DamageType.Hitscan, Thrust.Horizontal);
                 return bi.Value.Entity;
             }
         }
@@ -925,7 +925,7 @@ public abstract partial class WorldBase : IWorld
         return returnValue;
     }
 
-    public virtual bool DamageEntity(Entity target, Entity? source, int damage, bool isHitscan,
+    public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
         Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
     {
         if (!target.Flags.Shootable || damage == 0)
@@ -1002,7 +1002,7 @@ public abstract partial class WorldBase : IWorld
                 ApplyVooDooDamage(target.PlayerObj, damage, setPainState);
         }
 
-        if (target.Damage(source, damage, setPainState, isHitscan) || target.IsInvulnerable)
+        if (target.Damage(source, damage, setPainState, damageType) || target.IsInvulnerable)
             target.Velocity += thrustVelocity;
 
         return true;
@@ -1087,7 +1087,7 @@ public abstract partial class WorldBase : IWorld
             if (entity.BlockingEntity != null)
             {
                 int damage = entity.Properties.Damage.Get(m_random);
-                DamageEntity(entity.BlockingEntity, entity, damage, isHitscan: false);
+                DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
             }
 
             bool skyClip = false;
@@ -1144,7 +1144,7 @@ public abstract partial class WorldBase : IWorld
     private void RipDamage(Entity source, Entity target)
     {
         int damage = source.Definition.Properties.Damage.Get(m_random);
-        if (DamageEntity(target, source, damage, true, Thrust.None))
+        if (DamageEntity(target, source, damage, DamageType.Normal, Thrust.None))
         {
             CreateBloodOrPulletPuff(target, source.Position, source.AngleRadians, 0, damage, true);
             string sound = "misc/ripslop";
@@ -1162,7 +1162,7 @@ public abstract partial class WorldBase : IWorld
         // LostSouls will not kill PainElementals
         const string painElemental = "PainElemental";
         const string lostSoul = "LostSoul";
-        if (!blockingEntity.Flags.Touchy || !blockingEntity.CanDamage(entity, false))
+        if (!blockingEntity.Flags.Touchy || !blockingEntity.CanDamage(entity, DamageType.Normal))
             return false;
 
         if (entity.Definition.IsType(painElemental) && blockingEntity.Definition.IsType(lostSoul))
@@ -1418,7 +1418,7 @@ public abstract partial class WorldBase : IWorld
 
         Entity? originalOwner = source.Owner;
         source.Owner = attackSource;
-        DamageEntity(entity, source, applyDamage, false, thrust);
+        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
         source.Owner = originalOwner;
     }
 
@@ -2078,7 +2078,7 @@ public abstract partial class WorldBase : IWorld
             if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                 continue;
 
-            updatePlayer.Damage(null, damage, setPainState, false);
+            updatePlayer.Damage(null, damage, setPainState, DamageType.AlwaysApply);
         }
 
         CompleteVooDooDollSync();

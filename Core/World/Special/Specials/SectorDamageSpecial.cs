@@ -52,7 +52,7 @@ public class SectorDamageSpecial
             return;
 
         if (m_alwaysDamage || !player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
-            m_world.DamageEntity(player, null, m_damage, false, sectorSource: m_sector);
+            m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
     }
 
     public virtual SectorDamageSpecial Copy(Sector sector) =>
