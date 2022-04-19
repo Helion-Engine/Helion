@@ -43,8 +43,7 @@ namespace Helion.Tests.Unit.GameAction
             var profiler = new Profiler();
             var audioSystem = new MockAudioSystem();
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility);
-            archiveCollection.Load(new string[] { fileName }, null).Should().BeTrue();
-            archiveCollection.LoadIWadInfo(iwadType);
+            archiveCollection.Load(new string[] { fileName }, iwad: null, iwadTypeOverride: iwadType ).Should().BeTrue();
 
             var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
             var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);

@@ -243,10 +243,13 @@ public class ArchiveCollection : IResources
         GC.SuppressFinalize(this);
     }
 
-    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null)
+    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null)
     {
         List<string> filePaths = new();
         Archive? iwadArchive = null;
+
+        if (iwadTypeOverride.HasValue)
+            m_overrideIWadInfo = IWadInfo.GetIWadInfo(iwadTypeOverride.Value);
 
         // If we have nothing loaded, we want to make sure assets.pk3 is
         // loaded before anything else. We also do not want it to be loaded
@@ -423,19 +426,6 @@ public class ArchiveCollection : IResources
         return archive;
     }
 
-    // Really only intended for unit tests
-    public void LoadIWadInfo(IWadType type)
-    {
-        IWadInfo info = IWadInfo.GetIWadInfo(type);
-        m_overrideIWadInfo = info;
-        var archive = Assets;
-        if (archive == null)
-            return;
-
-        Definitions.LoadMapInfo(archive, m_overrideIWadInfo.MapInfoResource);
-        Definitions.LoadDecorate(archive, m_overrideIWadInfo.DecorateResource);
-    }
-
     private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
     {
         foreach (Archive archive in archives)
@@ -448,12 +438,30 @@ public class ArchiveCollection : IResources
 
             Definitions.Track(archive);
 
-            if (archive.ArchiveType == ArchiveType.Assets && iwadArchive != null)
-            {
-                iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
-                Definitions.LoadMapInfo(archive, iwadArchive.IWadInfo.MapInfoResource);
-                Definitions.LoadDecorate(archive, iwadArchive.IWadInfo.DecorateResource);
+            if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
+            {                
+                Definitions.LoadMapInfo(archive, info.MapInfoResource);
+                Definitions.LoadDecorate(archive, info.DecorateResource);
             }
         }
+    }
+
+    private bool GetIWadInfo(Archive? iwadArchive, [NotNullWhen(true)] out IWadInfo? info)
+    {
+        if (iwadArchive != null)
+        {
+            iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+            info = iwadArchive.IWadInfo;
+            return true;
+        }
+
+        if (m_overrideIWadInfo != null)
+        {
+            info = m_overrideIWadInfo;
+            return true;
+        }
+
+        info = null;
+        return false;
     }
 }
