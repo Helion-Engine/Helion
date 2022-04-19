@@ -2,12 +2,10 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
-using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
 {
-    [Collection("GameActions")]
     public partial class Physics
     {
         [Fact(DisplayName = "Lift movement slow")]

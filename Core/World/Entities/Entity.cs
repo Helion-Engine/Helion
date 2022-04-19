@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Definitions.SoundInfo;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -22,7 +21,6 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Render.Legacy.Renderers.Legacy.World;
 using Helion.Util.Extensions;
-using Helion.Geometry.Boxes;
 
 namespace Helion.World.Entities;
 
@@ -564,9 +562,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public virtual bool CanDamage(Entity source, DamageType damageType)
     {
-        if (damageType == DamageType.AlwaysApply)
-            return true;
-
         Entity damageSource = source.Owner ?? source;
         if (damageSource.IsPlayer)
             return true;
@@ -576,13 +571,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (World.MapInfo.HasOption(MapOptions.NoInfighting))
             return false;
 
-        if (damageType == DamageType.Hitscan)
+        if (damageType == DamageType.AlwaysApply)
             return true;
 
         if (Properties.ProjectileGroup.HasValue)
             return !ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup);
 
-        if ((GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies))
+        if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
             return false;
 
         return true;
@@ -610,7 +605,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (!CanDamage(source, damageType))
                 return false;
 
-            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target)
+            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target && damageSource != this)
             {
                 if (!Flags.QuickToRetaliate)
                     Threshold = Properties.DefThreshold;
@@ -845,7 +840,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (BlockingEntity != null)
             {
                 int damage = Properties.Damage.Get(World.Random);
-                EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.Normal, Thrust.Horizontal);
+                EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 
             // Bounce off plane if it's the only thing blocking

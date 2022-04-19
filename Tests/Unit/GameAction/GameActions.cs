@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -55,13 +56,14 @@ namespace Helion.Tests.Unit.GameAction
 
         public static readonly List<Entity> CreatedEntities = new();
 
-        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true)
+        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true, Action<Entity>? onCreated = null)
         {
             var createdEntity = world.EntityManager.Create(name, pos);
             createdEntity.Should().NotBeNull();
             if (frozen)
                 createdEntity!.FrozenTics = int.MaxValue;
             CreatedEntities.Add(createdEntity!);
+            onCreated?.Invoke(createdEntity!);
             return createdEntity!;
         }
 
@@ -74,6 +76,21 @@ namespace Helion.Tests.Unit.GameAction
 
                 world.EntityManager.Destroy(entity);
             }
+        }
+
+        public static void DestroyEntities(WorldBase world, string name)
+        {
+            List<Entity> destroyEntities = new();
+            var node = world.EntityManager.Entities.Head;
+
+            while (node != null)
+            {
+                if (node.Value.Definition.Name.EqualsIgnoreCase(name))
+                    destroyEntities.Add(node.Value);
+                node = node.Next;
+            }
+
+            destroyEntities.ForEach(x => world.EntityManager.Destroy(x));
         }
 
         public static bool SetEntityToLine(WorldBase world, Entity entity, int lineId, double distanceBeforeLine)

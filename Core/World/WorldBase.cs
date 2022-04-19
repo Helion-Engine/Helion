@@ -104,7 +104,7 @@ public abstract partial class WorldBase : IWorld
     protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
-    private readonly DoomRandom m_random = new();
+    private IRandom m_random = new DoomRandom();
 
     private int m_exitTicks;
     private int m_easyBossBrain;
@@ -177,6 +177,8 @@ public abstract partial class WorldBase : IWorld
         FailedToDispose(this);
         PerformDispose();
     }
+
+    public void SetRandom(IRandom random) => m_random = random;
 
     public virtual void Start(WorldModel? worldModel)
     {
@@ -840,7 +842,7 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Value.Entity != null)
             {
-                DamageEntity(bi.Value.Entity, shooter, damage, DamageType.Hitscan, Thrust.Horizontal);
+                DamageEntity(bi.Value.Entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
                 return bi.Value.Entity;
             }
         }

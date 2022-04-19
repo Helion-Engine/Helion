@@ -4,9 +4,11 @@ using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
+using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
 {
+    [Collection("GameActions")]
     public partial class Physics : IDisposable
     {
         private static readonly string ResourceZip = "Resources/physics.zip";

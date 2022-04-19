@@ -62,6 +62,7 @@ public class SinglePlayerWorld : WorldBase
             {
                 Player.CopyProperties(existingPlayer);
                 Player.Inventory.ClearKeys();
+                Player.Flags.Shadow = false;
                 Player.ForceLowerWeapon(false);
             }
             else

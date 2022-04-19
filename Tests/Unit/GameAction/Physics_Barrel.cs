@@ -15,7 +15,7 @@ namespace Helion.Tests.Unit.GameAction
             barrels.Count.Should().Be(39);
 
             var startBarrel = GameActions.GetEntity(World, 40);
-            startBarrel.Damage(Player, startBarrel.Health, false, DamageType.Hitscan);
+            startBarrel.Damage(Player, startBarrel.Health, false, DamageType.AlwaysApply);
 
             GameActions.TickWorld(World, () => { return barrels.Any(x => !x.IsDead); }, () => { });
         }
