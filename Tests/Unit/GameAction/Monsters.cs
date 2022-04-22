@@ -173,6 +173,40 @@ namespace Helion.Tests.Unit.GameAction
             monster2.Target.Should().BeNull();
         }
 
+        [Fact(DisplayName = "Cyberdemon no radius damage")]
+        public void CyberdemonNoRadiusDamage()
+        {
+            Vec3D pos = new(-256, -416, 0);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(-256, -368));
+            var cyber = GameActions.CreateEntity(World, "Cyberdemon", pos, onCreated: EntityCreated);
+            var rocket = GameActions.CreateEntity(World, "Rocket", pos);
+            rocket.Kill(null);
+
+            cyber.Health.Should().Be(cyber.Definition.Properties.Health);
+            cyber.Velocity.Should().Be(Vec3D.Zero);
+
+            Player.Velocity.Should().NotBe(Vec3D.Zero);
+            Player.Velocity = Vec3D.Zero;
+            GameActions.SetEntityOutOfBounds(World, Player);
+        }
+
+        [Fact(DisplayName = "Spider Mastermind no radius damage")]
+        public void SpiderMastermindNoRadiusDamage()
+        {
+            Vec3D pos = new(-256, -416, 0);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(-256, -368));
+            var cyber = GameActions.CreateEntity(World, "SpiderMastermind", pos, onCreated: EntityCreated);
+            var rocket = GameActions.CreateEntity(World, "Rocket", pos);
+            rocket.Kill(null);
+
+            cyber.Health.Should().Be(cyber.Definition.Properties.Health);
+            cyber.Velocity.Should().Be(Vec3D.Zero);
+
+            Player.Velocity.Should().NotBe(Vec3D.Zero);
+            Player.Velocity = Vec3D.Zero;
+            GameActions.SetEntityOutOfBounds(World, Player);
+        }
+
         [Fact(DisplayName = "Monster infighting tests")]
         public void MonsterInfight()
         {
