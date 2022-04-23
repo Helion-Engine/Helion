@@ -334,7 +334,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public static void SetEntityTarget(Entity source, Entity target)
         {
-            source.Target = target;
+            source.SetTarget(target);
             source.SetSeeState();
         }
     }

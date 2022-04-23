@@ -1843,10 +1843,10 @@ public abstract partial class WorldBase : IWorld
             bi.Entity.Flags.Solid = true;
             bi.Entity.SetHeight(entity.Definition.Properties.Height);
 
-            Entity? saveTarget = entity.Target;
-            entity.Target = bi.Entity;
+            Entity? saveTarget = entity.Target.Entity;
+            entity.SetTarget(bi.Entity);
             EntityActionFunctions.A_FaceTarget(entity);
-            entity.Target = saveTarget;
+            entity.SetTarget(saveTarget);
             entity.FrameState.SetState(healState);
 
             if (healSound.Length > 0)

@@ -232,7 +232,7 @@ namespace Helion.Tests.Unit.GameAction
             DebugLog($"{sourceData.Name} -> {destData.Name}");
             var dest = GameActions.CreateEntity(World, destData.Name, new Vec3D(-256, -64, 0), onCreated: EntityCreated);
             dest.Health = int.MaxValue;
-            source.Target = dest;
+            source.SetTarget(dest);
             source.FrozenTics = 0;
 
             GameActions.SetEntityPosition(World, source, sourcePos);
@@ -256,8 +256,8 @@ namespace Helion.Tests.Unit.GameAction
                 RunMeleeState(source, dest, sourceData);
             }
 
-            source.Target = null;
-            dest.Target = null;
+            source.SetTarget(null);
+            dest.SetTarget(null);
             World.EntityManager.Destroy(dest);
             GameActions.TickWorld(World, 35 * 3);
         }
@@ -265,7 +265,7 @@ namespace Helion.Tests.Unit.GameAction
         private void RunMissileState(Entity source, Entity dest, MonsterData sourceData, bool isLikeMelee)
         {
             dest.Health = int.MaxValue;
-            dest.Target = null;
+            dest.SetTarget(null);
             source.SetMissileState();
 
             int startTicks = World.Gametick;
@@ -286,7 +286,7 @@ namespace Helion.Tests.Unit.GameAction
                     dest.Target.Should().Be(source);
 
                 DebugLog("Missile - Damaged");
-                DebugLog(string.Format("Missile - {0}", dest.Target == null ? "No Target" : "Targeted"));
+                DebugLog(string.Format("Missile - {0}", dest.Target.Entity == null ? "No Target" : "Targeted"));
                 dest.Health.Should().NotBe(int.MaxValue);
                 return;
             }
@@ -296,7 +296,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 DebugLog("Missile - Damaged and Targeted (Lost Soul)");
                 dest.Target.Should().NotBeNull();
-                dest.Target!.Definition.Name.Should().Be("LostSoul");
+                dest.Target.Entity!.Definition.Name.Should().Be("LostSoul");
                 dest.Health.Should().NotBe(int.MaxValue);
 
                 // Destroy the lost soul, otherwise they will mess with the rest of the tests
@@ -312,7 +312,7 @@ namespace Helion.Tests.Unit.GameAction
         private void RunMeleeState(Entity source, Entity dest, MonsterData sourceData)
         {
             dest.Health = int.MaxValue;
-            dest.Target = null;
+            dest.SetTarget(null);
             source.SetMeleeState();
 
             int startTicks = World.Gametick;

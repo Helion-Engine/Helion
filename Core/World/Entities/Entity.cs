@@ -76,7 +76,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
-    public Entity? Target;
+    public WeakEntity Target = WeakEntity.Default;
     public Entity? Tracer;
     public Player? PickupPlayer;
 
@@ -247,7 +247,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.FrozenTics = FrozenTics;
         entityModel.MoveCount = MoveCount;
         entityModel.Owner = Owner?.Id;
-        entityModel.Target = Target?.Id;
+        entityModel.Target = Target.Entity?.Id;
         entityModel.Tracer = Tracer?.Id;
         entityModel.Refire = Refire;
         entityModel.MoveLinked = MoveLinked;
@@ -269,6 +269,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Health = entity.Health;
         Armor = entity.Armor;
         ArmorDefinition = entity.ArmorDefinition;
+    }
+
+    public void SetTarget(Entity? entity)
+    {
+        if (ReferenceEquals(Target, WeakEntity.Default))
+            Target = DataCache.Instance.GetWeakEntity();
+
+        Target.Set(entity);
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
@@ -605,12 +613,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (!CanDamage(source, damageType))
                 return false;
 
-            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target && damageSource != this)
+            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this)
             {
                 if (!Flags.QuickToRetaliate)
                     Threshold = Properties.DefThreshold;
                 if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
-                    Target = damageSource;
+                    SetTarget(damageSource);
                 if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
                     SetSeeState();
             }
@@ -905,6 +913,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         DataCache.Instance.FreeLinkableNodeEntityList(BlockmapNodes);
         DataCache.Instance.FreeLinkableNodeEntityList(SectorNodes);
         DataCache.Instance.FreeSectorList(IntersectSectors);
+
+        WeakEntity.DisposeEntity(this);
+        if (!ReferenceEquals(Target, WeakEntity.Default))
+            DataCache.Instance.FreeWeakEntity(Target);
+
         IsDisposed = true;
         GC.SuppressFinalize(this);
     }

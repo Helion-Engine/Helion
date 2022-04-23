@@ -51,7 +51,7 @@ public partial class Entity
     public bool BlockFloating;
 
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
-        !entity.IsDead && (!IsFriend(entity) || Target == null);
+        !entity.IsDead && (!IsFriend(entity) || Target.Entity == null);
 
     public bool SetNewTarget(bool allaround)
     {
@@ -72,9 +72,9 @@ public partial class Entity
                 newTarget = Sector.SoundTarget;
             }
         }
-        else if (ValidEnemyTarget(Target))
+        else if (ValidEnemyTarget(Target.Entity))
         {
-            newTarget = Target;
+            newTarget = Target.Entity;
         }
         else
         {
@@ -83,7 +83,7 @@ public partial class Entity
 
         if (newTarget != null)
         {
-            Target = newTarget;
+            SetTarget(newTarget);
             if (!allaround)
             {
                 SetSeeState();
@@ -119,7 +119,7 @@ public partial class Entity
         // Dehacked can modify things into enemies that can move but this flag doesn't exist in the originalg game.
         // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
         Flags.CanPass = true;
-        Assert.Precondition(Target != null, "Target is null");
+        Assert.Precondition(Target.Entity != null, "Target is null");
 
         MoveDir dir0;
         MoveDir dir1;
@@ -127,8 +127,8 @@ public partial class Entity
         MoveDir oppositeDirection = OppositeDirections[(int)m_direction];
         MoveDir tdir;
 
-        double dx = Target!.Position.X - Position.X;
-        double dy = Target!.Position.Y - Position.Y;
+        double dx = Target.Entity!.Position.X - Position.X;
+        double dy = Target.Entity!.Position.Y - Position.Y;
 
         if (dx > 10)
             dir0 = MoveDir.East;
@@ -286,11 +286,11 @@ public partial class Entity
 
     public double GetEnemyFloatMove()
     {
-        if (IsPlayer || IsDead || Target == null || !Flags.Float || Flags.Skullfly || BlockFloating || OnGround)
+        if (IsPlayer || IsDead || Target.Entity == null || !Flags.Float || Flags.Skullfly || BlockFloating || OnGround)
             return 0.0;
 
-        double distance = Position.ApproximateDistance2D(Target.Position);
-        double dz = (Target.Position.Z - Position.Z + (Height / 2)) * 3;
+        double distance = Position.ApproximateDistance2D(Target.Entity.Position);
+        double dz = (Target.Entity.Position.Z - Position.Z + (Height / 2)) * 3;
 
         if (dz < 0 && distance < -dz)
             return -FloatSpeed;
@@ -327,7 +327,7 @@ public partial class Entity
 
     public bool CheckMissileRange()
     {
-        if (Target == null || IsFriend(Target) || !EntityManager.World.CheckLineOfSight(this, Target))
+        if (Target.Entity == null || IsFriend(Target.Entity) || !EntityManager.World.CheckLineOfSight(this, Target.Entity))
             return false;
 
         if (Flags.JustHit)
@@ -339,7 +339,7 @@ public partial class Entity
         if (ReactionTime > 0)
             return false;
 
-        double distance = Position.ApproximateDistance2D(Target.Position);
+        double distance = Position.ApproximateDistance2D(Target.Entity.Position);
 
         if (!HasMeleeState())
             distance -= 128;
