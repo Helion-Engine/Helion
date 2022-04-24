@@ -15,6 +15,7 @@ public class WeakEntity
 {
     public static readonly WeakEntity Default = new();
     private static LinkedList<WeakEntity>?[] WeakEntities = new LinkedList<WeakEntity>?[128];
+    private LinkedListNode<WeakEntity>? Node;
 
 #if DEBUG
     private static int IdSet;
@@ -34,8 +35,6 @@ public class WeakEntity
             m_entity = value;
         }
     }
-
-    private LinkedListNode<WeakEntity>? Node;
 
     private Entity? m_entity;
 #else
