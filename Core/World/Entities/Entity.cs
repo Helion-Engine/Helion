@@ -960,8 +960,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void FreeWeakReference(WeakEntity weakEntity)
     {
-        if (!ReferenceEquals(weakEntity, WeakEntity.Default))
-            DataCache.Instance.FreeWeakEntity(weakEntity);
+        if (ReferenceEquals(weakEntity, WeakEntity.Default))
+            return;
+
+        weakEntity.Set(null);
+        DataCache.Instance.FreeWeakEntity(weakEntity);
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

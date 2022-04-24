@@ -21,14 +21,13 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
+            DataCache.Instance.ClearWeakEntities();
+            DataCache.Instance.ClearWeakEntityLists();
         }
 
         [Fact(DisplayName = "Test dispose target")]
         public void TargetRef()
         {
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
-
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
@@ -101,9 +100,6 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Test dispose tracer")]
         public void TracerRef()
         {
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
-
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             List<Entity> entities = new();
@@ -140,9 +136,6 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Test dispose target and tracer")]
         public void TargetAndTracerRef()
         {
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
-
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
@@ -231,9 +224,6 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Set weak entity references")]
         public void SetReferences()
         {
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
-
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var zombie = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
@@ -288,9 +278,6 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Do not free default instance to cache")]
         public void DefaultFreeCheck()
         {
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
-
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             lostSoul.Kill(null);
@@ -301,7 +288,7 @@ namespace Helion.Tests.Unit.GameAction
 
             lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
 
-            // Setting defaultt weak references to null should leave them default.
+            // Setting default weak references to null should leave them default.
             lostSoul.SetTarget(null);
             lostSoul.SetTracer(null);
             lostSoul.SetOnEntity(null);
@@ -313,6 +300,83 @@ namespace Helion.Tests.Unit.GameAction
 
             lostSoul.IsDisposed.Should().BeTrue();
             DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Set clear and change references")]
+        public void SetClearChange()
+        {
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+            var caco1 = GameActions.CreateEntity(world, "Cacodemon", new Vec3D(-256, -64, 0));
+            var zombie1 = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
+            var zombie2 = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
+
+            zombie1.SetTarget(lostSoul1);
+            zombie2.SetTarget(lostSoul1);
+            zombie1.SetTarget(null);
+            zombie1.SetTarget(lostSoul1);
+            zombie1.SetTarget(null);
+            zombie1.SetTarget(caco1);
+
+            var lostSoulReferences = WeakEntity.GetReferences(lostSoul1);
+            lostSoulReferences.Should().NotBeNull();
+            lostSoulReferences!.Count.Should().Be(1);
+            lostSoulReferences!.First().Entity.Should().Be(lostSoul1);
+
+            lostSoul1.Kill(null);
+            GameActions.TickWorld(world, 200);
+
+            zombie1.Target.Entity.Should().Be(caco1);
+            zombie2.Target.Entity.Should().BeNull();
+
+            lostSoulReferences = WeakEntity.GetReferences(lostSoul1);
+            lostSoulReferences.Should().BeNull();
+
+            var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+            zombie1.SetTarget(lostSoul2);
+            zombie2.SetTarget(lostSoul2);
+
+            lostSoulReferences = WeakEntity.GetReferences(lostSoul2);
+            lostSoulReferences.Should().NotBeNull();
+            lostSoulReferences!.Count.Should().Be(2);
+            var node = lostSoulReferences!.First;
+            while (node != null)
+            {
+                node.Value.Entity.Should().Be(lostSoul2);
+                node = node.Next;
+            }
+
+            zombie2.SetTarget(caco1);
+            lostSoul2.Kill(null);
+            GameActions.TickWorld(world, 200);
+
+            zombie2.Target.Entity.Should().Be(caco1);
+            zombie1.Target.Entity.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Dispose ref")]
+        public void DisposeRef()
+        {
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+            var caco1 = GameActions.CreateEntity(world, "Cacodemon", new Vec3D(-256, -64, 0));
+
+            lostSoul1.SetTarget(caco1);
+            caco1.SetTarget(lostSoul1);
+
+            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+            DataCache.Instance.WeakEntitiesListCount.Should().Be(0);
+            lostSoul1.Kill(null);
+            GameActions.TickWorld(world, 200);
+
+            WeakEntity.GetReferences(lostSoul1).Should().BeNull();
+            WeakEntity.GetReferences(caco1).Should().BeNull();
+
+            // The lost soul had the only reference to the caco. The caco reference should be free.
+            DataCache.Instance.WeakEntitiesCount.Should().Be(1);
+            // Both lists should be free since the lost soul had the reference to the caco and the caco referenced the lost soul back.
+            // Because the lost soul is dead both lists are no longer needed.
+            DataCache.Instance.WeakEntitiesListCount.Should().Be(2);
         }
     }
 }

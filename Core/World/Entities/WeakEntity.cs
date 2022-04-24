@@ -14,7 +14,7 @@ namespace Helion.World.Entities;
 public class WeakEntity
 {
     public static readonly WeakEntity Default = new();
-    private static List<WeakEntity>?[] WeakEntities = new List<WeakEntity>?[128];
+    private static LinkedList<WeakEntity>?[] WeakEntities = new LinkedList<WeakEntity>?[128];
 
 #if DEBUG
     private static int IdSet;
@@ -35,6 +35,8 @@ public class WeakEntity
         }
     }
 
+    private LinkedListNode<WeakEntity>? Node;
+
     private Entity? m_entity;
 #else
 
@@ -43,11 +45,15 @@ public class WeakEntity
 
     public static void DisposeEntity(Entity entity)
     {
-        if (!GetReferences(entity, resize: false, out List<WeakEntity>? references))
+        if (!GetReferences(entity, resize: false, out var references))
             return;
 
-        for (int i = 0; i < references.Count; i++)
-            references[i].Entity = null;
+        var node = references.First;
+        while (node != null)
+        {
+            node.Value.Entity = null;
+            node = node.Next;
+        }
 
         WeakEntities[entity.Id] = null;
         DataCache.Instance.FreeWeakEntityList(references);
@@ -55,21 +61,48 @@ public class WeakEntity
 
     public void Set(Entity? entity)
     {
-        Entity = entity;
-
-        if (entity == null)
+        if (Entity == entity)
             return;
 
-        if (!GetReferences(entity, resize: true, out List<WeakEntity>? references))
+        if (entity == null)
+        {
+            if (ReferenceEquals(this, Default) || Entity == null)
+                return;
+
+            ClearNode();
+            Entity = null;
+            return;
+        }
+
+        ClearNode();
+        Entity = entity;
+
+        if (!GetReferences(entity, resize: true, out var references))
         {
             references = DataCache.Instance.GetWeakEntityList();
             WeakEntities[entity.Id] = references;
         }
 
-        references.Add(this);
+        Node = references.AddLast(this);
     }
 
-    private static bool GetReferences(Entity entity, bool resize, [NotNullWhen(true)] out List<WeakEntity>? references)
+    private void ClearNode()
+    {
+        if (Node == null || Node.List == null)
+            return;
+
+        var list = Node.List;
+        Node.List.Remove(Node);
+        Node = null;
+
+        if (list.Count == 0 && Entity != null)
+        {
+            WeakEntities[Entity.Id] = null;
+            DataCache.Instance.FreeWeakEntityList(list);
+        }
+    }
+
+    private static bool GetReferences(Entity entity, bool resize, [NotNullWhen(true)] out LinkedList<WeakEntity>? references)
     {
         if (entity.Id < WeakEntities.Length)
         {
@@ -79,7 +112,7 @@ public class WeakEntity
 
         if (resize)
         {
-            List<WeakEntity>?[] newReferences = new List<WeakEntity>?[Math.Max(WeakEntities.Length * 2, entity.Id * 2)];
+            LinkedList<WeakEntity>?[] newReferences = new LinkedList<WeakEntity>?[Math.Max(WeakEntities.Length * 2, entity.Id * 2)];
             Array.Copy(WeakEntities, newReferences, WeakEntities.Length);
             WeakEntities = newReferences;
             references = WeakEntities[entity.Id];
@@ -94,7 +127,7 @@ public class WeakEntity
     public static int ReferenceListCount() =>
         WeakEntities.Count(x => x != null);
 
-    public static List<WeakEntity>? GetReferences(Entity entity)
+    public static LinkedList<WeakEntity>? GetReferences(Entity entity)
     {
         if (GetReferences(entity, resize: false, out var references))
             return references;
