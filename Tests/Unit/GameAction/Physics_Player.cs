@@ -71,14 +71,14 @@ namespace Helion.Tests.Unit.GameAction
         public void PlayerJumpEntity()
         {
             GameActions.SetEntityPosition(World, Player, PlayerJumpEntityPos);
-            Player.OnEntity.Should().NotBeNull();
+            Player.OnEntity.Entity.Should().NotBeNull();
             Player.OnGround.Should().BeTrue();
-            Player.Position.Z.Should().Be(Player.OnEntity!.Height);
+            Player.Position.Z.Should().Be(Player.OnEntity.Entity!.Height);
             Player.Jump();
             GameActions.RunPlayerJump(World, Player);
             Player.OnGround.Should().BeTrue();
-            Player.OnEntity.Should().NotBeNull();
-            Player.Position.Z.Should().Be(Player.OnEntity!.Height);
+            Player.OnEntity.Entity.Should().NotBeNull();
+            Player.Position.Z.Should().Be(Player.OnEntity.Entity!.Height);
         }
 
         [Fact(DisplayName = "Player step up (max stair height)")]
@@ -171,8 +171,8 @@ namespace Helion.Tests.Unit.GameAction
                 World.Tick();
                 position += step;
                 ApproxEquals(Player.Position, position.To3D(bridge.Position.Z + 8)).Should().BeTrue();
-                Player.OnEntity.Should().NotBeNull();
-                Player.OnEntity.Should().Be(bridge);
+                Player.OnEntity.Entity.Should().NotBeNull();
+                Player.OnEntity.Entity.Should().Be(bridge);
                 Player.Sector.Id.Should().Be(9);
                 Player.OnGround.Should().BeTrue();
             }

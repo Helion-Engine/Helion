@@ -5,6 +5,7 @@ using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -28,7 +29,7 @@ namespace Helion.Tests.Unit.GameAction
             DataCache.Instance.ClearWeakEntities();
             DataCache.Instance.ClearWeakEntityLists();
 
-            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             List<Entity> entities1 = new();
@@ -103,7 +104,7 @@ namespace Helion.Tests.Unit.GameAction
             DataCache.Instance.ClearWeakEntities();
             DataCache.Instance.ClearWeakEntityLists();
 
-            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             List<Entity> entities = new();
 
@@ -142,7 +143,7 @@ namespace Helion.Tests.Unit.GameAction
             DataCache.Instance.ClearWeakEntities();
             DataCache.Instance.ClearWeakEntityLists();
 
-            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             List<Entity> entities1 = new();
@@ -225,6 +226,50 @@ namespace Helion.Tests.Unit.GameAction
                 entity.Dispose();
 
             DataCache.Instance.WeakEntitiesCount.Should().Be(40);
+        }
+
+        [Fact(DisplayName = "Set weak entity references")]
+        public void SetReferences()
+        {
+            DataCache.Instance.ClearWeakEntities();
+            DataCache.Instance.ClearWeakEntityLists();
+
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            var lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+            var zombie = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
+
+            zombie.SetTarget(lostSoul);
+            zombie.Target.Entity.Should().Be(lostSoul);
+            zombie.Tracer.Entity.Should().BeNull();
+            zombie.OnEntity.Entity.Should().BeNull();
+            zombie.OverEntity.Entity.Should().BeNull();
+
+            zombie.SetTarget(null);
+            zombie.SetTracer(lostSoul);
+            zombie.Target.Entity.Should().BeNull();
+            zombie.Tracer.Entity.Should().Be(lostSoul);
+            zombie.OnEntity.Entity.Should().BeNull();
+            zombie.OverEntity.Entity.Should().BeNull();
+
+            zombie.SetTracer(null);
+            zombie.SetOnEntity(lostSoul);
+            zombie.Target.Entity.Should().BeNull();
+            zombie.Tracer.Entity.Should().BeNull();
+            zombie.OnEntity.Entity.Should().Be(lostSoul);
+            zombie.OverEntity.Entity.Should().BeNull();
+
+            zombie.SetOnEntity(null);
+            zombie.SetOverEntity(lostSoul);
+            zombie.Target.Entity.Should().BeNull();
+            zombie.Tracer.Entity.Should().BeNull();
+            zombie.OnEntity.Entity.Should().BeNull();
+            zombie.OverEntity.Entity.Should().Be(lostSoul);
+
+            zombie.SetOverEntity(null);
+            zombie.Target.Entity.Should().BeNull();
+            zombie.Tracer.Entity.Should().BeNull();
+            zombie.OnEntity.Entity.Should().BeNull();
+            zombie.OverEntity.Entity.Should().BeNull();
         }
     }
 }

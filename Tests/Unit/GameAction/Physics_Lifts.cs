@@ -126,16 +126,16 @@ namespace Helion.Tests.Unit.GameAction
             var monster3 = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(monster1.Height * 2));
 
             monster1.Position.Z.Should().Be(0);
-            monster1.OnEntity.Should().BeNull();
-            monster1.OverEntity.Should().Be(monster2);
+            monster1.OnEntity.Entity.Should().BeNull();
+            monster1.OverEntity.Entity!.Should().Be(monster2);
 
             monster2.Position.Z.Should().Be(monster1.Height);
-            monster2.OnEntity.Should().Be(monster1);
-            monster2.OverEntity.Should().Be(monster3);
+            monster2.OnEntity.Entity.Should().Be(monster1);
+            monster2.OverEntity.Entity!.Should().Be(monster3);
 
             monster3.Position.Z.Should().Be(monster1.Height * 2);
-            monster3.OnEntity.Should().Be(monster2);
-            monster3.OverEntity.Should().BeNull();
+            monster3.OnEntity.Entity.Should().Be(monster2);
+            monster3.OverEntity.Entity!.Should().BeNull();
 
             GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveFloorMove.Should().NotBeNull();
@@ -158,16 +158,16 @@ namespace Helion.Tests.Unit.GameAction
             var monster3 = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(monster1.Height * 2));
 
             monster1.Position.Z.Should().Be(0);
-            monster1.OnEntity.Should().BeNull();
-            monster1.OverEntity.Should().Be(monster2);
+            monster1.OnEntity.Entity.Should().BeNull();
+            monster1.OverEntity.Entity!.Should().Be(monster2);
 
             monster2.Position.Z.Should().Be(monster1.Height);
-            monster2.OnEntity.Should().Be(monster1);
-            monster2.OverEntity.Should().Be(monster3);
+            monster2.OnEntity.Entity.Should().Be(monster1);
+            monster2.OverEntity.Entity!.Should().Be(monster3);
 
             monster3.Position.Z.Should().Be(monster1.Height * 2);
-            monster3.OnEntity.Should().Be(monster2);
-            monster3.OverEntity.Should().BeNull();
+            monster3.OnEntity.Entity.Should().Be(monster2);
+            monster3.OverEntity.Entity!.Should().BeNull();
 
             GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveFloorMove.Should().NotBeNull();

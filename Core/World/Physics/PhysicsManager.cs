@@ -145,7 +145,7 @@ public class PhysicsManager
             if (moveType == SectorPlaneFace.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
                 entity.OnGround && entity.HighestFloorSector == sector)
             {
-                entity.SetZ(entity.OnEntity?.Box.Top ?? destZ, false);
+                entity.SetZ(entity.OnEntity.Entity?.Box.Top ?? destZ, false);
                 // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
@@ -351,7 +351,7 @@ public class PhysicsManager
         while (node != null)
         {
             Entity checkEntity = node.Value;
-            if (checkEntity.OverEntity != null && crushEntities.Contains(checkEntity.OverEntity))
+            if (checkEntity.OverEntity.Entity != null && crushEntities.Contains(checkEntity.OverEntity.Entity))
                 m_stackCrush.Add(checkEntity);
             node = node.Next;
         }
@@ -411,9 +411,9 @@ public class PhysicsManager
 
         pusher.SetZ(pusher.LowestCeilingZ - pusher.Height, false);
 
-        if (pusher.OnEntity != null)
+        if (pusher.OnEntity.Entity != null)
         {
-            Entity? current = pusher.OnEntity;
+            Entity? current = pusher.OnEntity.Entity;
             while (current != null)
             {
                 if (current.HighestFloorObject is Sector && current.HighestFloorZ > pusher.Box.Bottom - current.Height)
@@ -421,14 +421,14 @@ public class PhysicsManager
 
                 current.SetZ(pusher.Box.Bottom - current.Height, false);
                 pusher = current;
-                current = pusher.OnEntity;
+                current = pusher.OnEntity.Entity;
             }
         }
     }
 
     public void HandleEntityDeath(Entity deathEntity)
     {
-        if (deathEntity.OnEntity != null || deathEntity.OverEntity != null)
+        if (deathEntity.OnEntity.Entity != null || deathEntity.OverEntity.Entity != null)
             StackedEntityMoveZ(deathEntity);
     }
 
@@ -509,9 +509,9 @@ public class PhysicsManager
             return;
 
         double prevHighestFloorZ = entity.HighestFloorZ;
-        Entity? prevOnEntity = entity.OnEntity;
+        Entity? prevOnEntity = entity.OnEntity.Entity;
         SetEntityBoundsZ(entity, clampToLinkedSectors, m_onEntities);
-        entity.OnEntity = null;
+        entity.SetOnEntity(null);
 
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
@@ -533,11 +533,11 @@ public class PhysicsManager
             if (entity.HighestFloorObject is Entity highestEntity &&
                 highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
             {
-                entity.OnEntity = highestEntity;
+                entity.SetOnEntity(highestEntity);
             }
 
             foreach (Entity onEntity in m_onEntities)
-                onEntity.OverEntity = entity;
+                onEntity.SetOverEntity(entity);
 
             SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
 
@@ -550,8 +550,8 @@ public class PhysicsManager
             }
         }
 
-        if (prevOnEntity != null && prevOnEntity != entity.OnEntity)
-            prevOnEntity.OverEntity = null;
+        if (prevOnEntity != null && prevOnEntity != entity.OnEntity.Entity)
+            prevOnEntity.SetOverEntity(null);
 
         entity.CheckOnGround();
         m_onEntities.Clear();
@@ -566,7 +566,7 @@ public class PhysicsManager
         double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
         double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
 
-        entity.OnEntity = null;
+        entity.SetOnEntity(null);
         entity.ClippedWithEntity = false;
 
         if (clampToLinkedSectors)
@@ -754,7 +754,7 @@ public class PhysicsManager
         Vec2D stepDelta = velocity / numMoves;
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
-        bool stacked = entity.OnEntity != null || entity.OverEntity != null;
+        bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -817,13 +817,13 @@ public class PhysicsManager
 
     private void StackedEntityMoveZ(Entity entity)
     {
-        Entity? currentOverEntity = entity.OverEntity;
+        Entity? currentOverEntity = entity.OverEntity.Entity;
 
-        if (entity.OverEntity != null && entity.OverEntity.Box.Bottom > entity.Box.Top)
-            entity.OverEntity = null;      
+        if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Box.Bottom > entity.Box.Top)
+            entity.SetOverEntity(null);      
 
-        if (entity.OnEntity != null)
-            ClampBetweenFloorAndCeiling(entity.OnEntity, smoothZ: false);
+        if (entity.OnEntity.Entity != null)
+            ClampBetweenFloorAndCeiling(entity.OnEntity.Entity, smoothZ: false);
 
         while (currentOverEntity != null)
         {
@@ -831,15 +831,15 @@ public class PhysicsManager
             while (node != null)
             {
                 Entity relinkEntity = node.Value;
-                if (relinkEntity.OnEntity == entity)
+                if (relinkEntity.OnEntity.Entity == entity)
                     ClampBetweenFloorAndCeiling(relinkEntity, false);
                 node = node.Next;
             }
 
             entity = currentOverEntity;
-            Entity? next = currentOverEntity.OverEntity;
-            if (currentOverEntity.OverEntity != null && currentOverEntity.OverEntity.OnEntity != entity)
-                currentOverEntity.OverEntity = null;
+            Entity? next = currentOverEntity.OverEntity.Entity;
+            if (currentOverEntity.OverEntity.Entity != null && currentOverEntity.OverEntity.Entity.OnEntity.Entity != entity)
+                currentOverEntity.SetOverEntity(null);
             currentOverEntity = next;
         }
     }
@@ -856,7 +856,7 @@ public class PhysicsManager
 
     public bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
     {
-        if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity != null && !entity.OnEntity.Flags.ActLikeBridge)
+        if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity.Entity != null && !entity.OnEntity.Entity.Flags.ActLikeBridge)
             return false;
 
         tryMove.Success = true;
@@ -1289,7 +1289,7 @@ public class PhysicsManager
         // This means z velocity isn't applied until the next tick after moving off a ledge.
         // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
         bool noVelocity = entity.Velocity.Z == 0;
-        bool stacked = entity.OnEntity != null || entity.OverEntity != null;
+        bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
@@ -1298,7 +1298,7 @@ public class PhysicsManager
 
         double floatZ = entity.GetEnemyFloatMove();
         // Only return if OnEntity is null. Need to apply clamping to pevent issues with this entity floating when the entity beneath is no longer blocking.
-        if (noVelocity && floatZ == 0 && entity.OnEntity == null)
+        if (noVelocity && floatZ == 0 && entity.OnEntity.Entity == null)
             return;
 
         Vec3D previousVelocity = entity.Velocity;

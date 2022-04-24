@@ -88,9 +88,9 @@ namespace Helion.Tests.Unit.GameAction
                 bottom1.Position.Z.Should().Be(0);
                 bottom2.Position.Z.Should().Be(0);
 
-                top.OnEntity.Should().NotBeNull();
-                bottom1.OverEntity.Should().Be(top);
-                bottom2.OverEntity.Should().Be(top);
+                top.OnEntity.Entity.Should().NotBeNull();
+                bottom1.OverEntity.Entity!.Should().Be(top);
+                bottom2.OverEntity.Entity!.Should().Be(top);
             });
 
             top.IsDead.Should().BeTrue();

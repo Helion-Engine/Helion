@@ -16,8 +16,8 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Should().Be(bottom);
-            bottom.OverEntity.Should().Be(top);
+            top.OnEntity.Entity.Should().Be(bottom);
+            bottom.OverEntity.Entity!.Should().Be(top);
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity two on bottom")]
@@ -27,10 +27,10 @@ namespace Helion.Tests.Unit.GameAction
             var bottom2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos3.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
-            top.OnEntity.Should().NotBe(null);
-            (top.OnEntity!.Equals(bottom1) || top.OnEntity!.Equals(bottom2)).Should().BeTrue();
-            bottom1.OverEntity.Should().Be(top);
-            bottom2.OverEntity.Should().Be(top);
+            top.OnEntity.Entity.Should().NotBe(null);
+            (top.OnEntity.Entity!.Equals(bottom1) || top.OnEntity.Entity!.Equals(bottom2)).Should().BeTrue();
+            bottom1.OverEntity.Entity!.Should().Be(top);
+            bottom2.OverEntity.Entity!.Should().Be(top);
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity dies")]
@@ -39,13 +39,13 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Should().Be(bottom);
-            bottom.OverEntity.Should().Be(top);
+            top.OnEntity.Entity.Should().Be(bottom);
+            bottom.OverEntity.Entity!.Should().Be(top);
 
             bottom.Kill(null);
 
-            top.OnEntity.Should().BeNull();
-            bottom.OverEntity.Should().BeNull();
+            top.OnEntity.Entity.Should().BeNull();
+            bottom.OverEntity.Entity!.Should().BeNull();
 
             World.Tick();
 
@@ -58,13 +58,13 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Should().Be(bottom);
-            bottom.OverEntity.Should().Be(top);
+            top.OnEntity.Entity.Should().Be(bottom);
+            bottom.OverEntity.Entity!.Should().Be(top);
 
             GameActions.MoveEntity(World, bottom, new Vec2D(-928, 768));
 
-            top.OnEntity.Should().BeNull();
-            bottom.OverEntity.Should().BeNull();
+            top.OnEntity.Entity.Should().BeNull();
+            bottom.OverEntity.Entity!.Should().BeNull();
 
             World.Tick();
 
@@ -79,15 +79,15 @@ namespace Helion.Tests.Unit.GameAction
             var top2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
             bottom.OverEntity.Should().NotBe(null);
-            (bottom.OverEntity!.Equals(top1) || bottom.OverEntity!.Equals(top2)).Should().BeTrue();
-            top1.OnEntity.Should().Be(bottom);
-            top2.OnEntity.Should().Be(bottom);
+            (bottom.OverEntity.Entity!.Equals(top1) || bottom.OverEntity.Entity!.Equals(top2)).Should().BeTrue();
+            top1.OnEntity.Entity.Should().Be(bottom);
+            top2.OnEntity.Entity.Should().Be(bottom);
 
             bottom.Kill(null);
 
-            top1.OnEntity.Should().BeNull();
-            top2.OnEntity.Should().BeNull();
-            bottom.OverEntity.Should().BeNull();
+            top1.OnEntity.Entity.Should().BeNull();
+            top2.OnEntity.Entity.Should().BeNull();
+            bottom.OverEntity.Entity!.Should().BeNull();
         }
 
         [Fact(DisplayName = "Entity can move partially clipped")]
@@ -162,7 +162,7 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos1 = new(1168, 1064, 24);
             Vec3D moveTo = pos1 + new Vec3D(16, 0, 0);
             var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
-            moveEntity.OnEntity.Should().NotBeNull();
+            moveEntity.OnEntity.Entity.Should().NotBeNull();
             moveEntity.OnGround.Should().BeTrue();
 
             GameActions.MoveEntity(World, moveEntity, moveTo.XY);

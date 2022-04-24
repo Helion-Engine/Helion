@@ -68,16 +68,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public List<Sector> IntersectSectors;
-    // The entity we are standing on.
-    public Entity? OnEntity;
-    // The entity standing on our head.
-    public Entity? OverEntity;
     public Entity? Owner;
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
     public WeakEntity Target { get; private set; } = WeakEntity.Default;
     public WeakEntity Tracer { get; private set; } = WeakEntity.Default;
+    public WeakEntity OnEntity { get; private set; } = WeakEntity.Default;
+    public WeakEntity OverEntity { get; private set; } = WeakEntity.Default;
     public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
@@ -291,6 +289,28 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             Tracer = DataCache.Instance.GetWeakEntity();
 
         Tracer.Set(entity);
+    }
+
+    public void SetOnEntity(Entity? entity)
+    {
+        if (entity == null && OnEntity.Entity == null)
+            return;
+
+        if (ReferenceEquals(OnEntity, WeakEntity.Default))
+            OnEntity = DataCache.Instance.GetWeakEntity();
+
+        OnEntity.Set(entity);
+    }
+
+    public void SetOverEntity(Entity? entity)
+    {
+        if (entity == null && OverEntity.Entity == null)
+            return;
+
+        if (ReferenceEquals(OverEntity, WeakEntity.Default))
+            OverEntity = DataCache.Instance.GetWeakEntity();
+
+        OverEntity.Set(entity);
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
