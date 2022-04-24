@@ -1108,14 +1108,14 @@ public static class EntityActionFunctions
 
     private static void A_Fire(Entity entity)
     {
-        if (entity.Target.Entity == null || entity.Tracer == null)
+        if (entity.Target.Entity == null || entity.Tracer.Entity == null)
             return;
 
-        if (!entity.World.CheckLineOfSight(entity.Target.Entity, entity.Tracer))
+        if (!entity.World.CheckLineOfSight(entity.Target.Entity, entity.Tracer.Entity))
             return;
 
-        Vec3D newPos = entity.Tracer.Position;
-        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.AngleRadians, 0.0);
+        Vec3D newPos = entity.Tracer.Entity.Position;
+        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.Entity.AngleRadians, 0.0);
         newPos.X += unit.X * 24;
         newPos.Y += unit.Y * 24;
 
@@ -1651,7 +1651,7 @@ public static class EntityActionFunctions
         }
 
         entity.Flags.Solid = wasSolid;
-        skull.Target = entity.Target;
+        skull.SetTarget(entity.Target.Entity);
         A_SkullAttack(skull);
     }
 
@@ -2251,7 +2251,7 @@ public static class EntityActionFunctions
             Constants.EntityShootDistance, false, "RevenantTracer", out _, zOffset: 16);
 
         if (fireball != null)
-            fireball.Tracer = entity.Target.Entity;
+            fireball.SetTracer(entity.Target.Entity);
     }
 
     private static void A_SkelWhoosh(Entity entity)
@@ -2531,16 +2531,16 @@ public static class EntityActionFunctions
         entity.World.DamageEntity(entity.Target.Entity, entity, 20, DamageType.Normal, Thrust.Horizontal);
         entity.Target.Entity.Velocity.Z = 1000.0 / entity.Target.Entity.Definition.Properties.Mass;
 
-        if (entity.Tracer == null)
+        if (entity.Tracer.Entity == null)
             return;
 
-        Vec3D newPos = entity.Tracer.Position;
-        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.AngleRadians, 0.0);
+        Vec3D newPos = entity.Tracer.Entity.Position;
+        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.Entity.AngleRadians, 0.0);
         newPos.X -= unit.X * 24;
         newPos.Y -= unit.Y * 24;
 
-        entity.Tracer.SetPosition(newPos);
-        entity.World.RadiusExplosion(entity.Tracer, entity, 70, 70);
+        entity.Tracer.Entity.SetPosition(newPos);
+        entity.World.RadiusExplosion(entity.Tracer.Entity, entity, 70, 70);
     }
 
     private static void A_VileChase(Entity entity)
@@ -2571,9 +2571,9 @@ public static class EntityActionFunctions
         if (fire != null)
         {
             fire.Owner = entity;
-            entity.Tracer = fire;
+            entity.SetTracer(fire);
             fire.SetTarget(entity);
-            fire.Tracer = entity.Target.Entity;
+            fire.SetTracer(entity.Target.Entity);
             A_Fire(fire);
         }
     }
@@ -2915,12 +2915,12 @@ public static class EntityActionFunctions
         if (entity.Flags.Missile)
         {
             createdEntity.Owner = entity.Owner;
-            createdEntity.Tracer = entity.Tracer;
+            createdEntity.SetTracer(entity.Tracer.Entity);
         }
         else
         {
             createdEntity.SetTarget(entity);
-            createdEntity.Tracer = entity.Tracer;
+            createdEntity.SetTracer(entity.Tracer.Entity);
         }
     }
 
@@ -3026,7 +3026,7 @@ public static class EntityActionFunctions
 
     private static void A_FindTracer(Entity entity)
     {
-        if (entity.Tracer != null)
+        if (entity.Tracer.Entity != null)
             return;
 
         double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
@@ -3036,7 +3036,7 @@ public static class EntityActionFunctions
 
     private static void A_ClearTracer(Entity entity)
     {
-        entity.Tracer = null;
+        entity.SetTracer(null);
     }
 
     private static void A_JumpIfHealthBelow(Entity entity)
@@ -3075,24 +3075,24 @@ public static class EntityActionFunctions
 
     private static void A_JumpIfTracerInSight(Entity entity)
     {
-        if (entity.Tracer == null)
+        if (entity.Tracer.Entity == null)
             return;
 
         int state = entity.Frame.DehackedArgs1;
         double fov = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
-        JumpToStateIfInSight(entity, entity.Tracer, state, fov);
+        JumpToStateIfInSight(entity, entity.Tracer.Entity, state, fov);
     }
 
     private static void A_JumpIfTracerCloser(Entity entity)
     {
-        if (entity.Tracer == null)
+        if (entity.Tracer.Entity == null)
             return;
 
         int state = entity.Frame.DehackedArgs1;
         double distance = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
 
         var entityFrameTable = entity.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (distance > entity.Position.ApproximateDistance2D(entity.Tracer.Position) &&
+        if (distance > entity.Position.ApproximateDistance2D(entity.Tracer.Entity.Position) &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
             entity.FrameState.SetState(newFrame);
     }
@@ -3178,7 +3178,7 @@ public static class EntityActionFunctions
             createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
         }
 
-        createdEntity.Tracer = autoAimEntity;
+        createdEntity.SetTracer(autoAimEntity);
     }
 
     private static void PlayerMelee(Player player, int damageBase, int mod, double berserkFactor, double range, string hitSound)

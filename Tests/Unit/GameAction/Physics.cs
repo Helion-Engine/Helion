@@ -28,7 +28,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Physics()
         {
-            World = WorldAllocator.LoadMap(ResourceZip, "physics.wad", MapName, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap(ResourceZip, "physics.wad", MapName, GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         public void Dispose()

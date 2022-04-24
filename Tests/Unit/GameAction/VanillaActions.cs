@@ -31,7 +31,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public VanillaActions()
         {
-            World = WorldAllocator.LoadMap(ResourceZip, "vandacts.wad", MapName, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap(ResourceZip, "vandacts.wad", MapName, GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)

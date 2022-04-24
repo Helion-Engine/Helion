@@ -51,6 +51,7 @@ using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
 using Helion.Geometry.Grids;
+using System.Diagnostics;
 
 namespace Helion.World;
 
@@ -283,6 +284,8 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void Tick()
     {
+        DebugCheck();
+
         if (Paused)
             return;
 
@@ -321,6 +324,13 @@ public abstract partial class WorldBase : IWorld
         Gametick++;
 
         Profiler.World.Total.Stop();
+    }
+
+    [Conditional("DEBUG")]
+    private static void DebugCheck()
+    {
+        if (WeakEntity.Default.Entity != null)
+            Fail("Static WeakEntity default reference was changed.");
     }
 
     private void TickEntities()
@@ -1865,7 +1875,7 @@ public abstract partial class WorldBase : IWorld
 
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
     {
-        if (entity.Tracer == null || entity.Tracer.IsDead)
+        if (entity.Tracer.Entity == null || entity.Tracer.Entity.IsDead)
             return;
 
         SetTracerAngle(entity, threshold, maxTurnAngle);
@@ -1874,7 +1884,7 @@ public abstract partial class WorldBase : IWorld
         entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.Speed;
         entity.Velocity.Z = z;
 
-        entity.Velocity.Z = velocityZ(entity, entity.Tracer);
+        entity.Velocity.Z = velocityZ(entity, entity.Tracer.Entity);
     }
 
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
@@ -1895,7 +1905,7 @@ public abstract partial class WorldBase : IWorld
             if (!CheckLineOfSight(entity, checkEntity))
                 continue;
 
-            entity.Tracer = checkEntity;
+            entity.SetTracer(checkEntity);
             break;
         }
 
@@ -1904,11 +1914,11 @@ public abstract partial class WorldBase : IWorld
 
     private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)
     {
-        if (entity.Tracer == null)
+        if (entity.Tracer.Entity == null)
             return;
         // Doom's angles were always 0-360 and did not allow negatives (thank you arithmetic overflow)
         // To keep this code familiar GetPositiveAngle will keep angle between 0 and 2pi
-        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Position));
+        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Entity.Position));
         double currentAngle = MathHelper.GetPositiveAngle(entity.AngleRadians);
         double diff = MathHelper.GetPositiveAngle(exact - currentAngle);
 

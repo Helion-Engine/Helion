@@ -16,6 +16,7 @@ using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
+using Helion.Util.Assertion;
 
 namespace Helion.Util;
 
@@ -288,6 +289,8 @@ public class DataCache
 
     public void FreeWeakEntity(WeakEntity weakEntity)
     {
+        Assert.Precondition(!ReferenceEquals(weakEntity, WeakEntity.Default), "Tried to free static default instance.");
+
         weakEntity.Entity = null;
         m_weakEntities.Add(weakEntity);
     }
@@ -305,4 +308,8 @@ public class DataCache
         weakEntities.Clear();
         m_weakEntitiesList.Add(weakEntities);
     }
+
+    // Unit Test functions
+    public void ClearWeakEntities() => m_weakEntities.Clear();
+    public void ClearWeakEntityLists() => m_weakEntitiesList.Clear();
 }

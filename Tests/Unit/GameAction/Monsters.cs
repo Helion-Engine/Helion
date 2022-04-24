@@ -113,7 +113,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Monsters()
         {
-            World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         public void Dispose()
@@ -140,15 +140,15 @@ namespace Helion.Tests.Unit.GameAction
         {
             var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
             var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-32, -416, 0), onCreated: EntityCreated);
-            barrel.Target.Should().BeNull();
-            monster.Target.Should().BeNull();
+            barrel.Target.Entity.Should().BeNull();
+            monster.Target.Entity.Should().BeNull();
             int startHealth = monster.Health;
             barrel.Damage(Player, barrel.Health, false, DamageType.AlwaysApply);
             GameActions.TickWorld(World, () => { return monster.Health == startHealth; }, () => { });
 
             monster.Health.Should().BeLessThan(startHealth);
-            barrel.Target.Should().Be(Player);
-            monster.Target.Should().Be(Player);
+            barrel.Target.Entity.Should().Be(Player);
+            monster.Target.Entity.Should().Be(Player);
         }
 
         [Fact(DisplayName = "Barrel monster damage source")]
@@ -157,20 +157,20 @@ namespace Helion.Tests.Unit.GameAction
             var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
             var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-32, -416, 0), onCreated: EntityCreated);
             var monster2 = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-96, -480, 0), onCreated: EntityCreated);
-            barrel.Target.Should().BeNull();
-            monster.Target.Should().BeNull();
-            monster2.Target.Should().BeNull();
+            barrel.Target.Entity.Should().BeNull();
+            monster.Target.Entity.Should().BeNull();
+            monster2.Target.Entity.Should().BeNull();
             int startHealth = monster.Health;
             barrel.Damage(monster2, barrel.Health, false, DamageType.AlwaysApply);
             GameActions.TickWorld(World, () => { return monster.Health == startHealth; }, () => { });
 
             monster.Health.Should().BeLessThan(startHealth);
             monster2.Health.Should().BeLessThan(startHealth);
-            barrel.Target.Should().Be(monster2);
+            barrel.Target.Entity.Should().Be(monster2);
             // A baron will target another baron through a barrel explosion and will eventually rip each other apart through melee attacks
-            monster.Target.Should().Be(monster2);
+            monster.Target.Entity.Should().Be(monster2);
             // monster 2 should not target itself from explosion
-            monster2.Target.Should().BeNull();
+            monster2.Target.Entity.Should().BeNull();
         }
 
         [Fact(DisplayName = "Cyberdemon no radius damage")]
@@ -272,7 +272,7 @@ namespace Helion.Tests.Unit.GameAction
             bool timeout = false;
             GameActions.TickWorld(World, () => { return !CheckAttackState(dest) && !timeout; }, () =>
             {
-                // Needs to run long for archvile attack, lost soul skyfly etc
+                // Needs to run long for archvile attack, lost soul skullfly etc
                 if (World.Gametick - startTicks > 35 * 6)
                     timeout = true;
             });
@@ -281,9 +281,9 @@ namespace Helion.Tests.Unit.GameAction
             {
                 // Monsters will not retaliate from archvile attack
                 if (sourceData.Name.EqualsIgnoreCase("Archvile"))
-                    dest.Target.Should().BeNull();
+                    dest.Target.Entity.Should().BeNull();
                 else
-                    dest.Target.Should().Be(source);
+                    dest.Target.Entity.Should().Be(source);
 
                 DebugLog("Missile - Damaged");
                 DebugLog(string.Format("Missile - {0}", dest.Target.Entity == null ? "No Target" : "Targeted"));
@@ -295,7 +295,7 @@ namespace Helion.Tests.Unit.GameAction
             if (sourceData.Name.Equals("PainElemental"))
             {
                 DebugLog("Missile - Damaged and Targeted (Lost Soul)");
-                dest.Target.Should().NotBeNull();
+                dest.Target.Entity.Should().NotBeNull();
                 dest.Target.Entity!.Definition.Name.Should().Be("LostSoul");
                 dest.Health.Should().NotBe(int.MaxValue);
 
@@ -306,7 +306,7 @@ namespace Helion.Tests.Unit.GameAction
 
             DebugLog("Missile - No Damage");
             dest.Health.Should().Be(int.MaxValue);
-            dest.Target.Should().BeNull();
+            dest.Target.Entity.Should().BeNull();
         }
 
         private void RunMeleeState(Entity source, Entity dest, MonsterData sourceData)
@@ -325,7 +325,7 @@ namespace Helion.Tests.Unit.GameAction
 
             DebugLog("Melee - Damaged and Targeted");
             // Melee attacks always damage, even if same species. Barell explosion bug is usually the only way this can happen.
-            dest.Target.Should().Be(source);
+            dest.Target.Entity.Should().Be(source);
             dest.Health.Should().NotBe(int.MaxValue);   
         }
 

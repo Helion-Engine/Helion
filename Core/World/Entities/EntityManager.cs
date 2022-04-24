@@ -239,13 +239,20 @@ public class EntityManager : IDisposable
 
             if (entityModel.Owner.HasValue)
                 entities.TryGetValue(entityModel.Owner.Value, out entity.Owner);
+
             if (entityModel.Target.HasValue)
             {
                 entities.TryGetValue(entityModel.Target.Value, out var entityTarget);
-                entity.SetTarget(entityTarget);
+                if (entityTarget != null)
+                    entity.SetTarget(entityTarget);
             }
+
             if (entityModel.Tracer.HasValue)
-                entities.TryGetValue(entityModel.Tracer.Value, out entity.Tracer);
+            {
+                entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget);
+                if (tracerTarget != null)
+                    entity.SetTracer(tracerTarget);
+            }
         }
 
         return new WorldModelPopulateResult(players, entities);

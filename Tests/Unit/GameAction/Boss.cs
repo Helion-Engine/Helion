@@ -36,7 +36,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "E1M8 baron boss death")]
         public void E1M8()
         {
-            var world = WorldAllocator.LoadMap(Resource, File, "E1M8", WorldInit, IWadType.UltimateDoom);
+            var world = WorldAllocator.LoadMap(Resource, File, "E1M8", GetType().Name, WorldInit, IWadType.UltimateDoom);
             var baron1 = GameActions.GetEntity(world, 0);
             var baron2 = GameActions.GetEntity(world, 1);
             baron1.Definition.Name.EqualsIgnoreCase("BaronOfHell").Should().BeTrue();
@@ -58,7 +58,7 @@ namespace Helion.Tests.Unit.GameAction
         public void E2M8()
         {
             bool exited = false;
-            var world = WorldAllocator.LoadMap(Resource, File, "E2M8", WorldInit, IWadType.UltimateDoom);
+            var world = WorldAllocator.LoadMap(Resource, File, "E2M8", GetType().Name, WorldInit, IWadType.UltimateDoom);
             world.LevelExit += World_LevelExit;
             var cyber = GameActions.GetEntity(world, 0);
             cyber.Definition.Name.EqualsIgnoreCase("Cyberdemon").Should().BeTrue();
@@ -78,7 +78,7 @@ namespace Helion.Tests.Unit.GameAction
         public void E3M8()
         {
             bool exited = false;
-            var world = WorldAllocator.LoadMap(Resource, File, "E3M8", WorldInit, IWadType.UltimateDoom);
+            var world = WorldAllocator.LoadMap(Resource, File, "E3M8", GetType().Name, WorldInit, IWadType.UltimateDoom);
             world.LevelExit += World_LevelExit;
             var spider = GameActions.GetEntity(world, 0);
             spider.Definition.Name.EqualsIgnoreCase("SpiderMasterMind").Should().BeTrue();
@@ -97,7 +97,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "E4M6 Cyberdemon boss death")]
         public void E4M6()
         {
-            var world = WorldAllocator.LoadMap(Resource, File, "E4M6", WorldInit, IWadType.UltimateDoom);
+            var world = WorldAllocator.LoadMap(Resource, File, "E4M6", GetType().Name, WorldInit, IWadType.UltimateDoom);
             var cyber = GameActions.GetEntity(world, 0);
             cyber.Definition.Name.EqualsIgnoreCase("Cyberdemon").Should().BeTrue();
 
@@ -113,7 +113,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "E4M8 Spider Mastermind boss death")]
         public void E4M8()
         {
-            var world = WorldAllocator.LoadMap(Resource, File, "E4M8", WorldInit, IWadType.UltimateDoom);
+            var world = WorldAllocator.LoadMap(Resource, File, "E4M8", GetType().Name, WorldInit, IWadType.UltimateDoom);
             var spider = GameActions.GetEntity(world, 0);
             spider.Definition.Name.EqualsIgnoreCase("SpiderMasterMind").Should().BeTrue();
 
@@ -129,7 +129,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "MAP07 Mancubus and arachnotron boss death")]
         public void MAP07()
         {
-            var world = WorldAllocator.LoadMap(Resource, File, "MAP07", WorldInit, IWadType.Doom2);
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP07", GetType().Name, WorldInit, IWadType.Doom2);
             var manc1 = GameActions.GetEntity(world, 0);
             var manc2 = GameActions.GetEntity(world, 1);
             manc1.Definition.Name.EqualsIgnoreCase("Fatso").Should().BeTrue();

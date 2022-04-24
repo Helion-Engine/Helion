@@ -76,8 +76,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
-    public WeakEntity Target = WeakEntity.Default;
-    public Entity? Tracer;
+    public WeakEntity Target { get; private set; } = WeakEntity.Default;
+    public WeakEntity Tracer { get; private set; } = WeakEntity.Default;
     public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
@@ -248,7 +248,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.MoveCount = MoveCount;
         entityModel.Owner = Owner?.Id;
         entityModel.Target = Target.Entity?.Id;
-        entityModel.Tracer = Tracer?.Id;
+        entityModel.Tracer = Tracer.Entity?.Id;
         entityModel.Refire = Refire;
         entityModel.MoveLinked = MoveLinked;
         entityModel.Respawn = Respawn;
@@ -273,10 +273,24 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SetTarget(Entity? entity)
     {
+        if (entity == null && Target.Entity == null)
+            return;
+
         if (ReferenceEquals(Target, WeakEntity.Default))
             Target = DataCache.Instance.GetWeakEntity();
 
         Target.Set(entity);
+    }
+
+    public void SetTracer(Entity? entity)
+    {
+        if (entity == null && Tracer.Entity == null)
+            return;
+
+        if (ReferenceEquals(Tracer, WeakEntity.Default))
+            Tracer = DataCache.Instance.GetWeakEntity();
+
+        Tracer.Set(entity);
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
@@ -905,6 +919,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void Dispose()
     {
+        if (IsDisposed)
+            return;
+
+        IsDisposed = true;
         UnlinkFromWorld();
         EntityListNode?.Unlink();
         DataCache.Instance.FreeEntityAudioSources(m_soundChannels);
@@ -918,7 +936,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!ReferenceEquals(Target, WeakEntity.Default))
             DataCache.Instance.FreeWeakEntity(Target);
 
-        IsDisposed = true;
+        if (!ReferenceEquals(Tracer, WeakEntity.Default))
+            DataCache.Instance.FreeWeakEntity(Tracer);
+
         GC.SuppressFinalize(this);
     }
 

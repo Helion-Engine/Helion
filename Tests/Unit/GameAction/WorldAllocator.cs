@@ -25,16 +25,18 @@ namespace Helion.Tests.Unit.GameAction
         private static string LastResource = string.Empty;
         private static string LastFileName = string.Empty;
         private static string LastMapName = string.Empty;
+        private static string LastTestKey = string.Empty;
 
-        public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, Action<SinglePlayerWorld> onInit,
+        public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
             IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium)
         {
-            if (UseExistingWorld(resourceZip, fileName, mapName, out SinglePlayerWorld? existingWorld))
+            if (UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
 
             LastResource = resourceZip;
             LastFileName = fileName;
             LastMapName = mapName;
+            LastTestKey = testKey;
 
             using ZipArchive archive = ZipFile.OpenRead(resourceZip);
             archive.ExtractToDirectory(Directory.GetCurrentDirectory(), true);
@@ -73,14 +75,15 @@ namespace Helion.Tests.Unit.GameAction
             return world;
         }
 
-        private static bool UseExistingWorld(string resourceZip, string fileName, string mapName, 
+        private static bool UseExistingWorld(string resourceZip, string fileName, string mapName, string testKey,
             [NotNullWhen(true)] out SinglePlayerWorld? existingWorld)
         {
             existingWorld = StaticWorld;
             if (StaticWorld == null)
                 return false;
 
-            if (existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) && mapName.EqualsIgnoreCase(LastMapName))
+            if (existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) && 
+                mapName.EqualsIgnoreCase(LastMapName) && testKey.EqualsIgnoreCase(LastTestKey))
                 return true;
 
             StaticWorld.ArchiveCollection.Dispose();
