@@ -238,7 +238,11 @@ public class EntityManager : IDisposable
                 continue;
 
             if (entityModel.Owner.HasValue)
-                entities.TryGetValue(entityModel.Owner.Value, out entity.Owner);
+            {
+                entities.TryGetValue(entityModel.Owner.Value, out var entityOwner);
+                if (entityOwner != null)
+                    entity.SetOwner(entityOwner);
+            }
 
             if (entityModel.Target.HasValue)
             {

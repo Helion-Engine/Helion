@@ -243,6 +243,7 @@ namespace Helion.Tests.Unit.GameAction
             zombie.Tracer.Entity.Should().BeNull();
             zombie.OnEntity.Entity.Should().BeNull();
             zombie.OverEntity.Entity.Should().BeNull();
+            zombie.Owner.Entity.Should().BeNull();
 
             zombie.SetTarget(null);
             zombie.SetTracer(lostSoul);
@@ -250,6 +251,7 @@ namespace Helion.Tests.Unit.GameAction
             zombie.Tracer.Entity.Should().Be(lostSoul);
             zombie.OnEntity.Entity.Should().BeNull();
             zombie.OverEntity.Entity.Should().BeNull();
+            zombie.Owner.Entity.Should().BeNull();
 
             zombie.SetTracer(null);
             zombie.SetOnEntity(lostSoul);
@@ -257,6 +259,7 @@ namespace Helion.Tests.Unit.GameAction
             zombie.Tracer.Entity.Should().BeNull();
             zombie.OnEntity.Entity.Should().Be(lostSoul);
             zombie.OverEntity.Entity.Should().BeNull();
+            zombie.Owner.Entity.Should().BeNull();
 
             zombie.SetOnEntity(null);
             zombie.SetOverEntity(lostSoul);
@@ -264,12 +267,22 @@ namespace Helion.Tests.Unit.GameAction
             zombie.Tracer.Entity.Should().BeNull();
             zombie.OnEntity.Entity.Should().BeNull();
             zombie.OverEntity.Entity.Should().Be(lostSoul);
+            zombie.Owner.Entity.Should().BeNull();
 
             zombie.SetOverEntity(null);
+            zombie.SetOwner(lostSoul);
             zombie.Target.Entity.Should().BeNull();
             zombie.Tracer.Entity.Should().BeNull();
             zombie.OnEntity.Entity.Should().BeNull();
             zombie.OverEntity.Entity.Should().BeNull();
+            zombie.Owner.Entity.Should().Be(lostSoul);
+
+            zombie.SetOwner(null);
+            zombie.Target.Entity.Should().BeNull();
+            zombie.Tracer.Entity.Should().BeNull();
+            zombie.OnEntity.Entity.Should().BeNull();
+            zombie.OverEntity.Entity.Should().BeNull();
+            zombie.Owner.Entity.Should().BeNull();
         }
     }
 }

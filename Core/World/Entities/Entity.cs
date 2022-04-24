@@ -21,6 +21,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Render.Legacy.Renderers.Legacy.World;
 using Helion.Util.Extensions;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities;
 
@@ -68,7 +69,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public List<Sector> IntersectSectors;
-    public Entity? Owner;
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -76,6 +76,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public WeakEntity Tracer { get; private set; } = WeakEntity.Default;
     public WeakEntity OnEntity { get; private set; } = WeakEntity.Default;
     public WeakEntity OverEntity { get; private set; } = WeakEntity.Default;
+    public WeakEntity Owner { get; private set; } = WeakEntity.Default;
     public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
@@ -244,7 +245,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.Armor = Armor;
         entityModel.FrozenTics = FrozenTics;
         entityModel.MoveCount = MoveCount;
-        entityModel.Owner = Owner?.Id;
+        entityModel.Owner = Owner.Entity?.Id;
         entityModel.Target = Target.Entity?.Id;
         entityModel.Tracer = Tracer.Entity?.Id;
         entityModel.Refire = Refire;
@@ -271,46 +272,40 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SetTarget(Entity? entity)
     {
-        if (entity == null && Target.Entity == null)
-            return;
-
-        if (ReferenceEquals(Target, WeakEntity.Default))
-            Target = DataCache.Instance.GetWeakEntity();
-
-        Target.Set(entity);
+        Target = SetWeakReference(Target, entity);
     }
 
     public void SetTracer(Entity? entity)
     {
-        if (entity == null && Tracer.Entity == null)
-            return;
-
-        if (ReferenceEquals(Tracer, WeakEntity.Default))
-            Tracer = DataCache.Instance.GetWeakEntity();
-
-        Tracer.Set(entity);
+        Tracer = SetWeakReference(Tracer, entity);
     }
 
     public void SetOnEntity(Entity? entity)
     {
-        if (entity == null && OnEntity.Entity == null)
-            return;
-
-        if (ReferenceEquals(OnEntity, WeakEntity.Default))
-            OnEntity = DataCache.Instance.GetWeakEntity();
-
-        OnEntity.Set(entity);
+        OnEntity = SetWeakReference(OnEntity, entity);
     }
 
     public void SetOverEntity(Entity? entity)
     {
-        if (entity == null && OverEntity.Entity == null)
-            return;
+        OverEntity = SetWeakReference(OverEntity, entity);
+    }
 
-        if (ReferenceEquals(OverEntity, WeakEntity.Default))
-            OverEntity = DataCache.Instance.GetWeakEntity();
+    public void SetOwner(Entity? entity)
+    {
+        Owner = SetWeakReference(Owner, entity);
+    }
 
-        OverEntity.Set(entity);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static WeakEntity SetWeakReference(WeakEntity weakEntity, Entity? entity)
+    {
+        if (entity == null && weakEntity.Entity == null)
+            return weakEntity;
+
+        if (ReferenceEquals(weakEntity, WeakEntity.Default))
+            weakEntity = DataCache.Instance.GetWeakEntity();
+
+        weakEntity.Set(entity);
+        return weakEntity;
     }
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
@@ -604,7 +599,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public virtual bool CanDamage(Entity source, DamageType damageType)
     {
-        Entity damageSource = source.Owner ?? source;
+        Entity damageSource = source.Owner.Entity ?? source;
         if (damageSource.IsPlayer)
             return true;
 
@@ -643,7 +638,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (source != null)
         {
-            Entity damageSource = source.Owner ?? source;
+            Entity damageSource = source.Owner.Entity ?? source;
             if (!CanDamage(source, damageType))
                 return false;
 
@@ -774,7 +769,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool CanBlockEntity(Entity other)
     {
-        if (ReferenceEquals(this, other) || Owner == other || !other.Flags.Solid || other.Flags.NoClip)
+        if (ReferenceEquals(this, other) || Owner.Entity == other || !other.Flags.Solid || other.Flags.NoClip)
             return false;
 
         if (Flags.Ripper)
@@ -953,13 +948,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         DataCache.Instance.FreeSectorList(IntersectSectors);
 
         WeakEntity.DisposeEntity(this);
-        if (!ReferenceEquals(Target, WeakEntity.Default))
-            DataCache.Instance.FreeWeakEntity(Target);
-
-        if (!ReferenceEquals(Tracer, WeakEntity.Default))
-            DataCache.Instance.FreeWeakEntity(Tracer);
+        FreeWeakReference(Target);
+        FreeWeakReference(Tracer);
+        FreeWeakReference(OnEntity);
+        FreeWeakReference(OverEntity);
+        FreeWeakReference(Owner);
 
         GC.SuppressFinalize(this);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void FreeWeakReference(WeakEntity weakEntity)
+    {
+        if (!ReferenceEquals(weakEntity, WeakEntity.Default))
+            DataCache.Instance.FreeWeakEntity(weakEntity);
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

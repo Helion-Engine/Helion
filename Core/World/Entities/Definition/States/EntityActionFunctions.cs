@@ -466,13 +466,13 @@ public static class EntityActionFunctions
 
     private static void A_BFGSpray(Entity entity)
     {
-        if (entity.Owner == null)
+        if (entity.Owner.Entity == null)
             return;
 
         for (int i = 0; i < 40; i++)
         {
             double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
-            if (!entity.World.GetAutoAimEntity(entity.Owner, entity.Owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
+            if (!entity.World.GetAutoAimEntity(entity.Owner.Entity, entity.Owner.Entity.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
                 out Entity? hitEntity) || hitEntity == null)
                 continue;
 
@@ -999,7 +999,7 @@ public static class EntityActionFunctions
     {
         // Pass through owner if set (usually a projectile)
         // Barrels pass through who shot them (Target)
-        Entity? attackSource = entity.Owner ?? entity.Target.Entity;
+        Entity? attackSource = entity.Owner.Entity ?? entity.Target.Entity;
         entity.World.RadiusExplosion(entity, attackSource ?? entity, 128, 128);
     }
 
@@ -2570,7 +2570,7 @@ public static class EntityActionFunctions
         Entity? fire = entity.EntityManager.Create("ArchvileFire", entity.Position);
         if (fire != null)
         {
-            fire.Owner = entity;
+            fire.SetOwner(entity);
             entity.SetTracer(fire);
             fire.SetTarget(entity);
             fire.SetTracer(entity.Target.Entity);
@@ -2914,7 +2914,7 @@ public static class EntityActionFunctions
 
         if (entity.Flags.Missile)
         {
-            createdEntity.Owner = entity.Owner;
+            createdEntity.SetOwner(entity.Owner.Entity);
             createdEntity.SetTracer(entity.Tracer.Entity);
         }
         else
@@ -2980,7 +2980,7 @@ public static class EntityActionFunctions
     private static void A_RadiusDamage(Entity entity)
     {
         int maxDamage = entity.Frame.DehackedArgs1;
-        Entity? attackSource = entity.Owner ?? entity.Target.Entity;
+        Entity? attackSource = entity.Owner.Entity ?? entity.Target.Entity;
         entity.World.RadiusExplosion(entity, attackSource ?? entity, entity.Frame.DehackedArgs2, maxDamage);
     }
 

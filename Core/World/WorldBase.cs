@@ -776,7 +776,7 @@ public abstract partial class WorldBase : IWorld
             Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
             Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
             Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0));
-            projectile.Owner = shooter;
+            projectile.SetOwner(shooter);
             projectile.PlaySeeSound();
 
             if (projectile.Flags.Randomize)
@@ -948,7 +948,7 @@ public abstract partial class WorldBase : IWorld
         {
             Vec3D savePos = source.Position;
             // Check if the souce is owned by this target and the same position and move to get a valid thrust angle. (player shot missile against wall)
-            if (source.Owner == target && source.Position.XY == target.Position.XY)
+            if (source.Owner.Entity == target && source.Position.XY == target.Position.XY)
             {
                 Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
                 source.SetPosition(move);
@@ -974,7 +974,7 @@ public abstract partial class WorldBase : IWorld
             {
                 // Player rocket jumping check, back up the source Z to get a valid pitch
                 // Only done for players, otherwise blowing up enemies will launch them in the air
-                if (zEqual && target.IsPlayer && source.Owner == target)
+                if (zEqual && target.IsPlayer && source.Owner.Entity == target)
                 {
                     Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
                     pitch = sourcePos.Pitch(target.Position, 0.0);
@@ -1321,7 +1321,7 @@ public abstract partial class WorldBase : IWorld
 
         // If the player killed themself then don't display the obituary message
         // There is probably a special string for this in multiplayer for later
-        Entity killer = deathSource.Owner ?? deathSource;
+        Entity killer = deathSource.Owner.Entity ?? deathSource;
         if (ReferenceEquals(player, killer))
             return;
 
@@ -1428,10 +1428,10 @@ public abstract partial class WorldBase : IWorld
         if (applyDamage <= 0)
             return;
 
-        Entity? originalOwner = source.Owner;
-        source.Owner = attackSource;
+        Entity? originalOwner = source.Owner.Entity;
+        source.SetOwner(attackSource);
         DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
-        source.Owner = originalOwner;
+        source.SetOwner(originalOwner);
     }
 
     protected void ChangeToLevel(int number)
@@ -1889,7 +1889,7 @@ public abstract partial class WorldBase : IWorld
 
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
-        Entity owner = entity.Owner ?? entity;
+        Entity owner = entity.Owner.Entity ?? entity;
         List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
             BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Shootable);
 
