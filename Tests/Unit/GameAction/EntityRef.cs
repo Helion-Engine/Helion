@@ -284,5 +284,35 @@ namespace Helion.Tests.Unit.GameAction
             zombie.OverEntity.Entity.Should().BeNull();
             zombie.Owner.Entity.Should().BeNull();
         }
+
+        [Fact(DisplayName = "Do not free default instance to cache")]
+        public void DefaultFreeCheck()
+        {
+            DataCache.Instance.ClearWeakEntities();
+            DataCache.Instance.ClearWeakEntityLists();
+
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            var lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+            lostSoul.Kill(null);
+            GameActions.TickWorld(world, 200);
+
+            lostSoul.IsDisposed.Should().BeTrue();
+            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+
+            lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
+
+            // Setting defaultt weak references to null should leave them default.
+            lostSoul.SetTarget(null);
+            lostSoul.SetTracer(null);
+            lostSoul.SetOnEntity(null);
+            lostSoul.SetOverEntity(null);
+            lostSoul.SetOwner(null);
+
+            lostSoul.Kill(null);
+            GameActions.TickWorld(world, 200);
+
+            lostSoul.IsDisposed.Should().BeTrue();
+            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+        }
     }
 }
