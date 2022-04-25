@@ -33,6 +33,7 @@ public class SpecialManager : ITickable, IDisposable
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly IRandom m_random;
     private readonly WorldBase m_world;
+    private TextureManager TextureManager => m_world.ArchiveCollection.TextureManager;
 
     public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
     {
@@ -151,7 +152,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateFloorRaiseByTextureSpecial(Sector sector, double speed)
     {
-        double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility);
+        double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager, true, m_world.Config.Compatibility);
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
     }
@@ -1493,8 +1494,8 @@ public class SpecialManager : ITickable, IDisposable
         int dir = direction == MoveDirection.Down ? -1 : 1;
         return destination switch
         {
-            SectorDest.ShortestLowerTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager.Instance, true, m_world.Config.Compatibility) * dir),
-            SectorDest.ShortestUpperTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager.Instance, false, m_world.Config.Compatibility) * dir),
+            SectorDest.ShortestLowerTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager, true, m_world.Config.Compatibility) * dir),
+            SectorDest.ShortestUpperTexture => sector.Floor.Z + (sector.GetShortestTexture(TextureManager, false, m_world.Config.Compatibility) * dir),
             _ => sector.Floor.Z,
         };
     }

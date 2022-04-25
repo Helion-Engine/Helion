@@ -63,7 +63,7 @@ public class LegacySkyRenderer : IDisposable
         if (m_skyComponents.Count >= MaxSkyTextures)
             return;
 
-        textureHandle ??= TextureManager.Instance.GetDefaultSkyTexture().Index;
+        textureHandle ??= m_archiveCollection.TextureManager.GetDefaultSkyTexture().Index;
         
         // This is a hack that is used to make us never have collisions. We will
         // eventually do this right in the new renderer.

@@ -85,8 +85,6 @@ public partial class WorldLayer : IGameLayerParent
         string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
         Log.Info(displayName);
 
-        TextureManager.Init(archiveCollection, mapInfoDef);
-
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel);
         if (world == null)
@@ -120,9 +118,10 @@ public partial class WorldLayer : IGameLayerParent
 
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel)
+        Player? existingPlayer, WorldModel? worldModel, bool unitTest = false)
     {
-        MapGeometry? geometry = GeometryBuilder.Create(map, config);
+        archiveCollection.InitTextureManager(mapDef, unitTest);
+        MapGeometry? geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
         if (geometry == null)
             return null;
 

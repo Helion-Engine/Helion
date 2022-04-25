@@ -36,7 +36,7 @@ namespace Helion.Tests.Unit.GameAction
 
         private void WorldInit(SinglePlayerWorld world)
         {
-            SetUnitTestTextures();
+            SetUnitTestTextures(world);
             CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
 
             int[] pauseSectors = new int[] { 726, 643 };
@@ -46,26 +46,32 @@ namespace Helion.Tests.Unit.GameAction
             world.Config.Compatibility.VanillaSectorPhysics.Set(true);
         }
 
-        private static void SetUnitTestTextures()
+        private static void SetUnitTestTextures(WorldBase world)
         {
             // We're not loading doom2.wad so the texture images are empty. Load fake images to test action 30 (raise by shortest lower)
 
-            // For raise by shortest lower compatibility testing
-            Texture texture = TextureManager.Instance.GetTexture("AASHITTY", ResourceNamespace.Textures);
+            // For raise by shortest lower compatibility testing            
+            Texture texture = world.TextureManager.GetTexture("AASHITTY", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 64);
 
-            TextureManager.Instance.NullCompatibilityTextureIndex = texture.Index;
+            world.TextureManager.NullCompatibilityTextureIndex = texture.Index;
 
-            texture = TextureManager.Instance.GetTexture("NUKE24", ResourceNamespace.Textures);
+            texture = world.TextureManager.GetTexture("NUKE24", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 24);
 
-            texture = TextureManager.Instance.GetTexture("DBRAIN1", ResourceNamespace.Textures);
+            texture = world.TextureManager.GetTexture("DBRAIN1", ResourceNamespace.Textures);
+            texture.Image = CreateImage(64, 32);
+            texture = world.TextureManager.GetTexture("DBRAIN2", ResourceNamespace.Textures);
+            texture.Image = CreateImage(64, 32);
+            texture = world.TextureManager.GetTexture("DBRAIN3", ResourceNamespace.Textures);
+            texture.Image = CreateImage(64, 32);
+            texture = world.TextureManager.GetTexture("DBRAIN4", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 32);
 
-            texture = TextureManager.Instance.GetTexture("GRAY2", ResourceNamespace.Textures);
+            texture = world.TextureManager.GetTexture("GRAY2", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 72);
 
-            texture = TextureManager.Instance.GetTexture("SUPPORT2", ResourceNamespace.Textures);
+            texture = world.TextureManager.GetTexture("SUPPORT2", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 128);
         }
 
@@ -192,7 +198,7 @@ namespace Helion.Tests.Unit.GameAction
             var lowerSector = GameActions.GetSector(World, 220);
             var raiseSector = GameActions.GetSector(World, 219);
             GameActions.CheckPlaneTexture(World, lowerSector.Floor, "SLIME15");
-            GameActions.CheckPlaneTexture(World, raiseSector.Floor, "NUKAGE1");
+            GameActions.CheckPlaneTexture(World, raiseSector.Floor, "RROCK01");
             raiseSector.SectorDamageSpecial.Should().NotBeNull();
             raiseSector.SectorDamageSpecial!.Damage.Should().Be(10);
 
@@ -201,7 +207,7 @@ namespace Helion.Tests.Unit.GameAction
             {
                 if (raiseSector.Floor.Z != 0)
                 {
-                    GameActions.CheckPlaneTexture(World, raiseSector.Floor, "NUKAGE1");
+                    GameActions.CheckPlaneTexture(World, raiseSector.Floor, "RROCK01");
                     raiseSector.SectorDamageSpecial.Should().NotBeNull();
                     raiseSector.SectorDamageSpecial!.Damage.Should().Be(10);
                 }

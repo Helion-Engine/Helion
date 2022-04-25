@@ -99,6 +99,7 @@ public abstract partial class WorldBase : IWorld
     public GlobalData GlobalData { get; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
+    public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
     protected readonly IAudioSystem AudioSystem;
     protected readonly MapGeometry Geometry;
@@ -313,7 +314,7 @@ public abstract partial class WorldBase : IWorld
 
             if (WorldState != WorldState.Exit)
             {
-                TextureManager.Instance.Tick();
+                ArchiveCollection.TextureManager.Tick();
                 SoundManager.Tick();
 
                 LevelTime++;
@@ -1119,7 +1120,7 @@ public abstract partial class WorldBase : IWorld
                 }
             }
 
-            if (entity.BlockingSectorPlane != null && TextureManager.Instance.IsSkyTexture(entity.BlockingSectorPlane.TextureHandle))
+            if (entity.BlockingSectorPlane != null && ArchiveCollection.TextureManager.IsSkyTexture(entity.BlockingSectorPlane.TextureHandle))
                 skyClip = true;
 
             if (skyClip)
@@ -1668,9 +1669,9 @@ public abstract partial class WorldBase : IWorld
 
     private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)
     {
-        if (intersect.Z > ceilingZ && TextureManager.Instance.IsSkyTexture(sector.Ceiling.TextureHandle))
+        if (intersect.Z > ceilingZ && ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
             return true;
-        else if (intersect.Z < floorZ && TextureManager.Instance.IsSkyTexture(sector.Floor.TextureHandle))
+        else if (intersect.Z < floorZ && ArchiveCollection.TextureManager.IsSkyTexture(sector.Floor.TextureHandle))
             return true;
 
         return false;
@@ -1678,8 +1679,8 @@ public abstract partial class WorldBase : IWorld
 
     private bool IsSkyClipTwoSided(Sector front, Sector back, in Vec3D intersect)
     {
-        bool isFrontCeilingSky = TextureManager.Instance.IsSkyTexture(front.Ceiling.TextureHandle);
-        bool isBackCeilingSky = TextureManager.Instance.IsSkyTexture(back.Ceiling.TextureHandle);
+        bool isFrontCeilingSky = ArchiveCollection.TextureManager.IsSkyTexture(front.Ceiling.TextureHandle);
+        bool isBackCeilingSky = ArchiveCollection.TextureManager.IsSkyTexture(back.Ceiling.TextureHandle);
 
         if (isFrontCeilingSky && isBackCeilingSky && intersect.Z > back.ToCeilingZ(intersect))
             return true;
@@ -1687,7 +1688,7 @@ public abstract partial class WorldBase : IWorld
         if (isFrontCeilingSky && intersect.Z > front.ToCeilingZ(intersect))
             return true;
 
-        if (TextureManager.Instance.IsSkyTexture(front.Floor.TextureHandle) && intersect.Z < front.ToFloorZ(intersect))
+        if (ArchiveCollection.TextureManager.IsSkyTexture(front.Floor.TextureHandle) && intersect.Z < front.ToFloorZ(intersect))
             return true;
 
         return false;

@@ -24,12 +24,12 @@ public static class HexenGeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder)
+    public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder, TextureManager textureManager)
     {
-        GeometryBuilder builder = new GeometryBuilder();
+        GeometryBuilder builder = new();
 
-        PopulateSectorData(map, builder);
-        PopulateLineData(map, builder);
+        PopulateSectorData(map, builder, textureManager);
+        PopulateLineData(map, builder, textureManager);
 
         BspTree? bspTree;
         try
@@ -52,26 +52,26 @@ public static class HexenGeometryBuilder
     }
 
     private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,
-        SectorPlaneFace face)
+        SectorPlaneFace face, TextureManager textureManager)
     {
         int id = sectorPlanes.Count;
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-        int textureHandle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
+        int textureHandle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
 
-        SectorPlane sectorPlane = new SectorPlane(id, face, z, textureHandle, doomSector.LightLevel);
+        SectorPlane sectorPlane = new(id, face, z, textureHandle, doomSector.LightLevel);
         sectorPlanes.Add(sectorPlane);
 
         return sectorPlane;
     }
 
-    private static void PopulateSectorData(HexenMap map, GeometryBuilder builder)
+    private static void PopulateSectorData(HexenMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
-            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
-            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
+            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor, textureManager);
+            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(doomSector.SectorType, SectorDataType.ZDoom);
             SectorSpecialData.SetSectorData(doomSector.SectorType, sectorData, SectorDataType.ZDoom);
 
@@ -82,7 +82,7 @@ public static class HexenGeometryBuilder
         }
     }
 
-    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
+    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
     {
         // This is okay because of how we create sectors corresponding
         // to their list index. If this is wrong then someone broke the
@@ -91,16 +91,16 @@ public static class HexenGeometryBuilder
         Sector facingSector = builder.Sectors[facingSide.Sector.Id];
 
         string middleTexture = facingSide.MiddleTexture;
-        int middleTextureHandle = TextureManager.Instance.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
-        Wall middle = new Wall(builder.Walls.Count,  middleTextureHandle, WallLocation.Middle);
+        int middleTextureHandle = textureManager.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
+        Wall middle = new(builder.Walls.Count,  middleTextureHandle, WallLocation.Middle);
 
         string upperTexture = facingSide.UpperTexture;
-        int upperTextureHandle = TextureManager.Instance.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
-        Wall upper = new Wall(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
+        int upperTextureHandle = textureManager.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
+        Wall upper = new(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
 
         string lowerTexture = facingSide.LowerTexture;
-        int lowerTextureHandle = TextureManager.Instance.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
-        Wall lower = new Wall(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
+        int lowerTextureHandle = textureManager.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
+        Wall lower = new(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
 
         builder.Walls.Add(middle);
         builder.Walls.Add(upper);
@@ -115,7 +115,7 @@ public static class HexenGeometryBuilder
     }
 
     private static (Side front, Side? back) CreateSingleSide(HexenLine doomLine, GeometryBuilder builder,
-        ref int nextSideId)
+        ref int nextSideId, TextureManager textureManager)
     {
         DoomSide doomSide = doomLine.Front;
 
@@ -125,22 +125,22 @@ public static class HexenGeometryBuilder
         Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
         Sector sector = builder.Sectors[doomSide.Sector.Id];
         string middleTexture = doomSide.MiddleTexture;
-        int middleTextureHandle = TextureManager.Instance.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
-        Wall middle = new Wall(builder.Walls.Count, middleTextureHandle, WallLocation.Middle);
+        int middleTextureHandle = textureManager.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
+        Wall middle = new(builder.Walls.Count, middleTextureHandle, WallLocation.Middle);
 
         string upperTexture = doomSide.UpperTexture;
-        int upperTextureHandle = TextureManager.Instance.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
-        Wall upper = new Wall(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
+        int upperTextureHandle = textureManager.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
+        Wall upper = new(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
 
         string lowerTexture = doomSide.LowerTexture;
-        int lowerTextureHandle = TextureManager.Instance.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
-        Wall lower = new Wall(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
+        int lowerTextureHandle = textureManager.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
+        Wall lower = new(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
 
         builder.Walls.Add(middle);
         builder.Walls.Add(upper);
         builder.Walls.Add(lower);
 
-        Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
+        Side front = new(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
 
         nextSideId++;
@@ -149,17 +149,17 @@ public static class HexenGeometryBuilder
     }
 
     private static (Side front, Side? back) CreateSides(HexenLine doomLine, GeometryBuilder builder,
-        ref int nextSideId)
+        ref int nextSideId, TextureManager textureManager)
     {
         if (doomLine.Back == null)
-            return CreateSingleSide(doomLine, builder, ref nextSideId);
+            return CreateSingleSide(doomLine, builder, ref nextSideId, textureManager);
 
-        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
-        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
+        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId, textureManager);
+        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId, textureManager);
         return (front, back);
     }
 
-    private static void PopulateLineData(HexenMap map, GeometryBuilder builder)
+    private static void PopulateLineData(HexenMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         int nextSideId = 0;
 
@@ -171,7 +171,7 @@ public static class HexenGeometryBuilder
                 continue;
             }
 
-            (Side front, Side? back) = CreateSides(hexenLine, builder, ref nextSideId);
+            (Side front, Side? back) = CreateSides(hexenLine, builder, ref nextSideId, textureManager);
 
             Seg2D seg = new(hexenLine.Start.Position, hexenLine.End.Position);
             LineFlags flags = new(hexenLine.Flags);

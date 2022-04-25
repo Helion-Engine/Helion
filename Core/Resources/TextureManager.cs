@@ -24,17 +24,24 @@ public class TextureManager : ITickable
     private readonly List<Animation> m_animations = new();
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
-
-    public static TextureManager Instance { get; private set; } = null!;
+    private readonly bool m_unitTest;
 
     public string SkyTextureName { get; set; }
-    public bool UnitTest { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
 
-    private TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
+    public TextureManager(ArchiveCollection archiveCollection)
+    {
+        m_archiveCollection = archiveCollection;
+        m_textures = new();
+        m_translations = new();
+        SkyTextureName = "SKY1";
+    }
+
+    public TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null, bool unitTest = false)
     {
         m_archiveCollection = archiveCollection;
         SkyTextureName = mapInfoDef?.Sky1.Name ?? "SKY1";
+        m_unitTest = unitTest;
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
         var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats, OrderType.Ascending);
@@ -58,7 +65,7 @@ public class TextureManager : ITickable
 
     public static void Init(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
     {
-        Instance = new TextureManager(archiveCollection, mapInfoDef);
+        //Instance = new TextureManager(archiveCollection, mapInfoDef);
     }
 
     public Texture GetDefaultSkyTexture()
@@ -148,7 +155,7 @@ public class TextureManager : ITickable
         if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
             return m_textures[Constants.NoTextureIndex];
 
-        if (UnitTest)
+        if (m_unitTest)
             HandleUnitTestAdd(name, resourceNamespace);
 
         Texture? texture;

@@ -23,12 +23,12 @@ public static class DoomGeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder)
+    public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder, TextureManager textureManager)
     {
-        GeometryBuilder builder = new GeometryBuilder();
+        GeometryBuilder builder = new();
 
-        PopulateSectorData(map, builder);
-        PopulateLineData(map, builder);
+        PopulateSectorData(map, builder, textureManager);
+        PopulateLineData(map, builder, textureManager);
 
         BspTree? bspTree;
         try
@@ -46,26 +46,27 @@ public static class DoomGeometryBuilder
         return new MapGeometry(builder, bspTree);
     }
 
-    private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face)
+    private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face,
+        TextureManager textureManager)
     {
         int id = sectorPlanes.Count;
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-        int handle = TextureManager.Instance.GetTexture(texture, ResourceNamespace.Flats).Index;
+        int handle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
 
-        SectorPlane sectorPlane = new SectorPlane(id, face, z, handle, doomSector.LightLevel);
+        SectorPlane sectorPlane = new(id, face, z, handle, doomSector.LightLevel);
         sectorPlanes.Add(sectorPlane);
 
         return sectorPlane;
     }
 
-    private static void PopulateSectorData(DoomMap map, GeometryBuilder builder)
+    private static void PopulateSectorData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
-            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor);
-            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling);
+            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor, textureManager);
+            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
 
             Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
@@ -76,7 +77,7 @@ public static class DoomGeometryBuilder
     }
 
     private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
-        ref int nextSideId)
+        ref int nextSideId, TextureManager textureManager)
     {
         DoomSide doomSide = doomLine.Front;
 
@@ -85,13 +86,13 @@ public static class DoomGeometryBuilder
         // ordering very badly.
         Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
         Sector sector = builder.Sectors[doomSide.Sector.Id];
-        var middleTexture = TextureManager.Instance.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures);
-        var upperTexture = TextureManager.Instance.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
-        var lowerTexture = TextureManager.Instance.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
+        var middleTexture = textureManager.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures);
+        var upperTexture = textureManager.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
+        var lowerTexture = textureManager.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
 
-        Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-        Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-        Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
+        Wall middle = new(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+        Wall upper = new(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+        Wall lower = new(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
         builder.Walls.Add(middle);
         builder.Walls.Add(upper);
         builder.Walls.Add(lower);
@@ -104,7 +105,7 @@ public static class DoomGeometryBuilder
         return (front, null);
     }
 
-    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId)
+    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
     {
         // This is okay because of how we create sectors corresponding
         // to their list index. If this is wrong then someone broke the
@@ -112,13 +113,13 @@ public static class DoomGeometryBuilder
         Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
         Sector facingSector = builder.Sectors[facingSide.Sector.Id];
 
-        var middleTexture = TextureManager.Instance.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
-        var upperTexture = TextureManager.Instance.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
-        var lowerTexture = TextureManager.Instance.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
+        var middleTexture = textureManager.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
+        var upperTexture = textureManager.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
+        var lowerTexture = textureManager.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
 
-        Wall middle = new Wall(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-        Wall upper = new Wall(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-        Wall lower = new Wall(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
+        Wall middle = new(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
+        Wall upper = new(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
+        Wall lower = new(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
         builder.Walls.Add(middle);
         builder.Walls.Add(upper);
         builder.Walls.Add(lower);
@@ -132,17 +133,17 @@ public static class DoomGeometryBuilder
     }
 
     private static (Side front, Side? back) CreateSides(DoomLine doomLine, GeometryBuilder builder,
-        ref int nextSideId)
+        ref int nextSideId, TextureManager textureManager)
     {
         if (doomLine.Back == null)
-            return CreateSingleSide(doomLine, builder, ref nextSideId);
+            return CreateSingleSide(doomLine, builder, ref nextSideId, textureManager);
 
-        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId);
-        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId);
+        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId, textureManager);
+        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId, textureManager);
         return (front, back);
     }
 
-    private static void PopulateLineData(DoomMap map, GeometryBuilder builder)
+    private static void PopulateLineData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         int nextSideId = 0;
 
@@ -154,7 +155,7 @@ public static class DoomGeometryBuilder
                 continue;
             }
 
-            (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId);
+            (Side front, Side? back) = CreateSides(doomLine, builder, ref nextSideId, textureManager);
 
             Seg2D seg = new(doomLine.Start.Position, doomLine.End.Position);
             LineFlags flags = new(doomLine.Flags);

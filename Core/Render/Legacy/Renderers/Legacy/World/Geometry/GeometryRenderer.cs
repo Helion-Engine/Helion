@@ -33,7 +33,7 @@ public class GeometryRenderer : IDisposable
     public readonly List<IRenderObject> AlphaSides = new();
 
     private readonly IConfig m_config;
-    private readonly LegacyGLTextureManager m_textureManager;
+    private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly DynamicArray<WorldVertex> m_subsectorVertices = new();
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
@@ -43,6 +43,7 @@ public class GeometryRenderer : IDisposable
     private readonly ViewClipper m_viewClipper;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
+    private readonly ArchiveCollection m_archiveCollection;
     private double m_tickFraction;
     private bool m_skyOverride;
     private bool m_floorChanged;
@@ -53,7 +54,6 @@ public class GeometryRenderer : IDisposable
     private Vec3D m_position;
     private Sector m_viewSector;
     private WorldBase m_world;
-
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -68,16 +68,19 @@ public class GeometryRenderer : IDisposable
     private List<Subsector>?[] m_subsectors = Array.Empty<List<Subsector>>();
     private BitArray m_renderedSectors = new(0);
 
+    private TextureManager TextureManager => m_archiveCollection.TextureManager;
+
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
         RenderWorldDataManager worldDataManager)
     {
         m_config = config;
-        m_textureManager = textureManager;
+        m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         m_viewSector = Sector.CreateDefault();
+        m_archiveCollection = archiveCollection;
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -241,7 +244,7 @@ public class GeometryRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static void PreloadAllTextures(IWorld world)
+    private void PreloadAllTextures(IWorld world)
     {
         HashSet<int> textures = new();
         for (int i = 0; i < world.Lines.Count; i++)
@@ -262,7 +265,7 @@ public class GeometryRenderer : IDisposable
             textures.Add(world.Sectors[i].Ceiling.TextureHandle);
         }
 
-        TextureManager.Instance.LoadTextureImages(textures);
+        TextureManager.LoadTextureImages(textures);
     }
 
     private void RenderWalls(Subsector subsector, in Vec3D position, Vec2D pos2D)
@@ -347,7 +350,7 @@ public class GeometryRenderer : IDisposable
         side.LastRenderGametick = m_world.Gametick;
 
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
-        GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
         LegacyVertex[]? data = m_vertexLookup[side.Id];
 
         var renderSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
@@ -429,9 +432,9 @@ public class GeometryRenderer : IDisposable
 
     private bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
-        if (TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle))
+        if (TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle))
         {
-            if (TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+            if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
             {
                 // The sky is only drawn if there is no opening height
                 // Otherwise ignore this line for sky effects
@@ -450,13 +453,13 @@ public class GeometryRenderer : IDisposable
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall lowerWall = facingSide.Lower;
-        bool isSky = TextureManager.Instance.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
-        bool skyRender = isSky && TextureManager.Instance.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
+        bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
+        bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
         if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
             return;
 
-        GLLegacyTexture texture = m_textureManager.GetTexture(lowerWall.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
         SectorPlane top = otherSector.Floor;
@@ -514,18 +517,18 @@ public class GeometryRenderer : IDisposable
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         SectorPlane plane = otherSector.Ceiling;
-        bool isSky = TextureManager.Instance.IsSkyTexture(plane.TextureHandle) && TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
-        if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+        if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
             upperWall.TextureHandle == Constants.NoTextureIndex)
         {
-            if (TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+            if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 m_skyOverride = true;
             return;
         }
 
-        GLLegacyTexture texture = m_textureManager.GetTexture(upperWall.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
         SectorPlane top = facingSector.Ceiling;
@@ -537,7 +540,7 @@ public class GeometryRenderer : IDisposable
         {
             SkyGeometryVertex[]? data = m_skyWallVertexUpperLookup[facingSide.Id];
 
-            if (TextureManager.Instance.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+            if (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
             {
                 m_skyOverride = true;
                 return;
@@ -591,13 +594,13 @@ public class GeometryRenderer : IDisposable
     {
         if (otherSector == null)
         {
-            if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle))
+            if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle))
                 return;
         }
         else
         {
-            if (!TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
-                !TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+            if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+                !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 return;
         }
 
@@ -622,13 +625,13 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
     }
 
-    private static bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
+    private bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
     {
         if (twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
             return true;
 
-        if (TextureManager.Instance.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
-            TextureManager.Instance.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+        if (TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
+            TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
             return true;
 
         return false;
@@ -638,7 +641,7 @@ public class GeometryRenderer : IDisposable
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
-        GLLegacyTexture texture = m_textureManager.GetTexture(middleWall.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
 
         RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
@@ -736,8 +739,8 @@ public class GeometryRenderer : IDisposable
     private void RenderFlat(Subsector subsector, SectorPlane flat, bool floor)
     {
         // TODO: If we can't see it (dot product the plane) then exit.
-        bool isSky = TextureManager.Instance.IsSkyTexture(flat.TextureHandle);
-        GLLegacyTexture texture = m_textureManager.GetTexture(flat.TextureHandle);
+        bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
 
         if (isSky)

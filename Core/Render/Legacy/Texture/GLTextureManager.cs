@@ -31,6 +31,8 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
 
+    private TextureManager TextureManager => ArchiveCollection.TextureManager;
+
     public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
     /// <summary>
@@ -163,7 +165,7 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
 
     public GLTextureType GetTexture(int index)
     {
-        var texture = TextureManager.Instance.GetTexture(index);
+        var texture = TextureManager.GetTexture(index);
 
         if (texture.RenderStore != null)
             return (GLTextureType)texture.RenderStore;
@@ -203,7 +205,7 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
     /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
     public SpriteDefinition? GetSpriteDefinition(string spriteName)
     {
-        SpriteDefinition? spriteDef = TextureManager.Instance.GetSpriteDefinition(spriteName);
+        SpriteDefinition? spriteDef = TextureManager.GetSpriteDefinition(spriteName);
         return spriteDef;
     }
 

@@ -58,14 +58,10 @@ namespace Helion.Tests.Unit.GameAction
 
             Zdbsp zdbsp = new();
             if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
-                throw new Exception("Failed to create bsp");
+                throw new Exception("Failed to create bsp");            
 
-            // Not the greatest dependency...
-            TextureManager.Init(archiveCollection, mapDef);
-            TextureManager.Instance.UnitTest = true;
-
-            SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, skillDef, outputMap,
-                null, null);
+            SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
+                skillDef, outputMap, null, null, unitTest: true);
             if (world == null)
                 throw new Exception("Failed to create world");
 

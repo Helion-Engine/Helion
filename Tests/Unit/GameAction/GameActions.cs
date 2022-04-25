@@ -289,7 +289,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public static void CheckPlaneTexture(WorldBase world, SectorPlane plane, string name)
         {
-            TextureManager.Instance.GetTexture(plane.TextureHandle).Name.Equals(name, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            world.TextureManager.GetTexture(plane.TextureHandle).Name.Equals(name, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
         }
 
         public static void ForceStopSectorSpecial(WorldBase world, Sector sector)

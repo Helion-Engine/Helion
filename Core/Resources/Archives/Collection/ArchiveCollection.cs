@@ -63,6 +63,7 @@ public class ArchiveCollection : IResources
     public GameInfoDef GameInfo => Definitions.MapInfoDefinition.GameDefinition;
     public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
     public EntityDefinitionComposer EntityDefinitionComposer { get; }
+    public TextureManager TextureManager { get; private set; }
     public IImageRetriever ImageRetriever { get; }
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public readonly ArchiveCollectionEntries Entries = new();
@@ -83,7 +84,11 @@ public class ArchiveCollection : IResources
         Textures = new ResourceTextureManager(this);
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
         ImageRetriever = new ArchiveImageRetriever(this);
+        TextureManager = new TextureManager(this);
     }
+
+    public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false) =>
+        TextureManager = new TextureManager(this, mapInfo, unitTest);
 
     public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)
     {

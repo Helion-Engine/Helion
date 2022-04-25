@@ -216,7 +216,7 @@ public class SkySphereTexture : IDisposable
 
     private Image? GetSkyImage()
     {
-        return TextureManager.Instance.GetTexture(m_textureHandleIndex).Image;
+        return m_archiveCollection.TextureManager.GetTexture(m_textureHandleIndex).Image;
     }
 
     private GLLegacyTexture CreateSkyTexture(Image skyImage)
@@ -235,7 +235,7 @@ public class SkySphereTexture : IDisposable
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
         Bitmap fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
-        return CreateTexture(fadedSkyImage, $"[SKY] {TextureManager.Instance.SkyTextureName}");
+        return CreateTexture(fadedSkyImage, $"[SKY] {m_archiveCollection.TextureManager.SkyTextureName}");
     }
 
     private GLLegacyTexture CreateTexture(Bitmap fadedSkyImage, string debugName = "")

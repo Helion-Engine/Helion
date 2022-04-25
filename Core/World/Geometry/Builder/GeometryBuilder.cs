@@ -4,6 +4,7 @@ using Helion.Bsp.Builder.GLBSP;
 using Helion.Maps;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
+using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -47,9 +48,10 @@ public class GeometryBuilder
     /// </summary>
     /// <param name="map">The map to turn into world geometry.</param>
     /// <param name="config">The player config data.</param>
+    /// <param name="textureManager">TextureManager.</param>
     /// <returns>A map geometry object if it was parsed and created right,
     /// otherwise null if it failed.</returns>
-    public static MapGeometry? Create(IMap map, IConfig config)
+    public static MapGeometry? Create(IMap map, IConfig config, TextureManager textureManager)
     {
         IBspBuilder? bspBuilder = CreateBspBuilder(map, config);
         if (bspBuilder == null)
@@ -58,9 +60,9 @@ public class GeometryBuilder
         switch (map)
         {
             case DoomMap doomMap:
-                return DoomGeometryBuilder.Create(doomMap, bspBuilder);
+                return DoomGeometryBuilder.Create(doomMap, bspBuilder, textureManager);
             case HexenMap hexenMap:
-                return HexenGeometryBuilder.Create(hexenMap, bspBuilder);
+                return HexenGeometryBuilder.Create(hexenMap, bspBuilder, textureManager);
             default:
                 Log.Error("Do not support map type {0} yet", map.MapType);
                 return null;
