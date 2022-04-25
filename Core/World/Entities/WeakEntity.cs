@@ -14,7 +14,7 @@ namespace Helion.World.Entities;
 public class WeakEntity
 {
     public static readonly WeakEntity Default = new();
-    private static LinkedList<WeakEntity>?[] WeakEntities = new LinkedList<WeakEntity>?[128];
+    private static LinkedList<WeakEntity>?[] WeakEntities = new LinkedList<WeakEntity>?[1024];
     private LinkedListNode<WeakEntity>? Node;
 
 #if DEBUG
