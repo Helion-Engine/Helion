@@ -183,11 +183,14 @@ public partial class Client
 
     private bool TryHandleCheatCommand(ConsoleCommandEventArgs args)
     {
-        List<Player>? players = m_layerManager.WorldLayer?.World.EntityManager.Players;
+        if (m_layerManager.WorldLayer == null)
+            return false;
+
+        List<Player>? players = m_layerManager.WorldLayer.World.EntityManager.Players;
         if (players == null || players.Empty())
             return false;
 
-        return CheatManager.Instance.HandleCommand(players[0], args.Command);
+        return m_layerManager.WorldLayer.World.CheatManager.HandleCommand(players[0], args.Command);
     }
 
     private bool TryHandleConsoleCommand(ConsoleCommandEventArgs args)

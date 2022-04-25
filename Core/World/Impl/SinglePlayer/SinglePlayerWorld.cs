@@ -109,7 +109,7 @@ public class SinglePlayerWorld : WorldBase
             SpecialManager.AddSpecialModels(worldModel.Specials);
         }
 
-        CheatManager.Instance.CheatActivationChanged += Instance_CheatActivationChanged;
+        CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
         EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
@@ -231,7 +231,7 @@ public class SinglePlayerWorld : WorldBase
 
     public void HandleFrameInput(IConsumableInput input)
     {
-        CheatManager.Instance.HandleInput(Player, input);
+        CheatManager.HandleInput(Player, input);
         HandleMouseLook(input);
     }
 
@@ -288,7 +288,7 @@ public class SinglePlayerWorld : WorldBase
 
     protected override void PerformDispose()
     {
-        CheatManager.Instance.CheatActivationChanged -= Instance_CheatActivationChanged;
+        CheatManager.CheatActivationChanged -= Instance_CheatActivationChanged;
         EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
 
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;

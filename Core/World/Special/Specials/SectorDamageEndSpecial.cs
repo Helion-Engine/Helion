@@ -28,7 +28,7 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
 
     public override void Tick(Player player)
     {
-        CheatManager.Instance.DeactivateCheat(player, CheatType.God);
+        m_world.CheatManager.DeactivateCheat(player, CheatType.God);
         base.Tick(player);
 
         if (player.Health <= 10)

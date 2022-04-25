@@ -42,8 +42,6 @@ public class CheatManager
 
     public event EventHandler<CheatEventArgs>? CheatActivationChanged;
 
-    public static CheatManager Instance { get; } = new CheatManager();
-
     public CheatManager()
     {
         m_cheatLookup = Cheats.ToDictionary(cheat => cheat.CheatType);

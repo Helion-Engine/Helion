@@ -25,7 +25,7 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             // MAP07 arachnotron special uses raise by shortest lower which is dependent on the texture image height
-            CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
+            world.CheatManager.ActivateCheat(world.Player, CheatType.God);
             var texture = world.TextureManager.GetTexture("METAL", ResourceNamespace.Textures);
             texture.Image = CreateImage(64, 128);
         }

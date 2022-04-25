@@ -59,6 +59,7 @@ public interface IWorld : IDisposable
     LevelStats LevelStats { get; }
     bool Paused { get; }
     public GlobalData GlobalData { get; }
+    public CheatManager CheatManager { get; }
 
     void Link(Entity entity);
     void Tick();

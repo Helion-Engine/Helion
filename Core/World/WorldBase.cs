@@ -97,6 +97,7 @@ public abstract partial class WorldBase : IWorld
     public SkillDef SkillDefinition { get; private set; }
     public ArchiveCollection ArchiveCollection { get; protected set; }
     public GlobalData GlobalData { get; }
+    public CheatManager CheatManager { get; } = new();
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;

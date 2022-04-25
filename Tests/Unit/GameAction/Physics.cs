@@ -40,7 +40,7 @@ namespace Helion.Tests.Unit.GameAction
 
         private void WorldInit(SinglePlayerWorld world)
         {
-            CheatManager.Instance.ActivateCheat(world.Player, CheatType.God);
+            world.CheatManager.ActivateCheat(world.Player, CheatType.God);
         }
     }
 }
