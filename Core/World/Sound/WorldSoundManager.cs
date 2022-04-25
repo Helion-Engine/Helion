@@ -35,7 +35,7 @@ public class WorldSoundManager : SoundManager, ITickable
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
         return m_world.SoundManager.CreateSoundOn(soundSource, sound,
-            SoundChannelType.Auto, DataCache.Instance.GetSoundParams(soundSource, attenuation: Attenuation.None));
+            SoundChannelType.Auto, m_world.DataCache.GetSoundParams(soundSource, attenuation: Attenuation.None));
     }
 
     public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
@@ -175,7 +175,7 @@ public class WorldSoundManager : SoundManager, ITickable
             nextNode = node.Next;
             if (node.Value.IsFinished())
             {
-                DataCache.Instance.FreeAudioSource(node.Value);
+                m_world.DataCache.FreeAudioSource(node.Value);
                 PlayingSounds.Remove(node.Value);
             }
             else
@@ -187,7 +187,7 @@ public class WorldSoundManager : SoundManager, ITickable
                     PlayingSounds.Remove(node);
 
                     if (ShouldDisposeBumpedSound(node.Value))
-                        DataCache.Instance.FreeAudioSource(node.Value);
+                        m_world.DataCache.FreeAudioSource(node.Value);
                 }
                 else
                 {

@@ -14,12 +14,14 @@ namespace Helion.World.Physics.Blockmap;
 public class BlockmapTraverser
 {
     private readonly BlockMap m_blockmap;
+    private readonly DataCache m_dataCache;
 
     private int m_blockmapCount;
 
-    public BlockmapTraverser(BlockMap blockmap)
+    public BlockmapTraverser(BlockMap blockmap, DataCache dataCache)
     {
         m_blockmap = blockmap;
+        m_dataCache = dataCache;
     }
 
     public List<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
@@ -34,7 +36,7 @@ public class BlockmapTraverser
 
     public List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
     {
-        List<BlockmapIntersect> intersections = DataCache.Instance.GetBlockmapIntersectList();
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         Vec2D center = default;
 

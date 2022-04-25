@@ -27,14 +27,16 @@ public class OpenALAudioSource : IAudioSource
     public OpenALAudioSourceManager Owner { get; private set; }
     private int m_sourceId;
     private bool m_disposed;
+    private readonly DataCache m_dataCache;
 
     public int ID => m_sourceId;
 
-    public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
+    public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams, DataCache dataCache)
     {
         Set(owner, buffer, audioData, soundParams);
         Owner = owner;
         AudioData = audioData;
+        m_dataCache = dataCache;
     }
 
     public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
@@ -80,9 +82,6 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         OpenALDebug.End("Creating new source");
-
-
-        DataCache.Instance.FreeSoundParams(soundParams);
     }
 
     public void SetPosition(Vec3F pos)
@@ -224,6 +223,6 @@ public class OpenALAudioSource : IAudioSource
         AL.DeleteSource(m_sourceId);
         OpenALDebug.End("Deleting sound source");
 
-        DataCache.Instance.FreeAudioData(AudioData);
+        m_dataCache.FreeAudioData(AudioData);
     }
 }

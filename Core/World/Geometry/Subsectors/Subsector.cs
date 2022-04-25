@@ -30,7 +30,7 @@ public struct Subsector
     {
         Precondition(!Entities.Contains(entity), "Trying to link an entity to a sector twice");
 
-        LinkableNode<Entity> node = DataCache.Instance.GetLinkableNodeEntity(entity);
+        LinkableNode<Entity> node = entity.World.DataCache.GetLinkableNodeEntity(entity);
         Entities.Add(node);
         return node;
     }

@@ -25,8 +25,6 @@ public class DataCache
     private const int DefaultLength = 1024;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static DataCache Instance { get; } = new DataCache();
-
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
     private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
@@ -268,7 +266,7 @@ public class DataCache
             return audioSource;
         }
 
-        return new OpenALAudioSource(owner, buffer, audioData, soundParams);
+        return new OpenALAudioSource(owner, buffer, audioData, soundParams, this);
     }
 
     public void FreeAudioSource(IAudioSource audioSource)

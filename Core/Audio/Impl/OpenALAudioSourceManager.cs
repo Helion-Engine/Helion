@@ -84,7 +84,8 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         if (buffer == null)
             return null;
 
-        OpenALAudioSource source = DataCache.Instance.GetAudioSource(this, buffer, audioData, soundParams);
+        OpenALAudioSource source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData, soundParams);
+        m_archiveCollection.DataCache.FreeSoundParams(soundParams);
         m_sources.Add(source);
         return source;
     }

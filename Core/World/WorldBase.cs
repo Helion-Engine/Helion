@@ -98,6 +98,7 @@ public abstract partial class WorldBase : IWorld
     public ArchiveCollection ArchiveCollection { get; protected set; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; } = new();
+    public DataCache DataCache => ArchiveCollection.DataCache;
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -657,7 +658,7 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
 
         if (!activateSuccess && hitBlockLine && entity.PlayerObj != null)
             entity.PlayerObj.PlayUseFailSound();
@@ -702,7 +703,7 @@ public abstract partial class WorldBase : IWorld
             m_lastBumpActivateGametick = Gametick;
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
@@ -902,7 +903,7 @@ public abstract partial class WorldBase : IWorld
 
                     GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
                     hitSector = bi.Line.Front.Sector;
-                    DataCache.Instance.FreeBlockmapIntersectList(intersections);
+                    DataCache.FreeBlockmapIntersectList(intersections);
                     return bi;
                 }
 
@@ -935,7 +936,7 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
         return returnValue;
     }
 
@@ -1079,7 +1080,7 @@ public abstract partial class WorldBase : IWorld
         if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
         {
             SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                DataCache.Instance.GetSoundParams(entity));
+                DataCache.GetSoundParams(entity));
         }
     }
 
@@ -1164,7 +1165,7 @@ public abstract partial class WorldBase : IWorld
             string sound = "misc/ripslop";
             if (source.Properties.RipSound.Length > 0)
                 sound = source.Properties.RipSound;
-            SoundManager.CreateSoundOn(source, sound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(source));
+            SoundManager.CreateSoundOn(source, sound, SoundChannelType.Auto, DataCache.GetSoundParams(source));
         }
     }
 
@@ -1202,7 +1203,7 @@ public abstract partial class WorldBase : IWorld
             BlockmapTraverseEntityFlags.None, out bool hitOneSidedLine);
         if (hitOneSidedLine)
         {
-            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            DataCache.FreeBlockmapIntersectList(intersections);
             return false;
         }
 
@@ -1212,7 +1213,7 @@ public abstract partial class WorldBase : IWorld
         double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
         return  status != TraversalPitchStatus.Blocked;
     }
 
@@ -1255,7 +1256,7 @@ public abstract partial class WorldBase : IWorld
                     damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -1585,7 +1586,7 @@ public abstract partial class WorldBase : IWorld
                 BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
 
             TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
-            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            DataCache.FreeBlockmapIntersectList(intersections);
 
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
@@ -1733,7 +1734,7 @@ public abstract partial class WorldBase : IWorld
             {
                 teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
                 SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto,
-                    DataCache.Instance.GetSoundParams(teleport));
+                    DataCache.GetSoundParams(teleport));
             }
         }
     }
@@ -1862,16 +1863,16 @@ public abstract partial class WorldBase : IWorld
             entity.FrameState.SetState(healState);
 
             if (healSound.Length > 0)
-                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, SoundChannelType.Auto, DataCache.GetSoundParams(entity));
 
             bi.Entity.SetRaiseState();
             bi.Entity.Flags.Friendly = entity.Flags.Friendly;
 
-            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            DataCache.FreeBlockmapIntersectList(intersections);
             return true;
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
         return false;
     }
 
@@ -1911,7 +1912,7 @@ public abstract partial class WorldBase : IWorld
             break;
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)
@@ -2135,7 +2136,7 @@ public abstract partial class WorldBase : IWorld
             if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
             {
                 SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                    DataCache.Instance.GetSoundParams(updatePlayer));
+                    DataCache.GetSoundParams(updatePlayer));
             }
         }
 

@@ -1003,7 +1003,7 @@ public class Player : Entity
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
             World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Weapon,
-                DataCache.Instance.GetSoundParams(this));
+                World.DataCache.GetSoundParams(this));
 
         AnimationWeapon = PendingWeapon;
         PendingWeapon = null;
@@ -1068,29 +1068,29 @@ public class Player : Entity
         if (!IsDead)
         {
             if (Health < 26)
-                SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
             else if (Health < 51)
-                SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
             else if (Health < 76)
-                SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
             else
-                SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
         }
     }
 
     public void PlayGruntSound()
     {
-        SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+        SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
     }
 
     public void PlayUseFailSound()
     {
-        SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+        SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
     }
 
     public void PlayLandSound()
     {
-        SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, DataCache.Instance.GetSoundParams(this));
+        SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, World.DataCache.GetSoundParams(this));
     }
 
     protected override void SetDeath(Entity? source, bool gibbed)

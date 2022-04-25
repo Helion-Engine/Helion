@@ -461,7 +461,7 @@ public static class EntityActionFunctions
     private static void A_BFGSound(Entity entity)
     {
         if (entity.IsPlayer)
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/bfgf", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_BFGSpray(Entity entity)
@@ -487,7 +487,7 @@ public static class EntityActionFunctions
 
     private static void A_BabyMetal(Entity entity)
     {
-        entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "baby/walk", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_BarrelDestroy(Entity entity)
@@ -518,7 +518,7 @@ public static class EntityActionFunctions
     private static void A_BrainAwake(Entity entity)
     {
         entity.SoundManager.CreateSoundOn(entity, "brain/sight", SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
+            entity.World.DataCache.GetSoundParams(entity, false, Attenuation.None));
     }
 
     private static void A_BrainDie(Entity entity)
@@ -536,7 +536,7 @@ public static class EntityActionFunctions
     private static void A_BrainPain(Entity entity)
     {
         entity.SoundManager.CreateSoundOn(entity, "brain/pain", SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
+            entity.World.DataCache.GetSoundParams(entity, false, Attenuation.None));
     }
 
     private static void A_BrainScream(Entity entity)
@@ -548,7 +548,7 @@ public static class EntityActionFunctions
         }
 
         entity.SoundManager.CreateSoundOn(entity, "brain/death", SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
+            entity.World.DataCache.GetSoundParams(entity, false, Attenuation.None));
     }
 
     private static void BrainExplodeRocket(Entity entity, in Vec3D pos)
@@ -588,7 +588,7 @@ public static class EntityActionFunctions
         }
 
         entity.SoundManager.CreateSoundOn(entity, "brain/spit", SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, false, Attenuation.None));
+            entity.World.DataCache.GetSoundParams(entity, false, Attenuation.None));
     }
 
     private static void A_SpawnFly(Entity entity)
@@ -604,7 +604,7 @@ public static class EntityActionFunctions
 
         entity.EntityManager.Create("ArchvileFire", entity.Target.Entity.Position);
         entity.SoundManager.CreateSoundOn(entity.Target.Entity, "misc/teleport", SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity));
+            entity.World.DataCache.GetSoundParams(entity));
 
         Entity? enemy = entity.EntityManager.Create(GetRandomBossSpawn(entity.World.Random), entity.Target.Entity.Position);
         if (enemy != null)
@@ -653,7 +653,7 @@ public static class EntityActionFunctions
         {
             int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 10;
             entity.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-            entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "baron/melee", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
             return;
         }
 
@@ -876,7 +876,7 @@ public static class EntityActionFunctions
     private static void A_CloseShotgun2(Entity entity)
     {
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotc", entity.WeaponSoundChannel,
-            DataCache.Instance.GetSoundParams(entity));
+            entity.World.DataCache.GetSoundParams(entity));
         A_ReFire(entity);
     }
 
@@ -1103,7 +1103,7 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "fatso/raiseguns", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_Fire(Entity entity)
@@ -1145,7 +1145,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             entity.PlayerObj.DescreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
             int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
             entity.PlayerObj.Weapon?.SetFlashState(offset);
             entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
@@ -1155,7 +1155,7 @@ public static class EntityActionFunctions
 
     private static void A_FireCrackle(Entity entity)
     {
-        entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "vile/firecrkl", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_FireCustomMissile(Entity entity)
@@ -1184,7 +1184,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             entity.PlayerObj.DescreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
                 entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
@@ -1216,7 +1216,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             entity.PlayerObj.DescreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
                 entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
@@ -1228,7 +1228,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             entity.PlayerObj.DescreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
                 entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
@@ -1327,7 +1327,7 @@ public static class EntityActionFunctions
 
     private static void A_Hoof(Entity entity)
     {
-        entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.World.SoundManager.CreateSoundOn(entity, "cyber/hoof", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_IceGuyDie(Entity entity)
@@ -1485,7 +1485,7 @@ public static class EntityActionFunctions
 
     private static void A_LoadShotgun2(Entity entity)
     {
-        entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+        entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotl", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_Log(Entity entity)
@@ -1540,7 +1540,7 @@ public static class EntityActionFunctions
 
     private static void A_Metal(Entity entity)
     {
-        entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.World.SoundManager.CreateSoundOn(entity, "spider/walk", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_MissileAttack(Entity entity)
@@ -1575,7 +1575,7 @@ public static class EntityActionFunctions
 
     private static void A_OpenShotgun2(Entity entity)
     {
-        entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+        entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshoto", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_Overlay(Entity entity)
@@ -1791,7 +1791,7 @@ public static class EntityActionFunctions
                 entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
             {
                 entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
-                    SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(entity));
+                    SoundChannelType.Weapon, entity.World.DataCache.GetSoundParams(entity));
             }
         }
     }
@@ -1924,12 +1924,12 @@ public static class EntityActionFunctions
             Entity? hitEntity = entity.World.FireHitscan(entity, angle, 0, Constants.EntityMeleeDistance + 1, damage);
             if (hitEntity == null)
             {
-                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
             }
             else
             {
                 entity.AngleRadians = angle;
-                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, DataCache.Instance.GetSoundParams(entity));
+                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
                 entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
             }
         }
@@ -1946,7 +1946,7 @@ public static class EntityActionFunctions
             return;
 
         entity.SoundManager.CreateSoundOn(entity, entity.Definition.Properties.PainSound, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, type: SoundType.Pain));
+            entity.World.DataCache.GetSoundParams(entity, type: SoundType.Pain));
     }
 
     private static void A_PlayerScream(Entity entity)
@@ -1958,7 +1958,7 @@ public static class EntityActionFunctions
         }
 
         string deathSound =  entity.Health > -50 ? "*death" : "*xdeath";
-        entity.SoundManager.CreateSoundOn(entity, deathSound, SoundChannelType.Voice, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, deathSound, SoundChannelType.Voice, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_Scream(Entity entity)
@@ -1969,9 +1969,9 @@ public static class EntityActionFunctions
     private static void A_XScream(Entity entity)
     {
         if (entity.IsPlayer)
-            entity.SoundManager.CreateSoundOn(entity, "*gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "*gibbed", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
         else
-            entity.SoundManager.CreateSoundOn(entity, "misc/gibbed", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "misc/gibbed", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
 
     }
 
@@ -2238,7 +2238,7 @@ public static class EntityActionFunctions
         {
             int damage = ((entity.World.Random.NextByte() % 10) + 1) * 6;
             entity.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-            entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "skeleton/melee", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
         }
     }
 
@@ -2260,7 +2260,7 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "skeleton/swing", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_SkullAttack(Entity entity)
@@ -2317,7 +2317,7 @@ public static class EntityActionFunctions
 
     private static void A_SpawnSound(Entity entity)
     {
-        entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity, false, Attenuation.Default));
+        entity.SoundManager.CreateSoundOn(entity, "brain/cube", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity, false, Attenuation.Default));
     }
 
     private static void A_SpidRefire(Entity entity)
@@ -2351,7 +2351,7 @@ public static class EntityActionFunctions
 
     private static void A_StartFire(Entity entity)
     {
-        entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "vile/firestrt", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_Stop(Entity entity)
@@ -2464,7 +2464,7 @@ public static class EntityActionFunctions
         {
             int damage = ((entity.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
             entity.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-            entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+            entity.SoundManager.CreateSoundOn(entity, "imp/melee", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
             return;
         }
 
@@ -2527,7 +2527,7 @@ public static class EntityActionFunctions
         if (!entity.World.CheckLineOfSight(entity, entity.Target.Entity))
             return;
 
-        entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "vile/stop", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
         entity.World.DamageEntity(entity.Target.Entity, entity, 20, DamageType.Normal, Thrust.Horizontal);
         entity.Target.Entity.Velocity.Z = 1000.0 / entity.Target.Entity.Definition.Properties.Mass;
 
@@ -2558,7 +2558,7 @@ public static class EntityActionFunctions
 
     private static void A_VileStart(Entity entity)
     {
-        entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, DataCache.Instance.GetSoundParams(entity));
+        entity.SoundManager.CreateSoundOn(entity, "vile/start", SoundChannelType.Auto, entity.World.DataCache.GetSoundParams(entity));
     }
 
     private static void A_VileTarget(Entity entity)
@@ -2973,7 +2973,7 @@ public static class EntityActionFunctions
             entity.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             GetDehackedSound(entity, sound, out string? hitSound);
             if (hitSound.Length > 0)
-                entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, DataCache.Instance.GetSoundParams(entity));
+                entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, entity.World.DataCache.GetSoundParams(entity));
         }
     }
 
@@ -3194,7 +3194,7 @@ public static class EntityActionFunctions
 
         player.AngleRadians = player.Position.Angle(hitEntity.Position);
         if (hitSound.Length > 0)
-            player.World.SoundManager.CreateSoundOn(player, hitSound, SoundChannelType.Weapon, DataCache.Instance.GetSoundParams(player));
+            player.World.SoundManager.CreateSoundOn(player, hitSound, SoundChannelType.Weapon, player.World.DataCache.GetSoundParams(player));
     }
 
     private static bool GetPlayerWeaponFrame(Entity entity, [NotNullWhen(true)] out EntityFrame? frame)
@@ -3215,7 +3215,7 @@ public static class EntityActionFunctions
             return;
 
         entity.World.SoundManager.CreateSoundOn(entity, soundName, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(entity, attenuation: attenuation));
+            entity.World.DataCache.GetSoundParams(entity, attenuation: attenuation));
     }
 
     private static bool GetDehackedSound(Entity entity, int soundIndex, out string soundName)

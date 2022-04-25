@@ -24,6 +24,7 @@ using Helion.World.Stats;
 using Helion.World.Special;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
+using Helion.Util;
 
 namespace Helion.World;
 
@@ -60,6 +61,7 @@ public interface IWorld : IDisposable
     bool Paused { get; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; }
+    public DataCache DataCache { get; }
 
     void Link(Entity entity);
     void Tick();

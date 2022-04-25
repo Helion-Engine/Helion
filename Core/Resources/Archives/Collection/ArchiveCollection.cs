@@ -41,6 +41,7 @@ namespace Helion.Resources.Archives.Collection;
 public class ArchiveCollection : IResources
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly DataCache StaticDataCache = new();
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
     public Palette Palette => Data.Palette;
@@ -64,6 +65,7 @@ public class ArchiveCollection : IResources
     public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
     public EntityDefinitionComposer EntityDefinitionComposer { get; }
     public TextureManager TextureManager { get; private set; }
+    public DataCache DataCache => StaticDataCache;
     public IImageRetriever ImageRetriever { get; }
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public readonly ArchiveCollectionEntries Entries = new();

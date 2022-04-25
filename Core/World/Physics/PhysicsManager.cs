@@ -78,7 +78,7 @@ public class PhysicsManager
         m_soundManager = soundManager;
         m_entityManager = entityManager;
         m_random = random;
-        BlockmapTraverser = new BlockmapTraverser(m_blockmap);
+        BlockmapTraverser = new BlockmapTraverser(m_blockmap, world.DataCache);
     }
 
     /// <summary>
@@ -654,7 +654,7 @@ public class PhysicsManager
                 }
             }
 
-            DataCache.Instance.FreeBlockmapIntersectList(intersections);
+            m_world.DataCache.FreeBlockmapIntersectList(intersections);
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -679,7 +679,7 @@ public class PhysicsManager
 
         Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
         Sector centerSector = centerSubsector.Sector;
-        HashSet<Sector> sectors = DataCache.Instance.GetSectorSet();
+        HashSet<Sector> sectors = m_world.DataCache.GetSectorSet();
         sectors.Add(centerSector);
 
         // TODO: Can we replace this by iterating over the blocks were already in?
@@ -695,7 +695,7 @@ public class PhysicsManager
 
         entity.SubsectorNode = centerSubsector.Link(entity);
 
-        DataCache.Instance.FreeSectorSet(sectors);
+        m_world.DataCache.FreeSectorSet(sectors);
 
         GridIterationStatus SectorOverlapFinder(Block block)
         {

@@ -119,7 +119,7 @@ public class SoundManager : IDisposable
             if (ReferenceEquals(audioSource, node.Value))
             {
                 node.Value.Stop();
-                DataCache.Instance.FreeAudioSource(node.Value);
+                ArchiveCollection.DataCache.FreeAudioSource(node.Value);
                 audioSources.Remove(audioSource);
             }
             node = node.Next;
@@ -162,12 +162,12 @@ public class SoundManager : IDisposable
         ClearSounds(m_waitingLoopSounds);
     }
 
-    private static void ClearSounds(LinkedList<IAudioSource> audioSources)
+    private void ClearSounds(LinkedList<IAudioSource> audioSources)
     {
         foreach (IAudioSource sound in audioSources)
         {
             sound.Stop();
-            DataCache.Instance.FreeAudioSource(sound);
+            ArchiveCollection.DataCache.FreeAudioSource(sound);
         }
 
         audioSources.Clear();
@@ -227,7 +227,7 @@ public class SoundManager : IDisposable
                 }
 
                 node.Value.Stop();
-                DataCache.Instance.FreeAudioSource(node.Value);
+                ArchiveCollection.DataCache.FreeAudioSource(node.Value);
                 audioSources.Remove(node);
                 soundStopped = true;
             }
@@ -241,8 +241,8 @@ public class SoundManager : IDisposable
     public virtual IAudioSource? PlayStaticSound(string sound)
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
-        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto, 
-            DataCache.Instance.GetSoundParams(soundSource, attenuation: Attenuation.None), out _);
+        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto,
+            ArchiveCollection.DataCache.GetSoundParams(soundSource, attenuation: Attenuation.None), out _);
     }
 
     protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound,
@@ -252,7 +252,7 @@ public class SoundManager : IDisposable
         soundInfo = GetSoundInfo(source, sound);
         if (soundInfo == null)
         {
-            DataCache.Instance.FreeSoundParams(soundParams);
+            ArchiveCollection.DataCache.FreeSoundParams(soundParams);
             return null;
         }
 
@@ -273,23 +273,23 @@ public class SoundManager : IDisposable
             }
             else
             {
-                DataCache.Instance.FreeSoundParams(soundParams);
+                ArchiveCollection.DataCache.FreeSoundParams(soundParams);
                 return null;
             }
         }
 
         if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams, channel))
         {
-            DataCache.Instance.FreeSoundParams(soundParams);
+            ArchiveCollection.DataCache.FreeSoundParams(soundParams);
             return null;
         }
 
         soundParams.SoundInfo = soundInfo;
-        AudioData audioData = DataCache.Instance.GetAudioData(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
+        AudioData audioData = ArchiveCollection.DataCache.GetAudioData(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
         IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData, soundParams);
         if (audioSource == null)
         {
-            DataCache.Instance.FreeSoundParams(soundParams);
+            ArchiveCollection.DataCache.FreeSoundParams(soundParams);
             return null;
         }
 
@@ -372,7 +372,7 @@ public class SoundManager : IDisposable
             lowestPriorityNode.Value.Stop();
 
             if (ShouldDisposeBumpedSound(lowestPriorityNode.Value))
-                DataCache.Instance.FreeAudioSource(lowestPriorityNode.Value);
+                ArchiveCollection.DataCache.FreeAudioSource(lowestPriorityNode.Value);
 
             audioSources.Remove(lowestPriorityNode);
             return true;
@@ -443,7 +443,7 @@ public class SoundManager : IDisposable
             nextNode = node.Next;
             if (node.Value.IsFinished())
             {
-                DataCache.Instance.FreeAudioSource(node.Value);
+                ArchiveCollection.DataCache.FreeAudioSource(node.Value);
                 PlayingSounds.Remove(node.Value);
             }
 

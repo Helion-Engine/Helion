@@ -266,7 +266,7 @@ public class SectorMoveSpecial : ISectorSpecial
     private void CreateSound(string sound, bool loop = false)
     {
         m_world.SoundManager.CreateSoundOn(SectorPlane, sound, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(SectorPlane, loop));
+            m_world.DataCache.GetSoundParams(SectorPlane, loop));
     }
 
     private void StopSound(string sound)

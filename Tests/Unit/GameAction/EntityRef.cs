@@ -21,8 +21,8 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             world.CheatManager.ActivateCheat(world.Player, CheatType.God);
-            DataCache.Instance.ClearWeakEntities();
-            DataCache.Instance.ClearWeakEntityLists();
+            world.DataCache.ClearWeakEntities();
+            world.DataCache.ClearWeakEntityLists();
         }
 
         [Fact(DisplayName = "Test dispose target")]
@@ -61,16 +61,16 @@ namespace Helion.Tests.Unit.GameAction
             WeakEntity.ReferenceListCount().Should().Be(2);
             WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(10);
             WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(10);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(0);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(0);
 
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
 
             WeakEntity.ReferenceListCount().Should().Be(1);
             WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(10);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(1);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(1);
 
             foreach (var entity in entities1)
                 entity.Target.Entity.Should().BeNull();
@@ -85,8 +85,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             WeakEntity.ReferenceListCount().Should().Be(0);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(2);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(2);
 
             foreach (var entity in entities2)
                 entity.Target.Entity.Should().BeNull();
@@ -94,7 +94,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities1.Union(entities2))
                 entity.Dispose();
 
-            DataCache.Instance.WeakEntitiesCount.Should().Be(20);
+            world.DataCache.WeakEntitiesCount.Should().Be(20);
         }
 
         [Fact(DisplayName = "Test dispose tracer")]
@@ -121,8 +121,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             WeakEntity.ReferenceListCount().Should().Be(0);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(1);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(1);
 
             foreach (var entity in entities)
                 entity.Tracer.Entity.Should().BeNull();
@@ -130,7 +130,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities)
                 entity.Dispose();
 
-            DataCache.Instance.WeakEntitiesCount.Should().Be(10);
+            world.DataCache.WeakEntitiesCount.Should().Be(10);
         }
 
         [Fact(DisplayName = "Test dispose target and tracer")]
@@ -177,16 +177,16 @@ namespace Helion.Tests.Unit.GameAction
             WeakEntity.ReferenceListCount().Should().Be(2);
             WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(20);
             WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(20);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(0);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(0);
 
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
 
             WeakEntity.ReferenceListCount().Should().Be(1);
             WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(20);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(1);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(1);
 
             foreach (var entity in entities1)
             {
@@ -206,8 +206,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             WeakEntity.ReferenceListCount().Should().Be(0);
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(2);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(2);
 
             foreach (var entity in entities2)
             {
@@ -218,7 +218,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities1.Union(entities2))
                 entity.Dispose();
 
-            DataCache.Instance.WeakEntitiesCount.Should().Be(40);
+            world.DataCache.WeakEntitiesCount.Should().Be(40);
         }
 
         [Fact(DisplayName = "Set weak entity references")]
@@ -284,7 +284,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             lostSoul.IsDisposed.Should().BeTrue();
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
 
             lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
 
@@ -299,7 +299,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             lostSoul.IsDisposed.Should().BeTrue();
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
         }
 
         [Fact(DisplayName = "Set clear and change references")]
@@ -364,8 +364,8 @@ namespace Helion.Tests.Unit.GameAction
             lostSoul1.SetTarget(caco1);
             caco1.SetTarget(lostSoul1);
 
-            DataCache.Instance.WeakEntitiesCount.Should().Be(0);
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(0);
+            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            world.DataCache.WeakEntitiesListCount.Should().Be(0);
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
 
@@ -373,10 +373,10 @@ namespace Helion.Tests.Unit.GameAction
             WeakEntity.GetReferences(caco1).Should().BeNull();
 
             // The lost soul had the only reference to the caco. The caco reference should be free.
-            DataCache.Instance.WeakEntitiesCount.Should().Be(1);
+            world.DataCache.WeakEntitiesCount.Should().Be(1);
             // Both lists should be free since the lost soul had the reference to the caco and the caco referenced the lost soul back.
             // Because the lost soul is dead both lists are no longer needed.
-            DataCache.Instance.WeakEntitiesListCount.Should().Be(2);
+            world.DataCache.WeakEntitiesListCount.Should().Be(2);
         }
     }
 }

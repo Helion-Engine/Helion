@@ -90,7 +90,7 @@ public class BlockMap
 
         GridIterationStatus BlockLinkFunc(Block block)
         {
-            LinkableNode<Entity> blockEntityNode = DataCache.Instance.GetLinkableNodeEntity(entity);
+            LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
             block.Entities.Add(blockEntityNode);
 
             entity.BlockmapNodes.Add(blockEntityNode);

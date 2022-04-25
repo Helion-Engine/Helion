@@ -55,10 +55,10 @@ public class WeakEntity
         }
 
         WeakEntities[entity.Id] = null;
-        DataCache.Instance.FreeWeakEntityList(references);
+        entity.World.DataCache.FreeWeakEntityList(references);
     }
 
-    public void Set(Entity? entity)
+    public void Set(Entity? entity, DataCache dataCache)
     {
         if (Entity == entity)
             return;
@@ -68,24 +68,24 @@ public class WeakEntity
             if (ReferenceEquals(this, Default) || Entity == null)
                 return;
 
-            ClearNode();
+            ClearNode(dataCache);
             Entity = null;
             return;
         }
 
-        ClearNode();
+        ClearNode(dataCache);
         Entity = entity;
 
         if (!GetReferences(entity, resize: true, out var references))
         {
-            references = DataCache.Instance.GetWeakEntityList();
+            references = dataCache.GetWeakEntityList();
             WeakEntities[entity.Id] = references;
         }
 
         Node = references.AddLast(this);
     }
 
-    private void ClearNode()
+    private void ClearNode(DataCache dataCache)
     {
         if (Node == null || Node.List == null)
             return;
@@ -97,7 +97,7 @@ public class WeakEntity
         if (list.Count == 0 && Entity != null)
         {
             WeakEntities[Entity.Id] = null;
-            DataCache.Instance.FreeWeakEntityList(list);
+            dataCache.FreeWeakEntityList(list);
         }
     }
 

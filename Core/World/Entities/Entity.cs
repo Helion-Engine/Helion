@@ -159,7 +159,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = soundManager;
 
         AngleRadians = angleRadians;
-        Box = DataCache.Instance.GetEntityBox(position, Radius, definition.Properties.Height);
+        Box = world.DataCache.GetEntityBox(position, Radius, definition.Properties.Height);
         PrevPosition = Position;
         Sector = sector;
         LowestCeilingZ = sector.Ceiling.Z;
@@ -172,11 +172,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Properties.Threshold = 0;
 
-        m_soundChannels = DataCache.Instance.GetEntityAudioSources();
-        FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager);
-        BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
-        SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
-        IntersectSectors = DataCache.Instance.GetSectorList();
+        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        FrameState = world.DataCache.GetFrameState(this, definition, entityManager);
+        BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
+        SectorNodes = world.DataCache.GetLinkableNodeEntityList();
+        IntersectSectors = world.DataCache.GetSectorList();
     }
 
     public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager,
@@ -198,7 +198,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = soundManager;
 
         AngleRadians = entityModel.AngleRadians;
-        Box = DataCache.Instance.GetEntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
+        Box = world.DataCache.GetEntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
         PrevPosition = entityModel.Box.GetCenter();
         Velocity = entityModel.GetVelocity();
         SpawnPoint = entityModel.GetSpawnPoint();
@@ -221,11 +221,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
-        m_soundChannels = DataCache.Instance.GetEntityAudioSources();
-        FrameState = DataCache.Instance.GetFrameState(this, definition, entityManager, entityModel.Frame);
-        BlockmapNodes = DataCache.Instance.GetLinkableNodeEntityList();
-        SectorNodes = DataCache.Instance.GetLinkableNodeEntityList();
-        IntersectSectors = DataCache.Instance.GetSectorList();
+        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        FrameState = world.DataCache.GetFrameState(this, definition, entityManager, entityModel.Frame);
+        BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
+        SectorNodes = world.DataCache.GetLinkableNodeEntityList();
+        IntersectSectors = world.DataCache.GetSectorList();
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -272,39 +272,39 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SetTarget(Entity? entity)
     {
-        Target = SetWeakReference(Target, entity);
+        Target = SetWeakReference(Target, entity, World.DataCache);
     }
 
     public void SetTracer(Entity? entity)
     {
-        Tracer = SetWeakReference(Tracer, entity);
+        Tracer = SetWeakReference(Tracer, entity, World.DataCache);
     }
 
     public void SetOnEntity(Entity? entity)
     {
-        OnEntity = SetWeakReference(OnEntity, entity);
+        OnEntity = SetWeakReference(OnEntity, entity, World.DataCache);
     }
 
     public void SetOverEntity(Entity? entity)
     {
-        OverEntity = SetWeakReference(OverEntity, entity);
+        OverEntity = SetWeakReference(OverEntity, entity, World.DataCache);
     }
 
     public void SetOwner(Entity? entity)
     {
-        Owner = SetWeakReference(Owner, entity);
+        Owner = SetWeakReference(Owner, entity, World.DataCache);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static WeakEntity SetWeakReference(WeakEntity weakEntity, Entity? entity)
+    private static WeakEntity SetWeakReference(WeakEntity weakEntity, Entity? entity, DataCache dataCache)
     {
         if (entity == null && weakEntity.Entity == null)
             return weakEntity;
 
         if (ReferenceEquals(weakEntity, WeakEntity.Default))
-            weakEntity = DataCache.Instance.GetWeakEntity();
+            weakEntity = dataCache.GetWeakEntity();
 
-        weakEntity.Set(entity);
+        weakEntity.Set(entity, dataCache);
         return weakEntity;
     }
 
@@ -396,13 +396,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         for (int i = 0; i < SectorNodes.Count; i++)
         {
             SectorNodes[i].Unlink();
-            DataCache.Instance.FreeLinkableNodeEntity(SectorNodes[i]);
+            World.DataCache.FreeLinkableNodeEntity(SectorNodes[i]);
         }
 
         if (SubsectorNode != null)
         {
             SubsectorNode.Unlink();
-            DataCache.Instance.FreeLinkableNodeEntity(SubsectorNode);
+            World.DataCache.FreeLinkableNodeEntity(SubsectorNode);
         }
         SectorNodes.Clear();
         SubsectorNode = null;
@@ -410,7 +410,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         for (int i = 0; i < BlockmapNodes.Count; i++)
         {
             BlockmapNodes[i].Unlink();
-            DataCache.Instance.FreeLinkableNodeEntity(BlockmapNodes[i]);
+            World.DataCache.FreeLinkableNodeEntity(BlockmapNodes[i]);
         }
         BlockmapNodes.Clear();
 
@@ -549,8 +549,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolSee  || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto, 
-            DataCache.Instance.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
+        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto,
+            World.DataCache.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
 
     public void PlayDeathSound()
@@ -560,20 +560,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
         SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto,
-            DataCache.Instance.GetSoundParams(this, attenuation: attenuation));
+            World.DataCache.GetSoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
     {
         if (Properties.AttackSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, DataCache.Instance.GetSoundParams(this));
+            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, World.DataCache.GetSoundParams(this));
     }
 
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto, 
-                DataCache.Instance.GetSoundParams(this, type: SoundType.Active));
+            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto,
+                World.DataCache.GetSoundParams(this, type: SoundType.Active));
     }
 
     public string GetSpeciesName()
@@ -736,7 +736,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                 entities.Add(entity);
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        World.DataCache.FreeBlockmapIntersectList(intersections);
 
         return entities;
     }
@@ -748,8 +748,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <param name="entityTraverseFlags">Flags to check against for traversal of the block map.</param>
     public List<Entity> GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags)
     {
-        List<Entity> entities = new List<Entity>();
-        EntityBox box = new EntityBox(position, Radius, Height);
+        List<Entity> entities = new();
+        EntityBox box = new(position, Radius, Height);
         List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box.To2D(), BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
         for (int i = 0; i < intersections.Count; i++)
@@ -762,7 +762,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                 entities.Add(entity);
         }
 
-        DataCache.Instance.FreeBlockmapIntersectList(intersections);
+        World.DataCache.FreeBlockmapIntersectList(intersections);
 
         return entities;
     }
@@ -940,31 +940,31 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IsDisposed = true;
         UnlinkFromWorld();
         EntityListNode?.Unlink();
-        DataCache.Instance.FreeEntityAudioSources(m_soundChannels);
-        DataCache.Instance.FreeEntityBox(Box);
-        DataCache.Instance.FreeFrameState(FrameState);
-        DataCache.Instance.FreeLinkableNodeEntityList(BlockmapNodes);
-        DataCache.Instance.FreeLinkableNodeEntityList(SectorNodes);
-        DataCache.Instance.FreeSectorList(IntersectSectors);
+        World.DataCache.FreeEntityAudioSources(m_soundChannels);
+        World.DataCache.FreeEntityBox(Box);
+        World.DataCache.FreeFrameState(FrameState);
+        World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
+        World.DataCache.FreeLinkableNodeEntityList(SectorNodes);
+        World.DataCache.FreeSectorList(IntersectSectors);
 
         WeakEntity.DisposeEntity(this);
-        FreeWeakReference(Target);
-        FreeWeakReference(Tracer);
-        FreeWeakReference(OnEntity);
-        FreeWeakReference(OverEntity);
-        FreeWeakReference(Owner);
+        FreeWeakReference(Target, World.DataCache);
+        FreeWeakReference(Tracer, World.DataCache);
+        FreeWeakReference(OnEntity, World.DataCache);
+        FreeWeakReference(OverEntity, World.DataCache);
+        FreeWeakReference(Owner, World.DataCache);
 
         GC.SuppressFinalize(this);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void FreeWeakReference(WeakEntity weakEntity)
+    private static void FreeWeakReference(WeakEntity weakEntity, DataCache dataCache)
     {
         if (ReferenceEquals(weakEntity, WeakEntity.Default))
             return;
 
-        weakEntity.Set(null);
-        DataCache.Instance.FreeWeakEntity(weakEntity);
+        weakEntity.Set(null, dataCache);
+        dataCache.FreeWeakEntity(weakEntity);
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

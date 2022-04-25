@@ -37,7 +37,7 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             SetUnitTestTextures(world);
-            World.CheatManager.ActivateCheat(world.Player, CheatType.God);
+            world.CheatManager.ActivateCheat(world.Player, CheatType.God);
 
             int[] pauseSectors = new int[] { 726, 643 };
             foreach (int sector in pauseSectors)
