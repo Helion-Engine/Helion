@@ -22,7 +22,7 @@ public enum TeleportFog
 
 public class TeleportSpecial : ISpecial
 {
-    private const int TeleportFreezeTicks = 18;
+    public const int TeleportFreezeTicks = 18;
 
     private readonly EntityActivateSpecialEventArgs m_args;
     private readonly IWorld m_world;
@@ -105,7 +105,8 @@ public class TeleportSpecial : ISpecial
 
         if (m_type == TeleportType.Doom)
         {
-            entity.FrozenTics = TeleportFreezeTicks;
+            if (entity.IsPlayer)
+                entity.FrozenTics = TeleportFreezeTicks;
             entity.Velocity = Vec3D.Zero;
             entity.AngleRadians = teleportAngle;
 

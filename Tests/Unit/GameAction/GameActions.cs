@@ -116,7 +116,8 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         // forceActivation will ignore if the line was previously activated. Required for testing different scenarios on single use specials.
-        public static bool EntityCrossLine(WorldBase world, Entity entity, int lineId, bool forceActivation = false, bool moveOutofBounds = true)
+        public static bool EntityCrossLine(WorldBase world, Entity entity, int lineId, bool forceActivation = false, bool moveOutofBounds = true,
+            bool forceFrozen = true)
         {
             if (!SetEntityToLine(world, entity, lineId, entity.Radius))
                 return false;
@@ -130,7 +131,9 @@ namespace Helion.Tests.Unit.GameAction
             entity.FrozenTics = 0;
             MoveEntity(world, entity, entity.Radius * 2);
 
-            entity.FrozenTics = int.MaxValue;
+            if (forceFrozen)
+                entity.FrozenTics = int.MaxValue;
+
             if (moveOutofBounds)
                 SetEntityOutOfBounds(world, entity);
 

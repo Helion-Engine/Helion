@@ -759,8 +759,11 @@ namespace Helion.Tests.Unit.GameAction
             const int TeleportLanding = 34;
             Sector sector = GameActions.GetSectorByTag(World, 97);
 
-            GameActions.EntityCrossLine(World, Player, Line, moveOutofBounds: false).Should().BeTrue();
+            GameActions.EntityCrossLine(World, Player, Line, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            Player.FrozenTics.Should().Be(TeleportSpecial.TeleportFreezeTicks);
             GameActions.RunTeleport(World, Player, sector, TeleportLanding);
+            GameActions.TickWorld(World, Player.FrozenTics);
+            Player.FrozenTics.Should().Be(0);
 
             GameActions.EntityCrossLine(World, Player, Line, moveOutofBounds: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, Player, sector, TeleportLanding);
@@ -1702,11 +1705,16 @@ namespace Helion.Tests.Unit.GameAction
         {
             const int Line = 3499;
             Sector sector = GameActions.GetSectorByTag(World, 97);
+            Player.FrozenTics = 0;
 
             for (int i = 0; i < 2; i++)
             {
-                GameActions.EntityCrossLine(World, Player, Line, moveOutofBounds: false).Should().BeTrue();
+                Player.FrozenTics.Should().Be(0);
+                GameActions.EntityCrossLine(World, Player, Line, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+                Player.FrozenTics.Should().Be(TeleportSpecial.TeleportFreezeTicks);
                 GameActions.RunTeleport(World, Player, sector, 34);
+                GameActions.TickWorld(World, Player.FrozenTics);
+                Player.FrozenTics.Should().Be(0);
             }
 
             GameActions.CheckMonsterCrossActivation(World, Monster, Line, sector, sector.Floor, false);
@@ -2090,14 +2098,20 @@ namespace Helion.Tests.Unit.GameAction
             const int TeleportLanding = 34;
             Sector sector = GameActions.GetSectorByTag(World, 97);
 
-            GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false).Should().BeTrue();
+            Monster.FrozenTics = 0;
+            Monster.FrozenTics.Should().Be(0);
+            GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.RunTeleport(World, Monster, sector, TeleportLanding);
+            Monster.FrozenTics.Should().Be(0);
 
-            GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false).Should().BeTrue();
+            GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, Monster, sector, TeleportLanding);
+            Monster.FrozenTics.Should().Be(0);
 
             GameActions.EntityCrossLine(World, Player, Line, forceActivation: true, moveOutofBounds: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, Player, sector, TeleportLanding);
+
+            Monster.FrozenTics = int.MaxValue;
         }
 
         [Fact(DisplayName = "Doom Action 126 (WR) Teleport monster")]
@@ -2106,15 +2120,20 @@ namespace Helion.Tests.Unit.GameAction
             const int Line = 3516;
             const int TeleportLanding = 34;
             Sector sector = GameActions.GetSectorByTag(World, 97);
+            Monster.FrozenTics = 0;
 
             for (int i = 0; i < 2; i++)
             {
-                GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false).Should().BeTrue();
+                Monster.FrozenTics.Should().Be(0);
+                GameActions.EntityCrossLine(World, Monster, Line, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
                 GameActions.RunTeleport(World, Monster, sector, TeleportLanding);
+                Monster.FrozenTics.Should().Be(0);
             }
 
             GameActions.EntityCrossLine(World, Player, Line, forceActivation: true, moveOutofBounds: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, Player, sector, TeleportLanding);
+
+            Monster.FrozenTics = int.MaxValue;
         }
 
         [Fact(DisplayName = "Doom Action 127 (S1) Raise stairs fast 16")]
