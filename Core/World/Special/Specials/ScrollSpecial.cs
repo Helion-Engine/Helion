@@ -7,8 +7,6 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Special.SectorMovement;
-using System;
 using System.Linq;
 
 namespace Helion.World.Special.Specials;
@@ -194,14 +192,14 @@ public class ScrollSpecial : ISpecial
 
     private void ScrollPlane(SectorPlane sectorPlane, in Vec2D speed)
     {
-        if (speed == Vec2D.Zero)
-        {
-            sectorPlane.SectorScrollData!.LastOffset = sectorPlane.SectorScrollData!.Offset;
-            return;
-        }
-
         if (m_type == ScrollType.Scroll)
         {
+            if (speed == Vec2D.Zero)
+            {
+                sectorPlane.SectorScrollData!.LastOffset = sectorPlane.SectorScrollData!.Offset;
+                return;
+            }
+
             sectorPlane.SectorScrollData!.LastOffset = sectorPlane.SectorScrollData!.Offset;
             sectorPlane.SectorScrollData!.Offset += speed;
             sectorPlane.Sector.DataChanges |= SectorDataTypes.Offset;
