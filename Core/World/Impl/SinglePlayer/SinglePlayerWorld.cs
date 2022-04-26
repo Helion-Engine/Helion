@@ -122,9 +122,9 @@ public class SinglePlayerWorld : WorldBase
     public override void Tick()
     {
         if (GetCrosshairTarget(out Entity? entity))
-            Player.CrosshairTarget = entity;
+            Player.SetCrosshairTarget(entity);
         else
-            Player.CrosshairTarget = null;
+            Player.SetCrosshairTarget(null);
 
         base.Tick();
     }

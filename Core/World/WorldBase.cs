@@ -251,7 +251,7 @@ public abstract partial class WorldBase : IWorld
 
         sector.SoundValidationCount = m_soundCount;
         sector.SoundBlock = block + 1;
-        sector.SoundTarget = target;
+        sector.SetSoundTarget(target);
 
         for (int i = 0; i < sector.Lines.Count; i++)
         {
@@ -2277,7 +2277,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < Sectors.Count; i++)
         {
             Sector sector = Sectors[i];
-            if (sector.SoundTarget != null || sector.DataChanged)
+            if (sector.SoundTarget.Entity != null || sector.DataChanged)
                 sectorModels.Add(sector.ToSectorModel());
             if (sector.SectorDamageSpecial != null)
                 sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());

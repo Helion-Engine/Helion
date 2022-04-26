@@ -61,7 +61,7 @@ public class Player : Entity
     private double m_prevViewZ;
     private double m_deltaViewHeight;
     private double m_bob;
-    private Entity? m_killer;
+    private WeakEntity m_killer = WeakEntity.Default;
     private bool m_interpolateAngle;
 
     private Camera? m_camera;
@@ -74,8 +74,8 @@ public class Player : Entity
     public int WeaponSubSlot { get; private set; }
     public Vec2D PrevWeaponOffset;
     public Vec2D WeaponOffset;
-    public Entity? Attacker { get; private set; }
-    public Entity? CrosshairTarget { get; set; }
+    public WeakEntity Attacker { get; private set; } = WeakEntity.Default;
+    public WeakEntity CrosshairTarget { get; private set; } = WeakEntity.Default;
     public PlayerStatusBar StatusBar { get; private set; }
     public PlayerCheats Cheats { get; } = new PlayerCheats();
     public PlayerInfo Info { get; set; } = new PlayerInfo();
@@ -163,10 +163,10 @@ public class Player : Entity
         if (playerModel.AnimationWeapon != null)
             AnimationWeapon = Inventory.Weapons.GetWeapon(playerModel.AnimationWeapon);
 
-        if (playerModel.Attacker.HasValue && entities.TryGetValue(playerModel.Attacker.Value, out Entity? attacker))
-            Attacker = attacker;
-        if (playerModel.Killer.HasValue)
-            entities.TryGetValue(playerModel.Killer.Value, out m_killer);
+        if (playerModel.Attacker.HasValue && entities.TryGetValue(playerModel.Attacker.Value, out var attacker))
+            SetAttacker(attacker);
+        if (playerModel.Killer.HasValue && entities.TryGetValue(playerModel.Killer.Value, out var killer))
+            m_killer = WeakEntity.GetReference(killer);
 
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
@@ -179,6 +179,12 @@ public class Player : Entity
 
         SetPlayerInfo();
     }
+
+    public void SetAttacker(Entity? entity) =>
+        Attacker = WeakEntity.GetReference(entity);
+
+    public void SetCrosshairTarget(Entity? entity) =>
+        CrosshairTarget = WeakEntity.GetReference(entity);
 
     private void SetPlayerInfo()
     {
@@ -202,8 +208,8 @@ public class Player : Entity
             ViewZ = ViewZ,
             DeltaViewHeight = m_deltaViewHeight,
             Bob = m_bob,
-            Killer = m_killer?.Id,
-            Attacker = Attacker?.Id,
+            Killer = m_killer.Entity?.Id,
+            Attacker = Attacker.Entity?.Id,
             KillCount = KillCount,
             ItemCount = ItemCount,
             SecretsFound = SecretsFound,
@@ -373,7 +379,7 @@ public class Player : Entity
         base.SetRaiseState();
         PendingWeapon = Weapon;
         BringupWeapon();
-        m_killer = null;
+        m_killer = WeakEntity.GetReference(null);
     }
 
     public override bool CanDamage(Entity source, DamageType damageType)
@@ -649,9 +655,9 @@ public class Player : Entity
                 PitchRadians = 0.0;
         }
 
-        if (m_killer != null)
+        if (m_killer.Entity != null)
         {
-            double angle = MathHelper.GetPositiveAngle(Position.Angle(m_killer.Position));
+            double angle = MathHelper.GetPositiveAngle(Position.Angle(m_killer.Entity.Position));
             double diff = angle - AngleRadians;
             double addAngle = 0.08726646; // 5 Degrees
 
@@ -1053,7 +1059,7 @@ public class Player : Entity
         bool damageApplied = base.Damage(source, damage, setPainState, damageType);
         if (damageApplied)
         {
-            Attacker = source?.Owner.Entity ?? source;
+            SetAttacker(source?.Owner.Entity ?? source);
             PlayPainSound();
             DamageCount += damage;
             DamageCount = Math.Min(DamageCount, Definition.Properties.Health);
@@ -1099,9 +1105,9 @@ public class Player : Entity
         m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
         if (source != null)
-            m_killer = source.Owner.Entity ?? source;
-        if (m_killer == this)
-            m_killer = null;
+            m_killer = WeakEntity.GetReference(source.Owner.Entity ?? source);
+        if (m_killer.Entity == this)
+            m_killer = WeakEntity.GetReference(null);
 
         ForceLowerWeapon(true);
     }

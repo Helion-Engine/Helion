@@ -252,8 +252,8 @@ public partial class WorldLayer
         const int HalfWidth = Width / 2;
         const int Length = 10;
 
-        Color color = Player.CrosshairTarget == null ? Color.LawnGreen : Color.Red;
-        int crosshairLength = Player.CrosshairTarget == null ? Length : (int)(Length * 0.8f);
+        Color color = Player.CrosshairTarget.Entity == null ? Color.LawnGreen : Color.Red;
+        int crosshairLength = Player.CrosshairTarget.Entity == null ? Length : (int)(Length * 0.8f);
 
         Vec2I center = m_viewport.Vector / 2;
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);

@@ -59,17 +59,17 @@ public partial class Entity
             return false;
 
         Entity? newTarget = null;
-        if (Sector.SoundTarget != null && ValidEnemyTarget(Sector.SoundTarget))
+        if (Sector.SoundTarget.Entity != null && ValidEnemyTarget(Sector.SoundTarget.Entity))
         {
             if (Flags.Ambush)
             {
                 // Ambush enemies will set target based on SoundTarget reguardless of FOV.
-                if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget))
-                    newTarget = Sector.SoundTarget;
+                if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget.Entity))
+                    newTarget = Sector.SoundTarget.Entity;
             }
             else
             {
-                newTarget = Sector.SoundTarget;
+                newTarget = Sector.SoundTarget.Entity;
             }
         }
         else if (ValidEnemyTarget(Target.Entity))
