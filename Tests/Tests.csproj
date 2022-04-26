@@ -48,6 +48,9 @@
       <None Update="Resources\physics.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\sectorsound.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Resources\vandacts.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
