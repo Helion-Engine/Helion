@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Impl.SinglePlayer;
@@ -21,8 +20,6 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             world.CheatManager.ActivateCheat(world.Player, CheatType.God);
-            world.DataCache.ClearWeakEntities();
-            world.DataCache.ClearWeakEntityLists();
         }
 
         [Fact(DisplayName = "Test dispose target")]
@@ -44,10 +41,6 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities1)
                 entity.Target.Entity.Should().Be(lostSoul1);
 
-            // One reference list to the lost soul
-            WeakEntity.ReferenceListCount().Should().Be(1);
-            WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(10);
-
             for (int i = 0; i < 10; i++)
             {
                 var zombie = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
@@ -58,19 +51,8 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities2)
                 entity.Target.Entity.Should().Be(lostSoul2);
 
-            WeakEntity.ReferenceListCount().Should().Be(2);
-            WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(10);
-            WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(10);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(0);
-
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
-
-            WeakEntity.ReferenceListCount().Should().Be(1);
-            WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(10);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(1);
 
             foreach (var entity in entities1)
                 entity.Target.Entity.Should().BeNull();
@@ -84,17 +66,8 @@ namespace Helion.Tests.Unit.GameAction
             lostSoul2.Kill(null);
             GameActions.TickWorld(world, 200);
 
-            WeakEntity.ReferenceListCount().Should().Be(0);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(2);
-
             foreach (var entity in entities2)
                 entity.Target.Entity.Should().BeNull();
-
-            foreach (var entity in entities1.Union(entities2))
-                entity.Dispose();
-
-            world.DataCache.WeakEntitiesCount.Should().Be(20);
         }
 
         [Fact(DisplayName = "Test dispose tracer")]
@@ -114,23 +87,11 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities)
                 entity.Tracer.Entity.Should().Be(lostSoul1);
 
-            WeakEntity.ReferenceListCount().Should().Be(1);
-            WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(10);
-
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
 
-            WeakEntity.ReferenceListCount().Should().Be(0);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(1);
-
             foreach (var entity in entities)
                 entity.Tracer.Entity.Should().BeNull();
-
-            foreach (var entity in entities)
-                entity.Dispose();
-
-            world.DataCache.WeakEntitiesCount.Should().Be(10);
         }
 
         [Fact(DisplayName = "Test dispose target and tracer")]
@@ -156,10 +117,6 @@ namespace Helion.Tests.Unit.GameAction
                 entity.Tracer.Entity!.Should().Be(lostSoul2);
             }
 
-            WeakEntity.ReferenceListCount().Should().Be(2);
-            WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(10);
-            WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(10);
-
             for (int i = 0; i < 10; i++)
             {
                 var zombie = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
@@ -174,19 +131,8 @@ namespace Helion.Tests.Unit.GameAction
                 entity.Tracer.Entity!.Should().Be(lostSoul1);
             }
 
-            WeakEntity.ReferenceListCount().Should().Be(2);
-            WeakEntity.GetReferences(lostSoul1)!.Count.Should().Be(20);
-            WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(20);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(0);
-
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
-
-            WeakEntity.ReferenceListCount().Should().Be(1);
-            WeakEntity.GetReferences(lostSoul2)!.Count.Should().Be(20);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(1);
 
             foreach (var entity in entities1)
             {
@@ -205,10 +151,6 @@ namespace Helion.Tests.Unit.GameAction
             lostSoul2.Kill(null);
             GameActions.TickWorld(world, 200);
 
-            WeakEntity.ReferenceListCount().Should().Be(0);
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(2);
-
             foreach (var entity in entities2)
             {
                 entity.Target.Entity.Should().BeNull();
@@ -218,7 +160,11 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var entity in entities1.Union(entities2))
                 entity.Dispose();
 
-            world.DataCache.WeakEntitiesCount.Should().Be(40);
+            foreach (var entity in entities1.Union(entities2))
+            {
+                entity.Target.Entity.Should().BeNull();
+                entity.Tracer.Entity.Should().BeNull();
+            }
         }
 
         [Fact(DisplayName = "Set weak entity references")]
@@ -284,7 +230,6 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             lostSoul.IsDisposed.Should().BeTrue();
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
 
             lostSoul = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
 
@@ -299,7 +244,11 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             lostSoul.IsDisposed.Should().BeTrue();
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
+            lostSoul.Target.Should().Be(WeakEntity.Default);
+            lostSoul.Tracer.Should().Be(WeakEntity.Default);
+            lostSoul.OnEntity.Should().Be(WeakEntity.Default);
+            lostSoul.OverEntity.Should().Be(WeakEntity.Default);
+            lostSoul.Owner.Should().Be(WeakEntity.Default);
         }
 
         [Fact(DisplayName = "Set clear and change references")]
@@ -312,16 +261,17 @@ namespace Helion.Tests.Unit.GameAction
             var zombie2 = GameActions.CreateEntity(world, "ZombieMan", new Vec3D(-256, -64, 0));
 
             zombie1.SetTarget(lostSoul1);
+            zombie1.Target.Entity.Should().Be(lostSoul1);
             zombie2.SetTarget(lostSoul1);
             zombie1.SetTarget(null);
+            zombie1.Target.Entity.Should().BeNull();
+            zombie1.Target.Should().Be(WeakEntity.Default);
             zombie1.SetTarget(lostSoul1);
             zombie1.SetTarget(null);
             zombie1.SetTarget(caco1);
 
-            var lostSoulReferences = WeakEntity.GetReferences(lostSoul1);
-            lostSoulReferences.Should().NotBeNull();
-            lostSoulReferences!.Count.Should().Be(1);
-            lostSoulReferences!.First().Entity.Should().Be(lostSoul1);
+            zombie1.Target.Entity.Should().Be(caco1);
+            zombie2.Target.Entity.Should().Be(lostSoul1);
 
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
@@ -329,22 +279,9 @@ namespace Helion.Tests.Unit.GameAction
             zombie1.Target.Entity.Should().Be(caco1);
             zombie2.Target.Entity.Should().BeNull();
 
-            lostSoulReferences = WeakEntity.GetReferences(lostSoul1);
-            lostSoulReferences.Should().BeNull();
-
             var lostSoul2 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             zombie1.SetTarget(lostSoul2);
             zombie2.SetTarget(lostSoul2);
-
-            lostSoulReferences = WeakEntity.GetReferences(lostSoul2);
-            lostSoulReferences.Should().NotBeNull();
-            lostSoulReferences!.Count.Should().Be(2);
-            var node = lostSoulReferences!.First;
-            while (node != null)
-            {
-                node.Value.Entity.Should().Be(lostSoul2);
-                node = node.Next;
-            }
 
             zombie2.SetTarget(caco1);
             lostSoul2.Kill(null);
@@ -364,19 +301,12 @@ namespace Helion.Tests.Unit.GameAction
             lostSoul1.SetTarget(caco1);
             caco1.SetTarget(lostSoul1);
 
-            world.DataCache.WeakEntitiesCount.Should().Be(0);
-            world.DataCache.WeakEntitiesListCount.Should().Be(0);
             lostSoul1.Kill(null);
             GameActions.TickWorld(world, 200);
 
-            WeakEntity.GetReferences(lostSoul1).Should().BeNull();
-            WeakEntity.GetReferences(caco1).Should().BeNull();
-
-            // The lost soul had the only reference to the caco. The caco reference should be free.
-            world.DataCache.WeakEntitiesCount.Should().Be(1);
-            // Both lists should be free since the lost soul had the reference to the caco and the caco referenced the lost soul back.
-            // Because the lost soul is dead both lists are no longer needed.
-            world.DataCache.WeakEntitiesListCount.Should().Be(2);
+            caco1.Target.Entity.Should().BeNull();
+            // The lost soul can still have a reference back to the caco's weak reference
+            lostSoul1.Target.Entity.Should().Be(caco1);
         }
     }
 }

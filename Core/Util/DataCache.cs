@@ -16,7 +16,6 @@ using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
-using Helion.Util.Assertion;
 
 namespace Helion.Util;
 
@@ -37,12 +36,6 @@ public class DataCache
     private readonly DynamicArray<AudioData> m_audioData = new();
     private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
-    private readonly DynamicArray<WeakEntity> m_weakEntities = new();
-    private readonly DynamicArray<LinkedList<WeakEntity>> m_weakEntitiesList = new();
-
-    // Unit Test accessors
-    public int WeakEntitiesCount => m_weakEntities.Length;
-    public int WeakEntitiesListCount => m_weakEntitiesList.Length;
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {
@@ -276,38 +269,4 @@ public class DataCache
         audioSource.AudioData = null!;
         m_audioSources.Add(audioSource);
     }
-
-    public WeakEntity GetWeakEntity()
-    {
-        if (m_weakEntities.Length > 0)
-            return m_weakEntities.RemoveLast();
-
-        return new WeakEntity();
-    }
-
-    public void FreeWeakEntity(WeakEntity weakEntity)
-    {
-        Assert.Precondition(!ReferenceEquals(weakEntity, WeakEntity.Default), "Tried to free static default instance.");
-
-        weakEntity.Entity = null;
-        m_weakEntities.Add(weakEntity);
-    }
-
-    public LinkedList<WeakEntity> GetWeakEntityList()
-    {
-        if (m_weakEntitiesList.Length > 0)
-            return m_weakEntitiesList.RemoveLast();
-
-        return new LinkedList<WeakEntity>();
-    }
-
-    public void FreeWeakEntityList(LinkedList<WeakEntity> weakEntities)
-    {
-        weakEntities.Clear();
-        m_weakEntitiesList.Add(weakEntities);
-    }
-
-    // Unit Test functions
-    public void ClearWeakEntities() => m_weakEntities.Clear();
-    public void ClearWeakEntityLists() => m_weakEntitiesList.Clear();
 }

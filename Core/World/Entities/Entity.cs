@@ -21,7 +21,6 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Render.Legacy.Renderers.Legacy.World;
 using Helion.Util.Extensions;
-using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities;
 
@@ -270,43 +269,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         ArmorDefinition = entity.ArmorDefinition;
     }
 
-    public void SetTarget(Entity? entity)
-    {
-        Target = SetWeakReference(Target, entity, World.DataCache);
-    }
+    public void SetTarget(Entity? entity) =>
+        Target = WeakEntity.GetReference(entity);
 
-    public void SetTracer(Entity? entity)
-    {
-        Tracer = SetWeakReference(Tracer, entity, World.DataCache);
-    }
+    public void SetTracer(Entity? entity) =>
+        Tracer = WeakEntity.GetReference(entity);
 
-    public void SetOnEntity(Entity? entity)
-    {
-        OnEntity = SetWeakReference(OnEntity, entity, World.DataCache);
-    }
+    public void SetOnEntity(Entity? entity) =>
+        OnEntity = WeakEntity.GetReference(entity);
 
-    public void SetOverEntity(Entity? entity)
-    {
-        OverEntity = SetWeakReference(OverEntity, entity, World.DataCache);
-    }
+    public void SetOverEntity(Entity? entity) =>
+        OverEntity = WeakEntity.GetReference(entity);
 
-    public void SetOwner(Entity? entity)
-    {
-        Owner = SetWeakReference(Owner, entity, World.DataCache);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static WeakEntity SetWeakReference(WeakEntity weakEntity, Entity? entity, DataCache dataCache)
-    {
-        if (entity == null && weakEntity.Entity == null)
-            return weakEntity;
-
-        if (ReferenceEquals(weakEntity, WeakEntity.Default))
-            weakEntity = dataCache.GetWeakEntity();
-
-        weakEntity.Set(entity, dataCache);
-        return weakEntity;
-    }
+    public void SetOwner(Entity? entity) =>
+        Owner = WeakEntity.GetReference(entity);
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
     public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.CenterPoint, Position.XY.Distance(entity.Position.XY));
@@ -948,23 +924,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         World.DataCache.FreeSectorList(IntersectSectors);
 
         WeakEntity.DisposeEntity(this);
-        FreeWeakReference(Target, World.DataCache);
-        FreeWeakReference(Tracer, World.DataCache);
-        FreeWeakReference(OnEntity, World.DataCache);
-        FreeWeakReference(OverEntity, World.DataCache);
-        FreeWeakReference(Owner, World.DataCache);
-
         GC.SuppressFinalize(this);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void FreeWeakReference(WeakEntity weakEntity, DataCache dataCache)
-    {
-        if (ReferenceEquals(weakEntity, WeakEntity.Default))
-            return;
-
-        weakEntity.Set(null, dataCache);
-        dataCache.FreeWeakEntity(weakEntity);
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)
