@@ -184,20 +184,10 @@ namespace Helion.Tests.Unit.GameAction
             // This one is designed to fail if we are missing doom's gravity skip
             // See comment in PhysicsManager.MoveZ near noVelocity variable
             GameActions.SetEntityPosition(World, Player, new Vec3D(1104, 1312, 0));
-            GameActions.PlayerRunForward(World, GetAngle(Bearing.East), () => { return Player.Position.X < 1760; });
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.East), () => { return Player.Position.X < 1760; });
 
             Player.Position.X.Should().BeGreaterOrEqualTo(1760);
         }
-
-        private enum Bearing
-        {
-            North,
-            East,
-            South,
-            West
-        }
-
-        private static double GetAngle(Bearing bearing) => MathHelper.QuarterPi * (int)bearing;
 
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)
         {

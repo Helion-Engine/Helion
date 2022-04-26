@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -8,7 +7,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using System;
 using System.Collections.Generic;
@@ -16,6 +14,14 @@ using System.Linq;
 
 namespace Helion.Tests.Unit.GameAction
 {
+    public enum Bearing
+    {
+        East,
+        North,
+        West,
+        South,
+    }
+
     public static partial class GameActions
     {
         public static Line GetLine(WorldBase world, int id) => world.Lines.First(x => x.Id == id);
@@ -340,5 +346,7 @@ namespace Helion.Tests.Unit.GameAction
             source.SetTarget(target);
             source.SetSeeState();
         }
+
+        public static double GetAngle(Bearing bearing) => MathHelper.HalfPi * (int)bearing;
     }
 }

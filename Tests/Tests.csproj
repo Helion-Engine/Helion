@@ -42,6 +42,9 @@
       <None Update="Resources\box.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\los.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Resources\physics.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
