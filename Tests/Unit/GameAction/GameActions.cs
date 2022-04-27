@@ -7,6 +7,8 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using System;
 using System.Collections.Generic;
@@ -301,6 +303,17 @@ namespace Helion.Tests.Unit.GameAction
         public static void CheckPlaneTexture(WorldBase world, SectorPlane plane, string name)
         {
             world.TextureManager.GetTexture(plane.TextureHandle).Name.Equals(name, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+        }
+
+        public static void CheckSideTexture(WorldBase world, Side side, WallLocation location, string name)
+        {
+            Wall wall = location switch
+            {
+                WallLocation.Upper => side.Upper,
+                WallLocation.Lower => side.Lower,
+                _ => side.Middle,
+            };
+            world.TextureManager.GetTexture(wall.TextureHandle).Name.Equals(name, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
         }
 
         public static void ForceStopSectorSpecial(WorldBase world, Sector sector)
