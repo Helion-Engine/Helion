@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Impl.SinglePlayer;
@@ -307,6 +308,37 @@ namespace Helion.Tests.Unit.GameAction
             caco1.Target.Entity.Should().BeNull();
             // The lost soul can still have a reference back to the caco's weak reference
             lostSoul1.Target.Entity.Should().Be(caco1);
+        }
+
+        [Fact(DisplayName = "Dispose ref")]
+        public void DisposeTest()
+        {
+            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            TestDisposeEntities(world, out var lostSoul, out var caco);
+
+            GC.Collect();
+
+            // This test makes sure that there are no dangling references to the entities that prevents the GC from collecting.
+            lostSoul.TryGetTarget(out var target).Should().BeFalse();
+            caco.TryGetTarget(out target).Should().BeFalse();
+        }
+
+        private static void TestDisposeEntities(WorldBase world, out WeakReference<Entity> lostSoul, out WeakReference<Entity> caco)
+        {
+            Entity lostSoul1 = world.EntityManager.Create( "LostSoul", new Vec3D(-256, -64, 0))!;
+            Entity caco1 = world.EntityManager.Create("Cacodemon", new Vec3D(-256, -64, 0))!;
+            Entity caco2 = world.EntityManager.Create("Cacodemon", new Vec3D(-256, -64, 0))!;
+
+            lostSoul1.SetTarget(caco1);
+            caco1.SetTarget(lostSoul1);
+            caco1.SetTracer(caco2);
+            caco2.SetTracer(caco1);
+
+            lostSoul = new WeakReference<Entity>(lostSoul1);
+            caco = new WeakReference<Entity>(caco1);
+
+            lostSoul1.Dispose();
+            caco1.Dispose();
         }
     }
 }
