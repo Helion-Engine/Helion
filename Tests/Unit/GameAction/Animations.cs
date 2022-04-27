@@ -41,13 +41,14 @@ namespace Helion.Tests.Unit.GameAction
 
         private static readonly AnimationValues[] TextureAnimationValues = new[]
         {
-            //FIREWALA
             new AnimationValues(84, 8, new[] { "BFALL1", "BFALL2", "BFALL3", "BFALL4" }),
             new AnimationValues(88, 8, new[] { "DBRAIN1", "DBRAIN2", "DBRAIN3", "DBRAIN4" }),
             new AnimationValues(92, 8, new[] { "FIREBLU1", "FIREBLU2" }),
             new AnimationValues(94, 8, new[] { "FIRELAV3", "FIRELAVA" }),
             new AnimationValues(96, 8, new[] { "FIREMAG1", "FIREMAG2", "FIREMAG3" }),
             new AnimationValues(99, 8, new[] { "FIREWALA", "FIREWALB", "FIREWALL" }),
+            new AnimationValues(102, 8, new[] { "GSTFONT1", "GSTFONT2", "GSTFONT3" }),
+            new AnimationValues(105, 8, new[] { "SFALL1", "SFALL2", "SFALL3", "SFALL4" }),
         };
 
         public Animations()
