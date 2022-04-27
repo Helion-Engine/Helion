@@ -82,6 +82,8 @@ namespace Helion.Tests.Unit.GameAction
 
                 world.EntityManager.Destroy(entity);
             }
+
+            CreatedEntities.Clear();
         }
 
         public static void DestroyEntities(WorldBase world, string name)
