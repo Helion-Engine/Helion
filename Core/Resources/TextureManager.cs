@@ -278,6 +278,16 @@ public class TextureManager : ITickable
         }
     }
 
+    public void ResetAnimations()
+    {
+        for (int i = 0; i < m_animations.Count; i++)
+        {
+            Animation anim = m_animations[i];
+            anim.AnimationIndex = 0;
+            anim.Tics = 0;
+        }
+    }
+
     private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
     {
         foreach (var spriteName in spriteNames)
@@ -385,7 +395,7 @@ public class TextureManager : ITickable
 
             for (int j = 0; j < animation.AnimatedTexture.Components.Count; j++)
             {
-                int index = (i + j + 1) % animation.AnimatedTexture.Components.Count;
+                int index = (i + j) % animation.AnimatedTexture.Components.Count;
                 var component = animation.AnimatedTexture.Components[index];
                 nextAnim.AnimatedTexture.Components.Add(component);
             }
