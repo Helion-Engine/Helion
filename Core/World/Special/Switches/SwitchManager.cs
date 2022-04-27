@@ -12,11 +12,12 @@ namespace Helion.World.Special.Switches;
 
 public static class SwitchManager
 {
-    public static bool IsLineSwitch(ArchiveCollection archiveCollection, Line line) => GetLineLineSwitchTexture(archiveCollection, line).Item1 != Constants.NoTextureIndex;
+    public static bool IsLineSwitch(ArchiveCollection archiveCollection, Line line) => 
+        GetLineLineSwitchTexture(archiveCollection, line, false).Item1 != Constants.NoTextureIndex;
 
-    public static void SetLineSwitch(ArchiveCollection archiveCollection, Line line)
+    public static void SetLineSwitch(ArchiveCollection archiveCollection, Line line, bool off)
     {
-        (int, WallLocation) switchSet = GetLineLineSwitchTexture(archiveCollection, line);
+        (int, WallLocation) switchSet = GetLineLineSwitchTexture(archiveCollection, line, off);
         if (switchSet.Item1 != Constants.NoTextureIndex)
         {
             if (line.Back != null)
@@ -41,7 +42,7 @@ public static class SwitchManager
         }
     }
 
-    private static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line)
+    private static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line, bool off)
     {
         if (line.Back != null)
         {
@@ -53,13 +54,16 @@ public static class SwitchManager
                     continue;
 
                 if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(side.Upper.TextureHandle), WallLocation.Upper);
+                    return GetSwitchTexture(animSwitch, side.Upper.TextureHandle, WallLocation.Upper, off);
+                    //return (animSwitch.GetOpposingTexture(side.Upper.TextureHandle), WallLocation.Upper);
 
                 if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(side.Middle.TextureHandle), WallLocation.Middle);
+                    return GetSwitchTexture(animSwitch, side.Middle.TextureHandle, WallLocation.Middle, off);
+                //return (animSwitch.GetOpposingTexture(side.Middle.TextureHandle), WallLocation.Middle);
 
                 if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
-                    return (animSwitch.GetOpposingTexture(side.Lower.TextureHandle), WallLocation.Lower);
+                    return GetSwitchTexture(animSwitch, side.Lower.TextureHandle, WallLocation.Lower, off);
+                //return (animSwitch.GetOpposingTexture(side.Lower.TextureHandle), WallLocation.Lower);
             }
         }
         else
@@ -69,9 +73,18 @@ public static class SwitchManager
                 (sw.IWad == IWadBaseType.None || sw.IWad == archiveCollection.IWadType) &&
                 sw.IsMatch(line.Front.Middle.TextureHandle));
             if (animSwitch != null)
-                return (animSwitch.GetOpposingTexture(line.Front.Middle.TextureHandle), WallLocation.Middle);
+                return GetSwitchTexture(animSwitch, line.Front.Middle.TextureHandle, WallLocation.Middle, off);
+            //return (animSwitch.GetOpposingTexture(line.Front.Middle.TextureHandle), WallLocation.Middle);
         }
 
         return (Constants.NoTextureIndex, WallLocation.None);
+    }
+
+    private static (int, WallLocation) GetSwitchTexture(AnimatedSwitch animSwitch, int textureHandle, WallLocation location, bool off)
+    {
+        if (off)
+            return (animSwitch.GetOffTexture(), location);
+
+        return (animSwitch.GetOpposingTexture(textureHandle), location);
     }
 }

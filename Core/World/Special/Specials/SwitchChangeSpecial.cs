@@ -1,4 +1,3 @@
-using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Util;
@@ -11,15 +10,18 @@ namespace Helion.World.Special.Specials;
 
 public class SwitchChangeSpecial : ISpecial
 {
+    private const int SwitchDelayTicks = 35;
+
     private readonly IWorld m_world;
-    private readonly Line m_line;
+    public  Line Line { get; private set; }
+    private bool m_init = true;
     private bool m_repeat;
     private int m_switchDelayTics;
 
     public SwitchChangeSpecial(IWorld world, Line line, SwitchType type)
     {
         m_world = world;
-        m_line = line;
+        Line = line;
         m_repeat = line.Flags.Repeat;
 
         if (type == SwitchType.Exit)
@@ -37,7 +39,7 @@ public class SwitchChangeSpecial : ISpecial
     public SwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
     {
         m_world = world;
-        m_line = line;
+        Line = line;
         m_repeat = model.Repeat;
         m_switchDelayTics = model.Tics;
     }
@@ -46,10 +48,15 @@ public class SwitchChangeSpecial : ISpecial
     {
         return new SwitchChangeSpecialModel()
         {
-            LineId = m_line.Id,
+            LineId = Line.Id,
             Repeat = m_repeat,
             Tics = m_switchDelayTics
         };
+    }
+
+    public void ResetDelay()
+    {
+        m_switchDelayTics = SwitchDelayTicks;
     }
 
     public SpecialTickStatus Tick()
@@ -60,19 +67,20 @@ public class SwitchChangeSpecial : ISpecial
             return SpecialTickStatus.Continue;
         }
 
-        SwitchManager.SetLineSwitch(m_world.ArchiveCollection, m_line);
+        SwitchManager.SetLineSwitch(m_world.ArchiveCollection, Line, !m_init);
 
         if (m_repeat)
         {
-            m_switchDelayTics = 35;
+            m_switchDelayTics = SwitchDelayTicks;
             m_repeat = false;
+            m_init = false;
             return SpecialTickStatus.Continue;
         }
 
-        if (m_line.Flags.Repeat)
+        if (Line.Flags.Repeat)
         {
-            m_line.SetActivated(false);
-            PlaySwitchSound(m_world.SoundManager, m_line);
+            Line.SetActivated(false);
+            PlaySwitchSound(m_world.SoundManager, Line);
         }
 
         return SpecialTickStatus.Destroy;

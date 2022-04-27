@@ -111,8 +111,12 @@ public class SpecialManager : ITickable, IDisposable
         {
             if (ShouldCreateSwitchSpecial(args))
             {
-                AddSpecial(new SwitchChangeSpecial(m_world, args.ActivateLineSpecial,
-                    GetSwitchType(args.ActivateLineSpecial.Special)));
+                var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
+                if (switchSpecial != null)
+                    RemoveSpecial(switchSpecial);
+                switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
+                if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
+                    AddSpecial(switchSpecial);
             }
 
             args.ActivateLineSpecial.SetActivated(true);
@@ -121,12 +125,29 @@ public class SpecialManager : ITickable, IDisposable
         return specialActivateSuccess;
     }
 
+    private SwitchChangeSpecial? GetExistingSwitchSpecial(Line line)
+    {
+        var node = m_specials.First;
+        while (node != null)
+        {
+            if (node.Value is SwitchChangeSpecial switchChangeSpecial && switchChangeSpecial.Line.Id == line.Id)
+            {
+                switchChangeSpecial.ResetDelay();
+                return switchChangeSpecial;
+            }
+
+            node = node.Next;
+        }
+
+        return null;
+    }
+
     private bool ShouldCreateSwitchSpecial(EntityActivateSpecialEventArgs args)
     {
         if (args.ActivationContext == ActivationContext.CrossLine)
             return false;
 
-        return !args.ActivateLineSpecial.Activated && SwitchManager.IsLineSwitch(m_world.ArchiveCollection, args.ActivateLineSpecial);
+        return SwitchManager.IsLineSwitch(m_world.ArchiveCollection, args.ActivateLineSpecial);
     }
 
     private static SwitchType GetSwitchType(LineSpecial lineSpecial)

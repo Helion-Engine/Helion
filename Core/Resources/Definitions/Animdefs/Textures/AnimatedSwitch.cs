@@ -34,5 +34,10 @@ public class AnimatedSwitch
         return On[0].TextureIndex;
     }
 
+    public int GetOffTexture()
+    {
+        return StartTextureIndex;
+    }
+
     public override string ToString() => $"{Texture} (On count: {On.Count}, Off count: {Off.Count})";
 }
