@@ -36,6 +36,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="Resources\animations.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Resources\boss.zip">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

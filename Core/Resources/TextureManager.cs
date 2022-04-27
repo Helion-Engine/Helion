@@ -285,6 +285,8 @@ public class TextureManager : ITickable
             Animation anim = m_animations[i];
             anim.AnimationIndex = 0;
             anim.Tics = 0;
+
+            m_translations[anim.TranslationIndex] = anim.AnimatedTexture.Components[0].TextureIndex;
         }
     }
 
