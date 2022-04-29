@@ -37,6 +37,8 @@ public class DataCache
     private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
 
+    public WeakEntity?[] WeakEntities = new WeakEntity?[1024];
+
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {
         LinkableNode<Entity> node;

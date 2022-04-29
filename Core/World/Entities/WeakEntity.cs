@@ -1,4 +1,5 @@
-﻿using Helion.Util.Assertion;
+﻿using Helion.Util;
+using Helion.Util.Assertion;
 using System;
 
 namespace Helion.World.Entities;
@@ -10,7 +11,6 @@ namespace Helion.World.Entities;
 public class WeakEntity
 {
     public static readonly WeakEntity Default = new(null);
-    private static WeakEntity?[] WeakEntities = new WeakEntity?[1024];
 
     public Entity? Entity;
 
@@ -24,18 +24,19 @@ public class WeakEntity
         if (entity == null)
             return Default;
 
-        if (entity.Id >= WeakEntities.Length)
+        var dataCache = entity.World.DataCache;
+        if (entity.Id >= dataCache.WeakEntities.Length)
         {
-            WeakEntity?[] newEntities = new WeakEntity?[Math.Max(WeakEntities.Length * 2, entity.Id * 2)];
-            Array.Copy(WeakEntities, newEntities, WeakEntities.Length);
-            WeakEntities = newEntities;
+            WeakEntity?[] newEntities = new WeakEntity?[Math.Max(dataCache.WeakEntities.Length * 2, entity.Id * 2)];
+            Array.Copy(dataCache.WeakEntities, newEntities, dataCache.WeakEntities.Length);
+            dataCache.WeakEntities = newEntities;
         }
 
-        var weakEntity = WeakEntities[entity.Id];
+        var weakEntity = dataCache.WeakEntities[entity.Id];
         if (weakEntity == null)
         {
             weakEntity = new WeakEntity(entity);
-            WeakEntities[entity.Id] = weakEntity;
+            dataCache.WeakEntities[entity.Id] = weakEntity;
             return weakEntity;
         }
 
@@ -48,10 +49,10 @@ public class WeakEntity
 
     public static void DisposeEntity(Entity entity)
     {
-        if (entity.Id >= WeakEntities.Length)
+        if (entity.Id >= entity.World.DataCache.WeakEntities.Length)
             return;
 
-        var weakEntity = WeakEntities[entity.Id];
+        var weakEntity = entity.World.DataCache.WeakEntities[entity.Id];
         if (weakEntity == null)
             return;
 
