@@ -354,6 +354,43 @@ namespace Helion.Tests.Unit.GameAction
             World.SoundManager.FindBySource(Player).Should().BeNull();
         }
 
+        [Fact(DisplayName = "Player can activate switch above head")]
+        public void PlayerUseHeightIgnored()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(864, 320, 0));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+            World.EntityUse(Player).Should().BeTrue();
+
+            var sector = GameActions.GetSectorByTag(World, 3);
+            sector.ActiveFloorMove.Should().NotBeNull();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Player can't activate switch through a closed door")]
+        public void PlayerUseDoorBlock()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(864, 224, 0));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+            World.EntityUse(Player).Should().BeFalse();
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+
+            var sector = GameActions.GetSectorByTag(World, 3);
+            sector.ActiveFloorMove.Should().BeNull();
+
+            GameActions.TickWorld(World, 70);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+
+            var doorSector = GameActions.GetSector(World, 53);
+            doorSector.Ceiling.SetZ(129);
+            World.EntityUse(Player).Should().BeTrue();
+
+            sector.ActiveFloorMove.Should().NotBeNull();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)
         {
             return v1.X.ApproxEquals(v2.X) && v1.Y.ApproxEquals(v2.Y) && v1.Z.ApproxEquals(v2.Z);
