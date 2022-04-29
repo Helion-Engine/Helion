@@ -7,7 +7,7 @@ namespace Helion.Audio.Impl
     {
         public IMusicPlayer Music => new MockMusicPlayer();
 
-        public event EventHandler DeviceChanging;
+        public event EventHandler? DeviceChanging;
 
         public IAudioSourceManager CreateContext() => new MockAudioSourceManager();
 

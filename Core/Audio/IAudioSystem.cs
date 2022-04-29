@@ -24,7 +24,7 @@ public interface IAudioSystem : IDisposable
     /// <returns>A newly created audio context.</returns>
     IAudioSourceManager CreateContext();
 
-    event EventHandler DeviceChanging;
+    event EventHandler? DeviceChanging;
 
     IEnumerable<string> GetDeviceNames();
 
