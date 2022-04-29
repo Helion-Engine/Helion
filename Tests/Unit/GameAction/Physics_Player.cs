@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -187,6 +188,140 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.East), () => { return Player.Position.X < 1760; });
 
             Player.Position.X.Should().BeGreaterOrEqualTo(1760);
+        }
+
+        [Fact(DisplayName = "Player fall doesn't hard hit")]
+        public void PlayerFallNoHardHit()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(320, -64, 35));
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            GameActions.TickWorld(World, () => { return !Player.OnGround; }, () => { });
+
+            Player.DeltaViewHeight.Should().Be(0);
+            Player.ViewZ.Should().Be(41);
+
+            // No oof sound
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Player fall hard hit")]
+        public void PlayerFallHardHit()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(320, -64, 64));
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            GameActions.TickWorld(World, () => { return !Player.OnGround; }, () => { });
+            Player.DeltaViewHeight.Should().Be(-1.375);
+            Player.ViewZ.Should().Be(41);
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+
+            double[] values = new[] { 39.625, 38.5, 37.625, 37, 36.625, 36.5, 36.625, 37, 37.625, 38.5, 39.625 };
+            int index = 0;
+
+            GameActions.TickWorld(World, () => { return Player.ViewZ != 41; }, () =>
+            {
+                Player.ViewZ.Should().Be(values[index]);
+                index++;
+            });
+
+            index.Should().Be(values.Length);
+
+            World.Tick();
+            Player.DeltaViewHeight.Should().Be(0);
+            GameActions.TickWorld(World, 35);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Player fall hard hit (maximum delta)")]
+        public void PlayerFallHardHitMax()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(320, -64, 2048));
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            GameActions.TickWorld(World, () => { return !Player.OnGround; }, () => { });
+            Player.DeltaViewHeight.Should().Be(-8);
+            Player.ViewZ.Should().Be(41);
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+
+            double[] values = new[] { 33, 25.25, 20.5, 20.75, 21.25, 22, 23, 24.25, 25.75, 27.5, 29.5, 31.75, 34.25, 37, 40 };
+            int index = 0;
+
+            GameActions.TickWorld(World, () => { return Player.ViewZ != 41; }, () =>
+            {
+                Player.ViewZ.Should().Be(values[index]);
+                index++;
+            });
+
+            index.Should().Be(values.Length);
+
+            World.Tick();
+            Player.DeltaViewHeight.Should().Be(0);
+            GameActions.TickWorld(World, 35);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Player step up and smooths out view height change")]
+        public void PlayerStepUpSmoothViewHeight()
+        {
+            GameActions.SetEntityPosition(World, Player, PlayerStepPos);
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            Player.Position.Z.Should().Be(0);
+            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 16));
+            Player.Position.Z.Should().Be(24);
+            Player.Sector.Id.Should().Be(17);
+            Player.OnGround.Should().BeTrue();
+
+            Player.DeltaViewHeight.Should().Be(3.25);
+                        
+            double[] values = new[] { 23.75, 27.25, 31, 35, 39.25 };
+            int index = 0;
+
+            GameActions.TickWorld(World, () => { return Player.ViewZ != 41; }, () =>
+            {
+                Player.ViewZ.Should().Be(values[index]);
+                index++;
+            });
+
+            index.Should().Be(values.Length);
+
+            World.Tick();
+            Player.DeltaViewHeight.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Player runs up stairs and smooths out view height change")]
+        public void StepRun()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(-192, -1248, 0));
+
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            double[] delta = new[] { 0, 0, 0, 0, 0, 2.25, 2.5, 2.75, 3, 2.9375, 3.1875, 3.4375, 3.6171875, 3.8671875, 3.876953125, 4.126953125, 4.376953125, 3.264892578125, 3.514892578125, 3.96502685546875, 4.21502685546875, 3.7899932861328125, 4.0399932861328125, 4.2899932861328125, 3.2975025177001953, 3.5475025177001953, 3.7975025177001953, 4.047502517700195, 4.297502517700195, 4.547502517700195, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            double[] view = new[] { 41, 41, 41, 41, 41, 25, 27.25, 29.75, 32.5, 20.5, 23.4375, 26.625, 20.5, 24.1171875, 20.5, 24.376953125, 28.50390625, 20.5, 23.764892578125, 20.5, 24.46502685546875, 20.5, 24.289993286132812, 28.329986572265625, 20.5, 23.797502517700195, 27.34500503540039, 31.142507553100586, 35.19001007080078, 39.48751258850098, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41 };
+            int index = 0;
+
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.North), () => { return Player.Position.Y < -448; }, 
+                onTick: () =>
+            {
+                Player.DeltaViewHeight.Should().Be(delta[index]);
+                Player.ViewZ.Should().Be(view[index]);
+                index++;
+            });
+
+            index.Should().Be(delta.Length);
+            Player.Position.Y.Should().BeGreaterOrEqualTo(-448);
         }
 
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)

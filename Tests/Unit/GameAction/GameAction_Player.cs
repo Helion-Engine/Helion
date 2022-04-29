@@ -26,7 +26,7 @@ namespace Helion.Tests.Unit.GameAction
             });
         }
 
-        public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null)
+        public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null)
         {
             if (!timeout.HasValue)
                 timeout = TimeSpan.FromSeconds(60);
@@ -41,6 +41,8 @@ namespace Helion.Tests.Unit.GameAction
                 world.SetTickCommand(cmd);
                 world.Tick();
                 runTicks++;
+
+                onTick?.Invoke();
 
                 if (runTicks > 35 * timeout.Value.TotalSeconds)
                     throw new Exception($"Tick world ran for more than {timeout.Value.TotalSeconds} seconds");

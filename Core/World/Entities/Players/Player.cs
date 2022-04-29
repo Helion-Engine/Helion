@@ -81,6 +81,7 @@ public class Player : Entity
     public PlayerInfo Info { get; set; } = new PlayerInfo();
     public bool IsVooDooDoll { get; set; }
     public bool IsSyncVooDoo { get; set; }
+    public double DeltaViewHeight => m_deltaViewHeight;
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
