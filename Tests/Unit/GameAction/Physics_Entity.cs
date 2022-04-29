@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.World.Physics;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -178,6 +179,22 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.MoveEntity(World, moveEntity, moveTo.XY);
             moveEntity.Position.Should().Be(pos1);
+        }
+
+        [Fact(DisplayName = "Spawn ceiling entity in floor move sector")]
+        public void SpawnCeilingFloorMove()
+        {
+            var sector = GameActions.GetSectorByTag(World, 3);
+            sector.ActiveFloorMove.Should().BeNull();
+            var entity = GameActions.CreateEntity(World, "NonSolidMeat2", new Vec3D(-128, 216, 0));
+            entity.OnGround.Should().BeFalse();
+            entity.Position.Z.Should().Be(4012);
+            GameActions.ActivateLine(World, Player, 23, ActivationContext.UseLine);
+
+            GameActions.RunSectorPlaneSpecial(World, sector, () =>
+            {
+                entity.Position.Z.Should().Be(4012);
+            });
         }
     }
 }

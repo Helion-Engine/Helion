@@ -329,6 +329,7 @@ public class EntityManager : IDisposable
             entity.SetZ(entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset, false);
         }
 
+        entity.CheckOnGround();
         entity.ResetInterpolation();
     }
 
