@@ -126,6 +126,11 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         return buffer;
     }
 
+    public void Tick()
+    {
+
+    }
+
     public void Dispose()
     {
         PerformDispose();

@@ -164,6 +164,7 @@ public class WorldSoundManager : SoundManager, ITickable
         AudioManager.SetListener(m_world.ListenerPosition, m_world.ListenerAngle, m_world.ListenerPitch);
         UpdateWaitingLoopSounds();
         PlaySounds();
+        AudioManager.Tick();
 
         if (PlayingSounds.Empty())
             return;

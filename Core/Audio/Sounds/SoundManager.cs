@@ -46,6 +46,33 @@ public class SoundManager : IDisposable
         audioSystem.DeviceChanging += AudioSystem_DeviceChanging;
     }
 
+    public IAudioSource? FindBySource(object source)
+    {
+        IAudioSource? audioSource = FindBySource(source, m_soundsToPlay);
+        if (audioSource != null)
+            return audioSource;
+
+        audioSource = FindBySource(source, PlayingSounds);
+        if (audioSource != null)
+            return audioSource;
+
+        audioSource = FindBySource(source, m_waitingLoopSounds);
+        return audioSource;
+    }
+
+    private IAudioSource? FindBySource(object source, LinkedList<IAudioSource> audioSources)
+    {
+        var node = PlayingSounds.First;
+        while (node != null)
+        {
+            if (ReferenceEquals(source, node.Value.AudioData.SoundSource))
+                return node.Value;
+            node = node.Next;
+        }
+
+        return null;
+    }
+
     private void AudioSystem_DeviceChanging(object? sender, EventArgs e)
     {
         ClearSounds();
