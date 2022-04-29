@@ -60,9 +60,9 @@ public class SoundManager : IDisposable
         return audioSource;
     }
 
-    private IAudioSource? FindBySource(object source, LinkedList<IAudioSource> audioSources)
+    private static IAudioSource? FindBySource(object source, LinkedList<IAudioSource> audioSources)
     {
-        var node = PlayingSounds.First;
+        var node = audioSources.First;
         while (node != null)
         {
             if (ReferenceEquals(source, node.Value.AudioData.SoundSource))
