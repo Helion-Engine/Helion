@@ -324,6 +324,36 @@ namespace Helion.Tests.Unit.GameAction
             Player.Position.Y.Should().BeGreaterOrEqualTo(-448);
         }
 
+        [Fact(DisplayName = "Player uses one sided line with no activation")]
+        public void PlayerUseFailOneSidedLine()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(-224, -224, 0));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.West);
+            World.EntityUse(Player).Should().BeFalse();
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+
+            GameActions.TickWorld(World, 70);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Player uses two sided line with no activation")]
+        public void PlayerUseFailTwoSidedLine()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec3D(-128, 480, 0));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+            World.EntityUse(Player).Should().BeFalse();
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsnoway").Should().BeTrue();
+
+            GameActions.TickWorld(World, 70);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)
         {
             return v1.X.ApproxEquals(v2.X) && v1.Y.ApproxEquals(v2.Y) && v1.Z.ApproxEquals(v2.Z);
