@@ -10,6 +10,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,7 +148,22 @@ namespace Helion.Tests.Unit.GameAction
             if (moveOutofBounds)
                 SetEntityOutOfBounds(world, entity);
 
-            return !entity.IsBlocked();
+            return true;
+        }
+
+        public static bool EntityBlockedByLine(WorldBase world, Entity entity, int lineId)
+        {
+            if (!SetEntityToLine(world, entity, lineId, entity.Radius))
+                throw new Exception("Line not found");
+
+            var pos = entity.Position;
+            entity.FrozenTics = 0;
+            MoveEntity(world, entity, entity.Radius * 2);
+            var nextPos = entity.Position;
+
+            SetEntityOutOfBounds(world, entity);
+
+            return pos == nextPos;
         }
 
         public static bool EntityUseLine(WorldBase world, Entity entity, int lineId)
@@ -198,6 +214,12 @@ namespace Helion.Tests.Unit.GameAction
             }, () => { });
 
             return true;
+        }
+
+        public static BlockmapIntersect? FireHitscanTest(WorldBase world, Entity entity)
+        {
+            Vec3D intersect = Vec3D.Zero;
+            return world.FireHitScan(entity, entity.HitscanAttackPos, Vec3D.UnitSphere(entity.AngleRadians, 0) * Constants.EntityShootDistance, 0, true, ref intersect, out _);
         }
 
         public static void SetEntityOutOfBounds(WorldBase world, Entity entity)
