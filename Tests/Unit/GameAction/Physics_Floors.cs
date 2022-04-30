@@ -98,5 +98,58 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.RunSectorPlaneSpecial(World, sector);
             sector.Floor.Z.Should().Be(64);
         }
+
+        [Fact(DisplayName = "Floor raise blocked by entity hitting a different ceiling")]
+        public void FloorRaiseBlockedByDifferentCeiling()
+        {
+            var sector = GameActions.GetSectorByTag(World, 11);
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1184, -256));
+            GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, 200);
+            sector.Floor.Z.Should().Be(-152);
+
+            sector.ActiveFloorMove.Should().NotBeNull();
+            World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+            monster.Dispose();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Floor raise blocked by entity hitting a spawn ceiling entity")]
+        public void FloorRaiseBlockedBySpawnCeilingEntity()
+        {
+            var sector = GameActions.GetSectorByTag(World, 11);
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1184, -256));
+            var meat = GameActions.CreateEntity(World, "Meat2", new Vec3D(144, 1184, 0));
+            meat.Position.Z.Should().Be(-96 - meat.Height);
+            GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, 200);
+            sector.Floor.Z.Should().Be(meat.Position.Z - monster.Height);
+
+            sector.ActiveFloorMove.Should().NotBeNull();
+            World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+            monster.Dispose();
+            meat.Dispose();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Floor movement clamps entity to highest sector")]
+        public void FloorMovementClampsEntityToHighestSector()
+        {
+            var sector = GameActions.GetSectorByTag(World, 10);
+            var armor = GameActions.GetEntity(World, 53);
+            sector.Floor.Z.Should().Be(-160);
+            armor.Position.Z.Should().Be(-128);
+            GameActions.ActivateLine(World, Player, 240, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.RunSectorPlaneSpecial(World, sector);
+            sector.Floor.Z.Should().Be(-128);
+            sector.ActiveFloorMove.Should().BeNull();
+            armor.Position.Z.Should().Be(-96);
+        }
     }
 }
