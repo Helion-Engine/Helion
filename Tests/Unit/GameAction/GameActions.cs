@@ -4,6 +4,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -74,6 +75,13 @@ namespace Helion.Tests.Unit.GameAction
             CreatedEntities.Add(createdEntity!);
             onCreated?.Invoke(createdEntity!);
             return createdEntity!;
+        }
+
+        public static EntityDefinition GetEntityDefinition(WorldBase world, string name)
+        {
+            var def = world.EntityManager.DefinitionComposer.GetByName(name);
+            def.Should().NotBeNull();
+            return def!;
         }
 
         public static void DestroyCreatedEntities(WorldBase world)
