@@ -1142,15 +1142,18 @@ public static class EntityActionFunctions
 
     private static void A_FireCGun(Entity entity)
     {
-        if (entity.PlayerObj != null)
-        {
-            entity.PlayerObj.DescreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
-            int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
-            entity.PlayerObj.Weapon?.SetFlashState(offset);
-            entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);            
-        }
+        if (entity.PlayerObj == null)
+            return;
+
+        if (!entity.PlayerObj.CheckAmmo())
+            return;
+
+        entity.PlayerObj.DescreaseAmmo();
+        entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", entity.WeaponSoundChannel, entity.World.DataCache.GetSoundParams(entity));
+        int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
+        entity.PlayerObj.Weapon?.SetFlashState(offset);
+        entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+            entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
     }
 
     private static void A_FireCrackle(Entity entity)
