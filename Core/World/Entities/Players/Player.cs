@@ -126,6 +126,7 @@ public class Player : Entity
 
         StatusBar = new PlayerStatusBar(this);
         SetPlayerInfo();
+        SetupEvents();
     }
 
     public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
@@ -179,6 +180,35 @@ public class Player : Entity
             Cheats.SetCheatActive(cheat);
 
         SetPlayerInfo();
+        SetupEvents();
+    }
+
+    private void SetupEvents()
+    {
+        Inventory.Weapons.WeaponsCleared += Inventory_WeaponsCleared;
+        Inventory.Weapons.WeaponRemoved += Weapons_WeaponRemoved;
+    }
+
+    private void Weapons_WeaponRemoved(object? sender, Weapon removeWeapon)
+    {
+        if (ReferenceEquals(Weapon, removeWeapon))
+        {
+            ForceLowerWeapon(setTop: false);
+            ForceSwitchWeapon();
+        }
+
+        if (ReferenceEquals(PendingWeapon, removeWeapon))
+        {
+            ForceLowerWeapon(setTop: false);
+            ForceSwitchWeapon();
+        }
+    }
+
+    private void Inventory_WeaponsCleared(object? sender, EventArgs e)
+    {
+        if (Weapon != null || PendingWeapon != null)
+            ForceLowerWeapon(setTop: false);
+        PendingWeapon = null;
     }
 
     public void SetAttacker(Entity? entity) =>
@@ -568,12 +598,15 @@ public class Player : Entity
         {
             TickCommands weaponSlotCommand = GetWeaponSlotCommand(TickCommand);
             int slot = GetWeaponSlot(weaponSlotCommand);
-            Weapon? weapon;
+            Weapon? weapon = null;
             if (WeaponSlot == slot)
             {
                 int subslotCount = Inventory.Weapons.GetSubSlots(slot);
-                int subslot = (WeaponSubSlot + 1) % subslotCount;
-                weapon = Inventory.Weapons.GetWeapon(this, slot, subslot);
+                if (subslotCount > 0)
+                {
+                    int subslot = (WeaponSubSlot + 1) % subslotCount;
+                    weapon = Inventory.Weapons.GetWeapon(this, slot, subslot);
+                }
             }
             else
             {
@@ -623,7 +656,7 @@ public class Player : Entity
         TickCommands.WeaponSlot7,
     };
 
-    private TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
+    private static TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
     {
         TickCommands? command = WeaponSlotCommands.FirstOrDefault(x => tickCommand.Has(x));
         if (command != null)
@@ -891,6 +924,19 @@ public class Player : Entity
         }
     }
 
+    public bool ForceSwitchWeapon()
+    {
+        var weapons = GetSelectionOrderedWeapons();
+        if (!weapons.Any())
+        {
+            ForceLowerWeapon(setTop: false);
+            return false;
+        }
+
+        ChangeWeapon(weapons.First());
+        return true;
+    }
+
     private IEnumerable<Weapon> GetSelectionOrderedWeapons() => Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
 
     public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true, bool autoSwitch = true)
@@ -932,6 +978,8 @@ public class Player : Entity
 
         PendingWeapon = weapon;
         LowerWeapon(hadWeapon);
+        if (!hadWeapon)
+            ForceLowerWeapon(setTop: false);
     }
 
 
@@ -1006,7 +1054,15 @@ public class Player : Entity
     public void BringupWeapon()
     {
         if (PendingWeapon == null)
+        {
+            // The Weapon reference exists on clear inventory while lowering the weapon. Need to clear the reference if no longer owned.
+            if (Weapon != null && !Inventory.Weapons.OwnsWeapon(Weapon.Definition.Name))
+            {
+                Weapon = null;
+                AnimationWeapon = null;
+            }
             return;
+        }
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
             World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Weapon,

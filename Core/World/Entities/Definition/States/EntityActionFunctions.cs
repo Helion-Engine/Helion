@@ -1748,35 +1748,35 @@ public static class EntityActionFunctions
 
     private static void A_Lower(Entity entity)
     {
-        if (entity.PlayerObj != null && entity.PlayerObj.AnimationWeapon != null)
+        if (entity.PlayerObj == null || entity.PlayerObj.AnimationWeapon == null)
+            return;
+
+        entity.PlayerObj.WeaponOffset.Y += Constants.WeaponLowerSpeed;
+        if (entity.PlayerObj.WeaponOffset.Y < Constants.WeaponBottom)
+            return;
+
+        if (entity.PlayerObj.IsDead)
         {
-            entity.PlayerObj.WeaponOffset.Y += Constants.WeaponLowerSpeed;
-            if (entity.PlayerObj.WeaponOffset.Y < Constants.WeaponBottom)
-                return;
-
-            if (entity.PlayerObj.IsDead)
-            {
-                entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
-                entity.PlayerObj.AnimationWeapon.FrameState.SetState("NULL");
-                return;
-            }
-
-            entity.PlayerObj.BringupWeapon();
+            entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
+            entity.PlayerObj.AnimationWeapon.FrameState.SetState("NULL");
+            return;
         }
+
+        entity.PlayerObj.BringupWeapon();
     }
 
     private static void A_Raise(Entity entity)
     {
-        if (entity.PlayerObj != null && entity.PlayerObj.AnimationWeapon != null)
-        {
-            entity.PlayerObj.WeaponOffset.Y -= Constants.WeaponRaiseSpeed;
-            if (entity.PlayerObj.WeaponOffset.Y > Constants.WeaponTop)
-                return;
+        if (entity.PlayerObj == null || entity.PlayerObj.AnimationWeapon == null)
+            return;
 
-            entity.PlayerObj.SetWeaponUp();
-            entity.PlayerObj.WeaponOffset.Y = Constants.WeaponTop;
-            entity.PlayerObj.AnimationWeapon.SetReadyState();
-        }
+        entity.PlayerObj.WeaponOffset.Y -= Constants.WeaponRaiseSpeed;
+        if (entity.PlayerObj.WeaponOffset.Y > Constants.WeaponTop)
+            return;
+
+        entity.PlayerObj.SetWeaponUp();
+        entity.PlayerObj.WeaponOffset.Y = Constants.WeaponTop;
+        entity.PlayerObj.AnimationWeapon.SetReadyState();
     }
 
     public static void A_WeaponReady(Entity entity)

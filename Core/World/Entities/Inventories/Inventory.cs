@@ -140,7 +140,6 @@ public class Inventory
         return definition.Name;
     }
 
-    // See TODO in Inventory.Add for this berserk check
     public static bool IsPowerup(EntityDefinition def) =>
         def.IsType(PowerupGiverClassName) ||
         !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
@@ -253,7 +252,7 @@ public class Inventory
 
     public bool SetAmount(EntityDefinition definition, int amount)
     {
-        if (!Items.TryGetValue(definition.Name, out InventoryItem? item))
+        if (!Items.TryGetValue(definition.Name, out InventoryItem? item) || amount < 0)
             return false;
 
         item.Amount = amount;
@@ -358,6 +357,7 @@ public class Inventory
         Items.Clear();
         ItemList.Clear();
         Keys.Clear();
+        Weapons.Clear();
     }
 
     public bool HasItem(string name) => Items.ContainsKey(name);

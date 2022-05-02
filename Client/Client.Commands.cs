@@ -167,6 +167,66 @@ public partial class Client
             m_layerManager.WorldLayer.World.Player.TickCommand.Add(TickCommands.CenterView);
     }
 
+    [ConsoleCommand("inventoryClear", "Clears the players inventory")]
+    private void CommandInventoryClear(ConsoleCommandEventArgs args) =>
+        AddWorldResumeCommand(DoInventoryClear, args);
+
+    [ConsoleCommand("inventoryRemove", "Removes the item from the players inventory")]
+    private void CommandInventoryRemove(ConsoleCommandEventArgs args) =>
+        AddWorldResumeCommand(DoInventoryRemove, args);
+
+    [ConsoleCommand("inventoryAdd", "Adds the item to the players inventory")]
+    private void CommandInventoryAdd(ConsoleCommandEventArgs args) =>
+        AddWorldResumeCommand(DoInventoryAdd, args);
+
+    [ConsoleCommand("inventorySetAmount", "Sets the item amount in the players inventory (player must own the item)")]
+    private void CommandInventorySetAmount(ConsoleCommandEventArgs args) =>
+        AddWorldResumeCommand(DoInventorySetAmount, args);
+
+    private void DoInventoryAdd(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer != null && args.Args.Count > 0)
+        {
+            var world = m_layerManager.WorldLayer.World;
+            var def = world.EntityManager.DefinitionComposer.GetByName(args.Args[0]);
+            if (def == null)
+                return;
+
+            m_layerManager.WorldLayer.World.Player.GiveItem(def, null, pickupFlash: false);
+        }
+    }
+
+    private void DoInventoryRemove(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer != null && args.Args.Count > 0)
+            m_layerManager.WorldLayer.World.Player.Inventory.Remove(args.Args[0], int.MaxValue);
+    }
+
+    private void DoInventoryClear(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer != null)
+            m_layerManager.WorldLayer.World.Player.Inventory.Clear();
+    }
+
+    private void DoInventorySetAmount(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer != null && args.Args.Count > 1 && int.TryParse(args.Args[1], out int amount))
+        {
+            var world = m_layerManager.WorldLayer.World;
+            var def = world.EntityManager.DefinitionComposer.GetByName(args.Args[0]);
+            if (def == null)
+                return;
+
+            m_layerManager.WorldLayer.World.Player.Inventory.SetAmount(def, amount);
+        }
+    }
+
+    private void AddWorldResumeCommand(Action<ConsoleCommandEventArgs> action, ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer != null)
+            m_resumeCommands.Add(new Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>(action, args));
+    }
+
     private void Console_OnCommand(object? sender, ConsoleCommandEventArgs args)
     {
         if (TryHandleConsoleCommand(args))
@@ -253,6 +313,8 @@ public partial class Client
     private MapInfoDef GetMapInfo(string mapName) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
 
+    private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = new();
+
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
     {
         m_lastWorldModel = worldModel;
@@ -281,8 +343,8 @@ public partial class Client
             return;
         }
 
-        if (m_layerManager.WorldLayer != null)
-            m_layerManager.WorldLayer.World.LevelExit -= World_LevelExit;
+        UnRegisterWorldEvents();
+        m_resumeCommands.Clear();
         m_layerManager.Remove(m_layerManager.WorldLayer);
 
         if (map == null)
@@ -299,12 +361,35 @@ public partial class Client
 
         if (!m_globalData.VisitedMaps.Contains(mapInfoDef))
             m_globalData.VisitedMaps.Add(mapInfoDef);
-        newLayer.World.LevelExit += World_LevelExit;
+        RegisterWorldEvents(newLayer);
 
         m_layerManager.Add(newLayer);
         m_layerManager.ClearAllExcept(newLayer);
 
         newLayer.World.Start(worldModel);
+    }
+
+    private void RegisterWorldEvents(WorldLayer newLayer)
+    {
+        newLayer.World.LevelExit += World_LevelExit;
+        newLayer.World.WorldResumed += World_WorldResumed;
+    }
+
+    private void UnRegisterWorldEvents()
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.LevelExit -= World_LevelExit;
+        m_layerManager.WorldLayer.World.WorldResumed -= World_WorldResumed;
+    }
+
+    private void World_WorldResumed(object? sender, EventArgs e)
+    {
+        foreach (var cmd in m_resumeCommands)
+            cmd.Item1(cmd.Item2);
+
+        m_resumeCommands.Clear();
     }
 
     private void World_LevelExit(object? sender, LevelChangeEvent e)

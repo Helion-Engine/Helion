@@ -67,6 +67,7 @@ public abstract partial class WorldBase : IWorld
     /// </summary>
     public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
     public event EventHandler<LevelChangeEvent>? LevelExit;
+    public event EventHandler? WorldResumed;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -472,6 +473,7 @@ public abstract partial class WorldBase : IWorld
 
         SoundManager.Resume();
         Paused = false;
+        WorldResumed?.Invoke(this, EventArgs.Empty);
     }
 
     public void BossDeath(Entity entity)

@@ -22,6 +22,9 @@ public class Weapons
     private readonly Dictionary<string, (int, int)> m_weaponSlotLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> m_weaponNames = new();
 
+    public event EventHandler? WeaponsCleared;
+    public event EventHandler<Weapon>? WeaponRemoved;
+
     public Weapons(Dictionary<int, List<string>> weaponSlots)
     {
         foreach (var item in weaponSlots)
@@ -47,7 +50,7 @@ public class Weapons
 
     public List<string> GetOwnedWeaponNames()
     {
-        List<string> weapons = new List<string>();
+        List<string> weapons = new();
         foreach (var item in m_weaponSlots)
         {
             foreach (var subItem in item.Value)
@@ -158,8 +161,19 @@ public class Weapons
     public void Remove(string name)
     {
         foreach (var weapons in m_weaponSlots.Values)
+        {
             foreach (var item in weapons.Where(kv => kv.Value.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                m_weaponSlots.Remove(item.Key);
+            {
+                weapons.Remove(item.Key);
+                WeaponRemoved?.Invoke(this, item.Value);
+            }
+        }
+    }
+
+    public void Clear()
+    {
+        m_weaponSlots.Clear();
+        WeaponsCleared?.Invoke(this, EventArgs.Empty);
     }
 
     public int GetFirstSubSlot(int slot)
@@ -187,7 +201,7 @@ public class Weapons
 
     public List<Weapon> GetWeapons()
     {
-        List<Weapon> allWeapons = new List<Weapon>();
+        List<Weapon> allWeapons = new();
         foreach (var weapons in m_weaponSlots.Values)
             allWeapons.AddRange(weapons.Values);
         return allWeapons;

@@ -90,4 +90,6 @@ public class Weapon : InventoryItem, ITickable
         if (!FrameState.SetState(Constants.FrameStates.Fire))
             Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
     }
+
+    public override string ToString() => Definition.Name;
 }
