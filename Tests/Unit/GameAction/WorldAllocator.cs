@@ -11,6 +11,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.World;
+using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -28,7 +29,7 @@ namespace Helion.Tests.Unit.GameAction
         private static string LastTestKey = string.Empty;
 
         public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
-            IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium)
+            IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null)
         {
             if (UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
@@ -61,7 +62,7 @@ namespace Helion.Tests.Unit.GameAction
                 throw new Exception("Failed to create bsp");            
 
             SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
-                skillDef, outputMap, null, null, unitTest: true);
+                skillDef, outputMap, existingPlayer, null, unitTest: true);
             if (world == null)
                 throw new Exception("Failed to create world");
 
