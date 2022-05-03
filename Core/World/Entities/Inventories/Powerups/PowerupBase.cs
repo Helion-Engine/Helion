@@ -4,6 +4,8 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
 using System.Drawing;
+using System;
+using System.Globalization;
 
 namespace Helion.World.Entities.Inventories.Powerups;
 
@@ -16,8 +18,10 @@ public class PowerupBase : IPowerup
     public bool DrawPowerupEffect { get; private set; } = true;
     public bool DrawEffectActive { get; private set; } = true;
     public PowerupEffectType EffectType { get; private set; } = PowerupEffectType.None;
+    public int Ticks => m_tics;
+    public int EffectTicks => m_effectTics;
 
-    private const int EffectTicks = 60 * (int)Constants.TicksPerSecond;
+    private const int DefaultEffectTicks = 60 * (int)Constants.TicksPerSecond;
 
     private readonly Player m_player;
     private int m_tics;
@@ -87,8 +91,8 @@ public class PowerupBase : IPowerup
 
         if (PowerupType == PowerupType.Strength)
         {
-            m_effectTics = EffectTicks;
-            m_subAlpha = DrawAlpha / EffectTicks;
+            m_effectTics = DefaultEffectTicks;
+            m_subAlpha = DrawAlpha / DefaultEffectTicks;
         }
         else
         {
@@ -101,11 +105,11 @@ public class PowerupBase : IPowerup
         if (color.Color.Length < 8)
             return null;
 
-        if (!int.TryParse(color.Color.Substring(0, 2), System.Globalization.NumberStyles.HexNumber, null, out int r))
+        if (!int.TryParse(color.Color.AsSpan(0, 2), NumberStyles.HexNumber, null, out int r))
             return null;
-        if (!int.TryParse(color.Color.Substring(3, 2), System.Globalization.NumberStyles.HexNumber, null, out int g))
+        if (!int.TryParse(color.Color.AsSpan(3, 2), NumberStyles.HexNumber, null, out int g))
             return null;
-        if (!int.TryParse(color.Color.Substring(6, 2), System.Globalization.NumberStyles.HexNumber, null, out int b))
+        if (!int.TryParse(color.Color.AsSpan(6, 2), NumberStyles.HexNumber, null, out int b))
             return null;
 
         return Color.FromArgb(0, r, g, b);

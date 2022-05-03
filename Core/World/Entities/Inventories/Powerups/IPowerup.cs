@@ -14,6 +14,8 @@ public interface IPowerup
     bool DrawPowerupEffect { get; }
     bool DrawEffectActive { get; }
     PowerupEffectType EffectType { get; }
+    public int Ticks { get; }
+    public int EffectTicks { get; }
     InventoryTickStatus Tick(Player player);
     void Reset();
     PowerupModel ToPowerupModel();
