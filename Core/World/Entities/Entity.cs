@@ -678,6 +678,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Armor -= armorDamage;
         damage = MathHelper.Clamp(damage - armorDamage, 0, damage);
+
+        if (Armor <= 0)
+            ArmorDefinition = null;
+
         return damage;
     }
 
