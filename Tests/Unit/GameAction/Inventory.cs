@@ -176,12 +176,15 @@ namespace Helion.Tests.Unit.GameAction
             () => { });
         }
 
-        private static void RunWeaponFire(WorldBase world, Player player)
+        private static void RunWeaponFire(WorldBase world, Player player) =>
+            RunWeaponFire(world, player, () => { });
+   
+
+        private static void RunWeaponFire(WorldBase world, Player player, Action onTick)
         {
             player.Weapon.Should().NotBeNull();
             world.Tick();
-            GameActions.TickWorld(world, () => { return !player.Weapon!.ReadyToFire; },
-                () => { });
+            GameActions.TickWorld(world, () => { return !player.Weapon!.ReadyToFire; }, onTick);
         }
     }
 }

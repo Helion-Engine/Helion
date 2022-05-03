@@ -1,6 +1,9 @@
 ﻿using FluentAssertions;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Players;
+using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -326,6 +329,168 @@ namespace Helion.Tests.Unit.GameAction
             Player.Weapon.Should().NotBeNull();
             Player.Weapon!.ReadyState.Should().BeTrue();
             Player.WeaponOffset.Y.Should().Be(Constants.WeaponTop);
+        }
+
+        [Fact(DisplayName = "Weapon pistol fire")]
+        public void WeaponPistolFire()
+        {
+            Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+            Player.Weapon.Should().NotBeNull();
+            AssertWeapon(Player.Weapon, "Pistol");
+            Player.Inventory.Amount("Clip").Should().Be(50);
+            
+            var weapon = Player.Weapon!;
+            weapon.ReadyState.Should().BeTrue();
+            weapon.ReadyToFire.Should().BeTrue();
+            weapon.FlashState.Frame.IsNullFrame.Should().BeTrue();
+            weapon.FrameState.Frame.ActionFunction.Should().NotBeNull();
+            weapon.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_WeaponReady");
+
+            // Doesn't have TickCommand.Attack
+            Player.CanFireWeapon().Should().BeFalse();
+            Player.TickCommand.Add(TickCommands.Attack);
+            Player.CanFireWeapon().Should().BeTrue();
+
+            Player.FireWeapon().Should().BeTrue();
+            // Still true, world hasn't ticked yet
+            weapon.ReadyToFire.Should().BeTrue();
+            Player.CanFireWeapon().Should().BeTrue();
+            weapon.FlashState.Frame.IsNullFrame.Should().BeTrue();
+            World.Tick();
+            weapon.ReadyToFire.Should().BeFalse();
+            Player.CanFireWeapon().Should().BeFalse();
+            weapon.FrameState.Frame.ActionFunction.Should().BeNull();
+
+            bool flashFrame = false;
+            bool fireFunction = false;
+
+            RunWeaponFire(World, Player, () =>
+            {
+                if (!weapon.FlashState.Frame.IsNullFrame)
+                    flashFrame = true;
+                if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+                    fireFunction = true;
+            });
+
+            flashFrame.Should().BeTrue();
+            fireFunction.Should().BeTrue();
+            weapon.ReadyToFire.Should().BeTrue();
+            weapon.FrameState.Frame.ActionFunction.Should().NotBeNull();
+            weapon.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_WeaponReady");
+            Player.Inventory.Amount("Clip").Should().Be(49);
+        }
+
+        [Fact(DisplayName = "Weapon pistol refire")]
+        public void WeaponRefire()
+        {
+            Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+            Player.Weapon.Should().NotBeNull();
+            Player.Refire.Should().BeFalse();
+            AssertWeapon(Player.Weapon, "Pistol");
+            Player.Inventory.Amount("Clip").Should().Be(50);
+            var weapon = Player.Weapon!;
+
+            bool flash = false;
+            bool fire = false;
+
+            Player.TickCommand.Add(TickCommands.Attack);
+            Player.FireWeapon().Should().BeTrue();
+
+            RunWeaponUntilRefire(Player, () =>
+            {
+                if (!weapon.FlashState.Frame.IsNullFrame)
+                    flash = true;
+                if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+                    fire = true;
+            });
+
+            flash.Should().BeTrue();
+            fire.Should().BeTrue();
+            Player.Refire.Should().BeFalse();
+            Player.Inventory.Amount("Clip").Should().Be(49);
+
+            flash = false;
+            fire = false;
+            RunWeaponUntilNotRefire(Player, () => { });
+
+            Player.TickCommand.Add(TickCommands.Attack);
+
+            RunWeaponUntilRefire(Player, () =>
+            {
+                if (!weapon.FlashState.Frame.IsNullFrame)
+                    flash = true;
+                if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+                    fire = true;
+            });
+
+            flash.Should().BeTrue();
+            fire.Should().BeTrue();
+            Player.Refire.Should().BeFalse();
+            Player.Inventory.Amount("Clip").Should().Be(48);
+
+            RunWeaponUntilNotRefire(Player, () => { });
+
+            Player.Refire.Should().BeFalse();
+            weapon.ReadyToFire.Should().BeTrue();
+            weapon.FrameState.Frame.ActionFunction.Should().NotBeNull();
+            weapon.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_WeaponReady");
+        }
+
+        [Fact(DisplayName = "Refire pistol until out of ammo")]
+        public void RefireAllAmmo()
+        {
+            Player.Inventory.Weapons.OwnsWeapon("Pistol").Should().BeTrue();
+            Player.Weapon.Should().NotBeNull();
+            Player.Refire.Should().BeFalse();
+            AssertWeapon(Player.Weapon, "Pistol");
+            Player.Inventory.Amount("Clip").Should().Be(50);
+            var weapon = Player.Weapon!;
+
+            Player.TickCommand.Add(TickCommands.Attack);
+            Player.FireWeapon().Should().BeTrue();
+
+            bool hitRefire = false;
+            int fireCount = 0;
+
+            RunWeaponUntilRefire(Player, () =>
+            {
+                Player.TickCommand.Add(TickCommands.Attack);
+                if (Player.Refire)
+                    hitRefire = true;
+                if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol") && 
+                    weapon.FrameState.CurrentTick == 6)
+                    fireCount++;
+            });
+
+            hitRefire.Should().BeTrue();
+            fireCount.Should().Be(50);
+
+            Player.Inventory.Amount("Clip").Should().Be(0);
+            AssertWeapon(Player.PendingWeapon, "Fist");
+        }
+
+        private void RunWeaponUntilRefire(Player player, Action onTick)
+        {
+            player.Weapon.Should().NotBeNull();
+            var weapon = Player.Weapon!;
+            GameActions.TickWorld(World, () =>
+            {
+                return weapon.FrameState.Frame.ActionFunction == null || !weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire");
+            }, onTick);
+        }
+
+        private void RunWeaponUntilNotRefire(Player player, Action onTick)
+        {
+            player.Weapon.Should().NotBeNull();
+            var weapon = Player.Weapon!;
+            GameActions.TickWorld(World, () =>
+            {
+                if (weapon.FrameState.Frame.ActionFunction == null)
+                    return false;
+                if (!weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire"))
+                    return false;
+                return true;
+            }, onTick);
         }
     }
 }
