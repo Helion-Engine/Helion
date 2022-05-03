@@ -28,6 +28,7 @@ namespace Helion.Tests.Unit.GameAction
         {
             Player.Inventory.Clear();
             Player.SetDefaultInventory();
+            Player.Inventory.ClearPowerups();
             Player.Health = 100;
             Player.Armor = 0;
             Player.ArmorDefinition = null;
