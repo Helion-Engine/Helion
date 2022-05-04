@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Models;
+using Helion.Render.Legacy.Renderers.Legacy.World;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -17,10 +17,10 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
-using Helion.Resources.Definitions.MapInfo;
-using Helion.Render.Legacy.Renderers.Legacy.World;
-using Helion.Util.Extensions;
 
 namespace Helion.World.Entities;
 
@@ -524,7 +524,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Definition.Properties.SeeSound.Length == 0)
             return;
 
-        Attenuation attenuation = (Flags.FullVolSee  || Flags.Boss) ? Attenuation.None : Attenuation.Default;
+        Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
         SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto,
             World.DataCache.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
@@ -701,10 +701,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <summary>
     /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
     /// </summary>
-    public List<Entity> GetIntersectingEntities2D(BlockmapTraverseEntityFlags entityTraverseFlags)
+    public List<Entity> GetIntersectingEntities2D()
     {
-        List<Entity> entities = new List<Entity>();
-        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(Box.To2D(), BlockmapTraverseFlags.Entities, entityTraverseFlags);
+        List<Entity> entities = World.DataCache.GetEntityList();
+        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(Box.To2D());
 
         for (int i = 0; i < intersections.Count; i++)
         {
@@ -717,7 +717,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
 
         World.DataCache.FreeBlockmapIntersectList(intersections);
-
         return entities;
     }
 
@@ -743,7 +742,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
 
         World.DataCache.FreeBlockmapIntersectList(intersections);
-
         return entities;
     }
 
@@ -802,14 +800,17 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!Flags.Solid)
             return false;
 
-        List<Entity> entities = GetIntersectingEntities2D(BlockmapTraverseEntityFlags.Solid);
-
+        List<Entity> entities = GetIntersectingEntities2D();
         for (int i = 0; i < entities.Count; i++)
         {
             if (entities[i].Box.OverlapsZ(Box))
+            {
+                World.DataCache.FreeEntityList(entities);
                 return true;
+            }
         }
 
+        World.DataCache.FreeEntityList(entities);
         return false;
     }
 
@@ -887,7 +888,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (bouncePlane)
                 Velocity.Z = -velocity.Z * zFactor;
 
-            if (bounceWall && BlockingLine  != null)
+            if (bounceWall && BlockingLine != null)
             {
                 double velocityAngle = Math.Atan2(Velocity.X, Velocity.Y);
                 double lineAngle = BlockingLine.Segment.Start.Angle(BlockingLine.Segment.End);

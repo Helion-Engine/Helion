@@ -94,8 +94,13 @@ public class SpawnLocations
         return Array.Empty<Entity>();
     }
 
-    private static bool PlayerBlock(Entity spawn) =>
-        spawn.GetIntersectingEntities2D(Physics.Blockmap.BlockmapTraverseEntityFlags.Solid).Any(x => x.IsPlayer);
+    private static bool PlayerBlock(Entity spawn)
+    {
+        var entities = spawn.GetIntersectingEntities2D();
+        bool blocked = entities.Any(x => x.IsPlayer);
+        spawn.World.DataCache.FreeEntityList(entities);
+        return blocked;
+    }
 
     private void AddPlayerSpawn(Entity entity, int playerIndex)
     {

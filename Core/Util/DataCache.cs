@@ -36,6 +36,7 @@ public class DataCache
     private readonly DynamicArray<AudioData> m_audioData = new();
     private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
+    private readonly DynamicArray<List<Entity>> m_entityLists = new();
 
     public WeakEntity?[] WeakEntities = new WeakEntity?[1024];
 
@@ -270,5 +271,19 @@ public class DataCache
         audioSource.CacheFree();
         audioSource.AudioData = null!;
         m_audioSources.Add(audioSource);
+    }
+
+    public List<Entity> GetEntityList()
+    {
+        if (m_entityLists.Length > 0)
+            return m_entityLists.RemoveLast();
+
+        return new List<Entity>();
+    }
+
+    public void FreeEntityList(List<Entity> list)
+    {
+        list.Clear();
+        m_entityLists.Add(list);
     }
 }
