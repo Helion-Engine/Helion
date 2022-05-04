@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
-using System.Collections.Generic;
+using Helion.World.Physics;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -389,6 +388,29 @@ namespace Helion.Tests.Unit.GameAction
 
             sector.ActiveFloorMove.Should().NotBeNull();
             GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Player pickup item XY movement")]
+        public void PlayerPickupItem()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(320, 0));
+            var bonus = GameActions.CreateEntity(World, "HealthBonus", new Vec3D(320, 32, 0));
+            Player.Health = 100;
+            GameActions.MoveEntity(World, Player, new Vec2D(320, 32));
+            bonus.IsDisposed.Should().BeTrue();
+            Player.Health.Should().Be(101);
+        }
+
+        [Fact(DisplayName = "Player pickup item sector movement")]
+        public void PlayerPickupItemSectorMovement()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(216, 428));
+            var bonus = GameActions.CreateEntity(World, "HealthBonus", new Vec3D(216, 428, 0));
+            Player.Health = 100;
+            GameActions.ActivateLine(World, Player, 16, ActivationContext.UseLine);
+            GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 2));
+            bonus.IsDisposed.Should().BeTrue();
+            Player.Health.Should().Be(101);
         }
 
         private static bool ApproxEquals(Vec3D v1, Vec3D v2)
