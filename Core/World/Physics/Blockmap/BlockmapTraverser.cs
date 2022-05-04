@@ -34,6 +34,199 @@ public class BlockmapTraverser
         return Traverse(null, seg, flags, entityFlags,  out _);
     }
 
+    // Gets all entity intersections reguardless of flags
+    public List<BlockmapIntersect> GetEntityIntersections(Box2D box)
+    {
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        Vec2D intersect = Vec2D.Zero;
+
+        m_blockmapCount++;
+
+        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        m_blockmap.Iterate(box, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                entity.BlockmapCount = m_blockmapCount;
+                if (entity.Box.Overlaps2D(box))
+                {
+                    Vec2D pos = entity.Position.XY;
+                    intersections.Add(new BlockmapIntersect(entity, pos, 0));
+                }
+            }
+
+            return GridIterationStatus.Continue;
+        }
+
+        return intersections;
+    }
+
+    // Gets all intersecting entities that are solid
+    public List<BlockmapIntersect> GetSolidEntityIntersections(Box2D box)
+    {
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        Vec2D intersect = Vec2D.Zero;
+
+        m_blockmapCount++;
+
+        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        m_blockmap.Iterate(box, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == m_blockmapCount)
+                    continue;
+                if (!entity.Flags.Solid)
+                    continue;
+
+                entity.BlockmapCount = m_blockmapCount;
+                if (entity.Box.Overlaps2D(box))
+                {
+                    Vec2D pos = entity.Position.XY;
+                    intersections.Add(new BlockmapIntersect(entity, pos, 0));
+                }
+            }
+
+            return GridIterationStatus.Continue;
+        }
+
+        return intersections;
+    }
+
+    public List<BlockmapIntersect> SightTraverse(Seg2D seg, out bool hitOneSidedLine)
+    {
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        Vec2D intersect = Vec2D.Zero;
+
+        bool hitOneSidedIterate = false;
+        m_blockmapCount++;
+
+        m_blockmap.Iterate(seg, IterateBlock);
+
+        hitOneSidedLine = hitOneSidedIterate;
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            for (int i = 0; i < block.Lines.Count; i++)
+            {
+                Line line = block.Lines[i];
+                if (line.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                line.BlockmapCount = m_blockmapCount;
+                if (line.Segment.Intersection(seg, out double t))
+                {
+                    intersect = line.Segment.FromTime(t);
+
+                    if (line.OneSided || LineOpening.GetOpeningHeight(line) <= 0)
+                    {
+                        hitOneSidedIterate = true;
+                        return GridIterationStatus.Stop;
+                    }
+
+                    intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
+                }       
+            }
+
+            return GridIterationStatus.Continue;
+        }
+
+        intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+        return intersections;
+    }
+
+    // Gets all intersecting entities that are solid and not a corpse
+    public List<BlockmapIntersect> GetSolidNonCorpseEntityIntersections(Box2D box)
+    {
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        Vec2D intersect = Vec2D.Zero;
+
+        m_blockmapCount++;
+
+        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        m_blockmap.Iterate(box, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {          
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == m_blockmapCount)
+                    continue;
+                if (!entity.Flags.Solid)
+                    continue;
+                if (entity.Flags.Corpse)
+                    continue;
+
+                entity.BlockmapCount = m_blockmapCount;
+                if (entity.Box.Overlaps2D(box))
+                {
+                    Vec2D pos = entity.Position.XY;
+                    intersections.Add(new BlockmapIntersect(entity, pos, 0));
+                }
+            }
+
+            return GridIterationStatus.Continue;
+        }
+
+        return intersections;
+    }
+
+    public List<BlockmapIntersect> ShootTraverse(Seg2D seg)
+    {
+        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        Vec2D intersect = Vec2D.Zero;
+        m_blockmapCount++;
+        m_blockmap.Iterate(seg, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            for (int i = 0; i < block.Lines.Count; i++)
+            {
+                Line line = block.Lines[i];
+                if (line.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                if (line.Segment.Intersection(seg, out double t))
+                {
+                    line.BlockmapCount = m_blockmapCount;
+                    intersect = line.Segment.FromTime(t);
+
+                    intersections.Add(new BlockmapIntersect(line, intersect, intersect.Distance(seg.Start)));
+                }
+            }
+
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == m_blockmapCount)
+                    continue;
+                if (!entity.Flags.Shootable)
+                    continue;
+                if (!entity.Flags.Solid)
+                    continue;
+
+                entity.BlockmapCount = m_blockmapCount;
+                if (entity.Box.Intersects(seg.Start, seg.End, ref intersect))
+                    intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
+            }
+
+            return GridIterationStatus.Continue;
+        }
+
+        intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+        return intersections;
+    }
+
     public List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
@@ -108,14 +301,14 @@ public class BlockmapTraverser
                     if (entity.BlockmapCount == m_blockmapCount)
                         continue;
 
+                    entity.BlockmapCount = m_blockmapCount;
+
                     if (seg != null && entity.Box.Intersects(seg.Value.Start, seg.Value.End, ref intersect))
                     {
-                        entity.BlockmapCount = m_blockmapCount;
                         intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
                     }
                     else if (box != null && entity.Box.Overlaps2D(box.Value))
-                    {
-                        entity.BlockmapCount = m_blockmapCount;
+                    {                        
                         Vec2D pos = entity.Position.XY;
                         intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
                     }
