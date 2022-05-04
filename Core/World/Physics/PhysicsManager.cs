@@ -812,7 +812,7 @@ public class PhysicsManager
             BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.NotCorpse);
 
         foreach (var intersection in intersections)
-            ClampBetweenFloorAndCeiling(intersection.Entity!, smoothZ: false);
+            ClampBetweenFloorAndCeiling(intersection.Entity!, smoothZ: false, clampToLinkedSectors: intersection.Entity!.MoveLinked);
     }
 
     private void StackedEntityMoveZ(Entity entity)
@@ -823,7 +823,7 @@ public class PhysicsManager
             entity.SetOverEntity(null);      
 
         if (entity.OnEntity.Entity != null)
-            ClampBetweenFloorAndCeiling(entity.OnEntity.Entity, smoothZ: false);
+            ClampBetweenFloorAndCeiling(entity.OnEntity.Entity, smoothZ: false, clampToLinkedSectors: entity.OnEntity.Entity.MoveLinked);
 
         while (currentOverEntity != null)
         {
