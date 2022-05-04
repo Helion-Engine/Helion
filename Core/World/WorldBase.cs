@@ -214,7 +214,7 @@ public abstract partial class WorldBase : IWorld
 
     public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
     {
-        Box2D box = new Box2D(entity.Position.XY, 1280);
+        Box2D box = new(entity.Position.XY, 1280);
         List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
             BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
         for (int i = 0; i < intersections.Count; i++)
@@ -872,9 +872,7 @@ public abstract partial class WorldBase : IWorld
         BlockmapIntersect? returnValue = null;
         double floorZ, ceilingZ;
         Seg2D seg = new(start.XY, end.XY);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
-            BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
-            BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+        List<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
 
         for (int i = 0; i < intersections.Count; i++)
         {
@@ -1199,24 +1197,22 @@ public abstract partial class WorldBase : IWorld
         if (start == end)
             return true;
 
-        Seg2D seg = new Seg2D(start, end);
-
-        List<BlockmapIntersect> intersections = BlockmapTraverser.Traverse(null, seg, BlockmapTraverseFlags.Lines | BlockmapTraverseFlags.StopOnOneSidedLine,
-            BlockmapTraverseEntityFlags.None, out bool hitOneSidedLine);
+        Seg2D seg = new(start, end);
+        List<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
         if (hitOneSidedLine)
         {
             DataCache.FreeBlockmapIntersectList(intersections);
             return false;
         }
 
-        Vec3D sightPos = new Vec3D(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
+        Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
         double distance2D = start.Distance(end);
         double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
         double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
         DataCache.FreeBlockmapIntersectList(intersections);
-        return  status != TraversalPitchStatus.Blocked;
+        return status != TraversalPitchStatus.Blocked;
     }
 
     public virtual bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians)
@@ -1582,10 +1578,8 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < iterateTracers; i++)
         {
-            Seg2D seg = new Seg2D(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(seg,
-                BlockmapTraverseFlags.Entities | BlockmapTraverseFlags.Lines,
-                BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
+            Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
+            List<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
 
             TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
             DataCache.FreeBlockmapIntersectList(intersections);

@@ -151,7 +151,7 @@ public class PhysicsManager
                 entity.PrevPosition.Z = entity.Position.Z;
             }
 
-            ClampBetweenFloorAndCeiling(entity, smoothZ: false);
+            ClampBetweenFloorAndCeiling(entity, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.Height > entity.LowestCeilingZ)
@@ -168,7 +168,7 @@ public class PhysicsManager
         for (int i = 0; i < m_sectorMoveEntities.Count; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
-            ClampBetweenFloorAndCeiling(entity, smoothZ: false);
+            ClampBetweenFloorAndCeiling(entity, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
             if (entity.IsPlayer && !entity.Flags.NoClip)
@@ -258,6 +258,38 @@ public class PhysicsManager
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
         return status;
+    }
+
+    private bool SectorMoveLinkedClampCheck(Entity entity)
+    {
+        // If not move linked check if this thing would pop up and would clip into another entity.
+        // Otherwise allow it to pop up and match vanilla doom behavior.
+        if (entity.MoveLinked || entity.Flags.NoClip)
+            return true;
+
+        GetEntityClampValues(entity, true, out Sector highestFloor, out _, out _, out _);
+        
+        if (highestFloor == entity.HighestFloorSector)
+            return true;
+
+        double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.Box.To2D());
+
+        for (int i = 0; i < intersections.Count; i++)
+        {
+            Entity? intersectEntity = intersections[i].Entity;
+            if (intersectEntity == null || ReferenceEquals(entity, intersectEntity) || intersectEntity.Flags.NoClip)
+                continue;
+
+            if (height > intersectEntity.Position.Z)
+            {
+                m_world.DataCache.FreeBlockmapIntersectList(intersections);
+                return false;
+            }
+        }
+
+        m_world.DataCache.FreeBlockmapIntersectList(intersections);
+        return true;
     }
 
     private void GetSectorMoveOrderedEntities(List<Entity> entites, Sector sector)
@@ -559,42 +591,20 @@ public class PhysicsManager
 
     private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors, List<Entity> onEntities)
     {
-        Sector highestFloor = entity.Sector;
-        Sector lowestCeiling = entity.Sector;
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
-        double highestFloorZ = highestFloor.ToFloorZ(entity.Position);
-        double lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
 
         entity.SetOnEntity(null);
         entity.ClippedWithEntity = false;
 
-        if (clampToLinkedSectors)
-        {
-            foreach (Sector sector in entity.IntersectSectors)
-            {
-                double floorZ = sector.ToFloorZ(entity.Position);
-                if (floorZ > highestFloorZ)
-                {
-                    highestFloor = sector;
-                    highestFloorZ = floorZ;
-                }
-
-                double ceilZ = sector.ToCeilingZ(entity.Position);
-                if (ceilZ < lowestCeilZ)
-                {
-                    lowestCeiling = sector;
-                    lowestCeilZ = ceilZ;
-                }
-            }
-        }
+        GetEntityClampValues(entity, clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, 
+            out double highestFloorZ, out double lowestCeilZ);
 
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(entity.Box.To2D(),
-                BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.NotCorpse);
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.Box.To2D());
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -671,6 +681,34 @@ public class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
+    }
+
+    private static void GetEntityClampValues(Entity entity, bool clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
+    {
+        highestFloor = entity.Sector;
+        lowestCeiling = entity.Sector;
+        highestFloorZ = highestFloor.ToFloorZ(entity.Position);
+        lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
+
+        if (!clampToLinkedSectors)
+            return;
+
+        foreach (Sector sector in entity.IntersectSectors)
+        {
+            double floorZ = sector.ToFloorZ(entity.Position);
+            if (floorZ > highestFloorZ)
+            {
+                highestFloor = sector;
+                highestFloorZ = floorZ;
+            }
+
+            double ceilZ = sector.ToCeilingZ(entity.Position);
+            if (ceilZ < lowestCeilZ)
+            {
+                lowestCeiling = sector;
+                lowestCeilZ = ceilZ;
+            }
+        }
     }
 
     private void LinkToSectors(Entity entity, TryMoveData? tryMove)
@@ -808,8 +846,7 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(previousBox,
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.NotCorpse);
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
 
         foreach (var intersection in intersections)
             ClampBetweenFloorAndCeiling(intersection.Entity!, smoothZ: false, clampToLinkedSectors: intersection.Entity!.MoveLinked);
