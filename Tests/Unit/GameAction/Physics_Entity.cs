@@ -196,5 +196,68 @@ namespace Helion.Tests.Unit.GameAction
                 entity.Position.Z.Should().Be(4012);
             });
         }
+
+        [Fact(DisplayName = "Stepping on not move linked entity does not cause it to clamp to highest floor")]
+        public void SteppingOnEntityClamping()
+        {
+            var sector = GameActions.GetSectorByTag(World, 12);
+            sector.Floor.SetZ(-32);
+
+            // Stepping on things triggers stacked entity checks. If an entity hasn't set MoveLinked then it should still be on the lower floor.
+            var entity = GameActions.CreateEntity(World, "Column", new Vec3D(1344, 640, -32));
+            entity.MoveLinked.Should().BeFalse();
+            entity.Position.Z.Should().Be(-32);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1344, 608));
+
+            Player.Position.Z.Should().Be(0);
+            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 16));
+            Player.Position.XY.Should().Be(new Vec2D(1344, 624));
+
+            entity.Position.Z.Should().Be(-32);
+            Player.Position.Z.Should().Be(16);
+            Player.OnEntity.Entity.Should().Be(entity);
+            entity.OverEntity.Entity.Should().Be(Player);
+        }
+
+        [Fact(DisplayName = "Not moved linked entity will not pop up if there is a blocking entity")]
+        public void EntityClampingPopClipFloorRaise()
+        {
+            var sector = GameActions.GetSectorByTag(World, 12);
+            sector.Floor.SetZ(-32);
+            var entity = GameActions.CreateEntity(World, "Column", new Vec3D(1344, 640, -32));
+            entity.MoveLinked.Should().BeFalse();
+            entity.Position.Z.Should().Be(-32);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1344, 660));
+            Player.Position.Z.Should().Be(32);
+            GameActions.ActivateLine(World, Player, 255, ActivationContext.HitscanImpactsWall).Should().BeTrue();
+
+            World.Tick();
+            entity.Position.Z.Should().NotBe(0);
+            GameActions.RunSectorPlaneSpecial(World, sector);
+
+            entity.Position.Z.Should().Be(0);
+            Player.Position.Z.Should().Be(entity.Height);
+            Player.OnEntity.Entity.Should().Be(entity);
+            entity.OverEntity.Entity.Should().Be(Player);
+        }
+
+        [Fact(DisplayName = "Not moved linked entity will not pop up if there is a blocking entity")]
+        public void EntityClampingPopClipFloorLower()
+        {
+            var sector = GameActions.GetSectorByTag(World, 12);
+            sector.Floor.SetZ(-32);
+            var entity = GameActions.CreateEntity(World, "Column", new Vec3D(1344, 640, -32));
+            entity.MoveLinked.Should().BeFalse();
+            entity.Position.Z.Should().Be(-32);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1344, 660));
+            GameActions.ActivateLine(World, Player, 256, ActivationContext.HitscanImpactsWall).Should().BeTrue();
+
+            World.Tick();
+            entity.Position.Z.Should().NotBe(0);
+            GameActions.RunSectorPlaneSpecial(World, sector);
+
+            Player.Position.Z.Should().Be(32);
+            entity.Position.Z.Should().Be(-64);
+        }
     }
 }

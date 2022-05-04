@@ -102,13 +102,31 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Floor raise blocked by entity hitting a different ceiling")]
         public void FloorRaiseBlockedByDifferentCeiling()
         {
+            var ceilingEntity = GameActions.GetEntity(World, 54);            
             var sector = GameActions.GetSectorByTag(World, 11);
-            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1184, -256));
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1200, -256));
             GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveFloorMove.Should().NotBeNull();
 
             GameActions.TickWorld(World, 200);
             sector.Floor.Z.Should().Be(-152);
+
+            sector.ActiveFloorMove.Should().NotBeNull();
+            World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+            monster.Dispose();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Floor raise blocked by ceiling entity hanging from a different ceiling")]
+        public void FloorRaiseBlockedByCeilingEntity()
+        {
+            var sector = GameActions.GetSectorByTag(World, 11);
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1136, -256));
+            GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, 200);
+            sector.Floor.Z.Should().Be(-236);
 
             sector.ActiveFloorMove.Should().NotBeNull();
             World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
