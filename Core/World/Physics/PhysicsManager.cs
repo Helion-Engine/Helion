@@ -559,7 +559,7 @@ public class PhysicsManager
                 entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
         }
 
-        bool clippedFloor = entity.Box.Bottom < highestFloor;
+        bool clippedFloor = entity.Box.Bottom <= highestFloor;
         if (entity.Box.Bottom <= highestFloor)
         {
             if (entity.HighestFloorObject is Entity highestEntity &&
@@ -571,15 +571,15 @@ public class PhysicsManager
             foreach (Entity onEntity in m_onEntities)
                 onEntity.SetOverEntity(entity);
 
-            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
-
             if (clippedFloor)
             {
                 if (entity.HighestFloorObject is Entity blockEntity)
                     entity.BlockingEntity = blockEntity;
-                else
+                else if (entity.BlockingSectorPlane == null && entity.Velocity.Z < 0)
                     entity.BlockingSectorPlane = entity.HighestFloorSector.Floor;
             }
+
+            SetEntityOnFloorOrEntity(entity, highestFloor, smoothZ && prevHighestFloorZ != entity.HighestFloorZ);
         }
 
         if (prevOnEntity != null && prevOnEntity != entity.OnEntity.Entity)

@@ -373,7 +373,7 @@ public class Player : Entity
 
     public override void Hit(in Vec3D velocity)
     {
-        if (BlockingSectorPlane != null && OnGround)
+        if (velocity.Z < 0 && OnGround)
         {
             // If we're airborne and just landed on the ground, we need a delay
             // for jumping. This should only happen if we've coming down from a manual jump.
