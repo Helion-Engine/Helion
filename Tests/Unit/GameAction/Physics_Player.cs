@@ -29,11 +29,18 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, PlayerTestPos);
             Player.Jump();
             GameActions.RunPlayerJump(World, Player);
+            // Jumping goes just over the threshold and will create the oof. ZDoom changed this at some point. Have to decided if we want it.
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player jump completely blocked")]
         public void PlayerJumpBlock()
         {
+            Player.Velocity.Z = 0;
+            GameActions.TickWorld(World, 8);
+            var sector = GameActions.GetSector(World, 15);
             GameActions.SetEntityPosition(World, Player, PlayerJumpBlockPos);
             Player.Jump();
             Player.BlockingSectorPlane.Should().BeNull();
@@ -43,13 +50,14 @@ namespace Helion.Tests.Unit.GameAction
 
             // Completely blocked by the ceiling
             Player.OnGround.Should().BeTrue();
-            Player.BlockingSectorPlane.Should().NotBeNull();
+            Player.BlockingSectorPlane.Should().Be(sector.Ceiling);
             Player.BlockingSectorPlane!.Sector.Id.Should().Be(15);
         }
 
         [Fact(DisplayName = "Player jump partially blocked")]
         public void PlayerJumpPartialBlock()
         {
+            var sector = GameActions.GetSector(World, 16);
             GameActions.SetEntityPosition(World, Player, PlayerJumpBlockPartialPos);
             Player.Sector.Ceiling.Z.Should().Be(72);
             Player.Jump();
@@ -61,7 +69,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.OnGround.Should().BeFalse();
 
             GameActions.TickWorld(World, () => { return Player.Position.Z < 16; }, () => { });
-            Player.BlockingSectorPlane.Should().NotBeNull();
+            Player.BlockingSectorPlane.Should().Be(sector.Ceiling);
             Player.BlockingSectorPlane!.Sector.Id.Should().Be(16);
             World.Tick();
             Player.Velocity.Z.Should().Be(-1);
@@ -221,6 +229,39 @@ namespace Helion.Tests.Unit.GameAction
             audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
 
             double[] values = new[] { 39.625, 38.5, 37.625, 37, 36.625, 36.5, 36.625, 37, 37.625, 38.5, 39.625 };
+            int index = 0;
+
+            GameActions.TickWorld(World, () => { return Player.ViewZ != 41; }, () =>
+            {
+                Player.ViewZ.Should().Be(values[index]);
+                index++;
+            });
+
+            index.Should().Be(values.Length);
+
+            World.Tick();
+            Player.DeltaViewHeight.Should().Be(0);
+            GameActions.TickWorld(World, 35);
+            World.SoundManager.FindBySource(Player).Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Player fall hard hit and falls exactly onto ground.")]
+        public void PlayerHardHitExact()
+        {
+            // In this case the BlockingSectorPlane will not be the floor, it will be triggered by OnGround since the player didn't through clip it in MoveZ.
+            GameActions.SetEntityPosition(World, Player, new Vec3D(320, -64, 104));
+            Player.ViewZ.Should().Be(41);
+            Player.DeltaViewHeight.Should().Be(0);
+
+            GameActions.TickWorld(World, () => { return !Player.OnGround; }, () => { });
+            Player.DeltaViewHeight.Should().Be(-1.75);
+            Player.ViewZ.Should().Be(41);
+
+            var audio = World.SoundManager.FindBySource(Player);
+            audio.Should().NotBeNull();
+            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+
+            double[] values = new[] { 39.25, 37.75, 36.5, 35.5, 34.75, 34.25, 34, 34, 34.25, 34.75, 35.5, 36.5, 37.75, 39.25 };
             int index = 0;
 
             GameActions.TickWorld(World, () => { return Player.ViewZ != 41; }, () =>

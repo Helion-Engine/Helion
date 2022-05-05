@@ -36,6 +36,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             Player.Velocity = Vec3D.Zero;
             GameActions.DestroyCreatedEntities(World);
+            // Clear any jumping ticks etc that may exist
+            GameActions.TickWorld(World, 8);
             GC.SuppressFinalize(this);
         }
 
