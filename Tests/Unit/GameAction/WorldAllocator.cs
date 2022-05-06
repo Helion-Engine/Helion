@@ -7,6 +7,7 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.IWad;
+using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.Util.Profiling;
@@ -33,6 +34,9 @@ namespace Helion.Tests.Unit.GameAction
         {
             if (UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
+
+            // Assets.pk3 is copied from the assets project.
+            File.Exists(Constants.AssetsFileName).Should().BeTrue();
 
             LastResource = resourceZip;
             LastFileName = fileName;
