@@ -448,4 +448,18 @@ public class TextureManager : ITickable
         if (texture.Image == null)
             texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace);
     }
+
+    public void SetSkyTexture()
+    {
+        string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
+
+        foreach (var texture in m_flatLookup.Values)
+        {
+            if (!texture.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
+                continue;
+            
+            m_skyIndex = texture.Index;
+            break;
+        }
+    }
 }

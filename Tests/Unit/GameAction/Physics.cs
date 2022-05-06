@@ -35,6 +35,7 @@ namespace Helion.Tests.Unit.GameAction
         public void Dispose()
         {
             Player.Velocity = Vec3D.Zero;
+            Player.SetPosition(Vec3D.Zero);
             GameActions.DestroyCreatedEntities(World);
             // Clear any jumping ticks etc that may exist
             GameActions.TickWorld(World, 8);
@@ -44,6 +45,7 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             world.CheatManager.ActivateCheat(world.Player, CheatType.God);
+            world.ArchiveCollection.TextureManager.SetSkyTexture();
         }
     }
 }
