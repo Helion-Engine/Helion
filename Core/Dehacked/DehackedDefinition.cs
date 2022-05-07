@@ -576,16 +576,13 @@ public partial class DehackedDefinition
     private void ParseBexText(SimpleParser parser)
     {
         parser.ConsumeString();
-        StringBuilder sb = new();
 
         while (!IsBlockComplete(parser, isBex: true))
         {
             BexString bexString = new();
-            sb.Length = 0;
-
             bexString.Mnemonic = parser.ConsumeString();
             parser.ConsumeString("=");
-            bexString.Value = parser.ConsumeLine();
+            bexString.Value = parser.ConsumeLine().Replace("\\n", "\n");
             BexStrings.Add(bexString);
         }
     }
