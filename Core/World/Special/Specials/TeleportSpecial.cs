@@ -9,6 +9,7 @@ using Helion.World.Physics.Blockmap;
 using System;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
+using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.World.Special.Specials;
 
@@ -166,6 +167,9 @@ public class TeleportSpecial : ISpecial
     private static bool CanTeleport(Entity teleportEntity, in Vec3D pos)
     {
         if (teleportEntity.IsPlayer)
+            return true;
+
+        if (teleportEntity.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
             return true;
 
         return teleportEntity.GetIntersectingEntities3D(pos, BlockmapTraverseEntityFlags.Solid).Count == 0;

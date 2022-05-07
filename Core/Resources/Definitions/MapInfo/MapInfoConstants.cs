@@ -235,15 +235,16 @@ public partial class MapInfoDefinition
 
     private static readonly Dictionary<string, MapOptionSet> MapOptionsLookup = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "nojump",             new MapOptionSet { Option = MapOptions.NoJump, Value = true } },
-        { "allowjump",          new MapOptionSet { Option = MapOptions.NoJump, Value = false } },
-        { "nocrouch",           new MapOptionSet { Option = MapOptions.NoCrouch, Value = true } },
-        { "allowcouch",         new MapOptionSet { Option = MapOptions.NoCrouch, Value = false } },
-        { "nofreelook",         new MapOptionSet { Option = MapOptions.NoFreelook, Value = true } },
-        { "allowfreelook",      new MapOptionSet { Option = MapOptions.NoFreelook, Value = false } },
-        { "nointermission",     new MapOptionSet { Option = MapOptions.NoIntermission, Value = true } },
-        { "allowintermission",  new MapOptionSet { Option = MapOptions.NoIntermission, Value = false } },
-        { "noclustertext",      new MapOptionSet { Option = MapOptions.NeedClusterText, Value = false } },
-        { "needclustertext",    new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
+        { "nojump",                 new MapOptionSet { Option = MapOptions.NoJump, Value = true } },
+        { "allowjump",              new MapOptionSet { Option = MapOptions.NoJump, Value = false } },
+        { "nocrouch",               new MapOptionSet { Option = MapOptions.NoCrouch, Value = true } },
+        { "allowcouch",             new MapOptionSet { Option = MapOptions.NoCrouch, Value = false } },
+        { "nofreelook",             new MapOptionSet { Option = MapOptions.NoFreelook, Value = true } },
+        { "allowfreelook",          new MapOptionSet { Option = MapOptions.NoFreelook, Value = false } },
+        { "nointermission",         new MapOptionSet { Option = MapOptions.NoIntermission, Value = true } },
+        { "allowintermission",      new MapOptionSet { Option = MapOptions.NoIntermission, Value = false } },
+        { "noclustertext",          new MapOptionSet { Option = MapOptions.NeedClusterText, Value = false } },
+        { "needclustertext",        new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
+        { "allowmonstertelefrags",  new MapOptionSet { Option = MapOptions.AllowMonsterTelefrags, Value = true } },
     };
 }
