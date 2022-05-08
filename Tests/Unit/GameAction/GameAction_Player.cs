@@ -26,7 +26,20 @@ namespace Helion.Tests.Unit.GameAction
             });
         }
 
-        public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null)
+        public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
+            RunPlayerCommands(world, angle, new TickCommands[] { TickCommands.Forward }, runWhile, timeout, onTick, stopTicks: null, tickAngleTurn: null);
+
+        public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
+            RunPlayerCommands(world, angle, commands, runWhile, timeout, onTick);
+
+        public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, int stopTicks, Action? onTick = null) =>
+            RunPlayerCommands(world, angle, commands, () => { return true; }, onTick: onTick, stopTicks: stopTicks);
+
+        public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, double tickAngleTurn, int stopTicks, Action? onTick = null) =>
+            RunPlayerCommands(world, angle, commands, () => { return true; }, onTick: onTick, stopTicks: stopTicks, tickAngleTurn: tickAngleTurn);
+
+        private static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null,
+            int? stopTicks = null, double? tickAngleTurn = null)
         {
             if (!timeout.HasValue)
                 timeout = TimeSpan.FromSeconds(60);
@@ -37,12 +50,17 @@ namespace Helion.Tests.Unit.GameAction
             int runTicks = 0;
             while (runWhile())
             {
-                cmd.Add(TickCommands.Forward);
+                Array.ForEach(commands, x => cmd.Add(x));
+                if (tickAngleTurn.HasValue)
+                    cmd.MouseAngle -= tickAngleTurn.Value;
                 world.SetTickCommand(cmd);
                 world.Tick();
                 runTicks++;
 
                 onTick?.Invoke();
+
+                if (stopTicks.HasValue && runTicks >= stopTicks)
+                    break;
 
                 if (runTicks > 35 * timeout.Value.TotalSeconds)
                     throw new Exception($"Tick world ran for more than {timeout.Value.TotalSeconds} seconds");

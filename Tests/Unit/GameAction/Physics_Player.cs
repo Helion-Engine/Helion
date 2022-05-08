@@ -139,7 +139,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, PlayerBridgeBlockPos);
             Player.Position.Z.Should().Be(0);
             GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 32));
-            ApproxEquals(Player.Position, new Vec3D(1328, 1024, 0)).Should().BeTrue();
+            Player.Position.ApproxEquals(new(1328, 1024, 0)).Should().BeTrue();
             Player.Position.Z.Should().Be(0);
             Player.Sector.Id.Should().Be(9);
             Player.OnGround.Should().BeTrue();
@@ -151,7 +151,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, PlayerBridgeUnderPos);
             Player.Position.Z.Should().Be(0);
             GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 32));
-            ApproxEquals(Player.Position, PlayerBridgeUnderPos + new Vec3D(0, 32, 0)).Should().BeTrue();
+            Player.Position.ApproxEquals(PlayerBridgeUnderPos + new Vec3D(0, 32, 0)).Should().BeTrue();
             Player.Sector.Id.Should().Be(9);
             Player.OnGround.Should().BeTrue();
         }
@@ -178,7 +178,7 @@ namespace Helion.Tests.Unit.GameAction
                 World.Tick();
                 World.Tick();
                 position += step;
-                ApproxEquals(Player.Position, position.To3D(bridge.Position.Z + 8)).Should().BeTrue();
+                Player.Position.ApproxEquals(position.To3D(bridge.Position.Z + 8)).Should().BeTrue();
                 Player.OnEntity.Entity.Should().NotBeNull();
                 Player.OnEntity.Entity.Should().Be(bridge);
                 Player.Sector.Id.Should().Be(9);
@@ -452,11 +452,6 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 2));
             bonus.IsDisposed.Should().BeTrue();
             Player.Health.Should().Be(101);
-        }
-
-        private static bool ApproxEquals(Vec3D v1, Vec3D v2)
-        {
-            return v1.X.ApproxEquals(v2.X) && v1.Y.ApproxEquals(v2.Y) && v1.Z.ApproxEquals(v2.Z);
         }
     }
 }

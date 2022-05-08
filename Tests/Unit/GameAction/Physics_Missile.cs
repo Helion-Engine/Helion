@@ -84,7 +84,7 @@ namespace Helion.Tests.Unit.GameAction
 
             RunMissileExplode(rocket);
             rocket.Position.Should().Be(new Vec3D(1920, 960, 32));
-            ApproxEquals(entity.Velocity, new Vec3D(0, 4.53125, 0));
+            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
 
             RunEntityDisposed(rocket);
         }
@@ -98,8 +98,8 @@ namespace Helion.Tests.Unit.GameAction
             rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, rocket.PitchTo(entity)) * 16;
 
             RunMissileExplode(rocket);
-            ApproxEquals(rocket.Position, new Vec3D(1920, 956.71573107523272, 11.761422974922368));
-            ApproxEquals(entity.Velocity, new Vec3D(0, 4.53125, 0));
+            rocket.Position.ApproxEquals(new(1920, 956.71573107523272, 11.761422974922368));
+            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
 
             RunEntityDisposed(rocket);
         }
@@ -111,7 +111,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.Velocity = Vec3D.Zero;
             Player.AngleRadians = GameActions.GetAngle(Bearing.North);
             World.FireProjectile(Player, Player.AngleRadians, 0, 0, false, "Rocket", out _).Should().BeNull();
-            ApproxEquals(Player.Velocity, new Vec3D(0, -13.875, 0));
+            Player.Velocity.ApproxEquals(new(0, -13.875, 0));
         }
 
         [Fact(DisplayName = "Player fires missile directly below feet")]
@@ -123,7 +123,7 @@ namespace Helion.Tests.Unit.GameAction
             var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.5697963267948967, 0, false, "Rocket", out _);
             rocket.Should().NotBeNull();
             RunMissileExplode(rocket!);
-            ApproxEquals(Player.Velocity, new Vec3D(0, 0, 16));
+            Player.Velocity.ApproxEquals(new(0, 0, 16));
         }
 
         [Fact(DisplayName = "Player fires missile offset")]
@@ -135,7 +135,7 @@ namespace Helion.Tests.Unit.GameAction
             var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.4555555968545377, 0, false, "Rocket", out _);
             rocket.Should().NotBeNull();
             RunMissileExplode(rocket!);
-            ApproxEquals(Player.Velocity, new Vec3D(0, -10.875, 5.532654554741212));
+            Player.Velocity.ApproxEquals(new(0, -10.875, 5.532654554741212));
         }
 
         private void RunMissileExplode(Entity rocket)
