@@ -2975,7 +2975,7 @@ public static class EntityActionFunctions
             damage = (entity.World.Random.NextByte() % mod + 1) * damage;
             entity.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             GetDehackedSound(entity, sound, out string? hitSound);
-            if (hitSound.Length > 0)
+            if (!string.IsNullOrEmpty(hitSound))
                 entity.World.SoundManager.CreateSoundOn(entity, hitSound, SoundChannelType.Default, entity.World.DataCache.GetSoundParams(entity));
         }
     }
@@ -3008,7 +3008,7 @@ public static class EntityActionFunctions
         }
 
         GetDehackedSound(entity, sound, out string? healSound);
-        if (entity.World.HealChase(entity, newFrame, healSound))
+        if (entity.World.HealChase(entity, newFrame, healSound ?? string.Empty))
             A_Chase(entity);
     }
 
@@ -3184,7 +3184,7 @@ public static class EntityActionFunctions
         createdEntity.SetTracer(autoAimEntity);
     }
 
-    private static void PlayerMelee(Player player, int damageBase, int mod, double berserkFactor, double range, string hitSound)
+    private static void PlayerMelee(Player player, int damageBase, int mod, double berserkFactor, double range, string? hitSound)
     {
         double damage = (player.World.Random.NextByte() % mod + 1) * damageBase;
         if (player.Inventory.IsPowerupActive(PowerupType.Strength))
@@ -3196,7 +3196,7 @@ public static class EntityActionFunctions
             return;
 
         player.AngleRadians = player.Position.Angle(hitEntity.Position);
-        if (hitSound.Length > 0)
+        if (!string.IsNullOrEmpty(hitSound))
             player.World.SoundManager.CreateSoundOn(player, hitSound, SoundChannelType.Weapon, player.World.DataCache.GetSoundParams(player));
     }
 
@@ -3214,14 +3214,14 @@ public static class EntityActionFunctions
 
     private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation)
     {
-        if (!GetDehackedSound(entity, soundIndex, out string soundName))
+        if (!GetDehackedSound(entity, soundIndex, out string? soundName))
             return;
 
         entity.World.SoundManager.CreateSoundOn(entity, soundName, SoundChannelType.Auto,
             entity.World.DataCache.GetSoundParams(entity, attenuation: attenuation));
     }
 
-    private static bool GetDehackedSound(Entity entity, int soundIndex, out string soundName)
+    private static bool GetDehackedSound(Entity entity, int soundIndex, [NotNullWhen(true)] out string? soundName)
     {
         var dehacked = entity.World.ArchiveCollection.Definitions.DehackedDefinition;
         if (dehacked == null || !dehacked.GetSoundName(soundIndex, out soundName))
