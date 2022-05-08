@@ -55,15 +55,12 @@ public static class SwitchManager
 
                 if (side.Upper.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Upper.TextureHandle))
                     return GetSwitchTexture(animSwitch, side.Upper.TextureHandle, WallLocation.Upper, off);
-                    //return (animSwitch.GetOpposingTexture(side.Upper.TextureHandle), WallLocation.Upper);
 
                 if (side.Middle.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Middle.TextureHandle))
                     return GetSwitchTexture(animSwitch, side.Middle.TextureHandle, WallLocation.Middle, off);
-                //return (animSwitch.GetOpposingTexture(side.Middle.TextureHandle), WallLocation.Middle);
 
                 if (side.Lower.TextureHandle != Constants.NoTextureIndex && animSwitch.IsMatch(side.Lower.TextureHandle))
                     return GetSwitchTexture(animSwitch, side.Lower.TextureHandle, WallLocation.Lower, off);
-                //return (animSwitch.GetOpposingTexture(side.Lower.TextureHandle), WallLocation.Lower);
             }
         }
         else
@@ -74,7 +71,6 @@ public static class SwitchManager
                 sw.IsMatch(line.Front.Middle.TextureHandle));
             if (animSwitch != null)
                 return GetSwitchTexture(animSwitch, line.Front.Middle.TextureHandle, WallLocation.Middle, off);
-            //return (animSwitch.GetOpposingTexture(line.Front.Middle.TextureHandle), WallLocation.Middle);
         }
 
         return (Constants.NoTextureIndex, WallLocation.None);
