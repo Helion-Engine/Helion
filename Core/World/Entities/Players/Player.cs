@@ -23,7 +23,7 @@ namespace Helion.World.Entities.Players;
 public class Player : Entity
 {
     public const double MaxMovement = 30.0;
-    public const double ForwardMovementSpeedWalk = 0.71875;
+    public const double ForwardMovementSpeedWalk = 0.78125;
     public const double ForwardMovementSpeedRun = 1.5625;
     public const double SideMovementSpeedWalk = 0.75;
     public const double SideMovementSpeedRun = 1.25;
