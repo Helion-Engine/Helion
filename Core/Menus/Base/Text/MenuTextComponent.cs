@@ -24,5 +24,5 @@ public abstract class MenuTextComponent : IMenuComponent
         Action = action;
     }
 
-    public override string ToString() => Text.ToString();
+    public override string ToString() => Text.ToString() ?? string.Empty;
 }
