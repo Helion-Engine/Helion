@@ -150,5 +150,61 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, 35);
             GameActions.CheckSideTexture(World, side, WallLocation.Middle, "SW1GARG");
         }
+
+        [Fact(DisplayName = "Front lower switch texture")]
+        public void FrontLowerSwitchTexture()
+        {
+            const int Line = 39;
+            var side = GameActions.GetLine(World, Line).Front;
+            var sector = GameActions.GetSectorByTag(World, 4);
+            GameActions.CheckSideTexture(World, side, WallLocation.Lower, "SW1LION");
+            GameActions.ActivateLine(World, Player, Line, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+
+            GameActions.CheckSideTexture(World, side, WallLocation.Lower, "SW2LION");
+            GameActions.RunSectorPlaneSpecial(World, sector, () => { });
+        }
+
+        [Fact(DisplayName = "Front upper switch texture")]
+        public void FrontUpperSwitchTexture()
+        {
+            const int Line = 43;
+            var side = GameActions.GetLine(World, Line).Front;
+            var sector = GameActions.GetSectorByTag(World, 4);
+            GameActions.CheckSideTexture(World, side, WallLocation.Upper, "SW1ZIM");
+            GameActions.ActivateLine(World, Player, Line, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+
+            GameActions.CheckSideTexture(World, side, WallLocation.Upper, "SW2ZIM");
+            GameActions.RunSectorPlaneSpecial(World, sector, () => { });
+        }
+
+        [Fact(DisplayName = "Back lower switch texture")]
+        public void BackLowerSwitchTexture()
+        {
+            const int Line = 53;
+            var side = GameActions.GetLine(World, Line).Back!;
+            var sector = GameActions.GetSectorByTag(World, 4);
+            GameActions.CheckSideTexture(World, side, WallLocation.Lower, "SW1METAL");
+            GameActions.ActivateLine(World, Player, Line, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            // Doesn't change
+            GameActions.CheckSideTexture(World, side, WallLocation.Lower, "SW1METAL");
+            GameActions.RunSectorPlaneSpecial(World, sector, () => { });
+        }
+
+        [Fact(DisplayName = "Back upper switch texture")]
+        public void BackUpperSwitchTexture()
+        {
+            const int Line = 56;
+            var side = GameActions.GetLine(World, Line).Back!;
+            var sector = GameActions.GetSectorByTag(World, 4);
+            GameActions.CheckSideTexture(World, side, WallLocation.Upper, "SW1GSTON");
+            GameActions.ActivateLine(World, Player, Line, ActivationContext.UseLine).Should().BeTrue();
+            World.Tick();
+            // Doesn't change
+            GameActions.CheckSideTexture(World, side, WallLocation.Upper, "SW1GSTON");
+            GameActions.RunSectorPlaneSpecial(World, sector, () => { });
+        }
     }
 }
