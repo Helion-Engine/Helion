@@ -10,6 +10,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Sound;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -2496,6 +2497,8 @@ namespace Helion.Tests.Unit.GameAction
             World.Tick();
             World.LevelStats.SecretCount.Should().Be(1);
             World.LevelStats.TotalSecrets.Should().Be(1);
+
+            GameActions.AssertSound(World, DefaultSoundSource.Default, "dssecret");
         }
 
         [Fact(DisplayName = "Doom Sector Type 10 - Door close 30 seconds")]
