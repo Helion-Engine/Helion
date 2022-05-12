@@ -17,6 +17,8 @@ public class SectorMoveData
     public readonly MoveDirection StartDirection;
     // If an entity will block movement then do not calculate the difference, movement is blocked entirely.
     public readonly bool CompatibilityBlockMovement;
+    // Allow door to clip through the floor in certain cases.
+    public readonly bool CompatibilityDoorMovement;
     public readonly bool ClearDamage;
 
     public const int InstantToggleSpeed = int.MaxValue;
@@ -28,6 +30,7 @@ public class SectorMoveData
         SectorDamageSpecial? damageSpecial = null,
         double? returnSpeed = null,
         bool compatibilityBlockMovement = false,
+        bool compatibilityDoorMovement = false,
         bool clearDamage = false)
     {
         SectorMoveType = moveType;
@@ -41,6 +44,7 @@ public class SectorMoveData
         DamageSpecial = damageSpecial;
         ReturnSpeed = returnSpeed ?? speed;
         CompatibilityBlockMovement = compatibilityBlockMovement;
+        CompatibilityDoorMovement = compatibilityDoorMovement;
         ClearDamage = clearDamage;
     }
 }

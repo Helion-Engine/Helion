@@ -97,7 +97,7 @@ public interface IWorld : IDisposable
     TryMoveData TryMoveXY(Entity entity, Vec2D position);
     bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement);
+        double speed, double destZ, SectorMoveData moveData);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
     void DisplayMessage(Player player, Player? other, string message);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.

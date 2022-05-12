@@ -1275,8 +1275,8 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager.IsPositionValid(entity, position);
 
     public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
-         => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, crush, compatibilityBlockMovement);
+        double speed, double destZ, SectorMoveData moveData)
+         => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, moveData);
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
     {

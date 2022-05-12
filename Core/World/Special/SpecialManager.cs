@@ -301,7 +301,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay), GetDoorSound(speed, true));
+            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, compatibilityDoorMovement: true), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
@@ -320,7 +320,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, MoveRepetition.None, speed, 0), GetDoorSound(speed, true));
+            MoveDirection.Down, MoveRepetition.None, speed, 0, compatibilityDoorMovement: true), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0, LineSpecialCompatibility? compat = null)

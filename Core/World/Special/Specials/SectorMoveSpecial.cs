@@ -1,7 +1,6 @@
 using System;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -31,7 +30,8 @@ public class SectorMoveSpecial : ISectorSpecial
     private readonly double m_maxZ;
     private MoveDirection m_direction;
     private double m_speed;
-    private readonly double[] m_speeds = new double[2];
+    private double m_startSpeed;
+    private double m_returnSpeed;
     private bool m_crushing;
     private bool m_playedReturnSound;
     private bool m_playedStartSound;
@@ -55,7 +55,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         m_direction = MoveData.StartDirection;
         InitSpeeds();
-        m_speed = m_speeds[0];
+        m_speed = m_startSpeed;
 
         m_minZ = Math.Min(m_startZ, DestZ);
         m_maxZ = Math.Max(m_startZ, DestZ);
@@ -97,11 +97,11 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private void InitSpeeds()
     {
-        m_speeds[0] = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;
-        m_speeds[1] = MoveData.StartDirection == MoveDirection.Up ? -MoveData.ReturnSpeed : MoveData.ReturnSpeed;
+        m_startSpeed = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;
+        m_returnSpeed = MoveData.StartDirection == MoveDirection.Up ? -MoveData.ReturnSpeed : MoveData.ReturnSpeed;
 
         if (MoveData.Crush != null)
-            m_speeds[1] *= MoveData.Crush.ReturnFactor;
+            m_returnSpeed *= MoveData.Crush.ReturnFactor;
     }
 
     public virtual ISpecialModel ToSpecialModel()
@@ -192,7 +192,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         CheckPlaySound();
 
-        if (IsNonRepeat && (SectorPlane.Z == DestZ || MoveStatus == SectorMoveStatus.BlockedAndStop))
+        if ((IsNonRepeat && SectorPlane.Z == DestZ) || MoveStatus == SectorMoveStatus.BlockedAndStop)
         {
             if (MoveData.FloorChangeTextureHandle != null)
                 Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value, m_world.Gametick);
@@ -212,7 +212,7 @@ public class SectorMoveSpecial : ISectorSpecial
             return SpecialTickStatus.Destroy;
         }
 
-        if (IsDelayReturn && SectorPlane.Z == m_startZ)
+        if (IsDelayReturn && SectorPlane.Z == m_startZ && m_direction != MoveData.StartDirection)
         {
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
@@ -311,7 +311,6 @@ public class SectorMoveSpecial : ISectorSpecial
 
         m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
         DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
-        int speedIndex = m_direction == MoveData.StartDirection ? 0 : 1;
 
         if (m_direction == MoveData.StartDirection && SoundData.StartSound != null)
             m_playedStartSound = false;
@@ -319,7 +318,7 @@ public class SectorMoveSpecial : ISectorSpecial
         if (m_crushing)
             m_crushing = false;
 
-        m_speed = m_speeds[speedIndex];
+        m_speed = m_direction == MoveData.StartDirection ? m_startSpeed : m_returnSpeed;
 
         if (MoveData.MoveRepetition == MoveRepetition.PerpetualPause)
             IsPaused = true;
@@ -330,9 +329,9 @@ public class SectorMoveSpecial : ISectorSpecial
         double destZ = SectorPlane.Z + m_speed;
 
         if (m_direction == MoveDirection.Down && destZ < DestZ)
-            destZ = DestZ;
+            destZ = m_direction == MoveData.StartDirection ? DestZ : m_startZ;
         else if (m_direction == MoveDirection.Up && destZ > DestZ)
-            destZ = DestZ;
+            destZ = m_direction == MoveData.StartDirection ? DestZ : m_startZ;
 
         return destZ;
     }
@@ -340,7 +339,7 @@ public class SectorMoveSpecial : ISectorSpecial
     private void PerformAndHandleMoveZ(double destZ)
     {
         MoveStatus = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
-            m_speed, destZ, MoveData.Crush, MoveData.CompatibilityBlockMovement);
+            m_speed, destZ, MoveData);
 
         switch (MoveStatus)
         {

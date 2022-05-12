@@ -109,10 +109,10 @@ public class PhysicsManager
     }
 
     public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, CrushData? crush, bool compatibilityBlockMovement)
+        double speed, double destZ, SectorMoveData moveData)
     {
         double startZ = sectorPlane.Z;
-        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ))
+        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ, moveData))
             return SectorMoveStatus.BlockedAndStop;
 
         // Save the Z value because we are only checking if the dest is valid
@@ -124,7 +124,7 @@ public class PhysicsManager
         sectorPlane.Z = destZ;
         sectorPlane.Plane.MoveZ(destZ - startZ);
 
-        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ))
+        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ, moveData))
         {
             FixPlaneClip(sector, sectorPlane, moveType);
             status = SectorMoveStatus.BlockedAndStop;
@@ -198,9 +198,9 @@ public class PhysicsManager
                 if (!entity.Flags.Shootable)
                     continue;
 
-                if (crush != null)
+                if (moveData.Crush != null)
                 {
-                    if (crush.CrushMode == ZDoomCrushMode.Hexen || crush.Damage == 0)
+                    if (moveData.Crush.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Damage == 0)
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -224,7 +224,7 @@ public class PhysicsManager
             double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
             // Set the sector Z to the difference of the blocked height (only works if not being crushed)
             // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-            if (compatibilityBlockMovement || highestBlockEntity.WasCrushing)
+            if (moveData.CompatibilityBlockMovement || highestBlockEntity.WasCrushing)
             {
                 sectorPlane.Z = startZ;
                 sectorPlane.Plane.MoveZ(startZ - destZ);
@@ -252,8 +252,8 @@ public class PhysicsManager
             }
         }
 
-        if (crush != null && m_crushEntities.Count > 0)
-            CrushEntities(m_crushEntities, sector, crush);
+        if (moveData.Crush != null && m_crushEntities.Count > 0)
+            CrushEntities(m_crushEntities, sector, moveData.Crush);
 
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
@@ -336,12 +336,15 @@ public class PhysicsManager
         return moveFactor;
     }
 
-    private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneFace moveType, double startZ, double destZ)
+    private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneFace moveType, double startZ, double destZ, SectorMoveData moveData)
     {
         if (moveType == SectorPlaneFace.Floor && destZ < startZ)
             return false;
 
         if (moveType == SectorPlaneFace.Ceiling && destZ > startZ)
+            return false;
+
+        if (moveData.CompatibilityDoorMovement && sector.ActiveFloorMove == null)
             return false;
 
         return sector.Ceiling.Z < sector.Floor.Z;
