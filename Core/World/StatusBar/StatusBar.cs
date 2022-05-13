@@ -152,7 +152,7 @@ public class PlayerStatusBar
 
     private void EnemyDamageFace()
     {
-        if (m_player.Attacker.Equals == null)
+        if (m_player.Attacker.Entity == null)
             return;
 
         m_priority = 7;
