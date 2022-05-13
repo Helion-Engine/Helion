@@ -94,19 +94,8 @@ public class StairSpecial : SectorMoveSpecial
 
     public override ISpecialModel ToSpecialModel()
     {
-        StairSpecialModel model = new StairSpecialModel()
-        {
-            Delay = m_stairDelay,
-            StartZ = m_startZ,
-            Destroy = m_destroyCount,
-            DelayTics = m_stairDelayTics,
-            ResetTics = m_resetTics,
-            Crush = m_crush,
-            MoveSpecial = (SectorMoveSpecialModel)base.ToSpecialModel()
-        };
-
-        List<int> sectors = new List<int>(m_stairs.Count);
-        List<int> heights = new List<int>(m_stairs.Count);
+        List<int> sectors = new(m_stairs.Count);
+        List<int> heights = new(m_stairs.Count);
 
         for (int i = 0; i < m_stairs.Count; i++)
         {
@@ -114,10 +103,8 @@ public class StairSpecial : SectorMoveSpecial
             heights.Add(m_stairs[i].Height);
         }
 
-        model.SectorIds = sectors;
-        model.Heights = heights;
-
-        return model;
+        return new StairSpecialModel(m_stairDelay, m_startZ, m_destroyCount, DelayTics, m_resetTics, m_crush, 
+            sectors, heights, (SectorMoveSpecialModel)base.ToSpecialModel());
     }
 
     public override SpecialTickStatus Tick()
