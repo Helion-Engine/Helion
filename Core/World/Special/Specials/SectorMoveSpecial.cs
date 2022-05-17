@@ -21,13 +21,15 @@ public class SectorMoveSpecial : ISectorSpecial
     public int DelayTics { get; protected set; }
     public double MoveSpeed => m_speed;
     public bool IsCrushing => m_crushing;
+    // If this sector started out with the ceiling clipped through the floor
+    public bool StartClipped { get; private set; }
 
     protected readonly IWorld m_world;
     protected double DestZ;
 
-    private readonly double m_startZ;
-    private readonly double m_minZ;
-    private readonly double m_maxZ;
+    private double m_startZ;
+    private double m_minZ;
+    private double m_maxZ;
     private MoveDirection m_direction;
     private double m_speed;
     private double m_startSpeed;
@@ -55,6 +57,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         m_direction = MoveData.StartDirection;
         InitSpeeds();
+        InitStartClip();
         m_speed = m_startSpeed;
 
         m_minZ = Math.Min(m_startZ, DestZ);
@@ -91,6 +94,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
         InitSpeeds();
+        InitStartClip();
         if (SoundData.MovementSound != null)
             CreateSound(SoundData.MovementSound, true);
     }
@@ -102,6 +106,20 @@ public class SectorMoveSpecial : ISectorSpecial
 
         if (MoveData.Crush != null)
             m_returnSpeed *= MoveData.Crush.ReturnFactor;
+    }
+
+    private void InitStartClip()
+    {
+        // Physics needs to know if this was started with the floor clipped through the ceiling to allow movement.
+        StartClipped = Sector.Ceiling.Z < Sector.Floor.Z;
+    }
+
+    private void CheckStartClip()
+    {
+        if (!StartClipped)
+            return;
+
+        StartClipped = Sector.Ceiling.Z < Sector.Floor.Z;
     }
 
     public virtual ISpecialModel ToSpecialModel()
@@ -186,6 +204,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
         double destZ = CalculateDestination();
         PerformAndHandleMoveZ(destZ);
+        CheckStartClip();
 
         if (MoveStatus == SectorMoveStatus.BlockedAndStop)
             DestZ = SectorPlane.Z;
@@ -328,6 +347,9 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         double destZ = SectorPlane.Z + m_speed;
 
+        if (MoveData.CompatibilityDoorMovement && Sector.Floor.Z != m_minZ)
+            UpdateFloorDest();
+
         if (m_direction == MoveDirection.Down && destZ < DestZ)
             destZ = m_direction == MoveData.StartDirection ? DestZ : m_startZ;
         else if (m_direction == MoveDirection.Up && destZ > DestZ)
@@ -336,10 +358,19 @@ public class SectorMoveSpecial : ISectorSpecial
         return destZ;
     }
 
+    private void UpdateFloorDest()
+    {
+        m_startZ = Sector.Floor.Z;
+        m_minZ = Math.Min(m_startZ, DestZ);
+        m_maxZ = Math.Max(m_startZ, DestZ);
+
+        if (m_direction != MoveData.StartDirection)
+            DestZ = m_startZ;
+    }
+
     private void PerformAndHandleMoveZ(double destZ)
     {
-        MoveStatus = m_world.MoveSectorZ(Sector, SectorPlane, MoveData.SectorMoveType,
-            m_speed, destZ, MoveData);
+        MoveStatus = m_world.MoveSectorZ(m_speed, destZ, this);
 
         switch (MoveStatus)
         {

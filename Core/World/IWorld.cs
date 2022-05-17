@@ -13,7 +13,6 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
-using Helion.World.Special.SectorMovement;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Container;
@@ -25,6 +24,7 @@ using Helion.World.Special;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.Util;
+using Helion.World.Special.Specials;
 
 namespace Helion.World;
 
@@ -96,8 +96,7 @@ public interface IWorld : IDisposable
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
     TryMoveData TryMoveXY(Entity entity, Vec2D position);
     bool IsPositionValid(Entity entity, Vec2D position);
-    SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, SectorMoveData moveData);
+    SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
     void DisplayMessage(Player player, Player? other, string message);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
