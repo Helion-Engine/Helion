@@ -20,6 +20,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
+using Helion.World.Special.Specials;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -108,11 +109,14 @@ public class PhysicsManager
         MoveZ(entity);
     }
 
-    public SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, SectorMoveData moveData)
+    public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
+        Sector sector = moveSpecial.Sector;
+        SectorPlane sectorPlane = moveSpecial.SectorPlane;
+        SectorMoveData moveData = moveSpecial.MoveData;
+        SectorPlaneFace moveType = moveSpecial.MoveData.SectorMoveType;
         double startZ = sectorPlane.Z;
-        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ, moveData))
+        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
             return SectorMoveStatus.BlockedAndStop;
 
         // Save the Z value because we are only checking if the dest is valid
@@ -124,7 +128,7 @@ public class PhysicsManager
         sectorPlane.Z = destZ;
         sectorPlane.Plane.MoveZ(destZ - startZ);
 
-        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, moveType, startZ, destZ, moveData))
+        if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
         {
             FixPlaneClip(sector, sectorPlane, moveType);
             status = SectorMoveStatus.BlockedAndStop;
@@ -336,15 +340,15 @@ public class PhysicsManager
         return moveFactor;
     }
 
-    private static bool IsSectorMovementBlocked(Sector sector, SectorPlaneFace moveType, double startZ, double destZ, SectorMoveData moveData)
+    private static bool IsSectorMovementBlocked(Sector sector, double startZ, double destZ, SectorMoveSpecial moveSpecial)
     {
-        if (moveType == SectorPlaneFace.Floor && destZ < startZ)
+        if (moveSpecial.MoveData.SectorMoveType == SectorPlaneFace.Floor && destZ < startZ)
             return false;
 
-        if (moveType == SectorPlaneFace.Ceiling && destZ > startZ)
+        if (moveSpecial.MoveData.SectorMoveType == SectorPlaneFace.Ceiling && destZ > startZ)
             return false;
 
-        if (moveData.CompatibilityDoorMovement && sector.ActiveFloorMove == null)
+        if (moveSpecial.StartClipped)
             return false;
 
         return sector.Ceiling.Z < sector.Floor.Z;

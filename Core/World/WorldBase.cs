@@ -50,8 +50,8 @@ using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
-using Helion.Geometry.Grids;
 using System.Diagnostics;
+using Helion.World.Special.Specials;
 
 namespace Helion.World;
 
@@ -1274,9 +1274,8 @@ public abstract partial class WorldBase : IWorld
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
         PhysicsManager.IsPositionValid(entity, position);
 
-    public virtual SectorMoveStatus MoveSectorZ(Sector sector, SectorPlane sectorPlane, SectorPlaneFace moveType,
-        double speed, double destZ, SectorMoveData moveData)
-         => PhysicsManager.MoveSectorZ(sector, sectorPlane, moveType, speed, destZ, moveData);
+    public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
+         => PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
     {
@@ -2218,14 +2217,8 @@ public abstract partial class WorldBase : IWorld
         return items;
     }
 
-    public GameFilesModel GetGameFilesModel()
-    {
-        return new GameFilesModel()
-        {
-            IWad = GetIWadFileModel(),
-            Files = GetFileModels(),
-        };
-    }
+    public GameFilesModel GetGameFilesModel() =>
+        new(GetIWadFileModel(), GetFileModels());
 
     private IList<PlayerModel> GetPlayerModels()
     {
