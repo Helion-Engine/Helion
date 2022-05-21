@@ -20,7 +20,7 @@ public class SectorMoveSpecialModel : ISpecialModel
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public SectorDamageSpecialModel? DamageSpecial { get; set; }
     public int StartDirection { get; set; }
-    public bool CompatibilityBlockMovement { get; set; }
+    public int Flags { get; set; }
 
     public CrushDataModel? Crush { get; set; }
 

@@ -228,7 +228,7 @@ public class PhysicsManager
             double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
             // Set the sector Z to the difference of the blocked height (only works if not being crushed)
             // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-            if (moveData.CompatibilityBlockMovement || highestBlockEntity.WasCrushing)
+            if (moveData.Flags.HasFlag(SectorMoveFlags.EntityBlockMovement) || highestBlockEntity.WasCrushing)
             {
                 sectorPlane.Z = startZ;
                 sectorPlane.Plane.MoveZ(startZ - destZ);

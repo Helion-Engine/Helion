@@ -301,7 +301,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, compatibilityDoorMovement: true), GetDoorSound(speed, true));
+            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, flags: SectorMoveFlags.Door), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
@@ -320,7 +320,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, MoveRepetition.None, speed, 0, compatibilityDoorMovement: true), GetDoorSound(speed, true));
+            MoveDirection.Down, MoveRepetition.None, speed, 0, flags: SectorMoveFlags.Door), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0, LineSpecialCompatibility? compat = null)
@@ -427,8 +427,9 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null, bool clearDamage = false)
     {
+        SectorMoveFlags flags = clearDamage ? SectorMoveFlags.ClearDamage : SectorMoveFlags.None;
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneFace.Floor,
-            MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, clearDamage: clearDamage), DefaultFloorSound);
+            MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, flags: flags), DefaultFloorSound);
     }
 
     public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
@@ -1283,7 +1284,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,
-            MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, compatibilityBlockMovement: true));
+            MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, flags: SectorMoveFlags.EntityBlockMovement));
     }
 
     private bool CreateFloorAndCeilingLowerRaise(Sector sector, double floorSpeed, double ceilingSpeed, int boomEmulation)

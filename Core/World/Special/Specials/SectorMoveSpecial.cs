@@ -77,7 +77,7 @@ public class SectorMoveSpecial : ISectorSpecial
             ceilingChangeTextureHandle: model.CeilingChange,
             damageSpecial: model.DamageSpecial?.ToWorldSpecial(world),
             returnSpeed: model.ReturnSpeed,
-            compatibilityBlockMovement: model.CompatibilityBlockMovement);
+            flags: (SectorMoveFlags)model.Flags);
         SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
         SectorPlane = MoveData.SectorMoveType == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
         m_startZ = model.StartZ;
@@ -134,7 +134,7 @@ public class SectorMoveSpecial : ISectorSpecial
             Delay = MoveData.Delay,
             FloorChange = MoveData.FloorChangeTextureHandle,
             StartDirection = (int)MoveData.StartDirection,
-            CompatibilityBlockMovement = MoveData.CompatibilityBlockMovement,
+            Flags = (int)MoveData.Flags,
             StartSound = SoundData.StartSound,
             ReturnSound = SoundData.ReturnSound,
             StopSound = SoundData.StopSound,
@@ -222,7 +222,7 @@ public class SectorMoveSpecial : ISectorSpecial
             if (MoveData.DamageSpecial != null)
                 Sector.SectorDamageSpecial = MoveData.DamageSpecial;
 
-            if (MoveData.ClearDamage)
+            if (MoveData.Flags.HasFlag(SectorMoveFlags.ClearDamage))
                 Sector.SectorDamageSpecial = null;
 
             StopMovementSound();
@@ -347,7 +347,7 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         double destZ = SectorPlane.Z + m_speed;
 
-        if (MoveData.CompatibilityDoorMovement && Sector.Floor.Z != m_minZ)
+        if (MoveData.Flags.HasFlag(SectorMoveFlags.Door) && Sector.Floor.Z != m_minZ)
             UpdateFloorDest();
 
         if (m_direction == MoveDirection.Down && destZ < DestZ)
