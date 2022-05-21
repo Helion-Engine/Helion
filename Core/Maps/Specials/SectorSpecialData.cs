@@ -115,7 +115,7 @@ public static class SectorSpecialData
         if ((sectorType & bits.IceFlag) != 0)
             sectorEffect |= SectorEffect.Ice;
         if ((sectorType & bits.WindFlag) != 0)
-            sectorEffect |= SectorEffect.Wind;
+            sectorEffect |= SectorEffect.WindOrPush;
 
         return sectorEffect;
     }

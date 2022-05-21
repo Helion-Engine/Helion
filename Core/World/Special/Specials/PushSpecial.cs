@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -56,6 +57,9 @@ public class PushSpecial : ISpecial
 
     public SpecialTickStatus Tick()
     {
+        if (m_sector.SectorEffect != SectorEffect.WindOrPush)
+            return SpecialTickStatus.Continue;
+
         // TODO logic changes when Transfer Heights is implemented
         if (m_type == PushType.Push && m_pusher != null)
         {
@@ -71,10 +75,14 @@ public class PushSpecial : ISpecial
             {
                 Entity entity = node.Value;
                 node = node.Next;
+
+                if (ShouldNotPush(entity))
+                    continue;
+
                 Vec3D pushFactor = m_pushFactor;
                 if (m_type == PushType.Wind)
                 {
-                    if (!entity.IsPlayer || !entity.Flags.WindThrust || entity.Flags.NoBlockmap || entity.Flags.NoClip || entity.Flags.NoGravity)
+                    if (!entity.Flags.WindThrust)
                         continue;
 
                     if (entity.Position.Z != m_sector.ToFloorZ(entity.Position))
@@ -101,7 +109,7 @@ public class PushSpecial : ISpecial
         for (int i = 0; i < intersections.Count; i++)
         {
             BlockmapIntersect bi = intersections[i];
-            if (bi.Entity == null || !bi.Entity.IsPlayer || !m_world.CheckLineOfSight(bi.Entity, m_pusher))
+            if (bi.Entity == null || ShouldNotPush(bi.Entity) || !m_world.CheckLineOfSight(bi.Entity, m_pusher))
                 continue;
 
             double distance = bi.Entity.Position.XY.Distance(m_pusher.Position.XY);
@@ -117,6 +125,8 @@ public class PushSpecial : ISpecial
             bi.Entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
         }
     }
+
+    private static bool ShouldNotPush(Entity entity) => !entity.IsPlayer || entity.Flags.NoClip || entity.Flags.NoGravity;
 
     public bool Use(Entity entity) => false;
 }

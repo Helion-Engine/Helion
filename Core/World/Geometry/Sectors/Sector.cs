@@ -102,6 +102,7 @@ public class Sector
     public int SoundBlock;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public readonly InstantKillEffect InstantKillEffect;
+    public readonly SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
 
@@ -120,6 +121,7 @@ public class Sector
         Secret = sectorData.Secret;
         DamageAmount = sectorData.DamageAmount;
         InstantKillEffect = sectorData.InstantKillEffect;
+        SectorEffect = sectorData.SectorEffect;
 
         floor.Sector = this;
         ceiling.Sector = this;

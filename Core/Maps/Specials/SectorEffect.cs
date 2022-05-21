@@ -6,6 +6,6 @@ namespace Helion.Maps.Specials;
 public enum SectorEffect
 {
     None = 0,
-    Wind = 1,
+    WindOrPush = 1,
     Ice = 2
 }
