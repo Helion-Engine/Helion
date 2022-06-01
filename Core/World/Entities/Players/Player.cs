@@ -225,10 +225,37 @@ public class Player : Entity
 
     public PlayerModel ToPlayerModel()
     {
-        PlayerModel playerModel = new(PlayerNumber, PitchRadians, DamageCount, BonusCount, ExtraLight, m_isJumping, m_jumpTics, m_deathTics, m_viewHeight, ViewZ, m_deltaViewHeight, m_bob, m_killer.Entity?.Id,
-            Attacker.Entity?.Id, KillCount, ItemCount, SecretsFound, Weapon?.Definition.Name.ToString(), PendingWeapon?.Definition.Name.ToString(), AnimationWeapon?.Definition.Name.ToString(),
-            WeaponOffset.X, WeaponOffset.Y, WeaponSlot, WeaponSubSlot, Inventory.ToInventoryModel(), AnimationWeapon?.FrameState.ToFrameStateModel(), AnimationWeapon?.FlashState.ToFrameStateModel(),
-            Cheats.GetActiveCheats().Cast<int>().ToList());
+        PlayerModel playerModel = new PlayerModel()
+        {
+            Number = PlayerNumber,
+            PitchRadians = PitchRadians,
+            DamageCount = DamageCount,
+            BonusCount = BonusCount,
+            ExtraLight = ExtraLight,
+            IsJumping = m_isJumping,
+            JumpTics = m_jumpTics,
+            DeathTics = m_deathTics,
+            ViewHeight = m_viewHeight,
+            ViewZ = ViewZ,
+            DeltaViewHeight = m_deltaViewHeight,
+            Bob = m_bob,
+            Killer = m_killer.Entity?.Id,
+            Attacker = Attacker.Entity?.Id,
+            KillCount = KillCount,
+            ItemCount = ItemCount,
+            SecretsFound = SecretsFound,
+            Weapon = Weapon?.Definition.Name.ToString(),
+            PendingWeapon = PendingWeapon?.Definition.Name.ToString(),
+            AnimationWeapon = AnimationWeapon?.Definition.Name.ToString(),
+            WeaponOffsetX = WeaponOffset.X,
+            WeaponOffsetY = WeaponOffset.Y,
+            WeaponSlot = WeaponSlot,
+            WeaponSubSlot = WeaponSubSlot,
+            Inventory = Inventory.ToInventoryModel(),
+            AnimationWeaponFrame = AnimationWeapon?.FrameState.ToFrameStateModel(),
+            WeaponFlashFrame = AnimationWeapon?.FlashState.ToFrameStateModel(),
+            Cheats = Cheats.GetActiveCheats().Cast<int>().ToList()
+        };
 
         ToEntityModel(playerModel);
         return playerModel;

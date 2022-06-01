@@ -8,7 +8,7 @@ public class EntityModel
     public int Id { get; set; }
     public int ThingId { get; set; }
     public double AngleRadians { get; set; }
-    public EntityBoxModel Box { get; set; } = EntityBoxModel.Default;
+    public EntityBoxModel Box { get; set; }
     public double SpawnPointX { get; set; }
     public double SpawnPointY { get; set; }
     public double SpawnPointZ { get; set; }
@@ -32,8 +32,8 @@ public class EntityModel
     public int MoveDir { get; set; }
     public bool BlockFloat { get; set; }
 
-    public FrameStateModel Frame { get; set; } = FrameStateModel.Default;
-    public EntityFlagsModel Flags { get; set; } = EntityFlagsModel.Default;
+    public FrameStateModel Frame { get; set; }
+    public EntityFlagsModel Flags { get; set; }
     public int Threshold { get; set; }
     public int ReactionTime { get; set; }
 

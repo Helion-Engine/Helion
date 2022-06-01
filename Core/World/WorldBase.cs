@@ -2217,8 +2217,14 @@ public abstract partial class WorldBase : IWorld
         return items;
     }
 
-    public GameFilesModel GetGameFilesModel() =>
-        new(GetIWadFileModel(), GetFileModels());
+    public GameFilesModel GetGameFilesModel()
+    {
+        return new GameFilesModel()
+        {
+            IWad = GetIWadFileModel(),
+            Files = GetFileModels(),
+        };
+    }
 
     private IList<PlayerModel> GetPlayerModels()
     {

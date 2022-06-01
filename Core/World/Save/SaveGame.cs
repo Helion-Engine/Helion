@@ -77,8 +77,14 @@ public class SaveGame
 
     public static WorldModel WriteSaveGame(IWorld world, string title, string filename)
     {
-        SaveGameModel saveGameModel = new(world.GetGameFilesModel(), title, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection),
-            DateTime.Now, "world.json");
+        SaveGameModel saveGameModel = new()
+        {
+            Text = title,
+            MapName = world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection),
+            Date = DateTime.Now,
+            WorldFile = "world.json",
+            Files = world.GetGameFilesModel()
+        };
 
         if (File.Exists(filename))
             File.Delete(filename);
