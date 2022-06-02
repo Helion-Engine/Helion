@@ -2,6 +2,7 @@ using Helion.Models;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using NLog;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -17,9 +18,21 @@ public static class ModelVerification
         var fileArchives = archiveCollection.Archives;
         if (fileArchives.Count() != filesModel.Files.Count)
         {
-            var extraArchive = fileArchives.FirstOrDefault(x => ContainsFileModel(x, filesModel));
-            if (log != null && extraArchive != null)
-                log.Error($"Loaded {Path.GetFileName(extraArchive.OriginalFilePath)} file that was not loaded with this save.");
+            List<Archive> extraArchives = new();
+            foreach (var archive in fileArchives)
+            {
+                if (filesModel.Files.Any(x => archive.Equals(x.MD5)))
+                    continue;
+
+                extraArchives.Add(archive);
+            }
+
+            if (log != null)
+            {
+                foreach (var extraArchive in extraArchives)
+                    log.Error($"Loaded '{Path.GetFileName(extraArchive.OriginalFilePath)}' that is not part of this save.");
+            }
+
             return false;
         }
 
@@ -28,9 +41,6 @@ public static class ModelVerification
 
         return true;
     }
-
-    private static bool ContainsFileModel(Archive archive, GameFilesModel filesModel) =>
-        filesModel.Files.Any(x => archive.MD5.Equals(x.MD5));
 
     private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
     {
