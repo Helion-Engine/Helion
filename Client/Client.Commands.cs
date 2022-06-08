@@ -366,6 +366,13 @@ public partial class Client
         m_layerManager.Add(newLayer);
         m_layerManager.ClearAllExcept(newLayer);
 
+        if (players.Count > 0 && m_config.Game.AutoSave)
+        {
+            string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(newLayer.World.ArchiveCollection)}";
+            string saveFile = m_saveGameManager.WriteNewSaveGame(newLayer.World, title, autoSave: true);
+            m_console.AddMessage($"Saved {saveFile}");
+        }
+
         newLayer.World.Start(worldModel);
     }
 

@@ -21,12 +21,12 @@ public class SaveGameManager
         m_config = config;
     }
 
-    public string WriteNewSaveGame(IWorld world, string title) =>
-        WriteSaveGame(world, title, null);
+    public string WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
+        WriteSaveGame(world, title, null, autoSave);
 
-    public string WriteSaveGame(IWorld world, string title, SaveGame? existingSave)
+    public string WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
     {
-        string filename = existingSave?.FileName ?? GetNewSaveName();
+        string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
         GameSaved?.Invoke(this, SaveGame.WriteSaveGame(world, title, filename));
         return filename;
     }
@@ -69,7 +69,7 @@ public class SaveGameManager
         return true;
     }
 
-    private string GetNewSaveName()
+    private string GetNewSaveName(bool autoSave)
     {
         List<string> files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg")
             .Select(Path.GetFileName)
@@ -79,7 +79,7 @@ public class SaveGameManager
         int number = 0;
         while (true)
         {
-            string name = GetSaveName(number);
+            string name = GetSaveName(number, autoSave);
             if (files.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 number++;
             else
@@ -87,5 +87,10 @@ public class SaveGameManager
         }
     }
 
-    private static string GetSaveName(int number) => $"savegame{number}.hsg";
+    private static string GetSaveName(int number, bool autoSave)
+    {
+        if (autoSave)
+            return $"autosave{number}.hsg";
+        return $"savegame{number}.hsg";
+    }
 }

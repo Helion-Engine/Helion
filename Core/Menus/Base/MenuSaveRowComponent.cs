@@ -5,8 +5,6 @@ namespace Helion.Menus.Base;
 
 public class MenuSaveRowComponent : IMenuComponent
 {
-    public const int PixelWidth = 200;
-
     public string Text { get; }
     public Func<Menu?>? Action { get; }
     public Func<Menu?>? DeleteAction { get; }

@@ -27,6 +27,9 @@ public class ConfigGame
     [ConfigInfo("Whether no monsters should be spawned.", save: false)]
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
+    [ConfigInfo("Automatically saves at level start.", save: false)]
+    public readonly ConfigValue<bool> AutoSave = new(false);
+
     [ConfigInfo("The skill level to use when starting a map.", save: false)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
 }

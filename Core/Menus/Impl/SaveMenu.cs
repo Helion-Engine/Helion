@@ -6,6 +6,7 @@ using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -21,7 +22,7 @@ namespace Helion.Menus.Impl;
 public class SaveMenu : Menu
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private const int MaxRows = 6;
+    private const int MaxRows = 9;
     private const string SaveHeaderImage = "M_SGTTL";
     private const string LoadHeaderImage = "M_LGTTL";
     private const string SaveMessage = "Game saved.";
@@ -116,7 +117,7 @@ public class SaveMenu : Menu
         return savedGames.Take(MaxRows)
             .Select(save =>
             {
-                string displayName = save.Model?.MapName ?? "Unknown";
+                string displayName = save.Model?.Text ?? "Unknown";
                 return new MenuSaveRowComponent(displayName, UpdateSaveGame(save), CreateDeleteCommand(save));
             });
     }
@@ -152,7 +153,7 @@ public class SaveMenu : Menu
         {
             if (GetWorld(out IWorld? world) && world != null)
             {
-                m_saveGameManager.WriteNewSaveGame(world, "new");
+                m_saveGameManager.WriteNewSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection));
                 m_parent.Manager.Remove(m_parent);
                 DisplayMessage(world, SaveMessage);
             }
@@ -186,7 +187,7 @@ public class SaveMenu : Menu
         return savedGames.Take(MaxRows)
             .Select(save =>
             {
-                string displayName = save.Model?.MapName ?? "Unknown";
+                string displayName = save.Model?.Text ?? "Unknown";
                 string fileName = System.IO.Path.GetFileName(save.FileName);
                 return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"load {fileName}"),
                     CreateDeleteCommand(save), save);
