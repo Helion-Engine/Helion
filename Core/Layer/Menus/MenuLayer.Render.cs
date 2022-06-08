@@ -99,7 +99,7 @@ public partial class MenuLayer
     private void DrawSaveRow(IHudRenderContext hud, MenuSaveRowComponent saveRowComponent, bool isSelected,
         ref int offsetY)
     {
-        const int LeftOffset = 64;
+        const int LeftOffset = 32;
         const int RowVerticalPadding = 4;
         const int SelectionOffsetX = 4;
         const int RowOffsetY = 7;
@@ -135,7 +135,9 @@ public partial class MenuLayer
         hud.Image(LeftBarName, (offsetX, offsetY + RowOffsetY));
         offsetX += leftDim.Width;
 
-        int blocks = (int)Math.Ceiling((MenuSaveRowComponent.PixelWidth - leftDim.Width - rightDim.Width) / (double)midDim.Width) + 1;
+        const int MenuRowWidth = 248;
+
+        int blocks = (int)Math.Ceiling((MenuRowWidth - leftDim.Width - rightDim.Width) / (double)midDim.Width) + 1;
         for (int i = 0; i < blocks; i++)
         {
             hud.Image(MiddleBarName, (offsetX, offsetY + RowOffsetY));
