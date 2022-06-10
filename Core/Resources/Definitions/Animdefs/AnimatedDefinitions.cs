@@ -10,15 +10,17 @@ public class AnimatedDefinitions
     public readonly List<AnimatedSwitch> AnimatedSwitches = new();
     public readonly List<AnimatedWarpTexture> WarpTextures = new();
     public readonly List<AnimatedCameraTexture> CameraTextures = new();
+    public readonly List<AnimatedRange> AnimatedRanges = new();
 
-    public void AddDefinitions(Entry entry)
+    public void Parse(string text)
     {
-        AnimdefsParser parser = new AnimdefsParser();
-        parser.Parse(entry);
+        AnimdefsParser parser = new();
+        parser.Parse(text);
 
         AnimatedTextures.AddRange(parser.AnimatedTextures);
         AnimatedSwitches.AddRange(parser.AnimatedSwitches);
         WarpTextures.AddRange(parser.WarpTextures);
         CameraTextures.AddRange(parser.CameraTextures);
+        AnimatedRanges.AddRange(parser.AnimatedRanges);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
@@ -322,7 +323,8 @@ public class TextureManager : ITickable
 
     private void InitAnimations()
     {
-        InitBoomAnimations();
+        InitRangeAnimations(m_archiveCollection.Definitions.BoomAnimated.AnimatedTextures);
+        InitRangeAnimations(m_archiveCollection.Definitions.Animdefs.AnimatedRanges);
         InitAnimDefs();
     }
 
@@ -353,34 +355,49 @@ public class TextureManager : ITickable
         }
     }
 
-    private void InitBoomAnimations()
+    private void InitRangeAnimations(IEnumerable<IAnimatedRange> animatedRanges)
     {
-        foreach (var animTexture in m_archiveCollection.Definitions.BoomAnimated.AnimatedTextures)
+        foreach (IAnimatedRange range in animatedRanges)
         {
-            ResourceNamespace resNamespace = animTexture.IsTexture ? ResourceNamespace.Textures : ResourceNamespace.Flats;
-            int startIndex = GetTexture(animTexture.StartTexture, resNamespace).Index;
-            if (startIndex == Constants.NoTextureIndex)
-                continue;
-            int endIndex = GetTexture(animTexture.EndTexture, resNamespace).Index;
-            if (endIndex == Constants.NoTextureIndex)
+            GetAnimatedRangeIndicies(range, out int startIndex, out int endIndex);
+            if (startIndex == Constants.NoTextureIndex || endIndex == Constants.NoTextureIndex)
                 continue;
 
             if (endIndex <= startIndex)
                 continue;
 
-            Animation animation = new(new AnimatedTexture(GetTexture(startIndex).Name, false, resNamespace), startIndex);
+            Animation animation = new(new AnimatedTexture(GetTexture(startIndex).Name, false, range.Namespace), startIndex);
             m_animations.Add(animation);
 
             for (int i = startIndex; i <= endIndex; i++)
             {
                 Texture texture = GetTexture(i);
                 var component = new AnimatedTextureComponent(texture.Name,
-                    animTexture.Tics, animTexture.Tics, textureIndex: i);
+                    range.MinTics, range.MaxTics, textureIndex: i);
                 animation.AnimatedTexture.Components.Add(component);
             }
 
             CreateComponentAnimations(animation);
         }
+    }
+
+    private void GetAnimatedRangeIndicies(IAnimatedRange range, out int startIndex, out int endIndex)
+    {
+        if (range.StartTextureIndex == -1)
+            startIndex = GetTexture(range.StartTexture, range.Namespace).Index;
+        else
+            startIndex = range.StartTextureIndex;
+
+        if (range.EndTextureIndex == -1)
+            endIndex = GetTexture(range.EndTexture, range.Namespace).Index;
+        else
+            endIndex = range.EndTextureIndex;
+
+        if (startIndex < Constants.NoTextureIndex)
+            startIndex = Constants.NoTextureIndex;
+
+        if (endIndex <= Constants.NoTextureIndex)
+            endIndex = Constants.NoTextureIndex;
     }
 
     private void CreateComponentAnimations(Animation animation)

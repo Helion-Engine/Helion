@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs.Textures;
-using Helion.Resources.Definitions.Boom;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
-using MoreLinq.Extensions;
 
 namespace Helion.Resources.Definitions.Animdefs;
 
@@ -17,12 +13,12 @@ public class AnimdefsParser
     public readonly IList<AnimatedSwitch> AnimatedSwitches = new List<AnimatedSwitch>();
     public readonly IList<AnimatedWarpTexture> WarpTextures = new List<AnimatedWarpTexture>();
     public readonly IList<AnimatedCameraTexture> CameraTextures = new List<AnimatedCameraTexture>();
-    public readonly IList<BoomAnimatedTexture> BoomAnimatedTextures = new List<BoomAnimatedTexture>();
+    public readonly IList<AnimatedRange> AnimatedRanges = new List<AnimatedRange>();
 
-    public void Parse(Entry entry)
+    public void Parse(string text)
     {
         SimpleParser parser = new();
-        parser.Parse(entry.ReadDataAsString());
+        parser.Parse(text);
 
         while (!parser.IsDone())
             ConsumeDefinition(parser);
@@ -71,64 +67,7 @@ public class AnimdefsParser
         WarpTextures.Add(new AnimatedWarpTexture(name, resourceNamespace, speed, allowDecals, waterEffect));
     }
 
-    private (string baseText, int endingNumberIndex) FindTextureRangeFrom(SimpleParser parser, string textureName)
-    {
-        int rightmostNumberChar = textureName.Length - 1;
-
-        for (int i = textureName.Length - 1; i >= 0; i--)
-        {
-            if (char.IsNumber(textureName[i]))
-                rightmostNumberChar = i;
-            else
-                break;
-        }
-
-        string baseStr = textureName.Substring(0, rightmostNumberChar);
-        string numStr = textureName.Substring(rightmostNumberChar);
-
-        if (!int.TryParse(numStr, out int value))
-            throw parser.MakeException($"Could not find ending numbers for texture {textureName} to make animation range from");
-
-        return (baseStr, value);
-    }
-
-    private void GenerateComponentsFrom(string textureBase, int startIndex, int endIndex, int padding,
-        int minTicks, int maxTicks, bool oscillate, AnimatedTexture texture)
-    {
-        List<AnimatedTextureComponent> components = new List<AnimatedTextureComponent>();
-
-        for (int i = startIndex; i <= endIndex; i++)
-        {
-            string textureName = textureBase + i.ToString().PadLeft(padding, '0');
-            AnimatedTextureComponent component = new AnimatedTextureComponent(textureName, minTicks, maxTicks);
-            components.Add(component);
-        }
-
-        // If we have [A, B, C, D], we want [A, B, C, D, C, B] if there is
-        // oscillation. Otherwise we can just add it directly.
-        if (oscillate)
-            components.AsEnumerable().Reverse().Skip(1).Take(components.Count - 2).ForEach(texture.Components.Add);
-        else
-            components.ForEach(texture.Components.Add);
-    }
-
-    private void CreateComponentsFromRange(SimpleParser parser, AnimatedTexture texture, string endName, int minTicks, int maxTicks,
-        bool oscillate)
-    {
-        if (texture.Name.Length != endName.Length)
-            throw parser.MakeException($"Cannot create animation range for {texture.Name} to {endName} due to mismatched text lengths");
-
-        (string textureBaseText, int startIndex) = FindTextureRangeFrom(parser, texture.Name);
-        (string endBaseText, int endIndex) = FindTextureRangeFrom(parser, endName);
-
-        if (textureBaseText != endBaseText)
-            throw parser.MakeException($"Range animdefs texture mismatch: {textureBaseText} (from {texture.Name}) and {endBaseText} (from {endName}) should match");
-
-        int padding = texture.Name.Length - textureBaseText.Length;
-        GenerateComponentsFrom(textureBaseText, startIndex, endIndex, padding, minTicks, maxTicks, oscillate, texture);
-    }
-
-    private void ConsumePicOrRangeDefinition(SimpleParser parser, AnimatedTexture texture, bool isRange)
+    private static void ConsumePic(SimpleParser parser, AnimatedTexture texture)
     {
         if (parser.PeekInteger(out _))
         {
@@ -159,13 +98,7 @@ public class AnimdefsParser
         if (minTicks > maxTicks)
             throw parser.MakeException($"Texture '{name}' has badly ordered min/max range (min is greater than max)");
 
-        if (isRange)
-        {
-            bool oscillate = parser.ConsumeIf("oscillate");
-            CreateComponentsFromRange(parser, texture, name, minTicks, maxTicks, oscillate);
-        }
-        else
-            texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
+        texture.Components.Add(new AnimatedTextureComponent(name, minTicks, maxTicks));
     }
 
     private static void ParseAnimatedIndex(SimpleParser parser, AnimatedTexture texture)
@@ -180,8 +113,8 @@ public class AnimdefsParser
     {
         bool optional = parser.ConsumeIf("OPTIONAL");
         string name = parser.ConsumeString();
-
-        AnimatedTexture texture = new AnimatedTexture(name, optional, resourceNamespace);
+        bool addTexture = true;
+        AnimatedTexture texture = new(name, optional, resourceNamespace);
 
         while (true)
         {
@@ -190,19 +123,57 @@ public class AnimdefsParser
             else if (parser.ConsumeIf("OSCILLATE"))
                 texture.Oscillate = true;
             else if (parser.ConsumeIf("PIC"))
-                ConsumePicOrRangeDefinition(parser, texture, false);
+                ConsumePic(parser, texture);
             else if (parser.ConsumeIf("RANDOM"))
                 texture.Random = true;
             else if (parser.ConsumeIf("RANGE"))
-                ConsumePicOrRangeDefinition(parser, texture, true);
+            {
+                ConsumeRangeDefinition(parser, texture);
+                addTexture = false;
+            }
             else
                 break;
         }
+
+        if (!addTexture)
+            return;
 
         if (texture.Components.Empty())
             throw parser.MakeException($"Animated definition for '{name}' has no animation components");
 
         AnimatedTextures.Add(texture);
+    }
+
+    private void ConsumeRangeDefinition(SimpleParser parser, AnimatedTexture texture)
+    {
+        string endTexture = parser.ConsumeString();
+        int minTics = -1;
+        int maxTics = -1;
+
+        if (parser.ConsumeIf("tics"))
+        {
+            minTics = maxTics = parser.ConsumeInteger();
+        }
+        else if (parser.ConsumeIf("rand"))
+        {
+            minTics = parser.ConsumeInteger();
+            maxTics = parser.ConsumeInteger();
+        }
+
+        bool oscillate = parser.ConsumeIf("Oscillate");
+
+        AnimatedRange range = new()
+        {
+            StartTexture = texture.Name,
+            EndTexture = endTexture,
+            MinTics = minTics,
+            MaxTics = maxTics,
+            Namespace = texture.Namespace,
+            Optional = texture.Optional,
+            Oscillate = oscillate
+        };
+
+        AnimatedRanges.Add(range);
     }
 
     private static void ConsumeSwitchPic(SimpleParser parser, AnimatedSwitch animatedSwitch, bool on)

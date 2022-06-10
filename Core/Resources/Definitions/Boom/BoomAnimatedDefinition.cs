@@ -17,12 +17,14 @@ public class BoomAnimatedDefinition
             if (data[i] == 255 || data.Length - i < AnimLength)
                 break;
 
+            int tics = data[i + 19] | data[i + 20] << 8 | data[i + 21] << 16 | data[i + 22] << 24;
             AnimatedTextures.Add(new BoomAnimatedTexture()
             {
                 IsTexture = (data[i] & 1) != 0,
                 StartTexture = BoomParseUtil.GetString(data, i + 10, BoomParseUtil.NameLength),
                 EndTexture = BoomParseUtil.GetString(data, i + 1, BoomParseUtil.NameLength),
-                Tics = data[i + 19] | data[i + 20] << 8 | data[i + 21] << 16 | data[i + 22] << 24
+                MinTics = tics,
+                MaxTics = tics
             });
         }
     }

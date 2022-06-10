@@ -68,7 +68,7 @@ public class DefinitionEntries
 
         m_entryNameToAction["ANIMATED"] = entry => BoomAnimated.Parse(entry);
         m_entryNameToAction["SWITCHES"] = entry => BoomSwitches.Parse(entry);
-        m_entryNameToAction["ANIMDEFS"] = entry => Animdefs.AddDefinitions(entry);
+        m_entryNameToAction["ANIMDEFS"] = entry => ParseEntry(ParseAnimDefs, entry);
         m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
         m_entryNameToAction["DECORATE"] = entry => ParseDecorate(entry);
         m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
@@ -127,6 +127,7 @@ public class DefinitionEntries
         return true;
     }
 
+    private void ParseAnimDefs(string text) => Animdefs.Parse(text);
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
