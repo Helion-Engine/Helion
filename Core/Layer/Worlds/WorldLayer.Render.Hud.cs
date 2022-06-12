@@ -28,7 +28,7 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
-    private const int DebugFontSize = 16;
+    private const int DebugFontSize = 8;
     private const int LeftOffset = 1;
     private const int TopOffset = 1;
     private const int MessageSpacing = 1;
@@ -43,6 +43,7 @@ public partial class WorldLayer
     private int m_fontHeight = 16;
     private int m_padding = 4;
     private float m_scale = 1.0f;
+    private int m_infoFontSize = DebugFontSize;
     private Dimension m_viewport;
 
     private readonly List<(ColoredString message, float alpha)> m_messages = new();
@@ -50,6 +51,7 @@ public partial class WorldLayer
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
         m_scale = (float)m_config.Hud.Scale.Value;
+        m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 12);
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
@@ -70,7 +72,6 @@ public partial class WorldLayer
         if (!m_config.Hud.ShowStats && !automapVisible)
             return;
 
-        const int InfoFontSize = 16;
         start.X = -m_padding;
         Vec2I labelPos = start;
         int maxLabelWidth = 0;
@@ -83,31 +84,31 @@ public partial class WorldLayer
 
         for (int i = 0; i < StatLabels.Length; i++)
         {
-            maxLabelWidth = Math.Max(hud.MeasureText(StatLabels[i], ConsoleFont, InfoFontSize).Width, maxLabelWidth);
-            maxValueWidth = Math.Max(hud.MeasureText(StatValues[i], ConsoleFont, InfoFontSize).Width, maxValueWidth);
+            maxLabelWidth = Math.Max(hud.MeasureText(StatLabels[i], ConsoleFont, m_infoFontSize).Width, maxLabelWidth);
+            maxValueWidth = Math.Max(hud.MeasureText(StatValues[i], ConsoleFont, m_infoFontSize).Width, maxValueWidth);
         }
 
         labelPos.X = -(maxValueWidth + m_padding);
 
         for (int i = 0; i < StatLabels.Length; i++)
         {
-            hud.Text(StatLabels[i], ConsoleFont, InfoFontSize, labelPos, out Dimension labelDim,
+            hud.Text(StatLabels[i], ConsoleFont, m_infoFontSize, labelPos, out Dimension labelDim,
                 TextAlign.Right, both: align);
             labelPos.Y += labelDim.Height;
         }
 
         labelPos = start;
-        hud.Text(StatValues[0], ConsoleFont, InfoFontSize, labelPos, out Dimension dim,
+        hud.Text(StatValues[0], ConsoleFont, m_infoFontSize, labelPos, out Dimension dim,
             TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters));
         labelPos.Y += dim.Height;
-        hud.Text(StatValues[1], ConsoleFont, InfoFontSize, labelPos, out dim,
+        hud.Text(StatValues[1], ConsoleFont, m_infoFontSize, labelPos, out dim,
             TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems));
         labelPos.Y += dim.Height;
-        hud.Text(StatValues[2], ConsoleFont, InfoFontSize, labelPos, out dim,
+        hud.Text(StatValues[2], ConsoleFont, m_infoFontSize, labelPos, out dim,
             TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets));
         labelPos.Y += dim.Height + m_padding;
 
-        hud.Text(TimeSpan.FromSeconds(World.LevelTime / 35).ToString(), ConsoleFont, InfoFontSize, labelPos, out dim,
+        hud.Text(TimeSpan.FromSeconds(World.LevelTime / 35).ToString(), ConsoleFont, m_infoFontSize, labelPos, out dim,
             TextAlign.Right, both: align, color: Color.White);
         labelPos.Y += dim.Height;
 
@@ -142,7 +143,7 @@ public partial class WorldLayer
         void DrawFpsValue(string prefix, double fps, ref int y)
         {
             string avgFps = $"{prefix}FPS: {(int)Math.Round(fps)}";
-            hud.Text(avgFps, ConsoleFont, DebugFontSize, (-m_padding, y), out Dimension avgArea,
+            hud.Text(avgFps, ConsoleFont, m_infoFontSize, (-m_padding, y), out Dimension avgArea,
                 TextAlign.Right, both: Align.TopRight);
             y += avgArea.Height + FpsMessageSpacing;
         }
@@ -160,7 +161,7 @@ public partial class WorldLayer
 
         void DrawCoordinate(char axis, double position, ref int y)
         {
-            hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, DebugFontSize,
+            hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, m_infoFontSize,
                 (-m_padding, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
                 color: Color.White);
             y += area.Height + FpsMessageSpacing;
@@ -248,19 +249,32 @@ public partial class WorldLayer
 
     private void DrawCrosshair(IHudRenderContext hud)
     {
-        const int Width = 2;
-        const int HalfWidth = Width / 2;
-        const int Length = 10;
+        int Width = Math.Max((int)(1 * m_scale), 1);
+        int HalfWidth = Math.Max(Width / 2, 1);
+        int Length = (int)(5 * m_scale);
 
         Color color = Player.CrosshairTarget.Entity == null ? Color.LawnGreen : Color.Red;
         int crosshairLength = Player.CrosshairTarget.Entity == null ? Length : (int)(Length * 0.8f);
+        int totalCrosshairLength = crosshairLength * 2;
+        if (Width == 1)
+            totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
 
-        hud.FillBox((horizontal.X, horizontal.Y, horizontal.X + (crosshairLength * 2), horizontal.Y + (HalfWidth * 2)), color);
-        hud.FillBox((vertical.X, vertical.Y, vertical.X + (HalfWidth * 2), vertical.Y + (crosshairLength * 2)), color);
+        if (Width == 1)
+        {
+            vertical.X += 1;
+            horizontal.Y += 1;
+        }
+        else
+        {
+            HalfWidth *= 2;
+        }            
+
+        hud.FillBox((horizontal.X, horizontal.Y, horizontal.X + totalCrosshairLength, horizontal.Y + HalfWidth), color);
+        hud.FillBox((vertical.X, vertical.Y, vertical.X + HalfWidth, vertical.Y + totalCrosshairLength), color);
     }
 
     private void DrawMinimalStatusBar(IHudRenderContext hud, int topRightY)
