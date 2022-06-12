@@ -353,11 +353,12 @@ public partial class WorldLayer
 
     private void DrawMinimalHudAmmo(IHudRenderContext hud)
     {
-        if (Player.Weapon == null)
+        var weapon = Player.AnimationWeapon;
+        if (weapon == null)
             return;
 
-        string ammoType = Player.Weapon.Definition.Properties.Weapons.AmmoType;
-        if (ammoType == "")
+        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
+        if (ammoType.Length == 0)
             return;
 
         int x = -m_padding;
@@ -368,11 +369,11 @@ public partial class WorldLayer
             both: Align.BottomRight);
 
         x -= textRect.Width + m_padding;
-        if (Player.Weapon.AmmoSprite.Length <= 0 || !hud.Textures.TryGet(Player.Weapon.AmmoSprite, out var handle))
+        if (weapon.AmmoSprite.Length <= 0 || !hud.Textures.TryGet(weapon.AmmoSprite, out var handle))
             return;
 
         x -= (int)(handle.Dimension.Width * m_scale);
-        hud.Image(Player.Weapon.AmmoSprite, (x, y), both: Align.BottomRight, scale: m_scale);
+        hud.Image(weapon.AmmoSprite, (x, y), both: Align.BottomRight, scale: m_scale);
     }
 
     private void DrawFullStatusBar(IHudRenderContext hud)
@@ -429,9 +430,10 @@ public partial class WorldLayer
         const int OffsetY = 171;
         const int FontSize = 15;
 
-        if (Player.Weapon != null && Player.Weapon.Definition.Properties.Weapons.AmmoType != "")
+        var weapon = Player.AnimationWeapon;
+        if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)
         {
-            int ammoAmount = Player.Inventory.Amount(Player.Weapon.Definition.Properties.Weapons.AmmoType);
+            int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
             string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
             hud.Text(ammo, LargeHudFont, FontSize, (43, OffsetY), anchor: Align.TopRight);
         }
