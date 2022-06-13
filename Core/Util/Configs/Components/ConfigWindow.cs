@@ -15,4 +15,7 @@ public class ConfigWindow
 
     [ConfigInfo("The state of the window, such as if it is fullscreen or windowed.")]
     public readonly ConfigValue<WindowState> State = new(WindowState.Fullscreen, OnlyValidEnums<WindowState>());
+
+    [ConfigInfo("The display number for the window. (0 = default. Use command ListDisplays for display numbers).")]
+    public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 }

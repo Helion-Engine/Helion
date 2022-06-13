@@ -51,6 +51,19 @@ public partial class Client
             Log.Info(commands[i]);
     }
 
+    [ConsoleCommand("listdisplays", "Lists all available displays.")]
+    private void CommandListDisplays(ConsoleCommandEventArgs args)
+    {
+        var monitors = m_window.GetMonitorInfo();
+        int index = 1;
+        foreach (var info in monitors)
+        {
+            Log.Info($"{index}: {info.HorizontalResolution}, {info.VerticalResolution}");
+            index++;
+        }
+    }
+
+
     [ConsoleCommand("audioDevice", "Sets a new audio device; can list devices with 'audioDevices'")]
     [ConsoleCommandArg("deviceIndex", "The device number from 'audioDevices' command")]
     private void CommandSetAudioDevice(ConsoleCommandEventArgs args)

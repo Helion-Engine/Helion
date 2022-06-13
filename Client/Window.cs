@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -65,6 +66,17 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
+    public List<MonitorInfo> GetMonitorInfo()
+    {
+        List<MonitorInfo> monitors = new(Monitors.Count);
+        for(int i = 0; i < Monitors.Count; i++)
+        {
+            if (Monitors.TryGetMonitorInfo(i, out MonitorInfo info))
+                monitors.Add(info);
+        }
+        return monitors;
+    }
+
     ~Window()
     {
         FailedToDispose(this);
@@ -83,7 +95,7 @@ public class Window : GameWindow, IWindow
     {
         (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
 
-        return new NativeWindowSettings
+        var settings = new NativeWindowSettings
         {
             Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
             APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
@@ -93,8 +105,25 @@ public class Window : GameWindow, IWindow
             Size = new Vector2i(windowWidth, windowHeight),
             Title = Constants.ApplicationName,
             WindowBorder = config.Window.Border,
-            WindowState = config.Window.State
+            WindowState = config.Window.State,
         };
+
+        SetDisplay(config, settings);
+        return settings;
+    }
+
+    private static void SetDisplay(IConfig config, NativeWindowSettings settings)
+    {
+        if (config.Window.Display.Value <= 0)
+            return;
+
+        if (!Monitors.TryGetMonitorInfo(config.Window.Display.Value - 1, out MonitorInfo monitorInfo))
+        {
+            Log.Error($"Invalid display number: {config.Window.Display.Value}");
+            return;
+        }
+        
+        settings.CurrentMonitor = monitorInfo.Handle;
     }
 
     public void SetGrabCursor(bool set) => CursorGrabbed = set;
