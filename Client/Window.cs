@@ -66,14 +66,23 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
-    public List<MonitorInfo> GetMonitorInfo()
+    public List<MonitorData> GetMonitors(out MonitorData? currentMonitor)
     {
-        List<MonitorInfo> monitors = new(Monitors.Count);
+        currentMonitor = null;
+        var currentHandle = Monitors.GetMonitorFromWindow(this);
+        List<MonitorData> monitors = new(Monitors.Count);
         for(int i = 0; i < Monitors.Count; i++)
         {
-            if (Monitors.TryGetMonitorInfo(i, out MonitorInfo info))
-                monitors.Add(info);
+            if (!Monitors.TryGetMonitorInfo(i, out MonitorInfo info))
+                continue;
+
+            var monitorData = new MonitorData(i, info.HorizontalResolution, info.VerticalResolution, info.Handle);
+            monitors.Add(monitorData);
+
+            if (info.Handle.Pointer == currentHandle.Pointer)
+                currentMonitor = monitorData;
         }
+
         return monitors;
     }
 

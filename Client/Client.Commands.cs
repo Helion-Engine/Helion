@@ -54,12 +54,11 @@ public partial class Client
     [ConsoleCommand("listdisplays", "Lists all available displays.")]
     private void CommandListDisplays(ConsoleCommandEventArgs args)
     {
-        var monitors = m_window.GetMonitorInfo();
-        int index = 1;
-        foreach (var info in monitors)
+        var monitors = m_window.GetMonitors(out var currentMonitor);
+        foreach (var monitor in monitors)
         {
-            Log.Info($"{index}: {info.HorizontalResolution}, {info.VerticalResolution}");
-            index++;
+            string current = (currentMonitor != null && monitor.Index == currentMonitor.Index ? "[Current]" : string.Empty);
+            Log.Info($"{monitor.Index+1}: {monitor.HorizontalResolution}, {monitor.VerticalResolution}{current}");
         }
     }
 
