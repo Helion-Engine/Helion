@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
@@ -59,7 +58,6 @@ public class RenderableString
         double scale = (double)fontSize / font.MaxHeight;
         int currentWidth = 0;
         int currentHeight = 0;
-        Dimension imgDim = font.Image.Dimension;
         List<RenderableGlyph> currentSentence = new();
         List<RenderableSentence> sentences = new();
 
@@ -98,7 +96,7 @@ public class RenderableString
 
         void CreateAndAddSentenceIfPossible()
         {
-            if (currentSentence.Empty())
+            if (currentSentence.Count == 0)
                 return;
 
             RenderableSentence sentence = new(currentSentence);
@@ -106,19 +104,23 @@ public class RenderableString
 
             currentWidth = 0;
             currentHeight += sentence.DrawArea.Height;
-            currentSentence.Clear();
         }
     }
 
     private Dimension CalculateDrawArea()
     {
-        if (Sentences.Empty())
+        if (Sentences.Count == 0)
             return default;
 
         // We want to pick the largest X, but sum up the Y.
-        Vec2I point = Sentences
-            .Select(s => s.DrawArea.Vector)
-            .Aggregate((acc, area) => new Vec2I(Math.Max(acc.X, area.X), acc.Y + area.Y));
+        Vec2I point = Vec2I.Zero;
+        foreach (var sentence in Sentences)
+        {
+            if (sentence.DrawArea.Vector.X > point.X)
+                point.X = sentence.DrawArea.Vector.X;
+
+            point.Y += sentence.DrawArea.Vector.Y;
+        }
 
         return (point.X, point.Y);
     }

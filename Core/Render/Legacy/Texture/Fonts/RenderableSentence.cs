@@ -23,22 +23,25 @@ public class RenderableSentence
     /// </summary>
     public readonly List<RenderableGlyph> Glyphs;
 
-    public RenderableSentence(IReadOnlyCollection<RenderableGlyph> glyphs)
+    public RenderableSentence(List<RenderableGlyph> glyphs)
     {
-        Glyphs = glyphs.ToList();
+        Glyphs = glyphs;
         DrawArea = CalculateDrawArea(glyphs);
     }
 
     private static Dimension CalculateDrawArea(IEnumerable<RenderableGlyph> glyphs)
     {
-        return glyphs.Select(g => g.Coordinates)
-                     .Aggregate((acc, glyphLoc) =>
-                     {
-                         int x = Math.Max(acc.Width, glyphLoc.Right);
-                         int y = Math.Max(acc.Height, glyphLoc.Height);
-                         return new ImageBox2I(0, 0, x, y);
-                     })
-                     .ToDimension();
+        int width = 0;
+        int height = 0;
+        foreach (var glyph in glyphs)
+        {
+            if (glyph.Coordinates.Right > width)
+                width = glyph.Coordinates.Right;
+            if (glyph.Coordinates.Height > height)
+                height = glyph.Coordinates.Height;
+        }
+
+        return new Dimension(width, height);
     }
 
     public override string ToString() => new(Glyphs.Select(g => g.Character).ToArray());
