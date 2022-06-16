@@ -381,16 +381,30 @@ public partial class WorldLayer
         const int FullHudFaceX = 149;
         const int FullHudFaceY = 170;
         const string StatusBar = "STBAR";
-        const string StatusBackground = "W94_1";
+
+        if (hud.Textures.TryGet(StatusBar, out var statusBarHandle))
+            DrawStatusBarBackground(hud, statusBarHandle);
+
+        hud.RenderStatusBar(StatusBar);
 
         hud.DoomVirtualResolution(() =>
         {
-            if (!hud.Textures.TryGet(StatusBackground, out var backgroundHandle) ||
-                !hud.Textures.TryGet(StatusBar, out var barHandle))
-            {
-                return;
-            }
+            DrawFullHudHealthArmorAmmo(hud);
+            DrawFullHudWeaponSlots(hud);
+            DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
+            DrawFullHudKeys(hud);
+            DrawFullTotalAmmo(hud);
+        });
+    }
 
+    private static void DrawStatusBarBackground(IHudRenderContext hud, Render.Common.Textures.IRenderableTextureHandle barHandle)
+    {
+        const string StatusBackground = "W94_1";
+        if (!hud.Textures.TryGet(StatusBackground, out var backgroundHandle))
+            return;
+
+        hud.DoomVirtualResolution(() =>
+        {
             // NOTE: This is a terrible hack. The code to convert from
             // window space into the custom screen space, then figure out
             // the gutter, then translate back into the window space, can
@@ -411,18 +425,6 @@ public partial class WorldLayer
                 xOffset += width;
             }
         }, ResolutionScale.None);
-
-        HudBox statBox = new();
-
-        hud.DoomVirtualResolution(() =>
-        {
-            hud.Image(StatusBar, (0, 0), out statBox, both: Align.BottomLeft);
-            DrawFullHudHealthArmorAmmo(hud);
-            DrawFullHudWeaponSlots(hud);
-            DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
-            DrawFullHudKeys(hud);
-            DrawFullTotalAmmo(hud);
-        });
     }
 
     private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)

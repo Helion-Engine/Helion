@@ -7,6 +7,7 @@ using Helion.Graphics.String;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
+using Helion.Util;
 
 namespace Helion.Render.Common.Renderers;
 
@@ -148,7 +149,7 @@ public interface IHudRenderContext : IDisposable
     /// <param name="resolutionScale">The scale to use, by default is none.</param>
     void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.Center)
     {
-        VirtualDimension((320, 200), resolutionScale, 1.33333337f, action);
+        VirtualDimension((320, 200), resolutionScale, Constants.DoomVirtualAspectRatio, action);
     }
 
     /// <summary>

@@ -5,16 +5,16 @@ using System.Drawing;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
-using Helion.Layer.Menus;
+using Helion.Render.Common;
+using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Window;
-using Helion.Window.Input;
 using Helion.World.Save;
 
 namespace Helion.Layer.Images;
@@ -97,19 +97,10 @@ public class TitlepicLayer : IGameLayer
         }
 
         string image = m_pages[m_pageIndex];
-        if (hud.Textures.TryGet(image, out var handle))
+        if (hud.RenderFullscreenImage(image) && ShouldDarken)
         {
-            hud.DoomVirtualResolution(() =>
-            {
-                Dimension dim = handle.Dimension;
-                hud.Image(image, (0, 0, dim.Width, dim.Height));
-            });
-
-            if (ShouldDarken)
-            {
-                (int width, int height) = hud.Dimension;
-                hud.FillBox((0, 0, width, height), Color.Black, alpha: 0.5f);
-            }
+            (int width, int height) = hud.Dimension;
+            hud.FillBox((0, 0, width, height), Color.Black, alpha: 0.5f);
         }
 
         if (m_pages.Count > 1)

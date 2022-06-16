@@ -31,10 +31,10 @@ public partial class IntermissionLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        hud.RenderFullscreenImage(IntermissionPic);
+
         hud.DoomVirtualResolution(() =>
         {
-            hud.Image(IntermissionPic, Vec2I.Zero);
-
             DrawAnimations(hud);
             DrawPointer(hud);
             DrawTitle(hud);
