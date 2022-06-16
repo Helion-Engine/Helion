@@ -329,7 +329,7 @@ public class ArchiveCollection : IResources
             if (archive is Wad)
                 continue;
 
-            var entries = archive.Entries.Where(x => ShouldExtractWadEntry(x));
+            var entries = archive.Entries.Where(x => ShouldExtractWadEntry(archives, x));
             if (!entries.Any())
                 continue;
 
@@ -355,21 +355,39 @@ public class ArchiveCollection : IResources
         }
     }
 
-    private static bool ShouldExtractWadEntry(Entry entry)
+    private static bool ShouldExtractWadEntry(List<Archive> archives, Entry entry)
     {
-        const string MapsPath = "maps/";
-        const string MapsFolder = "maps";
+        if (!entry.Path.FullPath.EndsWithIgnoreCase(".wad"))
+            return false;
+
+        if (IsEntryInFolder(entry, "maps"))
+            return false;
+
+        if (IsEntryInFolder(entry, "autoload"))
+        {
+            foreach (var archive in archives)
+            {
+                if (IsEntryInFolder(entry, Path.GetFileName(archive.OriginalFilePath)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsEntryInFolder(Entry entry, string folder)
+    {
+        string folderPath = folder + "/";
         string path = entry.Path.FullPath;
-        if (!path.EndsWithIgnoreCase(".wad"))
+        if (path.StartsWithIgnoreCase(folderPath))
+            return true;
+
+        if (!path.GetLastFolder(out var lastFolder))
             return false;
 
-        if (path.StartsWithIgnoreCase(MapsPath))
-            return false;
-
-        if (!path.GetLastFolder(out var folder))
-            return false;
-
-        return !folder.Equals(MapsFolder, StringComparison.OrdinalIgnoreCase);
+        return lastFolder.Equals(folder, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ExtractEmbeddedFiles(List<string> files, IEnumerable<Entry> entries)
