@@ -47,7 +47,6 @@ public class RenderCommands
     public ResolutionInfo ResolutionInfo { get; private set; }
     private readonly Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
-    private Vec2I m_translateOffset = Vec2I.Zero;
     private int m_centeringOffsetX;
 
     public List<RenderCommand> Commands = new();
@@ -160,19 +159,12 @@ public class RenderCommands
         double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
         m_scale = new Vec2D(scaleWidth, scaleHeight);
 
-        if (WindowDimension.AspectRatio < ResolutionInfo.AspectRatio)
-        {
-            int diff = ResolutionInfo.VirtualDimensions.Height - ResolutionInfo.VirtualDimensions.Width;
-            int adjustX = (int)(diff * (ResolutionInfo.AspectRatio - WindowDimension.AspectRatio));
-            m_translateOffset = new Vec2I(adjustX, 0);
-        }
-
         m_centeringOffsetX = 0;
 
         // By default we're stretching, but if we're centering, our values
         // have to change to accomodate a gutter if the aspect ratios are
         // different.
-        if (resolutionInfo.Scale == ResolutionScale.Center && WindowDimension.AspectRatio > resolutionInfo.AspectRatio)
+        if (resolutionInfo.Scale == ResolutionScale.Center)
         {
             // We only want to do centering if we will end up with gutters
             // on the side. This can only happen if the virtual dimension
@@ -192,8 +184,6 @@ public class RenderCommands
         if (WindowDimension == ResolutionInfo.VirtualDimensions)
             return new ImageBox2I(x, y, x + width, y + height);
 
-        x += m_translateOffset.X;
-        y += m_translateOffset.Y;
         ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
         drawLocation = TranslateDimensions(drawLocation);
         return drawLocation;
