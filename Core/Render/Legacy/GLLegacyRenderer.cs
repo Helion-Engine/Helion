@@ -316,6 +316,11 @@ public class GLLegacyRenderer : ILegacyRenderer
     private void HandleDrawText(DrawTextCommand cmd)
     {
         m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha);
+        var dataCache = m_archiveCollection.DataCache;
+        foreach (var sentence in cmd.Text.Sentences)
+            dataCache.FreeRenderableGlyphs(sentence.Glyphs);
+        dataCache.FreeRenderableSentences(cmd.Text.Sentences);
+        dataCache.FreeRenderableString(cmd.Text);
     }
 
     private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)

@@ -6,6 +6,7 @@ using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
 using Helion.Graphics.String;
 using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Util;
 using Helion.Util.Extensions;
 
 namespace Helion.Render.Legacy.Texture.Fonts;
@@ -18,21 +19,22 @@ public class RenderableString
     /// <summary>
     /// The font used when rendering this.
     /// </summary>
-    public readonly Font Font;
+    public Font Font;
 
     /// <summary>
     /// The area that encapsulates all the glyphs.
     /// </summary>
-    public readonly Dimension DrawArea;
+    public Dimension DrawArea;
 
     /// <summary>
     /// All the glyphs and their positions to be drawn.
     /// </summary>
-    public readonly List<RenderableSentence> Sentences;
+    public List<RenderableSentence> Sentences;
 
     /// <summary>
     /// Creates a rendered string that is ready to be passed to a renderer.
     /// </summary>
+    /// <param name="dataCache">The DataCache to use.</param>
     /// <param name="font">The font to use.</param>
     /// <param name="str">The colored string to process.</param>
     /// <param name="fontSize">The height of the characters, in pixels. If
@@ -42,24 +44,34 @@ public class RenderableString
     /// <param name="align">Alignment (only needed if there are multiple
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
-    public RenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString(DataCache dataCache, ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue)
     {
         Font = font;
-        Sentences = PopulateSentences(str, font, fontSize, maxWidth);
-        DrawArea = CalculateDrawArea();
+        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth);
+        DrawArea = CalculateDrawArea(Sentences);
         AlignTo(align);
         RecalculateGlyphLocations();
     }
 
-    private static List<RenderableSentence> PopulateSentences(ColoredString str, Font font, int fontSize,
+    public void Set(DataCache dataCache, ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+        int maxWidth = int.MaxValue)
+    {
+        Font = font;
+        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth);
+        DrawArea = CalculateDrawArea(Sentences);
+        AlignTo(align);
+        RecalculateGlyphLocations();
+    }
+
+    private static List<RenderableSentence> PopulateSentences(DataCache dataCache, ColoredString str, Font font, int fontSize,
         int maxWidth)
     {
         double scale = (double)fontSize / font.MaxHeight;
         int currentWidth = 0;
         int currentHeight = 0;
-        List<RenderableGlyph> currentSentence = new();
-        List<RenderableSentence> sentences = new();
+        List<RenderableGlyph> currentSentence = dataCache.GetRenderableGlyphs();
+        List<RenderableSentence> sentences = dataCache.GetRenderableSentences();
 
         for (int i = 0; i < str.Characters.Count; i++)
         {
@@ -107,14 +119,14 @@ public class RenderableString
         }
     }
 
-    private Dimension CalculateDrawArea()
+    private static Dimension CalculateDrawArea(List<RenderableSentence> sentences)
     {
-        if (Sentences.Count == 0)
+        if (sentences.Count == 0)
             return default;
 
         // We want to pick the largest X, but sum up the Y.
         Vec2I point = Vec2I.Zero;
-        foreach (var sentence in Sentences)
+        foreach (var sentence in sentences)
         {
             if (sentence.DrawArea.Vector.X > point.X)
                 point.X = sentence.DrawArea.Vector.X;

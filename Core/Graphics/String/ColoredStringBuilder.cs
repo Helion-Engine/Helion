@@ -7,12 +7,19 @@ namespace Helion.Graphics.String;
 public class ColoredStringBuilder
 {
     private readonly StringBuilder m_builder = new();
+    private static readonly ColoredStringBuilder StringBuilder = new();
 
     public static ColoredString From(params object[] objects)
     {
-        ColoredStringBuilder builder = new();
-        builder.Append(objects);
-        return builder.Build();
+        StringBuilder.Append(objects);
+        var coloredString = StringBuilder.Build();
+        StringBuilder.Clear();
+        return coloredString;
+    }
+
+    public void Clear()
+    {
+        m_builder.Clear();
     }
 
     public ColoredStringBuilder Append(params object[] objects)

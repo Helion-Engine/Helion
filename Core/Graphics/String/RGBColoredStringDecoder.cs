@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -38,7 +39,7 @@ public class RGBColoredStringDecoder
         List<ColoredChar> coloredChars = new List<ColoredChar>();
 
         foreach (ColorRange range in GetColorRanges(str))
-            foreach (char c in str.Substring(range.StartIndex, range.EndIndex - range.StartIndex))
+            foreach (char c in str.AsSpan(range.StartIndex, range.EndIndex - range.StartIndex))
                 coloredChars.Add(new ColoredChar(c, range.Color));
 
         return new ColoredString(coloredChars);

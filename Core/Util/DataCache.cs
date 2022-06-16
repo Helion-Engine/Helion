@@ -16,6 +16,10 @@ using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
+using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Graphics.String;
+using Helion.Graphics.Fonts;
+using Helion.Render.Legacy.Commands.Alignment;
 
 namespace Helion.Util;
 
@@ -37,6 +41,11 @@ public class DataCache
     private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<List<Entity>> m_entityLists = new();
+
+    private readonly DynamicArray<List<RenderableGlyph>> m_glyphs = new();
+    private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
+    private readonly DynamicArray<RenderableString> m_strings = new();
+    private readonly DynamicArray<List<ColoredChar>> m_coloredChars = new();
 
     public WeakEntity?[] WeakEntities = new WeakEntity?[1024];
 
@@ -285,5 +294,66 @@ public class DataCache
     {
         list.Clear();
         m_entityLists.Add(list);
+    }
+
+    public List<RenderableSentence> GetRenderableSentences()
+    {
+        if (m_sentences.Length > 0)
+            return m_sentences.RemoveLast();
+
+        return new List<RenderableSentence>();
+    }
+
+    public void FreeRenderableSentences(List<RenderableSentence> list)
+    {
+        list.Clear();
+        m_sentences.Add(list);
+    }
+
+    public List<RenderableGlyph> GetRenderableGlyphs()
+    {
+        if (m_glyphs.Length > 0)
+            return m_glyphs.RemoveLast();
+
+        return new List<RenderableGlyph>();
+    }
+
+    public void FreeRenderableGlyphs(List<RenderableGlyph> list)
+    {
+        list.Clear();
+        m_glyphs.Add(list);
+    }
+
+    public RenderableString GetRenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+        int maxWidth = int.MaxValue)
+    {
+        if (m_strings.Length > 0)
+        {
+            var renderableString = m_strings.RemoveLast();
+            renderableString.Set(this, str, font, fontSize, align, maxWidth);
+        }
+
+        return new RenderableString(this, str, font, fontSize, align, maxWidth);
+    }
+
+    public void FreeRenderableString(RenderableString renderableString)
+    {
+        renderableString.Sentences = null!;
+        renderableString.Font = null!;
+        m_strings.Add(renderableString);
+    }
+
+    public List<ColoredChar> GetColoredChars()
+    {
+        if (m_coloredChars.Length > 0)
+            return m_coloredChars.RemoveLast();
+
+        return new List<ColoredChar>();
+    }
+
+    public void FreeColoredChars(List<ColoredChar> list)
+    {
+        list.Clear();
+        m_coloredChars.Add(list);
     }
 }

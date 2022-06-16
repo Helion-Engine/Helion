@@ -174,7 +174,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
 
         int scaledFontSize = (int)(fontSize * scale);
         Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
-        RenderableString renderableString = new(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -210,7 +210,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         int scaledFontSize = (int)(fontSize * scale);
         Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
         ColoredString coloredString = RGBColoredStringDecoder.Decode($"{colorPrefix}{text}");
-        RenderableString renderableString = new(coloredString, fontObject, scaledFontSize, legacyAlign, maxWidth);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(coloredString, fontObject, scaledFontSize, legacyAlign, maxWidth);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -230,7 +230,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
 
         int scaledFontSize = (int)(fontSize * scale);
         ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
-        RenderableString renderableString = new(coloredString, fontObject, scaledFontSize, align, maxWidth);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(coloredString, fontObject, scaledFontSize, align, maxWidth);
         return renderableString.DrawArea;
     }
 
