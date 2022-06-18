@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using Helion.Graphics.String;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
@@ -147,21 +146,7 @@ public class HelionConsole : Target
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
     }
 
-    /// <summary>
-    /// Adds a new message to the console.
-    /// </summary>
-    /// <remarks>
-    /// If this message causes the console to exceed the capacity, then it
-    /// will remove the older messages to make space for this message.
-    /// </remarks>
-    /// <param name="message">The message to add.</param>
-    public void AddMessage(string message)
-    {
-        if (message.Empty())
-            return;
-
-        AddMessage(RGBColoredStringDecoder.Decode(message));
-    }
+    public void AddMessage(string message) => AddMessage(Color.White, message);
 
     /// <summary>
     /// Adds a new message to the console.
@@ -171,12 +156,12 @@ public class HelionConsole : Target
     /// will remove the older messages to make space for this message.
     /// </remarks>
     /// <param name="message">The message to add.</param>
-    public void AddMessage(ColoredString message)
+    public void AddMessage(Color color, string message)
     {
-        if (message.Characters.Count == 0)
+        if (message.Length == 0)
             return;
 
-        Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime()));
+        Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime(), color));
         RemoveExcessMessagesIfAny();
     }
 
@@ -219,19 +204,19 @@ public class HelionConsole : Target
         switch (logEvent.Level.Ordinal)
         {
         case 0:
-            AddMessage(ColoredStringBuilder.From(TraceColor, logEvent.FormattedMessage));
+            AddMessage(TraceColor, logEvent.FormattedMessage);
             break;
         case 1:
-            AddMessage(ColoredStringBuilder.From(DebugColor, logEvent.FormattedMessage));
+            AddMessage(DebugColor, logEvent.FormattedMessage);
             break;
         case 2:
-            AddMessage(logEvent.FormattedMessage);
+            AddMessage(Color.White, logEvent.FormattedMessage);
             break;
         case 3:
-            AddMessage(ColoredStringBuilder.From(Color.Yellow, logEvent.FormattedMessage));
+            AddMessage(Color.Yellow, logEvent.FormattedMessage);
             break;
         case >= 4 and <= 6:
-            AddMessage(ColoredStringBuilder.From(Color.Red, logEvent.FormattedMessage));
+            AddMessage(Color.Red, logEvent.FormattedMessage);
             break;
         default:
             Fail("Unexpected log level detected, outside of NLog ordinal range");

@@ -17,9 +17,9 @@ using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
 using Helion.Render.Legacy.Texture.Fonts;
-using Helion.Graphics.String;
 using Helion.Graphics.Fonts;
 using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Render.Legacy.Renderers.Legacy.Hud;
 
 namespace Helion.Util;
 
@@ -45,7 +45,7 @@ public class DataCache
     private readonly DynamicArray<List<RenderableGlyph>> m_glyphs = new();
     private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
-    private readonly DynamicArray<List<ColoredChar>> m_coloredChars = new();
+    private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
 
     public WeakEntity?[] WeakEntities = new WeakEntity?[1024];
 
@@ -304,7 +304,7 @@ public class DataCache
         return new List<RenderableSentence>();
     }
 
-    public void FreeRenderableSentences(List<RenderableSentence> list)
+    private void FreeRenderableSentences(List<RenderableSentence> list)
     {
         list.Clear();
         m_sentences.Add(list);
@@ -318,19 +318,20 @@ public class DataCache
         return new List<RenderableGlyph>();
     }
 
-    public void FreeRenderableGlyphs(List<RenderableGlyph> list)
+    private void FreeRenderableGlyphs(List<RenderableGlyph> list)
     {
         list.Clear();
         m_glyphs.Add(list);
     }
 
-    public RenderableString GetRenderableString(ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString GetRenderableString(string str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue)
     {
         if (m_strings.Length > 0)
         {
             var renderableString = m_strings.RemoveLast();
             renderableString.Set(this, str, font, fontSize, align, maxWidth);
+            return renderableString;
         }
 
         return new RenderableString(this, str, font, fontSize, align, maxWidth);
@@ -338,22 +339,31 @@ public class DataCache
 
     public void FreeRenderableString(RenderableString renderableString)
     {
+        foreach (var sentence in renderableString.Sentences)
+            FreeRenderableGlyphs(sentence.Glyphs);
+        FreeRenderableSentences(renderableString.Sentences);
+
         renderableString.Sentences = null!;
         renderableString.Font = null!;
         m_strings.Add(renderableString);
     }
 
-    public List<ColoredChar> GetColoredChars()
+    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture)
     {
-        if (m_coloredChars.Length > 0)
-            return m_coloredChars.RemoveLast();
+        if (m_hudDrawBufferData.Length > 0)
+        {
+            var buffer = m_hudDrawBufferData.RemoveLast();
+            buffer.Set(texture);
+            return buffer;
+        }
 
-        return new List<ColoredChar>();
+        return new HudDrawBufferData(texture);
     }
 
-    public void FreeColoredChars(List<ColoredChar> list)
+    public void FreeDrawHudBufferData(HudDrawBufferData data)
     {
-        list.Clear();
-        m_coloredChars.Add(list);
+        data.Texture = null!;
+        data.Vertices.Clear();
+        m_hudDrawBufferData.Add(data);
     }
 }

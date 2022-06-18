@@ -2,7 +2,6 @@ using System;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.String;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;

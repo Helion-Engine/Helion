@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -46,7 +45,7 @@ public partial class WorldLayer
     private int m_infoFontSize = DebugFontSize;
     private Dimension m_viewport;
 
-    private readonly List<(ColoredString message, float alpha)> m_messages = new();
+    private readonly List<(string message, float alpha)> m_messages = new();
 
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {

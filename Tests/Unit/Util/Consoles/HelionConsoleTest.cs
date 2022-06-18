@@ -14,7 +14,7 @@ public class HelionConsoleTest
         console.AddMessage("hello!");
 
         console.Messages.Count.Should().Be(1);
-        console.Messages.First!.Value.Message.String.Should().Be("hello!");
+        console.Messages.First!.Value.Message.Should().Be("hello!");
     }
 
     [Fact(DisplayName = "Add input to console")]

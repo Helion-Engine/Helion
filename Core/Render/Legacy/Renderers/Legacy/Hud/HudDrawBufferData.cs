@@ -5,10 +5,15 @@ namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
 
 public class HudDrawBufferData
 {
-    public readonly GLLegacyTexture Texture;
-    public readonly List<HudVertex> Vertices = new List<HudVertex>();
+    public GLLegacyTexture Texture;
+    public readonly List<HudVertex> Vertices = new();
 
     public HudDrawBufferData(GLLegacyTexture texture)
+    {
+        Texture = texture;
+    }
+
+    public void Set(GLLegacyTexture texture)
     {
         Texture = texture;
     }

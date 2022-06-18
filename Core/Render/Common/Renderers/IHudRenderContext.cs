@@ -3,7 +3,6 @@ using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.String;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
@@ -90,17 +89,6 @@ public interface IHudRenderContext : IDisposable
     {
         Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, scale, alpha);
     }
-
-    void Text(ColoredString text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
-        Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
-        int maxHeight = int.MaxValue, float scale = 1.0f, float alpha = 1.0f)
-    {
-        Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, scale, alpha);
-    }
-
-    void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left,
-        Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
-        int maxHeight = int.MaxValue, float scale = 1.0f, float alpha = 1.0f);
 
     void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,

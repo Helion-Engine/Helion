@@ -15,6 +15,7 @@ using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -34,15 +35,16 @@ public class LegacyHudRenderer : HudRenderer
     private readonly VertexArrayObject m_vao;
     private readonly StreamVertexBuffer<HudVertex> m_vbo;
     private readonly LegacyHudShader m_shaderProgram;
-    private readonly HudDrawBuffer m_drawBuffer = new();
+    private readonly HudDrawBuffer m_drawBuffer;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
+    public LegacyHudRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager, DataCache dataCache)
     {
         gl = functions;
         m_textureManager = textureManager;
         m_vao = new VertexArrayObject(capabilities, functions, Attributes, "VAO: Hud renderer");
         m_vbo = new StreamVertexBuffer<HudVertex>(capabilities, functions, m_vao, "VBO: Hud renderer");
+        m_drawBuffer = new(dataCache);
 
         using (ShaderBuilder shaderBuilder = LegacyHudShader.MakeBuilder(functions))
             m_shaderProgram = new LegacyHudShader(functions, shaderBuilder, Attributes);

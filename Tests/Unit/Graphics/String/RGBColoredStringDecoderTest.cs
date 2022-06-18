@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using FluentAssertions;
-using Helion.Graphics.String;
+using Helion.Graphics.Fonts;
+using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Util;
 using Xunit;
 
 namespace Helion.Tests.Unit.Graphics.String;
@@ -10,7 +13,11 @@ public class RGBColoredStringDecoderTest
 {
     private static void AssertMatches(string rawString, params Tuple<string, Color>[] expectedColors)
     {
-        ColoredString colorStr = RGBColoredStringDecoder.Decode(rawString);
+        DataCache dataCache = new();
+        var image = new Helion.Graphics.Image(new Bitmap(16, 16), Helion.Graphics.ImageType.Argb);
+        var glyphs = new Dictionary<char, Glyph>() { { 'A', new Glyph() } };
+        var font = new Helion.Graphics.Fonts.Font("test", glyphs, image);
+        RenderableString colorStr = new(dataCache, rawString, font, 12);
 
         int startIndex = 0;
         int endIndex = 0;
@@ -24,26 +31,27 @@ public class RGBColoredStringDecoderTest
             for (int i = startIndex; i < endIndex; i++)
             {
                 char expectedChar = str[i - startIndex];
-                colorStr.Characters[i].Char.Should().Be(expectedChar);
-                colorStr.Characters[i].Color.Should().Be(color);
+                colorStr.Sentences[0].Glyphs[i].Character.Should().Be(expectedChar);
+                colorStr.Sentences[0].Glyphs[i].Color.Should().Be(color);
             }
 
             startIndex = endIndex;
         }
 
-        colorStr.Characters.Count.Should().Be(endIndex);
+        if (rawString.Length > 0)
+            colorStr.Sentences[0].Glyphs.Count.Should().Be(endIndex);
     }
 
     [Fact(DisplayName = "Checks empty string")]
     public void EmptyString()
     {
-        AssertMatches("", Tuple.Create("", ColoredString.DefaultColor));
+        AssertMatches("", Tuple.Create("", RenderableString.DefaultColor));
     }
 
     [Fact(DisplayName = "Handles no color decoding")]
     public void NoColorDecoding()
     {
-        AssertMatches("some str", Tuple.Create("some str", ColoredString.DefaultColor));
+        AssertMatches("some str", Tuple.Create("some str", RenderableString.DefaultColor));
     }
 
     [Fact(DisplayName = "Handles a single color")]
@@ -55,7 +63,7 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Color at end of the string does nothing")]
     public void ColorAtEndOfStringDoesNothing()
     {
-        AssertMatches(@"some str\c[1,2,3]", Tuple.Create("some str", ColoredString.DefaultColor));
+        AssertMatches(@"some str\c[1,2,3]", Tuple.Create("some str", RenderableString.DefaultColor));
     }
 
     [Fact(DisplayName = "Decodes multiple colors")]
@@ -67,7 +75,7 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Malformed color codes are ignored")]
     public void MalformedColorCodeIsIgnored()
     {
-        AssertMatches(@"\c[0,0,0hi", Tuple.Create(@"\c[0,0,0hi", ColoredString.DefaultColor));
+        AssertMatches(@"\c[0,0,0hi", Tuple.Create(@"\c[0,0,0hi", RenderableString.DefaultColor));
     }
 
     [Fact(DisplayName = "Not allowed to do RGB values larger than 255")]
@@ -79,6 +87,6 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Negatives for RGB do not work")]
     public void CannotUseNegatives()
     {
-        AssertMatches(@"\c[0,-5,1]hi", Tuple.Create(@"\c[0,-5,1]hi", ColoredString.DefaultColor));
+        AssertMatches(@"\c[0,-5,1]hi", Tuple.Create(@"\c[0,-5,1]hi", RenderableString.DefaultColor));
     }
 }

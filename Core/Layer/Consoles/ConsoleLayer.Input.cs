@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Helion.Graphics.String;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Consoles.Commands;
@@ -236,15 +235,8 @@ public partial class ConsoleLayer
 
         void EmitMessage(params (Color color, string message)[] sentencePieces)
         {
-            List<object> elements = new();
             foreach ((Color color, string message) in sentencePieces)
-            {
-                elements.Add(color);
-                elements.Add(message);
-            }
-
-            ColoredString str = ColoredStringBuilder.From(elements.ToArray());
-            m_console.AddMessage(str);
+                m_console.AddMessage(color, message);
         }
     }
 

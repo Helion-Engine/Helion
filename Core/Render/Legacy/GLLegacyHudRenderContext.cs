@@ -5,7 +5,6 @@ using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
-using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -155,7 +154,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         drawArea = (location, location + drawDim.Vector);
     }
 
-    public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
+    public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
         TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float scale = 1.0f,
         float alpha = 1.0f)
@@ -189,8 +188,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         float scale = 1.0f, float alpha = 1.0f)
     {
         drawArea = default;
-
-        if (m_context == null)
+        if (m_context == null || text.Length == 0)
             return;
 
         Font? fontObject = m_archiveCollection.GetFont(font);
@@ -209,8 +207,13 @@ public class GLLegacyHudRenderContext : IHudRenderContext
 
         int scaledFontSize = (int)(fontSize * scale);
         Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
-        ColoredString coloredString = RGBColoredStringDecoder.Decode($"{colorPrefix}{text}");
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(coloredString, fontObject, scaledFontSize, legacyAlign, maxWidth);
+
+        RenderableString renderableString;
+        if (color.HasValue && color != Color.White)
+            renderableString = m_archiveCollection.DataCache.GetRenderableString($"{colorPrefix}{text}", fontObject, scaledFontSize, legacyAlign, maxWidth);
+        else
+            renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
+
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -229,9 +232,10 @@ public class GLLegacyHudRenderContext : IHudRenderContext
             return default;
 
         int scaledFontSize = (int)(fontSize * scale);
-        ColoredString coloredString = RGBColoredStringDecoder.Decode(text);
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(coloredString, fontObject, scaledFontSize, align, maxWidth);
-        return renderableString.DrawArea;
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, align, maxWidth);
+        var drawArea = renderableString.DrawArea;
+        m_archiveCollection.DataCache.FreeRenderableString(renderableString);
+        return drawArea;
     }
 
     public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
@@ -241,18 +245,18 @@ public class GLLegacyHudRenderContext : IHudRenderContext
 
         switch (scale)
         {
-        case null:
-        case ResolutionScale.None:
-            // Already handled.
-            break;
-        case ResolutionScale.Center:
-            legacyScale = Commands.ResolutionScale.Center;
-            break;
-        case ResolutionScale.Stretch:
-            legacyScale = Commands.ResolutionScale.Stretch;
-            break;
-        default:
-            throw new ArgumentOutOfRangeException(nameof(scale), scale, null);
+            case null:
+            case ResolutionScale.None:
+                // Already handled.
+                break;
+            case ResolutionScale.Center:
+                legacyScale = Commands.ResolutionScale.Center;
+                break;
+            case ResolutionScale.Stretch:
+                legacyScale = Commands.ResolutionScale.Stretch;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(scale), scale, null);
         }
 
         float ratio = aspectRatio ?? dimension.AspectRatio;

@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
-using Helion.Graphics.String;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -16,10 +17,14 @@ namespace Helion.Render.Legacy.Texture.Fonts;
 /// </summary>
 public class RenderableString
 {
+    public static readonly Color DefaultColor = Color.White;
+
+    private static readonly List<ColorRange> ColorRanges = new();
+
     /// <summary>
     /// The font used when rendering this.
     /// </summary>
-    public Font Font;
+    public Graphics.Fonts.Font Font;
 
     /// <summary>
     /// The area that encapsulates all the glyphs.
@@ -44,7 +49,7 @@ public class RenderableString
     /// <param name="align">Alignment (only needed if there are multiple
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
-    public RenderableString(DataCache dataCache, ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue)
     {
         Font = font;
@@ -54,7 +59,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public void Set(DataCache dataCache, ColoredString str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public void Set(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue)
     {
         Font = font;
@@ -64,60 +69,176 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    private static List<RenderableSentence> PopulateSentences(DataCache dataCache, ColoredString str, Font font, int fontSize,
+    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize,
         int maxWidth)
     {
         double scale = (double)fontSize / font.MaxHeight;
         int currentWidth = 0;
         int currentHeight = 0;
-        List<RenderableGlyph> currentSentence = dataCache.GetRenderableGlyphs();
+
         List<RenderableSentence> sentences = dataCache.GetRenderableSentences();
+        if (string.IsNullOrEmpty(str))
+            return sentences;
 
-        for (int i = 0; i < str.Characters.Count; i++)
+        List<RenderableGlyph>? currentSentence = null;
+        var colorRanges = GetColorRanges(str);
+        foreach (var colorRange in colorRanges)
         {
-            ColoredChar c = str.Characters[i];
-            Glyph glyph = font.Get(c.Char);
-            (int glyphW, int glyphH) = glyph.Area.Dimension;
-
-            int endX = currentWidth + (int)(glyphW * scale);
-            int endY = currentHeight + (int)(glyphH * scale);
-
-            // We want to make sure each sentence has one character. This
-            // also avoids infinite looping cases like a max width that is
-            // too small.
-            if (endX > maxWidth && !currentSentence.Empty())
+            for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
-                CreateAndAddSentenceIfPossible();
-                continue;
+                char c = str[i];
+                Glyph glyph = font.Get(c);
+                (int glyphW, int glyphH) = glyph.Area.Dimension;
+
+                int endX = currentWidth + (int)(glyphW * scale);
+                int endY = currentHeight + (int)(glyphH * scale);
+
+                // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
+                if (endX > maxWidth && currentSentence != null && currentSentence.Count > 0)
+                {
+                    CreateAndAddSentenceIfPossible();
+                    continue;
+                }
+
+                // We use a dummy box temporarily, and calculate it at the end properly (for code clarity reasons).
+                ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
+                ImageBox2D uv = new(glyph.UV.Min.Double, glyph.UV.Max.Double);
+
+                RenderableGlyph renderableGlyph = new(c, drawLoc, ImageBox2D.ZeroToOne, uv, colorRange.Color);
+                if (currentSentence == null)
+                    currentSentence = dataCache.GetRenderableGlyphs();
+                currentSentence.Add(renderableGlyph);
+
+                currentWidth = endX;
             }
-
-            // We use a dummy box temporarily, and calculate it at the end
-            // properly (for code clarity reasons).
-            ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
-            ImageBox2D uv = new(glyph.UV.Min.Double, glyph.UV.Max.Double);
-
-            RenderableGlyph renderableGlyph = new(c.Char, drawLoc, ImageBox2D.ZeroToOne, uv, c.Color);
-            currentSentence.Add(renderableGlyph);
-
-            currentWidth = endX;
         }
 
         CreateAndAddSentenceIfPossible();
-
         return sentences;
 
         void CreateAndAddSentenceIfPossible()
         {
-            if (currentSentence.Count == 0)
+            if (currentSentence == null || currentSentence.Count == 0)
                 return;
 
             RenderableSentence sentence = new(currentSentence);
             sentences.Add(sentence);
+            currentSentence = null;
 
             currentWidth = 0;
             currentHeight += sentence.DrawArea.Height;
         }
     }
+
+    private static List<ColorRange> GetColorRanges(string str)
+    {
+        ColorRanges.Clear();
+        ColorRanges.Add(new ColorRange(0, DefaultColor));
+
+        bool success = FindNextColorIndex(str, 0, out int startIndex, out int endIndex);
+        while (success)
+        {
+            ColorRange currentColorInfo = ColorRanges.Last();
+            currentColorInfo.EndIndex = startIndex;
+            ColorRanges[^1] = currentColorInfo;
+
+            Color color = ColorDefinitionToColor(str.AsSpan(startIndex, endIndex - startIndex));
+            ColorRanges.Add(new ColorRange(endIndex, color));
+            startIndex = endIndex + 1;
+            success = FindNextColorIndex(str, startIndex, out startIndex, out endIndex);
+        }
+
+        // Since we never set the very last element's ending point due to
+        // the loop invariant, we do that now.
+        var last = ColorRanges.Last();
+        last.EndIndex = str.Length;
+        ColorRanges[^1] = last;
+
+        if (last.StartIndex == last.EndIndex)
+            ColorRanges.RemoveAt(ColorRanges.Count - 1);
+
+        return ColorRanges;
+    }
+
+    private static bool FindNextColorIndex(string str, int index, out int startIndex, out int endIndex)
+    {
+        //\c[1,2,3]
+        startIndex = -1;
+        endIndex = -1;
+        while (index < str.Length)
+        {
+            while (index < str.Length && str[index++] != '\\') ;
+
+            startIndex = index - 1;
+
+            while (index < str.Length && str[index++] != 'c') ;
+
+            if (index >= str.Length || str[index++] != '[')
+                continue;
+
+            for (int i = 0; i < 3; i++)
+            {
+                int scanIndex = index;
+                while (index < str.Length && char.IsDigit(str[index]) && index - scanIndex <= 3)
+                    index++;
+
+                if (i < 2 && str[index++] != ',')
+                    continue;
+            }
+
+            if (index >= str.Length || str[index++] != ']')
+                continue;
+
+            endIndex = index;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Color ColorDefinitionToColor(ReadOnlySpan<char> rgbColorCode)
+    {
+        int startIndex = 3;
+        int colorIndex = 0;
+        int r = DefaultColor.R;
+        int g = DefaultColor.G;
+        int b = DefaultColor.B;
+
+        for (int i = startIndex; i < rgbColorCode.Length; i++)
+        {
+            if (rgbColorCode[i] != ',' && rgbColorCode[i] != ']')
+                continue;
+
+            var span = rgbColorCode[startIndex..i];
+            if (!int.TryParse(span, out int color))
+            {
+                colorIndex++;
+                continue;
+            }
+
+            switch (colorIndex)
+            {
+                case 0:
+                    r = color;
+                    break;
+                case 1:
+                    g = color;
+                    break;
+                case 2:
+                    b = color;
+                    break;
+            }
+
+            startIndex = i + 1;
+            colorIndex++;
+        }
+
+        return Color.FromArgb(
+            (byte)MathHelper.Clamp(r, 0, 255),
+            (byte)MathHelper.Clamp(g, 0, 255),
+            (byte)MathHelper.Clamp(b, 0, 255));
+    }
+
 
     private static Dimension CalculateDrawArea(List<RenderableSentence> sentences)
     {
@@ -211,5 +332,33 @@ public class RenderableString
     public override string ToString()
     {
         return string.Join("\n", Sentences.Select(s => s.ToString()));
+    }
+
+    /// <summary>
+    /// A range for a color in a string.
+    /// </summary>
+    internal struct ColorRange
+    {
+        /// <summary>
+        /// The start index.
+        /// </summary>
+        public int StartIndex;
+
+        /// <summary>
+        /// The end index.
+        /// </summary>
+        public int EndIndex;
+
+        /// <summary>
+        /// The color for the range.
+        /// </summary>
+        public Color Color;
+
+        public ColorRange(int index, Color color)
+        {
+            StartIndex = index;
+            EndIndex = index;
+            Color = color;
+        }
     }
 }

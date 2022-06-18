@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common;
@@ -103,10 +101,7 @@ public partial class ConsoleLayer
         int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
         int offsetCount = 0;
 
-        // Note: If we do something that triggers a message, that can modify
-        // the collection while iterating. A shallow copy is needed.
-        List<ConsoleMessage> shallowCopy = m_console.Messages.ToList();
-        foreach (ConsoleMessage message in shallowCopy)
+        foreach (ConsoleMessage message in m_console.Messages)
         {
             if (bottomY <= 0)
                 break;
@@ -118,7 +113,7 @@ public partial class ConsoleLayer
             }
 
             hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea,
-                anchor: Align.BottomLeft);
+                anchor: Align.BottomLeft, color: message.Color, maxWidth: hud.Width);
 
             bottomY -= drawArea.Height + BetweenMessagePadding;
         }

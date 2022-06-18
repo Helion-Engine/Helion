@@ -1,5 +1,5 @@
-using Helion.Graphics.String;
+using System.Drawing;
 
 namespace Helion.Util.Consoles;
 
-public record ConsoleMessage(ColoredString Message, long TimeNanos);
+public record ConsoleMessage(string Message, long TimeNanos, Color Color);

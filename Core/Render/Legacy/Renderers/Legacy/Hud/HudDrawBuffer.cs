@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Util;
 using Helion.Util.Extensions;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
@@ -18,7 +19,14 @@ namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
 /// </remarks>
 public class HudDrawBuffer
 {
-    public readonly List<HudDrawBufferData> DrawBuffer = new List<HudDrawBufferData>();
+    public readonly List<HudDrawBufferData> DrawBuffer = new();
+
+    private readonly DataCache m_dataCache;
+
+    public HudDrawBuffer(DataCache dataCache)
+    {
+        m_dataCache = dataCache;
+    }
 
     public void Add(GLLegacyTexture texture, HudQuad quad)
     {
@@ -35,6 +43,8 @@ public class HudDrawBuffer
 
     public void Clear()
     {
+        foreach (var data in DrawBuffer)
+            m_dataCache.FreeDrawHudBufferData(data);
         DrawBuffer.Clear();
     }
 
@@ -43,14 +53,13 @@ public class HudDrawBuffer
         if (DrawBuffer.Empty())
             return AllocateNewAndAdd(texture);
 
-        // TODO: Use `^1` in NET Core 3.0 instead of `len - 1`.
-        HudDrawBufferData front = DrawBuffer[DrawBuffer.Count - 1];
+        HudDrawBufferData front = DrawBuffer[^1];
         return front.Texture == texture ? front : AllocateNewAndAdd(texture);
     }
 
     private HudDrawBufferData AllocateNewAndAdd(GLLegacyTexture texture)
     {
-        HudDrawBufferData newData = new HudDrawBufferData(texture);
+        HudDrawBufferData newData = m_dataCache.GetDrawHudBufferData(texture);
         DrawBuffer.Add(newData);
         return newData;
     }

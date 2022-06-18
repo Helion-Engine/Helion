@@ -6,7 +6,6 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.String;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -329,48 +328,6 @@ public class GLHudRenderer : IHudRenderContext
         GLHudTextureVertex quadBL = new(bottomLeft, handle.UV.TopLeft, byteColor, alpha);
         GLHudTextureVertex quadBR = new(bottomRight, handle.UV.TopRight, byteColor, alpha);
         m_texturePipeline.Quad(handle.Texture, quadTL, quadTR, quadBL, quadBR);
-
-        m_elementsDrawn++;
-    }
-
-    public void Text(ColoredString text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
-        TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-        Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float scale = 1.0f,
-        float alpha = 1.0f)
-    {
-        drawArea = default;
-        window = both ?? window;
-        anchor = both ?? anchor;
-
-        if (text.Characters.Count == 0 || !m_textureManager.TryGetFont(font, out GLFontTexture fontHandle))
-            return;
-
-        Span<RenderableCharacter> chars = m_hudTextHelper.Calculate(text.String, fontHandle, fontSize,
-            textAlign, maxWidth, maxHeight, scale);
-
-        // Can happen for things like scaling being zero. We do this because
-        // we don't want to waste time calculating things if the user has
-        // given us junk that we cannot render anyways.
-        if (chars.Length == 0)
-            return;
-
-        // This has to come first because the translate from virtual to
-        // parent mutates the span.
-        drawArea = GLHudTextHelper.CalculateCharacterDrawArea(chars);
-
-        TranslateCharactersFromVirtualToParent(chars);
-
-        HudBox area = (origin, origin + drawArea);
-        HudBox newArea = CalculateDrawArea(area, window, anchor);
-        Vec2I topLeft = newArea.TopLeft;
-        if (PointOutsideBottomRightViewport(topLeft))
-            return;
-
-        for (int i = 0; i < chars.Length; i++)
-        {
-            ByteColor byteColor = new(text.Characters[i].Color);
-            AddTextCharacter(topLeft, alpha, chars[i], byteColor, fontHandle);
-        }
 
         m_elementsDrawn++;
     }

@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
-using Helion.Graphics.Geometry;
 
 namespace Helion.Render.Legacy.Texture.Fonts;
 
@@ -11,7 +9,7 @@ namespace Helion.Render.Legacy.Texture.Fonts;
 /// characters, meaning it's not an actual sentence ended by a period, but
 /// rather a single line of characters.
 /// </summary>
-public struct RenderableSentence
+public readonly struct RenderableSentence
 {
     /// <summary>
     /// The enclosing box around all the glyphs.

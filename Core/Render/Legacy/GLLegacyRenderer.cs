@@ -277,7 +277,7 @@ public class GLLegacyRenderer : ILegacyRenderer
             throw new NotImplementedException("Standard GL renderer not implemented yet");
         default:
             Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
         }
     }
 
@@ -317,9 +317,6 @@ public class GLLegacyRenderer : ILegacyRenderer
     {
         m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha);
         var dataCache = m_archiveCollection.DataCache;
-        foreach (var sentence in cmd.Text.Sentences)
-            dataCache.FreeRenderableGlyphs(sentence.Glyphs);
-        dataCache.FreeRenderableSentences(cmd.Text.Sentences);
         dataCache.FreeRenderableString(cmd.Text);
     }
 
