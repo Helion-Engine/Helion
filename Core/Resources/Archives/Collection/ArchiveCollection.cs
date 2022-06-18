@@ -26,6 +26,7 @@ using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
+using Helion.Util.Bytes;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
@@ -194,7 +195,7 @@ public class ArchiveCollection : IResources
     {
         map = null;
         string file = ExtractEmbeddedFile(mapEntry);
-        Archive? mapArchive = LoadArchive(file);
+        Archive? mapArchive = LoadArchive(file, null);
         if (mapArchive == null)
             return false;
 
@@ -263,7 +264,7 @@ public class ArchiveCollection : IResources
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets);
+            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, Files.CalculateMD5(Constants.AssetsFileName));
             if (assetsArchive == null)
                 return false;
 
@@ -272,7 +273,7 @@ public class ArchiveCollection : IResources
 
         if (iwad != null)
         {
-            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD);
+            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, Files.CalculateMD5(iwad));
             if (iwadArchive == null)
                 return false;
 
@@ -283,7 +284,7 @@ public class ArchiveCollection : IResources
 
         foreach (string filePath in filePaths)
         {
-            Archive? archive = LoadArchive(filePath);
+            Archive? archive = LoadArchive(filePath, Files.CalculateMD5(filePath));
             if (archive == null)
                 continue;
 
@@ -346,7 +347,7 @@ public class ArchiveCollection : IResources
     {
         foreach (string file in files)
         {
-            Archive? newArchive = LoadArchive(file);
+            Archive? newArchive = LoadArchive(file, null);
             if (newArchive == null)
                 continue;
 
@@ -423,9 +424,9 @@ public class ArchiveCollection : IResources
         }
     }
 
-    private Archive? LoadSpecial(string file, ArchiveType archiveType)
+    private Archive? LoadSpecial(string file, ArchiveType archiveType, string? md5)
     {
-        Archive? archive = LoadArchive(file);
+        Archive? archive = LoadArchive(file, md5);
         if (archive == null)
             return null;
 
@@ -433,7 +434,7 @@ public class ArchiveCollection : IResources
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath)
+    private Archive? LoadArchive(string filePath, string? md5)
     {
         Archive? archive = m_archiveLocator.Locate(filePath);
         if (archive == null)
@@ -443,7 +444,6 @@ public class ArchiveCollection : IResources
         }
 
         archive.OriginalFilePath = filePath;
-        string? md5 = Util.Bytes.Files.CalculateMD5(filePath);
         if (md5 != null)
             archive.MD5 = md5;
 

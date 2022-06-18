@@ -2248,7 +2248,11 @@ public abstract partial class WorldBase : IWorld
         List<FileModel> fileModels = new();
         var archives = ArchiveCollection.Archives;
         foreach (var archive in archives)
+        {
+            if (archive.ExtractedFrom != null || archive.MD5 == Archive.DefaultMD5)
+                continue;
             fileModels.Add(archive.ToFileModel());
+        }
 
         return fileModels;
     }

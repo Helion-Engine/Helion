@@ -56,11 +56,8 @@ public abstract class Archive : IDisposable
     /// </summary>
     public readonly IEntryPath Path;
 
-    /// <summary>
-    /// The hash of the archive.
-    /// </summary>
-    // TODO: Implement!
-    public string MD5 = "00000000000000000000000000000000";
+    public const string DefaultMD5 = "00000000000000000000000000000000";
+    public string MD5 = DefaultMD5;
 
     public ArchiveType ArchiveType { get; set; }
     public IWadInfo IWadInfo { get; set; } = IWadInfo.DefaultIWadInfo;

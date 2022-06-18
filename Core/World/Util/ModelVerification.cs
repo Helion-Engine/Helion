@@ -15,23 +15,11 @@ public static class ModelVerification
         if (!VerifyFileModel(archiveCollection, filesModel.IWad, log))
             return false;
 
-        var fileArchives = archiveCollection.Archives;
+        var fileArchives = archiveCollection.Archives.Where(x => x.ExtractedFrom == null);
         if (fileArchives.Count() != filesModel.Files.Count)
         {
-            List<Archive> extraArchives = new();
-            foreach (var archive in fileArchives)
-            {
-                if (filesModel.Files.Any(x => archive.Equals(x.MD5)))
-                    continue;
-
-                extraArchives.Add(archive);
-            }
-
             if (log != null)
-            {
-                foreach (var extraArchive in extraArchives)
-                    log.Error($"Loaded '{Path.GetFileName(extraArchive.OriginalFilePath)}' that is not part of this save.");
-            }
+                LogExtraLoadedArchives(filesModel, log, fileArchives);
 
             return false;
         }
@@ -40,6 +28,20 @@ public static class ModelVerification
             return false;
 
         return true;
+    }
+
+    private static void LogExtraLoadedArchives(GameFilesModel filesModel, Logger log, IEnumerable<Archive> fileArchives)
+    {
+        List<Archive> extraArchives = new();
+        foreach (var archive in fileArchives)
+        {
+            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5)))
+                continue;
+            extraArchives.Add(archive);
+        }
+
+        foreach (var extraArchive in extraArchives)
+            log.Error($"Loaded '{Path.GetFileName(extraArchive.OriginalFilePath)}' that is not part of this save.");
     }
 
     private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
