@@ -11,6 +11,11 @@ namespace Helion.Audio.Impl
 
         public IAudioSourceManager CreateContext() => new MockAudioSourceManager();
 
+        public MockAudioSystem()
+        {
+            DeviceChanging?.Invoke(this, EventArgs.Empty);
+        }
+
         public void Dispose()
         {
 

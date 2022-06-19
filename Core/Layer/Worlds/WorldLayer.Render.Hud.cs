@@ -59,7 +59,7 @@ public partial class WorldLayer
         DrawPosition(hud, ref topRightY);
         DrawStatInfo(hud, automapVisible, (0, topRightY + m_padding), ref topRightY);
         DrawBottomHud(hud, topRightY, hudContext);
-        DrawHudEffectsDeprecated(hud);
+        DrawHudEffects(hud);
         DrawRecentConsoleMessages(hud);
     }
 
@@ -114,8 +114,7 @@ public partial class WorldLayer
         topRightY = labelPos.Y;
     }
 
-    [Obsolete("Will be moved to a post-processing step in a shader")]
-    private void DrawHudEffectsDeprecated(IHudRenderContext hud)
+    private void DrawHudEffects(IHudRenderContext hud)
     {
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
         if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)

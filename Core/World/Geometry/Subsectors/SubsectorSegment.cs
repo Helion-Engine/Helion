@@ -1,5 +1,4 @@
 using Helion.Geometry.Vectors;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using System.Runtime.InteropServices;
 
@@ -18,11 +17,6 @@ public readonly struct SubsectorSegment
     /// The side this belongs to, if any (will be null if it's a miniseg).
     /// </summary>
     public readonly Side? Side;
-
-    /// <summary>
-    /// Gets the line that this segment is on, or null if it's a miniseg.
-    /// </summary>
-    //public Line? Line => Side?.Line;
 
     /// <summary>
     /// Checks if this is a miniseg or not (is along the empty splitter and

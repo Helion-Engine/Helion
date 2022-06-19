@@ -155,6 +155,7 @@ public class HelionConsole : Target
     /// If this message causes the console to exceed the capacity, then it
     /// will remove the older messages to make space for this message.
     /// </remarks>
+    /// <param name="color">The color of the message..</param>
     /// <param name="message">The message to add.</param>
     public void AddMessage(Color color, string message)
     {
