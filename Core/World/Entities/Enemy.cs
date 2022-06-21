@@ -260,7 +260,7 @@ public partial class Entity
             BlockFloating = false;
         }
 
-        if (tryMove.Success)
+        if (tryMove.Success && Position.XY != nextPos)
         {
             if (!Flags.Float)
             {

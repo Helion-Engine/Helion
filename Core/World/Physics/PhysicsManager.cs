@@ -777,6 +777,13 @@ public class PhysicsManager
             return m_tryMoveData;
         }
 
+        Vec2D velocity = position - entity.Position.XY;
+        if (velocity == Vec2D.Zero)
+        {
+            m_tryMoveData.Success = true;
+            return m_tryMoveData;
+        }
+
         if (entity.ClippedWithEntity && !entity.OnGround && entity.IsClippedWithEntity())
         {
             m_tryMoveData.Success = false;
@@ -784,8 +791,7 @@ public class PhysicsManager
             return m_tryMoveData;
         }
 
-        Vec2D velocity = position - entity.Position.XY;
-        if (velocity == Vec2D.Zero || entity.IsCrushing())
+        if (entity.IsCrushing())
         {
             m_tryMoveData.Success = false;
             return m_tryMoveData;

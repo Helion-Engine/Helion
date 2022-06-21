@@ -751,11 +751,6 @@ public static class EntityActionFunctions
             entity.SetMeleeState();
         }
 
-        entity.MoveCount--;
-
-        if (entity.MoveCount < 0 || !entity.MoveEnemy(out TryMoveData? _))
-            entity.SetNewChaseDirection();
-
         if ((entity.MoveCount == 0 || entity.World.SkillDefinition.IsFastMonsters(entity.World.Config)) &&
             entity.HasMissileState() && entity.CheckMissileRange())
         {
@@ -766,6 +761,11 @@ public static class EntityActionFunctions
         {
             entity.PlayActiveSound();
         }
+
+        entity.MoveCount--;
+
+        if (entity.MoveCount < 0 || !entity.MoveEnemy(out TryMoveData? _))
+            entity.SetNewChaseDirection();
     }
 
     private static void A_CheckBlock(Entity entity)
