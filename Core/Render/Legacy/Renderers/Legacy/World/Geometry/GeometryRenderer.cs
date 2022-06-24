@@ -650,16 +650,11 @@ public class GeometryRenderer : IDisposable
         {
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
+            // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out bool nothingVisible, m_tickFraction, offset);
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out _, m_tickFraction, offset);
 
-            // If the texture can't be drawn because the level has offsets that
-            // are messed up (ex: offset causes it to be completely missing) we
-            // can exit early since nothing can be drawn.
-            if (nothingVisible)
-                return;
-
-            else if (m_cacheOverride)
+            if (m_cacheOverride)
             {
                 data = m_wallVertices;
                 SetWallVertices(data, wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
