@@ -260,13 +260,10 @@ public partial class Entity
             BlockFloating = false;
         }
 
-        if (tryMove.Success && Position.XY != nextPos)
+        if (tryMove.Success)
         {
             if (!Flags.Float)
-            {
-                Vec3D newPos = (Position.X, Position.Y, tryMove.HighestFloorZ);
-                SetPosition(newPos);
-            }
+                Box.SetZ(tryMove.HighestFloorZ);
 
             AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
             double delta = AngleRadians - MoveAngles[(int)m_direction];

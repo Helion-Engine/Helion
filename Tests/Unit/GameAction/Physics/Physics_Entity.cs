@@ -137,6 +137,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, () => { return moveEntity.Position.X > -1348; }, () =>
             {
                 moveEntity.Position.X.Should().BeLessOrEqualTo(previousX);
+                moveEntity.Position.Z.Should().Be(moveEntity.HighestFloorZ);
             });
 
             moveEntity.Position.X.Should().Be(-1348);
