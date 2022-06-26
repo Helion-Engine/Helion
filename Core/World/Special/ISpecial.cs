@@ -10,4 +10,6 @@ public interface ISpecial
     void ResetInterpolation() { }
     SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
     ISpecialModel? ToSpecialModel() => null;
+    // For integration testing
+    bool OverrideEquals => false;
 }

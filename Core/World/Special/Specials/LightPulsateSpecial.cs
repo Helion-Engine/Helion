@@ -12,6 +12,8 @@ public class LightPulsateSpecial : SectorSpecialBase
     public readonly short MinBright;
     private int m_inc;
 
+    public override bool OverrideEquals => true;
+
     public LightPulsateSpecial(IWorld world, Sector sector, short minLightLevel)
          : base(world, sector)
     {
@@ -53,4 +55,20 @@ public class LightPulsateSpecial : SectorSpecialBase
     }
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LightPulsateSpecial light)
+            return false;
+
+        return light.Sector.Id == Sector.Id &&
+            light.MinBright == MinBright &&
+            light.MaxBright == MaxBright &&
+            light.m_inc == m_inc;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

@@ -42,7 +42,7 @@ namespace Helion.Resources.Archives.Collection;
 public class ArchiveCollection : IResources
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static readonly DataCache StaticDataCache = new();
+    public static readonly DataCache StaticDataCache = new();
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
     public Palette Palette => Data.Palette;
@@ -66,7 +66,7 @@ public class ArchiveCollection : IResources
     public EntityFrameTable EntityFrameTable => Definitions.EntityFrameTable;
     public EntityDefinitionComposer EntityDefinitionComposer { get; }
     public TextureManager TextureManager { get; private set; }
-    public DataCache DataCache => StaticDataCache;
+    public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public readonly ArchiveCollectionEntries Entries = new();
@@ -80,7 +80,7 @@ public class ArchiveCollection : IResources
     private bool m_lastLoadedMapIsTemp;
     private IWadInfo? m_overrideIWadInfo;
 
-    public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config)
+    public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config, DataCache dataCache)
     {
         m_archiveLocator = archiveLocator;
         Definitions = new DefinitionEntries(this, config);
@@ -88,6 +88,7 @@ public class ArchiveCollection : IResources
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
         ImageRetriever = new ArchiveImageRetriever(this);
         TextureManager = new TextureManager(this);
+        DataCache = dataCache;
     }
 
     public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false) =>
@@ -243,8 +244,11 @@ public class ArchiveCollection : IResources
         return null;
     }
 
+    public bool IsDisposed { get; private set; }
+
     public void Dispose()
     {
+        IsDisposed = true;
         foreach (var archive in m_archives)
             archive.Dispose();
 

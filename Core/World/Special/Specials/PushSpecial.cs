@@ -32,6 +32,8 @@ public class PushSpecial : ISpecial
     private readonly double m_magnitude;
     private readonly Entity? m_pusher;
 
+    public bool OverrideEquals => true;
+
     public PushSpecial(PushType type, IWorld world, Sector sector, Vec2D pushFactor, Entity? pusher)
     {
         m_type = type;
@@ -129,4 +131,27 @@ public class PushSpecial : ISpecial
     private static bool ShouldNotPush(Entity entity) => !entity.IsPlayer || entity.Flags.NoClip || entity.Flags.NoGravity;
 
     public bool Use(Entity entity) => false;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not PushSpecial push)
+            return false;
+
+        bool pusherEquals;
+        if (push.m_pusher == null)
+            pusherEquals = m_pusher == null;
+        else
+            pusherEquals = m_pusher != null && push.m_pusher.Id == m_pusher.Id;
+
+        return pusherEquals &&
+            push.m_type == m_type &&
+            push.m_sector.Id == m_sector.Id &&
+            push.m_pushFactor == m_pushFactor &&
+            push.m_magnitude == m_magnitude;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

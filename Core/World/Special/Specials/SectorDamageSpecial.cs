@@ -57,4 +57,20 @@ public class SectorDamageSpecial
 
     public virtual SectorDamageSpecial Copy(Sector sector) =>
         new(m_world, sector, m_damage, m_radSuitLeakChance);
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not SectorDamageSpecial damage)
+            return false;
+
+        return damage.Damage == Damage &&
+            damage.RadSuitLeakChance == RadSuitLeakChance &&
+            damage.AlwaysDamage == AlwaysDamage &&
+            damage.m_sector.Id == m_sector.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

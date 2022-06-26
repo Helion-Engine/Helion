@@ -18,4 +18,20 @@ public class SectorSoundData
         StopSound = stopSound;
         MovementSound = movementSound;
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not SectorSoundData sound)
+            return false;
+
+        return sound.StartSound == StartSound && 
+            sound.ReturnSound == ReturnSound && 
+            sound.StopSound == StopSound && 
+            sound.MovementSound == MovementSound;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

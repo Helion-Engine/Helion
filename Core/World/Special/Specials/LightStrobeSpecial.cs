@@ -17,6 +17,8 @@ public class LightStrobeSpecial : SectorSpecialBase
     public int BrightTicks => m_brightTics;
     public int DarkTicks => m_darkTics;
 
+    public override bool OverrideEquals => true;
+
     public LightStrobeSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel, int brightTics, int darkTics, bool sync)
          : base(world, sector)
     {
@@ -78,4 +80,21 @@ public class LightStrobeSpecial : SectorSpecialBase
     }
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LightStrobeSpecial light)
+            return false;
+
+        return light.Sector.Id == Sector.Id &&
+            light.MinBright == MinBright &&
+            light.MaxBright == MaxBright &&
+            light.BrightTicks == BrightTicks &&
+            light.DarkTicks == DarkTicks;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

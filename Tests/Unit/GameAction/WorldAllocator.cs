@@ -3,6 +3,7 @@ using Helion.Audio.Impl;
 using Helion.Bsp.Zdbsp;
 using Helion.Layer.Worlds;
 using Helion.Maps.Shared;
+using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
@@ -30,9 +31,10 @@ namespace Helion.Tests.Unit.GameAction
         private static string LastTestKey = string.Empty;
 
         public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
-            IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null)
+            IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null, 
+            bool disposeExistingWorld = true)
         {
-            if (UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
+            if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
 
             // Assets.pk3 is copied from the assets project.
@@ -49,7 +51,7 @@ namespace Helion.Tests.Unit.GameAction
             var config = new Config();
             var profiler = new Profiler();
             var audioSystem = new MockAudioSystem();
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility, new DataCache());
             archiveCollection.Load(new string[] { fileName }, iwad: null, iwadTypeOverride: iwadType ).Should().BeTrue();
 
             var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
@@ -66,12 +68,12 @@ namespace Helion.Tests.Unit.GameAction
                 throw new Exception("Failed to create bsp");            
 
             SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
-                skillDef, outputMap, existingPlayer, null, unitTest: true);
+                skillDef, outputMap, existingPlayer, worldModel, unitTest: true);
             if (world == null)
                 throw new Exception("Failed to create world");
 
             StaticWorld = world;
-            world.Start(null);
+            world.Start(worldModel);
             onInit(world);
             return world;
         }

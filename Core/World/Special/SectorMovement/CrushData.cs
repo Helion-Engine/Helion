@@ -34,4 +34,19 @@ public class CrushData
             ReturnFactor = ReturnFactor
         };
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not CrushData crushData)
+            return false;
+
+        return crushData.CrushMode == CrushMode &&
+            crushData.Damage == Damage &&
+            crushData.ReturnFactor == ReturnFactor;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

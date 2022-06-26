@@ -169,4 +169,20 @@ public class EntityBox : BoundingBox3D
     }
 
     public override string ToString() => $"{base.ToString()} (center: {m_centerBottom}, radius: {Radius}, height: {Height})";
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not EntityBox entityBox)
+            return false;
+
+        return entityBox.m_centerBottom == m_centerBottom &&
+            entityBox.m_Min == m_Min &&
+            entityBox.m_Max == m_Max &&
+            entityBox.Radius == Radius &&
+            entityBox.Height == Height;
+    }
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

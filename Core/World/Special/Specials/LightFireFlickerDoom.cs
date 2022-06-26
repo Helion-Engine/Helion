@@ -9,6 +9,8 @@ public class LightFireFlickerDoom : SectorSpecialBase
     public readonly short MinBright;
     public readonly short MaxBright;
 
+    public override bool OverrideEquals => true;
+
     private readonly IRandom m_random;
     private int m_delay;
 
@@ -60,4 +62,20 @@ public class LightFireFlickerDoom : SectorSpecialBase
     }
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LightFireFlickerDoom fire)
+            return false;
+
+        return fire.Sector.Id == Sector.Id &&
+            fire.MinBright == MinBright &&
+            fire.MaxBright == MaxBright &&
+            fire.m_delay == m_delay;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

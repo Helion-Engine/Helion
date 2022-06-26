@@ -59,6 +59,8 @@ public class SpecialManager : ITickable, IDisposable
     private const int DefaultCrushLip = 8;
     private const double CrushReturnFactor = 0.5;
 
+    public LinkedList<ISpecial> GetSpecials() => m_specials;
+
     public SpecialManager(WorldBase world, IRandom random)
     {
         m_world = world;
@@ -74,7 +76,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public List<ISpecialModel> GetSpecialModels()
     {
-        List<ISpecialModel> specials = new List<ISpecialModel>();
+        List<ISpecialModel> specials = new();
         foreach (var special in m_specials)
         {
             ISpecialModel? specialModel = special.ToSpecialModel();

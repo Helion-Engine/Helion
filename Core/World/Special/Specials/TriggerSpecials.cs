@@ -1,6 +1,5 @@
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials;
 

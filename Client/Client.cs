@@ -335,7 +335,7 @@ public partial class Client : IDisposable
 
         try
         {
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(config, commandLineArgs);
             using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(config, @"SoundFonts\Default.sf2");
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);

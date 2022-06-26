@@ -4,7 +4,6 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.Geometry.Vectors;

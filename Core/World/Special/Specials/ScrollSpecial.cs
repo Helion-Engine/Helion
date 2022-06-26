@@ -24,6 +24,8 @@ public class ScrollSpecial : ISpecial
 
     public Vec2D Speed => m_speed;
 
+    public bool OverrideEquals => true;
+
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
@@ -232,5 +234,35 @@ public class ScrollSpecial : ISpecial
     public bool Use(Entity entity)
     {
         return false;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not ScrollSpecial scroll)
+            return false;
+
+        bool lineEquals;
+        bool planeEquals;
+        if (scroll.Line == null)
+            lineEquals = Line == null;
+        else
+            lineEquals = Line != null && scroll.Line.Id == Line.Id;
+
+        if (scroll.SectorPlane == null)
+            planeEquals = SectorPlane == null;
+        else
+            planeEquals = SectorPlane != null && scroll.SectorPlane.Facing == SectorPlane.Facing && scroll.SectorPlane.Sector.Id == SectorPlane.Sector.Id;
+
+        return lineEquals && planeEquals &&
+            scroll.m_type == m_type &&
+            scroll.m_accelScrollSpeed == m_accelScrollSpeed &&
+            scroll.m_lineScroll == m_lineScroll &&
+            scroll.m_scrollLineFront == m_scrollLineFront &&
+            scroll.m_speed == m_speed;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 }

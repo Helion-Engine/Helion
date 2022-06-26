@@ -40,4 +40,5 @@ public abstract class SectorSpecialBase : ISectorSpecial
     public virtual ISpecialModel? ToSpecialModel() => null;
 
     public virtual bool IsPaused { get; }
+    public virtual bool OverrideEquals => false;
 }

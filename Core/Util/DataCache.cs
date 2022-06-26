@@ -47,7 +47,7 @@ public class DataCache
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
 
-    public WeakEntity?[] WeakEntities = new WeakEntity?[1024];
+    public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {

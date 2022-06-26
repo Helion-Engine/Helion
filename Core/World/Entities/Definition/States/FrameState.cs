@@ -223,4 +223,20 @@ public class FrameState : ITickable
             Destroy = m_destroyOnStop
         };
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not FrameState frameState)
+            return false;
+
+        return frameState.m_entity.Id == m_entity.Id &&
+            frameState.m_frameIndex == m_frameIndex &&
+            frameState.m_tics == m_tics &&
+            frameState.m_destroyOnStop == m_destroyOnStop;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

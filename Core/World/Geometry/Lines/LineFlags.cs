@@ -35,4 +35,23 @@ public class LineFlags
         Repeat = flags.RepeatSpecial;
         PassThrough = flags.PassThrough;
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LineFlags lineFlags)
+            return false;
+
+        return lineFlags.Automap.Equals(Automap) &&
+            lineFlags.Blocking.Equals(Blocking) &&
+            lineFlags.Unpegged.Equals(Unpegged) &&
+            lineFlags.Activations == Activations &&
+            lineFlags.BlockSound == BlockSound &&
+            lineFlags.Repeat == Repeat &&
+            lineFlags.PassThrough == PassThrough;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

@@ -10,6 +10,8 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
     public readonly short MinBright;
     public int Delay { get; private set; }
 
+    public override bool OverrideEquals => true;
+
     private readonly IRandom m_random;
 
     public LightFlickerDoomSpecial(IWorld world, Sector sector, IRandom random, short minLightLevel)
@@ -63,4 +65,20 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
     }
 
     public virtual SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Light;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LightFlickerDoomSpecial light)
+            return false;
+
+        return light.Sector.Id == Sector.Id &&
+            light.MinBright == MinBright &&
+            light.MaxBright == MaxBright &&
+            light.Delay == Delay;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

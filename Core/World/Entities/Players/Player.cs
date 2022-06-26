@@ -574,8 +574,7 @@ public class Player : Entity
 
         if (TickCommand.Has(TickCommands.Attack))
         {
-            if (FireWeapon() && Weapon != null && !Weapon.Definition.Flags.WeaponNoAlert)
-                World.NoiseAlert(this, this);
+            FireWeapon();
             AttackDown = true;
         }
         else
@@ -996,6 +995,10 @@ public class Player : Entity
 
         SetWeaponTop();
         Weapon.RequestFire();
+
+         if (!Weapon.Definition.Flags.WeaponNoAlert)
+            World.NoiseAlert(this, this);
+
         return true;
     }
 
@@ -1206,4 +1209,32 @@ public class Player : Entity
     }
 
     private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not Player player)
+            return false;
+
+        return player.PlayerNumber == PlayerNumber &&
+            player.PitchRadians == PitchRadians &&
+            player.DamageCount == DamageCount &&
+            player.BonusCount == BonusCount &&
+            player.ExtraLight == ExtraLight &&
+            player.KillCount == KillCount &&
+            player.ItemCount == ItemCount &&
+            player.SecretsFound == SecretsFound &&
+            player.m_isJumping == m_isJumping &&
+            player.m_jumpTics == m_jumpTics &&
+            player.m_deathTics == m_deathTics &&
+            player.m_viewHeight == m_viewHeight &&
+            player.m_viewZ == m_viewZ &&
+            player.m_deltaViewHeight == m_deltaViewHeight &&
+            player.m_bob == m_bob &&
+            player.m_killer.Entity?.Id == m_killer.Entity?.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

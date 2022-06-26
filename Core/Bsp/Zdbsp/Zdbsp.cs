@@ -52,7 +52,7 @@ namespace Helion.Bsp.Zdbsp
                 if (m_lastBspCollection != null)
                     m_lastBspCollection.Dispose();
 
-                m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new());
+                m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
                 if (!m_lastBspCollection.Load(new string[] { outputFile }, loadDefaultAssets: false))
                     return false;
 

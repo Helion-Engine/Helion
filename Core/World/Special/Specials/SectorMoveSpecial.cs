@@ -23,6 +23,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public bool IsCrushing => m_crushing;
     // If this sector started out with the ceiling clipped through the floor
     public bool StartClipped { get; private set; }
+    public bool OverrideEquals => true;
 
     protected readonly IWorld m_world;
     protected double DestZ;
@@ -407,4 +408,44 @@ public class SectorMoveSpecial : ISectorSpecial
     private bool IsNonRepeat => MoveData.MoveRepetition == MoveRepetition.None || MoveData.MoveRepetition == MoveRepetition.ReturnOnBlock;
     private bool IsDelayReturn => MoveData.MoveRepetition == MoveRepetition.DelayReturn;
     private bool IsInitCrush => MoveData.Crush != null && m_direction == MoveData.StartDirection && !m_crushing;
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not SectorMoveSpecial moveSpecial)
+            return false;
+
+        bool? crushDataEquals = moveSpecial.MoveData.Crush?.Equals(MoveData.Crush);
+        if (crushDataEquals == null)
+            crushDataEquals = true;
+
+        bool? damageSpecialEquals = moveSpecial.MoveData.DamageSpecial?.Equals(MoveData.DamageSpecial);
+        if (damageSpecialEquals == null)
+            damageSpecialEquals = true;
+
+        return crushDataEquals.Value &&
+            damageSpecialEquals.Value &&
+            moveSpecial.Sector.Id == Sector.Id &&
+            moveSpecial.MoveData.SectorMoveType == MoveData.SectorMoveType &&
+            moveSpecial.MoveData.MoveRepetition == MoveData.MoveRepetition &&
+            moveSpecial.MoveData.Speed == MoveData.Speed &&
+            moveSpecial.MoveData.ReturnSpeed == MoveData.ReturnSpeed &&
+            moveSpecial.MoveData.Delay == MoveData.Delay &&
+            moveSpecial.MoveData.FloorChangeTextureHandle == MoveData.FloorChangeTextureHandle &&
+            moveSpecial.MoveData.CeilingChangeTextureHandle == MoveData.CeilingChangeTextureHandle &&
+            moveSpecial.MoveData.StartDirection == MoveData.StartDirection &&
+            moveSpecial.MoveData.Flags == MoveData.Flags &&
+            moveSpecial.SoundData.Equals(SoundData) &&
+            moveSpecial.SectorPlane.Facing == SectorPlane.Facing &&
+            moveSpecial.IsPaused == IsPaused &&
+            moveSpecial.MoveDirection == MoveDirection &&
+            moveSpecial.DelayTics == DelayTics &&
+            moveSpecial.MoveSpeed == MoveSpeed &&
+            moveSpecial.IsCrushing == IsCrushing &&
+            moveSpecial.StartClipped == moveSpecial.StartClipped;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }
