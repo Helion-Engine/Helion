@@ -88,6 +88,9 @@ public class Player : Entity
 
     public bool DrawFullBright()
     {
+        if (World.Config.Render.Fullbright)
+            return true;
+
         foreach (PowerupType powerupType in PowerupsWithBrightness)
         {
             IPowerup? powerup = Inventory.GetPowerup(powerupType);

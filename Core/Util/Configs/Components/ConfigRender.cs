@@ -78,4 +78,7 @@ public class ConfigRender
 
     [ConfigInfo("Adds to the rendering light level offset.")]
     public readonly ConfigValue<int> ExtraLight = new(0);
+
+    [ConfigInfo("Draws everything at full brightness.")]
+    public readonly ConfigValue<bool> Fullbright = new(false);
 }
