@@ -75,4 +75,7 @@ public class ConfigRender
 
     [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
     public readonly ConfigValue<bool> VSync = new(true);
+
+    [ConfigInfo("Adds to the rendering light level offset.")]
+    public readonly ConfigValue<int> ExtraLight = new(0);
 }

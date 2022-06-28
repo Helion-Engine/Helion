@@ -99,6 +99,7 @@ public class Player : Entity
     }
 
     public bool DrawInvulnerableColorMap() => Inventory.PowerupEffectColorMap != null && Inventory.PowerupEffectColorMap.DrawPowerupEffect;
+    public int GetExtraLightRender() => World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
 
     public override double ViewZ => m_viewZ;
     public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;

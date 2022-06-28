@@ -197,7 +197,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
                 drawInvulnerability = 1;
 
-            extraLight = renderInfo.ViewerEntity.PlayerObj.ExtraLight * Constants.ExtraLightFactor;
+            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
         m_shaderProgram.BoundTexture.Set(gl, 0);
