@@ -17,7 +17,7 @@ using Helion.World.Entities.Players;
 namespace Helion.Tests.Unit.GameAction;
 
 [Collection("GameActions")]
-public class Serialization
+public class Serialization : IDisposable
 {
     private SinglePlayerWorld PreviousWorld;
     private SinglePlayerWorld NewWorld;
@@ -26,8 +26,15 @@ public class Serialization
 
     public Serialization()
     {
-        PreviousWorld = LoadMap(null, WorldInit);
+        PreviousWorld = LoadMap(null, WorldInit, disposeExistingWorld: true);
         NewWorld = PreviousWorld;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        PreviousWorld.ArchiveCollection.Dispose();
+        PreviousWorld.Dispose();
     }
 
     [Fact(DisplayName = "Test serialization")]
@@ -51,14 +58,14 @@ public class Serialization
         AssertWorldEqual(NewWorld);
     }
 
-    private SinglePlayerWorld LoadMap(WorldModel? worldModel, Action<SinglePlayerWorld> onInit)
+    private SinglePlayerWorld LoadMap(WorldModel? worldModel, Action<SinglePlayerWorld> onInit, bool disposeExistingWorld = false)
     {
         // Need to dispose the first world's archive collection because it locks the file
         if (worldModel != null && !PreviousWorld.ArchiveCollection.IsDisposed)
             PreviousWorld.ArchiveCollection.Dispose();
 
         return WorldAllocator.LoadMap("Resources/serialization.zip", "serialization.wad", "MAP01", Guid.NewGuid().ToString(), onInit, IWadType.Doom2,
-            worldModel: worldModel, disposeExistingWorld: false);
+            worldModel: worldModel, disposeExistingWorld: disposeExistingWorld);
     }
 
     private SinglePlayerWorld ReloadWorldFromModel(SinglePlayerWorld existingWorld)
