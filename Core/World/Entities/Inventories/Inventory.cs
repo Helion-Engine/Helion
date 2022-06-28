@@ -151,10 +151,19 @@ public class Inventory
         if (type == PowerupType.ComputerAreaMap)
             return HasItemOfClass("MapRevealer");
 
-        return Powerups.Any(x => x.PowerupType == type);
+        return GetPowerup(type) != null;
     }
 
-    public IPowerup? GetPowerup(PowerupType type) => Powerups.FirstOrDefault(x => x.PowerupType == type);
+    public IPowerup? GetPowerup(PowerupType type)
+    {
+        for (int i = 0; i < Powerups.Count; i++)
+        {
+           if (Powerups[i].PowerupType == type)
+                return Powerups[i];
+        }
+
+        return null;
+    }
 
     public void RemovePowerup(IPowerup powerup)
     {
@@ -362,9 +371,27 @@ public class Inventory
 
     public bool HasItem(string name) => Items.ContainsKey(name);
 
-    public bool HasAnyItem(IEnumerable<string> names) => names.Any(x => HasItem(x));
+    public bool HasAnyItem(IEnumerable<string> names)
+    {
+        foreach (string name in names)
+        {
+            if (HasItem(name))
+                return true;
+        }
 
-    public bool HasItemOfClass(string name) => ItemList.Any(x => x.Definition.IsType(name));
+        return false;
+    }
+
+    public bool HasItemOfClass(string name)
+    {
+        foreach (var item in ItemList)
+        {
+            if (item.Definition.IsType(name))
+                return true;
+        }
+
+        return false;
+    }
 
     public int Amount(string name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 
