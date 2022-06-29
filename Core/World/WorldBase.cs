@@ -1842,7 +1842,7 @@ public abstract partial class WorldBase : IWorld
         {
             BlockmapIntersect bi = intersections[i];
 
-            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1)
+            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
                 continue;
 
             if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
