@@ -116,7 +116,7 @@ public partial class Entity
     public void SetNewChaseDirection()
     {
         // All monsters normally have CanPass set.
-        // Dehacked can modify things into enemies that can move but this flag doesn't exist in the originalg game.
+        // Dehacked can modify things into enemies that can move but this flag doesn't exist in the original game.
         // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
         Flags.CanPass = true;
         Assert.Precondition(Target.Entity != null, "Target is null");
@@ -260,25 +260,28 @@ public partial class Entity
             BlockFloating = false;
         }
 
-        if (tryMove.Success)
-        {
-            if (!Flags.Float)
-                Box.SetZ(tryMove.HighestFloorZ);
-
-            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
-            double delta = AngleRadians - MoveAngles[(int)m_direction];
-            if (delta != 0)
-            {
-                if (Math.Abs(delta) > MathHelper.Pi)
-                    delta = -delta;
-                if (delta > 0)
-                    AngleRadians -= MathHelper.QuarterPi;
-                else if (delta < 0)
-                    AngleRadians += MathHelper.QuarterPi;
-            }
-        }
+        if (tryMove.Success && !Flags.Float)
+            Box.SetZ(tryMove.HighestFloorZ);
 
         return tryMove.Success;
+    }
+
+    public void TurnTowardsMovementDirection()
+    {
+        if (m_direction == MoveDir.None)
+            return;
+
+        AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
+        double delta = AngleRadians - MoveAngles[(int)m_direction];
+        if (delta != 0)
+        {
+            if (Math.Abs(delta) > MathHelper.Pi)
+                delta = -delta;
+            if (delta > 0)
+                AngleRadians -= MathHelper.QuarterPi;
+            else if (delta < 0)
+                AngleRadians += MathHelper.QuarterPi;
+        }
     }
 
     public double GetEnemyFloatMove()

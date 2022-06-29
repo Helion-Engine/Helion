@@ -727,6 +727,8 @@ public static class EntityActionFunctions
                 entity.Threshold--;
         }
 
+        entity.TurnTowardsMovementDirection();
+
         if (entity.Target.Entity == null || entity.Target.Entity.IsDead)
         {
             if (!entity.SetNewTarget(true))
