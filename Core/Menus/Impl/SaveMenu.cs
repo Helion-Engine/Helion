@@ -134,7 +134,7 @@ public class SaveMenu : Menu
 
             if (GetWorld(out IWorld? world) && world != null)
             {
-                m_saveGameManager.WriteSaveGame(world, save.Model.Text, save);
+                m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save);
                 m_parent.Dispose();
                 DisplayMessage(world, SaveMessage);
             }
