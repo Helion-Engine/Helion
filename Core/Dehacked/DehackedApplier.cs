@@ -605,7 +605,7 @@ public class DehackedApplier
 
     private static void ApplyText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, LanguageDefinition language)
     {
-        string levelRegex = @"level \d+: ";
+       
         foreach (var text in dehacked.Strings)
         {
             if (dehacked.SpriteNames.Contains(text.OldString))
@@ -614,18 +614,32 @@ public class DehackedApplier
                 continue;
             }
 
-            var match = Regex.Match(text.OldString, levelRegex);
-            if (match.Success)
-                text.OldString = text.OldString.Replace(match.Value, string.Empty);
-
-            match = Regex.Match(text.NewString, levelRegex);
-            if (match.Success)
-                text.NewString = text.NewString.Replace(match.Value, string.Empty);
+            CheckLevelString(text);
 
             if (language.GetKeyByValue(text.OldString, out string? key) && key != null)
                 language.SetValue(key, text.NewString);
             else
                 Warning($"Invalid text {text.OldString}");
+        }
+    }
+
+    private static readonly Regex[] LevelRegex = new Regex[]
+    {
+        new Regex(@"^level \d+: "),
+        new Regex(@"^E\dM\d: ")
+    };
+
+    private static void CheckLevelString(DehackedString text)
+    {
+        foreach (var regex in LevelRegex)
+        {
+            var match = regex.Match(text.OldString);
+            if (match.Success)
+                text.OldString = text.OldString.Replace(match.Value, string.Empty);
+
+            match = regex.Match(text.NewString);
+            if (match.Success)
+                text.NewString = text.NewString.Replace(match.Value, string.Empty);
         }
     }
 
