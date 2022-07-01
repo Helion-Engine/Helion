@@ -225,15 +225,20 @@ public class DehackedApplier
                     else
                         Warning($"Invalid pointer mnemonic {pointer.CodePointerMnemonic}");
                 }
+                continue;
             }
-            else
+
+            ThingState fromState = (ThingState)pointer.CodePointerFrame;
+            if (fromState == ThingState.NULL)
             {
-                ThingState fromState = (ThingState)pointer.CodePointerFrame;
-                if (dehacked.ActionFunctionLookup.TryGetValue(fromState, out string? function))
-                    entityFrame.ActionFunction = EntityActionFunctions.Find(function);
-                else
-                    entityFrame.ActionFunction = null;
+                entityFrame.ActionFunction = null;
+                continue;
             }
+
+            if (dehacked.ActionFunctionLookup.TryGetValue(fromState, out string? findFunction))
+                entityFrame.ActionFunction = EntityActionFunctions.Find(findFunction);
+            else
+                Warning($"Invalid pointer frame {pointer.CodePointerFrame}");
         }
     }
 
