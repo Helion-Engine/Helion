@@ -13,7 +13,7 @@ public class SpawnLocations
 {
     private IWorld m_world;
 
-    private readonly Dictionary<int, IList<Entity>> m_playerStarts = new Dictionary<int, IList<Entity>>();
+    private readonly Dictionary<int, IList<WeakEntity>> m_playerStarts = new();
     private readonly IList<Entity> m_deathmatchStarts = new List<Entity>();
     private readonly IList<Entity> m_cooperativeStarts = new List<Entity>();
 
@@ -33,21 +33,21 @@ public class SpawnLocations
 
         switch (editorId)
         {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-            AddPlayerSpawn(entity, editorId - 1);
-            break;
-        case 4001:
-        case 4002:
-        case 4003:
-        case 4004:
-            AddPlayerSpawn(entity, editorId - 3997);
-            break;
-        case 11:
-            AddDeathmatchStart(entity);
-            break;
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                AddPlayerSpawn(entity, editorId - 1);
+                break;
+            case 4001:
+            case 4002:
+            case 4003:
+            case 4004:
+                AddPlayerSpawn(entity, editorId - 3997);
+                break;
+            case 11:
+                AddDeathmatchStart(entity);
+                break;
         }
     }
 
@@ -62,9 +62,9 @@ public class SpawnLocations
     /// unable to be found (implying no spawn locations present).</returns>
     public Entity? GetPlayerSpawn(int playerIndex, bool mapInit)
     {
-        if (m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns))
+        if (m_playerStarts.TryGetValue(playerIndex, out IList<WeakEntity>? spawns))
         {
-            Entity? spawn = spawns.LastOrDefault();
+            Entity? spawn = GetLastPlayerSpawn(spawns);
             if (spawn != null)
             {
                 if (mapInit && !PlayerBlock(spawn))
@@ -77,10 +77,22 @@ public class SpawnLocations
 
         foreach (var item in m_playerStarts)
         {
-            if (item.Value.Count == 0 || m_world.IsPositionBlocked(item.Value.Last()))
+            Entity? spawn = GetLastPlayerSpawn(item.Value);
+            if (spawn == null || m_world.IsPositionBlocked(spawn))
                 continue;
 
-            return item.Value.Last();
+            return spawn;
+        }
+
+        return null;
+    }
+
+    private static Entity? GetLastPlayerSpawn(IList<WeakEntity> spawns)
+    {
+        for (int i = spawns.Count - 1; i >= 0; i--)
+        {
+            if (spawns[i].Entity != null)
+                return spawns[i].Entity;
         }
 
         return null;
@@ -88,8 +100,8 @@ public class SpawnLocations
 
     public IList<Entity> GetPlayerSpawns(int playerIndex)
     {
-        if (m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns))
-            return spawns;
+        if (m_playerStarts.TryGetValue(playerIndex, out IList<WeakEntity>? spawns))
+            return spawns.Where(x => x.Entity != null).Select(x => x.Entity!).ToList();
 
         return Array.Empty<Entity>();
     }
@@ -106,13 +118,13 @@ public class SpawnLocations
     {
         Precondition(playerIndex >= 0, "Cannot add a negative player index");
 
-        if (m_playerStarts.TryGetValue(playerIndex, out IList<Entity>? spawns))
+        if (m_playerStarts.TryGetValue(playerIndex, out IList<WeakEntity>? spawns))
         {
-            Precondition(!spawns.Contains(entity), "Trying to add the same entity twice to the deathmatch spawns");
-            spawns.Add(entity);
+            Precondition(!spawns.Any(x => entity.Id.Equals(x.Entity?.Id)), "Trying to add the same entity twice to the deathmatch spawns");
+            spawns.Add(WeakEntity.GetReference(entity));
         }
         else
-            m_playerStarts[playerIndex] = new List<Entity> { entity };
+            m_playerStarts[playerIndex] = new List<WeakEntity> { WeakEntity.GetReference(entity) };
     }
 
     private void AddDeathmatchStart(Entity entity)
