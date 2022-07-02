@@ -133,9 +133,8 @@ public class Player : Entity
         SetupEvents();
     }
 
-    public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition,
-        EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
-        : base(playerModel, definition, entityManager, soundManager, world)
+    public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition, IWorld world)
+        : base(playerModel, definition, world)
     {
         Precondition(playerModel.Number >= 0, "Player number should not be negative");
 
@@ -160,7 +159,7 @@ public class Player : Entity
         ItemCount = playerModel.ItemCount;
         SecretsFound = playerModel.SecretsFound;
 
-        Inventory = new Inventory(playerModel, this, entityManager.DefinitionComposer);
+        Inventory = new Inventory(playerModel, this, world.EntityManager.DefinitionComposer);
 
         if (playerModel.Weapon != null)
             Weapon = Inventory.Weapons.GetWeapon(playerModel.Weapon);

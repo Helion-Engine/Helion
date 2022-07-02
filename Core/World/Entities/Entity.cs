@@ -161,8 +161,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IntersectSectors = world.DataCache.GetSectorList();
     }
 
-    public Entity(EntityModel entityModel, EntityDefinition definition, EntityManager entityManager,
-        WorldSoundManager soundManager, IWorld world)
+    public Entity(EntityModel entityModel, EntityDefinition definition, IWorld world)
     {
         Id = entityModel.Id;
         ThingId = entityModel.ThingId;
@@ -176,8 +175,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Armor = entityModel.Armor;
 
         World = world;
-        EntityManager = entityManager;
-        SoundManager = soundManager;
+        EntityManager = world.EntityManager;
+        SoundManager = world.SoundManager;
 
         AngleRadians = entityModel.AngleRadians;
         Box = world.DataCache.GetEntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
@@ -201,10 +200,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector;
 
         if (entityModel.ArmorDefinition != null)
-            ArmorDefinition = entityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+            ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
         m_soundChannels = world.DataCache.GetEntityAudioSources();
-        FrameState = world.DataCache.GetFrameState(this, definition, entityManager, entityModel.Frame);
+        FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager, entityModel.Frame);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
         IntersectSectors = world.DataCache.GetSectorList();

@@ -213,7 +213,7 @@ public class EntityManager : IDisposable
                 continue;
             }
 
-            var entity = new Entity(entityModel, definition, this, m_soundManager, World);
+            var entity = new Entity(entityModel, definition, World);
             var node = Entities.Add(entity);
             entity.EntityListNode = node;
 
@@ -277,7 +277,7 @@ public class EntityManager : IDisposable
         var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
         if (playerDefinition != null)
         {
-            Player player = new(playerModel, entities, playerDefinition, this, m_soundManager, World);
+            Player player = new(playerModel, entities, playerDefinition, World);
             player.IsVooDooDoll = isVoodooDoll;
 
             var node = Entities.Add(player);
