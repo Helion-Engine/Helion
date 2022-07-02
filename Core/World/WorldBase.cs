@@ -1144,18 +1144,19 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
     {
-        // THis currently just handles Ripper flag
-        if (!entity.Flags.Ripper || tryMove == null || tryMove.IntersectEntities2D.Count == 0)
+        if (tryMove == null || tryMove.IntersectEntities2D.Count == 0)
             return;
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
-            if (!entity.Box.OverlapsZ(intersectEntity.Box) || ReferenceEquals(entity, intersectEntity) || 
-                ReferenceEquals(entity.Owner, intersectEntity))
+            if (!entity.Box.OverlapsZ(intersectEntity.Box) || ReferenceEquals(entity, intersectEntity))
                 continue;
 
-            RipDamage(entity, intersectEntity);
+            if (entity.Flags.Ripper && !ReferenceEquals(entity.Owner, intersectEntity))
+                RipDamage(entity, intersectEntity);
+            if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
+                intersectEntity.Kill(null);
         }
     }
 
