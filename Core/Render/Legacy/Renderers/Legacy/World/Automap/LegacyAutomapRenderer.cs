@@ -181,12 +181,21 @@ public class LegacyAutomapRenderer : IDisposable
 
     private void PopulateThings(IWorld world, Player? player, RenderInfo renderInfo)
     {
-        if (player == null || !player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
+        if (player == null)
             return;
 
         LinkableNode<Entity>? node = world.Entities.Head;
         while (node != null)
         {
+            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker)
+                DrawEntity(node.Value, renderInfo.TickFraction);
+
+            if (!player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
+            {
+                node = node.Next;
+                continue;
+            }
+
             DrawEntity(node.Value, renderInfo.TickFraction);
             node = node.Next;
         }
@@ -302,24 +311,33 @@ public class LegacyAutomapRenderer : IDisposable
         mat4 transform = translate * rotate;
 
         AutomapColor color = AutomapColor.Green;
-        bool isKey = false;
+        bool flash = false;
 
         if (m_keys.TryGetValue(entity.Definition.Name, out AutomapColor keyColor))
         {
-            isKey = true;
+            flash = true;
             color = keyColor;
         }
         else if (entity.Flags.CountKill)
+        {
             color = entity.IsDead ? AutomapColor.Gray : AutomapColor.Red;
+        }
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
+        {
             color = AutomapColor.Yellow;
+        }
+        else if (entity.Definition.EditorId == (int)EditorId.MapMarker)
+        {
+            color = AutomapColor.Purple;
+            flash = true;
+        }
 
         if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
         {
             color = AutomapColor.Green;
             AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
         }
-        else if (isKey)
+        else if (flash)
         {
             // Draw a square for keys, make it flash
             if (entity.World.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)

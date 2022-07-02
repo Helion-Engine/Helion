@@ -10,6 +10,7 @@
         DeathmatchStart = 11,
         TeleportLanding = 14,
         PointPusher = 5001,
-        PointPuller
+        PointPuller,
+        MapMarker = 9040
     }
 }

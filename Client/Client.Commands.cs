@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Bsp.Zdbsp;
+using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Worlds;
@@ -18,7 +19,10 @@ using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World;
 using Helion.World.Cheats;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -49,6 +53,46 @@ public partial class Client
 
         for (int i = 0; i < commands.Count; i++)
             Log.Info(commands[i]);
+    }
+
+    [ConsoleCommand("mark", "Mark current spot in automap.")]
+    private void CommandMark(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+            return;
+
+        world.EntityManager.Create("MapMarker", world.Player.Position);
+    }
+
+    [ConsoleCommand("clearmark", "Removes map markers within a 128 radius.")]
+    private void CommandRemoveMark(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+            return;
+
+        var box = new Box2D(world.Player.Position.XY, 128);
+        var node = world.EntityManager.Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker && node.Value.Box.Overlaps2D(box))
+                world.EntityManager.Destroy(node.Value);
+            node = node.Next;
+        }
+    }
+
+    [ConsoleCommand("clearmarks", "Removes all map markers.")]
+    private void CommandClearMarks(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+            return;
+
+        var node = world.EntityManager.Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker)
+                world.EntityManager.Destroy(node.Value);
+            node = node.Next;
+        }
     }
 
     [ConsoleCommand("listdisplays", "Lists all available displays.")]
