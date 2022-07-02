@@ -156,7 +156,7 @@ public class EntityRenderer
         float topZ = bottomZ + texture.Height;
         float leftU = mirror ? 1.0f : 0.0f;
         float rightU = mirror ? 0.0f : 1.0f;
-        float alpha = (float)entity.Definition.Properties.Alpha;
+        float alpha = m_config.Render.SpriteTransparency ? (float)entity.Definition.Properties.Alpha : 1.0f;
         Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
         bool fuzz = entity.Definition.Flags.Shadow;
 

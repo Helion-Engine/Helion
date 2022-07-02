@@ -81,4 +81,10 @@ public class ConfigRender
 
     [ConfigInfo("Draws everything at full brightness.")]
     public readonly ConfigValue<bool> Fullbright = new(false);
+
+    [ConfigInfo("Enable sprite transparency.")]
+    public readonly ConfigValue<bool> SpriteTransparency = new(true);
+
+    [ConfigInfo("Enable texture transparency.")]
+    public readonly ConfigValue<bool> TextureTransparency = new(true);
 }

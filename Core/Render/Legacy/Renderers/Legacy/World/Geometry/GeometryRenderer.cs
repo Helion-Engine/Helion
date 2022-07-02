@@ -295,7 +295,7 @@ public class GeometryRenderer : IDisposable
             if (side == null)
                 throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
-            if (side.Line.Alpha < 1)
+            if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
             {
                 side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(position.XY);
                 AlphaSides.Add(side);
@@ -417,7 +417,7 @@ public class GeometryRenderer : IDisposable
 
         if (LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide);
-        if (facingSide.Line.Alpha >= 1 && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
+        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide);
         if (UpperIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide);
@@ -643,7 +643,8 @@ public class GeometryRenderer : IDisposable
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
 
-        RenderWorldData renderData = facingSide.Line.Alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
+        float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
+        RenderWorldData renderData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
@@ -657,12 +658,12 @@ public class GeometryRenderer : IDisposable
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
-                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
+                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha);
             }
             else if (data == null)
-                data = GetWallVertices(wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
+                data = GetWallVertices(wall, GetRenderLightLevel(facingSide), alpha);
             else
-                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), facingSide.Line.Alpha);
+                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha);
 
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
