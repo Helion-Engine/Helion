@@ -123,25 +123,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     private readonly IAudioSource?[] m_soundChannels;
 
-    /// <summary>
-    /// Creates an entity with the following information.
-    /// </summary>
-    /// <param name="id">A unique ID for this entity.</param>
-    /// <param name="thingId">The 'tid', which is a lookup ID. This differs
-    /// from the ID because multiple entities can share the thing ID, but
-    /// the other one must be unique.</param>
-    /// <param name="definition">The definitions for the entity.</param>
-    /// <param name="position">The location in the world.</param>
-    /// <param name="angleRadians">The angle in radians.</param>
-    /// <param name="sector">The sector that the center of the entity is on.
-    /// </param>
-    /// <param name="entityManager">The entity manager that created this
-    /// entity (so the entity can destroy itself if needed).</param>
-    /// <param name="soundManager">The sound manager to which we can play
-    /// any sounds with.</param>
-    /// <param name="world">The world this entity belongs to.</param>
     public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world)
+        Sector sector, IWorld world)
     {
         Health = definition.Properties.Health;
 
@@ -154,8 +137,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         ReactionTime = Properties.ReactionTime;
 
         World = world;
-        EntityManager = entityManager;
-        SoundManager = soundManager;
+        EntityManager = world.EntityManager;
+        SoundManager = world.SoundManager;
 
         AngleRadians = angleRadians;
         Box = world.DataCache.GetEntityBox(position, Radius, definition.Properties.Height);
@@ -172,7 +155,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Properties.Threshold = 0;
 
         m_soundChannels = world.DataCache.GetEntityAudioSources();
-        FrameState = world.DataCache.GetFrameState(this, definition, entityManager);
+        FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
         IntersectSectors = world.DataCache.GetSectorList();

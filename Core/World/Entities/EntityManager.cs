@@ -55,12 +55,12 @@ public class EntityManager : IDisposable
 
     public int MaxId => m_id;
 
-    public EntityManager(IWorld world, ArchiveCollection archiveCollection, WorldSoundManager soundManager)
+    public EntityManager(IWorld world)
     {
         World = world;
-        m_soundManager = soundManager;
+        m_soundManager = world.SoundManager;
         SpawnLocations = new SpawnLocations(world);
-        DefinitionComposer = archiveCollection.EntityDefinitionComposer;
+        DefinitionComposer = world.ArchiveCollection.EntityDefinitionComposer;
     }
 
     public static bool ZHeightSet(double z)
@@ -93,12 +93,13 @@ public class EntityManager : IDisposable
         return null;
     }
 
-    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
+    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false,
+        bool executeStateFunctions = true)
     {
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = new(id, tid, definition, position, angle, sector, this, m_soundManager, World);
+        Entity entity = new(id, tid, definition, position, angle, sector, World);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
             entity.Properties.Speed = entity.Definition.Properties.FastSpeed;
@@ -110,7 +111,7 @@ public class EntityManager : IDisposable
             entity.PrevPosition = entity.Position;
         }
 
-        FinishCreatingEntity(entity, zHeight);
+        FinishCreatingEntity(entity, zHeight, executeStateFunctions);
         return entity;
     }
 
@@ -180,7 +181,7 @@ public class EntityManager : IDisposable
             double angleRadians = MathHelper.ToRadians(mapThing.Angle);
             Vec3D position = mapThing.Position.Double;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, true);
+            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, executeStateFunctions: false);
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
 
@@ -333,7 +334,7 @@ public class EntityManager : IDisposable
         entity.ResetInterpolation();
     }
 
-    private void FinishCreatingEntity(Entity entity, double zHeight)
+    private void FinishCreatingEntity(Entity entity, double zHeight, bool executeStateFunctions)
     {
         LinkableNode<Entity> node = Entities.Add(entity);
         entity.EntityListNode = node;
@@ -344,7 +345,7 @@ public class EntityManager : IDisposable
         entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
-        entity.FrameState.SetState(Constants.FrameStates.Spawn, executeActionFunction: false);
+        entity.FrameState.SetState(Constants.FrameStates.Spawn, executeStateFunctions: executeStateFunctions);
     }
 
     private void PostProcessEntity(Entity entity)
@@ -365,13 +366,13 @@ public class EntityManager : IDisposable
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, position, zHeight);
-        Player player = new(id, 0, definition, position, angle, sector, this, m_soundManager, World, playerNumber);
+        Player player = new(id, 0, definition, position, angle, sector, World, playerNumber);
 
         var armor = DefinitionComposer.GetByName(Inventory.ArmorClassName);
         if (armor != null)
             player.Inventory.Add(armor, 0);
 
-        FinishCreatingEntity(player, zHeight);
+        FinishCreatingEntity(player, zHeight, false);
 
         return player;
     }

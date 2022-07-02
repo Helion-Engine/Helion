@@ -101,14 +101,17 @@ public class FrameState : ITickable
         m_frameIndex = index;
     }
 
-    public bool SetState(string label, int offset = 0, bool warn = true, bool executeActionFunction = true)
+    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true)
     {
+        if (!executeStateFunctions)
+            return SetStateNoAction(label, offset, warn);
+
         if (m_definition.States.Labels.TryGetValue(label, out int index))
         {
             if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
-                SetFrameIndex(index + offset, executeActionFunction);
+                SetFrameIndexInternal(index + offset);
             else
-                SetFrameIndex(index, executeActionFunction);
+                SetFrameIndexInternal(index);
 
             return true;
         }
@@ -119,8 +122,27 @@ public class FrameState : ITickable
         return false;
     }
 
+    public bool SetStateNoAction(string label, int offset = 0, bool warn = true)
+    {
+        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        {
+            if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
+                m_frameIndex = index + offset;
+            else
+                m_frameIndex = index;
+
+            m_tics = Frame.Ticks;
+            return true;
+        }
+
+        if (warn)
+            Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
+
+        return false;
+    }
+
     public void SetState(EntityFrame entityFrame) =>
-        SetFrameIndex(entityFrame.MasterFrameIndex, true);
+        SetFrameIndexInternal(entityFrame.MasterFrameIndex);
 
     public bool IsState(string label)
     {
@@ -137,7 +159,7 @@ public class FrameState : ITickable
         m_tics = tics;
     }
 
-    private void SetFrameIndex(int index, bool executeActionFunction)
+    private void SetFrameIndexInternal(int index)
     {
         int loopCount = 0;
         EntityFrame frame;
@@ -154,37 +176,34 @@ public class FrameState : ITickable
                 m_tics *= 2;
 
             frame = Frame;
-            if (executeActionFunction)
+
+            if (m_destroyOnStop && frame.IsNullFrame)
             {
-                // Vanilla just forced the state, if executeActionFunction is false then don't check to remove the entity.
-                if (m_destroyOnStop && frame.IsNullFrame)
+                m_entityManager.Destroy(m_entity);
+                return;
+            }
+
+            loopCount++;
+            if (loopCount > InfiniteLoopLimit)
+            {
+                LogStackError();
+                return;
+            }
+
+            frame.ActionFunction?.Invoke(m_entity);
+            if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
+                return;
+
+            frame = Frame;
+
+            if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
+            {
+                if (m_destroyOnStop)
                 {
                     m_entityManager.Destroy(m_entity);
                     return;
                 }
-
-                loopCount++;
-                if (loopCount > InfiniteLoopLimit)
-                {
-                    LogStackError();
-                    return;
-                }
-
-                frame.ActionFunction?.Invoke(m_entity);
-                if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
-                    return;
-
-                frame = Frame;
-
-                if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
-                {
-                    if (m_destroyOnStop)
-                    {
-                        m_entityManager.Destroy(m_entity);
-                        return;
-                    }
-                    break;
-                }
+                break;
             }
 
             if (frame.Ticks != 0)
@@ -211,7 +230,7 @@ public class FrameState : ITickable
 
         m_tics--;
         if (m_tics <= 0)
-            SetFrameIndex(Frame.NextFrameIndex, true);
+            SetFrameIndexInternal(Frame.NextFrameIndex);
     }
 
     public FrameStateModel ToFrameStateModel()

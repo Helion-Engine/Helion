@@ -135,9 +135,9 @@ public abstract partial class WorldBase : IWorld
         Geometry = geometry;
         Map = map;
         Blockmap = new BlockMap(Lines);
-        SoundManager = new WorldSoundManager(this, audioSystem, archiveCollection);
-        EntityManager = new EntityManager(this, archiveCollection, SoundManager);
-        PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, SoundManager, EntityManager, m_random);
+        SoundManager = new WorldSoundManager(this, audioSystem);
+        EntityManager = new EntityManager(this);
+        PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
 
         if (worldModel != null)
@@ -776,31 +776,32 @@ public abstract partial class WorldBase : IWorld
         angle += addAngle;
 
         var projectileDef = EntityManager.DefinitionComposer.GetByName(projectClassName);
-        if (projectileDef != null)
+        if (projectileDef == null)
+            return null;
+
+        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0, executeStateFunctions: false);
+
+        // Doom set the owner as the target
+        projectile.SetOwner(shooter);
+        projectile.SetTarget(shooter);
+        projectile.PlaySeeSound();
+
+        if (projectile.Flags.Randomize)
+            projectile.SetRandomizeTicks();
+
+        Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
+        Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0));
+
+        // TryMoveXY will use the velocity of the projectile
+        // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
+        if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success))
         {
-            Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
-            Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
-            Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0));
-            projectile.SetOwner(shooter);
-            projectile.PlaySeeSound();
-
-            if (projectile.Flags.Randomize)
-                projectile.SetRandomizeTicks();
-
-            // TryMoveXY will use the velocity of the projectile
-            // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-            if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success))
-            {
-                projectile.Velocity = velocity;
-                return projectile;
-            }
-            else
-            {
-                projectile.SetPosition(testPos);
-                HandleEntityHit(projectile, velocity, null);
-            }
+            projectile.Velocity = velocity;
+            return projectile;
         }
 
+        projectile.SetPosition(testPos);
+        HandleEntityHit(projectile, velocity, null);
         return null;
     }
 

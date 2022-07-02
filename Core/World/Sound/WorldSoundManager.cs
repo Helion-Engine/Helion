@@ -18,8 +18,8 @@ public class WorldSoundManager : SoundManager, ITickable
 {
     private readonly IWorld m_world;
 
-    public WorldSoundManager(IWorld world, IAudioSystem audioSystem, ArchiveCollection archiveCollection) :
-        base(audioSystem, archiveCollection)
+    public WorldSoundManager(IWorld world, IAudioSystem audioSystem) :
+        base(audioSystem, world.ArchiveCollection)
     {
         m_world = world;
     }

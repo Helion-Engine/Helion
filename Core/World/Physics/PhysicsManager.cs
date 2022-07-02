@@ -60,23 +60,13 @@ public class PhysicsManager
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly List<Entity> m_stackCrush = new();
 
-    /// <summary>
-    /// Creates a new physics manager which utilizes the arguments for any
-    /// collision detection or linking to the world.
-    /// </summary>
-    /// <param name="world">The world to operate on.</param>
-    /// <param name="bspTree">The BSP tree for the world.</param>
-    /// <param name="blockmap">The blockmap for the world.</param>
-    /// <param name="soundManager">The sound manager to play sounds from.</param>
-    /// <param name="entityManager">entity manager.</param>
-    /// <param name="random">Random number generator to use.</param>
-    public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, WorldSoundManager soundManager, EntityManager entityManager, IRandom random)
+    public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
         m_bspTree = bspTree;
         m_blockmap = blockmap;
-        m_soundManager = soundManager;
-        m_entityManager = entityManager;
+        m_soundManager = world.SoundManager;
+        m_entityManager = world.EntityManager;
         m_random = random;
         BlockmapTraverser = new BlockmapTraverser(m_blockmap, world.DataCache);
     }

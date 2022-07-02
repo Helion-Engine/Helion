@@ -110,8 +110,8 @@ public class Player : Entity
     public override bool CanMakeSound() => !IsVooDooDoll;
 
     public Player(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, EntityManager entityManager, WorldSoundManager soundManager, IWorld world, int playerNumber)
-        : base(id, thingId, definition, position, angleRadians, sector, entityManager, soundManager, world)
+        Sector sector, IWorld world, int playerNumber)
+        : base(id, thingId, definition, position, angleRadians, sector, world)
     {
         Precondition(playerNumber >= 0, "Player number should not be negative");
 
@@ -119,7 +119,7 @@ public class Player : Entity
         // Going to default to true for players, otherwise jumping without moving X/Y can allow for clipping through ceilings
         // See PhysicsManager.MoveZ
         MoveLinked = true;
-        Inventory = new Inventory(this, entityManager.DefinitionComposer);
+        Inventory = new Inventory(this, world.EntityManager.DefinitionComposer);
 
         PrevAngle = AngleRadians;
         m_viewHeight = definition.Properties.Player.ViewHeight;
