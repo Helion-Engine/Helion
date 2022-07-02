@@ -52,6 +52,7 @@ using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World;
 
@@ -1029,27 +1030,28 @@ public abstract partial class WorldBase : IWorld
         definition = item.Definition;
         GiveVooDooItem(player, item, flags, pickupFlash);
 
-        if (ArchiveCollection.Definitions.DehackedDefinition != null)
+        if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
-            EntityDefinition? vanillaDef = GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item);
-            if (vanillaDef != null)
-            {
-                definition = vanillaDef;
-                return player.GiveItem(vanillaDef, flags, pickupFlash);
-            }
+            definition = vanillaDef;
+            flags = vanillaDef.Flags;
+            return player.GiveItem(vanillaDef, flags, pickupFlash);
         }
 
         return player.GiveItem(item.Definition, flags, pickupFlash);
     }
 
-    private EntityDefinition? GetDehackedPickup(DehackedDefinition dehacked, Entity item)
+    private bool GetDehackedPickup(DehackedDefinition dehacked, Entity item, [NotNullWhen(true)] out EntityDefinition? definition)
     {
         // Vanilla determined pickups by the sprite name
         // E.g. batman doom has an enemy that drops a shotgun with the blue key sprite
         if (!dehacked.PickupLookup.TryGetValue(item.Frame.Sprite, out string? def))
-            return null;
+        {
+            definition = null;
+            return false;
+        }
 
-        return ArchiveCollection.EntityDefinitionComposer.GetByName(def);
+        definition = ArchiveCollection.EntityDefinitionComposer.GetByName(def);
+        return definition!= null;
     }
 
     public virtual void PerformItemPickup(Entity entity, Entity item)
