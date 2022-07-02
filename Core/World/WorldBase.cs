@@ -1089,6 +1089,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
     {
+        if (entity.IsDisposed)
+            return;
+
         entity.Hit(previousVelocity);
 
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
