@@ -316,6 +316,7 @@ public class SoundManager : IDisposable
         IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData, soundParams);
         if (audioSource == null)
         {
+            ArchiveCollection.DataCache.FreeAudioData(audioData);
             ArchiveCollection.DataCache.FreeSoundParams(soundParams);
             return null;
         }
