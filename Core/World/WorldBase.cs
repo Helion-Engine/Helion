@@ -790,13 +790,19 @@ public abstract partial class WorldBase : IWorld
         if (projectile.Flags.Randomize)
             projectile.SetRandomizeTicks();
 
+        if (projectile.Flags.NoClip)
+            return projectile;
+
         Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
-        Vec3D testPos = projectile.Position + (Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0));
+        Vec3D testPos = projectile.Position;
+        if (projectile.Properties.Speed > 0)
+            testPos += Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0);
 
         // TryMoveXY will use the velocity of the projectile
         // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-        if (projectile.Flags.NoClip || (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success))
+        if (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success)
         {
+            projectile.SetPosition(testPos);
             projectile.Velocity = velocity;
             return projectile;
         }
