@@ -240,7 +240,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.Flags = Flags.ToEntityFlagsModel();
         entityModel.Threshold = Threshold;
         entityModel.ReactionTime = ReactionTime;
+        entityModel.HighSec = HighestFloorSector.Id;
+        entityModel.LowSec = LowestCeilingSector.Id;
+        entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
+        entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         return entityModel;
+    }
+
+    private static int? GetBoundingEntityForModel(object obj)
+    {
+        if (obj is not Entity entity)
+            return null;
+
+        return entity.Id;
     }
 
     public virtual void CopyProperties(Entity entity)

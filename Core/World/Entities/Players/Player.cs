@@ -17,6 +17,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.World.Cheats;
 using Helion.Resources.Definitions.MapInfo;
 using NLog;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Entities.Players;
 
@@ -133,7 +134,7 @@ public class Player : Entity
         SetupEvents();
     }
 
-    public Player(PlayerModel playerModel, Dictionary<int, Entity> entities, EntityDefinition definition, IWorld world)
+    public Player(PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, EntityDefinition definition, IWorld world)
         : base(playerModel, definition, world)
     {
         Precondition(playerModel.Number >= 0, "Player number should not be negative");
@@ -169,9 +170,9 @@ public class Player : Entity
             AnimationWeapon = Inventory.Weapons.GetWeapon(playerModel.AnimationWeapon);
 
         if (playerModel.Attacker.HasValue && entities.TryGetValue(playerModel.Attacker.Value, out var attacker))
-            SetAttacker(attacker);
+            SetAttacker(attacker.Entity);
         if (playerModel.Killer.HasValue && entities.TryGetValue(playerModel.Killer.Value, out var killer))
-            m_killer = WeakEntity.GetReference(killer);
+            m_killer = WeakEntity.GetReference(killer.Entity);
 
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;

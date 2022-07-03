@@ -37,6 +37,11 @@ public class EntityModel
     public int Threshold { get; set; }
     public int ReactionTime { get; set; }
 
+    public int? HighSec { get; set; }
+    public int? LowSec { get; set; }
+    public int? HighEntity { get; set; }
+    public int? LowEntity { get; set; }
+
     public Vec3D GetVelocity() => (VelocityX, VelocityY, VelocityZ);
 
     public Vec3D GetSpawnPoint() => (SpawnPointX, SpawnPointY, SpawnPointZ);

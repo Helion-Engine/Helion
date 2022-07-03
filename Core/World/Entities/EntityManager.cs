@@ -17,7 +17,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
-using MoreLinq.Extensions;
 using NLog;
 using Helion.World.Stats;
 
@@ -25,16 +24,28 @@ namespace Helion.World.Entities;
 
 public class EntityManager : IDisposable
 {
+    public class EntityModelPair
+    {
+        public EntityModelPair(EntityModel model, Entity entity)
+        {
+            Model = model;
+            Entity = entity;
+        }
+
+        public EntityModel Model { get; set; }
+        public Entity Entity { get; set; }
+    }
+
     public class WorldModelPopulateResult
     {
-        public WorldModelPopulateResult(IList<Player> players, Dictionary<int, Entity> entities)
+        public WorldModelPopulateResult(IList<Player> players, Dictionary<int, EntityModelPair> entities)
         {
             Players = players;
             Entities = entities;
         }
 
         public readonly IList<Player> Players;
-        public readonly Dictionary<int, Entity> Entities;
+        public readonly Dictionary<int, EntityModelPair> Entities;
     }
 
     public const int NoTid = 0;
@@ -202,7 +213,7 @@ public class EntityManager : IDisposable
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
         List<Player> players = new();
-        Dictionary<int, Entity> entities = new();
+        Dictionary<int, EntityModelPair> entities = new();
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
@@ -217,7 +228,7 @@ public class EntityManager : IDisposable
             var node = Entities.Add(entity);
             entity.EntityListNode = node;
 
-            entities.Add(entityModel.Id, entity);
+            entities.Add(entityModel.Id, new(entityModel, entity));
         }
 
         for (int i = 0; i < worldModel.Players.Count; i++)
@@ -235,44 +246,73 @@ public class EntityManager : IDisposable
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
-            if (!entities.TryGetValue(entityModel.Id, out Entity? entity))
+            if (!entities.TryGetValue(entityModel.Id, out EntityModelPair? entity))
                 continue;
 
             if (entityModel.Owner.HasValue)
             {
                 entities.TryGetValue(entityModel.Owner.Value, out var entityOwner);
                 if (entityOwner != null)
-                    entity.SetOwner(entityOwner);
+                    entity.Entity.SetOwner(entityOwner.Entity);
             }
 
             if (entityModel.Target.HasValue)
             {
                 entities.TryGetValue(entityModel.Target.Value, out var entityTarget);
                 if (entityTarget != null)
-                    entity.SetTarget(entityTarget);
+                    entity.Entity.SetTarget(entityTarget.Entity);
             }
 
             if (entityModel.Tracer.HasValue)
             {
                 entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget);
                 if (tracerTarget != null)
-                    entity.SetTracer(tracerTarget);
+                    entity.Entity.SetTracer(tracerTarget.Entity);
             }
         }
 
         return new WorldModelPopulateResult(players, entities);
     }
 
-    public void FinalizeFromWorldLoad(Entity entity)
+    public void FinalizeFromWorldLoad(WorldModelPopulateResult result, Entity entity)
     {
-        // Need to link again for clipping/stacked physics to be set correctly
-        entity.UnlinkFromWorld();
         World.Link(entity);
+
+        if (result.Entities.TryGetValue(entity.Id, out var pair))
+        {
+            entity.HighestFloorSector = GetValidSector(World, entity.Sector, pair.Model.HighSec);
+            entity.LowestCeilingSector = GetValidSector(World, entity.Sector, pair.Model.LowSec);
+            entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
+            entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+
+            entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
+            entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
+        }
+
         PostProcessEntity(entity);
         FinalizeEntity(entity);
     }
 
-    private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, Entity> entities, bool isVoodooDoll)
+    private static object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
+    {
+        if (!entityId.HasValue)
+            return sector;
+
+        if (!result.Entities.TryGetValue(entityId.Value, out var pair))
+            return false;
+
+        return pair.Entity;
+    }
+
+    private static Sector GetValidSector(IWorld world, Sector sector, int? id)
+    {
+        if (!id.HasValue || !world.IsSectorIdValid(id.Value))
+            return sector;
+
+        return world.Sectors[id.Value];
+    }
+
+    private Player? CreatePlayerFromModel(PlayerModel playerModel, Dictionary<int, EntityModelPair> entities, bool isVoodooDoll)
     {
         var playerDefinition = DefinitionComposer.GetByName(playerModel.Name);
         if (playerDefinition != null)
@@ -282,7 +322,7 @@ public class EntityManager : IDisposable
 
             var node = Entities.Add(player);
             player.EntityListNode = node;
-            entities.Add(player.Id, player);
+            entities.Add(player.Id, new(playerModel, player));
 
             if (isVoodooDoll)
                 VoodooDolls.Add(player);

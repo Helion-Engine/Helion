@@ -299,7 +299,7 @@ public class Sector
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
         if (sectorModel.SoundTarget.HasValue && result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out var soundTarget))
-            SetSoundTarget(soundTarget);
+            SetSoundTarget(soundTarget.Entity);
 
         if (sectorModel.SectorDataChanges > 0)
         {

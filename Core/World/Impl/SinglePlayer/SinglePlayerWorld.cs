@@ -95,13 +95,7 @@ public class SinglePlayerWorld : WorldBase
             LinkableNode<Entity>? node = EntityManager.Entities.Head;
             while (node != null)
             {
-                Link(node.Value);
-                node = node.Next;
-            }
-            node = EntityManager.Entities.Head;
-            while (node != null)
-            {
-                EntityManager.FinalizeFromWorldLoad(node.Value);
+                EntityManager.FinalizeFromWorldLoad(result, node.Value);
                 node = node.Next;
             }
 
