@@ -23,6 +23,36 @@ namespace Helion.Tests.Unit.GameAction
             world.Config.Compatibility.VanillaSectorPhysics.Set(false);
         }
 
+        [Fact(DisplayName = "Entities are spawned correctly with init flag set")]
+        public void EntityInitSpawn()
+        {
+            // Doom does not have a z value set while ZDoom does. Test for clamping issues.
+            var imp1 = GameActions.GetEntity(World, 1);
+            var imp2 = GameActions.GetEntity(World, 2);
+            var imp3 = GameActions.GetEntity(World, 3);
+
+            imp1.HighestFloorZ.Should().Be(0);
+            imp2.HighestFloorZ.Should().Be(0);
+            imp3.HighestFloorZ.Should().Be(0);
+
+            imp1.LowestCeilingZ.Should().Be(128);
+            imp2.LowestCeilingZ.Should().Be(128);
+            imp3.LowestCeilingZ.Should().Be(128);
+
+            var sector = GameActions.GetSector(World, 9);
+            imp1.HighestFloorObject.Should().Be(sector);
+            imp2.HighestFloorObject.Should().Be(sector);
+            imp3.HighestFloorObject.Should().Be(sector);
+
+            imp1.LowestCeilingObject.Should().Be(sector);
+            imp2.LowestCeilingObject.Should().Be(sector);
+            imp3.LowestCeilingObject.Should().Be(sector);
+
+            imp1.IsCrushing().Should().Be(false);
+            imp2.IsCrushing().Should().Be(false);
+            imp3.IsCrushing().Should().Be(false);
+        }
+
         [Fact(DisplayName = "Floor and ceiling move towards each other until blocked")]
         public void FloorAndCeilingMoveBlock()
         {

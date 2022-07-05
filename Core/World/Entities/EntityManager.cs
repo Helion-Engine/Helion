@@ -192,7 +192,7 @@ public class EntityManager : IDisposable
             double angleRadians = MathHelper.ToRadians(mapThing.Angle);
             Vec3D position = mapThing.Position.Double;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, executeStateFunctions: false);
+            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, init: true, executeStateFunctions: false);
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
 
