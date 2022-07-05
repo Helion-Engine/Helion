@@ -10,6 +10,8 @@ namespace Helion.Render.Legacy.Shared;
 /// </summary>
 public class RenderInfo
 {
+    public static Vec2F LastAutomapOffset;
+
     public Camera Camera;
     public float TickFraction;
     public Rectangle Viewport;
@@ -35,5 +37,8 @@ public class RenderInfo
         DrawAutomap = drawAutomap;
         AutomapOffset = automapOffset;
         AutomapScale = automapScale;
+
+        if (!DrawAutomap)
+            LastAutomapOffset = Vec2F.Zero;
     }
 }

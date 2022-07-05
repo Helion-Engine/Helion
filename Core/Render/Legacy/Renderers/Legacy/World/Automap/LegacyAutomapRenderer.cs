@@ -94,6 +94,7 @@ public class LegacyAutomapRenderer : IDisposable
         {
             m_offsetX += (renderInfo.AutomapOffset.X - m_lastOffsetX) * 64 * 1 / (float)renderInfo.AutomapScale;
             m_offsetY += (renderInfo.AutomapOffset.Y - m_lastOffsetY) * 64 * 1 / (float)renderInfo.AutomapScale;
+            RenderInfo.LastAutomapOffset = (m_offsetX, m_offsetY);
             m_lastOffsetX = renderInfo.AutomapOffset.X;
             m_lastOffsetY = renderInfo.AutomapOffset.Y;
         }
@@ -328,7 +329,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.Definition.EditorId == (int)EditorId.MapMarker)
         {
-            color = AutomapColor.Purple;
+            color = AutomapColor.Green;
             flash = true;
         }
 

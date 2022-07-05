@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using Helion.Bsp.Zdbsp;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Render.Legacy.Shared;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;
@@ -61,7 +63,7 @@ public partial class Client
         if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
             return;
 
-        world.EntityManager.Create("MapMarker", world.Player.Position);
+        world.EntityManager.Create("MapMarker", world.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
     }
 
     [ConsoleCommand("clearmark", "Removes map markers within a 128 radius.")]
@@ -70,7 +72,7 @@ public partial class Client
         if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
             return;
 
-        var box = new Box2D(world.Player.Position.XY, 128);
+        var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
         var node = world.EntityManager.Entities.Head;
         while (node != null)
         {
