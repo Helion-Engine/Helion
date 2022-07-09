@@ -276,6 +276,9 @@ public class DataCache
 
     public void FreeAudioSource(IAudioSource audioSource)
     {
+        if (audioSource is not OpenALAudioSource)
+            return;
+
         audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
         audioSource.CacheFree();
         audioSource.AudioData = null!;
