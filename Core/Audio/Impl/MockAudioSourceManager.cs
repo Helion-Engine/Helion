@@ -13,7 +13,7 @@ namespace Helion.Audio.Impl
             
         }
 
-        public IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams)
+        public IAudioSource? Create(string sound, in AudioData audioData)
         {
             var audioSource = new MockAudioSource(audioData, 35);
             m_audioSources.AddLast(audioSource);

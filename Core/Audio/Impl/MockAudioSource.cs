@@ -15,7 +15,7 @@ namespace Helion.Audio.Impl
         private Vec3F m_position;
         private int m_playTicks;
 
-        public MockAudioSource(AudioData audioData, int ticksToPlay)
+        public MockAudioSource(in AudioData audioData, int ticksToPlay)
         {
             AudioData = audioData;
             m_playTicks = ticksToPlay;
@@ -43,6 +43,7 @@ namespace Helion.Audio.Impl
         public float GetPitch() => m_pitch;
 
         public Vec3F GetPosition() => m_position;
+        public Vec3F GetVelocity() => Vec3F.Zero;
 
         public bool IsFinished() => m_finished;
 

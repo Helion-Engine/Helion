@@ -520,7 +520,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
         SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto,
-            World.DataCache.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
+            new SoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
 
     public void PlayDeathSound()
@@ -530,20 +530,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
         SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto,
-            World.DataCache.GetSoundParams(this, attenuation: attenuation));
+            new SoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
     {
         if (Properties.AttackSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, World.DataCache.GetSoundParams(this));
+            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, new SoundParams(this));
     }
 
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
             SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto,
-                World.DataCache.GetSoundParams(this, type: SoundType.Active));
+                new SoundParams(this, type: SoundType.Active));
     }
 
     public string GetSpeciesName()

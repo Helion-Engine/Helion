@@ -27,19 +27,17 @@ public class OpenALAudioSource : IAudioSource
     public OpenALAudioSourceManager Owner { get; private set; }
     private int m_sourceId;
     private bool m_disposed;
-    private readonly DataCache m_dataCache;
 
     public int ID => m_sourceId;
 
-    public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams, DataCache dataCache)
+    public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
     {
-        Set(owner, buffer, audioData, soundParams);
+        Set(owner, buffer, audioData);
         Owner = owner;
         AudioData = audioData;
-        m_dataCache = dataCache;
     }
 
-    public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
+    public void Set(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
     {
         Owner = owner;
         AudioData = audioData;
@@ -49,12 +47,12 @@ public class OpenALAudioSource : IAudioSource
         float maxDistance = DefaultMaxDistance;
         float radius = DefaultRadius;
 
-        if (soundParams.SoundSource is Entity entity)
+        if (audioData.SoundSource is Entity entity)
             radius = (float)entity.Radius + 16.0f;
-        else if (soundParams.SoundSource is Sector)
+        else if (audioData.SoundSource is Sector)
             radius = 128.0f;
 
-        switch (soundParams.Attenuation)
+        switch (audioData.Attenuation)
         {
             case Attenuation.None:
                 // Max out the distance to prevent directional sound from taking effect
@@ -79,7 +77,7 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, SourceRadius, radius);
         AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
         AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
-        AL.Source(m_sourceId, ALSourceb.Looping, soundParams.Loop);
+        AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         OpenALDebug.End("Creating new source");
     }
@@ -120,6 +118,15 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Setting sound velocity");
         AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
         OpenALDebug.End("Setting sound velocity");
+    }
+
+    public Vec3F GetVelocity()
+    {
+        OpenALDebug.Start("Getting sound velocity");
+        AL.GetSource(m_sourceId, ALSource3f.Velocity, out Vector3 vel);
+        OpenALDebug.End("Getting sound velocity");
+
+        return new Vec3F(vel.X, vel.Y, vel.Z);
     }
 
     ~OpenALAudioSource()
@@ -222,7 +229,5 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Deleting sound source");
         AL.DeleteSource(m_sourceId);
         OpenALDebug.End("Deleting sound source");
-
-        m_dataCache.FreeAudioData(AudioData);
     }
 }
