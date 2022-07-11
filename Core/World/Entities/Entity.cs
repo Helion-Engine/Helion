@@ -121,7 +121,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
 
-    private readonly IAudioSource?[] m_soundChannels;
+    public readonly IAudioSource?[] SoundChannels;
 
     public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
@@ -154,7 +154,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Properties.Threshold = 0;
 
-        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        SoundChannels = world.DataCache.GetEntityAudioSources();
         FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
@@ -202,7 +202,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
-        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        SoundChannels = world.DataCache.GetEntityAudioSources();
         FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager, entityModel.Frame);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
@@ -915,7 +915,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IsDisposed = true;
         UnlinkFromWorld();
         EntityListNode?.Unlink();
-        World.DataCache.FreeEntityAudioSources(m_soundChannels);
+        World.DataCache.FreeEntityAudioSources(SoundChannels);
         World.DataCache.FreeEntityBox(Box);
         World.DataCache.FreeFrameState(FrameState);
         World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
@@ -960,7 +960,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
     {
-        m_soundChannels[(int)channel] = audioSource;
+        SoundChannels[(int)channel] = audioSource;
     }
 
     public double GetDistanceFrom(Entity listenerEntity)
@@ -970,10 +970,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
     {
-        IAudioSource? audioSource = m_soundChannels[(int)channel];
+        IAudioSource? audioSource = SoundChannels[(int)channel];
         if (audioSource != null)
         {
-            m_soundChannels[(int)channel] = null;
+            SoundChannels[(int)channel] = null;
             return audioSource;
         }
 
@@ -982,7 +982,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
     {
-        m_soundChannels[(int)channel] = null;
+        SoundChannels[(int)channel] = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

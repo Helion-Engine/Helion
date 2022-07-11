@@ -14,16 +14,11 @@ namespace Helion.Audio.Sounds;
 
 public class SoundManager : IDisposable
 {
-    /// <summary>
-    /// The amount of sounds that are allowed to be playing at once. Any
-    /// more sounds will be ignored.
-    /// </summary>
-    public const int MaxConcurrentSounds = 32;
-
     public readonly IAudioSourceManager AudioManager;
     protected readonly ArchiveCollection ArchiveCollection;
     private readonly IRandom m_random = new TrueRandom();
     private readonly IAudioSystem m_audioSystem;
+    private int m_maxConcurrentSounds = 32;
 
     // The sounds that are currently playing
     protected readonly LinkedList<IAudioSource> PlayingSounds = new();
@@ -35,6 +30,12 @@ public class SoundManager : IDisposable
     // It's either too far away to hear yet or was bumped by a higher priority sound.
     // These sounds are continually checked if they can be added in to play.
     private readonly LinkedList<WaitingSound> m_waitingLoopSounds = new();
+
+    // Intended for unit tests only
+    public void SetMaxConcurrentSounds(int count) => m_maxConcurrentSounds = count;
+    public LinkedList<IAudioSource> GetPlayingSounds() => PlayingSounds;
+    public LinkedList<IAudioSource> GetSoundsToPlay() => m_soundsToPlay;
+    public LinkedList<WaitingSound> GetWaitingSounds() => m_waitingLoopSounds;
 
     public SoundManager(IAudioSystem audioSystem, ArchiveCollection archiveCollection)
     {
@@ -179,7 +180,7 @@ public class SoundManager : IDisposable
                 continue;
             }
 
-            if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo) || !BumpSoundByPriority(node.Value.Priority, distance)))
+            if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo) || !BumpSoundByPriority(node.Value.Priority, distance, node.Value.SoundParams.Attenuation)))
                 return;
 
             var value = node.Value;
@@ -262,8 +263,7 @@ public class SoundManager : IDisposable
             ArchiveCollection.DataCache.FreeAudioSource(node.Value);
             audioSources.Remove(node);
             soundStopped = true;
-
-            node = nextNode;
+            break;
         }
 
         return soundStopped;
@@ -301,10 +301,13 @@ public class SoundManager : IDisposable
         if (!ReferenceEquals(source, other))
             return false;
 
+        if (channel != otherChannel || otherPriority < priority)
+            return false;
+
         if (sound == null)
             return true;
 
-        if (sound != otherSound || channel != otherChannel || otherPriority < priority)
+        if (sound != otherSound)
             return false;
 
         return true;
@@ -387,8 +390,12 @@ public class SoundManager : IDisposable
 
     private bool SoundPriorityTooLow(ISoundSource source, SoundChannelType channel, SoundInfo soundInfo, in SoundParams soundParams, double distance, int priority)
     {
+        if (!IsMaxSoundCount)
+            return false;
+
         // Check if this sound will remove a sound by it's source first, then check bumping by priority
-        return IsMaxSoundCount && (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo, soundParams, channel) && !BumpSoundByPriority(priority, distance)));
+        return (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo, soundParams, channel) && 
+            !BumpSoundByPriority(priority, distance, soundParams.Attenuation)));
     }
 
     private bool HitSoundLimit(SoundInfo soundInfo)
@@ -396,19 +403,19 @@ public class SoundManager : IDisposable
         return soundInfo.Limit > 0 && GetSoundCount(soundInfo) >= soundInfo.Limit;
     }
 
-    private bool IsMaxSoundCount => m_soundsToPlay.Count + PlayingSounds.Count >= MaxConcurrentSounds;
+    private bool IsMaxSoundCount => m_soundsToPlay.Count + PlayingSounds.Count >= m_maxConcurrentSounds;
 
-    private bool BumpSoundByPriority(int priority, double distance)
+    private bool BumpSoundByPriority(int priority, double distance, Attenuation attenuation)
     {
-        if (BumpSoundByPriority(priority, distance, m_soundsToPlay))
+        if (BumpSoundByPriority(priority, distance, attenuation, m_soundsToPlay))
             return true;
-        if (BumpSoundByPriority(priority, distance, PlayingSounds))
+        if (BumpSoundByPriority(priority, distance, attenuation, PlayingSounds))
             return true;
 
         return false;
     }
 
-    private bool BumpSoundByPriority(int priority, double distance, LinkedList<IAudioSource> audioSources)
+    private bool BumpSoundByPriority(int priority, double distance, Attenuation attenuation, LinkedList<IAudioSource> audioSources)
     {
         int lowestPriority = 0;
         double farthestDistance = 0;
@@ -418,7 +425,7 @@ public class SoundManager : IDisposable
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.Value.AudioData.Priority > lowestPriority)
+            if (node.Value.AudioData.Attenuation != Attenuation.None && node.Value.AudioData.Priority > lowestPriority)
             {
                 double checkDistance = GetDistance(node.Value.AudioData.SoundSource);
                 if (checkDistance > farthestDistance)
@@ -432,7 +439,7 @@ public class SoundManager : IDisposable
             node = nextNode;
         }
 
-        if (lowestPriorityNode != null && priority <= lowestPriority && distance < farthestDistance)
+        if (lowestPriorityNode != null && priority <= lowestPriority && (distance < farthestDistance || attenuation == Attenuation.None))
         {
             lowestPriorityNode.Value.Stop();
 
