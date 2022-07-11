@@ -33,6 +33,9 @@ namespace Helion.Audio.Impl
 
         public void Tick()
         {
+            if (AudioData.Loop)
+                return;
+
             if (m_playing)
                 m_playTicks--;
 
