@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Audio;
 using Helion.Models;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
@@ -223,6 +224,5 @@ public class StairSpecial : SectorMoveSpecial
     }
 
     private void CreateMovementSound(Sector sector) =>
-        m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, SoundChannelType.Auto,
-            m_world.DataCache.GetSoundParams(sector.Floor, true));
+        m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, new SoundParams(sector.Floor, true));
 }

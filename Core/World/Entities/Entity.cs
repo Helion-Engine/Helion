@@ -33,7 +33,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const int ForceGibDamage = ushort.MaxValue;
     private const int KillDamage = ushort.MaxValue - 1;
     public const double FloatSpeed = 4.0;
-    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannelType)).Length;
+    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
     public readonly int Id;
     public readonly int ThingId;
@@ -94,7 +94,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Entity;
 
-    public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
+    public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
@@ -121,7 +121,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
 
-    private readonly IAudioSource?[] m_soundChannels;
+    public readonly IAudioSource?[] SoundChannels;
 
     public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
@@ -154,7 +154,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Properties.Threshold = 0;
 
-        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        SoundChannels = world.DataCache.GetEntityAudioSources();
         FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
@@ -202,7 +202,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
-        m_soundChannels = world.DataCache.GetEntityAudioSources();
+        SoundChannels = world.DataCache.GetEntityAudioSources();
         FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager, entityModel.Frame);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
@@ -519,8 +519,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto,
-            World.DataCache.GetSoundParams(this, attenuation: attenuation, type: SoundType.See));
+        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound,
+            new SoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
 
     public void PlayDeathSound()
@@ -529,21 +529,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto,
-            World.DataCache.GetSoundParams(this, attenuation: attenuation));
+        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound,
+            new SoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
     {
         if (Properties.AttackSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, World.DataCache.GetSoundParams(this));
+            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, new SoundParams(this));
     }
 
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto,
-                World.DataCache.GetSoundParams(this, type: SoundType.Active));
+            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound,
+                new SoundParams(this, type: SoundType.Active));
     }
 
     public string GetSpeciesName()
@@ -915,7 +915,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IsDisposed = true;
         UnlinkFromWorld();
         EntityListNode?.Unlink();
-        World.DataCache.FreeEntityAudioSources(m_soundChannels);
+        World.DataCache.FreeEntityAudioSources(SoundChannels);
         World.DataCache.FreeEntityBox(Box);
         World.DataCache.FreeFrameState(FrameState);
         World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
@@ -958,9 +958,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return $"[{Definition}] [{Position}]";
     }
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
     {
-        m_soundChannels[(int)channel] = audioSource;
+        SoundChannels[(int)channel] = audioSource;
     }
 
     public double GetDistanceFrom(Entity listenerEntity)
@@ -968,21 +968,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return Position.Distance(listenerEntity.Position);
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
     {
-        IAudioSource? audioSource = m_soundChannels[(int)channel];
+        IAudioSource? audioSource = SoundChannels[(int)channel];
         if (audioSource != null)
         {
-            m_soundChannels[(int)channel] = null;
+            SoundChannels[(int)channel] = null;
             return audioSource;
         }
 
         return null;
     }
 
-    public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+    public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        m_soundChannels[(int)channel] = null;
+        SoundChannels[(int)channel] = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

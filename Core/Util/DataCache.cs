@@ -37,8 +37,6 @@ public class DataCache
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<HashSet<Sector>> m_sectorSet = new();
     private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
-    private readonly DynamicArray<AudioData> m_audioData = new();
-    private readonly DynamicArray<SoundParams> m_soundParams = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<List<Entity>> m_entityLists = new();
 
@@ -213,72 +211,25 @@ public class DataCache
         m_sectorSet.Add(set);
     }
 
-    public AudioData GetAudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannelType channel, Attenuation attenuation,
-        int priority, bool loop)
-    {
-        if (m_audioData.Length > 0)
-        {
-            AudioData audioData = m_audioData.RemoveLast();
-            audioData.SoundSource = soundSource;
-            audioData.SoundInfo = soundInfo;
-            audioData.SoundChannelType = channel;
-            audioData.Attenuation = attenuation;
-            audioData.Priority = priority;
-            audioData.Loop = loop;
-            return audioData;
-        }
-
-        return new AudioData(soundSource, soundInfo, channel, attenuation, priority, loop);
-    }
-
-    public void FreeAudioData(AudioData audioData)
-    {
-        audioData.SoundSource = null!;
-        audioData.SoundInfo = null!;
-        m_audioData.Add(audioData);
-    }
-
-    public SoundParams GetSoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default,
-        float volume = SoundParams.MaxVolume, SoundType type = SoundType.Default)
-    {
-        if (m_soundParams.Length > 0)
-        {
-            SoundParams soundParams = m_soundParams.RemoveLast();
-            soundParams.SoundSource = soundSource;
-            soundParams.Loop = loop;
-            soundParams.Attenuation = attenuation;
-            soundParams.Volume = volume;
-            soundParams.SoundType = type;            
-            return soundParams;
-        }
-
-        return new SoundParams(soundSource, loop, attenuation, volume);
-    }
-
-    public void FreeSoundParams(SoundParams soundParams)
-    {
-        soundParams.SoundSource = null!;
-        soundParams.SoundInfo = null;
-        m_soundParams.Add(soundParams);
-    }
-
-    public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, AudioData audioData, SoundParams soundParams)
+    public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
     {
         if (m_audioSources.Length > 0)
         {
             OpenALAudioSource audioSource = (OpenALAudioSource)m_audioSources.RemoveLast();
-            audioSource.Set(owner, buffer, audioData, soundParams);            
+            audioSource.Set(owner, buffer, audioData);            
             return audioSource;
         }
 
-        return new OpenALAudioSource(owner, buffer, audioData, soundParams, this);
+        return new OpenALAudioSource(owner, buffer, audioData);
     }
 
     public void FreeAudioSource(IAudioSource audioSource)
     {
+        if (audioSource is not OpenALAudioSource)
+            return;
+
         audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
         audioSource.CacheFree();
-        audioSource.AudioData = null!;
         m_audioSources.Add(audioSource);
     }
 

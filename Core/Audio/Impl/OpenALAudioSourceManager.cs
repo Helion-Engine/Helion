@@ -6,7 +6,6 @@ using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using MoreLinq.Extensions;
@@ -75,7 +74,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         GetBuffer(sound);
     }
 
-    public IAudioSource? Create(string sound, AudioData audioData, SoundParams soundParams)
+    public IAudioSource? Create(string sound, in AudioData audioData)
     {
         if (m_sources.Count >= MaxSounds)
             return null;
@@ -84,8 +83,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         if (buffer == null)
             return null;
 
-        OpenALAudioSource source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData, soundParams);
-        m_archiveCollection.DataCache.FreeSoundParams(soundParams);
+        OpenALAudioSource source = m_archiveCollection.DataCache.GetAudioSource(this, buffer, audioData);
         m_sources.Add(source);
         return source;
     }

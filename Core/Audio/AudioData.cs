@@ -3,9 +3,9 @@ using Helion.World.Sound;
 
 namespace Helion.Audio;
 
-public class AudioData
+public struct AudioData
 {
-    public AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannelType channel, Attenuation attenuation,
+    public AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannel channel, Attenuation attenuation,
         int priority, bool loop)
     {
         SoundSource = soundSource;
@@ -29,7 +29,7 @@ public class AudioData
     /// <summary>
     /// The sound channel for this sound.
     /// </summary>
-    public SoundChannelType SoundChannelType { get; set; }
+    public SoundChannel SoundChannelType { get; set; }
 
     /// <summary>
     /// The attenuation for this sound.

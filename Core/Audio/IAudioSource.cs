@@ -17,49 +17,25 @@ public interface IAudioSource : IDisposable
 {
     public event EventHandler? Completed;
 
-    /// <summary>
-    /// The location this audio source is to be played it. This is in world
-    /// coordinates.
-    /// </summary>
     void SetPosition(Vec3F pos);
-
     Vec3F GetPosition();
 
-    /// <summary>
-    /// The velocity (in map units) of the audio source.
-    /// </summary>
     void SetVelocity(Vec3F velocity);
+    Vec3F GetVelocity();
 
     float GetPitch();
     void SetPitch(float pitch);
 
     AudioData AudioData { get; set; }
 
-    /// <summary>
-    /// Starts playing the sound.
-    /// </summary>
     void Play();
 
-    /// <summary>
-    /// Checks if the sound is playing currently.
-    /// </summary>
-    /// <returns>True if it's playing, false if not.</returns>
     bool IsPlaying();
 
-    /// <summary>
-    /// Stops playing the sound.
-    /// </summary>
     void Stop();
 
-    /// <summary>
-    /// Pauses playing the sound.
-    /// </summary>
     void Pause();
 
-    /// <summary>
-    /// Checks whether the sound is finished playing and is eligible to be
-    /// removed by whatever is managing this object.
-    /// </summary>
     bool IsFinished();
 
     /// <summary>

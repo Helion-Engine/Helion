@@ -1,3 +1,4 @@
+using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Util;
@@ -95,7 +96,6 @@ public class SwitchChangeSpecial : ISpecial
     {
         Vec2D pos = line.Segment.FromTime(0.5);
         DefaultSoundSource soundSource = new(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
-        soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, SoundChannelType.Auto,
-            m_world.DataCache.GetSoundParams(soundSource));
+        soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, new SoundParams(soundSource));
     }
 }

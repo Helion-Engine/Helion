@@ -24,7 +24,7 @@ public class DefaultSoundSource : ISoundSource
         m_attenuate = true;
     }
 
-    public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+    public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
         m_audioSource = null;
     }
@@ -41,12 +41,12 @@ public class DefaultSoundSource : ISoundSource
 
     public Vec3D? GetSoundVelocity() => Vec3D.Zero;
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
     {
         m_audioSource = audioSource;
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
     {
         m_audioSource = null;
         return m_audioSource;
