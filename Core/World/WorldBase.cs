@@ -352,13 +352,16 @@ public abstract partial class WorldBase : IWorld
 
             // Entities can be disposed after Tick() (rocket explosion, blood spatter etc.)
             if (!entity.IsDisposed)
+            {
                 PhysicsManager.Move(entity);
 
-            if (entity.Respawn)
-                HandleRespawn(entity);
+                if (entity.Respawn)
+                    HandleRespawn(entity);
 
-            if (entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
-                InstantKillSector(entity);
+                if (entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
+                    InstantKillSector(entity);
+            }
+
             node = node.Next;
         }
 

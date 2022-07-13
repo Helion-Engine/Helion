@@ -753,6 +753,9 @@ public static class EntityActionFunctions
             entity.SetMeleeState();
         }
 
+        if (entity.IsDisposed)
+            return;
+
         if ((entity.MoveCount == 0 || entity.World.SkillDefinition.IsFastMonsters(entity.World.Config)) &&
             entity.HasMissileState() && entity.CheckMissileRange())
         {
@@ -763,6 +766,9 @@ public static class EntityActionFunctions
         {
             entity.PlayActiveSound();
         }
+
+        if (entity.IsDisposed)
+            return;
 
         entity.MoveCount--;
 
