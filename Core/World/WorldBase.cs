@@ -1087,8 +1087,8 @@ public abstract partial class WorldBase : IWorld
 
         if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
         {
-            SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                new SoundParams(entity));
+            SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound,
+                new SoundParams(entity, channel: SoundChannel.Item));
         }
     }
 
@@ -1177,7 +1177,7 @@ public abstract partial class WorldBase : IWorld
             string sound = "misc/ripslop";
             if (source.Properties.RipSound.Length > 0)
                 sound = source.Properties.RipSound;
-            SoundManager.CreateSoundOn(source, sound, SoundChannelType.Auto, new SoundParams(source));
+            SoundManager.CreateSoundOn(source, sound, new SoundParams(source));
         }
     }
 
@@ -1740,8 +1740,7 @@ public abstract partial class WorldBase : IWorld
             if (teleport != null)
             {
                 teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
-                SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, SoundChannelType.Auto,
-                    new SoundParams(teleport));
+                SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
             }
         }
     }
@@ -1870,7 +1869,7 @@ public abstract partial class WorldBase : IWorld
             entity.FrameState.SetState(healState);
 
             if (healSound.Length > 0)
-                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, SoundChannelType.Auto, new SoundParams(entity));
+                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, new SoundParams(entity));
 
             bi.Entity.SetRaiseState();
             bi.Entity.Flags.Friendly = entity.Flags.Friendly;
@@ -2142,8 +2141,8 @@ public abstract partial class WorldBase : IWorld
             bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
             if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
             {
-                SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, SoundChannelType.Item,
-                    new SoundParams(updatePlayer));
+                SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, 
+                    new SoundParams(updatePlayer, channel: SoundChannel.Item));
             }
         }
 

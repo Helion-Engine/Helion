@@ -122,7 +122,7 @@ public class SoundManager : IDisposable
         }
     }
 
-    public void StopSoundBySource(ISoundSource source, SoundChannelType channel, string sound)
+    public void StopSoundBySource(ISoundSource source, SoundChannel channel, string sound)
     {
         IAudioSource? stoppedSound = source.TryClearSound(sound, channel);
         if (stoppedSound == null)
@@ -184,7 +184,7 @@ public class SoundManager : IDisposable
                 return;
 
             var value = node.Value;
-            var audio = CreateSound(value.SoundSource, value.Position, value.Velocity, value.SoundInfo.Name, value.Channel, value.SoundParams, out _);
+            var audio = CreateSound(value.SoundSource, value.Position, value.Velocity, value.SoundInfo.Name, value.SoundParams, out _);
             // If the sound was successfully created then remove from waiting loop sound list. Also check it wasn't already removed.
             if (audio != null && node.List == m_waitingLoopSounds)
                 m_waitingLoopSounds.Remove(node);
@@ -227,22 +227,22 @@ public class SoundManager : IDisposable
         m_soundsToPlay.Clear();
     }
 
-    private bool StopSoundsBySource(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, SoundChannelType channel)
+    private bool StopSoundsBySource(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams)
     {
         // Always try to stop looping sounds that are waiting to be in range
         // This does not free up a sound if the limit has been hit
-        StopSoundBySource(source, soundInfo, soundParams, channel, m_waitingLoopSounds);
+        StopSoundBySource(source, soundInfo, soundParams, m_waitingLoopSounds);
 
-        if (StopSoundBySource(source, soundInfo, soundParams, channel, m_soundsToPlay))
+        if (StopSoundBySource(source, soundInfo, soundParams, m_soundsToPlay))
             return true;
-        if (StopSoundBySource(source, soundInfo, soundParams, channel, PlayingSounds))
+        if (StopSoundBySource(source, soundInfo, soundParams, PlayingSounds))
             return true;
 
         return false;
     }
 
     private bool StopSoundBySource(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, 
-        SoundChannelType channel, LinkedList<IAudioSource> audioSources, string? sound = null)
+        LinkedList<IAudioSource> audioSources, string? sound = null)
     {
         bool soundStopped = false;
         int priority = GetPriority(source, soundInfo, soundParams);
@@ -252,7 +252,7 @@ public class SoundManager : IDisposable
         {
             nextNode = node.Next;
             var audioData = node.Value.AudioData;
-            if (!ShouldStopSoundBySource(source, priority, channel, sound,
+            if (!ShouldStopSoundBySource(source, priority, soundParams.Channel, sound,
                 audioData.SoundSource, audioData.SoundChannelType, audioData.SoundInfo.Name, audioData.Priority))
             {
                 node = nextNode;
@@ -270,7 +270,7 @@ public class SoundManager : IDisposable
     }
 
     private bool StopSoundBySource(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams,
-        SoundChannelType channel, LinkedList<WaitingSound> waitingSounds, string? sound = null)
+        LinkedList<WaitingSound> waitingSounds, string? sound = null)
     {
         bool soundStopped = false;
         int priority = GetPriority(source, soundInfo, soundParams);
@@ -280,8 +280,8 @@ public class SoundManager : IDisposable
         {
             nextNode = node.Next;
             int otherPriority = GetPriority(node.Value.SoundSource, node.Value.SoundInfo, node.Value.SoundParams);
-            if (!ShouldStopSoundBySource(source, priority, channel, sound,
-                node.Value.SoundSource, node.Value.Channel, node.Value.SoundInfo.Name, otherPriority))
+            if (!ShouldStopSoundBySource(source, priority, soundParams.Channel, sound,
+                node.Value.SoundSource, node.Value.SoundParams.Channel, node.Value.SoundInfo.Name, otherPriority))
             {
                 node = nextNode;
                 continue;
@@ -295,8 +295,8 @@ public class SoundManager : IDisposable
         return soundStopped;
     }
 
-    private static bool ShouldStopSoundBySource(ISoundSource source, int priority, SoundChannelType channel, string? sound, 
-        ISoundSource other, SoundChannelType otherChannel, string otherSound, int otherPriority)
+    private static bool ShouldStopSoundBySource(ISoundSource source, int priority, SoundChannel channel, string? sound, 
+        ISoundSource other, SoundChannel otherChannel, string otherSound, int otherPriority)
     {
         if (!ReferenceEquals(source, other))
             return false;
@@ -316,14 +316,14 @@ public class SoundManager : IDisposable
     public virtual IAudioSource? PlayStaticSound(string sound)
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
-        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound, SoundChannelType.Auto,
+        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound,
             new SoundParams(soundSource, attenuation: Attenuation.None), out _);
     }
 
     protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound,
-        SoundChannelType channel, SoundParams soundParams, out SoundInfo? soundInfo)
+        SoundParams soundParams, out SoundInfo? soundInfo)
     {
-        Precondition((int)channel < Entity.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
+        Precondition((int)soundParams.Channel < Entity.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
         soundInfo = GetSoundInfo(source, sound);
         if (soundInfo == null)
             return null;
@@ -331,13 +331,13 @@ public class SoundManager : IDisposable
         AttenuateIfNeeded(source, soundInfo, ref soundParams);
 
         int priority = GetPriority(source, soundInfo, soundParams);
-        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, channel, soundParams, priority))
+        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority))
             return null;
 
-        if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams, channel))
+        if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams))
             return null;
 
-        AudioData audioData = new(source, soundInfo, channel, soundParams.Attenuation, priority, soundParams.Loop);
+        AudioData audioData = new(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop);
         IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
         if (audioSource == null)
             return null;
@@ -350,25 +350,25 @@ public class SoundManager : IDisposable
                 audioSource.SetVelocity(velocity.Value.Float);
         }
 
-        StopSoundsBySource(source, soundInfo, soundParams, channel);
+        StopSoundsBySource(source, soundInfo, soundParams);
         m_soundsToPlay.AddLast(audioSource);
 
-        source?.SoundCreated(audioSource, channel);
+        source?.SoundCreated(audioSource, soundParams.Channel);
         return audioSource;
     }
 
     private bool CheckDistanceAndPriority(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, SoundInfo soundInfo, 
-        SoundChannelType channel, in SoundParams soundParams, int priority)
+        in SoundParams soundParams, int priority)
     {
         double distance = GetDistance(source);
         bool soundTooFar = !CheckDistance(distance, soundParams.Attenuation);
-        if (soundTooFar || SoundPriorityTooLow(source, channel, soundInfo, soundParams, distance, priority))
+        if (soundTooFar || SoundPriorityTooLow(source, soundInfo, soundParams, distance, priority))
         {
             if (soundTooFar)
-                StopSoundsBySource(source, soundInfo, soundParams, channel);
+                StopSoundsBySource(source, soundInfo, soundParams);
 
             if (soundParams.Loop)
-                CreateWaitingLoopSound(source, pos, velocity, soundInfo, priority, channel, soundParams);
+                CreateWaitingLoopSound(source, pos, velocity, soundInfo, priority, soundParams);
 
             return false;
         }
@@ -377,9 +377,9 @@ public class SoundManager : IDisposable
     }
 
     private void CreateWaitingLoopSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, SoundInfo soundInfo,
-        int priority, SoundChannelType channel, in SoundParams soundParams)
+        int priority, in SoundParams soundParams)
     {
-        var loopSound = new WaitingSound(source, pos, velocity, soundInfo, priority, channel, soundParams);
+        var loopSound = new WaitingSound(source, pos, velocity, soundInfo, priority, soundParams);
         m_waitingLoopSounds.AddLast(loopSound);
     }
 
@@ -388,13 +388,13 @@ public class SoundManager : IDisposable
         // To be overridden if needed.
     }
 
-    private bool SoundPriorityTooLow(ISoundSource source, SoundChannelType channel, SoundInfo soundInfo, in SoundParams soundParams, double distance, int priority)
+    private bool SoundPriorityTooLow(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, double distance, int priority)
     {
         if (!IsMaxSoundCount)
             return false;
 
         // Check if this sound will remove a sound by it's source first, then check bumping by priority
-        return (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo, soundParams, channel) && 
+        return (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo, soundParams) && 
             !BumpSoundByPriority(priority, distance, soundParams.Attenuation)));
     }
 
@@ -460,7 +460,7 @@ public class SoundManager : IDisposable
 
         var soundParams = new SoundParams(audioSource.AudioData.SoundSource, true, audioSource.AudioData.Attenuation);
         CreateWaitingLoopSound(audioSource.AudioData.SoundSource, audioSource.GetPosition().Double, audioSource.GetVelocity().Double, audioSource.AudioData.SoundInfo,
-            audioSource.AudioData.Priority, audioSource.AudioData.SoundChannelType, soundParams);
+            audioSource.AudioData.Priority, soundParams);
     }
 
     protected virtual int GetPriority(ISoundSource soundSource, SoundInfo soundInfo, SoundParams soundParams)

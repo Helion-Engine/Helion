@@ -6,15 +6,13 @@ namespace Helion.Audio.Sounds;
 
 public struct WaitingSound
 {
-    public WaitingSound(ISoundSource source, Vec3D? position, Vec3D? velocity, SoundInfo soundInfo, int priority, 
-        SoundChannelType channel, SoundParams soundParams)
+    public WaitingSound(ISoundSource source, Vec3D? position, Vec3D? velocity, SoundInfo soundInfo, int priority, SoundParams soundParams)
     {
         SoundSource = source;
         Position = position;
         Velocity = velocity;
         SoundInfo = soundInfo;
         Priority = priority;
-        Channel = channel;
         SoundParams = soundParams;
     }
 
@@ -23,6 +21,5 @@ public struct WaitingSound
     public Vec3D? Velocity { get; set; }
     public SoundInfo SoundInfo { get; set; }
     public int Priority { get; set; }
-    public SoundChannelType Channel { get; set; }
     public SoundParams SoundParams { get; set; }
 }

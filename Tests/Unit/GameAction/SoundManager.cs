@@ -44,7 +44,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, 35, () =>
             {
                 sound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-                sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannelType.Auto);
+                sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
                 sound.Value.AudioData.Loop.Should().BeTrue();
                 sound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
                 sound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
@@ -72,13 +72,13 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, 35, () =>
             {
                 sound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-                sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannelType.Auto);
+                sound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
                 sound.Value.AudioData.Loop.Should().BeTrue();
                 sound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
                 sound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 1).Floor);
 
                 secondSound.Value.AudioData.Attenuation.Should().Be(Attenuation.Default);
-                secondSound.Value.AudioData.SoundChannelType.Should().Be(SoundChannelType.Auto);
+                secondSound.Value.AudioData.SoundChannelType.Should().Be(SoundChannel.Default);
                 secondSound.Value.AudioData.Loop.Should().BeTrue();
                 secondSound.Value.AudioData.SoundInfo.EntryName.Should().Be("dsstnmov");
                 secondSound.Value.AudioData.SoundSource.Should().Be(GameActions.GetSectorByTag(World, 2).Floor);
@@ -170,12 +170,12 @@ namespace Helion.Tests.Unit.GameAction
             ActivateSpecialLine(2);
 
             var entity = GameActions.GetEntity(World, 1);
-            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity));
+            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity));
             audioSource.Should().BeNull();
 
             // Move closer to entity, sound should be created
             GameActions.SetEntityPosition(World, World.Player, new Vec2D(-96, -224));
-            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity));
+            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity));
             audioSource.Should().NotBeNull();
 
             World.Tick();
@@ -195,11 +195,11 @@ namespace Helion.Tests.Unit.GameAction
             ActivateSpecialLine(2);
 
             var entity = GameActions.GetEntity(World, 1);
-            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity));
+            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity));
             audioSource.Should().BeNull();
 
             // No attenuation overrides distance priority
-            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity, attenuation: Attenuation.None));
+            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.None));
             audioSource.Should().NotBeNull();
             World.Tick();
             AssertSound(sounds, "dsbgsit1");
@@ -215,27 +215,27 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var sound in World.Player.SoundChannels)
                 sound.Should().BeNull();
 
-            var weaponSound = World.SoundManager.CreateSoundOn(World.Player, "weapons/pistol", SoundChannelType.Weapon, new SoundParams(World.Player))!;
-            var firstPickupSound = World.SoundManager.CreateSoundOn(World.Player, "misc/i_pkup", SoundChannelType.Item, new SoundParams(World.Player))!;
+            var weaponSound = World.SoundManager.CreateSoundOn(World.Player, "weapons/pistol", new SoundParams(World.Player, channel: SoundChannel.Weapon))!;
+            var firstPickupSound = World.SoundManager.CreateSoundOn(World.Player, "misc/i_pkup", new SoundParams(World.Player, channel: SoundChannel.Item))!;
             weaponSound.Should().NotBeNull();
             firstPickupSound.Should().NotBeNull();
             World.Tick();
 
-            World.Player.SoundChannels[(int)SoundChannelType.Weapon].Should().Be(weaponSound);
-            World.Player.SoundChannels[(int)SoundChannelType.Item].Should().Be(firstPickupSound);
+            World.Player.SoundChannels[(int)SoundChannel.Weapon].Should().Be(weaponSound);
+            World.Player.SoundChannels[(int)SoundChannel.Item].Should().Be(firstPickupSound);
 
             sounds.Count.Should().Be(2);
 
             // Second pickup should only overwrite on the item channel
-            var secondPickupSound = World.SoundManager.CreateSoundOn(World.Player, "misc/i_pkup", SoundChannelType.Item, new SoundParams(World.Player))!;
+            var secondPickupSound = World.SoundManager.CreateSoundOn(World.Player, "misc/i_pkup", new SoundParams(World.Player, channel: SoundChannel.Item))!;
             secondPickupSound.Should().NotBeNull();
             World.Tick();
             sounds.Count.Should().Be(2);
             sounds.Contains(secondPickupSound).Should().BeTrue();
             sounds.Contains(firstPickupSound).Should().BeFalse();
 
-            World.Player.SoundChannels[(int)SoundChannelType.Weapon].Should().Be(weaponSound);
-            World.Player.SoundChannels[(int)SoundChannelType.Item].Should().Be(secondPickupSound);
+            World.Player.SoundChannels[(int)SoundChannel.Weapon].Should().Be(weaponSound);
+            World.Player.SoundChannels[(int)SoundChannel.Item].Should().Be(secondPickupSound);
         }
 
         [Fact(DisplayName = "One sound per channel for entity")]
@@ -245,21 +245,21 @@ namespace Helion.Tests.Unit.GameAction
             sounds.Count.Should().Be(0);
             var entity = GameActions.GetEntity(World, 1);
 
-            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity));
+            IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity));
             audioSource.Should().NotBeNull();
 
             sounds.Count.Should().Be(1);
             AssertSound(sounds, "dsbgsit1");
             AssertSoundSource(sounds.First, entity);
-            entity.SoundChannels[(int)SoundChannelType.Auto].Should().Be(audioSource);
+            entity.SoundChannels[(int)SoundChannel.Default].Should().Be(audioSource);
 
-            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/active", SoundChannelType.Auto, new SoundParams(entity));
+            audioSource = World.SoundManager.CreateSoundOn(entity, "imp/active", new SoundParams(entity));
             audioSource.Should().NotBeNull();
 
             sounds.Count.Should().Be(1);
             AssertSound(sounds, "dsbgact");
             AssertSoundSource(sounds.First, entity);
-            entity.SoundChannels[(int)SoundChannelType.Auto].Should().Be(audioSource);
+            entity.SoundChannels[(int)SoundChannel.Default].Should().Be(audioSource);
         }
 
         [Fact(DisplayName = "Sound not created because it's too far away")]
@@ -272,13 +272,13 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
             entity.SetPosition(pos);
-            World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity, attenuation: Attenuation.Default)).Should().BeNull();
+            World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().BeNull();
             sounds.Count.Should().Be(0);
 
             pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
             entity.SetPosition(pos);
-            World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
+            World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
             sounds.Count.Should().Be(1);
         }
 
@@ -292,7 +292,7 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
             entity.SetPosition(pos);
-            World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
+            World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
             sounds.Count.Should().Be(1);
         }
 
@@ -308,7 +308,7 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
             entity.SetPosition(pos);
-            World.SoundManager.CreateSoundOn(entity, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
+            World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
             sounds.Count.Should().Be(0);
             waitingSounds.Count.Should().Be(1);
         }
@@ -362,17 +362,17 @@ namespace Helion.Tests.Unit.GameAction
             ActivateSpecialLine(2);
             ActivateSpecialLine(0);
 
-            World.SoundManager.CreateSoundOn(World.Player, "weapons/pistol", SoundChannelType.Weapon, new SoundParams(World.Player));
+            World.SoundManager.CreateSoundOn(World.Player, "weapons/pistol", new SoundParams(World.Player, channel: SoundChannel.Weapon));
 
             var entity1 = GameActions.GetEntity(World, 1);
             var entity2 = GameActions.GetEntity(World, 2);
-            World.SoundManager.CreateSoundOn(entity1, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity1, attenuation: Attenuation.Default));
+            World.SoundManager.CreateSoundOn(entity1, "imp/sight1", new SoundParams(entity1, attenuation: Attenuation.Default));
 
             // Create a loop sound past max distance so it's added to the waiting list
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
             entity2.SetPosition(pos);
-            World.SoundManager.CreateSoundOn(entity2, "imp/sight1", SoundChannelType.Auto, new SoundParams(entity2, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
+            World.SoundManager.CreateSoundOn(entity2, "imp/sight1", new SoundParams(entity2, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
 
             World.Tick();
             sounds.Count.Should().Be(6);

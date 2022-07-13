@@ -286,13 +286,12 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private void CreateSound(string sound, bool loop = false)
     {
-        m_world.SoundManager.CreateSoundOn(SectorPlane, sound, SoundChannelType.Auto,
-            new SoundParams(SectorPlane, loop));
+        m_world.SoundManager.CreateSoundOn(SectorPlane, sound, new SoundParams(SectorPlane, loop));
     }
 
     private void StopSound(string sound)
     {
-        m_world.SoundManager.StopSoundBySource(SectorPlane, SoundChannelType.Auto, sound);
+        m_world.SoundManager.StopSoundBySource(SectorPlane, SoundChannel.Default, sound);
     }
 
     public virtual void FinalizeDestroy()

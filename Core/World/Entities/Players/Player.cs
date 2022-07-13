@@ -107,7 +107,7 @@ public class Player : Entity
     public int GetExtraLightRender() => World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
 
     public override double ViewZ => m_viewZ;
-    public override SoundChannelType WeaponSoundChannel => SoundChannelType.Weapon;
+    public override SoundChannel WeaponSoundChannel => SoundChannel.Weapon;
     public override bool IsInvulnerable => Flags.Invulnerable || Inventory.IsPowerupActive(PowerupType.Invulnerable);
     public override bool CanMakeSound() => !IsVooDooDoll;
 
@@ -1073,8 +1073,7 @@ public class Player : Entity
         }
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
-            World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, SoundChannelType.Weapon,
-                new SoundParams(this));
+            World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, new SoundParams(this, channel: SoundChannel.Weapon));
 
         AnimationWeapon = PendingWeapon;
         PendingWeapon = null;
@@ -1139,29 +1138,29 @@ public class Player : Entity
         if (!IsDead)
         {
             if (Health < 26)
-                SoundManager.CreateSoundOn(this, "*pain25", SoundChannelType.Voice, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain25", new SoundParams(this));
             else if (Health < 51)
-                SoundManager.CreateSoundOn(this, "*pain50", SoundChannelType.Voice, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain50", new SoundParams(this));
             else if (Health < 76)
-                SoundManager.CreateSoundOn(this, "*pain75", SoundChannelType.Voice, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain75", new SoundParams(this));
             else
-                SoundManager.CreateSoundOn(this, "*pain100", SoundChannelType.Voice, new SoundParams(this));
+                SoundManager.CreateSoundOn(this, "*pain100", new SoundParams(this));
         }
     }
 
     public void PlayGruntSound()
     {
-        SoundManager.CreateSoundOn(this, "*grunt", SoundChannelType.Voice, new SoundParams(this));
+        SoundManager.CreateSoundOn(this, "*grunt", new SoundParams(this));
     }
 
     public void PlayUseFailSound()
     {
-        SoundManager.CreateSoundOn(this, "*usefail", SoundChannelType.Voice, new SoundParams(this));
+        SoundManager.CreateSoundOn(this, "*usefail", new SoundParams(this));
     }
 
     public void PlayLandSound()
     {
-        SoundManager.CreateSoundOn(this, "*land", SoundChannelType.Voice, new SoundParams(this));
+        SoundManager.CreateSoundOn(this, "*land", new SoundParams(this));
     }
 
     protected override void SetDeath(Entity? source, bool gibbed)

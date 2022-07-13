@@ -224,6 +224,5 @@ public class StairSpecial : SectorMoveSpecial
     }
 
     private void CreateMovementSound(Sector sector) =>
-        m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, SoundChannelType.Auto,
-            new SoundParams(sector.Floor, true));
+        m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, new SoundParams(sector.Floor, true));
 }

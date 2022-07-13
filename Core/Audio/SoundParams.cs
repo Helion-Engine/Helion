@@ -17,14 +17,16 @@ public struct SoundParams
     public float Volume { get; set; }
     public Attenuation Attenuation { get; set; }
     public SoundType SoundType { get; set; }
+    public SoundChannel Channel { get; set; }
 
     public SoundParams(ISoundSource soundSource, bool loop = false, Attenuation attenuation = Attenuation.Default, float volume = MaxVolume,
-        SoundType type = SoundType.Default)
+        SoundType type = SoundType.Default, SoundChannel channel = SoundChannel.Default)
     {
         SoundSource = soundSource;
         Attenuation = attenuation;
         Volume = volume;
         Loop = loop;
         SoundType = type;
+        Channel = channel;
     }
 }

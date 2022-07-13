@@ -132,12 +132,12 @@ public class SectorPlane : ISoundSource
         return Vec2D.Zero;
     }
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
     {
         m_audio = audioSource;
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
     {
         if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
         {
@@ -149,7 +149,7 @@ public class SectorPlane : ISoundSource
         return null;
     }
 
-    public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+    public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
         m_audio = null;
     }

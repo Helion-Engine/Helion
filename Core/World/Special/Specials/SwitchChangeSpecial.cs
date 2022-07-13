@@ -96,7 +96,6 @@ public class SwitchChangeSpecial : ISpecial
     {
         Vec2D pos = line.Segment.FromTime(0.5);
         DefaultSoundSource soundSource = new(pos.To3D(line.Front.Sector.ToFloorZ(pos)));
-        soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, SoundChannelType.Auto,
-            new SoundParams(soundSource));
+        soundManager.CreateSoundOn(soundSource, Constants.SwitchNormSound, new SoundParams(soundSource));
     }
 }

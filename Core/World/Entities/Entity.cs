@@ -33,7 +33,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const int ForceGibDamage = ushort.MaxValue;
     private const int KillDamage = ushort.MaxValue - 1;
     public const double FloatSpeed = 4.0;
-    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannelType)).Length;
+    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
     public readonly int Id;
     public readonly int ThingId;
@@ -94,7 +94,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Entity;
 
-    public virtual SoundChannelType WeaponSoundChannel => SoundChannelType.Auto;
+    public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
@@ -519,7 +519,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound, SoundChannelType.Auto,
+        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound,
             new SoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
 
@@ -529,20 +529,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound, SoundChannelType.Auto,
+        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound,
             new SoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
     {
         if (Properties.AttackSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, SoundChannelType.Auto, new SoundParams(this));
+            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, new SoundParams(this));
     }
 
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound, SoundChannelType.Auto,
+            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound,
                 new SoundParams(this, type: SoundType.Active));
     }
 
@@ -958,7 +958,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return $"[{Definition}] [{Position}]";
     }
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannelType channel)
+    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
     {
         SoundChannels[(int)channel] = audioSource;
     }
@@ -968,7 +968,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return Position.Distance(listenerEntity.Position);
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannelType channel)
+    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
     {
         IAudioSource? audioSource = SoundChannels[(int)channel];
         if (audioSource != null)
@@ -980,7 +980,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return null;
     }
 
-    public void ClearSound(IAudioSource audioSource, SoundChannelType channel)
+    public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
         SoundChannels[(int)channel] = null;
     }

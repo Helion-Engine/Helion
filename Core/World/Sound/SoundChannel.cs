@@ -14,7 +14,7 @@ namespace Helion.World.Sound;
 /// elements in this enumeration, so if there ever are any changes then
 /// those will need to be updated appropriately.
 /// </remarks>
-public enum SoundChannelType
+public enum SoundChannel
 {
     Auto = 0,
     Weapon = 1,

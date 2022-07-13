@@ -35,16 +35,16 @@ public class WorldSoundManager : SoundManager, ITickable
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
         return m_world.SoundManager.CreateSoundOn(soundSource, sound,
-            SoundChannelType.Auto, new SoundParams(soundSource, attenuation: Attenuation.None));
+            new SoundParams(soundSource, attenuation: Attenuation.None));
     }
 
-    public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundChannelType channel, SoundParams soundParams)
+    public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundParams soundParams)
     {
         if (!soundSource.CanMakeSound())
             return null;
 
         IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.ListenerEntity), soundSource.GetSoundVelocity(),
-            sound, channel, soundParams, out SoundInfo? soundInfo);
+            sound, soundParams, out SoundInfo? soundInfo);
         if (source == null)
             return source;
 
