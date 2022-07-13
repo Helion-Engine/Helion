@@ -140,9 +140,9 @@ public class EntityRenderer
         // know where to place the quad vertices.
         Vec2F rightNormal = viewDirection.RotateRight90().Unit().Float;
         Vec2F entityCenterXY = entityCenterBottom.XY.Float;
-        //(width - (reader.ReadInt16() * 2), reader.ReadInt16() - height);
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        entityCenterXY += rightNormal * (texture.Width - (texture.Offset.X * 2));
+        // Doom graphics are drawn left to right and not centered. Have to translate the offset.
+        entityCenterXY += rightNormal * ((texture.Width / 2) - texture.Offset.X);
 
         Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
         Vec2F left = entityCenterXY - halfWidth;
