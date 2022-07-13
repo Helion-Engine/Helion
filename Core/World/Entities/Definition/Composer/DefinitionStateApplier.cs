@@ -251,31 +251,15 @@ public class DefinitionStateApplier
             return 0;
         }
 
-        string key;
         int offset = flowOverride.Offset ?? 0;
         if (flowOverride.Parent == null)
-        {
-            key = GetProcessedFrameKey(upperImmediateParentName, masterLabelTable[$"{flowOverride.Label}"].Index);
-            return GetProcessedFrameMasterIndex(key) + offset;
-        }
+            return masterLabelTable[flowOverride.Label].Index + offset;
 
         string label = $"{flowOverride.Parent}::{flowOverride.Label}";
         if (flowOverride.Parent.Equals("SUPER", StringComparison.OrdinalIgnoreCase))
             label = $"{upperImmediateParentName}::{flowOverride.Label}";
 
-        key = GetProcessedFrameKey(upperImmediateParentName, masterLabelTable[label].Index);
-        return GetProcessedFrameMasterIndex(key) + offset;
-    }
-
-    private int GetProcessedFrameMasterIndex(string key)
-    {
-        if (!ProcessedFrames.TryGetValue(key, out EntityFrame? entityFrame))
-        {
-            Log.Error($"Bad processed frame key: {key}");
-            return 0;
-        }
-
-        return entityFrame.MasterFrameIndex;
+        return masterLabelTable[label].Index + offset;
     }
 
     private void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,
