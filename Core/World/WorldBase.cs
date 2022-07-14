@@ -1164,7 +1164,7 @@ public abstract partial class WorldBase : IWorld
             if (!entity.Box.OverlapsZ(intersectEntity.Box) || ReferenceEquals(entity, intersectEntity))
                 continue;
 
-            if (entity.Flags.Ripper && !ReferenceEquals(entity.Owner, intersectEntity))
+            if (entity.Flags.Ripper && !ReferenceEquals(entity.Owner.Entity, intersectEntity))
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
