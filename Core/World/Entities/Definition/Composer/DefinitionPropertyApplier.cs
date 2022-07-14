@@ -61,7 +61,10 @@ public static class DefinitionPropertyApplier
             definition.Properties.Radius = properties.Radius.Value;
 
         if (properties.Speed != null)
-            definition.Properties.Speed = properties.Speed.Value;
+        {
+            definition.Properties.MonsterMovementSpeed = properties.Speed.Value;
+            definition.Properties.MissileMovementSpeed = properties.Speed.Value;
+        }
 
         if (properties.FastSpeed != null)
             definition.Properties.FastSpeed = properties.FastSpeed.Value;

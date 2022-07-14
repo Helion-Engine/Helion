@@ -577,7 +577,7 @@ public static class EntityActionFunctions
         {
             spawnShot.Flags.Friendly = entity.Flags.Friendly;
             double distance = entity.Position.Distance(target.Position);
-            double speed = spawnShot.Definition.Properties.Speed;
+            double speed = spawnShot.Definition.Properties.MissileMovementSpeed;
             double reactionTime = distance / speed;
 
             spawnShot.AngleRadians = entity.Position.Angle(target.Position);
@@ -2446,7 +2446,7 @@ public static class EntityActionFunctions
     {
         double distance = tracer.Position.ApproximateDistance2D(target.Position);
         double z = target.Position.Z - tracer.Position.Z + 40;
-        double slope = GetTracerSlope(z, distance, tracer.Definition.Properties.Speed);
+        double slope = GetTracerSlope(z, distance, tracer.Definition.Properties.MissileMovementSpeed);
 
         if (slope < tracer.Velocity.Z)
             return tracer.Velocity.Z - 0.125;
@@ -2718,7 +2718,7 @@ public static class EntityActionFunctions
                 {
                     // Need to use fixed point calculations to get this right
                     int dist = MathHelper.ToFixed(entity.Position.ApproximateDistance2D(firePos));
-                    dist /= MathHelper.ToFixed(projectile.Definition.Properties.Speed);
+                    dist /= MathHelper.ToFixed(projectile.Definition.Properties.MissileMovementSpeed);
                     dist = Math.Clamp(dist, 1, int.MaxValue);
                     projectile.Velocity.Z = MathHelper.FromFixed(MathHelper.ToFixed(firePos.Z - entity.Position.Z) / dist);
                     projectile.Velocity *= velocity;
@@ -2779,8 +2779,7 @@ public static class EntityActionFunctions
         double pitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs3));
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        // dsda subtracts 90 degrees
-        FireProjectile(entity, null, name, angle - MathHelper.HalfPi, pitch, offsetXY, zOffset);
+        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)
@@ -2910,9 +2909,17 @@ public static class EntityActionFunctions
             return;
 
         double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        Vec3D unit = Vec3D.UnitSphere(angle, 0);
-        Vec3D offset = new Vec3D(MathHelper.FromFixed(entity.Frame.DehackedArgs3), MathHelper.FromFixed(entity.Frame.DehackedArgs4), MathHelper.FromFixed(entity.Frame.DehackedArgs5)) * unit;
-        Vec3D velocity = new Vec3D(MathHelper.FromFixed(entity.Frame.DehackedArgs6), MathHelper.FromFixed(entity.Frame.DehackedArgs7), MathHelper.FromFixed(entity.Frame.DehackedArgs8)) * unit;
+        double forwadDist = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
+        double sideDist = MathHelper.ToFixed(entity.Frame.DehackedArgs4);
+        double forwardVel = MathHelper.FromFixed(entity.Frame.DehackedArgs6);
+        double sideVel = MathHelper.FromFixed(entity.Frame.DehackedArgs7);
+        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
+        double zVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs8);
+
+        Vec2D forwardUnit = Vec2D.UnitCircle(angle);
+        Vec2D sideUnit = Vec2D.UnitCircle(angle + MathHelper.QuarterPi);
+        Vec3D offset = ((forwardUnit * forwadDist) + (sideUnit * sideDist)).To3D(zOffset);
+        Vec3D velocity = ((forwardUnit * forwardVel) + (sideUnit * sideVel)).To3D(zVelocity);
 
         Entity? createdEntity = entity.World.EntityManager.Create(name, entity.Position + offset);
         if (createdEntity == null)
@@ -2947,8 +2954,7 @@ public static class EntityActionFunctions
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        // dsda subtracts 90 degrees
-        FireProjectile(entity, entity.Target.Entity, name, angle - MathHelper.QuarterPi, pitchOffset, offsetXY, zOffset);
+        FireProjectile(entity, entity.Target.Entity, name, angle, pitchOffset, offsetXY, zOffset);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
@@ -3034,7 +3040,7 @@ public static class EntityActionFunctions
     {
         double distance = tracer.Position.ApproximateDistance2D(target.Position);
         double z = target.Position.Z + (target.Height / 2) - tracer.Position.Z;
-        return GetTracerSlope(z, distance, tracer.Definition.Properties.Speed);
+        return GetTracerSlope(z, distance, tracer.Definition.Properties.MissileMovementSpeed);
     }
 
     private static void A_FindTracer(Entity entity)
@@ -3187,7 +3193,7 @@ public static class EntityActionFunctions
 
         if (offsetXY != 0)
         {
-            Vec2D offset = Vec2D.UnitCircle(createdEntity.AngleRadians) * offsetXY;
+            Vec2D offset = Vec2D.UnitCircle(entity.AngleRadians - MathHelper.HalfPi) * offsetXY;
             createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
         }
 

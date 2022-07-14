@@ -113,7 +113,7 @@ public class EntityManager : IDisposable
         Entity entity = new(id, tid, definition, position, angle, sector, World);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
-            entity.Properties.Speed = entity.Definition.Properties.FastSpeed;
+            entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
 
         // This only needs to happen on map population
         if (init && !ZHeightSet(zHeight))

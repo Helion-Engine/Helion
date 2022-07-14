@@ -424,7 +424,10 @@ public class DehackedApplier
             if (thing.PainChance.HasValue)
                 properties.PainChance = thing.PainChance.Value;
             if (thing.Speed.HasValue)
-                properties.Speed = GetThingSpeed(thing.Speed.Value, definition);
+            {
+                properties.MonsterMovementSpeed = thing.Speed.Value;
+                properties.MissileMovementSpeed = GetDouble(thing.Speed.Value);
+            }
             if (thing.Width.HasValue)
                 properties.Radius = GetDouble(thing.Width.Value);
             if (thing.Height.HasValue)
@@ -480,13 +483,6 @@ public class DehackedApplier
     // DSDA Doom doesn't count zero
     private static bool IsGroupValid(int? value) =>
          value == null || value.Equals(Constants.DefaultGroupNumber);
-
-    private static int GetThingSpeed(int speed, EntityDefinition definition)
-    {
-        if (definition.Flags.Missile)
-            return (int)GetDouble(speed);
-        return speed;
-    }
 
     private void ApplyThingFrame(DehackedDefinition dehacked, EntityFrameTable entityFrameTable,
         EntityDefinition definition, int frame, string actionLabel)

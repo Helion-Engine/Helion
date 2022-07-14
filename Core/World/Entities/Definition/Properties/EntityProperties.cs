@@ -96,7 +96,6 @@ public class EntityProperties
     public double SelfDamageFactor = 1.0;
     public int SpawnId = NoID;
     public string Species = string.Empty;
-    public double Speed;
     public int SpriteAngle;
     public int SpriteRotation;
     public int Stamina;
@@ -123,6 +122,9 @@ public class EntityProperties
     public int? InfightingGroup;
     public int? ProjectileGroup;
     public int? SplashGroup;
+
+    public double MonsterMovementSpeed;
+    public double MissileMovementSpeed;
 
     public EntityProperties()
     {
@@ -197,9 +199,10 @@ public class EntityProperties
         WeaveIndexXY = properties.WeaveIndexXY;
         WoundHealth = properties.WoundHealth;
         YScale = properties.YScale;
-        Speed = properties.Speed;
         InfightingGroup = properties.InfightingGroup;
         ProjectileGroup = properties.ProjectileGroup;
         SplashGroup = properties.SplashGroup;
+        MonsterMovementSpeed = properties.MonsterMovementSpeed;
+        MissileMovementSpeed = properties.MissileMovementSpeed;
     }
 }

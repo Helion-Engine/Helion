@@ -795,9 +795,9 @@ public abstract partial class WorldBase : IWorld
         if (projectile.Flags.NoClip)
             return projectile;
 
-        Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.Speed;
+        Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.MissileMovementSpeed;
         Vec3D testPos = projectile.Position;
-        if (projectile.Properties.Speed > 0)
+        if (projectile.Properties.MissileMovementSpeed > 0)
             testPos += Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0);
 
         // TryMoveXY will use the velocity of the projectile
@@ -1893,7 +1893,7 @@ public abstract partial class WorldBase : IWorld
         SetTracerAngle(entity, threshold, maxTurnAngle);
 
         double z = entity.Velocity.Z;
-        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.Speed;
+        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.MissileMovementSpeed;
         entity.Velocity.Z = z;
 
         entity.Velocity.Z = velocityZ(entity, entity.Tracer.Entity);

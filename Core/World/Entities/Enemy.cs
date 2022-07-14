@@ -231,8 +231,8 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speedX = SpeedX[(int)m_direction] * Properties.Speed;
-        double speedY = SpeedY[(int)m_direction] * Properties.Speed;
+        double speedX = SpeedX[(int)m_direction] * Properties.MonsterMovementSpeed;
+        double speedY = SpeedY[(int)m_direction] * Properties.MonsterMovementSpeed;
 
         return (Position.X + speedX, Position.Y + speedY);
     }
