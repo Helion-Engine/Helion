@@ -8,7 +8,7 @@ namespace Helion.Util.Configs.Components;
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
-    public readonly ConfigValue<FilterType> Font = new(FilterType.Trilinear, OnlyValidEnums<FilterType>());
+    public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
     [ConfigInfo("The filter to be applied to textures.")]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
