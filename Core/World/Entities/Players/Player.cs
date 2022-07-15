@@ -63,6 +63,7 @@ public class Player : Entity
     private double m_prevViewZ;
     private double m_deltaViewHeight;
     private double m_bob;
+    private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
     private bool m_interpolateAngle;
 
@@ -385,14 +386,16 @@ public class Player : Entity
             if (m_isJumping)
                 m_jumpTics = JumpDelayTicks;
 
-            m_isJumping = false;
-
-            bool hardHit = velocity.Z < -(World.Gravity * 8);
+            // Check if the player is landing where they started. Otherwise a normal jump would play the oof sound.
+            bool hardHit = (World.Gravity > 1 || Position.Z != m_jumpStartZ) && velocity.Z < -(World.Gravity * 8);
             if (hardHit && !Flags.NoGravity && !IsDead)
             {
                 PlayLandSound();
                 m_deltaViewHeight = velocity.Z / PlayerViewDivider;
             }
+
+            m_isJumping = false;
+            m_jumpStartZ = double.MaxValue;
         }
 
         base.Hit(velocity);
@@ -1180,6 +1183,7 @@ public class Player : Entity
     {
         if (AbleToJump())
         {
+            m_jumpStartZ = Position.Z;
             m_isJumping = true;
             Velocity.Z += Properties.Player.JumpZ;
         }

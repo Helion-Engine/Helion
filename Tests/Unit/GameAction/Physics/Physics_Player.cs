@@ -29,10 +29,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, PlayerTestPos);
             Player.Jump();
             GameActions.RunPlayerJump(World, Player);
-            // Jumping goes just over the threshold and will create the oof. ZDoom changed this at some point. Have to decided if we want it.
-            var audio = World.SoundManager.FindBySource(Player);
-            audio.Should().NotBeNull();
-            audio!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase("dsoof").Should().BeTrue();
+            // Jumping goes just over the threshold and will create the oof. There should be a check to prevent the sound playing in this case.
+            var audio = World.SoundManager.FindBySource(Player).Should().BeNull();
         }
 
         [Fact(DisplayName = "Player jump completely blocked")]

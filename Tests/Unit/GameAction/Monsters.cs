@@ -132,7 +132,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             // Force everything to retaliate immediately
             entity.Flags.QuickToRetaliate = true;
-            entity.Properties.Speed = 0;
+            entity.Properties.MissileMovementSpeed = 0;
+            entity.Properties.MonsterMovementSpeed = 0;
         }
 
         [Fact(DisplayName = "Barrel player damage source")]
