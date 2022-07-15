@@ -260,7 +260,7 @@ public partial class Entity
             BlockFloating = false;
         }
 
-        if (tryMove.Success && !Flags.Float)
+        if (tryMove.Success && !Flags.Float && Position.XY != nextPos)
             Box.SetZ(tryMove.HighestFloorZ);
 
         return tryMove.Success;
