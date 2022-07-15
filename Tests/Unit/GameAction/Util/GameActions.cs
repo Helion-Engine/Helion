@@ -80,9 +80,9 @@ namespace Helion.Tests.Unit.GameAction
 
         public static readonly List<Entity> CreatedEntities = new();
 
-        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true, Action<Entity>? onCreated = null)
+        public static Entity CreateEntity(WorldBase world, string name, Vec3D pos, bool frozen = true, Action<Entity>? onCreated = null, bool init = false)
         {
-            var createdEntity = world.EntityManager.Create(name, pos);
+            var createdEntity = world.EntityManager.Create(name, pos, init: init);
             createdEntity.Should().NotBeNull();
             if (frozen)
                 createdEntity!.FrozenTics = int.MaxValue;

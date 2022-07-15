@@ -9,7 +9,7 @@ namespace Helion.World.Entities;
 // The enemy movement code is more or less line for line from idtech1
 public partial class Entity
 {
-    private enum MoveDir
+    public enum MoveDir
     {
         East,
         NorthEast,
@@ -49,6 +49,9 @@ public partial class Entity
     private MoveDir m_direction = MoveDir.None;
 
     public bool BlockFloating;
+
+    public void SetEnemyDirection(MoveDir direction) =>
+        m_direction = direction;
 
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
         !entity.IsDead && (!IsFriend(entity) || Target.Entity == null);
@@ -246,6 +249,7 @@ public partial class Entity
         }
 
         Vec2D nextPos = GetNextEnemyPos();
+        bool isMoving = Position.XY != nextPos;
         tryMove = World.TryMoveXY(this, nextPos);
 
         if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
@@ -260,7 +264,7 @@ public partial class Entity
             BlockFloating = false;
         }
 
-        if (tryMove.Success && !Flags.Float && Position.XY != nextPos)
+        if (tryMove.Success && !Flags.Float && isMoving)
             Box.SetZ(tryMove.HighestFloorZ);
 
         return tryMove.Success;

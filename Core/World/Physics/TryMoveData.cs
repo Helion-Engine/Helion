@@ -16,9 +16,9 @@ public class TryMoveData
 
     public Entity? DropOffEntity;
 
-    public List<Entity> IntersectEntities2D = new List<Entity>();
-    public List<Line> IntersectSpecialLines = new List<Line>();
-    public List<Line> ImpactSpecialLines = new List<Line>();
+    public List<Entity> IntersectEntities2D = new();
+    public List<Line> IntersectSpecialLines = new();
+    public List<Line> ImpactSpecialLines = new();
 
     public void SetPosition(in Vec2D position)
     {
@@ -27,6 +27,8 @@ public class TryMoveData
         IntersectEntities2D.Clear();
         IntersectSpecialLines.Clear();
         ImpactSpecialLines.Clear();
+        HighestFloorZ = int.MinValue;
+        LowestCeilingZ = int.MinValue;
         DropOffEntity = null;
     }
 
