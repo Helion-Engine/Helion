@@ -395,10 +395,9 @@ public partial class WorldLayer
         });
     }
 
-    private static void DrawStatusBarBackground(IHudRenderContext hud, Render.Common.Textures.IRenderableTextureHandle barHandle)
+    private void DrawStatusBarBackground(IHudRenderContext hud, Render.Common.Textures.IRenderableTextureHandle barHandle)
     {
-        const string StatusBackground = "W94_1";
-        if (!hud.Textures.TryGet(StatusBackground, out var backgroundHandle))
+        if (!hud.Textures.TryGet(m_config.Hud.BackgroundTexture, out var backgroundHandle))
             return;
 
         hud.DoomVirtualResolution(() =>
@@ -419,7 +418,7 @@ public partial class WorldLayer
 
             for (int i = 0; i < iterations; i++)
             {
-                hud.Image(StatusBackground, (xOffset, yOffset), Align.BottomLeft);
+                hud.Image(m_config.Hud.BackgroundTexture, (xOffset, yOffset), Align.BottomLeft);
                 xOffset += width;
             }
         }, ResolutionScale.None);

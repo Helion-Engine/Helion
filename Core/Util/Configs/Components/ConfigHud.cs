@@ -25,4 +25,7 @@ public class ConfigHud
 
     [ConfigInfo("If the world stats should be rendered.")]
     public readonly ConfigValue<bool> ShowStats = new(false);
+
+    [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
+    public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
 }
