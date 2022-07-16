@@ -432,20 +432,21 @@ public class GeometryRenderer : IDisposable
 
     private bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
-        if (TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle))
+        bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        if (isFacingSky && TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
         {
-            if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
-            {
-                // The sky is only drawn if there is no opening height
-                // Otherwise ignore this line for sky effects
-                return LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
-            }
-            // Assume upper is visible for sky rendering hacks
-            return true;
+            // The sky is only drawn if there is no opening height
+            // Otherwise ignore this line for sky effects
+            return LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
         }
 
         double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+
+        // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
+        if (isFacingSky && facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
+            return facingZ <= otherZ;
+
         return facingZ > otherZ;
     }
 
