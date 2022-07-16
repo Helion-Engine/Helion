@@ -72,7 +72,7 @@ public class EntityRenderer
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, in Vec2D viewDirection)
     {
-        LinkableNode<Entity>? node = subsector.Entities.Head;
+        LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
         while (node != null)
         {
             Entity entity = node.Value;
