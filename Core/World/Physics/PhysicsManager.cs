@@ -82,8 +82,9 @@ public class PhysicsManager
         if (!entity.Flags.NoBlockmap)
             m_blockmap.Link(entity);
 
-        if (!entity.Flags.NoSector)
-            LinkToSectors(entity, tryMove);
+        // Needs to be added to the sector list even with NoSector flag.
+        // Doom used blockmap to manage things for sector movement.
+        LinkToSectors(entity, !entity.Flags.NoSector);
 
         ClampBetweenFloorAndCeiling(entity, smoothZ: true, clampToLinkedSectors);
     }
@@ -290,7 +291,9 @@ public class PhysicsManager
         LinkableNode<Entity>? node = sector.Entities.Head;
         while (node != null)
         {
-            m_sectorMoveEntities.Add(node.Value);
+            // Doom did this by blockmap so do not add things with NoBlockmap
+            if (!node.Value.Flags.NoBlockmap)
+                m_sectorMoveEntities.Add(node.Value);
             node = node.Next;
         }
         entites.Sort(m_sectorMoveOrderComparer);
@@ -707,7 +710,7 @@ public class PhysicsManager
         }
     }
 
-    private void LinkToSectors(Entity entity, TryMoveData? tryMove)
+    private void LinkToSectors(Entity entity, bool linkSubsector)
     {
         Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
@@ -727,7 +730,8 @@ public class PhysicsManager
             entity.SectorNodes.Add(sector.Link(entity));
         }
 
-        entity.SubsectorNode = centerSubsector.Link(entity);
+        if (linkSubsector)
+            entity.SubsectorNode = centerSubsector.Link(entity);
 
         m_world.DataCache.FreeSectorSet(sectors);
 

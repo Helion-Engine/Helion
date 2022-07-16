@@ -98,10 +98,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    protected internal List<LinkableNode<Entity>> BlockmapNodes;
-    protected internal List<LinkableNode<Entity>> SectorNodes;
-    protected internal LinkableNode<Entity>? SubsectorNode;
-    protected internal LinkableNode<Entity>? EntityListNode;
+    public List<LinkableNode<Entity>> BlockmapNodes;
+    public List<LinkableNode<Entity>> SectorNodes;
+    public LinkableNode<Entity>? SubsectorNode;
+    public LinkableNode<Entity>? EntityListNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ

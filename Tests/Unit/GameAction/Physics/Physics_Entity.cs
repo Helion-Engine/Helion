@@ -260,5 +260,59 @@ namespace Helion.Tests.Unit.GameAction
             Player.Position.Z.Should().Be(32);
             entity.Position.Z.Should().Be(-64);
         }
+
+        [Fact(DisplayName = "Entity with NoSector = true and NoBlockmap = false should move with the floor")]
+        public void EntityMovesWithNoSector()
+        {
+            // Helion isn't using the blockmap to determine entity movement with sectors.
+            // Physics still needs to link it to the sector but then check if NoBlockmap = false for movement.
+            var sector = GameActions.GetSectorByTag(World, 1);
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            def.Flags.NoSector = true;
+            def.Flags.NoBlockmap = false;
+
+            var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
+            monster.SubsectorNode.Should().BeNull();
+            monster.BlockmapNodes.Count.Should().Be(1);
+            monster.SectorNodes.Count.Should().Be(1);
+            monster.Sector.Entities.Contains(monster).Should().BeTrue();
+
+            GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, () => { return sector.ActiveFloorMove != null; }, () =>
+            {
+                monster.Position.Z.Should().Be(sector.Floor.Z);
+            });
+
+            def.Flags.NoSector = false;
+            def.Flags.NoBlockmap = false;
+        }
+
+        [Fact(DisplayName = "Entity with NoSector = true and NoBlockmap = true should NOT move with the floor")]
+        public void EntityDoesNotMoveWithNoBlockMap()
+        {
+            var sector = GameActions.GetSectorByTag(World, 1);
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            def.Flags.NoSector = true;
+            def.Flags.NoBlockmap = true;
+
+            var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
+            monster.SubsectorNode.Should().BeNull();
+            monster.BlockmapNodes.Count.Should().Be(0);
+            monster.SectorNodes.Count.Should().Be(1);
+            monster.Sector.Entities.Contains(monster).Should().BeTrue();
+
+            GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, () => { return sector.ActiveFloorMove != null; }, () =>
+            {
+                monster.Position.Z.Should().Be(0);
+            });
+
+            def.Flags.NoSector = false;
+            def.Flags.NoBlockmap = false;
+        }
     }
 }
