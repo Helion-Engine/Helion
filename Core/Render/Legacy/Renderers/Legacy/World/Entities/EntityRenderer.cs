@@ -129,7 +129,7 @@ public class EntityRenderer
 
     private bool ShouldNotDraw(Entity entity)
     {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible ||
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector ||
                 m_EntityDrawnTracker.HasDrawn(entity) ||
                 ReferenceEquals(m_cameraEntity, entity);
     }
