@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -15,7 +16,6 @@ using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
@@ -45,6 +45,9 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper = new();
+    //private BitArray m_drawnSectors = new(0);
+    private int[] m_drawnSectors = Array.Empty<int>();
+    private int m_renderCount;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -78,6 +81,8 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_geometryRenderer.UpdateTo(world);
         m_entityRenderer.UpdateTo(world);
+        //m_drawnSectors = new BitArray(world.Sectors.Count);
+        m_drawnSectors = new int[world.Sectors.Count];
     }
 
     protected override void PerformAutomapRender(WorldBase world, RenderInfo renderInfo)
@@ -103,7 +108,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Clear();
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);
+        m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);       
     }
 
     private Sector m_viewSector;
@@ -116,6 +121,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = world.BspTree.ToSector(position3D);
 
         m_viewClipper.Center = position;
+        m_renderCount++;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
 
         // This will just render based on distance from their center point.
@@ -168,7 +174,13 @@ public class LegacyWorldRenderer : WorldRenderer
         Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
         if (Occluded(subsector.BoundingBox, pos2D))
             return;
+
         m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position);
+
+        // Entities are rendered by the sector
+        if (subsector.Sector.RenderCount == m_renderCount)
+            return;
+        subsector.Sector.RenderCount = m_renderCount;
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position, viewDirection);
     }
 
