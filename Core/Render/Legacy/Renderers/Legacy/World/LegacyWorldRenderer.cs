@@ -45,8 +45,6 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper = new();
-    //private BitArray m_drawnSectors = new(0);
-    private int[] m_drawnSectors = Array.Empty<int>();
     private int m_renderCount;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
@@ -81,8 +79,6 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_geometryRenderer.UpdateTo(world);
         m_entityRenderer.UpdateTo(world);
-        //m_drawnSectors = new BitArray(world.Sectors.Count);
-        m_drawnSectors = new int[world.Sectors.Count];
     }
 
     protected override void PerformAutomapRender(WorldBase world, RenderInfo renderInfo)
