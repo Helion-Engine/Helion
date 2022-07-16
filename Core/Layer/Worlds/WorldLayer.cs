@@ -48,6 +48,7 @@ public partial class WorldLayer : IGameLayerParent
     private Vec2I m_autoMapOffset = (0, 0);
     private double m_autoMapScale;
     private bool m_disposed;
+    private bool m_paused;
 
     private Player Player => World.Player;
     public bool ShouldFocus => !World.Paused;

@@ -79,6 +79,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Add(Key.Tab, Constants.Input.Automap);
         Add(Key.MouseWheelUp, Constants.Input.NextWeapon);
         Add(Key.MouseWheelDown, Constants.Input.PreviousWeapon);
+        Add(Key.Pause, Constants.Input.Pause);
     }
 
     public void ClearChanged()

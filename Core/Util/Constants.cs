@@ -155,6 +155,7 @@ public static class Constants
         public const string Load = "Load";
         public const string Automap = "Automap";
         public const string CenterView = "CenterView";
+        public const string Pause = "Pause";
     }
 
     public static class ConsoleCommands

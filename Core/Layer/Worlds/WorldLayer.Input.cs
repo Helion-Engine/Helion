@@ -3,6 +3,7 @@ using Helion.Util.Configs.Values;
 using Helion.Window;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using System;
 
 namespace Helion.Layer.Worlds;
 
@@ -57,6 +58,9 @@ public partial class WorldLayer
 
     public void HandleInput(IConsumableInput input)
     {
+        if (IsCommandPressed(Constants.Input.Pause, input))
+            HandlePausePress();
+
         if (m_drawAutomap)
             HandleAutoMapInput(input);
 
@@ -83,6 +87,21 @@ public partial class WorldLayer
         }
 
         input.ConsumeScroll();
+    }
+
+    private void HandlePausePress()
+    {
+        m_paused = !m_paused;
+        if (m_paused)
+        {
+            World.Pause();
+            return;
+        }
+
+        if (AnyLayerObscuring)
+            return;
+
+        World.Resume();
     }
 
     private void HandleAutoMapInput(IConsumableInput input)

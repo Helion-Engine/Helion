@@ -41,14 +41,13 @@ public partial class WorldLayer
         // console) then we should pause it. Likewise, if we're at the
         // top layer, then we should make sure we're not paused (like
         // if the user just removed the menu or console).
-        if (!AnyLayerObscuring)
-        {
-            if (World.Paused)
-                World.Resume();
-        }
-        else if (!World.Paused)
+        if (AnyLayerObscuring)
         {
             World.Pause();
+            return;
         }
+
+        if (!m_paused && World.Paused)
+            World.Resume();
     }
 }

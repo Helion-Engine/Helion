@@ -61,6 +61,18 @@ public partial class WorldLayer
         DrawBottomHud(hud, topRightY, hudContext);
         DrawHudEffects(hud);
         DrawRecentConsoleMessages(hud);
+        DrawPause(hud);
+    }
+
+    private void DrawPause(IHudRenderContext hud)
+    {
+        if (!Player.World.Paused)
+            return;
+
+        hud.DoomVirtualResolution(() =>
+        {
+            hud.Image("M_PAUSE", (0, 8), both: Align.TopMiddle);
+        });
     }
 
     private static readonly string[] StatLabels = new string[] { "Kills: ", "Items: ", "Secrets: " };
