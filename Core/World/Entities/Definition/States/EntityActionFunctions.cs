@@ -1927,22 +1927,27 @@ public static class EntityActionFunctions
 
     private static void A_Saw(Entity entity)
     {
-        if (entity.IsPlayer)
+        var player = entity.PlayerObj;
+        if (player == null)
+            return;
+
+        int damage = ((2 * entity.World.Random.NextByte()) % 10) + 1;
+        double range = Constants.EntityMeleeDistance + 1;
+        double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
+        double pitch = player.PitchRadians;
+        if (entity.World.Config.Game.AutoAim)
+            entity.World.GetAutoAimEntity(entity, player.HitscanAttackPos, player.AngleRadians, range, out pitch, out _);
+        // Doom added + 1 so the bulletpuff would include the spark state
+        Entity? hitEntity = entity.World.FireHitscan(entity, angle, pitch, range, damage);
+        if (hitEntity == null)
         {
-            int damage = ((2 * entity.World.Random.NextByte()) % 10) + 1;
-            double angle = entity.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-            // Doom added + 1 so the bulletpuff would include the spark state
-            Entity? hitEntity = entity.World.FireHitscan(entity, angle, 0, Constants.EntityMeleeDistance + 1, damage);
-            if (hitEntity == null)
-            {
-                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", new SoundParams(entity, channel: entity.WeaponSoundChannel));
-            }
-            else
-            {
-                entity.AngleRadians = angle;
-                entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", new SoundParams(entity, channel: entity.WeaponSoundChannel));
-                entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
-            }
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawfull", new SoundParams(entity, channel: entity.WeaponSoundChannel));
+        }
+        else
+        {
+            entity.AngleRadians = angle;
+            entity.World.SoundManager.CreateSoundOn(entity, "weapons/sawhit", new SoundParams(entity, channel: entity.WeaponSoundChannel));
+            entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
         }
     }
 
@@ -3207,7 +3212,10 @@ public static class EntityActionFunctions
             damage *= berserkFactor;
 
         double angle = player.AngleRadians + (player.World.Random.NextDiff() * Constants.MeleeAngle / 255);
-        Entity? hitEntity = player.World.FireHitscan(player, angle, 0, range, (int)damage);
+        double pitch = player.PitchRadians;
+        if (player.World.Config.Game.AutoAim)
+            player.World.GetAutoAimEntity(player, player.HitscanAttackPos, player.AngleRadians, range, out pitch, out _);
+        Entity? hitEntity = player.World.FireHitscan(player, angle, pitch, range, (int)damage);
         if (hitEntity == null)
             return;
 
