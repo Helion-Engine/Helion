@@ -14,10 +14,9 @@ public class OpenALBuffer : IDisposable
         OpenALDebug.Start("Creating buffer");
         BufferId = AL.GenBuffer();
         OpenALDebug.End("Creating buffer");
-
         // Note: We only support DMX sounds currently!
         OpenALDebug.Start("Setting buffer data");
-        AL.BufferData(BufferId, format, sampleData, sampleRate);
+        AL.BufferData<byte>(BufferId, format, sampleData, sampleRate);
         OpenALDebug.End("Setting buffer data");
     }
 

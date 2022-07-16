@@ -70,17 +70,18 @@ public class Window : GameWindow, IWindow
     {
         currentMonitor = null;
         var currentHandle = Monitors.GetMonitorFromWindow(this);
-        List<MonitorData> monitors = new(Monitors.Count);
-        for(int i = 0; i < Monitors.Count; i++)
+        var windowMonitors = Monitors.GetMonitors();
+        List<MonitorData> monitors = new(windowMonitors.Count);
+        int i = 0;
+        foreach (var info in windowMonitors)
         {
-            if (!Monitors.TryGetMonitorInfo(i, out MonitorInfo info))
-                continue;
-
             var monitorData = new MonitorData(i, info.HorizontalResolution, info.VerticalResolution, info.Handle);
             monitors.Add(monitorData);
 
-            if (info.Handle.Pointer == currentHandle.Pointer)
+            if (info.Handle.Pointer == currentHandle.Handle.Pointer)
                 currentMonitor = monitorData;
+
+            i++;
         }
 
         return monitors;
@@ -109,7 +110,7 @@ public class Window : GameWindow, IWindow
             Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
             APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
             Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
-            IsFullscreen = config.Window.State == WindowState.Fullscreen,
+            //IsFullscreen = config.Window.State == WindowState.Fullscreen,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
             Title = Constants.ApplicationName,
@@ -126,13 +127,15 @@ public class Window : GameWindow, IWindow
         if (config.Window.Display.Value <= 0)
             return;
 
-        if (!Monitors.TryGetMonitorInfo(config.Window.Display.Value - 1, out MonitorInfo monitorInfo))
+        var windowMonitors = Monitors.GetMonitors();
+        var index = config.Window.Display.Value - 1;
+        if (index < 0 || index >= windowMonitors.Count)
         {
             Log.Error($"Invalid display number: {config.Window.Display.Value}");
             return;
         }
         
-        settings.CurrentMonitor = monitorInfo.Handle;
+        settings.CurrentMonitor = windowMonitors[index].Handle;
     }
 
     public void SetGrabCursor(bool set) => CursorGrabbed = set;
