@@ -19,6 +19,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
+using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -179,7 +180,7 @@ public partial class Client
             return;
         }
 
-        LoadMap(GetMapInfo(worldModel.MapName), worldModel, NoPlayers);
+        LoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
@@ -365,7 +366,7 @@ public partial class Client
     private void NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
-        LoadMap(mapInfo, null, NoPlayers);
+        LoadMap(mapInfo, null, null);
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
@@ -373,8 +374,20 @@ public partial class Client
 
     private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = new();
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IList<Player> players)
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
     {
+        IList<Player> players = Array.Empty<Player>();
+        IRandom? random = previousWorld?.Random;
+
+        if (previousWorld != null)
+        {
+            players = previousWorld.EntityManager.Players;
+            random = previousWorld.Random;
+        }
+
+        if (worldModel != null)
+            random = new DoomRandom(worldModel.RandomIndex);
+
         m_lastWorldModel = worldModel;
         IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
         if (map == null)
@@ -413,7 +426,7 @@ public partial class Client
 
         WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
-            players.FirstOrDefault(), worldModel);
+            players.FirstOrDefault(), worldModel, random);
         if (newLayer == null)
             return;
 
@@ -480,11 +493,11 @@ public partial class Client
                 break;
 
             case LevelChangeType.Reset:
-                LoadMap(world.MapInfo, null, NoPlayers);
+                LoadMap(world.MapInfo, null, null);
                 break;
 
             case LevelChangeType.ResetOrLoadLast:
-                LoadMap(world.MapInfo, m_lastWorldModel, NoPlayers);
+                LoadMap(world.MapInfo, m_lastWorldModel, null);
                 break;
         }
     }
@@ -554,7 +567,7 @@ public partial class Client
         if (isChangingClusters || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
             HandleZDoomTransition(world, cluster, nextMapInfo);
         else if (nextMapInfo != null)
-            LoadMap(nextMapInfo, null, world.EntityManager.Players);
+            LoadMap(nextMapInfo, null, world);
     }
 
     private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, MapInfoDef? nextMapInfo)
@@ -574,14 +587,14 @@ public partial class Client
             return;
 
         if (endGameLayer.NextMapInfo != null)
-            LoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World.EntityManager.Players);
+            LoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World);
     }
 
     private void ChangeLevel(LevelChangeEvent e)
     {
         if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
             out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-            LoadMap(mapInfoDef, null, NoPlayers);
+            LoadMap(mapInfoDef, null, null);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>
