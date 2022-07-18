@@ -41,6 +41,11 @@ public class Player : Entity
     private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    // These are set instantly from mouse movement.
+    // They are added when rendering so the view does not need to be interpolated.
+    public double ViewAngleRadians;
+    public double ViewPitchRadians;
+
     public readonly int PlayerNumber;
     public double PitchRadians;
     public double PrevAngle;
@@ -427,24 +432,25 @@ public class Player : Entity
         return true;
     }
 
-    public void AddToYaw(double delta, bool isMouse)
+    public void AddToYaw(double delta)
     {
         if (!TickCommand.Has(TickCommands.Strafe))
-            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
-
-        if (isMouse)
-            TickCommand.MouseAngle += delta;
+            ViewAngleRadians += delta;
     }
 
-    public void AddToPitch(double delta, bool isMouse)
+    public void AddToPitch(double delta)
     {
         if (World.MapInfo.HasOption(MapOptions.NoFreelook))
             return;
 
+        ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
+    }
+
+    private double AddPitch(double pitch, double delta)
+    {
         const double notQuiteVertical = MathHelper.HalfPi - 0.001;
-        PitchRadians = MathHelper.Clamp(PitchRadians + delta, -notQuiteVertical, notQuiteVertical);
-        if (isMouse)
-            TickCommand.MousePitch += delta;
+        pitch = MathHelper.Clamp(pitch + delta, -notQuiteVertical, notQuiteVertical);
+        return pitch;
     }
 
     public Camera GetCamera(double t)
@@ -462,12 +468,12 @@ public class Player : Entity
         if (m_interpolateAngle)
         {
             double prev = MathHelper.GetPositiveAngle(PrevAngle);
-            double current = MathHelper.GetPositiveAngle(AngleRadians);
+            double current = MathHelper.GetPositiveAngle(AngleRadians + ViewAngleRadians);
             double diff = Math.Abs(prev - current);
 
             if (diff >= MathHelper.Pi)
             {
-                if (prev > AngleRadians)
+                if (prev > current)
                     prev -= MathHelper.TwoPi;
                 else
                     current -= MathHelper.TwoPi;
@@ -475,13 +481,12 @@ public class Player : Entity
 
             float yaw = (float)(prev + t * (current - prev));
             float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
-
             m_camera.Set(position.Float, yaw, pitch);
         }
         else
         {
-            float yaw = (float)AngleRadians;
-            float pitch = (float)PitchRadians;
+            float yaw = (float)MathHelper.GetPositiveAngle(AngleRadians + ViewAngleRadians);
+            float pitch = (float)MathHelper.GetPositiveAngle(PitchRadians + ViewPitchRadians);
             m_camera.Set(position.Float, yaw, pitch);
         }
 
@@ -494,7 +499,7 @@ public class Player : Entity
         Inventory.Tick();
         AnimationWeapon?.Tick();
 
-        m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead;
+        m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
@@ -540,10 +545,10 @@ public class Player : Entity
             return;
 
         if (TickCommand.AngleTurn != 0 && !TickCommand.Has(TickCommands.Strafe))
-            AddToYaw(TickCommand.AngleTurn, false);
+            AddToYaw(TickCommand.AngleTurn);
 
         if (TickCommand.PitchTurn != 0)
-            AddToPitch(TickCommand.PitchTurn, false);
+            AddToPitch(TickCommand.PitchTurn);
 
         Vec3D movement = Vec3D.Zero;
         movement += CalculateForwardMovement(TickCommand.ForwardMoveSpeed);
@@ -626,6 +631,12 @@ public class Player : Entity
 
         if (TickCommand.Has(TickCommands.CenterView))
             PitchRadians = 0;
+
+        AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle + ViewAngleRadians);
+        PitchRadians += AddPitch(PitchRadians + ViewPitchRadians, TickCommand.MousePitch);
+
+        ViewAngleRadians = 0;
+        PitchRadians = 0;
     }
 
     private Vec3D CalculateForwardMovement(double speed)

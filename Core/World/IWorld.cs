@@ -25,6 +25,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
+using Helion.Demo;
 
 namespace Helion.World;
 
@@ -61,6 +62,7 @@ public interface IWorld : IDisposable
     GameInfoDef GameInfo { get; }
     LevelStats LevelStats { get; }
     bool Paused { get; }
+    bool PlayingDemo { get; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; }
     public DataCache DataCache { get; }
@@ -118,4 +120,10 @@ public interface IWorld : IDisposable
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
+
+    bool StartRecording(IDemoRecorder recorder);
+    bool StopRecording();
+
+    bool StartPlaying(IDemoPlayer player);
+    bool StopPlaying();
 }

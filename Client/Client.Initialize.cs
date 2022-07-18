@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Helion.Demo;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
@@ -75,6 +77,55 @@ public partial class Client
         {
             LoadMap(mapInfoDef.MapName);
         }
+
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        if (m_commandLineArgs.Record != null &&
+            TryCreateDemoRecorder(m_commandLineArgs.Record, out var recorder))
+        {
+            recorder.Start();
+            m_layerManager.WorldLayer.World.StartRecording(recorder);
+        }
+
+        if (m_commandLineArgs.PlayDemo != null &&
+            TryCreateDemoPlayer(m_commandLineArgs.PlayDemo, out var player))
+        {
+            player.Start();
+            m_layerManager.WorldLayer.World.StartPlaying(player);
+        }
+    }
+
+    private bool TryCreateDemoRecorder(string file, [NotNullWhen(true)] out IDemoRecorder? player)
+    {
+        try
+        {
+            player = new DemoRecorder(file);
+            return true;
+        }
+        catch
+        {
+            // TODO display error
+            player = null;
+        }
+
+        return false;
+    }
+
+    private bool TryCreateDemoPlayer(string file, [NotNullWhen(true)] out IDemoPlayer? player)
+    {
+        try
+        {
+            player = new DemoPlayer(file);
+            return true;
+        }
+        catch
+        {
+            // TODO display error
+            player = null;
+        }
+
+        return false;
     }
 
     private string? GetIwad()

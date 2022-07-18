@@ -4,6 +4,25 @@ namespace Helion.World.Entities.Players;
 
 public class TickCommand
 {
+    private static readonly HashSet<TickCommands> InstantCommands = new()
+    {
+        TickCommands.Forward,
+        TickCommands.Backward,
+        TickCommands.Left,
+        TickCommands.Right,
+        TickCommands.TurnLeft,
+        TickCommands.TurnRight,
+        TickCommands.LookDown,
+        TickCommands.LookUp,
+        TickCommands.Jump,
+        TickCommands.Crouch,
+        TickCommands.Attack,
+        TickCommands.Speed,
+        TickCommands.Strafe,
+        TickCommands.CenterView
+    };
+
+
     private readonly HashSet<TickCommands> m_commands = new();
     private readonly List<TickCommands> m_tickCommands = new();
     private readonly List<TickCommands> m_instantCommands = new();
@@ -14,6 +33,8 @@ public class TickCommand
     public double MousePitch { get; set; }
     public double ForwardMoveSpeed { get; set; }
     public double SideMoveSpeed { get; set; }
+
+    public IEnumerable<TickCommands> Commands => m_commands;
 
     public void Clear()
     {
@@ -36,15 +57,18 @@ public class TickCommand
         m_tickCommands.Clear();
     }
 
-    public void Add(TickCommands command, bool isInstant = false)
+    public void Add(TickCommands command)
     {
-        if (m_commands.Add(command))
+        if (!m_commands.Add(command))
+            return;
+
+        if (InstantCommands.Contains(command))
         {
-            if (isInstant)
-                m_instantCommands.Add(command);
-            else
-                m_tickCommands.Add(command);
+            m_instantCommands.Add(command);
+            return;
         }
+
+        m_tickCommands.Add(command);
     }
 
     public bool Has(TickCommands command) => m_commands.Contains(command);

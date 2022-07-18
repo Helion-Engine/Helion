@@ -64,7 +64,7 @@ public partial class WorldLayer
         if (m_drawAutomap)
             HandleAutoMapInput(input);
 
-        if (!World.Paused)
+        if (!World.Paused && !World.PlayingDemo)
         {
             HandleMovementInput(input);
             World.HandleFrameInput(input);
@@ -146,7 +146,7 @@ public partial class WorldLayer
 
         foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
             if (IsCommandDown(command, input))
-                m_tickCommand.Add(tickCommand, true);
+                m_tickCommand.Add(tickCommand);
 
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)

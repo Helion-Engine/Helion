@@ -52,6 +52,7 @@ using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Demo;
 
 namespace Helion.World;
 
@@ -77,6 +78,8 @@ public abstract partial class WorldBase : IWorld
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
+    public bool PlayingDemo { get; protected set; }
+    public bool DemoEnded { get; protected set; }
     public IRandom Random => m_random;
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
@@ -118,6 +121,15 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
+
+    private DemoState m_demoState = DemoState.Playing;
+
+    private enum DemoState
+    {
+        None,
+        Recording,
+        Playing
+    }
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -162,6 +174,13 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+    }
+
+    protected virtual void OnTickPlayer(Player player) { }
+
+    private void DemoPlaybackEnded(object? sender, EventArgs e)
+    {
+        Paused = true;
     }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
@@ -381,6 +400,8 @@ public abstract partial class WorldBase : IWorld
             if (player.IsVooDooDoll)
                 continue;
 
+            OnTickPlayer(player);
+
             player.HandleTickCommand();
             player.TickCommand.TickHandled();
 
@@ -471,7 +492,7 @@ public abstract partial class WorldBase : IWorld
 
     public void Resume()
     {
-        if (!Paused)
+        if (!Paused || DemoEnded)
             return;
 
         SoundManager.Resume();
@@ -2311,4 +2332,9 @@ public abstract partial class WorldBase : IWorld
 
         return lineModels;
     }
+
+    public virtual bool StartRecording(IDemoRecorder recorder) => false;
+    public virtual bool StopRecording() => false;
+    public virtual bool StartPlaying(IDemoPlayer player) => false;
+    public virtual bool StopPlaying() => false;
 }
