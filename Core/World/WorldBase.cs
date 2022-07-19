@@ -112,7 +112,7 @@ public abstract partial class WorldBase : IWorld
     protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
-    private IRandom m_random = new DoomRandom();
+    private IRandom m_random;
 
     private int m_exitTicks;
     private int m_easyBossBrain;
@@ -133,8 +133,10 @@ public abstract partial class WorldBase : IWorld
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
-        SkillDef skillDef, IMap map, WorldModel? worldModel = null)
+        SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
     {
+        m_random = random ?? new DoomRandom();
+
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
         ArchiveCollection = archiveCollection;

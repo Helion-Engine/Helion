@@ -21,12 +21,14 @@ public class DefinitionStateApplier
 
     private class FrameLabel
     {
-        public FrameLabel(int index)
+        public FrameLabel(int index, int localIndex)
         {
             Index = index;
+            LocalIndex = index;
         }
 
         public int Index { get; set; }
+        public int LocalIndex { get; set; }
     }
 
     public void Apply(EntityFrameTable entityFrameTable, EntityDefinition definition, IList<ActorDefinition> actorDefinitions)
@@ -104,7 +106,8 @@ public class DefinitionStateApplier
         masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
     }
 
-    private static string GetProcessedFrameKey(string name, int frame) =>  $"{name}::{frame}";
+    // Note: this frame index is the LOCAL index to the definition
+    private static string GetProcessedFrameKey(string name, int frame) => $"{name}::{frame}";
 
     private void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
         IList<UnresolvedGotoFrame> unresolvedGotoFrames, Dictionary<string, FrameLabel> masterLabelTable, int offset,
@@ -213,8 +216,8 @@ public class DefinitionStateApplier
         foreach (var pair in definition.States.Labels)
         {
             if (includeGenericLabels)
-                masterLabelTable[pair.Key] = new FrameLabel(pair.Value + offset);
-            masterLabelTable[$"{upperActorName}::{pair.Key}"] = new FrameLabel(pair.Value + offset);
+                masterLabelTable[pair.Key] = new FrameLabel(pair.Value + offset, 0);
+            masterLabelTable[$"{upperActorName}::{pair.Key}"] = new FrameLabel(pair.Value + offset, 0);
         }
     }
 
@@ -243,7 +246,7 @@ public class DefinitionStateApplier
     }
 
     private int FindGotoOverrideOffset(IDictionary<string, FrameLabel> masterLabelTable, ActorFlowOverride flowOverride,
-        string upperImmediateParentName)
+      string immediateParentName)
     {
         if (flowOverride.Label == null)
         {
@@ -251,15 +254,31 @@ public class DefinitionStateApplier
             return 0;
         }
 
+        string key;
         int offset = flowOverride.Offset ?? 0;
         if (flowOverride.Parent == null)
-            return masterLabelTable[flowOverride.Label].Index + offset;
+        {
+            key = GetProcessedFrameKey(immediateParentName, masterLabelTable[flowOverride.Label].LocalIndex);
+            return GetProcessedFrameMasterIndex(key) + offset;
+        }
 
         string label = $"{flowOverride.Parent}::{flowOverride.Label}";
         if (flowOverride.Parent.Equals("SUPER", StringComparison.OrdinalIgnoreCase))
-            label = $"{upperImmediateParentName}::{flowOverride.Label}";
+            label = $"{immediateParentName}::{flowOverride.Label}";
 
-        return masterLabelTable[label].Index + offset;
+        key = GetProcessedFrameKey(immediateParentName, masterLabelTable[label].LocalIndex);
+        return GetProcessedFrameMasterIndex(key) + offset;
+    }
+
+    private int GetProcessedFrameMasterIndex(string key)
+    {
+        if (!ProcessedFrames.TryGetValue(key, out EntityFrame? entityFrame))
+        {
+            Log.Error($"Bad processed frame key: {key}");
+            return 0;
+        }
+
+        return entityFrame.MasterFrameIndex;
     }
 
     private void HandleGotoFlowOverrides(ActorDefinition current, string upperImmediateParentName,

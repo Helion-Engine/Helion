@@ -23,6 +23,7 @@ using Helion.Window;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
+using Helion.Util.RandomGenerators;
 using Helion.Demo;
 
 namespace Helion.World.Impl.SinglePlayer;
@@ -44,8 +45,8 @@ public class SinglePlayerWorld : WorldBase
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
-        IMap map, Player? existingPlayer = null, WorldModel? worldModel = null)
-        : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel)
+        IMap map, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null)
+        : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random)
     {
         if (worldModel == null)
         {

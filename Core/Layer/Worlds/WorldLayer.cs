@@ -15,6 +15,7 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Profiling;
+using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -81,13 +82,13 @@ public partial class WorldLayer : IGameLayerParent
     public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config,
         HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection,
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random)
     {
         string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
         Log.Info(displayName);
 
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
-            mapInfoDef, skillDef, map, existingPlayer, worldModel);
+            mapInfoDef, skillDef, map, existingPlayer, worldModel, random);
         if (world == null)
             return null;
 
@@ -119,7 +120,7 @@ public partial class WorldLayer : IGameLayerParent
 
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, bool unitTest = false)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false)
     {
         archiveCollection.InitTextureManager(mapDef, unitTest);
         MapGeometry? geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
@@ -129,7 +130,7 @@ public partial class WorldLayer : IGameLayerParent
         try
         {
             return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
-                mapDef, skillDef, map,existingPlayer, worldModel);
+                mapDef, skillDef, map,existingPlayer, worldModel, random);
         }
         catch (HelionException e)
         {

@@ -196,6 +196,9 @@ public class EntityManager : IDisposable
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
 
+            if (entity.FrameState.Frame.Ticks > 0)
+                entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);
+
             if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                 relinkEntities.Add(entity);
             PostProcessEntity(entity);
