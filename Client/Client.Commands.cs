@@ -386,7 +386,7 @@ public partial class Client
         }
 
         if (worldModel != null)
-            random = new DoomRandom(worldModel.RandomIndex);
+            random = new DoomRandom(null, worldModel.RandomIndex);
 
         m_lastWorldModel = worldModel;
         IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);

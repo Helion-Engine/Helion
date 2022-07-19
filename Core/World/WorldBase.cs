@@ -122,20 +122,11 @@ public abstract partial class WorldBase : IWorld
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
-    private DemoState m_demoState = DemoState.Playing;
-
-    private enum DemoState
-    {
-        None,
-        Recording,
-        Playing
-    }
-
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
     {
-        m_random = random ?? new DoomRandom();
+        m_random = random ?? new DoomRandom(this);
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -405,7 +396,6 @@ public abstract partial class WorldBase : IWorld
             OnTickPlayer(player);
 
             player.HandleTickCommand();
-            player.TickCommand.TickHandled();
 
             if (player.Sector.SectorDamageSpecial != null)
                 player.Sector.SectorDamageSpecial.Tick(player);

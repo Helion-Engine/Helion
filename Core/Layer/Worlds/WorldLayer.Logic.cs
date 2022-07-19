@@ -20,8 +20,6 @@ public partial class WorldLayer
         if (ticksToRun <= 0)
             return;
 
-        World.SetTickCommand(m_tickCommand);
-
         if (ticksToRun > TickOverflowThreshold)
         {
             Log.Warn("Large tick overflow detected (likely due to delays/lag), reducing ticking amount");
@@ -30,9 +28,14 @@ public partial class WorldLayer
 
         while (ticksToRun > 0)
         {
+            World.SetTickCommand(m_tickCommand);
             World.Tick();
             ticksToRun--;
         }
+
+        System.Threading.Thread.Sleep(100);
+
+        m_tickCommand.Clear();
     }
 
     private void HandlePauseOrResume()

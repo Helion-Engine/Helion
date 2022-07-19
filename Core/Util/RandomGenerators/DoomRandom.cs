@@ -1,3 +1,9 @@
+using Helion.World;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+
 namespace Helion.Util.RandomGenerators;
 
 /// <summary>
@@ -5,6 +11,11 @@ namespace Helion.Util.RandomGenerators;
 /// </summary>
 public class DoomRandom : IRandom
 {
+    public static readonly List<string> RandomCalls = new();
+    private StringBuilder m_sb = new();
+
+    const string LogFile = "randomlog.txt";
+
     private static readonly byte[] Random =
     {
         0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74,
@@ -29,12 +40,45 @@ public class DoomRandom : IRandom
 
     public byte RandomIndex { get; set; }
 
-    public DoomRandom(byte index = 0)
+    private readonly IWorld m_world;
+
+    public DoomRandom(IWorld world, byte index = 0)
     {
+        m_world = world;
         RandomIndex = index;
+        
+        if (File.Exists(LogFile))
+            File.Delete(LogFile);
     }
 
-    public byte NextByte() => Random[++RandomIndex];
+    public byte NextByte()
+    {
+        StackTrace stackTrace = new();
+        StackFrame[] stackFrames = stackTrace.GetFrames();
+        m_sb.Clear();
+        m_sb.AppendLine($"*NextByte - {RandomIndex} tic:{m_world.Gametick}");
 
-    public int NextDiff() => NextByte() - NextByte();
+        for (int i = 0; i < stackFrames.Length && i < 5; i++)
+            m_sb.AppendLine(GetFrameText(stackFrames[i]));
+        File.AppendAllText(LogFile, m_sb.ToString());
+
+        return Random[++RandomIndex];
+    }
+
+    public int NextDiff()
+    {
+        StackTrace stackTrace = new();
+        StackFrame[] stackFrames = stackTrace.GetFrames();
+        m_sb.Clear();
+        m_sb.AppendLine($"*NextDiff {RandomIndex} tic:{m_world.Gametick}");
+
+        for (int i = 0; i < stackFrames.Length && i < 5; i++)
+            m_sb.AppendLine(GetFrameText(stackFrames[i]));
+        File.AppendAllText(LogFile, m_sb.ToString());
+
+        return Random[++RandomIndex] - Random[++RandomIndex];
+    }
+
+    private static string GetFrameText(StackFrame frame) =>
+        $"{frame.GetMethod().DeclaringType}.{frame.GetMethod().Name}";
 }

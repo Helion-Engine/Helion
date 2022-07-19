@@ -118,12 +118,21 @@ public class SinglePlayerWorld : WorldBase
         SoundManager.CacheSound("misc/secret");
     }
 
+    private bool m_jump = false;
+
     public override void Tick()
     {
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
         else
             Player.SetCrosshairTarget(null);
+
+        //if (!m_jump)
+        //{
+        //    for (int i = 0; i < 3225-(35*5); i++)
+        //        base.Tick();
+        //    m_jump = true;
+        //}
 
         base.Tick();
     }
@@ -236,6 +245,9 @@ public class SinglePlayerWorld : WorldBase
 
     public void SetTickCommand(TickCommand tickCommand)
     {
+        if (PlayingDemo)
+            return;
+
         Player.TickCommand = tickCommand;
 
         if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
@@ -334,6 +346,12 @@ public class SinglePlayerWorld : WorldBase
         if (PlayingDemo && m_player != null)
         {
             DemoTickResult result = m_player.SetNextTickCommand(player.TickCommand, out _);
+
+            //if (player.TickCommand.RandomIndex != ((DoomRandom)player.World.Random).RandomIndex)
+            //{
+            //    int lol = 1;
+            //}
+
             if (result == DemoTickResult.DemoEnded)
             {
                 DisplayMessage(Player, null, "The demo has ended.");

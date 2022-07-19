@@ -138,8 +138,6 @@ public partial class WorldLayer
 
     private void HandleMovementInput(IConsumableInput input)
     {
-        m_tickCommand.Clear();
-
         foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
             if (IsCommandPressed(command, input))
                 m_tickCommand.Add(tickCommand);

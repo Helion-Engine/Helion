@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities.Players;
+﻿using Helion.Util.RandomGenerators;
+using Helion.World.Entities.Players;
 using System;
 using System.IO;
 
@@ -29,6 +30,8 @@ namespace Helion.Demo
             foreach (var cmd in command.Commands)
                 commands |= 1 << (int)cmd;
 
+            int index = ((DoomRandom)player.World.Random).RandomIndex;
+            m_writer.Write(index);
             m_writer.Write(commands);
             m_writer.Write(command.AngleTurn);
             m_writer.Write(command.PitchTurn);

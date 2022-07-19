@@ -12,6 +12,7 @@ using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.Util.Profiling;
+using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -68,7 +69,7 @@ namespace Helion.Tests.Unit.GameAction
                 throw new Exception("Failed to create bsp");            
 
             SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
-                skillDef, outputMap, existingPlayer, worldModel, unitTest: true);
+                skillDef, outputMap, existingPlayer, worldModel, new DoomRandom(), unitTest: true);
             if (world == null)
                 throw new Exception("Failed to create world");
 

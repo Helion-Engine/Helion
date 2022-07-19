@@ -4,28 +4,9 @@ namespace Helion.World.Entities.Players;
 
 public class TickCommand
 {
-    private static readonly HashSet<TickCommands> InstantCommands = new()
-    {
-        TickCommands.Forward,
-        TickCommands.Backward,
-        TickCommands.Left,
-        TickCommands.Right,
-        TickCommands.TurnLeft,
-        TickCommands.TurnRight,
-        TickCommands.LookDown,
-        TickCommands.LookUp,
-        TickCommands.Jump,
-        TickCommands.Crouch,
-        TickCommands.Attack,
-        TickCommands.Speed,
-        TickCommands.Strafe,
-        TickCommands.CenterView
-    };
-
-
     private readonly HashSet<TickCommands> m_commands = new();
-    private readonly List<TickCommands> m_tickCommands = new();
-    private readonly List<TickCommands> m_instantCommands = new();
+
+    public int RandomIndex { get; set; }
 
     public double AngleTurn { get; set; }
     public double PitchTurn { get; set; }
@@ -36,14 +17,16 @@ public class TickCommand
 
     public IEnumerable<TickCommands> Commands => m_commands;
 
-    public void Clear()
+    public TickCommand Copy()
     {
-        for (int i = 0; i < m_instantCommands.Count; i++)
-            m_commands.Remove(m_instantCommands[i]);
-        m_instantCommands.Clear();
+        TickCommand copy = new TickCommand();
+        foreach (var command in m_commands)
+            copy.m_commands.Add(command);
+
+        return copy;
     }
 
-    public void TickHandled()
+    public void Clear()
     {
         AngleTurn = 0;
         PitchTurn = 0;
@@ -51,25 +34,10 @@ public class TickCommand
         MousePitch = 0;
         ForwardMoveSpeed = 0;
         SideMoveSpeed = 0;
-
-        for (int i = 0; i < m_tickCommands.Count; i++)
-            m_commands.Remove(m_tickCommands[i]);
-        m_tickCommands.Clear();
+        m_commands.Clear();
     }
 
-    public void Add(TickCommands command)
-    {
-        if (!m_commands.Add(command))
-            return;
-
-        if (InstantCommands.Contains(command))
-        {
-            m_instantCommands.Add(command);
-            return;
-        }
-
-        m_tickCommands.Add(command);
-    }
+    public void Add(TickCommands command) => m_commands.Add(command);
 
     public bool Has(TickCommands command) => m_commands.Contains(command);
 
