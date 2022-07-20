@@ -72,7 +72,7 @@ public class Player : Entity
     private WeakEntity m_killer = WeakEntity.Default;
     private bool m_interpolateAngle;
 
-    private Camera? m_camera;
+    private readonly Camera m_camera = new (Vec3F.Zero, 0, 0);
 
     public Inventory Inventory { get; private set; }
     public Weapon? Weapon { get; private set; }
@@ -446,7 +446,7 @@ public class Player : Entity
         ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
     }
 
-    private double AddPitch(double pitch, double delta)
+    private static double AddPitch(double pitch, double delta)
     {
         const double notQuiteVertical = MathHelper.HalfPi - 0.001;
         pitch = MathHelper.Clamp(pitch + delta, -notQuiteVertical, notQuiteVertical);
@@ -455,16 +455,12 @@ public class Player : Entity
 
     public Camera GetCamera(double t)
     {
-        if (m_camera == null)
-            m_camera = new(Vec3F.Zero, 0, 0);
-
         Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
         // When rendering, we always want the most up-to-date values. We
         // would only want to interpolate here if looking at another player
         // and would likely need to add more logic for wrapping around if
         // the player rotates from 359 degrees -> 2 degrees since that will
         // interpolate in the wrong direction.
-
         if (m_interpolateAngle)
         {
             double prev = MathHelper.GetPositiveAngle(PrevAngle);
@@ -480,13 +476,13 @@ public class Player : Entity
             }
 
             float yaw = (float)(prev + t * (current - prev));
-            float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
+            float pitch = (float)(m_prevPitch + t * (PitchRadians + ViewPitchRadians - m_prevPitch));
             m_camera.Set(position.Float, yaw, pitch);
         }
         else
         {
             float yaw = (float)MathHelper.GetPositiveAngle(AngleRadians + ViewAngleRadians);
-            float pitch = (float)MathHelper.GetPositiveAngle(PitchRadians + ViewPitchRadians);
+            float pitch = (float)(PitchRadians + ViewPitchRadians);
             m_camera.Set(position.Float, yaw, pitch);
         }
 
@@ -633,10 +629,10 @@ public class Player : Entity
             PitchRadians = 0;
 
         AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle + ViewAngleRadians);
-        PitchRadians += AddPitch(PitchRadians + ViewPitchRadians, TickCommand.MousePitch);
+        PitchRadians = AddPitch(PitchRadians, ViewPitchRadians);
 
         ViewAngleRadians = 0;
-        PitchRadians = 0;
+        ViewPitchRadians = 0;
     }
 
     private Vec3D CalculateForwardMovement(double speed)

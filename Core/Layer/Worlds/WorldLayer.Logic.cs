@@ -17,7 +17,7 @@ public partial class WorldLayer
         m_lastTickInfo = m_ticker.GetTickerInfo();
         int ticksToRun = m_lastTickInfo.Ticks;
 
-        if (ticksToRun <= 0)
+        if (ticksToRun <= 0 || World.Paused)
             return;
 
         if (ticksToRun > TickOverflowThreshold)
@@ -26,16 +26,17 @@ public partial class WorldLayer
             ticksToRun = 1;
         }
 
+        World.SetTickCommand(m_tickCommand);
+
         while (ticksToRun > 0)
         {
-            World.SetTickCommand(m_tickCommand);
             World.Tick();
             ticksToRun--;
         }
 
-        System.Threading.Thread.Sleep(100);
-
         m_tickCommand.Clear();
+
+        //System.Threading.Thread.Sleep(80);
     }
 
     private void HandlePauseOrResume()

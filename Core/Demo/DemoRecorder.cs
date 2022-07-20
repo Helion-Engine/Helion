@@ -35,7 +35,8 @@ namespace Helion.Demo
             m_writer.Write(commands);
             m_writer.Write(command.AngleTurn);
             m_writer.Write(command.PitchTurn);
-            m_writer.Write(command.MouseAngle + player.ViewAngleRadians);
+            // TODO does view angle/pitch need to added here?
+            m_writer.Write(command.MouseAngle);
             m_writer.Write(command.MousePitch);
             m_writer.Write(command.ForwardMoveSpeed);
             m_writer.Write(command.SideMoveSpeed);

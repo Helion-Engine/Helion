@@ -4,7 +4,23 @@ namespace Helion.World.Entities.Players;
 
 public class TickCommand
 {
+    // These commands are only processed once even if held down.
+    private static readonly HashSet<TickCommands> SinglePressCommands = new()
+    {
+        TickCommands.Use,
+        TickCommands.NextWeapon,
+        TickCommands.PreviousWeapon,
+        TickCommands.WeaponSlot1,
+        TickCommands.WeaponSlot2,
+        TickCommands.WeaponSlot3,
+        TickCommands.WeaponSlot4,
+        TickCommands.WeaponSlot5,
+        TickCommands.WeaponSlot6,
+        TickCommands.WeaponSlot7,
+    };
+
     private readonly HashSet<TickCommands> m_commands = new();
+    private readonly HashSet<TickCommands> m_previousCommands = new();
 
     public int RandomIndex { get; set; }
 
@@ -17,15 +33,6 @@ public class TickCommand
 
     public IEnumerable<TickCommands> Commands => m_commands;
 
-    public TickCommand Copy()
-    {
-        TickCommand copy = new TickCommand();
-        foreach (var command in m_commands)
-            copy.m_commands.Add(command);
-
-        return copy;
-    }
-
     public void Clear()
     {
         AngleTurn = 0;
@@ -37,9 +44,27 @@ public class TickCommand
         m_commands.Clear();
     }
 
-    public void Add(TickCommands command) => m_commands.Add(command);
+    // When the command is handled set the previous commands.
+    // This way commands like TickCommands.Use are only processed once until released and pressed again.
+    public void TickHandled()
+    {
+        m_previousCommands.Clear();
+        foreach (var command in m_commands)
+            m_previousCommands.Add(command);
+    }
 
-    public bool Has(TickCommands command) => m_commands.Contains(command);
+    public bool Add(TickCommands command) => m_commands.Add(command);
+
+    public bool Has(TickCommands command)
+    {
+        if (!m_commands.Contains(command))
+            return false;
+
+        if (m_previousCommands.Contains(command) && SinglePressCommands.Contains(command))
+            return false;
+
+        return true;
+    }
 
     public bool HasTurnKey() =>
         Has(TickCommands.TurnLeft) || Has(TickCommands.TurnRight);

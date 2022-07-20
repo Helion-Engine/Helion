@@ -118,21 +118,12 @@ public class SinglePlayerWorld : WorldBase
         SoundManager.CacheSound("misc/secret");
     }
 
-    private bool m_jump = false;
-
     public override void Tick()
     {
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
         else
             Player.SetCrosshairTarget(null);
-
-        //if (!m_jump)
-        //{
-        //    for (int i = 0; i < 3225-(35*5); i++)
-        //        base.Tick();
-        //    m_jump = true;
-        //}
 
         base.Tick();
     }

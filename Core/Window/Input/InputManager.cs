@@ -15,6 +15,7 @@ public class InputManager : IInputManager
     public Vec2I MouseMove { get; private set; } = (0, 0);
     private readonly ConsumableInput m_consumableInput;
     private readonly HashSet<Key> m_inputDown = new();
+    private readonly HashSet<Key> m_inputUp = new();
     private readonly HashSet<Key> m_inputPrevDown = new();
     private readonly DynamicArray<char> m_typedCharacters = new();
     private readonly Stopwatch m_keyHold = new();
@@ -59,10 +60,7 @@ public class InputManager : IInputManager
         if (m_prevKeyDown == key)
             m_prevKeyDown = Key.Unknown;
 
-        if (key == Key.PrintScreen)
-            return;
-
-        m_inputDown.Remove(key);
+        m_inputUp.Add(key);
         CheckContinuousKeyHold();
     }
 
@@ -109,14 +107,17 @@ public class InputManager : IInputManager
 
     public void Reset()
     {
+        foreach (var keyUp in m_inputUp)
+            m_inputDown.Remove(keyUp);
+
+        m_inputUp.Clear();
+
         MouseMove = (0, 0);
         m_mouseScroll = 0;
         m_typedCharacters.Clear();
         m_inputPrevDown.Clear();
         foreach (Key key in m_inputDown)
             m_inputPrevDown.Add(key);
-
-        m_inputDown.Remove(Key.PrintScreen);
     }
 
     public IConsumableInput Poll()

@@ -9,7 +9,7 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
-    private static readonly (string, TickCommands)[] KeyDownCommandMapping =
+    private static readonly (string, TickCommands)[] KeyPressCommandMapping =
     {
         (Constants.Input.Forward,       TickCommands.Forward),
         (Constants.Input.Backward,      TickCommands.Backward),
@@ -25,10 +25,6 @@ public partial class WorldLayer
         (Constants.Input.Run,           TickCommands.Speed),
         (Constants.Input.Strafe,        TickCommands.Strafe),
         (Constants.Input.CenterView,    TickCommands.CenterView),
-    };
-
-    private static readonly (string, TickCommands)[] KeyPressCommandMapping =
-    {
         (Constants.Input.Use,            TickCommands.Use),
         (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
         (Constants.Input.PreviousWeapon, TickCommands.PreviousWeapon),
@@ -66,7 +62,7 @@ public partial class WorldLayer
 
         if (!World.Paused && !World.PlayingDemo)
         {
-            HandleMovementInput(input);
+            HandleCommandInput(input);
             World.HandleFrameInput(input);
         }
 
@@ -136,13 +132,9 @@ public partial class WorldLayer
         m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0, double.MaxValue);
     }
 
-    private void HandleMovementInput(IConsumableInput input)
+    private void HandleCommandInput(IConsumableInput input)
     {
         foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
-            if (IsCommandPressed(command, input))
-                m_tickCommand.Add(tickCommand);
-
-        foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
             if (IsCommandDown(command, input))
                 m_tickCommand.Add(tickCommand);
 
