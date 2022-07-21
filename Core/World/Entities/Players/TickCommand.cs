@@ -22,8 +22,6 @@ public class TickCommand
     private readonly HashSet<TickCommands> m_commands = new();
     private readonly HashSet<TickCommands> m_previousCommands = new();
 
-    public int RandomIndex { get; set; }
-
     public double AngleTurn { get; set; }
     public double PitchTurn { get; set; }
     public double MouseAngle { get; set; }
@@ -32,6 +30,24 @@ public class TickCommand
     public double SideMoveSpeed { get; set; }
 
     public IEnumerable<TickCommands> Commands => m_commands;
+
+    public TickCommand Copy()
+    {
+        TickCommand copy = new();
+        foreach (var command in m_commands)
+            copy.m_commands.Add(command);
+        foreach (var command in m_previousCommands)
+            copy.m_previousCommands.Add(command);
+
+        copy.AngleTurn = AngleTurn;
+        copy.PitchTurn = PitchTurn;
+        copy.MouseAngle = MouseAngle;
+        copy.MousePitch = MousePitch;
+        copy.ForwardMoveSpeed = ForwardMoveSpeed;
+        copy.SideMoveSpeed = SideMoveSpeed;
+
+        return copy;
+    }
 
     public void Clear()
     {

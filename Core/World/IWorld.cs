@@ -51,6 +51,7 @@ public interface IWorld : IDisposable
     double ListenerPitch { get; }
     Entity ListenerEntity { get; }
     IRandom Random { get; }
+    IRandom SecondaryRandom { get; }
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
@@ -120,10 +121,4 @@ public interface IWorld : IDisposable
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
-
-    bool StartRecording(IDemoRecorder recorder);
-    bool StopRecording();
-
-    bool StartPlaying(IDemoPlayer player);
-    bool StopPlaying();
 }

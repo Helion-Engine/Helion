@@ -32,4 +32,7 @@ public class ConfigGame
 
     [ConfigInfo("The skill level to use when starting a map.", save: false)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
+
+    [ConfigInfo("Playback tick multiplier rounded to the nearest tick. (0.5 = half speed, 2 = double speed)", save: false)]
+    public readonly ConfigValue<double> DemoPlaybackSpeed = new(1);
 }

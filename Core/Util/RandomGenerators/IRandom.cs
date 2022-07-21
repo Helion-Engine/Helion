@@ -1,9 +1,11 @@
+using System;
+
 namespace Helion.Util.RandomGenerators;
 
 /// <summary>
 /// A random number generating object.
 /// </summary>
-public interface IRandom
+public interface IRandom : ICloneable
 {
     /// <summary>
     /// Gets a random byte.

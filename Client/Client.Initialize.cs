@@ -85,14 +85,14 @@ public partial class Client
             TryCreateDemoRecorder(m_commandLineArgs.Record, out var recorder))
         {
             recorder.Start();
-            m_layerManager.WorldLayer.World.StartRecording(recorder);
+            m_layerManager.WorldLayer.StartRecording(recorder);
         }
 
         if (m_commandLineArgs.PlayDemo != null &&
             TryCreateDemoPlayer(m_commandLineArgs.PlayDemo, out var player))
         {
             player.Start();
-            m_layerManager.WorldLayer.World.StartPlaying(player);
+            m_layerManager.WorldLayer.StartPlaying(player);
         }
     }
 

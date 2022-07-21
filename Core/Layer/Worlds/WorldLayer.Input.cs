@@ -3,7 +3,6 @@ using Helion.Util.Configs.Values;
 using Helion.Window;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
-using System;
 
 namespace Helion.Layer.Worlds;
 

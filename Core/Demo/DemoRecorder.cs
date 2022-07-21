@@ -3,55 +3,51 @@ using Helion.World.Entities.Players;
 using System;
 using System.IO;
 
-namespace Helion.Demo
+namespace Helion.Demo;
+
+public class DemoRecorder : IDemoRecorder, IDisposable
 {
-    public class DemoRecorder : IDemoRecorder, IDisposable
+    private readonly FileStream m_fileStream;
+    private readonly BinaryWriter m_writer;
+    private bool m_recording;
+
+    public DemoRecorder(string file)
     {
-        private readonly FileStream m_fileStream;
-        private readonly BinaryWriter m_writer;
-        private bool m_recording;
+        if (File.Exists(file))
+            File.Delete(file);
 
-        public DemoRecorder(string file)
-        {
-            if (File.Exists(file))
-                File.Delete(file);
+        m_fileStream = File.OpenWrite(file);
+        m_writer = new BinaryWriter(m_fileStream);
+    }
 
-            m_fileStream = File.OpenWrite(file);
-            m_writer = new BinaryWriter(m_fileStream);
-        }
+    public void AddTickCommand(Player player)
+    {
+        if (!m_recording)
+            return;
 
-        public void AddTickCommand(Player player)
-        {
-            if (!m_recording)
-                return;
+        TickCommand command = player.TickCommand;
+        int commands = 0;
+        foreach (var cmd in command.Commands)
+            commands |= 1 << (int)cmd;
 
-            TickCommand command = player.TickCommand;
-            int commands = 0;
-            foreach (var cmd in command.Commands)
-                commands |= 1 << (int)cmd;
+        m_writer.Write(commands);
+        m_writer.Write(command.AngleTurn);
+        m_writer.Write(command.PitchTurn);
+        m_writer.Write(command.MouseAngle);
+        m_writer.Write(command.MousePitch);
+        m_writer.Write(command.ForwardMoveSpeed);
+        m_writer.Write(command.SideMoveSpeed);
+        m_writer.Flush();
+    }
 
-            int index = ((DoomRandom)player.World.Random).RandomIndex;
-            m_writer.Write(index);
-            m_writer.Write(commands);
-            m_writer.Write(command.AngleTurn);
-            m_writer.Write(command.PitchTurn);
-            // TODO does view angle/pitch need to added here?
-            m_writer.Write(command.MouseAngle);
-            m_writer.Write(command.MousePitch);
-            m_writer.Write(command.ForwardMoveSpeed);
-            m_writer.Write(command.SideMoveSpeed);
-            m_writer.Flush();
-        }
+    public void Start() => m_recording = true;
 
-        public void Start() => m_recording = true;
+    public void Stop() => m_recording = false;
 
-        public void Stop() => m_recording = false;
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            m_writer.Dispose();
-            m_fileStream.Dispose();
-        }
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        m_writer.Dispose();
+        m_fileStream.Dispose();
     }
 }

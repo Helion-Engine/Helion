@@ -1,7 +1,15 @@
+using Helion.Demo;
+using Helion.World.Entities.Players;
+
 namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
+    private IDemoPlayer? m_demoPlayer;
+    private IDemoRecorder? m_demoRecorder;
+    private bool m_recording;
+    private int m_demoSkipTicks;
+
     private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
                                       m_parent.MenuLayer != null ||
                                       m_parent.TitlepicLayer != null ||
@@ -12,12 +20,71 @@ public partial class WorldLayer
         HandlePauseOrResume();
     }
 
+    public bool StartRecording(IDemoRecorder recorder)
+    {
+        if (m_recording)
+            return false;
+
+        m_recording = true;
+        m_demoRecorder = recorder;
+        return false;
+    }
+
+    public bool StopRecording()
+    {
+        if (!m_recording)
+            return false;
+
+        m_recording = false;
+        m_demoRecorder = null;
+        return false;
+    }
+
+    public bool StartPlaying(IDemoPlayer player)
+    {
+        if (World.PlayingDemo)
+            return false;
+
+        World.PlayingDemo = true;
+        m_demoPlayer = player;
+        return false;
+    }
+
+    public bool StopPlaying()
+    {
+        if (!World.PlayingDemo)
+            return false;
+
+        m_demoPlayer = null;
+        return true;
+    }
+
     private void TickWorld()
     {
         m_lastTickInfo = m_ticker.GetTickerInfo();
         int ticksToRun = m_lastTickInfo.Ticks;
 
-        if (ticksToRun <= 0 || World.Paused)
+        if (m_config.Game.DemoPlaybackSpeed != 1 && m_config.Game.DemoPlaybackSpeed != 0)
+        {
+            if (m_config.Game.DemoPlaybackSpeed > 1)
+            {
+                ticksToRun = (int)(ticksToRun * m_config.Game.DemoPlaybackSpeed);
+            }
+            else if (m_demoSkipTicks <= 0)
+            {
+                m_demoSkipTicks = (int)(1 / m_config.Game.DemoPlaybackSpeed);
+                return;
+            }
+        }
+
+        m_demoSkipTicks--;
+        if (m_demoSkipTicks > 0)
+        {
+            World.ResetInterpolation();
+            return;
+        }
+
+        if (ticksToRun <= 0)
             return;
 
         if (ticksToRun > TickOverflowThreshold)
@@ -26,17 +93,43 @@ public partial class WorldLayer
             ticksToRun = 1;
         }
 
-        World.SetTickCommand(m_tickCommand);
+        // Need to process the same command for each tick that needs be run.
+        if (m_demoPlayer == null)
+            World.SetTickCommand(m_tickCommand);
 
         while (ticksToRun > 0)
         {
+            NextTickCommand();
             World.Tick();
             ticksToRun--;
         }
 
         m_tickCommand.Clear();
+    }
 
-        //System.Threading.Thread.Sleep(80);
+    private void NextTickCommand()
+    {
+        if (m_demoRecorder != null)
+        {
+            // Need to add in ViewAngle/ViewPitch here.
+            World.Player.TickCommand.MouseAngle += World.Player.ViewAngleRadians;
+            World.Player.TickCommand.MousePitch += World.Player.ViewPitchRadians;
+            m_demoRecorder.AddTickCommand(World.Player);
+            return;
+        }
+
+        if (m_demoPlayer == null || World.Paused)
+            return;
+
+        DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _);
+        if (result == DemoTickResult.DemoEnded)
+        {
+            World.DisplayMessage(Player, null, "The demo has ended.");
+            World.DemoEnded = true;
+            World.Pause();
+        }
+
+        World.SetTickCommand(m_tickCommand);
     }
 
     private void HandlePauseOrResume()

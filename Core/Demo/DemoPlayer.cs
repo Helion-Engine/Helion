@@ -31,7 +31,6 @@ public class DemoPlayer : IDemoPlayer, IDisposable
         }
 
         command.Clear();
-        command.RandomIndex = m_reader.ReadInt32();
         int commands = m_reader.ReadInt32();
         for (int i = 0; i < 32; i++)
         {

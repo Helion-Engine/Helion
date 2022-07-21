@@ -78,9 +78,10 @@ public abstract partial class WorldBase : IWorld
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
-    public bool PlayingDemo { get; protected set; }
-    public bool DemoEnded { get; protected set; }
+    public bool PlayingDemo { get; set; }
+    public bool DemoEnded { get; set; }
     public IRandom Random => m_random;
+    public IRandom SecondaryRandom { get; private set; }
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
     public IList<Wall> Walls => Geometry.Walls;
@@ -126,7 +127,8 @@ public abstract partial class WorldBase : IWorld
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
     {
-        m_random = random ?? new DoomRandom(this);
+        m_random = random ?? new DoomRandom();
+        SecondaryRandom = (IRandom)m_random.Clone();
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -168,8 +170,6 @@ public abstract partial class WorldBase : IWorld
             LevelStats.SecretCount = worldModel.SecretCount;
         }
     }
-
-    protected virtual void OnTickPlayer(Player player) { }
 
     private void DemoPlaybackEnded(object? sender, EventArgs e)
     {
@@ -303,7 +303,10 @@ public abstract partial class WorldBase : IWorld
         DebugCheck();
 
         if (Paused)
+        {
+            TickPlayerStatusBars();
             return;
+        }
 
         Profiler.World.Total.Start();
 
@@ -340,6 +343,12 @@ public abstract partial class WorldBase : IWorld
         Gametick++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private void TickPlayerStatusBars()
+    {
+        foreach (Player player in EntityManager.Players)
+            player.StatusBar.Tick();
     }
 
     [Conditional("DEBUG")]
@@ -393,9 +402,8 @@ public abstract partial class WorldBase : IWorld
             if (player.IsVooDooDoll)
                 continue;
 
-            OnTickPlayer(player);
-
             player.HandleTickCommand();
+            player.TickCommand.TickHandled();
 
             if (player.Sector.SectorDamageSpecial != null)
                 player.Sector.SectorDamageSpecial.Tick(player);
@@ -471,7 +479,7 @@ public abstract partial class WorldBase : IWorld
         Paused = true;
     }
 
-    private void ResetInterpolation()
+    public void ResetInterpolation()
     {
         LinkableNode<Entity>? node = EntityManager.Entities.Head;
         while (node != null)
@@ -2324,9 +2332,4 @@ public abstract partial class WorldBase : IWorld
 
         return lineModels;
     }
-
-    public virtual bool StartRecording(IDemoRecorder recorder) => false;
-    public virtual bool StopRecording() => false;
-    public virtual bool StartPlaying(IDemoPlayer player) => false;
-    public virtual bool StopPlaying() => false;
 }

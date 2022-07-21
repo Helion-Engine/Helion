@@ -13,4 +13,6 @@ public class TrueRandom : IRandom
     public byte NextByte() => (byte)m_random.Next(256);
 
     public int NextDiff() => m_random.Next(256) - m_random.Next(256);
+
+    public object Clone() => new TrueRandom();
 }

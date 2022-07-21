@@ -39,10 +39,6 @@ public class SinglePlayerWorld : WorldBase
 
     public Player Player { get; private set; }
 
-    private bool m_recording;
-    private IDemoPlayer? m_player;
-    private IDemoRecorder? m_recorder;
-
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
         IMap map, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null)
@@ -236,10 +232,10 @@ public class SinglePlayerWorld : WorldBase
 
     public void SetTickCommand(TickCommand tickCommand)
     {
+        Player.TickCommand = tickCommand;
+
         if (PlayingDemo)
             return;
-
-        Player.TickCommand = tickCommand;
 
         if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
             Player.TurnTics++;
@@ -327,67 +323,5 @@ public class SinglePlayerWorld : WorldBase
             if (Config.Mouse.Look)
                 Player.AddToPitch(moveDelta.Y);
         }
-    }
-
-    protected override void OnTickPlayer(Player player)
-    {
-        if (m_recording && m_recorder != null)
-            m_recorder.AddTickCommand(player);
-
-        if (PlayingDemo && m_player != null)
-        {
-            DemoTickResult result = m_player.SetNextTickCommand(player.TickCommand, out _);
-
-            //if (player.TickCommand.RandomIndex != ((DoomRandom)player.World.Random).RandomIndex)
-            //{
-            //    int lol = 1;
-            //}
-
-            if (result == DemoTickResult.DemoEnded)
-            {
-                DisplayMessage(Player, null, "The demo has ended.");
-                DemoEnded = true;
-                Pause();
-            }
-        }
-    }
-
-    public override bool StartRecording(IDemoRecorder recorder)
-    {
-        if (m_recording)
-            return false;
-
-        m_recording = true;
-        m_recorder = recorder;
-        return false;
-    }
-
-    public override bool StopRecording()
-    {
-        if (!m_recording)
-            return false;
-
-        m_recording = false;
-        m_recorder = null;
-        return false;
-    }
-
-    public override bool StartPlaying(IDemoPlayer player)
-    {
-        if (PlayingDemo)
-            return false;
-
-        PlayingDemo = true;
-        m_player = player;
-        return false;
-    }
-
-    public override bool StopPlaying()
-    {
-        if (!PlayingDemo)
-            return false;
-
-        m_player = null;
-        return true;
     }
 }
