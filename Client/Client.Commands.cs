@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Bsp.Zdbsp;
+using Helion.Demo;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Worlds;
@@ -22,7 +22,6 @@ using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
-using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -374,19 +373,29 @@ public partial class Client
 
     private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = new();
 
+    private IRandom GetLoadMapRandom(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
+    {
+        if (previousWorld != null)
+            return previousWorld.Random;
+
+        if (worldModel != null)
+            return new DoomRandom(worldModel.RandomIndex);
+
+        var demoMap = GetDemoMap(mapInfoDef.MapName);
+        if (m_demoPlayer != null && demoMap != null)
+            return new DoomRandom(demoMap.RandomIndex);
+
+        return new DoomRandom();
+    }
+
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
     {
         IList<Player> players = Array.Empty<Player>();
-        IRandom? random = previousWorld?.Random;
+        IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
+        int randomIndex = random.RandomIndex;
 
         if (previousWorld != null)
-        {
             players = previousWorld.EntityManager.Players;
-            random = previousWorld.Random;
-        }
-
-        if (worldModel != null)
-            random = new DoomRandom(worldModel.RandomIndex);
 
         m_lastWorldModel = worldModel;
         IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
@@ -442,6 +451,15 @@ public partial class Client
             string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(newLayer.World.ArchiveCollection)}";
             string saveFile = m_saveGameManager.WriteNewSaveGame(newLayer.World, title, autoSave: true);
             m_console.AddMessage($"Saved {saveFile}");
+        }
+
+        if (m_demoPlayer != null)
+            SetWorldLayerToDemo(m_demoPlayer, mapInfoDef, newLayer);
+
+        if (m_demoRecorder != null)
+        {
+            AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, newLayer.World.Player);
+            newLayer.StartRecording(m_demoRecorder);
         }
 
         newLayer.World.Start(worldModel);

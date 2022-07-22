@@ -1,5 +1,6 @@
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -37,7 +38,7 @@ public class SaveGame
             if (saveDataEntry == null)
                 return;
 
-            Model = JsonConvert.DeserializeObject<SaveGameModel>(GetEntryString(saveDataEntry), DefaultSerializerSettings);
+            Model = JsonConvert.DeserializeObject<SaveGameModel>(saveDataEntry.ReadDataAsString(), DefaultSerializerSettings);
         }
         catch
         {
@@ -57,22 +58,12 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            return JsonConvert.DeserializeObject<WorldModel>(GetEntryString(entry), DefaultSerializerSettings);
+            return JsonConvert.DeserializeObject<WorldModel>(entry.ReadDataAsString(), DefaultSerializerSettings);
         }
         catch
         {
             return null;
         }
-    }
-
-    private static string GetEntryString(ZipArchiveEntry entry)
-    {
-        byte[] data = new byte[entry.Length];
-        using Stream stream = entry.Open();
-        int totalRead = 0;
-        while (totalRead < data.Length)
-            totalRead += stream.Read(data, totalRead, (int)entry.Length - totalRead);
-        return Encoding.UTF8.GetString(data);
     }
 
     public static WorldModel WriteSaveGame(IWorld world, string title, string filename)

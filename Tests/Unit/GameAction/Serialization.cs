@@ -151,8 +151,7 @@ public class Serialization : IDisposable
         PreviousWorld.GlobalData.Equals(world.GlobalData).Should().BeTrue();
         PreviousWorld.LevelStats.Equals(world.LevelStats).Should().BeTrue();
 
-        if (PreviousWorld.Random is DoomRandom random && world.Random is DoomRandom otherRandom)
-            random.RandomIndex.Should().Be(otherRandom.RandomIndex);
+        PreviousWorld.Random.RandomIndex.Should().Be(world.Random.RandomIndex);
     }
 
     private void AssertSpecials(SinglePlayerWorld world)

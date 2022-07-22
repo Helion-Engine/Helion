@@ -21,6 +21,7 @@ public interface IConfig
     ConfigPlayer Player { get; }
     ConfigRender Render { get; }
     ConfigWindow Window { get; }
+    ConfigDemo Demo { get; }
     IConfigKeyMapping Keys { get; }
     IConfigAliasMapping Aliases { get; }
 

@@ -64,15 +64,16 @@ public partial class WorldLayer
         m_lastTickInfo = m_ticker.GetTickerInfo();
         int ticksToRun = m_lastTickInfo.Ticks;
 
-        if (m_config.Game.DemoPlaybackSpeed != 1 && m_config.Game.DemoPlaybackSpeed != 0)
+        double demoPlaybackSpeed = m_config.Demo.PlaybackSpeed;
+        if (m_demoPlayer != null && demoPlaybackSpeed != 1 && demoPlaybackSpeed != 0)
         {
-            if (m_config.Game.DemoPlaybackSpeed > 1)
+            if (demoPlaybackSpeed > 1)
             {
-                ticksToRun = (int)(ticksToRun * m_config.Game.DemoPlaybackSpeed);
+                ticksToRun = (int)(ticksToRun * demoPlaybackSpeed);
             }
             else if (m_demoSkipTicks <= 0)
             {
-                m_demoSkipTicks = (int)(1 / m_config.Game.DemoPlaybackSpeed);
+                m_demoSkipTicks = (int)(1 / demoPlaybackSpeed);
                 return;
             }
         }
@@ -109,16 +110,16 @@ public partial class WorldLayer
 
     private void NextTickCommand()
     {
+        if (World.Paused || World.WorldState != Helion.World.WorldState.Normal)
+            return;
+
         if (m_demoRecorder != null)
         {
-            // Need to add in ViewAngle/ViewPitch here.
-            World.Player.TickCommand.MouseAngle += World.Player.ViewAngleRadians;
-            World.Player.TickCommand.MousePitch += World.Player.ViewPitchRadians;
             m_demoRecorder.AddTickCommand(World.Player);
             return;
         }
 
-        if (m_demoPlayer == null || World.Paused)
+        if (m_demoPlayer == null)
             return;
 
         DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _);

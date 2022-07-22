@@ -114,6 +114,7 @@ public abstract partial class WorldBase : IWorld
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
     private IRandom m_random;
+    private IRandom m_saveRandom;
 
     private int m_exitTicks;
     private int m_easyBossBrain;
@@ -128,7 +129,8 @@ public abstract partial class WorldBase : IWorld
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
     {
         m_random = random ?? new DoomRandom();
-        SecondaryRandom = (IRandom)m_random.Clone();
+        m_saveRandom = m_random;
+        SecondaryRandom = m_random.Clone();
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -154,7 +156,7 @@ public abstract partial class WorldBase : IWorld
             LevelTime = worldModel.LevelTime;
             m_soundCount = worldModel.SoundCount;
             Gravity = worldModel.Gravity;
-            ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+            Random.Clone(worldModel.RandomIndex);
             CurrentBossTarget = worldModel.CurrentBossTarget;
             GlobalData = new()
             {
@@ -322,6 +324,7 @@ public abstract partial class WorldBase : IWorld
                     WorldState = WorldState.Normal;
                 else
                     WorldState = WorldState.Exited;
+                m_random = m_saveRandom;
             }
         }
         else if (WorldState == WorldState.Normal)
@@ -600,6 +603,8 @@ public abstract partial class WorldBase : IWorld
         SoundManager.ClearSounds();
         m_levelChangeType = type;
         WorldState = WorldState.Exit;
+        // The exit ticks thing is fudge. Change random to secondary to not break demos later.
+        m_random = SecondaryRandom;
         m_exitTicks = 15;
 
         ResetInterpolation();
@@ -2217,7 +2222,7 @@ public abstract partial class WorldBase : IWorld
             LevelTime = LevelTime,
             SoundCount = m_soundCount,
             Gravity = Gravity,
-            RandomIndex = ((DoomRandom)Random).RandomIndex,
+            RandomIndex = Random.RandomIndex,
             Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
             CurrentBossTarget = CurrentBossTarget,
 

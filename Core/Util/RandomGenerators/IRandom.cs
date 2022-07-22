@@ -5,7 +5,7 @@ namespace Helion.Util.RandomGenerators;
 /// <summary>
 /// A random number generating object.
 /// </summary>
-public interface IRandom : ICloneable
+public interface IRandom
 {
     /// <summary>
     /// Gets a random byte.
@@ -18,4 +18,9 @@ public interface IRandom : ICloneable
     /// </summary>
     /// <returns>A random byte in the range of a +/- unsigned byte.</returns>
     int NextDiff();
+
+    int RandomIndex { get; }
+
+    IRandom Clone();
+    IRandom Clone(int randomIndex);
 }

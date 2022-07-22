@@ -24,7 +24,6 @@ using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
-using Helion.Demo;
 
 namespace Helion.World.Impl.SinglePlayer;
 

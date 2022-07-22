@@ -11,10 +11,11 @@ public enum DemoTickResult
     SuccessStopReading,
 }
 
-public interface IDemoPlayer
+public interface IDemoPlayer : IDisposable
 {
     event EventHandler? PlaybackEnded;
     DemoTickResult SetNextTickCommand(TickCommand command, out int playerNumber);
     void Start();
     void Stop();
+    bool SetCommandIndex(int index);
 }

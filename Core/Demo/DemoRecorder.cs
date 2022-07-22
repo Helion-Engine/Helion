@@ -1,15 +1,19 @@
-﻿using Helion.Util.RandomGenerators;
+﻿using Helion.Util;
 using Helion.World.Entities.Players;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Helion.Demo;
 
-public class DemoRecorder : IDemoRecorder, IDisposable
+public class DemoRecorder : IDemoRecorder
 {
     private readonly FileStream m_fileStream;
-    private readonly BinaryWriter m_writer;
+    private readonly byte[] m_buffer;
+    private readonly string m_file;
     private bool m_recording;
+
+    public int CommandIndex { get; private set; }
 
     public DemoRecorder(string file)
     {
@@ -17,7 +21,8 @@ public class DemoRecorder : IDemoRecorder, IDisposable
             File.Delete(file);
 
         m_fileStream = File.OpenWrite(file);
-        m_writer = new BinaryWriter(m_fileStream);
+        m_buffer = new byte[Marshal.SizeOf(typeof(DemoCommand))];
+        m_file = file;
     }
 
     public void AddTickCommand(Player player)
@@ -26,28 +31,32 @@ public class DemoRecorder : IDemoRecorder, IDisposable
             return;
 
         TickCommand command = player.TickCommand;
-        int commands = 0;
+        DemoCommand demoCommand = new();
         foreach (var cmd in command.Commands)
-            commands |= 1 << (int)cmd;
+            demoCommand.Buttons |= 1 << (int)cmd;
 
-        m_writer.Write(commands);
-        m_writer.Write(command.AngleTurn);
-        m_writer.Write(command.PitchTurn);
-        m_writer.Write(command.MouseAngle);
-        m_writer.Write(command.MousePitch);
-        m_writer.Write(command.ForwardMoveSpeed);
-        m_writer.Write(command.SideMoveSpeed);
-        m_writer.Flush();
+        demoCommand.AngleTurn = command.AngleTurn + player.ViewAngleRadians;
+        demoCommand.PitchTurn = command.PitchTurn + player.ViewPitchRadians;
+        demoCommand.MouseAngle = command.MouseAngle;
+        demoCommand.MousePitch = command.MousePitch;
+        demoCommand.ForwardMoveSpeed = command.ForwardMoveSpeed;
+        demoCommand.SideMoveSpeed = command.SideMoveSpeed;
+
+        m_fileStream.WriteStructure(demoCommand, m_buffer);
+        m_fileStream.Flush();
+
+        CommandIndex++;
     }
 
     public void Start() => m_recording = true;
 
     public void Stop() => m_recording = false;
 
+    public string DemoFile => m_file;
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        m_writer.Dispose();
         m_fileStream.Dispose();
     }
 }

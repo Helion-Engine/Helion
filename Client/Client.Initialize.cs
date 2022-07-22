@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Helion.Demo;
 using Helion.Layer.Consoles;
@@ -67,6 +66,16 @@ public partial class Client
 
     private void CheckLoadMap()
     {
+        bool tryLoadMap = m_commandLineArgs.Map != null || m_commandLineArgs.Warp != null;
+
+        if (m_commandLineArgs.PlayDemo != null &&
+            TryCreateDemoPlayer(m_commandLineArgs.PlayDemo, out m_demoPlayer))
+        {
+            // Check if a specific map was loaded. If not load the first map in the demo file.
+            if (!tryLoadMap && m_demoModel != null && m_demoModel.Maps.Count > 0)
+                LoadMap(m_demoModel.Maps[0].Map);
+        }
+
         if (m_commandLineArgs.Map != null)
         {
             LoadMap(m_commandLineArgs.Map);
@@ -82,50 +91,13 @@ public partial class Client
             return;
 
         if (m_commandLineArgs.Record != null &&
-            TryCreateDemoRecorder(m_commandLineArgs.Record, out var recorder))
+            TryCreateDemoRecorder(m_commandLineArgs.Record, m_layerManager.WorldLayer.CurrentMap.MapName, out m_demoRecorder))
         {
-            recorder.Start();
-            m_layerManager.WorldLayer.StartRecording(recorder);
+            AddDemoMap(m_demoRecorder, m_layerManager.WorldLayer.CurrentMap.MapName, 0, null);
+            m_demoRecorder.Start();
+            m_layerManager.WorldLayer.StartRecording(m_demoRecorder);
+            m_layerManager.WorldLayer.World.DisplayMessage(m_layerManager.WorldLayer.World.Player, null, "Recording has started.");
         }
-
-        if (m_commandLineArgs.PlayDemo != null &&
-            TryCreateDemoPlayer(m_commandLineArgs.PlayDemo, out var player))
-        {
-            player.Start();
-            m_layerManager.WorldLayer.StartPlaying(player);
-        }
-    }
-
-    private bool TryCreateDemoRecorder(string file, [NotNullWhen(true)] out IDemoRecorder? player)
-    {
-        try
-        {
-            player = new DemoRecorder(file);
-            return true;
-        }
-        catch
-        {
-            // TODO display error
-            player = null;
-        }
-
-        return false;
-    }
-
-    private bool TryCreateDemoPlayer(string file, [NotNullWhen(true)] out IDemoPlayer? player)
-    {
-        try
-        {
-            player = new DemoPlayer(file);
-            return true;
-        }
-        catch
-        {
-            // TODO display error
-            player = null;
-        }
-
-        return false;
     }
 
     private string? GetIwad()
@@ -139,7 +111,6 @@ public partial class Client
 
         Log.Error("No IWAD found!");
         return null;
-
     }
 
     private static string? LocateIwad()

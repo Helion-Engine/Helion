@@ -29,6 +29,7 @@ public class Config : IConfig
     public ConfigPlayer Player { get; } = new();
     public ConfigRender Render { get; } = new();
     public ConfigWindow Window { get; } = new();
+    public ConfigDemo Demo { get; } = new();
     public IConfigKeyMapping Keys => KeyMapping;
     public IConfigAliasMapping Aliases { get; }
     protected readonly ConfigKeyMapping KeyMapping = new();

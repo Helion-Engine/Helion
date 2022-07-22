@@ -2,7 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 using Helion.Audio;
 using Helion.Audio.Impl;
@@ -25,6 +28,7 @@ using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
+using Newtonsoft.Json;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
@@ -217,6 +221,8 @@ public partial class Client : IDisposable
     {
         if (m_disposed)
             return;
+
+        PackageDemo();
 
         m_window.SetGrabCursor(false);
         m_window.WindowState = WindowState.Minimized;

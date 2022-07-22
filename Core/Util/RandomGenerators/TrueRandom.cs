@@ -14,5 +14,8 @@ public class TrueRandom : IRandom
 
     public int NextDiff() => m_random.Next(256) - m_random.Next(256);
 
-    public object Clone() => new TrueRandom();
+    public int RandomIndex => 0;
+
+    public IRandom Clone() => new TrueRandom();
+    public IRandom Clone(int randomIndex) => new TrueRandom();
 }
