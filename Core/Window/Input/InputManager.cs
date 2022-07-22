@@ -105,8 +105,12 @@ public class InputManager : IInputManager
         return false;
     }
 
-    public void Reset()
+    public void Processed()
     {
+        m_inputPrevDown.Clear();
+        foreach (Key key in m_inputDown)
+            m_inputPrevDown.Add(key);
+
         foreach (var keyUp in m_inputUp)
             m_inputDown.Remove(keyUp);
 
@@ -115,9 +119,6 @@ public class InputManager : IInputManager
         MouseMove = (0, 0);
         m_mouseScroll = 0;
         m_typedCharacters.Clear();
-        m_inputPrevDown.Clear();
-        foreach (Key key in m_inputDown)
-            m_inputPrevDown.Add(key);
     }
 
     public IConsumableInput Poll()

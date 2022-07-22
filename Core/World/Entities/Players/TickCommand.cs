@@ -31,24 +31,6 @@ public class TickCommand
 
     public IEnumerable<TickCommands> Commands => m_commands;
 
-    public TickCommand Copy()
-    {
-        TickCommand copy = new();
-        foreach (var command in m_commands)
-            copy.m_commands.Add(command);
-        foreach (var command in m_previousCommands)
-            copy.m_previousCommands.Add(command);
-
-        copy.AngleTurn = AngleTurn;
-        copy.PitchTurn = PitchTurn;
-        copy.MouseAngle = MouseAngle;
-        copy.MousePitch = MousePitch;
-        copy.ForwardMoveSpeed = ForwardMoveSpeed;
-        copy.SideMoveSpeed = SideMoveSpeed;
-
-        return copy;
-    }
-
     public void Clear()
     {
         AngleTurn = 0;
@@ -62,7 +44,7 @@ public class TickCommand
 
     // When the command is handled set the previous commands.
     // This way commands like TickCommands.Use are only processed once until released and pressed again.
-    public void TickHandled()
+    public virtual void TickHandled()
     {
         m_previousCommands.Clear();
         foreach (var command in m_commands)

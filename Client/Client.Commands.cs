@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Helion.Bsp.Zdbsp;
-using Helion.Demo;
 using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;

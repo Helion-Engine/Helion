@@ -628,8 +628,11 @@ public class Player : Entity
         if (TickCommand.Has(TickCommands.CenterView))
             PitchRadians = 0;
 
-        AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle + ViewAngleRadians);
-        PitchRadians = AddPitch(PitchRadians, ViewPitchRadians);
+        if (!TickCommand.Has(TickCommands.Strafe))
+        {
+            AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle + ViewAngleRadians);
+            PitchRadians = AddPitch(PitchRadians, ViewPitchRadians);
+        }
 
         ViewAngleRadians = 0;
         ViewPitchRadians = 0;

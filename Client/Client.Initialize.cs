@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using Helion.Demo;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;

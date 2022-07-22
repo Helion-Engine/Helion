@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Tests.Unit.GameAction.Util;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -46,7 +47,7 @@ namespace Helion.Tests.Unit.GameAction
 
             world.Player.AngleRadians = angle;
             world.Player.Velocity = Vec3D.Zero;
-            TickCommand cmd = new();
+            TestTickCommand cmd = new();
             int runTicks = 0;
             while (runWhile())
             {

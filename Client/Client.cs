@@ -109,7 +109,7 @@ public partial class Client : IDisposable
         // input manager, we only want to clear the state after we've
         // handled all of the input. This wipes the input manager clean,
         // and we only should do that after we are done with the input.
-        m_window.InputManager.Reset();
+        m_window.InputManager.Processed();
 
         m_profiler.Input.Stop();
     }
