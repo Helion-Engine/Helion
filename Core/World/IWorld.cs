@@ -51,6 +51,7 @@ public interface IWorld : IDisposable
     double ListenerPitch { get; }
     Entity ListenerEntity { get; }
     IRandom Random { get; }
+    // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }

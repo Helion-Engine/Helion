@@ -335,6 +335,12 @@ public partial class Client
             return true;
         }
 
+        if (m_layerManager.WorldLayer != null && m_layerManager.WorldLayer.World.PlayingDemo && component.Attribute.Demo)
+        {
+            Log.Warn($"{args.Command} cannot be changed during demo playback");
+            return true;
+        }
+
         ConfigSetResult result = component.Value.Set(args.Args[0]);
         switch (result)
         {

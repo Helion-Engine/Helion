@@ -104,18 +104,7 @@ public partial class WorldLayer : IGameLayerParent
         if (worldModel == null)
             return;
 
-        var components = config.GetComponents();
-        foreach (var configModel in worldModel.ConfigValues)
-        {
-            if (!components.TryGetValue(configModel.Key, out ConfigComponent? component))
-            {
-                Log.Error($"Invalid configuration path: {configModel.Key}");
-                continue;
-            }
-
-            if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
-                Log.Error($"Bad configuartion value '{configModel.Value}' for '{configModel.Key}'.");
-        }
+        config.ApplyConfiguration(worldModel.ConfigValues);
     }
 
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,

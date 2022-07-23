@@ -89,7 +89,7 @@ public partial class Client
             return;
 
         if (m_commandLineArgs.Record != null &&
-            TryCreateDemoRecorder(m_commandLineArgs.Record, m_layerManager.WorldLayer.CurrentMap.MapName, out m_demoRecorder))
+            TryCreateDemoRecorder(m_commandLineArgs.Record, out m_demoRecorder))
         {
             AddDemoMap(m_demoRecorder, m_layerManager.WorldLayer.CurrentMap.MapName, 0, null);
             m_demoRecorder.Start();

@@ -19,9 +19,11 @@ public class DemoMap
 
 public class DemoModel
 {
+    public string AppVersion { get; set; }
     public DemoVersion Version { get; set; }
     public GameFilesModel GameFiles { get; set; }
-    public List<DemoMap> Maps { get; set; }
+    public IList<DemoMap> Maps { get; set; } = Array.Empty<DemoMap>();
+    public IList<ConfigValueModel> ConfigValues { get; set; } = Array.Empty<ConfigValueModel>();
 
     public object FirstOrDefault()
     {

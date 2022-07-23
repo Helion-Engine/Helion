@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using Helion.Models;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using NLog;
@@ -133,4 +134,19 @@ public class Config : IConfig
     }
 
     public Dictionary<string, ConfigComponent> GetComponents() => Components;
+
+    public void ApplyConfiguration(IList<ConfigValueModel> configValues)
+    {
+        foreach (var configModel in configValues)
+        {
+            if (!Components.TryGetValue(configModel.Key, out ConfigComponent? component))
+            {
+                Log.Error($"Invalid configuration path: {configModel.Key}");
+                continue;
+            }
+
+            if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
+                Log.Error($"Bad configuartion value '{configModel.Value}' for '{configModel.Key}'.");
+        }
+    }
 }

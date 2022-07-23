@@ -11,6 +11,11 @@ public interface IConfigValue
     object ObjectValue { get; }
 
     /// <summary>
+    /// The default value for this config value.
+    /// </summary>
+    object ObjectDefaultValue { get; }
+
+    /// <summary>
     /// True if this value has changed since loading.
     /// </summary>
     bool Changed { get; set; }
