@@ -55,6 +55,7 @@ public partial class WorldLayer
         if (!World.PlayingDemo)
             return false;
 
+        World.PlayingDemo = false;
         m_demoPlayer = null;
         return true;
     }

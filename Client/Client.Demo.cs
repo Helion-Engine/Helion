@@ -96,20 +96,27 @@ public partial class Client
             if (!components.TryGetValue(configValue.Key, out ConfigComponent? component))
                 continue;
 
+            if (m_userConfigValues.Any(x => x.Key.Equals(component.Path, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
             m_userConfigValues.Add(new ConfigValueModel(component.Path, component.Value.ObjectValue));
         }
 
         m_config.ApplyConfiguration(m_demoModel.ConfigValues);
     }
 
-    private static void SetDefaultDemoValues(Dictionary<string, ConfigComponent> components)
+    private void SetDefaultDemoValues(Dictionary<string, ConfigComponent> components)
     {
-        foreach (var component in components)
+        foreach (var (_, component) in components)
         {
-            if (!component.Value.Attribute.Demo)
+            if (!component.Attribute.Demo)
                 continue;
 
-            component.Value.Value.Set(component.Value.Value.ObjectDefaultValue);
+            if (Equals(component.Value.ObjectValue, component.Value.ObjectDefaultValue))
+                continue;
+
+            component.Value.Set(component.Value.ObjectDefaultValue);
+            m_userConfigValues.Add(new ConfigValueModel(component.Path, component.Value.ObjectValue));
         }
     }
 
@@ -137,14 +144,22 @@ public partial class Client
         });
     }
 
-    private void SetWorldLayerToDemo(IDemoPlayer player, MapInfoDef mapInfoDef, WorldLayer newLayer)
+    private void SetWorldLayerToDemo(IDemoPlayer demoPlayer, MapInfoDef mapInfoDef, WorldLayer newLayer)
     {
         var demoMap = GetDemoMap(mapInfoDef.MapName);
-        var playerDef = newLayer.World.EntityManager.DefinitionComposer.GetByName(newLayer.World.Player.Definition.Name);
+        if (demoMap == null)
+        {
+            newLayer.World.DisplayMessage(newLayer.World.Player, null, 
+                $"Demo does not contain map {mapInfoDef.MapName}. Playback stopped.");
+            demoPlayer.Stop();
+            return;
+        }
+
         if (demoMap != null)
         {
-            player.SetCommandIndex(demoMap.CommandIndex);
+            demoPlayer.SetCommandIndex(demoMap.CommandIndex);
 
+            var playerDef = newLayer.World.EntityManager.DefinitionComposer.GetByName(newLayer.World.Player.Definition.Name);
             if (demoMap.PlayerModel != null && playerDef != null)
             {
                 var copyPlayer = new Player(demoMap.PlayerModel, new(), playerDef, newLayer.World);
@@ -152,14 +167,14 @@ public partial class Client
                 newLayer.World.Player.Inventory.ClearKeys();
                 newLayer.World.Player.CopyProperties(copyPlayer);
 
-                player.Start();
-                newLayer.StartPlaying(player);
+                demoPlayer.Start();
+                newLayer.StartPlaying(demoPlayer);
                 newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
             }
         }
 
-        player.Start();
-        newLayer.StartPlaying(player);
+        demoPlayer.Start();
+        newLayer.StartPlaying(demoPlayer);
     }
 
     private DemoMap? GetDemoMap(string mapName)

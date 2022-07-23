@@ -56,6 +56,22 @@ public partial class Client
             Log.Info(commands[i]);
     }
 
+    [ConsoleCommand("demostop", "Stops the current demo.")]
+    private void DemoStop(ConsoleCommandEventArgs args)
+    {
+        if (m_demoPlayer == null)
+            return;
+
+        m_demoPlayer.Stop();
+
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.StopPlaying();
+        m_demoPlayer.Dispose();
+        m_demoPlayer = null;
+    }
+
     [ConsoleCommand("mark", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
     {
