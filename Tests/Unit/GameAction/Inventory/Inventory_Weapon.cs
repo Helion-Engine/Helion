@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using System;
 using Xunit;
