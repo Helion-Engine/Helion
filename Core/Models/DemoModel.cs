@@ -10,7 +10,7 @@ public enum DemoVersion
 
 public class DemoMap
 {
-    public string Map { get; set; } = String.Empty;
+    public string Map { get; set; } = string.Empty;
     public int CommandIndex { get; set; }
     // This is the random index before the map has loaded
     public int RandomIndex { get; set; }

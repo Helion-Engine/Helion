@@ -32,7 +32,6 @@ namespace Helion.Client;
 public partial class Client
 {
     private const string StatFile = "levelstat.txt";
-    private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
     private GlobalData m_globalData = new();
     private readonly Zdbsp m_zdbsp = new();
@@ -387,6 +386,7 @@ public partial class Client
     {
         m_globalData = new();
         LoadMap(mapInfo, null, null);
+        InitializeDemoRecorderFromCommandArgs();
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>

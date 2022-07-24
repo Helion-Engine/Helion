@@ -23,6 +23,24 @@ public partial class Client
     private readonly List<ConfigValueModel> m_demoConfigValues = new();
     private readonly List<ConfigValueModel> m_userConfigValues = new();
 
+    private void InitializeDemoRecorderFromCommandArgs()
+    {
+        if (m_commandLineArgs.Record == null || m_layerManager.WorldLayer == null)
+            return;
+
+        string fileName = m_commandLineArgs.Record;
+        m_commandLineArgs.Record = null;
+
+        if (!TryCreateDemoRecorder(fileName, out m_demoRecorder))
+            return;
+
+        var worldLayer = m_layerManager.WorldLayer;
+        AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, 0, null);
+        m_demoRecorder.Start();
+        worldLayer.StartRecording(m_demoRecorder);
+        worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Recording has started.");
+    }
+
     private bool TryCreateDemoRecorder(string file, [NotNullWhen(true)] out IDemoRecorder? recorder)
     {
         m_demoPackageFile = file;
@@ -151,30 +169,31 @@ public partial class Client
         {
             newLayer.World.DisplayMessage(newLayer.World.Player, null, 
                 $"Demo does not contain map {mapInfoDef.MapName}. Playback stopped.");
+
+            if (m_demoModel != null)
+            {
+                newLayer.World.DisplayMessage(newLayer.World.Player, null,
+                    $"Available maps are: {string.Join(", ", m_demoModel.Maps.Select(x => x.Map))}");
+            }
+
             demoPlayer.Stop();
             return;
         }
 
-        if (demoMap != null)
+        demoPlayer.SetCommandIndex(demoMap.CommandIndex);
+
+        var playerDef = newLayer.World.EntityManager.DefinitionComposer.GetByName(newLayer.World.Player.Definition.Name);
+        if (demoMap.PlayerModel != null && playerDef != null)
         {
-            demoPlayer.SetCommandIndex(demoMap.CommandIndex);
-
-            var playerDef = newLayer.World.EntityManager.DefinitionComposer.GetByName(newLayer.World.Player.Definition.Name);
-            if (demoMap.PlayerModel != null && playerDef != null)
-            {
-                var copyPlayer = new Player(demoMap.PlayerModel, new(), playerDef, newLayer.World);
-                newLayer.World.Player.Inventory.Clear();
-                newLayer.World.Player.Inventory.ClearKeys();
-                newLayer.World.Player.CopyProperties(copyPlayer);
-
-                demoPlayer.Start();
-                newLayer.StartPlaying(demoPlayer);
-                newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
-            }
+            var copyPlayer = new Player(demoMap.PlayerModel, new(), playerDef, newLayer.World);
+            newLayer.World.Player.Inventory.Clear();
+            newLayer.World.Player.Inventory.ClearKeys();
+            newLayer.World.Player.CopyProperties(copyPlayer);          
         }
 
         demoPlayer.Start();
         newLayer.StartPlaying(demoPlayer);
+        newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
     }
 
     private DemoMap? GetDemoMap(string mapName)

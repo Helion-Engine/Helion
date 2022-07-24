@@ -85,17 +85,7 @@ public partial class Client
             LoadMap(mapInfoDef.MapName);
         }
 
-        if (m_layerManager.WorldLayer == null)
-            return;
-
-        if (m_commandLineArgs.Record != null &&
-            TryCreateDemoRecorder(m_commandLineArgs.Record, out m_demoRecorder))
-        {
-            AddDemoMap(m_demoRecorder, m_layerManager.WorldLayer.CurrentMap.MapName, 0, null);
-            m_demoRecorder.Start();
-            m_layerManager.WorldLayer.StartRecording(m_demoRecorder);
-            m_layerManager.WorldLayer.World.DisplayMessage(m_layerManager.WorldLayer.World.Player, null, "Recording has started.");
-        }
+        InitializeDemoRecorderFromCommandArgs();
     }
 
     private string? GetIwad()
