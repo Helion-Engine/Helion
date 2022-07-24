@@ -51,6 +51,8 @@ public partial class WorldLayer
         return m_config.Keys.ConsumeCommandKeyDown(command, input);
     }
 
+    public void AddCommand(TickCommands cmd) => m_tickCommand.Add(cmd);
+
     public void HandleInput(IConsumableInput input)
     {
         if (IsCommandPressed(Constants.Input.Pause, input))

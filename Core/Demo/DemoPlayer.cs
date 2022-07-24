@@ -41,7 +41,7 @@ public class DemoPlayer : IDemoPlayer
             if (((1 << i) & demoCommand.Buttons) == 0)
                 continue;
 
-            command.Add((TickCommands)i);
+            command.Add(((DemoTickCommands)i).ToTickCommand());
         }
 
         command.AngleTurn = demoCommand.AngleTurn;

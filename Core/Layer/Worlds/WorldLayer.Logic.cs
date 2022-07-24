@@ -1,4 +1,5 @@
 using Helion.Demo;
+using Helion.World;
 using Helion.World.Entities.Players;
 
 namespace Helion.Layer.Worlds;
@@ -99,29 +100,31 @@ public partial class WorldLayer
         if (m_demoPlayer == null)
             World.SetTickCommand(m_tickCommand);
 
+        bool nextCommand = false;
         while (ticksToRun > 0)
         {
-            NextTickCommand();
+            nextCommand = NextTickCommand();
             World.Tick();
             ticksToRun--;
         }
 
-        m_tickCommand.Clear();
+        if (nextCommand)
+            m_tickCommand.Clear();
     }
 
-    private void NextTickCommand()
+    private bool NextTickCommand()
     {
-        if (World.Paused || World.WorldState != Helion.World.WorldState.Normal)
-            return;
+        if (World.Paused || World.WorldState != WorldState.Normal)
+            return false;
 
         if (m_demoRecorder != null)
         {
             m_demoRecorder.AddTickCommand(World.Player);
-            return;
+            return true;
         }
 
         if (m_demoPlayer == null)
-            return;
+            return true;
 
         DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _);
         if (result == DemoTickResult.DemoEnded)
@@ -132,6 +135,7 @@ public partial class WorldLayer
         }
 
         World.SetTickCommand(m_tickCommand);
+        return true;
     }
 
     private void HandlePauseOrResume()

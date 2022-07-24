@@ -17,6 +17,7 @@ public class TickCommand
         TickCommands.WeaponSlot5,
         TickCommands.WeaponSlot6,
         TickCommands.WeaponSlot7,
+        TickCommands.CenterView
     };
 
     private readonly HashSet<TickCommands> m_commands = new();

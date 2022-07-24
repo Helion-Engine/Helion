@@ -33,7 +33,7 @@ public class DemoRecorder : IDemoRecorder
         TickCommand command = player.TickCommand;
         DemoCommand demoCommand = new();
         foreach (var cmd in command.Commands)
-            demoCommand.Buttons |= 1 << (int)cmd;
+            demoCommand.Buttons |= 1 << (int)cmd.ToDemoTickCommand();
 
         demoCommand.AngleTurn = command.AngleTurn + player.ViewAngleRadians;
         demoCommand.PitchTurn = command.PitchTurn + player.ViewPitchRadians;

@@ -236,7 +236,7 @@ public partial class Client
     private void CommandCenterView(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer != null)
-            m_layerManager.WorldLayer.World.Player.TickCommand.Add(TickCommands.CenterView);
+            m_layerManager.WorldLayer.AddCommand(TickCommands.CenterView);
     }
 
     [ConsoleCommand("inventoryClear", "Clears the players inventory")]
