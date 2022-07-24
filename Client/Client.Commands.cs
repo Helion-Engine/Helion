@@ -71,6 +71,27 @@ public partial class Client
         m_demoPlayer = null;
     }
 
+    [ConsoleCommand("demoadvanceticks", "Advances the demo forward.")]
+    [ConsoleCommandArg("ticks", "The number of seconds to advance the demo.")]
+    private void DemoAdvanceTicks(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count == 0 || !int.TryParse(args.Args[0], out int advanceAmount))
+            return;
+
+        AdvanceDemo(advanceAmount);
+    }
+
+    [ConsoleCommand("demoadvance", "Advances the demo forward.")]
+    [ConsoleCommandArg("seconds", "The number of seconds to advance the demo.")]
+    private void DemoAdvance(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count == 0 || !int.TryParse(args.Args[0], out int advanceAmount))
+            return;
+
+        AdvanceDemo(advanceAmount * (int)Constants.TicksPerSecond);
+    }
+    
+
     [ConsoleCommand("mark", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
     {

@@ -19,4 +19,5 @@ public interface IDemoPlayer : IDisposable
     void Start();
     void Stop();
     bool SetCommandIndex(int index);
+    int CommandIndex { get; }
 }

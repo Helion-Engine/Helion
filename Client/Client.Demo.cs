@@ -230,4 +230,37 @@ public partial class Client
 
         return m_demoModel.Maps.FirstOrDefault(x => x.Map == mapName);
     }
+
+    private void AdvanceDemo(int advanceAmount)
+    {
+        if (m_demoPlayer == null || m_demoModel == null || m_demoModel.Maps.Count == 0 || m_layerManager.WorldLayer == null)
+            return;
+
+        var loadMap = m_demoModel.Maps[0];
+        int commandIndex = Math.Clamp(m_demoPlayer.CommandIndex + advanceAmount, 0, int.MaxValue);
+
+        foreach (var demoMap in m_demoModel.Maps.Reverse())
+        {
+            if (commandIndex < demoMap.CommandIndex)
+                continue;
+
+            loadMap = demoMap;
+            break;
+        }
+
+        bool isPaused = m_layerManager.WorldLayer.World.Paused;
+        bool consoleShowing = m_layerManager.ConsoleLayer != null;
+
+        // Rewind is accomplished by loading the closest map and advancing to the desired tick.
+        if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
+            LoadMap(GetMapInfo(loadMap.Map), null, null);
+
+        m_layerManager.WorldLayer.World.Resume();
+        m_layerManager.WorldLayer.RunTicks(commandIndex - m_demoPlayer.CommandIndex);
+
+        if (isPaused)
+            m_layerManager.WorldLayer.World.Pause();
+        if (consoleShowing)
+            ShowConsole();
+    }
 }

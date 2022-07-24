@@ -113,6 +113,16 @@ public partial class WorldLayer
             m_tickCommand.Clear();
     }
 
+    public void RunTicks(int ticks)
+    {
+        while (ticks > 0)
+        {
+            NextTickCommand();
+            World.Tick();
+            ticks--;
+        }
+    }
+
     private bool NextTickCommand()
     {
         if (World.Paused || World.WorldState != WorldState.Normal)
@@ -136,7 +146,13 @@ public partial class WorldLayer
         }
 
         foreach (var cheat in activatedCheats)
+        {
+            // This can cause issues... skipping for now
+            if ((CheatType)cheat.CheatType == CheatType.ChangeMusic)
+                continue;
+
             World.CheatManager.ActivateCheat(World.Player, (CheatType)cheat.CheatType, cheat.LevelNumber);
+        }
 
         World.SetTickCommand(m_tickCommand);
         return true;

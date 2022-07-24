@@ -223,6 +223,9 @@ public partial class Client : IDisposable
 
         PackageDemo();
 
+        if (m_demoPlayer != null)
+            m_demoPlayer.Dispose();
+
         m_window.SetGrabCursor(false);
         m_window.WindowState = WindowState.Minimized;
         m_console.OnConsoleCommandEvent -= Console_OnCommand;
