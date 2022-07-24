@@ -1186,6 +1186,9 @@ public class Player : Entity
         if (m_killer.Entity == this)
             m_killer = WeakEntity.GetReference(null);
 
+        ViewAngleRadians = 0;
+        ViewPitchRadians = 0;
+
         ForceLowerWeapon(true);
     }
 
