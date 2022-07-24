@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Helion.Demo;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.Models;
@@ -23,6 +24,7 @@ public class DemoModel
     public DemoVersion Version { get; set; }
     public GameFilesModel GameFiles { get; set; }
     public IList<DemoMap> Maps { get; set; } = Array.Empty<DemoMap>();
+    public IList<DemoCheat> Cheats { get; set; } = Array.Empty<DemoCheat>();
     public IList<ConfigValueModel> ConfigValues { get; set; } = Array.Empty<ConfigValueModel>();
 
     public object FirstOrDefault()

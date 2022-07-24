@@ -4,6 +4,7 @@ using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ public partial class Client
     private readonly List<DemoMap> m_demoMaps = new();
     private readonly List<ConfigValueModel> m_demoConfigValues = new();
     private readonly List<ConfigValueModel> m_userConfigValues = new();
+    private readonly List<DemoCheat> m_demoCheats = new();
 
     private void InitializeDemoRecorderFromCommandArgs()
     {
@@ -38,7 +40,26 @@ public partial class Client
         AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, 0, null);
         m_demoRecorder.Start();
         worldLayer.StartRecording(m_demoRecorder);
+        worldLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
         worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Recording has started.");
+    }
+
+    private void CheatManager_CheatActivationChanged(object? sender, CheatEventArgs e)
+    {
+        if (m_demoRecorder == null)
+            return;
+
+        int levelNumber = 0;
+        if (e.Cheat is LevelCheat levelCheat)
+            levelNumber = levelCheat.LevelNumber;
+
+        m_demoCheats.Add(new DemoCheat()
+        {
+            CommandIndex = m_demoRecorder.CommandIndex,
+            CheatType = (int)e.Cheat.CheatType,
+            PlayerNumber = e.Player.PlayerNumber,
+            LevelNumber = levelNumber
+        });
     }
 
     private bool TryCreateDemoRecorder(string file, [NotNullWhen(true)] out IDemoRecorder? recorder)
@@ -49,6 +70,7 @@ public partial class Client
         {
             recorder = new DemoRecorder(TempFileManager.GetFile());
             m_demoMaps.Clear();
+            m_demoCheats.Clear();
             SaveDemoConfigValues();
             return true;
         }
@@ -67,9 +89,13 @@ public partial class Client
         if (!GetBinaryDemoFileFromPackage(file, out string binaryDemoFile))
             return false;
 
+        IList<DemoCheat> cheats = Array.Empty<DemoCheat>();
+        if (m_demoModel != null)
+            cheats = m_demoModel.Cheats;
+
         try
         {
-            player = new DemoPlayer(binaryDemoFile);
+            player = new DemoPlayer(binaryDemoFile, cheats);
             player.PlaybackEnded += Player_PlaybackEnded;
             SetConfigValuesFromDemo();
             return true;
@@ -148,7 +174,7 @@ public partial class Client
         if (m_demoRecorder == null || m_layerManager.WorldLayer == null || !File.Exists(m_demoRecorder.DemoFile))
             return;
 
-        DemoArchive.Create(m_demoRecorder, m_layerManager.WorldLayer.World, m_demoMaps, m_demoConfigValues, m_demoPackageFile);
+        DemoArchive.Create(m_demoRecorder, m_layerManager.WorldLayer.World, m_demoMaps, m_demoCheats, m_demoConfigValues, m_demoPackageFile);
     }
 
     private void AddDemoMap(IDemoRecorder recorder, string mapName, int randomIndex, Player? player)
@@ -193,6 +219,7 @@ public partial class Client
 
         demoPlayer.Start();
         newLayer.StartPlaying(demoPlayer);
+        newLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
         newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
     }
 

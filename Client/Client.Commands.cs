@@ -409,7 +409,7 @@ public partial class Client
         return new DoomRandom();
     }
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
@@ -479,7 +479,12 @@ public partial class Client
 
         if (m_demoRecorder != null)
         {
-            AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, newLayer.World.Player);
+            var worldPlayer = newLayer.World.Player;
+            // Cheat events reset the player, do not serialize the player
+            if (eventContext != null && eventContext.ChangeType == LevelChangeType.SpecificLevel)
+                worldPlayer = null;
+
+            AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, worldPlayer);
             newLayer.StartRecording(m_demoRecorder);
         }
 
@@ -532,11 +537,11 @@ public partial class Client
                 break;
 
             case LevelChangeType.Reset:
-                LoadMap(world.MapInfo, null, null);
+                LoadMap(world.MapInfo, null, null, e);
                 break;
 
             case LevelChangeType.ResetOrLoadLast:
-                LoadMap(world.MapInfo, m_lastWorldModel, null);
+                LoadMap(world.MapInfo, m_lastWorldModel, null, e);
                 break;
         }
     }
@@ -633,7 +638,7 @@ public partial class Client
     {
         if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
             out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-            LoadMap(mapInfoDef, null, null);
+            LoadMap(mapInfoDef, null, null, e);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>

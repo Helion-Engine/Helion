@@ -21,7 +21,8 @@ public static class DemoArchive
     const string DemoInfoFile = "info.json";
     const string DemoDataFile = "demodata.lmp";
 
-    public static bool Create(IDemoRecorder recorder, IWorld world, IList<DemoMap> demoMaps, IList<ConfigValueModel> configValues, string demoArchiveName)
+    public static bool Create(IDemoRecorder recorder, IWorld world, IList<DemoMap> demoMaps, IList<DemoCheat> cheats,
+        IList<ConfigValueModel> configValues, string demoArchiveName)
     {
         recorder.Dispose();
 
@@ -31,6 +32,7 @@ public static class DemoArchive
             Version = DemoVersion.Alpha,
             GameFiles = world.GetGameFilesModel(),
             Maps = demoMaps,
+            Cheats = cheats,
             ConfigValues = configValues,
         };
 

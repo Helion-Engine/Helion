@@ -1,6 +1,8 @@
 ﻿using Helion.Util;
+using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -12,19 +14,25 @@ public class DemoPlayer : IDemoPlayer
 
     private readonly FileStream m_fileStream;
     private readonly byte[] m_buffer;
+    private readonly IList<DemoCheat> m_cheats;
+    private readonly List<DemoCheat> m_activatedCheats = new();
     private bool m_playing;
+    private int m_cheatIndex;
 
     public int CommandIndex { get; private set; }
 
-    public DemoPlayer(string file)
+    public DemoPlayer(string file, IList<DemoCheat> cheats)
     {
         m_fileStream = File.OpenRead(file);
         m_buffer = new byte[Marshal.SizeOf(typeof(DemoCommand))];
+        m_cheats = cheats;
     }
 
-    public DemoTickResult SetNextTickCommand(TickCommand command, out int playerNumber)
+    public DemoTickResult SetNextTickCommand(TickCommand command, out int playerNumber, out IList<DemoCheat> activatedCheats)
     {
         playerNumber = 0;
+        m_activatedCheats.Clear();
+        activatedCheats = m_activatedCheats;
         if (!m_playing)
             return DemoTickResult.None;
 
@@ -33,6 +41,8 @@ public class DemoPlayer : IDemoPlayer
             PlaybackEnded?.Invoke(this, EventArgs.Empty);
             return DemoTickResult.DemoEnded;
         }
+
+        AddActivatedCheats();
 
         command.Clear();
         DemoCommand demoCommand = m_fileStream.ReadStructure<DemoCommand>(m_buffer);
@@ -54,6 +64,15 @@ public class DemoPlayer : IDemoPlayer
         return DemoTickResult.SuccessStopReading;
     }
 
+    private void AddActivatedCheats()
+    {
+        while (m_cheatIndex < m_cheats.Count && m_cheats[m_cheatIndex].CommandIndex == CommandIndex)
+        {
+            m_activatedCheats.Add(m_cheats[m_cheatIndex]);
+            m_cheatIndex++;
+        }
+    }
+
     public bool SetCommandIndex(int index)
     {
         long offset = Marshal.SizeOf(typeof(DemoCommand)) * index;
@@ -64,6 +83,11 @@ public class DemoPlayer : IDemoPlayer
         {
             m_fileStream.Seek(offset, SeekOrigin.Begin);
             CommandIndex = index;
+
+            m_cheatIndex = 0;
+            while (m_cheatIndex < m_cheats.Count && m_cheats[m_cheatIndex].CommandIndex <= CommandIndex)
+                m_cheatIndex++;
+
             return true;
         }
         catch

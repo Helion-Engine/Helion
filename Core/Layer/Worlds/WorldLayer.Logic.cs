@@ -1,5 +1,6 @@
 using Helion.Demo;
 using Helion.World;
+using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 
 namespace Helion.Layer.Worlds;
@@ -126,13 +127,16 @@ public partial class WorldLayer
         if (m_demoPlayer == null)
             return true;
 
-        DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _);
+        DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _, out var activatedCheats);
         if (result == DemoTickResult.DemoEnded)
         {
             World.DisplayMessage(Player, null, "The demo has ended.");
             World.DemoEnded = true;
             World.Pause();
         }
+
+        foreach (var cheat in activatedCheats)
+            World.CheatManager.ActivateCheat(World.Player, (CheatType)cheat.CheatType, cheat.LevelNumber);
 
         World.SetTickCommand(m_tickCommand);
         return true;
