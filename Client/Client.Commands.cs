@@ -55,7 +55,7 @@ public partial class Client
             Log.Info(commands[i]);
     }
 
-    [ConsoleCommand("demostop", "Stops the current demo.")]
+    [ConsoleCommand("demo.stop", "Stops the current demo.")]
     private void DemoStop(ConsoleCommandEventArgs args)
     {
         if (m_demoPlayer == null)
@@ -71,7 +71,7 @@ public partial class Client
         m_demoPlayer = null;
     }
 
-    [ConsoleCommand("demoadvanceticks", "Advances the demo forward.")]
+    [ConsoleCommand("demo.advanceticks", "Advances the demo forward.")]
     [ConsoleCommandArg("ticks", "The number of seconds to advance the demo.")]
     private void DemoAdvanceTicks(ConsoleCommandEventArgs args)
     {
@@ -81,7 +81,7 @@ public partial class Client
         AdvanceDemo(advanceAmount);
     }
 
-    [ConsoleCommand("demoadvance", "Advances the demo forward.")]
+    [ConsoleCommand("demo.advance", "Advances the demo forward.")]
     [ConsoleCommandArg("seconds", "The number of seconds to advance the demo.")]
     private void DemoAdvance(ConsoleCommandEventArgs args)
     {

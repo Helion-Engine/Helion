@@ -255,8 +255,11 @@ public partial class Client
         if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
             LoadMap(GetMapInfo(loadMap.Map), null, null);
 
+        m_layerManager.WorldLayer.World.SoundManager.ClearSounds();
+        m_layerManager.WorldLayer.World.SoundManager.PlaySound = false;
         m_layerManager.WorldLayer.World.Resume();
         m_layerManager.WorldLayer.RunTicks(commandIndex - m_demoPlayer.CommandIndex);
+        m_layerManager.WorldLayer.World.SoundManager.PlaySound = true;
 
         if (isPaused)
             m_layerManager.WorldLayer.World.Pause();
