@@ -129,11 +129,11 @@ public class Serialization : IDisposable
 
     private static void ChangeWorld2(SinglePlayerWorld world)
     {
-        world.LevelStats.SecretCount.Should().Be(1);
+        world.LevelStats.SecretCount.Should().Be(0);
         Zombieman(world).Kill(null);
         GameActions.SetEntityPosition(world, world.Player, new Vec2D(-192, 808));
         GameActions.TickWorld(world, 100);
-        world.LevelStats.SecretCount.Should().Be(2);
+        world.LevelStats.SecretCount.Should().Be(1);
         world.LevelStats.KillCount.Should().Be(2);
         Zombieman(world).IsDead.Should().BeTrue();
     }
