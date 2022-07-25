@@ -11,9 +11,9 @@ public class DemoRecorder : IDemoRecorder
     private readonly FileStream m_fileStream;
     private readonly byte[] m_buffer;
     private readonly string m_file;
-    private bool m_recording;
 
     public int CommandIndex { get; private set; }
+    public bool Recording { get; private set; }
 
     public DemoRecorder(string file)
     {
@@ -27,7 +27,7 @@ public class DemoRecorder : IDemoRecorder
 
     public void AddTickCommand(Player player)
     {
-        if (!m_recording)
+        if (!Recording)
             return;
 
         TickCommand command = player.TickCommand;
@@ -48,9 +48,9 @@ public class DemoRecorder : IDemoRecorder
         CommandIndex++;
     }
 
-    public void Start() => m_recording = true;
+    public void Start() => Recording = true;
 
-    public void Stop() => m_recording = false;
+    public void Stop() => Recording = false;
 
     public string DemoFile => m_file;
 

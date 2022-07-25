@@ -10,4 +10,5 @@ public interface IDemoRecorder : IDisposable
     void Stop();
     string DemoFile { get; }
     int CommandIndex { get; }
+    bool Recording { get; }
 }
