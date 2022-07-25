@@ -25,7 +25,6 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
-using Helion.Demo;
 
 namespace Helion.World;
 
@@ -64,6 +63,7 @@ public interface IWorld : IDisposable
     GameInfoDef GameInfo { get; }
     LevelStats LevelStats { get; }
     bool Paused { get; }
+    bool DrawPause { get; }
     bool PlayingDemo { get; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; }
@@ -71,7 +71,7 @@ public interface IWorld : IDisposable
 
     void Link(Entity entity);
     void Tick();
-    void Pause();
+    void Pause(bool draw = false);
     void Resume();
     IEnumerable<Sector> FindBySectorTag(int tag);
     IEnumerable<Entity> FindByTid(int tid);

@@ -78,6 +78,7 @@ public abstract partial class WorldBase : IWorld
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
+    public bool DrawPause { get; private set; }
     public bool PlayingDemo { get; set; }
     public bool DemoEnded { get; set; }
     public IRandom Random => m_random;
@@ -471,8 +472,9 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public void Pause()
+    public void Pause(bool draw = false)
     {
+        DrawPause = draw;
         if (Paused)
             return;
 
@@ -500,6 +502,7 @@ public abstract partial class WorldBase : IWorld
 
         SoundManager.Resume();
         Paused = false;
+        DrawPause = false;
         WorldResumed?.Invoke(this, EventArgs.Empty);
     }
 

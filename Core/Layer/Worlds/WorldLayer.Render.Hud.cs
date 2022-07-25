@@ -66,7 +66,7 @@ public partial class WorldLayer
 
     private void DrawPause(IHudRenderContext hud)
     {
-        if (!Player.World.Paused)
+        if (!Player.World.DrawPause)
             return;
 
         hud.DoomVirtualResolution(() =>

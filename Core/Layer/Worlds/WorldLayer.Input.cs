@@ -91,7 +91,7 @@ public partial class WorldLayer
         m_paused = !m_paused;
         if (m_paused)
         {
-            World.Pause();
+            World.Pause(true);
             return;
         }
 
