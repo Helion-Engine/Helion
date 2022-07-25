@@ -87,7 +87,10 @@ public partial class Client
     {
         player = null;
         if (!GetBinaryDemoFileFromPackage(file, out string binaryDemoFile))
+        {
+            Log.Error($"Failed to read demo file: {file}");
             return false;
+        }
 
         IList<DemoCheat> cheats = Array.Empty<DemoCheat>();
         if (m_demoModel != null)
@@ -104,9 +107,8 @@ public partial class Client
         {
             Log.Error(ex, "Failed to read demo file.");
             player = null;
+            return false;
         }
-
-        return false;
     }
 
     private void Player_PlaybackEnded(object? sender, EventArgs e)
