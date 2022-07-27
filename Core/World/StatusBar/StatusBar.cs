@@ -29,7 +29,7 @@ public class PlayerStatusBar
     private const int MuchPain = 20;
 
     private readonly Player m_player;
-    private readonly List<string> m_faces = new List<string>();
+    private readonly List<string> m_faces = new();
     private int m_oldHeath;
     private int m_lastPainOffset;
     private int m_priority;
@@ -60,7 +60,9 @@ public class PlayerStatusBar
 
     public void Tick()
     {
-        m_random = m_player.World.Random.NextByte();
+        // Don't use the primary random for the status bar.
+        // The status bar can run while the world is paused and would cause a demo desync.
+        m_random = m_player.World.SecondaryRandom.NextByte();
         UpdateFace();
     }
 

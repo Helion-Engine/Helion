@@ -40,7 +40,8 @@ namespace Helion.Util
         private static void TryDelete(string file)
         {
             try { File.Delete(file); }
-            catch { Log.Error($"Failed to delete temporary file: {file}"); }
+            catch { 
+                Log.Error($"Failed to delete temporary file: {file}"); }
         }
     }
 }

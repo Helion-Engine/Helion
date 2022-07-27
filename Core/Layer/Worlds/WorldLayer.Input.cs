@@ -3,13 +3,12 @@ using Helion.Util.Configs.Values;
 using Helion.Window;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
-using System;
 
 namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
-    private static readonly (string, TickCommands)[] KeyDownCommandMapping =
+    private static readonly (string, TickCommands)[] KeyPressCommandMapping =
     {
         (Constants.Input.Forward,       TickCommands.Forward),
         (Constants.Input.Backward,      TickCommands.Backward),
@@ -25,10 +24,6 @@ public partial class WorldLayer
         (Constants.Input.Run,           TickCommands.Speed),
         (Constants.Input.Strafe,        TickCommands.Strafe),
         (Constants.Input.CenterView,    TickCommands.CenterView),
-    };
-
-    private static readonly (string, TickCommands)[] KeyPressCommandMapping =
-    {
         (Constants.Input.Use,            TickCommands.Use),
         (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
         (Constants.Input.PreviousWeapon, TickCommands.PreviousWeapon),
@@ -56,6 +51,8 @@ public partial class WorldLayer
         return m_config.Keys.ConsumeCommandKeyDown(command, input);
     }
 
+    public void AddCommand(TickCommands cmd) => m_tickCommand.Add(cmd);
+
     public void HandleInput(IConsumableInput input)
     {
         if (IsCommandPressed(Constants.Input.Pause, input))
@@ -64,9 +61,9 @@ public partial class WorldLayer
         if (m_drawAutomap)
             HandleAutoMapInput(input);
 
-        if (!World.Paused)
+        if (!World.Paused && !World.PlayingDemo)
         {
-            HandleMovementInput(input);
+            HandleCommandInput(input);
             World.HandleFrameInput(input);
         }
 
@@ -94,7 +91,7 @@ public partial class WorldLayer
         m_paused = !m_paused;
         if (m_paused)
         {
-            World.Pause();
+            World.Pause(true);
             return;
         }
 
@@ -136,17 +133,11 @@ public partial class WorldLayer
         m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0, double.MaxValue);
     }
 
-    private void HandleMovementInput(IConsumableInput input)
+    private void HandleCommandInput(IConsumableInput input)
     {
-        m_tickCommand.Clear();
-
         foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
-            if (IsCommandPressed(command, input))
-                m_tickCommand.Add(tickCommand);
-
-        foreach ((string command, TickCommands tickCommand) in KeyDownCommandMapping)
             if (IsCommandDown(command, input))
-                m_tickCommand.Add(tickCommand, true);
+                m_tickCommand.Add(tickCommand);
 
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)

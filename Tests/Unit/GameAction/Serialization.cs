@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 using Helion.Geometry.Vectors;
-using Helion.Util.RandomGenerators;
 using Helion.World.Special;
 using Helion.World.Entities.Players;
 
@@ -129,6 +128,7 @@ public class Serialization : IDisposable
 
     private static void ChangeWorld2(SinglePlayerWorld world)
     {
+        // TODO this broke for some reason
         world.LevelStats.SecretCount.Should().Be(0);
         Zombieman(world).Kill(null);
         GameActions.SetEntityPosition(world, world.Player, new Vec2D(-192, 808));
@@ -151,8 +151,7 @@ public class Serialization : IDisposable
         PreviousWorld.GlobalData.Equals(world.GlobalData).Should().BeTrue();
         PreviousWorld.LevelStats.Equals(world.LevelStats).Should().BeTrue();
 
-        if (PreviousWorld.Random is DoomRandom random && world.Random is DoomRandom otherRandom)
-            random.RandomIndex.Should().Be(otherRandom.RandomIndex);
+        PreviousWorld.Random.RandomIndex.Should().Be(world.Random.RandomIndex);
     }
 
     private void AssertSpecials(SinglePlayerWorld world)

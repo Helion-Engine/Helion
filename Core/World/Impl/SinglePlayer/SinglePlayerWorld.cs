@@ -233,6 +233,9 @@ public class SinglePlayerWorld : WorldBase
     {
         Player.TickCommand = tickCommand;
 
+        if (PlayingDemo)
+            return;
+
         if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
             Player.TurnTics++;
         else
@@ -314,10 +317,10 @@ public class SinglePlayerWorld : WorldBase
             moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
             moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 
-            Player.AddToYaw(moveDelta.X, true);
+            Player.AddToYaw(moveDelta.X);
 
             if (Config.Mouse.Look)
-                Player.AddToPitch(moveDelta.Y, true);
+                Player.AddToPitch(moveDelta.Y);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.Tests.Unit.GameAction.Util;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World;
@@ -22,6 +23,7 @@ namespace Helion.Tests.Unit.GameAction
         public Inventory()
         {
             World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World.Player.TickCommand = new TestTickCommand();
         }
 
         public void Dispose()

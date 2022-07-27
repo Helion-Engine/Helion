@@ -2,7 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 using Helion.Audio;
 using Helion.Audio.Impl;
@@ -105,7 +108,7 @@ public partial class Client : IDisposable
         // input manager, we only want to clear the state after we've
         // handled all of the input. This wipes the input manager clean,
         // and we only should do that after we are done with the input.
-        m_window.InputManager.Reset();
+        m_window.InputManager.Processed();
 
         m_profiler.Input.Stop();
     }
@@ -217,6 +220,11 @@ public partial class Client : IDisposable
     {
         if (m_disposed)
             return;
+
+        PackageDemo();
+
+        if (m_demoPlayer != null)
+            m_demoPlayer.Dispose();
 
         m_window.SetGrabCursor(false);
         m_window.WindowState = WindowState.Minimized;

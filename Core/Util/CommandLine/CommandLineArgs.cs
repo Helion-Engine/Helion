@@ -24,6 +24,8 @@ public class CommandLineArgs
     public string? LoadGame { get; set; }
     public bool SV_FastMonsters { get; set; }
     public string? DehackedPatch { get; set; }
+    public string? Record { get; set; }
+    public string? PlayDemo { get; set; }
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -65,6 +67,10 @@ public class CommandLineArgs
                 commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
             else if (IsArgMatch(parsedArg, "-deh"))
                 commandLineArgs.DehackedPatch = GetString(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "-record"))
+                commandLineArgs.Record = GetString(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "-playdemo"))
+                commandLineArgs.PlayDemo = GetString(commandLineArgs, parsedArg);
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }

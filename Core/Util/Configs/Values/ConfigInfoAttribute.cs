@@ -5,6 +5,7 @@ namespace Helion.Util.Configs.Values;
 /// <summary>
 /// Metadata for a config component or value.
 /// </summary>
+[AttributeUsage(AttributeTargets.Field)]
 public class ConfigInfoAttribute : Attribute
 {
     /// <summary>
@@ -27,10 +28,14 @@ public class ConfigInfoAttribute : Attribute
     /// </summary>
     public readonly bool Serialize;
 
-    public ConfigInfoAttribute(string description, bool save = true, bool serialize = false)
+    // If true this option is serialized for demos.
+    public readonly bool Demo;
+
+    public ConfigInfoAttribute(string description, bool save = true, bool serialize = false, bool demo = false)
     {
         Description = description;
         Save = save;
         Serialize = serialize;
+        Demo = demo;
     }
 }

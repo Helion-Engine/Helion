@@ -15,7 +15,7 @@ public class WorldModel
     public int Gametick { get; set; }
     public int LevelTime { get; set; }
     public int SoundCount { get; set; }
-    public byte RandomIndex { get; set; }
+    public int RandomIndex { get; set; }
     public double Gravity { get; set; }
     public SkillLevel Skill { get; set; }
     public int CurrentBossTarget { get; set; }

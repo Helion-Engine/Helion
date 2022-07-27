@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Models;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 
@@ -21,6 +22,7 @@ public interface IConfig
     ConfigPlayer Player { get; }
     ConfigRender Render { get; }
     ConfigWindow Window { get; }
+    ConfigDemo Demo { get; }
     IConfigKeyMapping Keys { get; }
     IConfigAliasMapping Aliases { get; }
 
@@ -42,4 +44,5 @@ public interface IConfig
     void ApplyQueuedChanges(ConfigSetFlags setFlags);
 
     Dictionary<string, ConfigComponent> GetComponents();
+    void ApplyConfiguration(IList<ConfigValueModel> configValues);
 }

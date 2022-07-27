@@ -36,6 +36,7 @@ public class SoundManager : IDisposable
     public LinkedList<IAudioSource> GetPlayingSounds() => PlayingSounds;
     public LinkedList<IAudioSource> GetSoundsToPlay() => m_soundsToPlay;
     public LinkedList<WaitingSound> GetWaitingSounds() => m_waitingLoopSounds;
+    public bool PlaySound { get; set; } = true;
 
     public SoundManager(IAudioSystem audioSystem, ArchiveCollection archiveCollection)
     {
@@ -215,6 +216,20 @@ public class SoundManager : IDisposable
     {
         if (m_soundsToPlay.Count == 0)
             return;
+
+        if (!PlaySound)
+        {
+            LinkedListNode<IAudioSource>? clearNode = m_soundsToPlay.First;
+            while (clearNode != null)
+            {
+                clearNode.Value.Stop();
+                ArchiveCollection.DataCache.FreeAudioSource(clearNode.Value);
+                clearNode = clearNode.Next;
+            }
+
+            m_soundsToPlay.Clear();
+            return;
+        }
 
         LinkedListNode<IAudioSource>? node = m_soundsToPlay.First;
         while (node != null)

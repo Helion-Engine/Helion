@@ -22,7 +22,7 @@ public interface IInputManager
     bool IsKeyReleased(Key key);
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
-    void Reset();
+    void Processed();
     bool IsKeyContinuousHold(Key key);
     IConsumableInput Poll();
 }

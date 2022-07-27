@@ -66,10 +66,11 @@ namespace Helion.Tests.Unit.GameAction
 
             Zdbsp zdbsp = new();
             if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
-                throw new Exception("Failed to create bsp");            
+                throw new Exception("Failed to create bsp");
 
+            DoomRandom random = worldModel == null ? new() : new(worldModel.RandomIndex);
             SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
-                skillDef, outputMap, existingPlayer, worldModel, new DoomRandom(), unitTest: true);
+                skillDef, outputMap, existingPlayer, worldModel, random, unitTest: true);
             if (world == null)
                 throw new Exception("Failed to create world");
 

@@ -1,3 +1,5 @@
+using System;
+
 namespace Helion.World.Cheats;
 
 public class LevelCheat : ICheat
@@ -19,6 +21,8 @@ public class LevelCheat : ICheat
         CheatOn = name;
         CheatType = cheatType;
     }
+
+    public void SetLeveNumber(int levelNumber) => LevelNumber = Math.Clamp(levelNumber, 1, int.MaxValue);
 
     public void SetCode(string code, int index = 0) => m_code = code;
 

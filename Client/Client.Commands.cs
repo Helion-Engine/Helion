@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Helion.Bsp.Zdbsp;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Worlds;
@@ -22,7 +21,6 @@ using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
-using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -34,7 +32,6 @@ namespace Helion.Client;
 public partial class Client
 {
     private const string StatFile = "levelstat.txt";
-    private static readonly IList<Player> NoPlayers = Array.Empty<Player>();
 
     private GlobalData m_globalData = new();
     private readonly Zdbsp m_zdbsp = new();
@@ -57,6 +54,43 @@ public partial class Client
         for (int i = 0; i < commands.Count; i++)
             Log.Info(commands[i]);
     }
+
+    [ConsoleCommand("demo.stop", "Stops the current demo.")]
+    private void DemoStop(ConsoleCommandEventArgs args)
+    {
+        if (m_demoPlayer == null)
+            return;
+
+        m_demoPlayer.Stop();
+
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.StopPlaying();
+        m_demoPlayer.Dispose();
+        m_demoPlayer = null;
+    }
+
+    [ConsoleCommand("demo.advanceticks", "Advances the demo forward.")]
+    [ConsoleCommandArg("ticks", "The number of seconds to advance the demo.")]
+    private void DemoAdvanceTicks(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count == 0 || !int.TryParse(args.Args[0], out int advanceAmount))
+            return;
+
+        AdvanceDemo(advanceAmount);
+    }
+
+    [ConsoleCommand("demo.advance", "Advances the demo forward.")]
+    [ConsoleCommandArg("seconds", "The number of seconds to advance the demo.")]
+    private void DemoAdvance(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count == 0 || !int.TryParse(args.Args[0], out int advanceAmount))
+            return;
+
+        AdvanceDemo(advanceAmount * (int)Constants.TicksPerSecond);
+    }
+    
 
     [ConsoleCommand("mark", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
@@ -223,7 +257,7 @@ public partial class Client
     private void CommandCenterView(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer != null)
-            m_layerManager.WorldLayer.World.Player.TickCommand.Add(TickCommands.CenterView);
+            m_layerManager.WorldLayer.AddCommand(TickCommands.CenterView);
     }
 
     [ConsoleCommand("inventoryClear", "Clears the players inventory")]
@@ -337,6 +371,12 @@ public partial class Client
             return true;
         }
 
+        if (m_layerManager.WorldLayer != null && m_layerManager.WorldLayer.World.PlayingDemo && component.Attribute.Demo)
+        {
+            Log.Warn($"{args.Command} cannot be changed during demo playback");
+            return true;
+        }
+
         ConfigSetResult result = component.Value.Set(args.Args[0]);
         switch (result)
         {
@@ -367,6 +407,7 @@ public partial class Client
     {
         m_globalData = new();
         LoadMap(mapInfo, null, null);
+        InitializeDemoRecorderFromCommandArgs();
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
@@ -374,19 +415,29 @@ public partial class Client
 
     private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = new();
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
+    private IRandom GetLoadMapRandom(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
     {
-        IList<Player> players = Array.Empty<Player>();
-        IRandom? random = previousWorld?.Random;
-
         if (previousWorld != null)
-        {
-            players = previousWorld.EntityManager.Players;
-            random = previousWorld.Random;
-        }
+            return previousWorld.Random;
 
         if (worldModel != null)
-            random = new DoomRandom(worldModel.RandomIndex);
+            return new DoomRandom(worldModel.RandomIndex);
+
+        var demoMap = GetDemoMap(mapInfoDef.MapName);
+        if (m_demoPlayer != null && demoMap != null)
+            return new DoomRandom(demoMap.RandomIndex);
+
+        return new DoomRandom();
+    }
+
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    {
+        IList<Player> players = Array.Empty<Player>();
+        IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
+        int randomIndex = random.RandomIndex;
+
+        if (previousWorld != null)
+            players = previousWorld.EntityManager.Players;
 
         m_lastWorldModel = worldModel;
         IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
@@ -444,7 +495,44 @@ public partial class Client
             m_console.AddMessage($"Saved {saveFile}");
         }
 
+        if (m_demoPlayer != null)
+            SetWorldLayerToDemo(m_demoPlayer, mapInfoDef, newLayer);
+
+        if (m_demoRecorder != null)
+        {
+            var worldPlayer = newLayer.World.Player;
+            // Cheat events reset the player, do not serialize the player
+            if (eventContext != null && eventContext.ChangeType == LevelChangeType.SpecificLevel)
+                worldPlayer = null;
+
+            AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, worldPlayer);
+            newLayer.StartRecording(m_demoRecorder);
+        }
+
         newLayer.World.Start(worldModel);
+        CheckLoadMapDemo(newLayer, worldModel);
+    }
+
+    private void CheckLoadMapDemo(WorldLayer worldLayer, WorldModel? worldModel)
+    {
+        if (worldModel == null)
+            return;
+
+        if (m_demoRecorder != null && m_demoRecorder.Recording)
+        {
+            m_demoRecorder.Stop();
+            worldLayer.StopRecording();
+            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo recording has stopped.");
+        }
+
+        if (m_demoPlayer != null)
+        {
+            m_demoPlayer.Stop();
+            worldLayer.StopPlaying();
+            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo playback has stopped.");
+            m_demoPlayer.Dispose();
+            m_demoPlayer = null;
+        }
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)
@@ -493,11 +581,11 @@ public partial class Client
                 break;
 
             case LevelChangeType.Reset:
-                LoadMap(world.MapInfo, null, null);
+                LoadMap(world.MapInfo, null, null, e);
                 break;
 
             case LevelChangeType.ResetOrLoadLast:
-                LoadMap(world.MapInfo, m_lastWorldModel, null);
+                LoadMap(world.MapInfo, m_lastWorldModel, null, e);
                 break;
         }
     }
@@ -594,7 +682,7 @@ public partial class Client
     {
         if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
             out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-            LoadMap(mapInfoDef, null, null);
+            LoadMap(mapInfoDef, null, null, e);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>

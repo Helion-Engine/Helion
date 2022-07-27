@@ -1,3 +1,5 @@
+using System;
+
 namespace Helion.Util.RandomGenerators;
 
 /// <summary>
@@ -16,4 +18,9 @@ public interface IRandom
     /// </summary>
     /// <returns>A random byte in the range of a +/- unsigned byte.</returns>
     int NextDiff();
+
+    int RandomIndex { get; }
+
+    IRandom Clone();
+    IRandom Clone(int randomIndex);
 }
