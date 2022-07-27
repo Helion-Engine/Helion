@@ -605,8 +605,7 @@ public class DehackedApplier
     }
 
     private static void ApplyText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, LanguageDefinition language)
-    {
-       
+    {       
         foreach (var text in dehacked.Strings)
         {
             if (dehacked.SpriteNames.Contains(text.OldString))
