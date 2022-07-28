@@ -35,8 +35,8 @@ public class DemoRecorder : IDemoRecorder
         foreach (var cmd in command.Commands)
             demoCommand.Buttons |= 1 << (int)cmd.ToDemoTickCommand();
 
-        demoCommand.AngleTurn = command.AngleTurn + player.ViewAngleRadians;
-        demoCommand.PitchTurn = command.PitchTurn + player.ViewPitchRadians;
+        demoCommand.AngleTurn = command.AngleTurn;
+        demoCommand.PitchTurn = command.PitchTurn;
         demoCommand.MouseAngle = command.MouseAngle;
         demoCommand.MousePitch = command.MousePitch;
         demoCommand.ForwardMoveSpeed = command.ForwardMoveSpeed;

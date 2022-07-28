@@ -1,7 +1,6 @@
 using Helion.Demo;
 using Helion.World;
 using Helion.World.Cheats;
-using Helion.World.Entities.Players;
 
 namespace Helion.Layer.Worlds;
 
@@ -106,6 +105,7 @@ public partial class WorldLayer
         {
             nextCommand = NextTickCommand();
             World.Tick();
+            RecordTickCommand();
             ticksToRun--;
         }
 
@@ -123,16 +123,16 @@ public partial class WorldLayer
         }
     }
 
+    private void RecordTickCommand()
+    {
+        if (m_demoRecorder != null)
+            m_demoRecorder.AddTickCommand(World.Player);
+    }
+
     private bool NextTickCommand()
     {
         if (World.Paused || World.WorldState != WorldState.Normal)
             return false;
-
-        if (m_demoRecorder != null)
-        {
-            m_demoRecorder.AddTickCommand(World.Player);
-            return true;
-        }
 
         if (m_demoPlayer == null)
             return true;

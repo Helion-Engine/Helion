@@ -236,6 +236,12 @@ public class SinglePlayerWorld : WorldBase
         if (PlayingDemo)
             return;
 
+        tickCommand.MouseAngle += Player.ViewAngleRadians;
+        tickCommand.MousePitch += Player.ViewPitchRadians;
+
+        Player.ViewAngleRadians = 0;
+        Player.ViewPitchRadians = 0;
+
         if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
             Player.TurnTics++;
         else
@@ -319,7 +325,7 @@ public class SinglePlayerWorld : WorldBase
 
             Player.AddToYaw(moveDelta.X);
 
-            if (Config.Mouse.Look)
+            if (Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook))
                 Player.AddToPitch(moveDelta.Y);
         }
     }
