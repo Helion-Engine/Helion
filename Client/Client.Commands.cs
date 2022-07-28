@@ -371,10 +371,19 @@ public partial class Client
             return true;
         }
 
-        if (m_layerManager.WorldLayer != null && m_layerManager.WorldLayer.World.PlayingDemo && component.Attribute.Demo)
+        if (m_layerManager.WorldLayer != null && component.Attribute.Demo)
         {
-            Log.Warn($"{args.Command} cannot be changed during demo playback");
-            return true;
+            if (m_layerManager.WorldLayer.World.PlayingDemo)
+            {
+                Log.Warn($"{args.Command} cannot be changed during demo playback");
+                return true;
+            }
+
+            if (m_demoRecorder != null)
+            {
+                Log.Warn($"{args.Command} cannot be changed during recording");
+                return true;
+            }
         }
 
         ConfigSetResult result = component.Value.Set(args.Args[0]);
@@ -511,28 +520,6 @@ public partial class Client
 
         newLayer.World.Start(worldModel);
         CheckLoadMapDemo(newLayer, worldModel);
-    }
-
-    private void CheckLoadMapDemo(WorldLayer worldLayer, WorldModel? worldModel)
-    {
-        if (worldModel == null)
-            return;
-
-        if (m_demoRecorder != null && m_demoRecorder.Recording)
-        {
-            m_demoRecorder.Stop();
-            worldLayer.StopRecording();
-            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo recording has stopped.");
-        }
-
-        if (m_demoPlayer != null)
-        {
-            m_demoPlayer.Stop();
-            worldLayer.StopPlaying();
-            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo playback has stopped.");
-            m_demoPlayer.Dispose();
-            m_demoPlayer = null;
-        }
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)

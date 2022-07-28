@@ -86,7 +86,7 @@ public partial class Client
     private bool TryCreateDemoPlayer(string file, [NotNullWhen(true)] out IDemoPlayer? player)
     {
         player = null;
-        if (!GetBinaryDemoFileFromPackage(file, out string binaryDemoFile))
+        if (!DemoArchive.Read(m_archiveCollection, file, out m_demoModel, out var binaryDemoFile))
         {
             Log.Error($"Failed to read demo file: {file}");
             return false;
@@ -166,11 +166,6 @@ public partial class Client
         }
     }
 
-    private bool GetBinaryDemoFileFromPackage(string file, out string binaryDemoFile)
-    {
-        return DemoArchive.Read(m_archiveCollection, file, out m_demoModel, out binaryDemoFile);
-    }
-
     private void PackageDemo()
     {
         if (m_demoRecorder == null || m_layerManager.WorldLayer == null || !File.Exists(m_demoRecorder.DemoFile))
@@ -223,6 +218,28 @@ public partial class Client
         newLayer.StartPlaying(demoPlayer);
         newLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
         newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
+    }
+
+    private void CheckLoadMapDemo(WorldLayer worldLayer, WorldModel? worldModel)
+    {
+        if (worldModel == null)
+            return;
+
+        if (m_demoRecorder != null && m_demoRecorder.Recording)
+        {
+            m_demoRecorder.Stop();
+            worldLayer.StopRecording();
+            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo recording has stopped.");
+        }
+
+        if (m_demoPlayer != null)
+        {
+            m_demoPlayer.Stop();
+            worldLayer.StopPlaying();
+            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo playback has stopped.");
+            m_demoPlayer.Dispose();
+            m_demoPlayer = null;
+        }
     }
 
     private DemoMap? GetDemoMap(string mapName)

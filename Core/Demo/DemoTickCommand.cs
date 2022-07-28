@@ -7,7 +7,7 @@ public enum DemoTickCommands
     Jump,
     Crouch,
     Use,
-    Speed,
+    Unused,
     Strafe,
     NextWeapon,
     PreviousWeapon,

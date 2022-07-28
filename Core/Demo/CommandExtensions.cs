@@ -9,7 +9,10 @@ public static class CommandExtensions
         return cmd switch
         {
             TickCommands.Attack => DemoTickCommands.Attack,
+            TickCommands.Jump => DemoTickCommands.Jump,
+            TickCommands.Crouch => DemoTickCommands.Crouch,
             TickCommands.Use => DemoTickCommands.Use,
+            TickCommands.Strafe => DemoTickCommands.Strafe,
             TickCommands.NextWeapon => DemoTickCommands.NextWeapon,
             TickCommands.PreviousWeapon => DemoTickCommands.PreviousWeapon,
             TickCommands.WeaponSlot1 => DemoTickCommands.WeaponSlot1,
@@ -29,7 +32,10 @@ public static class CommandExtensions
         return cmd switch
         {
             DemoTickCommands.Attack => TickCommands.Attack,
+            DemoTickCommands.Jump => TickCommands.Jump,
+            DemoTickCommands.Crouch => TickCommands.Crouch,
             DemoTickCommands.Use => TickCommands.Use,
+            DemoTickCommands.Strafe => TickCommands.Strafe,
             DemoTickCommands.NextWeapon => TickCommands.NextWeapon,
             DemoTickCommands.PreviousWeapon => TickCommands.PreviousWeapon,
             DemoTickCommands.WeaponSlot1 => TickCommands.WeaponSlot1,
