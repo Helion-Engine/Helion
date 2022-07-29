@@ -47,10 +47,9 @@ public class Window : GameWindow, IWindow
         Log.Debug("Creating client window");
 
         m_config = config;
-        CursorVisible = !config.Mouse.Focus;
+        CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = CreateRenderer(config, archiveCollection, tracker);
         IgnoreMouseEvents = config.Mouse.RawInput;
-        CursorGrabbed = config.Mouse.Focus;
         VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
         RenderFrequency = config.Render.MaxFPS;
 
@@ -138,7 +137,7 @@ public class Window : GameWindow, IWindow
         settings.CurrentMonitor = windowMonitors[index].Handle;
     }
 
-    public void SetGrabCursor(bool set) => CursorGrabbed = set;
+    public void SetGrabCursor(bool set) => CursorState = set ? CursorState.Grabbed : CursorState.Hidden;
 
     private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
     {
