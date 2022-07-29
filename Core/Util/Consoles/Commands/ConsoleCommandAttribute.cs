@@ -2,6 +2,7 @@ using System;
 
 namespace Helion.Util.Consoles.Commands;
 
+[AttributeUsage(AttributeTargets.Method)]
 public class ConsoleCommandAttribute : Attribute
 {
     public readonly string Command;
