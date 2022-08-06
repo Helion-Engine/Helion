@@ -4,9 +4,24 @@ namespace Helion.World.Entities.Players;
 
 public class TickCommand
 {
+    // These commands are only processed once even if held down.
+    private static readonly HashSet<TickCommands> SinglePressCommands = new()
+    {
+        TickCommands.Use,
+        TickCommands.NextWeapon,
+        TickCommands.PreviousWeapon,
+        TickCommands.WeaponSlot1,
+        TickCommands.WeaponSlot2,
+        TickCommands.WeaponSlot3,
+        TickCommands.WeaponSlot4,
+        TickCommands.WeaponSlot5,
+        TickCommands.WeaponSlot6,
+        TickCommands.WeaponSlot7,
+        TickCommands.CenterView
+    };
+
     private readonly HashSet<TickCommands> m_commands = new();
-    private readonly List<TickCommands> m_tickCommands = new();
-    private readonly List<TickCommands> m_instantCommands = new();
+    private readonly HashSet<TickCommands> m_previousCommands = new();
 
     public double AngleTurn { get; set; }
     public double PitchTurn { get; set; }
@@ -15,14 +30,9 @@ public class TickCommand
     public double ForwardMoveSpeed { get; set; }
     public double SideMoveSpeed { get; set; }
 
-    public void Clear()
-    {
-        for (int i = 0; i < m_instantCommands.Count; i++)
-            m_commands.Remove(m_instantCommands[i]);
-        m_instantCommands.Clear();
-    }
+    public IEnumerable<TickCommands> Commands => m_commands;
 
-    public void TickHandled()
+    public void Clear()
     {
         AngleTurn = 0;
         PitchTurn = 0;
@@ -30,24 +40,30 @@ public class TickCommand
         MousePitch = 0;
         ForwardMoveSpeed = 0;
         SideMoveSpeed = 0;
-
-        for (int i = 0; i < m_tickCommands.Count; i++)
-            m_commands.Remove(m_tickCommands[i]);
-        m_tickCommands.Clear();
+        m_commands.Clear();
     }
 
-    public void Add(TickCommands command, bool isInstant = false)
+    // When the command is handled set the previous commands.
+    // This way commands like TickCommands.Use are only processed once until released and pressed again.
+    public virtual void TickHandled()
     {
-        if (m_commands.Add(command))
-        {
-            if (isInstant)
-                m_instantCommands.Add(command);
-            else
-                m_tickCommands.Add(command);
-        }
+        m_previousCommands.Clear();
+        foreach (var command in m_commands)
+            m_previousCommands.Add(command);
     }
 
-    public bool Has(TickCommands command) => m_commands.Contains(command);
+    public bool Add(TickCommands command) => m_commands.Add(command);
+
+    public bool Has(TickCommands command)
+    {
+        if (!m_commands.Contains(command))
+            return false;
+
+        if (m_previousCommands.Contains(command) && SinglePressCommands.Contains(command))
+            return false;
+
+        return true;
+    }
 
     public bool HasTurnKey() =>
         Has(TickCommands.TurnLeft) || Has(TickCommands.TurnRight);

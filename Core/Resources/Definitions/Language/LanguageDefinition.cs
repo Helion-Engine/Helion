@@ -92,12 +92,14 @@ public class LanguageDefinition
         return data;
     }
 
+    private static readonly string[] NewLineSplit = new string[] { "\n", "\r\n" };
+
     public string[] GetMessages(string message)
     {
         if (message.Length > 0 && message[0] == '$')
-            return LookupMessage(message[1..]).Split(new string[] { "\n", "\r\n" }, StringSplitOptions.None);
+            return LookupMessage(message[1..]).Split(NewLineSplit, StringSplitOptions.None);
 
-        return new string[] { message };
+        return message.Split(NewLineSplit, StringSplitOptions.None);
     }
 
     public string GetMessage(string message)

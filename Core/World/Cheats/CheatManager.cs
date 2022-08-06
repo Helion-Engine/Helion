@@ -56,8 +56,16 @@ public class CheatManager
         cheat.SetCode(code, index);
     }
 
-    public void ActivateCheat(Player player, CheatType cheatType) =>
+    public void ActivateCheat(Player player, CheatType cheatType, int levelNumber = -1)
+    {
+        if (cheatType == CheatType.ChangeLevel || cheatType == CheatType.ChangeMusic)
+        {
+            ActivateLevelCheat(player, cheatType, levelNumber);
+            return;
+        }
+
         SetCheat(player, cheatType, true);
+    }
 
     public void DeactivateCheat(Player player, CheatType cheatType) =>
         SetCheat(player, cheatType, false);
@@ -72,6 +80,18 @@ public class CheatManager
             cheat.SetActivated(player);
 
         CheatActivationChanged?.Invoke(this, new CheatEventArgs(player, cheat));
+    }
+
+    private void ActivateLevelCheat(Player player, CheatType cheatType, int levelNumber)
+    {
+        if (!m_cheatLookup.TryGetValue(cheatType, out ICheat? cheat))
+            return;
+
+        if (cheat is not LevelCheat levelCheat)
+            return;
+
+        levelCheat.SetLeveNumber(levelNumber);
+        SetCheat(player, cheatType, true);
     }
 
     public bool HandleCommand(Player player, string command)
@@ -99,15 +119,15 @@ public class CheatManager
                 ICheat? cheat = Cheats.FirstOrDefault(x => x.IsMatch(cheatString));
                 if (cheat != null)
                 {
-                    ActivateCheat(player, cheat.CheatType);
+                    SetCheat(player, cheat.CheatType, true);
                     if (cheat.ClearTypedCheatString)
                         m_currentCheat.Clear();
                 }
+
+                continue;
             }
-            else
-            {
-                m_currentCheat.Clear();
-            }
+            
+            m_currentCheat.Clear();
         }
     }
 }

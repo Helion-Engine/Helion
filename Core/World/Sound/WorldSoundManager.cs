@@ -81,7 +81,7 @@ public class WorldSoundManager : SoundManager, ITickable
         // Saw is modified to 3 (with 8 add and 15 clamp).
         const float NormalPitch = 128f;
         int clamp = pitchShift * 2 - 1;
-        int rand = (int)Math.Clamp((m_world.Random.NextByte() & clamp) * m_world.Config.Audio.RandomPitchScale, 1, 255);
+        int rand = (int)Math.Clamp((m_world.SecondaryRandom.NextByte() & clamp) * m_world.Config.Audio.RandomPitchScale, 1, 255);
         int add = (int)Math.Clamp(pitchShift * m_world.Config.Audio.RandomPitchScale, 1, 255);
         float pitch = Math.Clamp(NormalPitch + add - rand, 0, 255);
         source.SetPitch(pitch / NormalPitch);

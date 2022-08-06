@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Helion.Layer.Consoles;
@@ -65,6 +64,16 @@ public partial class Client
 
     private void CheckLoadMap()
     {
+        bool tryLoadMap = m_commandLineArgs.Map != null || m_commandLineArgs.Warp != null;
+
+        if (m_commandLineArgs.PlayDemo != null &&
+            TryCreateDemoPlayer(m_commandLineArgs.PlayDemo, out m_demoPlayer))
+        {
+            // Check if a specific map was loaded. If not load the first map in the demo file.
+            if (!tryLoadMap && m_demoModel != null && m_demoModel.Maps.Count > 0)
+                LoadMap(m_demoModel.Maps[0].Map);
+        }
+
         if (m_commandLineArgs.Map != null)
         {
             LoadMap(m_commandLineArgs.Map);
@@ -75,6 +84,8 @@ public partial class Client
         {
             LoadMap(mapInfoDef.MapName);
         }
+
+        InitializeDemoRecorderFromCommandArgs();
     }
 
     private string? GetIwad()
@@ -88,7 +99,6 @@ public partial class Client
 
         Log.Error("No IWAD found!");
         return null;
-
     }
 
     private static string? LocateIwad()

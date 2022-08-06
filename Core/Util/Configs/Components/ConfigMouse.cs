@@ -8,7 +8,7 @@ public class ConfigMouse
     [ConfigInfo("If the mouse should be focused on the window or not.")]
     public readonly ConfigValue<bool> Focus = new(true);
 
-    [ConfigInfo("If we should be able to look around the level with the mouse.")]
+    [ConfigInfo("If we should be able to look around the level with the mouse.", demo: true)]
     public readonly ConfigValue<bool> Look = new(true);
 
     [ConfigInfo("The vertical sensitivity. This is multiplied by the sensitivity value for a final calculation.")]

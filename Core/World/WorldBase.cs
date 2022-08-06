@@ -52,6 +52,7 @@ using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Demo;
 
 namespace Helion.World;
 
@@ -77,7 +78,11 @@ public abstract partial class WorldBase : IWorld
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
+    public bool DrawPause { get; private set; }
+    public bool PlayingDemo { get; set; }
+    public bool DemoEnded { get; set; }
     public IRandom Random => m_random;
+    public IRandom SecondaryRandom { get; private set; }
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
     public IList<Wall> Walls => Geometry.Walls;
@@ -110,6 +115,7 @@ public abstract partial class WorldBase : IWorld
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
     private IRandom m_random;
+    private IRandom m_saveRandom;
 
     private int m_exitTicks;
     private int m_easyBossBrain;
@@ -124,6 +130,8 @@ public abstract partial class WorldBase : IWorld
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
     {
         m_random = random ?? new DoomRandom();
+        m_saveRandom = m_random;
+        SecondaryRandom = m_random.Clone();
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -149,7 +157,7 @@ public abstract partial class WorldBase : IWorld
             LevelTime = worldModel.LevelTime;
             m_soundCount = worldModel.SoundCount;
             Gravity = worldModel.Gravity;
-            ((DoomRandom)Random).RandomIndex = worldModel.RandomIndex;
+            Random.Clone(worldModel.RandomIndex);
             CurrentBossTarget = worldModel.CurrentBossTarget;
             GlobalData = new()
             {
@@ -164,6 +172,11 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+    }
+
+    private void DemoPlaybackEnded(object? sender, EventArgs e)
+    {
+        Paused = true;
     }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
@@ -293,7 +306,10 @@ public abstract partial class WorldBase : IWorld
         DebugCheck();
 
         if (Paused)
+        {
+            TickPlayerStatusBars();
             return;
+        }
 
         Profiler.World.Total.Start();
 
@@ -309,6 +325,7 @@ public abstract partial class WorldBase : IWorld
                     WorldState = WorldState.Normal;
                 else
                     WorldState = WorldState.Exited;
+                m_random = m_saveRandom;
             }
         }
         else if (WorldState == WorldState.Normal)
@@ -330,6 +347,12 @@ public abstract partial class WorldBase : IWorld
         Gametick++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private void TickPlayerStatusBars()
+    {
+        foreach (Player player in EntityManager.Players)
+            player.StatusBar.Tick();
     }
 
     [Conditional("DEBUG")]
@@ -449,8 +472,9 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public void Pause()
+    public void Pause(bool draw = false)
     {
+        DrawPause = draw;
         if (Paused)
             return;
 
@@ -460,7 +484,7 @@ public abstract partial class WorldBase : IWorld
         Paused = true;
     }
 
-    private void ResetInterpolation()
+    public void ResetInterpolation()
     {
         LinkableNode<Entity>? node = EntityManager.Entities.Head;
         while (node != null)
@@ -473,11 +497,12 @@ public abstract partial class WorldBase : IWorld
 
     public void Resume()
     {
-        if (!Paused)
+        if (!Paused || DemoEnded)
             return;
 
         SoundManager.Resume();
         Paused = false;
+        DrawPause = false;
         WorldResumed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -581,6 +606,8 @@ public abstract partial class WorldBase : IWorld
         SoundManager.ClearSounds();
         m_levelChangeType = type;
         WorldState = WorldState.Exit;
+        // The exit ticks thing is fudge. Change random to secondary to not break demos later.
+        m_random = SecondaryRandom;
         m_exitTicks = 15;
 
         ResetInterpolation();
@@ -2198,7 +2225,7 @@ public abstract partial class WorldBase : IWorld
             LevelTime = LevelTime,
             SoundCount = m_soundCount,
             Gravity = Gravity,
-            RandomIndex = ((DoomRandom)Random).RandomIndex,
+            RandomIndex = Random.RandomIndex,
             Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
             CurrentBossTarget = CurrentBossTarget,
 

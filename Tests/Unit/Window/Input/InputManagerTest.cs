@@ -32,6 +32,11 @@ public class InputManagerTest
         inputManager.IsKeyUp(Key.A).Should().BeFalse();
 
         inputManager.SetKeyUp(Key.A);
+        // Key doesn't get removed from down until it's reset.
+        inputManager.IsKeyDown(Key.A).Should().BeTrue();
+        inputManager.IsKeyUp(Key.A).Should().BeFalse();
+
+        inputManager.Processed();
         inputManager.IsKeyDown(Key.A).Should().BeFalse();
         inputManager.IsKeyUp(Key.A).Should().BeTrue();
     }
@@ -82,7 +87,7 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.B);
         inputManager.IsKeyPressed(Key.B).Should().BeTrue();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyPressed(Key.B).Should().BeFalse();
     }
 
@@ -95,10 +100,11 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.B);
         inputManager.IsKeyHeldDown(Key.B).Should().BeFalse();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyHeldDown(Key.B).Should().BeTrue();
 
         inputManager.SetKeyUp(Key.B);
+        inputManager.Processed();
         inputManager.IsKeyHeldDown(Key.B).Should().BeFalse();
     }
 
@@ -111,13 +117,16 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.MouseRight);
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeFalse();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
 
         inputManager.SetKeyUp(Key.MouseRight);
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
 
-        inputManager.Reset();
+        inputManager.Processed();
+        inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
+
+        inputManager.Processed();
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeFalse();
     }
 
@@ -130,13 +139,16 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.Ampersand);
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeTrue();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
 
         inputManager.SetKeyUp(Key.Ampersand);
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
 
-        inputManager.Reset();
+        inputManager.Processed();
+        inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
+
+        inputManager.Processed();
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeTrue();
     }
 
@@ -149,13 +161,14 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.F7);
         inputManager.IsKeyReleased(Key.F7).Should().BeFalse();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyReleased(Key.F7).Should().BeFalse();
 
         inputManager.SetKeyUp(Key.F7);
+        inputManager.Processed();
         inputManager.IsKeyReleased(Key.F7).Should().BeTrue();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.IsKeyReleased(Key.Ampersand).Should().BeFalse();
     }
 
@@ -168,13 +181,13 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.F7);
         inputManager.HasAnyKeyPressed().Should().BeTrue();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.HasAnyKeyPressed().Should().BeFalse();
 
         inputManager.SetKeyUp(Key.F7);
         inputManager.HasAnyKeyPressed().Should().BeFalse();
 
-        inputManager.Reset();
+        inputManager.Processed();
         inputManager.HasAnyKeyPressed().Should().BeFalse();
     }
 
@@ -188,7 +201,7 @@ public class InputManagerTest
         inputManager.AddMouseScroll(5);
         inputManager.AddTypedCharacters("hi");
 
-        inputManager.Reset();
+        inputManager.Processed();
 
         inputManager.IsKeyPrevDown(Key.A).Should().BeTrue();
         inputManager.IsKeyDown(Key.A).Should().BeTrue();
@@ -217,57 +230,5 @@ public class InputManagerTest
         input.ConsumeScroll().Should().Be(0);
         input.ConsumeTypedCharacters().ToString().Should().Be("hi");
         input.ConsumeTypedCharacters().ToString().Should().Be("");
-    }
-
-    [Fact(DisplayName = "Detect the special print screen case")]
-    public void CanDetectPrintScreen()
-    {
-        // Prev: NO   Now: NO
-        InputManager inputManager = new();
-        inputManager.IsKeyDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyUp(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
-        inputManager.HasAnyKeyPressed().Should().BeFalse();
-        inputManager.HasAnyKeyDown().Should().BeFalse();
-
-        // Prev: NO   Now: YES
-        inputManager.SetKeyDown(Key.PrintScreen);
-        inputManager.IsKeyDown(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyUp(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPressed(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
-        inputManager.HasAnyKeyPressed().Should().BeTrue();
-        inputManager.HasAnyKeyDown().Should().BeTrue();
-
-        // Prev: YES   Now: NO
-        inputManager.Reset();
-        inputManager.IsKeyDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyUp(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyReleased(Key.PrintScreen).Should().BeTrue();
-        inputManager.HasAnyKeyPressed().Should().BeFalse();
-        inputManager.HasAnyKeyDown().Should().BeFalse();
-
-        // Prev: YES   Now: YES
-        inputManager.SetKeyDown(Key.PrintScreen);
-        inputManager.IsKeyDown(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyPrevDown(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyHeldDown(Key.PrintScreen).Should().BeTrue();
-        inputManager.IsKeyUp(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPrevUp(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyPressed(Key.PrintScreen).Should().BeFalse();
-        inputManager.IsKeyReleased(Key.PrintScreen).Should().BeFalse();
-        inputManager.HasAnyKeyPressed().Should().BeFalse();
-        inputManager.HasAnyKeyDown().Should().BeTrue();
     }
 }

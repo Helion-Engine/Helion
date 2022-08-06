@@ -27,14 +27,17 @@ public class DoomRandom : IRandom
         84, 118, 222, 187, 136, 120, 163, 236, 249
     };
 
-    public byte RandomIndex { get; set; }
+    private byte m_randomIndex;
 
-    public DoomRandom(byte index = 0)
+    public DoomRandom(int index = 0)
     {
-        RandomIndex = index;
+        m_randomIndex = (byte)index;
     }
 
-    public byte NextByte() => Random[++RandomIndex];
+    public byte NextByte() => Random[++m_randomIndex];
+    public int NextDiff() => Random[++m_randomIndex] - Random[++m_randomIndex];
+    public int RandomIndex => m_randomIndex;
 
-    public int NextDiff() => NextByte() - NextByte();
+    public IRandom Clone() => new DoomRandom();
+    public IRandom Clone(int randomIndex) => new DoomRandom(randomIndex);
 }

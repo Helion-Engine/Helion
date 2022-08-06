@@ -50,6 +50,8 @@ public interface IWorld : IDisposable
     double ListenerPitch { get; }
     Entity ListenerEntity { get; }
     IRandom Random { get; }
+    // Used for randomization that should not affect demos
+    IRandom SecondaryRandom { get; }
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
@@ -61,13 +63,15 @@ public interface IWorld : IDisposable
     GameInfoDef GameInfo { get; }
     LevelStats LevelStats { get; }
     bool Paused { get; }
+    bool DrawPause { get; }
+    bool PlayingDemo { get; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; }
     public DataCache DataCache { get; }
 
     void Link(Entity entity);
     void Tick();
-    void Pause();
+    void Pause(bool draw = false);
     void Resume();
     IEnumerable<Sector> FindBySectorTag(int tag);
     IEnumerable<Entity> FindByTid(int tid);

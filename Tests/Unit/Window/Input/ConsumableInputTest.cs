@@ -25,7 +25,7 @@ public class ConsumableInputTest
 
             inputManager.SetKeyDown(Key.A);
             inputManager.SetKeyDown(Key.C);
-            inputManager.Reset();
+            inputManager.Processed();
             inputManager.SetKeyDown(Key.B);
             inputManager.SetKeyUp(Key.C);
 

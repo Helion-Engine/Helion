@@ -1,17 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Models;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Profiling;
@@ -37,14 +33,12 @@ public partial class WorldLayer : IGameLayerParent
     public SinglePlayerWorld World { get; }
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
-    private readonly ArchiveCollection m_archiveCollection;
-    private readonly IAudioSystem m_audioSystem;
     private readonly GameLayerManager m_parent;
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private readonly FpsTracker m_fpsTracker;
     private readonly Profiler m_profiler;
+    private readonly TickCommand m_tickCommand = new();
     private TickerInfo m_lastTickInfo = new(0, 0);
-    private TickCommand m_tickCommand = new();
     private bool m_drawAutomap;
     private Vec2I m_autoMapOffset = (0, 0);
     private double m_autoMapScale;
@@ -54,15 +48,13 @@ public partial class WorldLayer : IGameLayerParent
     private Player Player => World.Player;
     public bool ShouldFocus => !World.Paused;
 
-    public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, ArchiveCollection archiveCollection,
-        IAudioSystem audioSystem, FpsTracker fpsTracker, SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
+    public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker, 
+        SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
     {
         m_worldContext = new(m_camera, 0);
         m_hudContext = new(new Dimension());
         m_config = config;
         m_console = console;
-        m_archiveCollection = archiveCollection;
-        m_audioSystem = audioSystem;
         m_parent = parent;
         m_fpsTracker = fpsTracker;
         m_autoMapScale = config.Hud.AutoMap.Scale;
@@ -94,7 +86,7 @@ public partial class WorldLayer : IGameLayerParent
 
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        return new WorldLayer(parent, config, console, archiveCollection, audioSystem, fpsTracker, world, mapInfoDef, profiler);
+        return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
     }
 
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
@@ -104,18 +96,7 @@ public partial class WorldLayer : IGameLayerParent
         if (worldModel == null)
             return;
 
-        var components = config.GetComponents();
-        foreach (var configModel in worldModel.ConfigValues)
-        {
-            if (!components.TryGetValue(configModel.Key, out ConfigComponent? component))
-            {
-                Log.Error($"Invalid configuration path: {configModel.Key}");
-                continue;
-            }
-
-            if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
-                Log.Error($"Bad configuartion value '{configModel.Value}' for '{configModel.Key}'.");
-        }
+        config.ApplyConfiguration(worldModel.ConfigValues);
     }
 
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,

@@ -25,7 +25,9 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     }
 
     public object ObjectValue => Value;
+    public object ObjectDefaultValue => DefaultValue;
     public T Value { get; private set; }
+    public T DefaultValue { get; private set; }
     public bool Changed { get; set; }
     public ConfigSetFlags SetFlags { get; }
 
@@ -68,6 +70,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         Func<T, T>? transformer = null)
     {
         Value = transformer != null ? transformer(initialValue) : initialValue;
+        DefaultValue = Value;
         m_filter = filter;
         m_transformer = transformer;
         SetFlags = setFlags;
