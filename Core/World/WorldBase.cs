@@ -69,6 +69,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
+    public event EventHandler? ClearConsole;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -1811,11 +1812,17 @@ public abstract partial class WorldBase : IWorld
                 player.Flags.NoGravity = player.Cheats.IsCheatActive(cheat.CheatType);
                 break;
             case CheatType.Kill:
+                ClearConsole?.Invoke(this, EventArgs.Empty);
                 player.ForceGib();
                 break;
             case CheatType.Ressurect:
+                ClearConsole?.Invoke(this, EventArgs.Empty);
                 if (player.IsDead)
                     player.SetRaiseState();
+                break;
+            case CheatType.KillAllMonsters:
+                ClearConsole?.Invoke(this, EventArgs.Empty);
+                DisplayMessage(player, null, $"{KillAllMonsters()} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
                 if (!player.IsDead)
@@ -1846,6 +1853,24 @@ public abstract partial class WorldBase : IWorld
             default:
                 break;
         }
+    }
+
+    private int KillAllMonsters()
+    {
+        int killCount = 0;
+        var node = EntityManager.Entities.Head;
+        while (node != null)
+        {
+            if (node.Value.Flags.CountKill)
+            {
+                node.Value.ForceGib();
+                killCount++;
+            }
+
+            node = node.Next;
+        }
+
+        return killCount;
     }
 
     private void SetGodModeHealth(Player player)

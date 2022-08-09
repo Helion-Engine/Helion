@@ -28,5 +28,6 @@ public enum CheatType
     // Start non-vanilla doom cheats
     Fly,
     Ressurect,
-    Kill
+    Kill,
+    KillAllMonsters
 }

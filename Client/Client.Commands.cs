@@ -540,6 +540,12 @@ public partial class Client
     {
         newLayer.World.LevelExit += World_LevelExit;
         newLayer.World.WorldResumed += World_WorldResumed;
+        newLayer.World.ClearConsole += World_ClearConsole;
+    }
+
+    private void World_ClearConsole(object? sender, EventArgs e)
+    {
+        m_layerManager.Remove(m_layerManager.ConsoleLayer);
     }
 
     private void UnRegisterWorldEvents()
@@ -549,6 +555,7 @@ public partial class Client
 
         m_layerManager.WorldLayer.World.LevelExit -= World_LevelExit;
         m_layerManager.WorldLayer.World.WorldResumed -= World_WorldResumed;
+        m_layerManager.WorldLayer.World.ClearConsole -= World_ClearConsole;
     }
 
     private void World_WorldResumed(object? sender, EventArgs e)
