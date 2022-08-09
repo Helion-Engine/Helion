@@ -432,14 +432,26 @@ public class Player : Entity
         return true;
     }
 
-    public void AddToYaw(double delta)
+    public void AddToYaw(double delta, bool isMouse)
     {
-        ViewAngleRadians += delta;
+        if (isMouse)
+        {
+            ViewAngleRadians += delta;
+            return;
+        }
+
+        AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
     }
 
-    public void AddToPitch(double delta)
+    public void AddToPitch(double delta, bool isMouse)
     {
-        ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
+        if (isMouse)
+        {
+            ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
+            return;
+        }
+
+        PitchRadians = AddPitch(PitchRadians, delta);
     }
 
     private static double AddPitch(double pitch, double delta)
@@ -546,10 +558,10 @@ public class Player : Entity
             return;
 
         if (TickCommand.AngleTurn != 0 && !TickCommand.Has(TickCommands.Strafe))
-            AddToYaw(TickCommand.AngleTurn);
+            AddToYaw(TickCommand.AngleTurn, false);
 
         if (TickCommand.PitchTurn != 0)
-            AddToPitch(TickCommand.PitchTurn);
+            AddToPitch(TickCommand.PitchTurn, false);
 
         Vec3D movement = Vec3D.Zero;
         movement += CalculateForwardMovement(TickCommand.ForwardMoveSpeed);

@@ -323,10 +323,10 @@ public class SinglePlayerWorld : WorldBase
             moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
             moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 
-            Player.AddToYaw(moveDelta.X);
+            Player.AddToYaw(moveDelta.X, true);
 
             if (Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook))
-                Player.AddToPitch(moveDelta.Y);
+                Player.AddToPitch(moveDelta.Y, true);
         }
     }
 }
