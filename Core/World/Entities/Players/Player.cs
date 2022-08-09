@@ -500,7 +500,7 @@ public class Player : Entity
         Inventory.Tick();
         AnimationWeapon?.Tick();
 
-        m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
+        m_interpolateAngle = World.Config.Render.MaxFPS > Constants.TicksPerSecond && (TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo);
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
