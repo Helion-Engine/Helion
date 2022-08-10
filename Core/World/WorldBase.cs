@@ -1861,7 +1861,8 @@ public abstract partial class WorldBase : IWorld
         var node = EntityManager.Entities.Head;
         while (node != null)
         {
-            if (node.Value.Flags.CountKill)
+            var entity = node.Value;
+            if (!entity.IsDead && (entity.Flags.CountKill || !entity.IsPlayer))
             {
                 node.Value.ForceGib();
                 killCount++;
