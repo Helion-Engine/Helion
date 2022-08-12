@@ -599,6 +599,17 @@ public class PhysicsManager
         GetEntityClampValues(entity, clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
+        if (m_world.Config.Compatibility.InfinitelyTallThings)
+        {
+            entity.HighestFloorZ = highestFloorZ;
+            entity.LowestCeilingZ = lowestCeilZ;
+            entity.HighestFloorSector = highestFloor;
+            entity.LowestCeilingSector = lowestCeiling;
+            entity.HighestFloorObject = highestFloor;
+            entity.LowestCeilingObject = lowestCeiling;
+            return;
+        }
+
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
