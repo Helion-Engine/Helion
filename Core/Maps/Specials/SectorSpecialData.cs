@@ -88,6 +88,8 @@ public static class SectorSpecialData
 
     private static void SetAltSectorTypeData(int sectorType, SectorData sectorData, ISectorBits bits)
     {
+        // Only care about bits 5 and 6
+        sectorType &= 96;
         if (sectorType == bits.KillAllPlayserAndSecretExit)
             sectorData.InstantKillEffect = InstantKillEffect.KillAllPlayersSecretExit;
         else if (sectorType == bits.KillAllPlayersAndExit)
