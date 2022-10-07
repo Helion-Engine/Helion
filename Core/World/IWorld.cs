@@ -78,7 +78,7 @@ public interface IWorld : IDisposable
     IEnumerable<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
-    void ExitLevel(LevelChangeType type);
+    void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None);
     Entity[] GetBossTargets();
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);

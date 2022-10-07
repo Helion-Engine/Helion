@@ -115,14 +115,16 @@ public abstract partial class WorldBase : IWorld
     protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
+    private readonly IRandom m_saveRandom;
     private IRandom m_random;
-    private IRandom m_saveRandom;
 
     private int m_exitTicks;
     private int m_easyBossBrain;
     private int m_soundCount;
     private int m_lastBumpActivateGametick = 0;
+    private int m_exitGametick = 0;
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
+    private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
 
@@ -318,15 +320,21 @@ public abstract partial class WorldBase : IWorld
         {
             SoundManager.Tick();
             m_exitTicks--;
-            if (m_exitTicks == 0)
+
+            if (m_exitGametick == Gametick - 1)
+                ResetInterpolation();
+
+            if (m_exitTicks <= 0)
             {
-                LevelChangeEvent changeEvent = new(m_levelChangeType);
+                LevelChangeEvent changeEvent = new(m_levelChangeType, m_levelChangeFlags);
                 LevelExit?.Invoke(this, changeEvent);
                 if (changeEvent.Cancel)
                     WorldState = WorldState.Normal;
                 else
                     WorldState = WorldState.Exited;
+
                 m_random = m_saveRandom;
+                HandleExitFlags();
             }
         }
         else if (WorldState == WorldState.Normal)
@@ -348,6 +356,12 @@ public abstract partial class WorldBase : IWorld
         Gametick++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private void HandleExitFlags()
+    {
+        if (m_levelChangeFlags.HasFlag(LevelChangeFlags.KillAllPlayers))
+            KillAllPlayers();
     }
 
     private void TickPlayerStatusBars()
@@ -446,18 +460,15 @@ public abstract partial class WorldBase : IWorld
 
         Player player = entity.PlayerObj;
         if (effect.HasFlag(InstantKillEffect.KillAllPlayersExit))
-        {
-            KillAllPlayers();
-            ExitLevel(LevelChangeType.Next);
-        }
+            ExitLevel(LevelChangeType.Next, LevelChangeFlags.KillAllPlayers);
+
         if (effect.HasFlag(InstantKillEffect.KillAllPlayersSecretExit))
-            {
-            KillAllPlayers();
-            ExitLevel(LevelChangeType.SecretNext);
-        }
+            ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.KillAllPlayers);
+
         if (effect.HasFlag(InstantKillEffect.KillUnprotectedPlayer) && !player.Flags.Invulnerable &&
             !player.Inventory.IsPowerupActive(PowerupType.IronFeet))
             player.ForceGib();
+
         if (effect.HasFlag(InstantKillEffect.KillPlayer))
             player.ForceGib();
     }
@@ -602,16 +613,16 @@ public abstract partial class WorldBase : IWorld
         GC.SuppressFinalize(this);
     }
 
-    public void ExitLevel(LevelChangeType type)
+    public void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None)
     {
         SoundManager.ClearSounds();
         m_levelChangeType = type;
+        m_levelChangeFlags = flags;
         WorldState = WorldState.Exit;
         // The exit ticks thing is fudge. Change random to secondary to not break demos later.
         m_random = SecondaryRandom;
         m_exitTicks = 15;
-
-        ResetInterpolation();
+        m_exitGametick = Gametick;
     }
 
     public Entity[] GetBossTargets()
@@ -1501,7 +1512,7 @@ public abstract partial class WorldBase : IWorld
     protected void ResetLevel(bool loadLastWorldModel)
     {
         LevelChangeType type = loadLastWorldModel ? LevelChangeType.ResetOrLoadLast : LevelChangeType.Reset;
-        LevelExit?.Invoke(this, new LevelChangeEvent(type));
+        LevelExit?.Invoke(this, new LevelChangeEvent(type, LevelChangeFlags.None));
     }
 
     protected virtual void PerformDispose()
