@@ -53,6 +53,7 @@
     <PackageReference Include="SwitchAnalyzer" Version="0.6.10" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="TextCopy" Version="1.7.1" />
+    <PackageReference Include="zdbspSharp" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
