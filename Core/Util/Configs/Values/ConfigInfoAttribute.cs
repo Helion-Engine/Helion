@@ -31,11 +31,15 @@ public class ConfigInfoAttribute : Attribute
     // If true this option is serialized for demos.
     public readonly bool Demo;
 
-    public ConfigInfoAttribute(string description, bool save = true, bool serialize = false, bool demo = false)
+    // If the application needs to be restarted to take effect.
+    public readonly bool RestartRequired;
+
+    public ConfigInfoAttribute(string description, bool save = true, bool serialize = false, bool demo = false, bool restartRequired = false)
     {
         Description = description;
         Save = save;
         Serialize = serialize;
         Demo = demo;
+        RestartRequired = restartRequired;
     }
 }

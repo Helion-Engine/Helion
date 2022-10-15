@@ -329,9 +329,9 @@ public partial class Client : IDisposable
         {
             return new FileConfig(path, true);
         }
-        catch
+        catch (Exception ex)
         {
-            ShowFatalError("Critical error parsing config file");
+            ShowFatalError($"Critical error parsing config file.{Environment.NewLine}{ex.Message}");
             Environment.Exit(1);
             throw;
         }

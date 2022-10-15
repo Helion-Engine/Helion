@@ -28,4 +28,7 @@ public class ConfigHud
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
+
+    [ConfigInfo("Shows crosshair.")]
+    public readonly ConfigValue<bool> Crosshair = new(true);
 }
