@@ -467,7 +467,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!TickCommand.Has(TickCommands.Strafe))
+        if (!TickCommand.Has(TickCommands.Strafe) && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch += ViewPitchRadians;
@@ -512,7 +512,8 @@ public class Player : Entity
         Inventory.Tick();
         AnimationWeapon?.Tick();
 
-        m_interpolateAngle = World.Config.Render.MaxFPS > Constants.TicksPerSecond && (TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo);
+        m_interpolateAngle = ShouldInterpolate();
+
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
@@ -547,6 +548,20 @@ public class Player : Entity
 
         StatusBar.Tick();
         m_hasNewWeapon = false;
+    }
+
+    private bool IsMaxFpsTickRate() =>
+        World.Config.Render.MaxFPS != 0 && World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
+
+    private bool ShouldInterpolate()
+    {
+        if (IsMaxFpsTickRate())
+            return false;
+
+        if (World.Config.Mouse.Interpolate)
+            return true;
+
+        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
     }
 
     public void HandleTickCommand()
