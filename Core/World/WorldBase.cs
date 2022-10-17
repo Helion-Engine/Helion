@@ -106,6 +106,7 @@ public abstract partial class WorldBase : IWorld
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; } = new();
     public DataCache DataCache => ArchiveCollection.DataCache;
+    public abstract Player Player { get; protected set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;

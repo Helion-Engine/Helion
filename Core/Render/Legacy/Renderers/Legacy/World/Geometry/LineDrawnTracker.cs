@@ -11,7 +11,7 @@ public class LineDrawnTracker
     private int m_maxLineId;
     private BitArray m_lineWasDrawn = new BitArray(0);
 
-    public void UpdateToWorld(WorldBase world)
+    public void UpdateToWorld(IWorld world)
     {
         m_maxLineId = world.Lines.Max(line => line.Id);
         m_lineWasDrawn = new BitArray(m_maxLineId + 1);

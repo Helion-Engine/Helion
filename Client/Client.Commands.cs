@@ -144,18 +144,20 @@ public partial class Client
     [ConsoleCommand("mark.add", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
-        world.EntityManager.Create("MapMarker", world.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
+        var world = m_layerManager.WorldLayer.World;
+        world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
     }
 
     [ConsoleCommand("mark.remove", "Removes map markers within a 128 radius.")]
     private void CommandRemoveMark(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
+        var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
         var node = world.EntityManager.Entities.Head;
         while (node != null)
@@ -169,9 +171,10 @@ public partial class Client
     [ConsoleCommand("mark.clear", "Removes all map markers.")]
     private void CommandClearMarks(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
+        var world = m_layerManager.WorldLayer.World;
         var node = world.EntityManager.Entities.Head;
         while (node != null)
         {

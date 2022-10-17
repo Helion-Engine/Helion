@@ -35,8 +35,7 @@ public class SinglePlayerWorld : WorldBase
     public override double ListenerAngle => Player.AngleRadians;
     public override double ListenerPitch => Player.PitchRadians;
     public override Entity ListenerEntity => Player;
-
-    public Player Player { get; private set; }
+    public override Player Player { get; protected set; }
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,

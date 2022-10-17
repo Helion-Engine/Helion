@@ -533,8 +533,7 @@ public class PhysicsManager
 
     private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ, bool clampToLinkedSectors = true)
     {
-        // TODO fixme
-        if (entity.Definition.Name.Equals("BulletPuff", StringComparison.OrdinalIgnoreCase))
+        if (entity.Definition.IsBulletPuff)
             return;
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
@@ -1228,7 +1227,7 @@ public class PhysicsManager
         return false;
     }
 
-    private void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta,
+    private static void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta,
         ref int movesLeft)
     {
         // Our slide direction depends on if we're going along with the

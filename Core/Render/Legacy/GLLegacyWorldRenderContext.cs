@@ -34,17 +34,14 @@ public class GLLegacyWorldRenderContext : IWorldRenderContext
 
     public void Draw(IWorld world)
     {
-        if (m_context == null || world is not SinglePlayerWorld singlePlayerWorld)
-            return;
-
         Camera camera = m_context.Camera;
         Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
         m_oldCamera.Set(cameraPosition, camera.YawRadians, camera.PitchRadians);
 
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.
-        m_commands.DrawWorld(singlePlayerWorld, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
-            singlePlayerWorld.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
+        m_commands.DrawWorld(world, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
+            world.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
             m_context?.AutomapScale ?? 1.0);
     }
 

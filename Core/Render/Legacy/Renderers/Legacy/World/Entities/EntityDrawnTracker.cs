@@ -10,7 +10,7 @@ public class EntityDrawnTracker
     private int m_maxEntityId;
     private BitArray m_entityWasDrawn = new(0);
 
-    public void Reset(WorldBase world)
+    public void Reset(IWorld world)
     {
         int maxEntityId = world.EntityManager.MaxId + 1;
         if (maxEntityId > m_maxEntityId)

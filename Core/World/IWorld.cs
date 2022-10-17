@@ -66,9 +66,11 @@ public interface IWorld : IDisposable
     bool Paused { get; }
     bool DrawPause { get; }
     bool PlayingDemo { get; }
-    public GlobalData GlobalData { get; }
-    public CheatManager CheatManager { get; }
-    public DataCache DataCache { get; }
+    GlobalData GlobalData { get; }
+    CheatManager CheatManager { get; }
+    DataCache DataCache { get; }
+    Player Player { get; }
+
 
     void Link(Entity entity);
     void Tick();

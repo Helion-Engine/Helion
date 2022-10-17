@@ -75,13 +75,13 @@ public class LegacyWorldRenderer : WorldRenderer
         GC.SuppressFinalize(this);
     }
 
-    protected override void UpdateToNewWorld(WorldBase world)
+    protected override void UpdateToNewWorld(IWorld world)
     {
         m_geometryRenderer.UpdateTo(world);
         m_entityRenderer.UpdateTo(world);
     }
 
-    protected override void PerformAutomapRender(WorldBase world, RenderInfo renderInfo)
+    protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
         TraverseBsp(world, renderInfo);
@@ -89,7 +89,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer.Render(world, renderInfo);
     }
 
-    protected override void PerformRender(WorldBase world, RenderInfo renderInfo)
+    protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
 
@@ -98,7 +98,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Render(renderInfo);
     }
 
-    private void Clear(WorldBase world, RenderInfo renderInfo)
+    private void Clear(IWorld world, RenderInfo renderInfo)
     {
         m_viewClipper.Clear();
         m_worldDataManager.Clear();
@@ -109,7 +109,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private Sector m_viewSector;
 
-    private void TraverseBsp(WorldBase world, RenderInfo renderInfo)
+    private void TraverseBsp(IWorld world, RenderInfo renderInfo)
     {
         Vec2D position = renderInfo.Camera.Position.XY.Double;
         Vec3D position3D = renderInfo.Camera.Position.Double;
@@ -149,7 +149,7 @@ public class LegacyWorldRenderer : WorldRenderer
         return m_viewClipper.InsideAnyRange(first, second);
     }
 
-    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, WorldBase world)
+    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world)
     {
         Vec2D pos2D = position.XY;
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
