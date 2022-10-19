@@ -89,8 +89,6 @@ public class MainMenu : Menu
             {
                 if (ReadThisLayer.TryCreate(m_parent.Manager, m_soundManager, ArchiveCollection, out var layer))
                     m_parent.Manager.Add(layer);
-
-                m_parent.Manager.Remove(m_parent.Manager.MenuLayer);
             }
 
             return null;

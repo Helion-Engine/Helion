@@ -197,14 +197,19 @@ public class GameLayerManager : IGameLayerParent
             CreateMenuLayer();
         }
 
-        MenuLayer?.HandleInput(input);
         if (!HasMenuOrConsole())
         {
             EndGameLayer?.HandleInput(input);
-            ReadThisLayer?.HandleInput(input);
             TitlepicLayer?.HandleInput(input);
             IntermissionLayer?.HandleInput(input);
         }
+
+        if (ReadThisLayer == null)
+            MenuLayer?.HandleInput(input);
+
+        if (ConsoleLayer == null)
+            ReadThisLayer?.HandleInput(input);
+
         WorldLayer?.HandleInput(input);
     }
 
@@ -287,8 +292,8 @@ public class GameLayerManager : IGameLayerParent
                 IntermissionLayer?.Render(ctx, hud);
                 TitlepicLayer?.Render(hud);
                 EndGameLayer?.Render(ctx, hud);
-                ReadThisLayer?.Render(hud);
                 MenuLayer?.Render(hud);
+                ReadThisLayer?.Render(hud);
                 ConsoleLayer?.Render(ctx, hud);
             });
             m_profiler.Render.MiscLayers.Stop();
