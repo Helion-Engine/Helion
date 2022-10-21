@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -11,6 +12,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -38,20 +40,20 @@ public class Window : GameWindow, IWindow
     public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
     public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
     private readonly IConfig m_config;
-    private readonly bool IgnoreMouseEvents;
+    private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
     private bool m_disposed;
     private Vec2F m_prevScroll = Vec2F.Zero;
 
-    public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
+    public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
     {
         Log.Debug("Creating client window");
 
         m_config = config;
+        m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = CreateRenderer(config, archiveCollection, tracker);
-        IgnoreMouseEvents = config.Mouse.RawInput;
         RenderFrequency = config.Render.MaxFPS;
         SetVsync(config.Render.VSync.Value);
 
@@ -198,7 +200,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        if (IgnoreMouseEvents)
+        if (m_config.Mouse.RawInput || !m_inputManagement.ShouldHandleMouseMovement())
             return;
 
         Vec2F movement = (-args.Delta.X, -args.Delta.Y);

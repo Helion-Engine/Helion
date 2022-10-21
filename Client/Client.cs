@@ -2,10 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.IO.Compression;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 using Helion.Audio;
 using Helion.Audio.Impl;
@@ -35,7 +32,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
 
-public partial class Client : IDisposable
+public partial class Client : IDisposable, IInputManagement
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -65,7 +62,7 @@ public partial class Client : IDisposable
         m_archiveCollection = archiveCollection;
         m_saveGameManager = new SaveGameManager(config);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
-        m_window = new Window(config, archiveCollection, m_fpsTracker);
+        m_window = new Window(config, archiveCollection, m_fpsTracker, this);
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
 
@@ -75,9 +72,7 @@ public partial class Client : IDisposable
 
         m_console.OnConsoleCommandEvent += Console_OnCommand;
         m_window.RenderFrame += Window_MainLoop;
-
-        if (config.Mouse.RawInput)
-            m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
+        m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
 
         RegisterConfigChanges();
     }
@@ -200,13 +195,7 @@ public partial class Client : IDisposable
 
     private void HandleWinMouseMove(int deltaX, int deltaY)
     {
-        if (m_disposed)
-            return;
-
-        bool focus = m_window.IsFocused && m_layerManager.ShouldFocus();
-        m_window.SetGrabCursor(focus);
-
-        if (!focus)
+        if (m_disposed || !m_config.Mouse.RawInput || !ShouldHandleMouseMovement())
             return;
 
         m_window.HandleRawMouseMovement(-deltaX, -deltaY);
@@ -214,6 +203,13 @@ public partial class Client : IDisposable
         int x = m_window.Location.X + (m_window.Size.X / 2);
         int y = m_window.Location.Y + (m_window.Size.Y / 2);
         NativeMethods.SetMousePosition(x, y);
+    }
+
+    public bool ShouldHandleMouseMovement()
+    {
+        bool focus = m_window.IsFocused && m_layerManager.ShouldFocus();
+        m_window.SetGrabCursor(focus);
+        return focus;
     }
 
     private void PerformDispose()
