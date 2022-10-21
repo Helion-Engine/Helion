@@ -163,12 +163,8 @@ public abstract partial class WorldBase : IWorld
             Gravity = worldModel.Gravity;
             Random.Clone(worldModel.RandomIndex);
             CurrentBossTarget = worldModel.CurrentBossTarget;
-            GlobalData = new()
-            {
-                VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps),
-                TotalTime = worldModel.TotalTime
-            };
-
+            GlobalData.VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps);
+            GlobalData.TotalTime = worldModel.TotalTime;
             LevelStats.TotalMonsters = worldModel.TotalMonsters;
             LevelStats.TotalItems = worldModel.TotalItems;
             LevelStats.TotalSecrets = worldModel.TotalSecrets;
