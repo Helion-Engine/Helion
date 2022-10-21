@@ -86,12 +86,7 @@ public class GLLegacyRenderer : ILegacyRenderer
 
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
-        // TODO: Should base this off of the actor radius and config view
-        //       distance or the length of the level.
-        float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
-        zNear = MathHelper.Clamp(zNear, 0.5f, 7.9f);
-
-        mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 65536.0f);
+        mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.5f, 65536);
         return projection * view * model;
     }
 
