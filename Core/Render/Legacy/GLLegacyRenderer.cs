@@ -86,7 +86,7 @@ public class GLLegacyRenderer : ILegacyRenderer
 
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
-        mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.5f, 65536);
+        mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.5f, 65536.0f);
         return projection * view * model;
     }
 
