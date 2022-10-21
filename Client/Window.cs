@@ -201,19 +201,8 @@ public class Window : GameWindow, IWindow
         if (IgnoreMouseEvents)
             return;
 
-        if (m_config.Mouse.Focus)
-        {
-            int centerX = Size.X / 2;
-            int centerY = Size.Y / 2;
-            Vec2F movement = (centerX - MouseState.X, centerY - MouseState.Y);
-            m_inputManager.AddMouseMovement(movement.Int);
-            MousePosition = new Vector2(centerX, centerY);
-        }
-        else
-        {
-            Vec2F movement = (-args.Delta.X, -args.Delta.Y);
-            m_inputManager.AddMouseMovement(movement.Int);
-        }
+        Vec2F movement = (-args.Delta.X, -args.Delta.Y);
+        m_inputManager.AddMouseMovement(movement.Int);
     }
 
     private void Window_MouseUp(MouseButtonEventArgs args)
