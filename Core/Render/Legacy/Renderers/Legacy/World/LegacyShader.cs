@@ -135,20 +135,19 @@ public class LegacyShader : ShaderProgram
                 }
 
                 lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-
                 fragColor = texture(boundTexture, uvFrag.st);
-                fragColor.xyz *= colorMulFrag;
-                fragColor.xyz *= lightLevel;
-                fragColor.w *= alphaFrag;
 
                 if (fuzzFrag > 0) {
+                    lightLevel = 0;
                     // The division/floor is to chunk pixels together to make
                     // blocks. A larger denominator makes it more blocky.
                     vec2 blockCoordinate = floor(gl_FragCoord.xy);
-
-                    // I chose 0.3 because it gave the best ratio if alpha to non-alpha.
                     fragColor.w *= step(0.25, noise(blockCoordinate * timeFrac));
                 }
+
+                fragColor.xyz *= colorMulFrag;
+                fragColor.xyz *= lightLevel;
+                fragColor.w *= alphaFrag;
 
                 if (fragColor.w <= 0.0)
                     discard;
