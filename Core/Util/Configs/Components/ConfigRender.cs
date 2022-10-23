@@ -5,6 +5,13 @@ using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
+public enum RenderVsyncMode
+{
+    Off,
+    On,
+    Adaptive
+}
+
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
@@ -74,7 +81,7 @@ public class ConfigRender
     public readonly ConfigRenderVirtualDimension VirtualDimension = new();
 
     [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
-    public readonly ConfigValue<bool> VSync = new(true);
+    public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
     [ConfigInfo("Adds to the rendering light level offset.")]
     public readonly ConfigValue<int> ExtraLight = new(0);

@@ -285,7 +285,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
             return Definition.Properties.BloodType;
-        // TODO doom special cases...
         return "BLOOD";
     }
 

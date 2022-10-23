@@ -33,6 +33,7 @@ public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
 public interface IWorld : IDisposable
 {
     public event EventHandler? WorldResumed;
+    public event EventHandler? ClearConsole;
 
     string MapName { get; }
     int Gametick { get; }
@@ -65,9 +66,11 @@ public interface IWorld : IDisposable
     bool Paused { get; }
     bool DrawPause { get; }
     bool PlayingDemo { get; }
-    public GlobalData GlobalData { get; }
-    public CheatManager CheatManager { get; }
-    public DataCache DataCache { get; }
+    GlobalData GlobalData { get; }
+    CheatManager CheatManager { get; }
+    DataCache DataCache { get; }
+    Player Player { get; }
+
 
     void Link(Entity entity);
     void Tick();
@@ -77,7 +80,7 @@ public interface IWorld : IDisposable
     IEnumerable<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
-    void ExitLevel(LevelChangeType type);
+    void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None);
     Entity[] GetBossTargets();
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);

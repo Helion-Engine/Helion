@@ -10,6 +10,7 @@ namespace Helion.Util.CommandLine;
 /// </summary>
 public class CommandLineArgs
 {
+    public string[] OriginalArgs = Array.Empty<string>();
     public readonly List<string> Errors = new();
     public readonly List<string> Files = new();
     public string? Iwad { get; set; }
@@ -35,7 +36,7 @@ public class CommandLineArgs
     /// <returns>The command line argument results.</returns>
     public static CommandLineArgs Parse(string[] args)
     {
-        CommandLineArgs commandLineArgs = new();
+        CommandLineArgs commandLineArgs = new() { OriginalArgs = args };
         CommandParser parser = new(new[] { "-", "+" });
         List<CommandArg> parsedArgs = parser.Parse(args);
 

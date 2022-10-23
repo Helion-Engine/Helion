@@ -533,8 +533,7 @@ public class PhysicsManager
 
     private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ, bool clampToLinkedSectors = true)
     {
-        // TODO fixme
-        if (entity.Definition.Name.Equals("BulletPuff", StringComparison.OrdinalIgnoreCase))
+        if (entity.Definition.IsBulletPuff)
             return;
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
@@ -598,6 +597,17 @@ public class PhysicsManager
 
         GetEntityClampValues(entity, clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
+
+        if (m_world.Config.Compatibility.InfinitelyTallThings)
+        {
+            entity.HighestFloorZ = highestFloorZ;
+            entity.LowestCeilingZ = lowestCeilZ;
+            entity.HighestFloorSector = highestFloor;
+            entity.LowestCeilingSector = lowestCeiling;
+            entity.HighestFloorObject = highestFloor;
+            entity.LowestCeilingObject = lowestCeiling;
+            return;
+        }
 
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
@@ -1217,7 +1227,7 @@ public class PhysicsManager
         return false;
     }
 
-    private void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta,
+    private static void ReorientToSlideAlong(Entity entity, Line blockingLine, Vec2D residualStep, ref Vec2D stepDelta,
         ref int movesLeft)
     {
         // Our slide direction depends on if we're going along with the

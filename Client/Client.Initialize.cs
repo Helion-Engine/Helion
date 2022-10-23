@@ -98,6 +98,7 @@ public partial class Client
             return iwad;
 
         Log.Error("No IWAD found!");
+        ShowConsole();
         return null;
     }
 

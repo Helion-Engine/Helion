@@ -53,7 +53,7 @@ public class GeometryRenderer : IDisposable
     private bool m_cacheOverride;
     private Vec3D m_position;
     private Sector m_viewSector;
-    private WorldBase m_world;
+    private IWorld m_world;
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -98,7 +98,7 @@ public class GeometryRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void UpdateTo(WorldBase world)
+    public void UpdateTo(IWorld world)
     {
         m_world = world;
         m_skyRenderer.Reset();
@@ -121,7 +121,7 @@ public class GeometryRenderer : IDisposable
         Clear(m_tickFraction);
     }
 
-    private void CacheData(WorldBase world)
+    private void CacheData(IWorld world)
     {
         Vec2D pos = m_position.XY;
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)

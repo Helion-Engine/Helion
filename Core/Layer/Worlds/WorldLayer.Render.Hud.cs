@@ -193,7 +193,7 @@ public partial class WorldLayer
             hudContext.DrawInvul = false;
         }
 
-        if (!m_drawAutomap)
+        if (!m_drawAutomap && m_config.Hud.Crosshair)
             DrawCrosshair(hud);
 
         switch (m_config.Hud.StatusBarSize.Value)

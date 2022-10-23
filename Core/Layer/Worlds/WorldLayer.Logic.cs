@@ -14,7 +14,8 @@ public partial class WorldLayer
     private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
                                       m_parent.MenuLayer != null ||
                                       m_parent.TitlepicLayer != null ||
-                                      m_parent.IntermissionLayer != null;
+                                      m_parent.IntermissionLayer != null ||
+                                      m_parent.ReadThisLayer != null;
     public void RunLogic()
     {
         TickWorld();

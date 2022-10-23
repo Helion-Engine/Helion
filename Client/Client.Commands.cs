@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Helion.Bsp.Zdbsp;
 using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
@@ -13,6 +15,7 @@ using Helion.Render.Legacy.Shared;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
@@ -37,6 +40,32 @@ public partial class Client
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
 
+    [ConsoleCommand("restart", "Lists all available commands.")]
+    private void Restart(ConsoleCommandEventArgs args)
+    {
+        var assembly = System.Reflection.Assembly.GetEntryAssembly();
+        if (assembly == null)
+            return;
+
+        var path = Path.GetDirectoryName(assembly.Location);
+        if (path == null)
+            return;
+
+        // .net core runs through the dll. This currently won't work if the user renames the exe.
+        string application = Path.Combine(path, "Helion.exe");
+        if (!File.Exists(application))
+        {
+            Log.Error("Application not found.");
+            return;
+        }
+
+        if (m_config is FileConfig fileConfig)
+            fileConfig.Write();
+
+        Process.Start(application, m_commandLineArgs.OriginalArgs.Join(" "));
+        Environment.Exit(0);
+    }
+
     [ConsoleCommand(Constants.ConsoleCommands.Commands, "Lists all available commands.")]
     private void CommandListCommands(ConsoleCommandEventArgs args)
     {
@@ -52,6 +81,12 @@ public partial class Client
             return;
 
         var commands = GetAllCommands().Where(x => x.Contains(args.Args[0], StringComparison.OrdinalIgnoreCase));
+        if (!commands.Any())
+        {
+            Log.Warn("No commands found");
+            return;
+        }
+
         foreach (var command in commands)
             Log.Info(command);
     }
@@ -109,18 +144,20 @@ public partial class Client
     [ConsoleCommand("mark.add", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
-        world.EntityManager.Create("MapMarker", world.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
+        var world = m_layerManager.WorldLayer.World;
+        world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
     }
 
     [ConsoleCommand("mark.remove", "Removes map markers within a 128 radius.")]
     private void CommandRemoveMark(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
+        var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
         var node = world.EntityManager.Entities.Head;
         while (node != null)
@@ -134,9 +171,10 @@ public partial class Client
     [ConsoleCommand("mark.clear", "Removes all map markers.")]
     private void CommandClearMarks(ConsoleCommandEventArgs args)
     {
-        if (m_layerManager.WorldLayer == null || m_layerManager.WorldLayer.World is not SinglePlayerWorld world)
+        if (m_layerManager.WorldLayer == null)
             return;
 
+        var world = m_layerManager.WorldLayer.World;
         var node = world.EntityManager.Entities.Head;
         while (node != null)
         {
@@ -157,9 +195,14 @@ public partial class Client
         }
     }
 
+    [ConsoleCommand("audio.device", "The current audio device")]
+    private void CommandAudioDevice(ConsoleCommandEventArgs args)
+    {
+        Log.Info(m_config.Audio.Device.Value);
+    }
 
-    [ConsoleCommand("audio.device", "Sets a new audio device; can list devices with 'audioDevices'")]
-    [ConsoleCommandArg("deviceIndex", "The device number from 'audioDevices' command")]
+    [ConsoleCommand("audio.setdevice", "Sets a new audio device; can list devices with 'audioDevices'")]
+    [ConsoleCommandArg("deviceIndex", "The device number from 'audio.devices' command")]
     private void CommandSetAudioDevice(ConsoleCommandEventArgs args)
     {
         if (!int.TryParse(args.Args[0], out int deviceIndex))
@@ -400,6 +443,7 @@ public partial class Client
             }
         }
 
+        bool success = true;
         ConfigSetResult result = component.Value.Set(args.Args[0]);
         switch (result)
         {
@@ -413,15 +457,21 @@ public partial class Client
                 Log.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
                 break;
             case ConfigSetResult.NotSetByBadConversion:
+                success = false;
                 Log.Warn($"{args.Command} could not be set, incompatible argument");
                 break;
             case ConfigSetResult.NotSetByFilter:
+                success = false;
                 Log.Warn($"{args.Command} could not be set, out of range or invalid argument");
                 break;
             default:
+                success = false;
                 Log.Error($"{args.Command} unexpected setting result, report to a developer!");
                 break;
         }
+
+        if (success && component.Attribute.RestartRequired)
+            Log.Warn("Restart required for this change to take effect.");
 
         return true;
     }
@@ -540,6 +590,12 @@ public partial class Client
     {
         newLayer.World.LevelExit += World_LevelExit;
         newLayer.World.WorldResumed += World_WorldResumed;
+        newLayer.World.ClearConsole += World_ClearConsole;
+    }
+
+    private void World_ClearConsole(object? sender, EventArgs e)
+    {
+        m_layerManager.Remove(m_layerManager.ConsoleLayer);
     }
 
     private void UnRegisterWorldEvents()
@@ -549,6 +605,7 @@ public partial class Client
 
         m_layerManager.WorldLayer.World.LevelExit -= World_LevelExit;
         m_layerManager.WorldLayer.World.WorldResumed -= World_WorldResumed;
+        m_layerManager.WorldLayer.World.ClearConsole -= World_ClearConsole;
     }
 
     private void World_WorldResumed(object? sender, EventArgs e)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -10,6 +11,9 @@ using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
+using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -36,22 +40,22 @@ public class Window : GameWindow, IWindow
     public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
     public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
     private readonly IConfig m_config;
-    private readonly bool IgnoreMouseEvents;
+    private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
     private bool m_disposed;
     private Vec2F m_prevScroll = Vec2F.Zero;
 
-    public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker) :
+    public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
     {
         Log.Debug("Creating client window");
 
         m_config = config;
+        m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = CreateRenderer(config, archiveCollection, tracker);
-        IgnoreMouseEvents = config.Mouse.RawInput;
-        VSync = config.Render.VSync ? VSyncMode.Adaptive : VSyncMode.Off;
         RenderFrequency = config.Render.MaxFPS;
+        SetVsync(config.Render.VSync.Value);
 
         KeyDown += Window_KeyDown;
         KeyUp += Window_KeyUp;
@@ -63,6 +67,24 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
+    }
+
+    private void SetVsync(RenderVsyncMode mode)
+    {
+        switch (mode)
+        {
+            case RenderVsyncMode.Off:
+                VSync = VSyncMode.Off;
+                break;
+            case RenderVsyncMode.On:
+                VSync = VSyncMode.On;
+                break;
+            case RenderVsyncMode.Adaptive:
+                VSync = VSyncMode.Adaptive;
+                break;
+            default:
+                break;
+        }
     }
 
     public List<MonitorData> GetMonitors(out MonitorData? currentMonitor)
@@ -109,16 +131,25 @@ public class Window : GameWindow, IWindow
             Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
             APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
             Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
-            //IsFullscreen = config.Window.State == WindowState.Fullscreen,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
             Title = Constants.ApplicationName,
             WindowBorder = config.Window.Border,
-            WindowState = config.Window.State,
+            WindowState = GetWindowState(config.Window.State.Value),
         };
 
         SetDisplay(config, settings);
         return settings;
+    }
+
+    private static WindowState GetWindowState(RenderWindowState state)
+    {
+        return state switch
+        {
+            RenderWindowState.Fullscreen => WindowState.Fullscreen,
+            RenderWindowState.Maximized => WindowState.Maximized,
+            _ => WindowState.Normal,
+        };
     }
 
     private static void SetDisplay(IConfig config, NativeWindowSettings settings)
@@ -169,22 +200,11 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        if (IgnoreMouseEvents)
+        if (m_config.Mouse.RawInput || !m_inputManagement.ShouldHandleMouseMovement())
             return;
 
-        if (m_config.Mouse.Focus)
-        {
-            int centerX = Size.X / 2;
-            int centerY = Size.Y / 2;
-            Vec2F movement = (centerX - MouseState.X, centerY - MouseState.Y);
-            m_inputManager.AddMouseMovement(movement.Int);
-            MousePosition = new Vector2(centerX, centerY);
-        }
-        else
-        {
-            Vec2F movement = (-args.Delta.X, -args.Delta.Y);
-            m_inputManager.AddMouseMovement(movement.Int);
-        }
+        Vec2F movement = (-args.Delta.X, -args.Delta.Y);
+        m_inputManager.AddMouseMovement(movement.Int);
     }
 
     private void Window_MouseUp(MouseButtonEventArgs args)
@@ -216,9 +236,9 @@ public class Window : GameWindow, IWindow
         RenderFrequency = maxFps;
     }
 
-    private void OnVSyncChanged(object? sender, bool useVSync)
+    private void OnVSyncChanged(object? sender, RenderVsyncMode mode)
     {
-        VSync = useVSync ? VSyncMode.Adaptive : VSyncMode.Off;
+        SetVsync(mode);
     }
 
     private void PerformDispose()

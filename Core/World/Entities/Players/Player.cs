@@ -432,14 +432,26 @@ public class Player : Entity
         return true;
     }
 
-    public void AddToYaw(double delta)
+    public void AddToYaw(double delta, bool isMouse)
     {
-        ViewAngleRadians += delta;
+        if (isMouse)
+        {
+            ViewAngleRadians += delta;
+            return;
+        }
+
+        AngleRadians = MathHelper.GetPositiveAngle(AngleRadians + delta);
     }
 
-    public void AddToPitch(double delta)
+    public void AddToPitch(double delta, bool isMouse)
     {
-        ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
+        if (isMouse)
+        {
+            ViewPitchRadians = AddPitch(ViewPitchRadians, delta);
+            return;
+        }
+
+        PitchRadians = AddPitch(PitchRadians, delta);
     }
 
     private static double AddPitch(double pitch, double delta)
@@ -455,7 +467,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!TickCommand.Has(TickCommands.Strafe))
+        if (!TickCommand.Has(TickCommands.Strafe) && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch += ViewPitchRadians;
@@ -500,7 +512,8 @@ public class Player : Entity
         Inventory.Tick();
         AnimationWeapon?.Tick();
 
-        m_interpolateAngle = TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
+        m_interpolateAngle = ShouldInterpolate();
+
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
@@ -537,6 +550,20 @@ public class Player : Entity
         m_hasNewWeapon = false;
     }
 
+    private bool IsMaxFpsTickRate() =>
+        World.Config.Render.MaxFPS != 0 && World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
+
+    private bool ShouldInterpolate()
+    {
+        if (IsMaxFpsTickRate())
+            return false;
+
+        if (World.Config.Mouse.Interpolate)
+            return true;
+
+        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
+    }
+
     public void HandleTickCommand()
     {
         if (TickCommand.Has(TickCommands.Use))
@@ -546,10 +573,10 @@ public class Player : Entity
             return;
 
         if (TickCommand.AngleTurn != 0 && !TickCommand.Has(TickCommands.Strafe))
-            AddToYaw(TickCommand.AngleTurn);
+            AddToYaw(TickCommand.AngleTurn, false);
 
         if (TickCommand.PitchTurn != 0)
-            AddToPitch(TickCommand.PitchTurn);
+            AddToPitch(TickCommand.PitchTurn, false);
 
         Vec3D movement = Vec3D.Zero;
         movement += CalculateForwardMovement(TickCommand.ForwardMoveSpeed);

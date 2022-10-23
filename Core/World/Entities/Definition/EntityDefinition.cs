@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -16,6 +17,7 @@ public class EntityDefinition
     public readonly EntityProperties Properties;
     public readonly EntityStates States;
     public readonly List<string> ParentClassNames;
+    public readonly bool IsBulletPuff;
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -31,6 +33,7 @@ public class EntityDefinition
         States = new EntityStates();
         ParentClassNames = parentClassNames;
         parentClassNames.ForEach(x => ParentClassLookup.Add(x));
+        IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
     }
 
     /// <summary>

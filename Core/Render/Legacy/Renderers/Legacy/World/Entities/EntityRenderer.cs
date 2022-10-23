@@ -50,12 +50,12 @@ public class EntityRenderer
         m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
     }
 
-    public void UpdateTo(WorldBase world)
+    public void UpdateTo(IWorld world)
     {
-        PreloadAllTextures(world);
+        
     }
 
-    public void Clear(WorldBase world, double tickFraction, Entity cameraEntity)
+    public void Clear(IWorld world, double tickFraction, Entity cameraEntity)
     {
         // I'm hitching a ride here so we don't keep making a bunch of
         // invocations to this for every single sprite to avoid overhead
@@ -120,11 +120,6 @@ public class EntityRenderer
         if (entity.Flags.Bright || entity.Frame.Properties.Bright)
             return 255;
         return sectorLightLevel;
-    }
-
-    private void PreloadAllTextures(WorldBase world)
-    {
-        // TODO
     }
 
     private bool ShouldNotDraw(Entity entity)

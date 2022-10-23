@@ -423,6 +423,7 @@ STSTR_CLEV = "Changing level...";
 STSTR_FLY = "Fly";
 STSTR_DIE = "Die";
 STSTR_RES = "Resurrect";
+STSTR_MONSTERSKILLED = "Monsters killed";
 
 // Locks
 PD_BLUEO = "You need a blue key to activate this object";
