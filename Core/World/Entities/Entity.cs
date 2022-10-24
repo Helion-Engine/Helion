@@ -71,6 +71,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
+    // Possible line with middle texture clipping player's view.
+    public bool ViewLineClip;
     public WeakEntity Target { get; private set; } = WeakEntity.Default;
     public WeakEntity Tracer { get; private set; } = WeakEntity.Default;
     public WeakEntity OnEntity { get; private set; } = WeakEntity.Default;

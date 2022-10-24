@@ -928,6 +928,7 @@ public class PhysicsManager
         Box2D nextBox = new(position, entity.Radius);
         entity.BlockingLine = null;
         entity.BlockingEntity = null;
+        entity.ViewLineClip = false;
         m_blockmap.Iterate(nextBox, CheckForBlockers);
 
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
@@ -994,6 +995,11 @@ public class PhysicsManager
                 if (line.Segment.Intersects(nextBox))
                 {
                     LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
+
+                    if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer && (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
+                        (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
+                        entity.ViewLineClip = true;
+
                     if (blockType != LineBlock.NoBlock)
                     {
                         entity.BlockingLine = line;
