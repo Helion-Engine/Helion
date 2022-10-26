@@ -66,7 +66,6 @@ public class GeometryRenderer : IDisposable
     private SkyGeometryVertex[][] m_skyCeilingVertexLookup = Array.Empty<SkyGeometryVertex[]>();
 
     private List<Subsector>?[] m_subsectors = Array.Empty<List<Subsector>>();
-    private BitArray m_renderedSectors = new(0);
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -103,7 +102,6 @@ public class GeometryRenderer : IDisposable
         m_world = world;
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
-        m_renderedSectors = new BitArray(world.Sectors.Count);
         PreloadAllTextures(world);
 
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];
@@ -170,7 +168,6 @@ public class GeometryRenderer : IDisposable
         m_tickFraction = tickFraction;
         m_skyRenderer.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
-        m_renderedSectors.SetAll(false);
         AlphaSides.Clear();
     }
 
@@ -179,7 +176,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Render(renderInfo);
     }
 
-    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
+    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, bool hasRenderedSector)
     {
         m_viewSector = viewSector;
         m_floorChanged = subsector.Sector.Floor.CheckRenderingChanged();
@@ -195,12 +192,14 @@ public class GeometryRenderer : IDisposable
             // We can currently only cache one veiw position, middle should be the most common
             m_cacheOverride = TransferHeights.GetView(m_viewSector, m_position.Z) != TransferHeights.TransferHeightView.Middle;
             RenderWalls(subsector, position, position.XY);
-            RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
+            if (!hasRenderedSector)
+                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
 
         RenderWalls(subsector, position, position.XY);
-        RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
+        if (!hasRenderedSector)
+            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
     // The set sector is optional for the transfer heights control sector.
@@ -208,7 +207,7 @@ public class GeometryRenderer : IDisposable
     private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
     {
         List<Subsector>? subsectors = m_subsectors[sector.Id];
-        if (subsectors == null || m_renderedSectors.Get(sector.Id))
+        if (subsectors == null)
             return;
 
         sector.LastRenderGametick = m_world.Gametick;
@@ -234,8 +233,6 @@ public class GeometryRenderer : IDisposable
             if (ceilingVisible)
                 RenderFlat(renderSubsector, renderSector.Ceiling, false);
         }
-
-        m_renderedSectors.Set(sector.Id, true);
     }
 
     public void Dispose()
@@ -318,7 +315,7 @@ public class GeometryRenderer : IDisposable
             m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
-    public void RenderAlphaSide(Side side, bool isFrontSide, in Vec3D position)
+    public void RenderAlphaSide(Side side, bool isFrontSide)
     {
         if (side.Line.Back == null)
             return;
