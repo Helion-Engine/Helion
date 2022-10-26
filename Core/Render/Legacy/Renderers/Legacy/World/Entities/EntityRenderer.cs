@@ -298,7 +298,6 @@ public class EntityRenderer
             }
 
             m_renderPositions.Add(centerBottom.XY);
-
         }
         else
         {
