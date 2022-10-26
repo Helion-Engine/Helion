@@ -143,7 +143,7 @@ public partial class WorldLayer
     {
         topRightY = 0;
 
-        if (!m_config.Render.ShowFPS)
+        if (!m_config.Hud.ShowFPS)
             return;
 
         DrawFpsValue("", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
