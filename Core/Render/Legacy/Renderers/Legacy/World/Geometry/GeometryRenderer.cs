@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Renderers.Legacy.World.Data;
@@ -60,12 +61,13 @@ public class GeometryRenderer : IDisposable
     private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
     private SkyGeometryVertex[][] m_skyWallVertexLowerLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[][] m_skyWallVertexUpperLookup = Array.Empty<SkyGeometryVertex[]>();
-    private LegacyVertex[][] m_vertexFloorLookup = Array.Empty<LegacyVertex[]>();
-    private LegacyVertex[][] m_vertexCeilingLookup = Array.Empty<LegacyVertex[]>();
     private SkyGeometryVertex[][] m_skyFloorVertexLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[][] m_skyCeilingVertexLookup = Array.Empty<SkyGeometryVertex[]>();
+    private LegacyVertex[][] m_vertexFloorLookup = Array.Empty<LegacyVertex[]>();
+    private LegacyVertex[][] m_vertexCeilingLookup = Array.Empty<LegacyVertex[]>();
 
-    private List<Subsector>?[] m_subsectors = Array.Empty<List<Subsector>>();
+    // List of each subsector mapped to a sector id
+    private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -109,11 +111,13 @@ public class GeometryRenderer : IDisposable
         m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
         m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
         m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
-        m_skyFloorVertexLookup = new SkyGeometryVertex[world.BspTree.Subsectors.Length][];
-        m_skyCeilingVertexLookup = new SkyGeometryVertex[world.BspTree.Subsectors.Length][];
-        m_vertexFloorLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
-        m_vertexCeilingLookup = new LegacyVertex[world.BspTree.Subsectors.Length][];
-        m_subsectors = new List<Subsector>[world.BspTree.Subsectors.Length];
+        m_skyFloorVertexLookup = new SkyGeometryVertex[world.Sectors.Count][];
+        m_skyCeilingVertexLookup = new SkyGeometryVertex[world.Sectors.Count][];
+        m_vertexFloorLookup = new LegacyVertex[world.Sectors.Count][];
+        m_vertexCeilingLookup = new LegacyVertex[world.Sectors.Count][];
+        m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
+        for (int i = 0; i < world.Sectors.Count; i++)
+            m_subsectors[i] = new();
 
         CacheData(world);
         Clear(m_tickFraction);
@@ -125,13 +129,7 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
-            List<Subsector>? subsectors = m_subsectors[subsector.Sector.Id];
-            if (subsectors == null)
-            {
-                subsectors = new();
-                m_subsectors[subsector.Sector.Id] = subsectors;
-            }
-
+            DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
 
             if (subsector.Sector.TransferHeights != null)
@@ -154,12 +152,19 @@ public class GeometryRenderer : IDisposable
                 
                 RenderSide(edge.Side, true);
             }
+        }
+
+        for (int i = 0; i < m_subsectors.Length; i++)
+        {
+            DynamicArray<Subsector> subsectors = m_subsectors[i];
+            if (subsectors.Length == 0)
+                continue;
 
             // Set position Z within plane view so it's not culled
-            m_position.Z = subsector.Sector.Floor.Plane.ToZ(pos) + 1;
-            RenderFlat(subsector, subsector.Sector.Floor, true);
-            m_position.Z = subsector.Sector.Ceiling.Plane.ToZ(pos) - 1;
-            RenderFlat(subsector, subsector.Sector.Ceiling, false);
+            m_position.Z = subsectors[0].Sector.Floor.Plane.ToZ(pos) + 1;
+            RenderFlat(subsectors, subsectors[0].Sector.Floor, true);
+            m_position.Z = subsectors[0].Sector.Ceiling.Plane.ToZ(pos) - 1;
+            RenderFlat(subsectors, subsectors[0].Sector.Ceiling, false);
         }
     }
 
@@ -206,10 +211,7 @@ public class GeometryRenderer : IDisposable
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
     private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
     {
-        List<Subsector>? subsectors = m_subsectors[sector.Id];
-        if (subsectors == null)
-            return;
-
+        DynamicArray<Subsector> subsectors = m_subsectors[sector.Id];
         sector.LastRenderGametick = m_world.Gametick;
 
         bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
@@ -225,14 +227,10 @@ public class GeometryRenderer : IDisposable
             set.Ceiling.LastRenderGametick = m_world.Gametick;
         }
 
-        for (int i = 0; i < subsectors.Count; i++)
-        {
-            Subsector renderSubsector = subsectors[i];
-            if (floorVisible)
-                RenderFlat(renderSubsector, renderSector.Floor, true);
-            if (ceilingVisible)
-                RenderFlat(renderSubsector, renderSector.Ceiling, false);
-        }
+        if (floorVisible)
+            RenderFlat(subsectors, renderSector.Floor, true);
+        if (ceilingVisible)
+            RenderFlat(subsectors, renderSector.Ceiling, false);
     }
 
     public void Dispose()
@@ -730,86 +728,122 @@ public class GeometryRenderer : IDisposable
         return (bottomZ, topZ);
     }
 
-    private void RenderFlat(Subsector subsector, SectorPlane flat, bool floor)
+    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor)
     {
-        // TODO: If we can't see it (dot product the plane) then exit.
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        bool flatChanged = FlatChanged(flat);
+        int id = subsectors[0].Sector.Id;
 
         if (isSky)
         {
-            SkyGeometryVertex[]? data = floor ? m_skyFloorVertexLookup[subsector.Id] : m_skyCeilingVertexLookup[subsector.Id];
+            SkyGeometryVertex[]? lookupData = floor ? m_skyFloorVertexLookup[id] : m_skyCeilingVertexLookup[id];
+            bool generate = lookupData == null;
+            lookupData ??= InitSkyVerticies(subsectors, floor, id);
 
-            if (FlatChanged(flat) || data == null || m_cacheOverride)
+            if (generate || flatChanged || m_cacheOverride)
             {
-                // TODO: A lot of calculations aren't needed for sky coordinates, waste of computation.
-                // Note that the subsector triangulator is supposed to realize when
-                // we're passing it a floor or ceiling and order the vertices for
-                // us such that it's always in counter-clockwise order.
-                WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices,
-                    floor ? flat.Z : MaxSky);
-                WorldVertex root = m_subsectorVertices[0];
-                m_skyVertices.Clear();
-                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                int indexStart = 0;
+                for (int j = 0; j < subsectors.Length; j++)
                 {
-                    WorldVertex second = m_subsectorVertices[i];
-                    WorldVertex third = m_subsectorVertices[i + 1];
-                    CreateSkyFlatVertices(m_skyVertices, root, second, third);
-                }
+                    Subsector subsector = subsectors[j];
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices,
+                        floor ? flat.Z : MaxSky);
+                    WorldVertex root = m_subsectorVertices[0];
+                    m_skyVertices.Clear();
+                    for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                    {
+                        WorldVertex second = m_subsectorVertices[i];
+                        WorldVertex third = m_subsectorVertices[i + 1];
+                        CreateSkyFlatVertices(m_skyVertices, root, second, third);
+                    }
 
-                if (m_cacheOverride)
-                {
-                    m_skyRenderer.Add(m_skyVertices.Data, m_skyVertices.Length, subsector.Sector.SkyTextureHandle, subsector.Sector.FlipSkyTexture);
-                    return;
+                    Array.Copy(m_skyVertices.Data, 0, lookupData, indexStart, m_skyVertices.Length);
+                    indexStart += m_skyVertices.Length;
                 }
-
-                data = new SkyGeometryVertex[m_skyVertices.Length];
-                Array.Copy(m_skyVertices.Data, data, m_skyVertices.Length);
-                if (floor)
-                    m_skyFloorVertexLookup[subsector.Id] = data;
-                else
-                    m_skyCeilingVertexLookup[subsector.Id] = data;
             }
 
-            m_skyRenderer.Add(data, data.Length, subsector.Sector.SkyTextureHandle, subsector.Sector.FlipSkyTexture);
+            m_skyRenderer.Add(lookupData, lookupData.Length, subsectors[0].Sector.SkyTextureHandle, subsectors[0].Sector.FlipSkyTexture);
         }
         else
         {
-            LegacyVertex[]? data = floor ? m_vertexFloorLookup[subsector.Id] : m_vertexCeilingLookup[subsector.Id];
+            LegacyVertex[]? lookupData = floor ? m_vertexFloorLookup[id] : m_vertexCeilingLookup[id];
+            bool generate = lookupData == null;
+            bool lightingChanged = flat.Sector.LightingChanged();
+            lookupData ??= InitSectorVerticies(subsectors, floor, id);
 
-            if (FlatChanged(flat) || data == null || m_cacheOverride)
+            if (generate || flatChanged || m_cacheOverride)
             {
-                WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
-                WorldVertex root = m_subsectorVertices[0];
-                m_vertices.Clear();
-                for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                int indexStart = 0;
+                for (int j = 0; j < subsectors.Length; j++)
                 {
-                    WorldVertex second = m_subsectorVertices[i];
-                    WorldVertex third = m_subsectorVertices[i + 1];
-                    GetFlatVertices(m_vertices, ref root, ref second, ref third, flat.RenderLightLevel);
-                }
+                    Subsector subsector = subsectors[j];
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
+                    WorldVertex root = m_subsectorVertices[0];
+                    m_vertices.Clear();
+                    for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
+                    {
+                        WorldVertex second = m_subsectorVertices[i];
+                        WorldVertex third = m_subsectorVertices[i + 1];
+                        GetFlatVertices(m_vertices, ref root, ref second, ref third, flat.RenderLightLevel);
+                    }
 
-                if (m_cacheOverride)
-                {
-                    renderData.Vbo.Add(m_vertices.Data, m_vertices.Length);
-                    return;
+                    Array.Copy(m_vertices.Data, 0, lookupData, indexStart, m_vertices.Length);
+                    indexStart += m_vertices.Length;
                 }
-
-                data = new LegacyVertex[m_vertices.Length];
-                Array.Copy(m_vertices.Data, data, m_vertices.Length);
-                if (floor)
-                    m_vertexFloorLookup[subsector.Id] = data;
-                else
-                    m_vertexCeilingLookup[subsector.Id] = data;
             }
-            else if (flat.Sector.LightingChanged())
+            else if (lightingChanged)
             {
-                SetLightToVertices(data, flat.RenderLightLevel);
+                SetLightToVertices(lookupData, flat.RenderLightLevel);
             }
 
-            renderData.Vbo.Add(data);
+            renderData.Vbo.Add(lookupData);
         }
+    }
+
+    private LegacyVertex[] InitSectorVerticies(DynamicArray<Subsector> subsectors, bool floor, int id)
+    {
+        LegacyVertex[]? lookupData;
+        int count = 0;
+        for (int j = 0; j < subsectors.Length; j++)
+        {
+            Subsector subsector = subsectors[j];
+            count += (subsector.ClockwiseEdges.Count - 2) * 3;
+        }
+        lookupData = new LegacyVertex[count];
+
+        if (!m_cacheOverride)
+        {
+            if (floor)
+                m_vertexFloorLookup[id] = lookupData;
+            else
+                m_vertexCeilingLookup[id] = lookupData;
+        }
+
+        return lookupData;
+    }
+
+    private SkyGeometryVertex[] InitSkyVerticies(DynamicArray<Subsector> subsectors, bool floor, int id)
+    {
+        SkyGeometryVertex[]? lookupData;
+        int count = 0;
+        for (int j = 0; j < subsectors.Length; j++)
+        {
+            Subsector subsector = subsectors[j];
+            count += (subsector.ClockwiseEdges.Count - 2) * 3;
+        }
+        lookupData = new SkyGeometryVertex[count];
+
+        if (!m_cacheOverride)
+        {
+            if (floor)
+                m_skyFloorVertexLookup[id] = lookupData;
+            else
+                m_skyCeilingVertexLookup[id] = lookupData;
+        }
+
+        return lookupData;
     }
 
     private bool FlatChanged(SectorPlane flat)
