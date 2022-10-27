@@ -765,7 +765,7 @@ public class GeometryRenderer : IDisposable
                     return;
                 }
 
-                data = new SkyGeometryVertex[m_skyVertices.Length];
+                data ??= new SkyGeometryVertex[m_skyVertices.Length];
                 Array.Copy(m_skyVertices.Data, data, m_skyVertices.Length);
                 if (floor)
                     m_skyFloorVertexLookup[subsector.Id] = data;
@@ -797,7 +797,7 @@ public class GeometryRenderer : IDisposable
                     return;
                 }
 
-                data = new LegacyVertex[m_vertices.Length];
+                data ??= new LegacyVertex[m_vertices.Length];
                 Array.Copy(m_vertices.Data, data, m_vertices.Length);
                 if (floor)
                     m_vertexFloorLookup[subsector.Id] = data;
