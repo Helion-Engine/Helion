@@ -62,8 +62,8 @@ public class GeometryRenderer : IDisposable
     private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
     private SkyGeometryVertex[][] m_skyWallVertexLowerLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[][] m_skyWallVertexUpperLookup = Array.Empty<SkyGeometryVertex[]>();
-    private readonly DynamicArray<LegacyVertex[][]> m_vertexFloorLookup = new(3);
-    private readonly DynamicArray<LegacyVertex[][]> m_vertexCeilingLookup = new(3);
+    private DynamicArray<LegacyVertex[][]> m_vertexFloorLookup = new(3);
+    private DynamicArray<LegacyVertex[][]> m_vertexCeilingLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyFloorVertexLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyCeilingVertexLookup = new(3);
 
@@ -115,6 +115,11 @@ public class GeometryRenderer : IDisposable
         m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
         for (int i = 0; i < world.Sectors.Count; i++)
             m_subsectors[i] = new();
+
+        m_vertexFloorLookup = new(3);
+        m_vertexCeilingLookup = new(3);
+        m_skyFloorVertexLookup = new(3);
+        m_skyCeilingVertexLookup = new(3);
 
         CacheData(world);
         Clear(m_tickFraction);
@@ -847,7 +852,7 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private SkyGeometryVertex[] InitSkyVerticies(DynamicArray<Subsector> subsectors, bool floor, int id, SkyGeometryVertex[][] lookup)
+    private static SkyGeometryVertex[] InitSkyVerticies(DynamicArray<Subsector> subsectors, bool floor, int id, SkyGeometryVertex[][] lookup)
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
