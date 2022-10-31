@@ -101,6 +101,15 @@ public class SectorMoveSpecial : ISectorSpecial
             CreateSound(SoundData.MovementSound, true);
     }
 
+    // If setting the plane to destZ would complete this move.
+    public bool IsFinalDestination(double destZ)
+    {
+        if (m_direction == MoveDirection.Down)
+            return destZ <= DestZ;
+
+        return destZ >= DestZ;
+    }
+
     private void InitSpeeds()
     {
         m_startSpeed = MoveData.StartDirection == MoveDirection.Down ? -MoveData.Speed : MoveData.Speed;

@@ -65,6 +65,8 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Instant floor raise blocked")]
         public void InstantFloorRaiseBlock()
         {
+            // The floor actually does not raise at all in this case.
+            // When triggering a lower past the destination any blocking stops it entirely.
             var sector = GameActions.GetSectorByTag(World, 4);
             sector.Floor.SetZ(-256);
             var line = GameActions.GetLine(World, FloorRaiseLine1);
@@ -74,8 +76,8 @@ namespace Helion.Tests.Unit.GameAction
             sector.ActiveFloorMove.Should().NotBeNull();
             World.Tick();
 
-            sector.Floor.Z.Should().Be(-monster.Height);
-            monster.Position.Z.Should().Be(-monster.Height);
+            sector.Floor.Z.Should().Be(-256);
+            monster.Position.Z.Should().Be(-256);
 
             GameActions.DestroyCreatedEntities(World);
         }
