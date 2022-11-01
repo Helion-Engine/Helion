@@ -432,7 +432,8 @@ public class GeometryRenderer : IDisposable
     private bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
-        if (isFacingSky && TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+        bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+        if (isFacingSky && isOtherSky)
         {
             // The sky is only drawn if there is no opening height
             // Otherwise ignore this line for sky effects
@@ -442,11 +443,17 @@ public class GeometryRenderer : IDisposable
         double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
 
+        bool upperVisible = facingZ > otherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
-        if (isFacingSky && facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
-            return facingZ <= otherZ;
+        if (isFacingSky)
+        {
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
+                return facingZ <= otherZ;
+            // Need to draw sky upper if other sector is not sky.
+            return !isOtherSky;
+        }
 
-        return facingZ > otherZ;
+        return upperVisible;
     }
 
     private void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide)
