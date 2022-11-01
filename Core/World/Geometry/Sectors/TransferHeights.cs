@@ -4,7 +4,6 @@ public class TransferHeights
 {
     public enum TransferHeightView
     {
-        None,
         Top,
         Middle,
         Bottom,
