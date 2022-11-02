@@ -224,17 +224,14 @@ public class GeometryRenderer : IDisposable
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
+            RenderFlat(subsectors, renderSector.Floor, true);
         }
         if (ceilingVisible)
         {
             sector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
-        }
-
-        if (floorVisible)
-            RenderFlat(subsectors, renderSector.Floor, true);
-        if (ceilingVisible)
             RenderFlat(subsectors, renderSector.Ceiling, false);
+        }
     }
 
     public void Dispose()
