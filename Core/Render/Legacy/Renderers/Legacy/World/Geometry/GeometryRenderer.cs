@@ -55,7 +55,7 @@ public class GeometryRenderer : IDisposable
     private Vec3D m_position;
     private Sector m_viewSector;
     private IWorld m_world;
-    private TransferHeights.TransferHeightView m_transferHeightsView;
+    private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -189,22 +189,23 @@ public class GeometryRenderer : IDisposable
         m_floorChanged = subsector.Sector.Floor.CheckRenderingChanged();
         m_ceilingChanged = subsector.Sector.Ceiling.CheckRenderingChanged();
         m_position = position;
-        m_cacheOverride = false;
-        m_transferHeightsView = TransferHeights.TransferHeightView.Middle;
 
         if (subsector.Sector.TransferHeights != null)
         {
             m_floorChanged = m_floorChanged || subsector.Sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
             m_ceilingChanged = m_ceilingChanged || subsector.Sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
-
-            // We can currently only cache one veiw position, middle should be the most
             m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
-            m_cacheOverride = m_transferHeightsView != TransferHeights.TransferHeightView.Middle;
+            // Walls can only cache if middle view
+            m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
+
             RenderWalls(subsector, position, position.XY);
             if (!hasRenderedSector)
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
+
+        m_cacheOverride = false;
+        m_transferHeightsView = TransferHeightView.Middle;
 
         RenderWalls(subsector, position, position.XY);
         if (!hasRenderedSector)
