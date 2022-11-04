@@ -23,6 +23,7 @@ public class TextureManager : ITickable
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Animation> m_animations = new();
+    private readonly HashSet<int> m_animatedTextures = new();
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -185,6 +186,8 @@ public class TextureManager : ITickable
         return m_textures[Constants.NoTextureIndex];
     }
 
+    public bool IsTextureAnimated(int textureHandle) => m_animatedTextures.Contains(textureHandle);
+
     private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
     {
         Texture? addedTexture = null;
@@ -326,6 +329,9 @@ public class TextureManager : ITickable
         InitRangeAnimations(m_archiveCollection.Definitions.BoomAnimated.AnimatedTextures);
         InitRangeAnimations(m_archiveCollection.Definitions.Animdefs.AnimatedRanges);
         InitAnimDefs();
+
+        foreach (var anim in m_animations)
+            m_animatedTextures.Add(anim.TranslationIndex);
     }
 
     private void InitAnimDefs()

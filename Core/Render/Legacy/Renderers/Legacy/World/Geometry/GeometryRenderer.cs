@@ -199,7 +199,7 @@ public class GeometryRenderer : IDisposable
             m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
 
             RenderWalls(subsector, position, position.XY);
-            if (!hasRenderedSector)
+            if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
@@ -208,7 +208,7 @@ public class GeometryRenderer : IDisposable
         m_transferHeightsView = TransferHeightView.Middle;
 
         RenderWalls(subsector, position, position.XY);
-        if (!hasRenderedSector)
+        if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
@@ -221,13 +221,13 @@ public class GeometryRenderer : IDisposable
 
         bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
         bool ceilingVisible = m_position.Z <= renderSector.ToCeilingZ(m_position);
-        if (floorVisible)
+        if (floorVisible && !sector.IsFloorStatic)
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
             RenderFlat(subsectors, renderSector.Floor, true);
         }
-        if (ceilingVisible)
+        if (ceilingVisible && !sector.IsCeilingStatic)
         {
             sector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
@@ -298,7 +298,8 @@ public class GeometryRenderer : IDisposable
                 AlphaSides.Add(side);
             }
 
-            RenderSide(side, onFrontSide);
+            if (!side.IsStatic)
+                RenderSide(side, onFrontSide);
             m_lineDrawnTracker.MarkDrawn(line);
 
             line.Sky = m_skyOverride;

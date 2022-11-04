@@ -15,6 +15,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -508,9 +509,13 @@ public class SpecialManager : ITickable, IDisposable
 
     public void StartInitSpecials(LevelStats levelStats)
     {
-        var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart));
-        foreach (var line in lines)
-            HandleLineInitSpecial(line);
+        foreach (var line in m_world.Lines)
+        {
+            if (line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart))
+                HandleLineInitSpecial(line);
+
+            DetermineStaticSector(line);
+        }
 
         for (int i = 0; i < m_world.Sectors.Count; i++)
         {
@@ -518,6 +523,105 @@ public class SpecialManager : ITickable, IDisposable
             if (sector.Secret)
                 levelStats.TotalSecrets++;
             HandleSectorSpecial(sector);
+            DetermineStaticSector(sector);
+        }
+
+        Sector[] sectors = new Sector[1];
+        foreach (var special in m_specials)
+        {
+            if (special is not SectorSpecialBase sectorSpecial)
+                continue;
+
+            sectors[0] = sectorSpecial.Sector;
+            SetSectorsDynamic(sectors, true, true, isLightSpecial: true);
+        }
+    }
+
+    private void DetermineStaticSector(Sector sector)
+    {
+        if (sector.TransferHeights != null)
+        {
+            SetSectorDynamic(sector, true, true, false);
+            return;
+        }
+
+        if (m_world.TextureManager.IsTextureAnimated(sector.Floor.TextureHandle))
+            sector.IsFloorStatic = false;
+        if (m_world.TextureManager.IsTextureAnimated(sector.Ceiling.TextureHandle))
+            sector.IsCeilingStatic = false;
+    }
+
+    private void DetermineStaticSector(Line line)
+    {
+        if (line.Front.ScrollData != null)
+            line.Front.IsStatic = false;
+
+        if (line.Back != null && line.Back.ScrollData != null)
+            line.Back.IsStatic = false;
+
+        if (line.Flags.Activations != LineActivations.None && line.Flags.Activations != LineActivations.CrossLine &&
+            SwitchManager.IsLineSwitch(m_world.ArchiveCollection, line))
+        {
+            line.Front.IsStatic = false;
+            if (line.Back != null)
+                line.Back.IsStatic = false;
+        }
+
+        foreach (var wall in line.Front.Walls)
+        {
+            if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
+                line.Front.IsStatic = false;
+        }
+
+        if (line.Back != null)
+        {
+            foreach (var wall in line.Back.Walls)
+            {
+                if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
+                    line.Front.IsStatic = false;
+            }
+        }
+
+        var special = line.Special;
+        if (special == LineSpecial.Default)
+            return;
+
+        if (special.IsSectorSpecial())
+        {
+            if (special.IsFloorMove())
+                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), true, false);
+            else if (special.IsCeilingMove())
+                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), false, true);
+            else
+                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), true, true);
+        }
+    }
+
+    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, bool isLightSpecial = false)
+    {
+        foreach (Sector sector in sectors)
+            SetSectorDynamic(sector, floor, ceiling, isLightSpecial);
+    }
+
+    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, bool isLightSpecial)
+    {
+        sector.IsFloorStatic = !floor;
+        sector.IsCeilingStatic = !ceiling;
+
+        foreach (var line in sector.Lines)
+        {
+            if (isLightSpecial)
+            {
+                if (line.Front.Sector.Id == sector.Id)
+                    line.Front.IsStatic = false;
+                if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                    line.Back.IsStatic = false;
+                continue;
+            }
+
+            line.Front.IsStatic = false;
+            if (line.Back != null)
+                line.Back.IsStatic = false;
         }
     }
 
@@ -1467,7 +1571,7 @@ public class SpecialManager : ITickable, IDisposable
             floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
     }
 
-    private IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
+    public IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
     {
         if (line.Special.CanActivateByTag && line.HasSectorTag)
             return m_world.FindBySectorTag(line.SectorTag);

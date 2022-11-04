@@ -7,6 +7,10 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.Geometry.Vectors;
+using System;
+using Helion.World.Geometry.Sectors;
+using System.Collections.Generic;
+using Helion.World.Special.Switches;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -23,7 +27,7 @@ public class Line : IBspUsableLine
     public int LineId { get; set; }
     public SpecialArgs Args;
     public LineFlags Flags { get; set; }
-    public LineSpecial Special { get; set; }
+    public LineSpecial Special { get; private set; }
     public bool Activated { get; private set; }
     public LineDataTypes DataChanges { get; set; }
     public float Alpha { get; private set; }
