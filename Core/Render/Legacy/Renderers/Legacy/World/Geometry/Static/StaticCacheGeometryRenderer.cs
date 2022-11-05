@@ -10,12 +10,15 @@ using Helion.Render.Legacy.Shared.World;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
+using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -102,8 +105,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         StaticGeometryVertex root = MakeVertex(worldVertices.Data[0], plane.LightLevel);
         for (int i = 2; i < worldVertices.Length; i++)
         {
-            StaticGeometryVertex second = MakeVertex(worldVertices.Data[i], plane.LightLevel);
-            StaticGeometryVertex third = MakeVertex(worldVertices.Data[i - 1], plane.LightLevel);
+            StaticGeometryVertex second = MakeVertex(worldVertices.Data[i - 1], plane.LightLevel);
+            StaticGeometryVertex third = MakeVertex(worldVertices.Data[i], plane.LightLevel);
             vertices.Add(root);
             vertices.Add(second);
             vertices.Add(third);
@@ -114,9 +117,39 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (side.IsTwoSided)
         {
-            bool isBack = ReferenceEquals(side.Line.Front, side);
+            bool isFront = ReferenceEquals(side.Line.Front, side);
+            Side otherSide = side.PartnerSide!;
+            Sector facingSector = side.Sector;
+            Sector otherSector = otherSide.Sector;
 
-            // TODO: Two sided
+            if (LowerIsVisible(facingSector, otherSector))
+            {
+                SectorPlane topPlane = otherSector.Floor;
+                SectorPlane bottomPlane = facingSector.Floor;
+                GLLegacyTexture texture = m_textureManager.GetTexture(side.Lower.TextureHandle);
+                WallVertices sideVertices = WorldTriangulator.HandleTwoSidedLower(side, topPlane, bottomPlane, texture.UVInverse, isFront, 0);
+                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+            }
+
+            if (side.Middle.TextureHandle != Constants.NoTextureIndex)
+            {
+                SectorPlane floor = side.Sector.Floor;
+                SectorPlane ceiling = side.Sector.Ceiling;
+                GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
+                double transferHeightsOffset = 0;
+                WallVertices sideVertices = WorldTriangulator.HandleTwoSidedMiddle(side, texture.Dimension, texture.UVInverse, 
+                    floor.Z, ceiling.Z, isFront, out _, 0, transferHeightsOffset);
+                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+            }
+
+            if (UpperIsVisible(facingSector, otherSector))
+            {
+                SectorPlane topPlane = facingSector.Ceiling;
+                SectorPlane bottomPlane = otherSector.Ceiling;
+                GLLegacyTexture texture = m_textureManager.GetTexture(side.Upper.TextureHandle);
+                WallVertices sideVertices = WorldTriangulator.HandleTwoSidedUpper(side, topPlane, bottomPlane, texture.UVInverse, isFront, 0);
+                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+            }
         }
         else
         {
@@ -125,6 +158,20 @@ public class StaticCacheGeometryRenderer : IDisposable
             GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
             WallVertices sideVertices = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, 0);
             AddVertices(texture, sideVertices, side.Sector.LightLevel);
+        }
+
+        static bool LowerIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Floor.Z;
+            double otherZ = otherSector.Floor.Z;
+            return facingZ < otherZ;
+        }
+
+        static bool UpperIsVisible(Sector facingSector, Sector otherSector)
+        {
+            double facingZ = facingSector.Ceiling.Z;
+            double otherZ = otherSector.Ceiling.Z;
+            return facingZ > otherZ;
         }
 
         void AddVertices(GLLegacyTexture texture, WallVertices wallVertices, short lightLevel)
@@ -160,17 +207,18 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
+        //GL.Disable(EnableCap.CullFace);
         m_shader.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
+        m_shader.BoundTexture.Set(gl, 0);
 
-        mat4 mvp = renderInfo.Camera.CalculateViewMatrix();
+        mat4 mvp = GLLegacyRenderer.CalculateMvpMatrix(renderInfo);
         m_shader.Mvp.Set(gl, mvp);
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
             (GLLegacyTexture texture, StaticVertexBuffer<StaticGeometryVertex> vbo, VertexArrayObject vao) = m_geometry[i];
-            m_shader.BoundTexture.Set(gl, texture.TextureId);
             texture.Bind();
             vao.Bind();
             vbo.DrawArrays();
