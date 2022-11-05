@@ -5,6 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Renderers.Legacy.World.Data;
+using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shared;
@@ -36,6 +37,7 @@ public class GeometryRenderer : IDisposable
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
+    private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<WorldVertex> m_subsectorVertices = new();
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
@@ -83,6 +85,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
+        m_staticCacheGeometryRenderer = new(capabilities, functions, textureManager);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -123,6 +126,8 @@ public class GeometryRenderer : IDisposable
 
         CacheData(world);
         Clear(m_tickFraction);
+
+        m_staticCacheGeometryRenderer.UpdateTo(world);
     }
 
     private void CacheData(IWorld world)
@@ -176,6 +181,11 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
+    }
+
+    public void RenderStaticGeometry(RenderInfo renderInfo)
+    {
+        m_staticCacheGeometryRenderer.Render(renderInfo);
     }
 
     public void Render(RenderInfo renderInfo)
@@ -658,7 +668,7 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
+            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector, m_tickFraction);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
@@ -719,17 +729,17 @@ public class GeometryRenderer : IDisposable
         return offset;
     }
 
-    private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
+    public static (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector, double tickFraction)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.GetInterpolatedZ(m_tickFraction);
-        double facingCeilingZ = facingCeiling.GetInterpolatedZ(m_tickFraction);
-        double otherFloorZ = otherFloor.GetInterpolatedZ(m_tickFraction);
-        double otherCeilingZ = otherCeiling.GetInterpolatedZ(m_tickFraction);
+        double facingFloorZ = facingFloor.GetInterpolatedZ(tickFraction);
+        double facingCeilingZ = facingCeiling.GetInterpolatedZ(tickFraction);
+        double otherFloorZ = otherFloor.GetInterpolatedZ(tickFraction);
+        double otherCeilingZ = otherCeiling.GetInterpolatedZ(tickFraction);
 
         double bottomZ = facingFloorZ;
         double topZ = facingCeilingZ;
@@ -1150,6 +1160,7 @@ public class GeometryRenderer : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
+        m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
     }
 }
