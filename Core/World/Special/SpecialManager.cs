@@ -702,9 +702,6 @@ public class SpecialManager : ITickable, IDisposable
     {
         if (floor && !ceiling)
         {
-            if (!line.Flags.Unpegged.Lower)
-                return true;
-
             if (line.Back != null)
             {
                 line.Back.IsStatic = false;
@@ -717,9 +714,6 @@ public class SpecialManager : ITickable, IDisposable
         }
         else if (!floor && ceiling)
         {
-            if (line.Flags.Unpegged.Lower)
-                return true;
-
             if (line.Back != null)
             {
                 line.Back.IsStatic = false;
