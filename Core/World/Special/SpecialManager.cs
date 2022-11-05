@@ -8,6 +8,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
+using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -26,7 +27,13 @@ using Helion.World.Stats;
 namespace Helion.World.Special;
 
 public class SpecialManager : ITickable, IDisposable
-{
+{    private enum SectorDynamic
+    {
+        Movement,
+        Light,
+        TransferHeights
+    }
+
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
@@ -532,7 +539,7 @@ public class SpecialManager : ITickable, IDisposable
             if (special is not SectorSpecialBase sectorSpecial)
                 continue;
 
-            SetSectorDynamic(sectorSpecial.Sector, true, true, isLightSpecial: true);
+            SetSectorDynamic(sectorSpecial.Sector, true, true, SectorDynamic.Light);
         }
     }
 
@@ -540,9 +547,9 @@ public class SpecialManager : ITickable, IDisposable
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
-            (heights.ParentSector.Ceiling.Z < sector.Ceiling.Z || heights.ParentSector.Floor.Z > sector.Floor.Z))
+            (heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
         {
-            SetSectorDynamic(sector, true, true, false);
+            SetSectorDynamic(sector, true, true, SectorDynamic.TransferHeights);
             return;
         }
 
@@ -614,97 +621,117 @@ public class SpecialManager : ITickable, IDisposable
         {
             var sectors = m_world.SpecialManager.GetSectorsFromSpecialLine(line);
             if (special.IsFloorMove() && special.IsCeilingMove())
-                SetSectorsDynamic(sectors, true, true);
+                SetSectorsDynamic(sectors, true, true, SectorDynamic.Movement);
             else if (special.IsFloorMove())
-                SetSectorsDynamic(sectors, true, false);
+                SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (special.IsCeilingMove())
-                SetSectorsDynamic(sectors, false, true);
+                SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
             else if (special.IsSectorTrigger())
-                SetSectorsDynamic(sectors, true, false);
+                SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (special.LineSpecialType == ZDoomLineSpecialType.TransferFloorLight)
-                SetSectorsDynamic(sectors, true, false, isLightSpecial: true, SideDataTypes.None);
+                SetSectorsDynamic(sectors, true, false, SectorDynamic.Light, SideDataTypes.None);
             else if (special.LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight)
-                SetSectorsDynamic(sectors, false, true, isLightSpecial: true, SideDataTypes.None);
+                SetSectorsDynamic(sectors, false, true, SectorDynamic.Light, SideDataTypes.None);
             else
-                SetSectorsDynamic(sectors, true, true);
+                SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
         }
     }
 
-    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, bool isLightSpecial = false, 
+    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic, 
         SideDataTypes lightWalls = AllWallTypes)
     {
         foreach (Sector sector in sectors)
-            SetSectorDynamic(sector, floor, ceiling, isLightSpecial, lightWalls);
+            SetSectorDynamic(sector, floor, ceiling, sectorDynamic, lightWalls);
     }
 
-    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, bool isLightSpecial, 
+    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic, 
         SideDataTypes lightWalls = AllWallTypes)
     {
-        sector.IsFloorStatic = !floor;
-        sector.IsCeilingStatic = !ceiling;
+        if (floor)
+            sector.IsFloorStatic = false;
+        if (ceiling)
+            sector.IsCeilingStatic = false;
 
         foreach (var line in sector.Lines)
         {
-            if (isLightSpecial)
+            if (sectorDynamic == SectorDynamic.Light)
             {
                 if (lightWalls == SideDataTypes.None)
                     continue;
 
-                if (line.Front.Sector.Id == sector.Id)
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls = lightWalls;
-                }
-
-                if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                {
-                    line.Back.IsStatic = false;
-                    line.Back.DynamicWalls = lightWalls;
-                }
+                SetDynamicLight(sector, lightWalls, line);
                 continue;
             }
-
-            if (floor && !ceiling)
+            else if (sectorDynamic == SectorDynamic.Movement)
             {
-                if (line.Back != null)
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls |= MiddleLower;
+                if (SetDynamicMovement(line, floor, ceiling))
                     continue;
-                }
-
-                if (line.Flags.Unpegged.Lower)
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls |= AllWallTypes;
-                }
-                continue;
-            }
-            else if (!floor && ceiling)
-            {
-                if (line.Back != null)
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls |= MiddleUpper;
-                    continue;
-                }
-
-                if (!line.Flags.Unpegged.Lower)
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls |= AllWallTypes;
-                }
-                continue;
             }
 
-            line.Front.DynamicWalls = AllWallTypes;
+            SetLineDynamic(line);
+        }
+    }
+
+    private static void SetLineDynamic(Line line)
+    {
+        line.Front.DynamicWalls |= AllWallTypes;
+        line.Front.IsStatic = false;
+        if (line.Back != null)
+        {
+            line.Back.IsStatic = false;
+            line.Back.DynamicWalls |= AllWallTypes;
+        }
+    }
+
+    private static void SetDynamicLight(Sector sector, SideDataTypes lightWalls, Line line)
+    {
+        if (line.Front.Sector.Id == sector.Id)
+        {
             line.Front.IsStatic = false;
+            line.Front.DynamicWalls |= lightWalls;
+        }
+
+        if (line.Back != null && line.Back.Sector.Id == sector.Id)
+        {
+            line.Back.IsStatic = false;
+            line.Back.DynamicWalls |= lightWalls;
+        }
+    }
+
+    private static bool SetDynamicMovement(Line line, bool floor, bool ceiling)
+    {
+        if (floor && !ceiling)
+        {
+            if (!line.Flags.Unpegged.Lower)
+                return true;
+
             if (line.Back != null)
             {
                 line.Back.IsStatic = false;
-                line.Front.DynamicWalls = AllWallTypes;
+                line.Back.DynamicWalls |= MiddleLower;
             }
+
+            line.Front.IsStatic = false;
+            line.Front.DynamicWalls |= MiddleLower;
+            return true;
         }
+        else if (!floor && ceiling)
+        {
+            if (line.Flags.Unpegged.Lower)
+                return true;
+
+            if (line.Back != null)
+            {
+                line.Back.IsStatic = false;
+                line.Back.DynamicWalls |= MiddleUpper;
+            }
+
+            line.Front.IsStatic = false;
+            line.Front.DynamicWalls |= MiddleUpper;
+            return true;
+        }
+
+        return false;
     }
 
     private void HandleLineInitSpecial(Line line)
