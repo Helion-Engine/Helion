@@ -5,7 +5,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 
-namespace Helion.World.Geometry.Sides;
+namespace Helion.World.Geometry.Sides; 
 
 public class Side : IRenderObject
 {
@@ -22,6 +22,7 @@ public class Side : IRenderObject
     // This is currently just for the renderer to know for scrolling lines to not cache
     public bool OffsetChanged { get; set; }
     public bool IsStatic { get; set; } = true;
+    public SideDataTypes DynamicWalls { get; set; }
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;

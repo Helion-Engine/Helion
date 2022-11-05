@@ -15,6 +15,7 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
@@ -526,20 +527,20 @@ public class SpecialManager : ITickable, IDisposable
             DetermineStaticSector(sector);
         }
 
-        Sector[] sectors = new Sector[1];
         foreach (var special in m_specials)
         {
             if (special is not SectorSpecialBase sectorSpecial)
                 continue;
 
-            sectors[0] = sectorSpecial.Sector;
-            SetSectorsDynamic(sectors, true, true, isLightSpecial: true);
+            SetSectorDynamic(sectorSpecial.Sector, true, true, isLightSpecial: true);
         }
     }
 
     private void DetermineStaticSector(Sector sector)
     {
-        if (sector.TransferHeights != null)
+        var heights = sector.TransferHeights;
+        if (heights != null &&
+            (heights.ParentSector.Ceiling.Z < sector.Ceiling.Z || heights.ParentSector.Floor.Z > sector.Floor.Z))
         {
             SetSectorDynamic(sector, true, true, false);
             return;
@@ -551,34 +552,57 @@ public class SpecialManager : ITickable, IDisposable
             sector.IsCeilingStatic = false;
     }
 
+    const SideDataTypes AllWallTypes = SideDataTypes.UpperTexture | SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
+    const SideDataTypes MiddleLower = SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
+    const SideDataTypes MiddleUpper = SideDataTypes.MiddleTexture | SideDataTypes.UpperTexture;
+    static readonly SideDataTypes[] WallLookup = new[] { SideDataTypes.MiddleTexture, SideDataTypes.UpperTexture, SideDataTypes.LowerTexture };
+
     private void DetermineStaticSector(Line line)
     {
         if (line.Front.ScrollData != null)
+        {
             line.Front.IsStatic = false;
+            line.Front.DynamicWalls = AllWallTypes;
+        }
 
         if (line.Back != null && line.Back.ScrollData != null)
+        {
             line.Back.IsStatic = false;
+            line.Front.DynamicWalls = AllWallTypes;
+        }
 
         if (line.Flags.Activations != LineActivations.None && line.Flags.Activations != LineActivations.CrossLine &&
             SwitchManager.IsLineSwitch(m_world.ArchiveCollection, line))
         {
             line.Front.IsStatic = false;
+            line.Front.DynamicWalls = AllWallTypes;
             if (line.Back != null)
+            {
                 line.Back.IsStatic = false;
+                line.Back.DynamicWalls = AllWallTypes;
+            }
         }
 
-        foreach (var wall in line.Front.Walls)
+        for (int i = 0; i < line.Front.Walls.Length; i++)
         {
+            var wall = line.Front.Walls[i];
             if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
+            {
                 line.Front.IsStatic = false;
+                line.Front.DynamicWalls |= WallLookup[i];
+            }
         }
 
         if (line.Back != null)
         {
-            foreach (var wall in line.Back.Walls)
+            for (int i = 0; i < line.Back.Walls.Length; i++)
             {
+                var wall = line.Back.Walls[i];
                 if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
+                {
                     line.Front.IsStatic = false;
+                    line.Front.DynamicWalls |= WallLookup[i];
+                }
             }
         }
 
@@ -588,22 +612,33 @@ public class SpecialManager : ITickable, IDisposable
 
         if (special.IsSectorSpecial())
         {
-            if (special.IsFloorMove())
-                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), true, false);
+            var sectors = m_world.SpecialManager.GetSectorsFromSpecialLine(line);
+            if (special.IsFloorMove() && special.IsCeilingMove())
+                SetSectorsDynamic(sectors, true, true);
+            else if (special.IsFloorMove())
+                SetSectorsDynamic(sectors, true, false);
             else if (special.IsCeilingMove())
-                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), false, true);
+                SetSectorsDynamic(sectors, false, true);
+            else if (special.IsSectorTrigger())
+                SetSectorsDynamic(sectors, true, false);
+            else if (special.LineSpecialType == ZDoomLineSpecialType.TransferFloorLight)
+                SetSectorsDynamic(sectors, true, false, isLightSpecial: true, SideDataTypes.None);
+            else if (special.LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight)
+                SetSectorsDynamic(sectors, false, true, isLightSpecial: true, SideDataTypes.None);
             else
-                SetSectorsDynamic(m_world.SpecialManager.GetSectorsFromSpecialLine(line), true, true);
+                SetSectorsDynamic(sectors, true, true);
         }
     }
 
-    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, bool isLightSpecial = false)
+    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, bool isLightSpecial = false, 
+        SideDataTypes lightWalls = AllWallTypes)
     {
         foreach (Sector sector in sectors)
-            SetSectorDynamic(sector, floor, ceiling, isLightSpecial);
+            SetSectorDynamic(sector, floor, ceiling, isLightSpecial, lightWalls);
     }
 
-    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, bool isLightSpecial)
+    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, bool isLightSpecial, 
+        SideDataTypes lightWalls = AllWallTypes)
     {
         sector.IsFloorStatic = !floor;
         sector.IsCeilingStatic = !ceiling;
@@ -612,16 +647,63 @@ public class SpecialManager : ITickable, IDisposable
         {
             if (isLightSpecial)
             {
+                if (lightWalls == SideDataTypes.None)
+                    continue;
+
                 if (line.Front.Sector.Id == sector.Id)
+                {
                     line.Front.IsStatic = false;
+                    line.Front.DynamicWalls = lightWalls;
+                }
+
                 if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                {
                     line.Back.IsStatic = false;
+                    line.Back.DynamicWalls = lightWalls;
+                }
                 continue;
             }
 
+            if (floor && !ceiling)
+            {
+                if (line.Back != null)
+                {
+                    line.Front.IsStatic = false;
+                    line.Front.DynamicWalls |= MiddleLower;
+                    continue;
+                }
+
+                if (line.Flags.Unpegged.Lower)
+                {
+                    line.Front.IsStatic = false;
+                    line.Front.DynamicWalls |= AllWallTypes;
+                }
+                continue;
+            }
+            else if (!floor && ceiling)
+            {
+                if (line.Back != null)
+                {
+                    line.Front.IsStatic = false;
+                    line.Front.DynamicWalls |= MiddleUpper;
+                    continue;
+                }
+
+                if (!line.Flags.Unpegged.Lower)
+                {
+                    line.Front.IsStatic = false;
+                    line.Front.DynamicWalls |= AllWallTypes;
+                }
+                continue;
+            }
+
+            line.Front.DynamicWalls = AllWallTypes;
             line.Front.IsStatic = false;
             if (line.Back != null)
+            {
                 line.Back.IsStatic = false;
+                line.Front.DynamicWalls = AllWallTypes;
+            }
         }
     }
 

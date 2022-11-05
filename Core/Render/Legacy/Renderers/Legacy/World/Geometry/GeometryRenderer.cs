@@ -343,6 +343,9 @@ public class GeometryRenderer : IDisposable
 
     private void RenderOneSided(Side side)
     {
+        if (!side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+            return;
+
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
@@ -413,11 +416,11 @@ public class GeometryRenderer : IDisposable
         m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
 
-        if (LowerIsVisible(facingSector, otherSector))
+        if (facingSide.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide);
-        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
+        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && facingSide.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide);
-        if (UpperIsVisible(facingSide, facingSector, otherSector))
+        if (facingSide.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && UpperIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide);
     }
 
