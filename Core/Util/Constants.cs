@@ -8,11 +8,6 @@ namespace Helion.Util;
 public static class Constants
 {
     /// <summary>
-    /// The name of the application.
-    /// </summary>
-    public const string ApplicationName = "Helion";
-
-    /// <summary>
     /// The name of the resources archive that should be loaded in all
     /// instances of the application.
     /// </summary>
@@ -22,11 +17,6 @@ public static class Constants
     /// How many gameticks occur per second.
     /// </summary>
     public const double TicksPerSecond = 35.0;
-
-    /// <summary>
-    /// The public release version.
-    /// </summary>
-    public static readonly Version ApplicationVersion = new Version(0, 1, 0, 0);
 
     /// <summary>
     /// The name of a 'missing' texture in a map.

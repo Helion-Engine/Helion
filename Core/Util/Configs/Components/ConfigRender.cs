@@ -60,9 +60,6 @@ public class ConfigRender
     [ConfigInfo("The multisampling amount. A value of 1 is the same as being off.")]
     public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
 
-    [ConfigInfo("If the frames per second should be rendered.")]
-    public readonly ConfigValue<bool> ShowFPS = new(false);
-
     [ConfigInfo("If any sprite should clip the floor.")]
     public readonly ConfigValue<bool> SpriteClip = new(true);
 

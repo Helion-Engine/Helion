@@ -45,8 +45,8 @@ public class Window : GameWindow, IWindow
     private bool m_disposed;
     private Vec2F m_prevScroll = Vec2F.Zero;
 
-    public Window(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
-        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config))
+    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
+        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title))
     {
         Log.Debug("Creating client window");
 
@@ -122,7 +122,7 @@ public class Window : GameWindow, IWindow
         };
     }
 
-    private static NativeWindowSettings MakeNativeWindowSettings(IConfig config)
+    private static NativeWindowSettings MakeNativeWindowSettings(IConfig config, string title)
     {
         (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
 
@@ -133,7 +133,7 @@ public class Window : GameWindow, IWindow
             Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
-            Title = Constants.ApplicationName,
+            Title = title,
             WindowBorder = config.Window.Border,
             WindowState = GetWindowState(config.Window.State.Value),
         };

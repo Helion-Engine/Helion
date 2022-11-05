@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Helion.Audio;
@@ -35,6 +36,7 @@ namespace Helion.Client;
 public partial class Client : IDisposable, IInputManagement
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly AppInfo AppInfo = new();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IAudioSystem m_audioSystem;
@@ -62,7 +64,7 @@ public partial class Client : IDisposable, IInputManagement
         m_archiveCollection = archiveCollection;
         m_saveGameManager = new SaveGameManager(config);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
-        m_window = new Window(config, archiveCollection, m_fpsTracker, this);
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this);
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
 
@@ -266,9 +268,9 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void LogClientInfo()
     {
-        Log.Info("{0} v{1}", Constants.ApplicationName, Constants.ApplicationVersion);
+        Log.Info("{0} v{1}", AppInfo.ApplicationName, AppInfo.ApplicationVersion);
         Log.Info("Processor: {0} {1}", Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"), RuntimeInformation.OSArchitecture);
-        Log.Info("Processor count: {0}", Environment.ProcessorCount);
+        Log.Info("Processors: {0}", Environment.ProcessorCount);
         Log.Info("OS: {0} {1} (running {2})", Environment.OSVersion, Environment.Is64BitOperatingSystem ? "x64" : "x86", Environment.Is64BitProcess ? "x64" : "x86");
     }
 
@@ -285,7 +287,6 @@ public partial class Client : IDisposable, IInputManagement
     {
         CommandLineArgs commandLineArgs = CommandLineArgs.Parse(args);
         HelionLoggers.Initialize(commandLineArgs);
-        LogClientInfo();
         LogAnyCommandLineErrors(commandLineArgs);
 
 #if DEBUG
@@ -315,6 +316,7 @@ public partial class Client : IDisposable, IInputManagement
     private static void ShowFatalError(string msg)
     {
         // TODO verify this doesn't prevent from loading on other platforms...
+        Log.Error(msg);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
@@ -341,6 +343,7 @@ public partial class Client : IDisposable, IInputManagement
         {
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(config, commandLineArgs);
+            LogClientInfo();
             using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(config, @"SoundFonts\Default.sf2");
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);

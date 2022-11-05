@@ -115,9 +115,9 @@ public class PhysicsManager
         double? highestBlockHeight = 0.0;
         SectorMoveStatus status = SectorMoveStatus.Success;
         sectorPlane.PrevZ = startZ;
-        sectorPlane.Z = destZ;
-        sectorPlane.Plane.MoveZ(destZ - startZ);
+        sectorPlane.SetZ(destZ);
 
+        bool isCompleted = moveSpecial.IsFinalDestination(destZ);
         if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
         {
             FixPlaneClip(sector, sectorPlane, moveType);
@@ -215,22 +215,25 @@ public class PhysicsManager
         if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead)
         {
             double diff = 0;
-            double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
             // Set the sector Z to the difference of the blocked height (only works if not being crushed)
             // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-            if (moveData.Flags.HasFlag(SectorMoveFlags.EntityBlockMovement) || highestBlockEntity.WasCrushing)
+            if (moveData.Flags.HasFlag(SectorMoveFlags.EntityBlockMovement) || highestBlockEntity.WasCrushing || isCompleted)
             {
-                sectorPlane.Z = startZ;
-                sectorPlane.Plane.MoveZ(startZ - destZ);
+                sectorPlane.SetZ(startZ);
             }
             else
             {
+                double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
+                // Floor cannot be higher than ceiling for this reset
+                if (moveType == SectorPlaneFace.Floor)
+                    destZ = Math.Clamp(destZ, double.MinValue, sector.Ceiling.Z);
+                else
+                    destZ = Math.Clamp(destZ, sector.Floor.Z, double.MaxValue);
+
                 diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
                 if (destZ < startZ)
                     diff = -diff;
-
-                sectorPlane.Z = startZ + diff;
-                sectorPlane.Plane.MoveZ(startZ - destZ + diff);
+                sectorPlane.SetZ(startZ + diff);
             }
 
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
@@ -251,6 +254,11 @@ public class PhysicsManager
 
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
+
+        // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
+        if (isCompleted && status == SectorMoveStatus.Blocked)
+            return SectorMoveStatus.BlockedAndStop;
+
         return status;
     }
 
@@ -350,14 +358,11 @@ public class PhysicsManager
     {
         if (moveType == SectorPlaneFace.Floor)
         {
-            sectorPlane.Plane.MoveZ(sectorPlane.Z - sector.Ceiling.Z);
-            sectorPlane.Z = sector.Ceiling.Z;
+            sectorPlane.SetZ(sector.Ceiling.Z);
+            return;
         }
-        else
-        {
-            sectorPlane.Plane.MoveZ(sector.Floor.Z - sectorPlane.Z);
-            sectorPlane.Z = sector.Floor.Z;
-        }
+
+        sectorPlane.SetZ(sector.Floor.Z);
     }
 
     private static bool SpeedShouldStickToFloor(double speed) =>
@@ -928,6 +933,7 @@ public class PhysicsManager
         Box2D nextBox = new(position, entity.Radius);
         entity.BlockingLine = null;
         entity.BlockingEntity = null;
+        entity.ViewLineClip = false;
         m_blockmap.Iterate(nextBox, CheckForBlockers);
 
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
@@ -994,6 +1000,11 @@ public class PhysicsManager
                 if (line.Segment.Intersects(nextBox))
                 {
                     LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
+
+                    if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer && (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
+                        (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
+                        entity.ViewLineClip = true;
+
                     if (blockType != LineBlock.NoBlock)
                     {
                         entity.BlockingLine = line;

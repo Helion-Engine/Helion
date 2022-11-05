@@ -124,5 +124,30 @@ namespace Helion.Tests.Unit.GameAction
             liftSector.ActiveFloorMove.Should().NotBeNull();
             crushSector.ActiveCeilingMove.Should().NotBeNull();
         }
+
+        [Fact(DisplayName = "Floor dest higher than ceiling with blocking entity")]
+        public void FloorDestHigherThanCeiling()
+        {
+            var imp = GameActions.GetEntity(World, 4);
+            var liftSector = GameActions.GetSectorByTag(World, 7);
+            GameActions.EntityUseLine(World, Player, 52).Should().BeTrue();
+
+            liftSector.ActiveFloorMove.Should().NotBeNull();
+
+            // The floor should not move at all according to vanilla, even though it can move up 8 map units in this case
+            GameActions.TickWorld(World, 35);
+            liftSector.Floor.Z.Should().Be(0);
+            imp.Position.Z.Should().Be(0);
+            liftSector.ActiveFloorMove.Should().BeNull();
+
+            imp.Kill(null);
+
+            GameActions.GetLine(World, 52).SetActivated(false);
+            GameActions.EntityUseLine(World, Player, 52).Should().BeTrue();
+            GameActions.TickWorld(World, 35);
+            liftSector.Floor.Z.Should().Be(64);
+            imp.Position.Z.Should().Be(64);
+            liftSector.ActiveFloorMove.Should().BeNull();
+        }
     }
 }

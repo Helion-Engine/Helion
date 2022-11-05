@@ -2,14 +2,6 @@ namespace Helion.World.Geometry.Sectors;
 
 public class TransferHeights
 {
-    public enum TransferHeightView
-    {
-        None,
-        Top,
-        Middle,
-        Bottom,
-    }
-
     public readonly Sector ParentSector;
     public readonly Sector ControlSector;
 

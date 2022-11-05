@@ -135,7 +135,7 @@ public class LegacyWorldRenderer : WorldRenderer
             else if (renderObject.Type == RenderObjectType.Side)
             {
                 Side side = (Side)renderObject;
-                m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position), position3D);
+                m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position));
             }
         }
     }
@@ -171,10 +171,11 @@ public class LegacyWorldRenderer : WorldRenderer
         if (Occluded(subsector.BoundingBox, pos2D))
             return;
 
-        m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position);
+        bool hasRenderedSector = subsector.Sector.RenderCount == m_renderCount;
+        m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position, hasRenderedSector);
 
         // Entities are rendered by the sector
-        if (subsector.Sector.RenderCount == m_renderCount)
+        if (hasRenderedSector)
             return;
         subsector.Sector.RenderCount = m_renderCount;
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position, viewDirection);

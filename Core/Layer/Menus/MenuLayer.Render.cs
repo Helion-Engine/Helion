@@ -91,8 +91,13 @@ public partial class MenuLayer
             hud.Image(selectedName, drawPosition, both: (Align)image.ImageAlign);
         }
 
-        if (image.AddToOffsetY)
+        if (!image.AddToOffsetY)
+            return;
+
+        if (image.OverrideY == null)
             offsetY += area.Height + offset.Y + image.PaddingBottomY;
+        else
+            offsetY += image.OverrideY.Value;
     }
 
     private void DrawSaveRow(IHudRenderContext hud, MenuSaveRowComponent saveRowComponent, bool isSelected,

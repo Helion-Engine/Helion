@@ -2550,13 +2550,10 @@ public static class EntityActionFunctions
         if (entity.Tracer.Entity == null)
             return;
 
-        Vec3D newPos = entity.Tracer.Entity.Position;
-        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.Entity.AngleRadians, 0.0);
-        newPos.X -= unit.X * 24;
-        newPos.Y -= unit.Y * 24;
-
-        entity.Tracer.Entity.SetPosition(newPos);
-        entity.World.RadiusExplosion(entity.Tracer.Entity, entity, 70, 70);
+        Entity fire = entity.Tracer.Entity;
+        Vec2D newPos = entity.Target.Entity.Position.XY - (Vec2D.UnitCircle(entity.AngleRadians) * 24);
+        fire.SetPosition(newPos.To3D(entity.Target.Entity.Position.Z));
+        entity.World.RadiusExplosion(fire, entity, 70, 70);
     }
 
     private static void A_VileChase(Entity entity)

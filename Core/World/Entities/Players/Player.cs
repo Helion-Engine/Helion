@@ -40,6 +40,7 @@ public class Player : Entity
     private const int SlowTurnTicks = 6;
     private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    const double NotQuiteVertical = MathHelper.HalfPi - 0.001;
 
     // These are set instantly from mouse movement.
     // They are added when rendering so the view does not need to be interpolated.
@@ -455,9 +456,8 @@ public class Player : Entity
     }
 
     private static double AddPitch(double pitch, double delta)
-    {
-        const double notQuiteVertical = MathHelper.HalfPi - 0.001;
-        pitch = MathHelper.Clamp(pitch + delta, -notQuiteVertical, notQuiteVertical);
+    {        
+        pitch = MathHelper.Clamp(pitch + delta, -NotQuiteVertical, NotQuiteVertical);
         return pitch;
     }
 
@@ -470,7 +470,7 @@ public class Player : Entity
         if (!TickCommand.Has(TickCommands.Strafe) && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
-            playerPitch += ViewPitchRadians;
+            playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -NotQuiteVertical, NotQuiteVertical);
         }
 
         // When rendering, we always want the most up-to-date values. We
