@@ -208,7 +208,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        //GL.Disable(EnableCap.CullFace);
         m_shader.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
