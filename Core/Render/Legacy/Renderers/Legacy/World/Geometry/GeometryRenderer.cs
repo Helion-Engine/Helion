@@ -5,6 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Renderers.Legacy.World.Data;
+using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky;
 using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shared;
@@ -36,6 +37,7 @@ public class GeometryRenderer : IDisposable
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
+    private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<WorldVertex> m_subsectorVertices = new();
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
@@ -83,6 +85,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
+        m_staticCacheGeometryRenderer = new(capabilities, functions, textureManager);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -123,6 +126,8 @@ public class GeometryRenderer : IDisposable
 
         CacheData(world);
         Clear(m_tickFraction);
+
+        m_staticCacheGeometryRenderer.UpdateTo(world);
     }
 
     private void CacheData(IWorld world)
@@ -176,6 +181,11 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
+    }
+
+    public void RenderStaticGeometry(RenderInfo renderInfo)
+    {
+        m_staticCacheGeometryRenderer.Render(renderInfo);
     }
 
     public void Render(RenderInfo renderInfo)
@@ -1150,6 +1160,7 @@ public class GeometryRenderer : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
+        m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
     }
 }

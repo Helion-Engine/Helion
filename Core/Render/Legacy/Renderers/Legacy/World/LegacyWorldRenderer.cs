@@ -93,6 +93,8 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         Clear(world, renderInfo);
 
+        m_geometryRenderer.RenderStaticGeometry(renderInfo);
+
         TraverseBsp(world, renderInfo);
         RenderWorldData(renderInfo);
         m_geometryRenderer.Render(renderInfo);
