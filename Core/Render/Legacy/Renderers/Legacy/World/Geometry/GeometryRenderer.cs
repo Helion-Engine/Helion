@@ -668,7 +668,7 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector);
+            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector, m_tickFraction);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
@@ -729,17 +729,17 @@ public class GeometryRenderer : IDisposable
         return offset;
     }
 
-    private (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector)
+    public static (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector, double tickFraction)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.GetInterpolatedZ(m_tickFraction);
-        double facingCeilingZ = facingCeiling.GetInterpolatedZ(m_tickFraction);
-        double otherFloorZ = otherFloor.GetInterpolatedZ(m_tickFraction);
-        double otherCeilingZ = otherCeiling.GetInterpolatedZ(m_tickFraction);
+        double facingFloorZ = facingFloor.GetInterpolatedZ(tickFraction);
+        double facingCeilingZ = facingCeiling.GetInterpolatedZ(tickFraction);
+        double otherFloorZ = otherFloor.GetInterpolatedZ(tickFraction);
+        double otherCeilingZ = otherCeiling.GetInterpolatedZ(tickFraction);
 
         double bottomZ = facingFloorZ;
         double topZ = facingCeilingZ;

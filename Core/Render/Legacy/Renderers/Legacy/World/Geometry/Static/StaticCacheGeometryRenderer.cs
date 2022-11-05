@@ -136,9 +136,10 @@ public class StaticCacheGeometryRenderer : IDisposable
                 SectorPlane floor = side.Sector.Floor;
                 SectorPlane ceiling = side.Sector.Ceiling;
                 GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
+                (double bottomZ, double topZ) = GeometryRenderer.FindOpeningFlatsInterpolated(side.Sector, side.PartnerSide!.Sector, 0);
                 double transferHeightsOffset = 0;
-                WallVertices sideVertices = WorldTriangulator.HandleTwoSidedMiddle(side, texture.Dimension, texture.UVInverse, 
-                    floor.Z, ceiling.Z, isFront, out _, 0, transferHeightsOffset);
+                WallVertices sideVertices = WorldTriangulator.HandleTwoSidedMiddle(side, texture.Dimension, texture.UVInverse,
+                    bottomZ, topZ, isFront, out _, 0, transferHeightsOffset);
                 AddVertices(texture, sideVertices, side.Sector.LightLevel);
             }
 
