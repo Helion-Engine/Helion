@@ -131,7 +131,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
-            m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies);
+            m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
             if (lineVerticies != null)
                 vertices.AddRange(lineVerticies);
 
@@ -152,7 +152,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture))
         {
             var verticies = GetTextureVerticies(side.Upper.TextureHandle);
-            m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
+            m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
             if (sideVerticies != null)
                 verticies.AddRange(sideVerticies);
         }

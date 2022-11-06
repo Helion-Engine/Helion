@@ -350,10 +350,10 @@ public class GeometryRenderer : IDisposable
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
         else if (side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
-            RenderOneSided(side, out _);
+            RenderOneSided(side, out _, out _);
     }
 
-    public void RenderOneSided(Side side, out LegacyVertex[]? veticies)
+    public void RenderOneSided(Side side, out LegacyVertex[]? veticies, out SkyGeometryVertex[] skyVerticies)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
@@ -367,7 +367,7 @@ public class GeometryRenderer : IDisposable
 
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
-        RenderSkySide(side, renderSector, null, texture);
+        RenderSkySide(side, renderSector, null, texture, out skyVerticies);
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -431,7 +431,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && facingSide.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
         if (facingSide.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && UpperIsVisible(facingSide, facingSector, otherSector))
-            RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
+            RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
     private bool LowerIsVisible(Sector facingSector, Sector otherSector)
@@ -542,7 +542,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
+        out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies, out SkyGeometryVertex[]? skyVerticies2)
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         SectorPlane plane = otherSector.Ceiling;
@@ -556,6 +556,7 @@ public class GeometryRenderer : IDisposable
                 m_skyOverride = true;
             verticies = null;
             skyVerticies = null;
+            skyVerticies2 = null;
             return;
         }
 
@@ -565,7 +566,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
 
-        RenderSkySide(facingSide, facingSector, otherSector, texture);
+        RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVerticies2);
 
         if (isSky)
         {
@@ -627,8 +628,9 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void RenderSkySide(Side facingSide, Sector facingSector, Sector? otherSector, GLLegacyTexture texture)
+    private void RenderSkySide(Side facingSide, Sector facingSector, Sector? otherSector, GLLegacyTexture texture, out SkyGeometryVertex[]? skyVerticies)
     {
+        skyVerticies = null;
         if (otherSector == null)
         {
             if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle))
@@ -660,6 +662,7 @@ public class GeometryRenderer : IDisposable
 
         SetSkyWallVertices(m_skyWallVertices, wall);
         m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
+        skyVerticies = m_skyWallVertices;
     }
 
     private bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
