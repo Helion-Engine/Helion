@@ -560,6 +560,15 @@ public class SpecialManager : ITickable, IDisposable
 
     private void DetermineStaticSector(Line line)
     {
+        if (line.Back != null && line.Alpha < 1)
+        {
+            line.Front.IsStatic = false;
+            line.Front.DynamicWalls = AllWallTypes;
+            line.Back.IsStatic = false;
+            line.Front.DynamicWalls = AllWallTypes;
+            return;
+        }
+
         if (line.Front.ScrollData != null)
         {
             line.Front.IsStatic = false;
