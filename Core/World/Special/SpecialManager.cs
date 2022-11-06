@@ -31,7 +31,8 @@ public class SpecialManager : ITickable, IDisposable
     {
         Movement,
         Light,
-        TransferHeights
+        TransferHeights,
+        Scroll
     }
 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
@@ -536,10 +537,13 @@ public class SpecialManager : ITickable, IDisposable
 
         foreach (var special in m_specials)
         {
-            if (special is not SectorSpecialBase sectorSpecial)
-                continue;
-
-            SetSectorDynamic(sectorSpecial.Sector, true, true, SectorDynamic.Light);
+            if (special is SectorSpecialBase sectorSpecial)
+                SetSectorDynamic(sectorSpecial.Sector, true, true, SectorDynamic.Light);
+            else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
+            {
+                bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
+                SetSectorDynamic(scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
+            }
         }
     }
 
@@ -646,6 +650,13 @@ public class SpecialManager : ITickable, IDisposable
             {
                 if (SetDynamicMovement(line, floor, ceiling))
                     continue;
+            }
+            else if (sectorDynamic == SectorDynamic.Scroll)
+            {
+                if (floor)
+                    sector.IsFloorStatic = false;
+                if (ceiling)
+                    sector.IsCeilingStatic = false;
             }
 
             SetLineDynamic(line);
