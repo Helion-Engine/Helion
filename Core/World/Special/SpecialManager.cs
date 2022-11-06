@@ -543,7 +543,7 @@ public class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void DetermineStaticSector(Sector sector)
+    private static void DetermineStaticSector(Sector sector)
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
@@ -552,17 +552,11 @@ public class SpecialManager : ITickable, IDisposable
             SetSectorDynamic(sector, true, true, SectorDynamic.TransferHeights);
             return;
         }
-
-        if (m_world.TextureManager.IsTextureAnimated(sector.Floor.TextureHandle))
-            sector.IsFloorStatic = false;
-        if (m_world.TextureManager.IsTextureAnimated(sector.Ceiling.TextureHandle))
-            sector.IsCeilingStatic = false;
     }
 
     const SideDataTypes AllWallTypes = SideDataTypes.UpperTexture | SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
     const SideDataTypes MiddleLower = SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
     const SideDataTypes MiddleUpper = SideDataTypes.MiddleTexture | SideDataTypes.UpperTexture;
-    static readonly SideDataTypes[] WallLookup = new[] { SideDataTypes.MiddleTexture, SideDataTypes.UpperTexture, SideDataTypes.LowerTexture };
 
     private void DetermineStaticSector(Line line)
     {
@@ -587,29 +581,6 @@ public class SpecialManager : ITickable, IDisposable
             {
                 line.Back.IsStatic = false;
                 line.Back.DynamicWalls = AllWallTypes;
-            }
-        }
-
-        for (int i = 0; i < line.Front.Walls.Length; i++)
-        {
-            var wall = line.Front.Walls[i];
-            if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
-            {
-                line.Front.IsStatic = false;
-                line.Front.DynamicWalls |= WallLookup[i];
-            }
-        }
-
-        if (line.Back != null)
-        {
-            for (int i = 0; i < line.Back.Walls.Length; i++)
-            {
-                var wall = line.Back.Walls[i];
-                if (m_world.TextureManager.IsTextureAnimated(wall.TextureHandle))
-                {
-                    line.Front.IsStatic = false;
-                    line.Front.DynamicWalls |= WallLookup[i];
-                }
             }
         }
 

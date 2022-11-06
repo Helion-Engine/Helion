@@ -31,6 +31,8 @@ public class TextureManager : ITickable
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
 
+    public event EventHandler<AnimationEvent>? AnimationChanged;
+
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
@@ -276,8 +278,10 @@ public class TextureManager : ITickable
             if (anim.Tics == components[anim.AnimationIndex].MaxTicks)
             {
                 anim.AnimationIndex = ++anim.AnimationIndex % components.Count;
-                m_translations[anim.TranslationIndex] = components[anim.AnimationIndex].TextureIndex;
+                int newTexture = components[anim.AnimationIndex].TextureIndex;
+                m_translations[anim.TranslationIndex] = newTexture;
                 anim.Tics = 0;
+                AnimationChanged?.Invoke(this, new AnimationEvent(anim.TranslationIndex, newTexture));
             }
         }
     }

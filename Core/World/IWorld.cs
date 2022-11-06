@@ -25,6 +25,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
+using Helion.Resources;
 
 namespace Helion.World;
 
@@ -57,6 +58,7 @@ public interface IWorld : IDisposable
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
     SpecialManager SpecialManager { get; }
+    TextureManager TextureManager { get; }
     IConfig Config { get; }
     SkillDef SkillDefinition { get; }
     ArchiveCollection ArchiveCollection { get; }

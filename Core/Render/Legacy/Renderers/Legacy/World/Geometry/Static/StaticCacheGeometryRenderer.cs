@@ -28,6 +28,22 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
+    private class GeometryData
+    {
+        public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<StaticGeometryVertex> vbo, VertexArrayObject vao)
+        {
+            TextureHandle = textureHandle;
+            Texture = texture;
+            Vbo = vbo;
+            Vao = vao;
+        }
+
+        public int TextureHandle { get; set; }
+        public GLLegacyTexture Texture { get; set; }
+        public StaticVertexBuffer<StaticGeometryVertex> Vbo { get; set; }
+        public VertexArrayObject Vao { get; set; }
+    }
+
     public static readonly VertexArrayAttributes Attributes = new(
         new VertexPointerFloatAttribute("pos", 0, 3),
         new VertexPointerFloatAttribute("uv", 1, 2),
@@ -37,9 +53,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GLCapabilities m_capabilities;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly StaticGeometryShader m_shader;
-    private readonly Dictionary<GLLegacyTexture, DynamicArray<StaticGeometryVertex>> m_textureToVertices = new();
-    private readonly List<(GLLegacyTexture, StaticVertexBuffer<StaticGeometryVertex>, VertexArrayObject)> m_geometry = new();
+    private readonly Dictionary<int, DynamicArray<StaticGeometryVertex>> m_textureToVertices = new();
+    private readonly List<GeometryData> m_geometry = new();
+    private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
     private bool m_disposed;
+    private IWorld? m_world;
 
     public StaticCacheGeometryRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager)
     {
@@ -51,6 +69,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_shader = new(functions, shaderBuilder, Attributes);
     }
 
+    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
+    {
+        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
+            return;
+
+        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
+    }
+
     ~StaticCacheGeometryRenderer()
     {
         Dispose(false);
@@ -58,6 +84,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
+        ClearData();
+
+        m_world = world;
+        m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
+
         foreach (Subsector subsector in world.BspTree.Subsectors)
         {
             if (subsector.Sector.IsFloorStatic)
@@ -73,7 +104,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        foreach ((GLLegacyTexture texture, DynamicArray<StaticGeometryVertex> array) in m_textureToVertices)
+        foreach ((int textureHandle, DynamicArray<StaticGeometryVertex> array) in m_textureToVertices)
         {
             VertexArrayObject vao = new(m_capabilities, gl, Attributes);
             StaticVertexBuffer<StaticGeometryVertex> vbo = new(m_capabilities, gl, vao);
@@ -82,21 +113,42 @@ public class StaticCacheGeometryRenderer : IDisposable
             vbo.Add(array.Data);
             vbo.UploadIfNeeded();
 
-            m_geometry.Add((texture, vbo, vao));
+            var texture = m_textureManager.GetTexture(textureHandle);
+            var data = new GeometryData(textureHandle, texture, vbo, vao);
+            m_geometry.Add(data);
+            m_textureToGeometryLookup.Add(textureHandle, data);
         }
 
         // Don't need these anymore, don't hold a reference to all that data.
         m_textureToVertices.Clear();
     }
 
+    private void ClearData()
+    {
+        if (m_world != null)
+        {
+            m_world.TextureManager.AnimationChanged -= TextureManager_AnimationChanged;
+            m_world = null;
+        }
+
+        foreach (var data in m_geometry)
+        {
+            data.Vbo.Dispose();
+            data.Vao.Dispose();
+        }
+
+        m_geometry.Clear();
+        m_textureToGeometryLookup.Clear();
+        m_textureToVertices.Clear();
+    }
+
     private void AddSubsectorPlane(in Subsector subsector, SectorPlane plane)
     {
         GLLegacyTexture texture = m_textureManager.GetTexture(plane.TextureHandle);
-
-        if (!m_textureToVertices.TryGetValue(texture, out DynamicArray<StaticGeometryVertex>? vertices))
+        if (!m_textureToVertices.TryGetValue(plane.TextureHandle, out DynamicArray<StaticGeometryVertex>? vertices))
         {
             vertices = new();
-            m_textureToVertices[texture] = vertices;
+            m_textureToVertices[plane.TextureHandle] = vertices;
         }
 
         DynamicArray<WorldVertex> worldVertices = new();
@@ -128,7 +180,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 SectorPlane bottomPlane = facingSector.Floor;
                 GLLegacyTexture texture = m_textureManager.GetTexture(side.Lower.TextureHandle);
                 WallVertices sideVertices = WorldTriangulator.HandleTwoSidedLower(side, topPlane, bottomPlane, texture.UVInverse, isFront, 0);
-                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+                AddVertices(side.Lower.TextureHandle, texture, sideVertices, side.Sector.LightLevel);
             }
 
             if (side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -140,7 +192,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 double transferHeightsOffset = 0;
                 WallVertices sideVertices = WorldTriangulator.HandleTwoSidedMiddle(side, texture.Dimension, texture.UVInverse,
                     bottomZ, topZ, isFront, out _, 0, transferHeightsOffset);
-                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+                AddVertices(side.Middle.TextureHandle, texture, sideVertices, side.Sector.LightLevel);
             }
 
             if (UpperIsVisible(facingSector, otherSector))
@@ -149,7 +201,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 SectorPlane bottomPlane = otherSector.Ceiling;
                 GLLegacyTexture texture = m_textureManager.GetTexture(side.Upper.TextureHandle);
                 WallVertices sideVertices = WorldTriangulator.HandleTwoSidedUpper(side, topPlane, bottomPlane, texture.UVInverse, isFront, 0);
-                AddVertices(texture, sideVertices, side.Sector.LightLevel);
+                AddVertices(side.Upper.TextureHandle, texture, sideVertices, side.Sector.LightLevel);
             }
         }
         else
@@ -158,7 +210,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             SectorPlane ceiling = side.Sector.Ceiling;
             GLLegacyTexture texture = m_textureManager.GetTexture(side.Middle.TextureHandle);
             WallVertices sideVertices = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, 0);
-            AddVertices(texture, sideVertices, side.Sector.LightLevel);
+            AddVertices(side.Middle.TextureHandle, texture, sideVertices, side.Sector.LightLevel);
         }
 
         static bool LowerIsVisible(Sector facingSector, Sector otherSector)
@@ -175,12 +227,12 @@ public class StaticCacheGeometryRenderer : IDisposable
             return facingZ > otherZ;
         }
 
-        void AddVertices(GLLegacyTexture texture, WallVertices wallVertices, short lightLevel)
+        void AddVertices(int textureId, GLLegacyTexture texture, WallVertices wallVertices, short lightLevel)
         {
-            if (!m_textureToVertices.TryGetValue(texture, out DynamicArray<StaticGeometryVertex>? vertices))
+            if (!m_textureToVertices.TryGetValue(textureId, out DynamicArray<StaticGeometryVertex>? vertices))
             {
                 vertices = new();
-                m_textureToVertices[texture] = vertices;
+                m_textureToVertices[textureId] = vertices;
             }
 
             Span<StaticGeometryVertex> vertexSpan = stackalloc StaticGeometryVertex[4];
@@ -218,10 +270,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
-            (GLLegacyTexture texture, StaticVertexBuffer<StaticGeometryVertex> vbo, VertexArrayObject vao) = m_geometry[i];
-            texture.Bind();
-            vao.Bind();
-            vbo.DrawArrays();
+            var data = m_geometry[i];
+            data.Texture.Bind();
+            data.Vao.Bind();
+            data.Vbo.DrawArrays();
         }
     }
 
@@ -232,10 +284,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_shader.Dispose();
 
-        foreach ((GLLegacyTexture _, StaticVertexBuffer<StaticGeometryVertex> vbo, VertexArrayObject vao) in m_geometry)
+        foreach (var data in m_geometry)
         {
-            vbo.Dispose();
-            vao.Dispose();
+            data.Vbo.Dispose();
+            data.Vao.Dispose();
         }
         
         m_disposed = true;
