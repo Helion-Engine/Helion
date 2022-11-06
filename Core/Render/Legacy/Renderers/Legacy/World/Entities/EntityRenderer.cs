@@ -38,6 +38,7 @@ public class EntityRenderer
     private Entity? m_cameraEntity;
     private GLLegacyTexture m_debugBoxTexture;
     private RenderWorldData m_debugBoxRenderWorldData;
+    private Vec2F m_viewRightNormal;
 
     public readonly List<IRenderObject> AlphaEntities = new();
 
@@ -71,7 +72,12 @@ public class EntityRenderer
         m_renderPositions.Clear();
     }
 
-    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, in Vec2D viewDirection)
+    public void SetViewDirection(Vec2D viewDirection)
+    {
+        m_viewRightNormal = viewDirection.RotateRight90().Unit().Float;
+    }
+
+    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
     {
         LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
         while (node != null)
@@ -91,7 +97,7 @@ public class EntityRenderer
                 continue;
             }
 
-            RenderEntity(viewSector, entity, position, viewDirection);
+            RenderEntity(viewSector, entity, position);
             m_EntityDrawnTracker.MarkDrawn(entity);
         }
     }
@@ -129,12 +135,12 @@ public class EntityRenderer
                 ReferenceEquals(m_cameraEntity, entity);
     }
 
-    private void AddSpriteQuad(in Vec2D viewDirection, in Vec3D entityCenterBottom, Entity entity,
+    private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity,
         GLLegacyTexture texture, short lightLevel, bool mirror)
     {
         // We need to find the perpendicular vector from the entity so we
         // know where to place the quad vertices.
-        Vec2F rightNormal = viewDirection.RotateRight90().Unit().Float;
+        Vec2F rightNormal = m_viewRightNormal;
         Vec2F entityCenterXY = entityCenterBottom.XY.Float;
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered. Have to translate the offset.
@@ -153,13 +159,12 @@ public class EntityRenderer
         float leftU = mirror ? 1.0f : 0.0f;
         float rightU = mirror ? 0.0f : 1.0f;
         float alpha = m_config.Render.SpriteTransparency ? (float)entity.Definition.Properties.Alpha : 1.0f;
-        Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
-        bool fuzz = entity.Definition.Flags.Shadow;
+        float fuzz = entity.Definition.Fuzz;
 
-        LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha, fuzz);
+        LegacyVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
+        LegacyVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
+        LegacyVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
+        LegacyVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
 
         RenderWorldData renderWorldData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         renderWorldData.Vbo.Add(topLeft);
@@ -263,7 +268,7 @@ public class EntityRenderer
         }
     }
 
-    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position, in Vec2D viewDirection)
+    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
     {
         const double NudgeFactor = 0.0001;
         Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
@@ -312,6 +317,6 @@ public class EntityRenderer
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
         short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
-        AddSpriteQuad(viewDirection, centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
+        AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
     }
 }

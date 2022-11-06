@@ -119,6 +119,7 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(position3D);
 
+        m_entityRenderer.SetViewDirection(viewDirection);
         m_viewClipper.Center = position;
         m_renderCount++;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
@@ -133,7 +134,7 @@ public class LegacyWorldRenderer : WorldRenderer
             IRenderObject renderObject = alphaObjects[i];
             if (renderObject.Type == RenderObjectType.Entity)
             {
-                m_entityRenderer.RenderEntity(m_viewSector, (Entity)renderObject, position3D, viewDirection);
+                m_entityRenderer.RenderEntity(m_viewSector, (Entity)renderObject, position3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {
@@ -181,7 +182,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (hasRenderedSector)
             return;
         subsector.Sector.RenderCount = m_renderCount;
-        m_entityRenderer.RenderSubsector(m_viewSector, subsector, position, viewDirection);
+        m_entityRenderer.RenderSubsector(m_viewSector, subsector, position);
     }
 
     private void SetUniforms(RenderInfo renderInfo)
