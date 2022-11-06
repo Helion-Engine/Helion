@@ -18,13 +18,8 @@ public struct LegacyVertex
     public float B;
     public float Fuzz;
 
-    public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256, float alpha = 1.0f) :
-        this(x, y, z, u, v, Color.White, lightLevel, alpha, false)
-    {
-    }
-
-    public LegacyVertex(float x, float y, float z, float u, float v, Color color, short lightLevel = 256,
-        float alpha = 1.0f, bool fuzz = false)
+    public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256,
+        float alpha = 1.0f, float fuzz = 0.0f)
     {
         X = x;
         Y = y;
@@ -33,9 +28,9 @@ public struct LegacyVertex
         V = v;
         LightLevelUnit = lightLevel;
         Alpha = alpha;
-        R = color.R / 255.0f;
-        G = color.G / 255.0f;
-        B = color.B / 255.0f;
-        Fuzz = fuzz ? 1.0f : 0.0f;
+        R = 1f;
+        G = 1f;
+        B = 1f;
+        Fuzz = fuzz;
     }
 }

@@ -153,13 +153,12 @@ public class EntityRenderer
         float leftU = mirror ? 1.0f : 0.0f;
         float rightU = mirror ? 0.0f : 1.0f;
         float alpha = m_config.Render.SpriteTransparency ? (float)entity.Definition.Properties.Alpha : 1.0f;
-        Color color = entity.Definition.Flags.Shadow ? ShadowColor : Color.White;
-        bool fuzz = entity.Definition.Flags.Shadow;
+        float fuzz = entity.Definition.Fuzz;
 
-        LegacyVertex topLeft = new LegacyVertex(left.X, left.Y, topZ, leftU, 0.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex topRight = new LegacyVertex(right.X, right.Y, topZ, rightU, 0.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex bottomLeft = new LegacyVertex(left.X, left.Y, bottomZ, leftU, 1.0f, color, lightLevel, alpha, fuzz);
-        LegacyVertex bottomRight = new LegacyVertex(right.X, right.Y, bottomZ, rightU, 1.0f, color, lightLevel, alpha, fuzz);
+        LegacyVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
+        LegacyVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
+        LegacyVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
+        LegacyVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
 
         RenderWorldData renderWorldData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         renderWorldData.Vbo.Add(topLeft);
