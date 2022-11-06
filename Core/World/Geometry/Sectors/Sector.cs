@@ -110,6 +110,9 @@ public class Sector
 
     public double Friction = Constants.DefaultFriction;
 
+    public Sector TransferFloorLightSector => m_transferFloorLightSector;
+    public Sector TransferCeilingLightSector => m_transferCeilingLightSector;
+
     private Sector m_transferFloorLightSector;
     private Sector m_transferCeilingLightSector;
 

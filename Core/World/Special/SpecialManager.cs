@@ -39,6 +39,10 @@ public class SpecialManager : ITickable, IDisposable
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
 
+    const SideDataTypes AllWallTypes = SideDataTypes.UpperTexture | SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
+    const SideDataTypes MiddleLower = SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
+    const SideDataTypes MiddleUpper = SideDataTypes.MiddleTexture | SideDataTypes.UpperTexture;
+
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly IRandom m_random;
@@ -532,19 +536,23 @@ public class SpecialManager : ITickable, IDisposable
             if (sector.Secret)
                 levelStats.TotalSecrets++;
             HandleSectorSpecial(sector);
-            DetermineStaticSector(sector);
         }
 
         foreach (var special in m_specials)
         {
             if (special is SectorSpecialBase sectorSpecial)
+            {
                 SetSectorDynamic(sectorSpecial.Sector, true, true, SectorDynamic.Light);
+            }
             else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
             {
                 bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
                 SetSectorDynamic(scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
             }
         }
+
+        for (int i = 0; i < m_world.Sectors.Count; i++)
+            DetermineStaticSector(m_world.Sectors[i]);
     }
 
     private static void DetermineStaticSector(Sector sector)
@@ -556,11 +564,13 @@ public class SpecialManager : ITickable, IDisposable
             SetSectorDynamic(sector, true, true, SectorDynamic.TransferHeights);
             return;
         }
-    }
 
-    const SideDataTypes AllWallTypes = SideDataTypes.UpperTexture | SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
-    const SideDataTypes MiddleLower = SideDataTypes.MiddleTexture | SideDataTypes.LowerTexture;
-    const SideDataTypes MiddleUpper = SideDataTypes.MiddleTexture | SideDataTypes.UpperTexture;
+        if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
+            SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideDataTypes.None);
+
+        if (sector.TransferCeilingLightSector.Id != sector.Id && !sector.TransferCeilingLightSector.IsCeilingStatic)
+            SetSectorDynamic(sector, false, true, SectorDynamic.Light, SideDataTypes.None);
+    }
 
     private void DetermineStaticSector(Line line)
     {
@@ -612,11 +622,7 @@ public class SpecialManager : ITickable, IDisposable
                 SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
             else if (special.IsSectorTrigger())
                 SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
-            else if (special.LineSpecialType == ZDoomLineSpecialType.TransferFloorLight)
-                SetSectorsDynamic(sectors, true, false, SectorDynamic.Light, SideDataTypes.None);
-            else if (special.LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight)
-                SetSectorsDynamic(sectors, false, true, SectorDynamic.Light, SideDataTypes.None);
-            else
+            else if (!special.IsTransferLight())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
         }
     }

@@ -201,6 +201,7 @@ public class LineSpecial
     public bool IsSectorLight() => m_lightSpecial;
     public bool IsSectorStopLight() => LineSpecialType == ZDoomLineSpecialType.LightStop;
     public bool IsSectorTrigger() => m_sectorTrigger;
+    public bool IsTransferLight() => LineSpecialType == ZDoomLineSpecialType.TransferFloorLight || LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight;
     public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
         IsSectorStopLight() || IsSectorTrigger();
 
