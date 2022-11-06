@@ -97,9 +97,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             foreach (Line line in sector.Lines)
             {
-                if (line.Front.IsStatic)
-                    AddLine(line);
-                if (line.Back != null && line.Back.IsStatic)
+                AddLine(line);
+                if (line.Back != null)
                     AddLine(line);
             }
         }
