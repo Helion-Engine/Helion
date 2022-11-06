@@ -169,11 +169,14 @@ public class GeometryRenderer : IDisposable
             if (subsectors.Length == 0)
                 continue;
 
+            var sector = subsectors[0].Sector;
+            var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
+
             // Set position Z within plane view so it's not culled
-            m_position.Z = subsectors[0].Sector.Floor.Plane.ToZ(pos) + 1;
-            RenderFlat(subsectors, subsectors[0].Sector.Floor, true, out _, out _);
-            m_position.Z = subsectors[0].Sector.Ceiling.Plane.ToZ(pos) - 1;
-            RenderFlat(subsectors, subsectors[0].Sector.Ceiling, false, out _, out _);
+            m_position.Z = sector.Floor.Plane.ToZ(pos) + 1;
+            RenderFlat(subsectors, renderSector.Floor, true, out _, out _);
+            m_position.Z = sector.Ceiling.Plane.ToZ(pos) - 1;
+            RenderFlat(subsectors, renderSector.Ceiling, false, out _, out _);
         }
     }
 
@@ -353,7 +356,7 @@ public class GeometryRenderer : IDisposable
             RenderOneSided(side, out _, out _);
     }
 
-    public void RenderOneSided(Side side, out LegacyVertex[]? veticies, out SkyGeometryVertex[] skyVerticies)
+    public void RenderOneSided(Side side, out LegacyVertex[]? veticies, out SkyGeometryVertex[]? skyVerticies)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
@@ -773,6 +776,8 @@ public class GeometryRenderer : IDisposable
 
         return (bottomZ, topZ);
     }
+
+    public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {

@@ -88,12 +88,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
 
+        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+
         foreach (Sector sector in world.Sectors)
         {
             if (sector.IsFloorStatic)
-                AddSectorPlane(sector, sector.Floor, true);
+                AddSectorPlane(sector, true);
             if (sector.IsCeilingStatic)
-                AddSectorPlane(sector, sector.Ceiling, false);
+                AddSectorPlane(sector, false);
 
             foreach (Line line in sector.Lines)
             {
@@ -145,8 +147,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSide(Side side, bool isFrontSide)
     {
         Side otherSide = side.PartnerSide!;
-        Sector facingSector = side.Sector;
-        Sector otherSector = otherSide.Sector;
+        Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
+        Sector otherSector = otherSide.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
 
         if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture))
         {
@@ -203,8 +205,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureToVertices.Clear();
     }
 
-    private void AddSectorPlane(Sector sector, SectorPlane plane, bool floor)
+    private void AddSectorPlane(Sector sector, bool floor)
     {
+        var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
+        var plane = floor ? renderSector.Floor : renderSector.Ceiling;
         var vertices = GetTextureVerticies(plane.TextureHandle);
         m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVerticies, out var renderedSkyVerticies);
 
