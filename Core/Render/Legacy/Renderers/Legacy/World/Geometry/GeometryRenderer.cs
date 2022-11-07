@@ -437,14 +437,14 @@ public class GeometryRenderer : IDisposable
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
-    private bool LowerIsVisible(Sector facingSector, Sector otherSector)
+    public bool LowerIsVisible(Sector facingSector, Sector otherSector)
     {
         double facingZ = facingSector.Floor.GetInterpolatedZ(m_tickFraction);
         double otherZ = otherSector.Floor.GetInterpolatedZ(m_tickFraction);
         return facingZ < otherZ;
     }
 
-    private bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);

@@ -150,7 +150,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
         Sector otherSector = otherSide.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture))
+        if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Upper.TextureHandle);
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
@@ -158,7 +158,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 verticies.AddRange(sideVerticies);
         }
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture))
+        if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Lower.TextureHandle);
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
