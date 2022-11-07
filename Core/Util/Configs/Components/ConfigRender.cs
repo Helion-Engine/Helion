@@ -91,4 +91,7 @@ public class ConfigRender
 
     [ConfigInfo("Enable texture transparency.")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);
+
+    [ConfigInfo("Max render distance.")]
+    public readonly ConfigValue<int> MaxDistance = new(0);
 }

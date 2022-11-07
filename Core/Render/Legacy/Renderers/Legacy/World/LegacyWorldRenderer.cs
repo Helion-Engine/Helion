@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
@@ -148,6 +149,19 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         if (box.Contains(position))
             return false;
+
+        if (m_config.Render.MaxDistance > 0)
+        {
+            int max = m_config.Render.MaxDistance;
+            var edge1 = new Seg2D(box.BottomLeft, box.TopLeft);
+            var edge2 = new Seg2D(box.TopLeft, box.TopRight);
+            var edge3 = new Seg2D(box.TopRight, box.BottomRight);
+            var edge4 = new Seg2D(box.BottomRight, box.BottomLeft);
+
+            if (edge1.ClosestPoint(position).Distance(position) > max && edge2.ClosestPoint(position).Distance(position) > max &&
+                edge3.ClosestPoint(position).Distance(position) > max && edge4.ClosestPoint(position).Distance(position) > max)
+                return true;
+        }
 
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
         return m_viewClipper.InsideAnyRange(first, second);
