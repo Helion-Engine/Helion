@@ -8,6 +8,7 @@ using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
+using NLog;
 
 namespace Helion.Resources;
 
@@ -29,6 +30,8 @@ public class TextureManager : ITickable
 
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
+
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public TextureManager(ArchiveCollection archiveCollection)
     {
@@ -62,11 +65,6 @@ public class TextureManager : ITickable
         InitAnimations();
         InitSwitches();
         InitSprites(spriteNames, spriteEntries);
-    }
-
-    public static void Init(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
-    {
-        //Instance = new TextureManager(archiveCollection, mapInfoDef);
     }
 
     public Texture GetDefaultSkyTexture()
@@ -296,7 +294,10 @@ public class TextureManager : ITickable
         {
             var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
             if (!m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName, out int spriteIndex))
+            {
+                Log.Warn($"Failed to get sprite index for {spriteName}");
                 continue;
+            }
 
             m_spriteDefinitions[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
         }
