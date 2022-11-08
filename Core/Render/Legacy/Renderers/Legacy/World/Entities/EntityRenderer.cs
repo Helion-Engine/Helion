@@ -275,7 +275,7 @@ public class EntityRenderer
         Vec2D entityPos = centerBottom.XY;
         Vec2D position2D = position.XY;
 
-        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
+        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
         uint rotation;
 
         if (spriteDef != null && spriteDef.HasRotations)

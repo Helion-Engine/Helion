@@ -78,7 +78,7 @@ public partial class EndGameLayer
             if (hud.Textures is not LegacyGLTextureManager textureManager)
                 return;
 
-            var spriteDef = textureManager.GetSpriteDefinition(m_castEntity.Frame.Sprite);
+            var spriteDef = textureManager.GetSpriteDefinition(m_castEntity.Frame.SpriteIndex);
             if (spriteDef == null)
                 return;
 

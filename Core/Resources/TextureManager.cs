@@ -18,7 +18,6 @@ public class TextureManager : ITickable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures;
     private readonly List<int> m_translations;
-    private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
@@ -26,6 +25,7 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
+    private SpriteDefinition[] m_spriteDefinitions = Array.Empty<SpriteDefinition>();
 
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
@@ -251,15 +251,13 @@ public class TextureManager : ITickable
         return m_textures[m_translations[index]];
     }
 
-    /// <summary>
-    /// Get a sprite rotation.
-    /// </summary>
-    /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
-    /// <returns>Returns a SpriteDefinition if found by sprite name. Otherwise null.</returns>
-    public SpriteDefinition? GetSpriteDefinition(string spriteName)
+
+    public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
     {
-        m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef);
-        return spriteDef;
+        if (spriteIndex >= m_spriteDefinitions.Length)
+            return null;
+
+        return m_spriteDefinitions[spriteIndex];
     }
 
     public void Tick()
@@ -293,10 +291,14 @@ public class TextureManager : ITickable
 
     private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
     {
+        m_spriteDefinitions = new SpriteDefinition[m_archiveCollection.EntityFrameTable.SpriteIndexCount];
         foreach (var spriteName in spriteNames)
         {
             var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
-            m_spriteDefinitions.Add(spriteName, new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever));
+            if (!m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName, out int spriteIndex))
+                continue;
+
+            m_spriteDefinitions[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
         }
     }
 
