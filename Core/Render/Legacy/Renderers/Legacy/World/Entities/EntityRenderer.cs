@@ -275,7 +275,7 @@ public class EntityRenderer
         Vec2D entityPos = centerBottom.XY;
         Vec2D position2D = position.XY;
 
-        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.Sprite);
+        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
         uint rotation;
 
         if (spriteDef != null && spriteDef.HasRotations)
@@ -289,24 +289,27 @@ public class EntityRenderer
             rotation = 0;
         }
 
-        if (m_renderPositions.Contains(entityPos))
+        if (m_config.Render.SpriteZCheck)
         {
-            double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
-            Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
-            centerBottom.X -= nudgeAmount.X;
-            centerBottom.Y -= nudgeAmount.Y;
-
-            while (m_renderPositions.Contains(centerBottom.XY))
+            if (m_renderPositions.Contains(entityPos))
             {
+                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
+                Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
                 centerBottom.X -= nudgeAmount.X;
                 centerBottom.Y -= nudgeAmount.Y;
-            }
 
-            m_renderPositions.Add(centerBottom.XY);
-        }
-        else
-        {
-            m_renderPositions.Add(entityPos);
+                while (m_renderPositions.Contains(centerBottom.XY))
+                {
+                    centerBottom.X -= nudgeAmount.X;
+                    centerBottom.Y -= nudgeAmount.Y;
+                }
+
+                m_renderPositions.Add(centerBottom.XY);
+            }
+            else
+            {
+                m_renderPositions.Add(entityPos);
+            }
         }
 
         SpriteRotation spriteRotation;

@@ -199,13 +199,9 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
         return spriteRotation;
     }
 
-    /// <summary>
-    /// Get a sprite definition.
-    /// </summary>
-    /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
-    public SpriteDefinition? GetSpriteDefinition(string spriteName)
+    public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
     {
-        SpriteDefinition? spriteDef = TextureManager.GetSpriteDefinition(spriteName);
+        SpriteDefinition? spriteDef = TextureManager.GetSpriteDefinition(spriteIndex);
         return spriteDef;
     }
 
