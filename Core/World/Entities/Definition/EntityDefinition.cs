@@ -19,7 +19,6 @@ public class EntityDefinition
     public readonly List<string> ParentClassNames;
     public readonly bool IsBulletPuff;
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
-    public readonly float Fuzz;
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -35,7 +34,6 @@ public class EntityDefinition
         ParentClassNames = parentClassNames;
         parentClassNames.ForEach(x => ParentClassLookup.Add(x));
         IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
-        Fuzz = Flags.Shadow ? 1.0f : 0.0f;
     }
 
     /// <summary>

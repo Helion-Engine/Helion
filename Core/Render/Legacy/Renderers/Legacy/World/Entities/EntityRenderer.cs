@@ -7,6 +7,7 @@ using Helion.Render.Legacy.Renderers.Legacy.World.Data;
 using Helion.Render.Legacy.Shared.World.ViewClipping;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Resources;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
@@ -79,6 +80,7 @@ public class EntityRenderer
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
     {
+        short lightLevel = subsector.Sector.GetRenderSector(viewSector, position.Z).LightLevel;
         LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
         while (node != null)
         {
@@ -97,7 +99,7 @@ public class EntityRenderer
                 continue;
             }
 
-            RenderEntity(viewSector, entity, position);
+            RenderEntity(entity, position, lightLevel);
             m_EntityDrawnTracker.MarkDrawn(entity);
         }
     }
@@ -119,13 +121,6 @@ public class EntityRenderer
         // Then we can do a bit shift trick which converts the higher order
         // three bits into the angle rotation between 0 - 7.
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
-    }
-
-    private static short CalculateLightLevel(Entity entity, short sectorLightLevel)
-    {
-        if (entity.Flags.Bright || entity.Frame.Properties.Bright)
-            return 255;
-        return sectorLightLevel;
     }
 
     private bool ShouldNotDraw(Entity entity)
@@ -156,10 +151,15 @@ public class EntityRenderer
             bottomZ += offsetAmount;
 
         float topZ = bottomZ + texture.Height;
-        float leftU = mirror ? 1.0f : 0.0f;
-        float rightU = mirror ? 0.0f : 1.0f;
         float alpha = m_config.Render.SpriteTransparency ? (float)entity.Definition.Properties.Alpha : 1.0f;
-        float fuzz = entity.Definition.Fuzz;
+        float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
+        float leftU = 0.0f;
+        float rightU = 1.0f;
+        if (mirror)
+        {
+            leftU = 1.0f;
+            rightU = 0.0f;
+        }
 
         LegacyVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
         LegacyVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
@@ -268,7 +268,7 @@ public class EntityRenderer
         }
     }
 
-    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
+    public void RenderEntity(Entity entity, in Vec3D position, short lightLevel)
     {
         const double NudgeFactor = 0.0001;
         Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
@@ -319,7 +319,8 @@ public class EntityRenderer
             spriteRotation = m_textureManager.NullSpriteRotation;
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
-        short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
+        if (entity.Flags.Bright || entity.Frame.Properties.Bright)
+            lightLevel = 255;
         AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
     }
 }
