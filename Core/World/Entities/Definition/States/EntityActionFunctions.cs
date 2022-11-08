@@ -2751,8 +2751,7 @@ public static class EntityActionFunctions
         LineSpecial lineSpecial = new(specialType, activationType, compat);
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
-        if (m_dummyLine == null)
-            m_dummyLine = CreateDummyLine(flags, lineSpecial, specialArgs, entity.World.Sectors[0]);
+        m_dummyLine ??= CreateDummyLine(flags, lineSpecial, specialArgs, entity.World.Sectors[0]);
 
         m_dummyLine.Args = specialArgs;
         m_dummyLine.Flags = flags;
