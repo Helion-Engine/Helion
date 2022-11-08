@@ -14,6 +14,7 @@ using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -549,6 +550,8 @@ public class SpecialManager : ITickable, IDisposable
             SetSectorsDynamic(sectors, floor, ceiling, SectorDynamic.Movement);
         }
 
+        SetLevelModificationFrames();
+
         foreach (var special in m_specials)
         {
             if (special is SectorSpecialBase sectorSpecial)
@@ -564,6 +567,28 @@ public class SpecialManager : ITickable, IDisposable
 
         for (int i = 0; i < m_world.Sectors.Count; i++)
             DetermineStaticSector(m_world.Sectors[i]);
+    }
+
+    private void SetLevelModificationFrames()
+    {
+        var sector = Sector.CreateDefault();
+        foreach (var frame in m_world.ArchiveCollection.EntityFrameTable.Frames)
+        {
+            if (frame.ActionFunction == EntityActionFunctions.A_KeenDie)
+            {
+                var sectors = m_world.FindBySectorTag(666);
+                SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
+            }
+            else if (frame.ActionFunction == EntityActionFunctions.A_LineEffect)
+            {
+                SpecialArgs specialArgs = new();
+                if (m_world.Sectors.Count == 0 || !EntityActionFunctions.CreateLineEffectSpecial(frame, out var lineSpecial, out var flags, ref specialArgs))
+                    continue;
+
+                Line line = EntityActionFunctions.CreateDummyLine(flags, lineSpecial, specialArgs, sector);
+                DetermineStaticSector(line);
+            }
+        }
     }
 
     private static void DetermineStaticSector(Sector sector)

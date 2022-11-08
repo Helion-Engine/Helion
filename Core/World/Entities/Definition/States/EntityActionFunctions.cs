@@ -11,6 +11,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories;
@@ -1416,7 +1417,7 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_KeenDie(Entity entity)
+    public static void A_KeenDie(Entity entity)
     {
         var world = entity.World;
         var def = world.EntityManager.DefinitionComposer.GetByName("CommanderKeen");
@@ -1425,7 +1426,7 @@ public static class EntityActionFunctions
 
         if (world.EntityAliveCount(def.EditorId.Value) == 0)
         {
-            var sectors = world.Sectors.Where(x => x.Tag == 666);
+            var sectors = world.FindBySectorTag(666);
             foreach (var sector in sectors)
             {
                 var special = world.SpecialManager.CreateDoorOpenStaySpecial(sector, VanillaConstants.DoorSlowSpeed * SpecialManager.SpeedFactor);
@@ -2735,20 +2736,15 @@ public static class EntityActionFunctions
 
     private static Line? m_dummyLine;
 
-    private static void A_LineEffect(Entity entity)
+    public static void A_LineEffect(Entity entity)
     {
         if (entity.World.Sectors.Count == 0)
             return;
 
         SpecialArgs specialArgs = new();
-        var flags = new LineFlags(MapLineFlags.Doom(0));
-        var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)entity.Frame.DehackedMisc1,
-            entity.Frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
-
-        if (specialType == ZDoomLineSpecialType.None)
+        if (!CreateLineEffectSpecial(entity.Frame, out var lineSpecial, out var flags, ref specialArgs))
             return;
 
-        LineSpecial lineSpecial = new(specialType, activationType, compat);
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
         m_dummyLine ??= CreateDummyLine(flags, lineSpecial, specialArgs, entity.World.Sectors[0]);
@@ -2760,7 +2756,22 @@ public static class EntityActionFunctions
         entity.World.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 
-    private static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
+    public static bool CreateLineEffectSpecial(EntityFrame frame, [NotNullWhen(true)] out LineSpecial? lineSpecial, 
+        out LineFlags flags, ref SpecialArgs specialArgs)
+    {
+        lineSpecial = null;
+        flags = new LineFlags(MapLineFlags.Doom(0));
+        var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)frame.DehackedMisc1,
+            frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
+
+        if (specialType == ZDoomLineSpecialType.None)
+            return false;
+
+        lineSpecial = new(specialType, activationType, compat);
+        return true;
+    }
+
+    public static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
     {
         var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
         var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
