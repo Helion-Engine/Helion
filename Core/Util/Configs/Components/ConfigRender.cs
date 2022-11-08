@@ -75,6 +75,9 @@ public class ConfigRender
     [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
     public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
 
+    [ConfigInfo("Checks if sprites will overlap and z-fight.")]
+    public readonly ConfigValue<bool> SpriteZCheck = new(true);
+
     public readonly ConfigRenderVirtualDimension VirtualDimension = new();
 
     [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
