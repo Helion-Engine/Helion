@@ -107,6 +107,7 @@ public abstract partial class WorldBase : IWorld
     public CheatManager CheatManager { get; } = new();
     public DataCache DataCache => ArchiveCollection.DataCache;
     public abstract Player Player { get; protected set; }
+    public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;

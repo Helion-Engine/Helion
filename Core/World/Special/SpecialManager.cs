@@ -538,6 +538,17 @@ public class SpecialManager : ITickable, IDisposable
             HandleSectorSpecial(sector);
         }
 
+        foreach (var bossDeathSpecial in m_world.BossDeathSpecials)
+        {
+            var sectors = m_world.FindBySectorTag(bossDeathSpecial.SectorTag);
+            bool floor = bossDeathSpecial.IsFloorMove();
+            bool ceiling = bossDeathSpecial.IsCeilingMove();
+            if (!floor && !ceiling)
+                continue;
+
+            SetSectorsDynamic(sectors, floor, ceiling, SectorDynamic.Movement);
+        }
+
         foreach (var special in m_specials)
         {
             if (special is SectorSpecialBase sectorSpecial)
