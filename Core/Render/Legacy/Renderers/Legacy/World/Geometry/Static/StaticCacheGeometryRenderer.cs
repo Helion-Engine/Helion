@@ -97,16 +97,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             if ((sector.FloorDynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, true);
-            if ((sector.FloorDynamic & IgnoreFlags) == 0)
+            if ((sector.CeilingDynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, false);
-
-            foreach (Line line in sector.Lines)
-            {
-                AddLine(line);
-                if (line.Back != null)
-                    AddLine(line);
-            }
         }
+
+        foreach (Line line in world.Lines)
+            AddLine(line);
 
         foreach ((int textureHandle, DynamicArray<LegacyVertex> array) in m_textureToVertices)
         {
@@ -131,8 +127,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            //if (line.Front.DynamicWalls != SideDataTypes.None)
-            //    return;
+            if (line.Front.DynamicWalls != SideDataTypes.None && 
+                (line.Front.Sector.FloorDynamic == SectorDynamic.Movement || line.Front.Sector.CeilingDynamic == SectorDynamic.Movement))
+                return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
             m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
@@ -151,10 +148,15 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         Side otherSide = side.PartnerSide!;
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
-        Sector otherSector = otherSide.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
+        Sector otherSector = otherSide.Sector.GetRenderSector(otherSide.Sector, side.Sector.Floor.Z + 1);
 
-        if (m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
-        //if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
+        bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
+        bool upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture));
+        bool lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture));
+        bool middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture));
+
+        if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Upper.TextureHandle);
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
@@ -162,8 +164,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 verticies.AddRange(sideVerticies);
         }
 
-        if (m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
-        //if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Lower.TextureHandle);
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
@@ -171,8 +172,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 verticies.AddRange(sideVerticies);
         }
 
-        if (side.Middle.TextureHandle != Constants.NoTextureIndex)
-        //if (side.Middle.TextureHandle != Constants.NoTextureIndex && !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             var verticies = GetTextureVerticies(side.Middle.TextureHandle);
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
