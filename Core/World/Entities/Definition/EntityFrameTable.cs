@@ -20,8 +20,17 @@ public class EntityFrameTable
     // Lookup by vanilla frame index
     public IDictionary<int, EntityFrame> VanillaFrameMap => m_vanillaFrameMap;
 
-    public bool GetSpriteIndex(string spriteName, out int spriteIndex) =>
-        m_spriteNameToIndex.TryGetValue(spriteName, out spriteIndex);
+    public int GetSpriteIndex(string spriteName)
+    {
+        if (!m_spriteNameToIndex.TryGetValue(spriteName, out int spriteIndex))
+        {
+            spriteIndex = m_spriteIndex;
+            m_spriteNameToIndex[spriteName] = spriteIndex;
+            m_spriteIndex++;
+        }
+
+        return spriteIndex;
+    }
 
     public int SpriteIndexCount => m_spriteNameToIndex.Count;
 
@@ -30,14 +39,6 @@ public class EntityFrameTable
         entityFrame.MasterFrameIndex = Frames.Count;
         Frames.Add(entityFrame);
         m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
-
-        if (!m_spriteNameToIndex.TryGetValue(entityFrame.Sprite, out int spriteIndex))
-        {
-            spriteIndex = m_spriteIndex;
-            m_spriteNameToIndex.Add(entityFrame.Sprite, spriteIndex);
-            m_spriteIndex++;
-        }
-
-        entityFrame.SpriteIndex = spriteIndex;
+        entityFrame.SpriteIndex = GetSpriteIndex(entityFrame.Sprite);
     }
 }
