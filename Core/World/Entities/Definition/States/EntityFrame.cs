@@ -63,6 +63,7 @@ public class EntityFrame
     public void SetSprite(string sprite)
     {
         Sprite = sprite;
+        SpriteIndex = m_table.GetSpriteIndex(sprite);
         CheckSetInvisible();
     }
 

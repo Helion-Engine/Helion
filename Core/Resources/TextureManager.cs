@@ -8,6 +8,7 @@ using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
+using Helion.Util.Container;
 using NLog;
 
 namespace Helion.Resources;
@@ -26,7 +27,7 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
-    private SpriteDefinition[] m_spriteDefinitions = Array.Empty<SpriteDefinition>();
+    private DynamicArray<SpriteDefinition> m_spriteDefinitions = new();
 
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
@@ -255,7 +256,7 @@ public class TextureManager : ITickable
         if (spriteIndex >= m_spriteDefinitions.Length)
             return null;
 
-        return m_spriteDefinitions[spriteIndex];
+        return m_spriteDefinitions.Data[spriteIndex];
     }
 
     public void Tick()
@@ -289,17 +290,15 @@ public class TextureManager : ITickable
 
     private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
     {
-        m_spriteDefinitions = new SpriteDefinition[m_archiveCollection.EntityFrameTable.SpriteIndexCount];
+        m_spriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
             var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
-            if (!m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName, out int spriteIndex))
-            {
-                Log.Warn($"Failed to get sprite index for {spriteName}");
-                continue;
-            }
+            int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
+            if (spriteIndex >= m_spriteDefinitions.Capacity)
+                m_spriteDefinitions.Resize(spriteIndex + 32);
 
-            m_spriteDefinitions[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
+            m_spriteDefinitions.Data[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
         }
     }
 
