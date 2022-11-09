@@ -8,6 +8,8 @@ using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
+using Helion.Util.Container;
+using NLog;
 
 namespace Helion.Resources;
 
@@ -18,7 +20,6 @@ public class TextureManager : ITickable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures;
     private readonly List<int> m_translations;
-    private readonly Dictionary<string, SpriteDefinition> m_spriteDefinitions = new();
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
@@ -27,11 +28,14 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
+    private DynamicArray<SpriteDefinition> m_spriteDefinitions = new();
 
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
 
     public event EventHandler<AnimationEvent>? AnimationChanged;
+
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public TextureManager(ArchiveCollection archiveCollection)
     {
@@ -65,11 +69,6 @@ public class TextureManager : ITickable
         InitAnimations();
         InitSwitches();
         InitSprites(spriteNames, spriteEntries);
-    }
-
-    public static void Init(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null)
-    {
-        //Instance = new TextureManager(archiveCollection, mapInfoDef);
     }
 
     public Texture GetDefaultSkyTexture()
@@ -256,15 +255,13 @@ public class TextureManager : ITickable
         return m_textures[m_translations[index]];
     }
 
-    /// <summary>
-    /// Get a sprite rotation.
-    /// </summary>
-    /// <param name="spriteName">Name of the sprite e.g. 'POSS' or 'SARG'.</param>
-    /// <returns>Returns a SpriteDefinition if found by sprite name. Otherwise null.</returns>
-    public SpriteDefinition? GetSpriteDefinition(string spriteName)
+
+    public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
     {
-        m_spriteDefinitions.TryGetValue(spriteName, out SpriteDefinition? spriteDef);
-        return spriteDef;
+        if (spriteIndex >= m_spriteDefinitions.Length)
+            return null;
+
+        return m_spriteDefinitions.Data[spriteIndex];
     }
 
     public void Tick()
@@ -300,10 +297,15 @@ public class TextureManager : ITickable
 
     private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
     {
+        m_spriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
             var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
-            m_spriteDefinitions.Add(spriteName, new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever));
+            int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
+            if (spriteIndex >= m_spriteDefinitions.Capacity)
+                m_spriteDefinitions.Resize(spriteIndex + 32);
+
+            m_spriteDefinitions.Data[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
         }
     }
 

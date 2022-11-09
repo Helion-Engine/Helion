@@ -19,6 +19,9 @@ public class MapLineFlags
     public const ushort BlockPlayersMask = 0x4000;
     public const ushort BlockEverythingMask = 0x8000;
 
+    public const ushort Reserved = 0x0800;
+    public const ushort VanillaMask = 0x10FF;
+
     // MBF21 Flags
     public const ushort BlockLandMonstersMbf21 = 4096;
     public const ushort BlockPlayersMbf21 = 8192;
@@ -53,6 +56,10 @@ public class MapLineFlags
 
     public static MapLineFlags Doom(ushort flags)
     {
+        // Fun doom compatibility. If the garbage reserved bit is on then turn non-vanilla flags off.
+        if ((flags & Reserved) != 0)
+            flags = (ushort)(flags & VanillaMask);
+
         return new MapLineFlags(flags)
         {
             PassThrough = (flags & UseThroughMask) == UseThroughMask,

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Helion.World.Special;
 
-class MonsterCountSpecial : ISpecial
+public class MonsterCountSpecial : ISpecial
 {
     public readonly int SectorTag;
     public readonly int EntityEditorId;
@@ -64,6 +64,9 @@ class MonsterCountSpecial : ISpecial
                 break;
         }
     }
+
+    public bool IsFloorMove() => MapSpecialAction == MapSpecialAction.LowerFloor || MapSpecialAction == MapSpecialAction.FloorRaiseByLowestTexture;
+    public bool IsCeilingMove() => MapSpecialAction == MapSpecialAction.OpenDoor;
 
     public bool Use(Entity entity)
     {

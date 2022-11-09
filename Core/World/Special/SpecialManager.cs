@@ -14,6 +14,7 @@ using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -538,6 +539,19 @@ public class SpecialManager : ITickable, IDisposable
             HandleSectorSpecial(sector);
         }
 
+        foreach (var bossDeathSpecial in m_world.BossDeathSpecials)
+        {
+            var sectors = m_world.FindBySectorTag(bossDeathSpecial.SectorTag);
+            bool floor = bossDeathSpecial.IsFloorMove();
+            bool ceiling = bossDeathSpecial.IsCeilingMove();
+            if (!floor && !ceiling)
+                continue;
+
+            SetSectorsDynamic(sectors, floor, ceiling, SectorDynamic.Movement);
+        }
+
+        SetLevelModificationFrames();
+
         foreach (var special in m_specials)
         {
             if (special is SectorSpecialBase sectorSpecial)
@@ -553,6 +567,28 @@ public class SpecialManager : ITickable, IDisposable
 
         for (int i = 0; i < m_world.Sectors.Count; i++)
             DetermineStaticSector(m_world.Sectors[i]);
+    }
+
+    private void SetLevelModificationFrames()
+    {
+        var sector = Sector.CreateDefault();
+        foreach (var frame in m_world.ArchiveCollection.EntityFrameTable.Frames)
+        {
+            if (frame.ActionFunction == EntityActionFunctions.A_KeenDie)
+            {
+                var sectors = m_world.FindBySectorTag(666);
+                SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
+            }
+            else if (frame.ActionFunction == EntityActionFunctions.A_LineEffect)
+            {
+                SpecialArgs specialArgs = new();
+                if (m_world.Sectors.Count == 0 || !EntityActionFunctions.CreateLineEffectSpecial(frame, out var lineSpecial, out var flags, ref specialArgs))
+                    continue;
+
+                Line line = EntityActionFunctions.CreateDummyLine(flags, lineSpecial, specialArgs, sector);
+                DetermineStaticSector(line);
+            }
+        }
     }
 
     private static void DetermineStaticSector(Sector sector)
@@ -614,6 +650,10 @@ public class SpecialManager : ITickable, IDisposable
         if (special.IsSectorSpecial())
         {
             var sectors = m_world.SpecialManager.GetSectorsFromSpecialLine(line);
+            if (special.IsStairBuild())
+                SetStairBuildDynamic(line, special, sectors);
+            else if (special.IsFloorDonut())
+                SetFloorDonutDynamic(special, sectors);
             if (special.IsFloorMove() && special.IsCeilingMove())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Movement);
             else if (special.IsFloorMove())
@@ -624,6 +664,29 @@ public class SpecialManager : ITickable, IDisposable
                 SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (!special.IsTransferLight())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
+        }
+    }
+
+    private static void SetFloorDonutDynamic(LineSpecial lineSpecial, IEnumerable<Sector> sectors)
+    {
+        foreach (var sector in sectors)
+            SetSectorsDynamic(DonutSpecial.GetDonutSectors(sector), lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
+    }
+
+    private void SetStairBuildDynamic(Line line, LineSpecial lineSpecial, IEnumerable<Sector> sectors)
+    {
+        foreach (var sector in sectors)
+        {
+            ISpecial? special = CreateSingleSectorSpecial(line, lineSpecial, sector);
+            if (special == null || special is not StairSpecial stairSpecial)
+                continue;
+
+            var stairSectors = stairSpecial.GetBuildSectors();
+            SetSectorsDynamic(stairSectors, lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
+
+            // Need to clear any floor movement pointers set from the created special
+            foreach (var stairSector in stairSectors)
+                stairSector.ClearActiveMoveSpecial();
         }
     }
 
@@ -1250,17 +1313,15 @@ public class SpecialManager : ITickable, IDisposable
                 return CreateFloorAndCeilingLowerRaise(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2 * SpeedFactor, line.Args.Arg3);
 
             default:
-                ISpecial? sectorSpecial = CreateSingleSectorSpecial(args, special, sector);
+                ISpecial? sectorSpecial = CreateSingleSectorSpecial(args.ActivateLineSpecial, special, sector);
                 if (sectorSpecial != null)
                     AddSpecial(sectorSpecial);
                 return sectorSpecial != null;
         }
     }
 
-    private ISpecial? CreateSingleSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+    private ISpecial? CreateSingleSectorSpecial(Line line, LineSpecial special, Sector sector)
     {
-        Line line = args.ActivateLineSpecial;
-
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorGeneric:

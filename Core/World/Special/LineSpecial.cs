@@ -202,6 +202,10 @@ public class LineSpecial
     public bool IsSectorStopLight() => LineSpecialType == ZDoomLineSpecialType.LightStop;
     public bool IsSectorTrigger() => m_sectorTrigger;
     public bool IsTransferLight() => LineSpecialType == ZDoomLineSpecialType.TransferFloorLight || LineSpecialType == ZDoomLineSpecialType.TransferCeilingLight;
+    public bool IsFloorDonut() => LineSpecialType == ZDoomLineSpecialType.FloorDonut;
+    public bool IsStairBuild() =>  LineSpecialType == ZDoomLineSpecialType.StairsBuildUpDoom || LineSpecialType == ZDoomLineSpecialType.StairsBuildUpDoomCrush ||
+        LineSpecialType == ZDoomLineSpecialType.StairsGeneric || LineSpecialType == ZDoomLineSpecialType.BuildStairsDown || LineSpecialType == ZDoomLineSpecialType.BuildStairsDownSync ||
+        LineSpecialType == ZDoomLineSpecialType.BuildStairsUp || LineSpecialType == ZDoomLineSpecialType.BuildStairsUpSync;
     public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
         IsSectorStopLight() || IsSectorTrigger();
 
