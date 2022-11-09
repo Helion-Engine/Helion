@@ -18,6 +18,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Special;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -81,6 +82,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         Dispose(false);
     }
 
+    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
+
     public void UpdateTo(IWorld world)
     {
         ClearData();
@@ -92,9 +95,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         foreach (Sector sector in world.Sectors)
         {
-            if (sector.IsFloorStatic)
+            if ((sector.FloorDynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, true);
-            if (sector.IsCeilingStatic)
+            if ((sector.FloorDynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, false);
 
             foreach (Line line in sector.Lines)
@@ -128,8 +131,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            if (line.Front.DynamicWalls != SideDataTypes.None)
-                return;
+            //if (line.Front.DynamicWalls != SideDataTypes.None)
+            //    return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
             m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
@@ -150,7 +153,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
         Sector otherSector = otherSide.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        if (m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        //if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Upper.TextureHandle);
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
@@ -158,7 +162,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 verticies.AddRange(sideVerticies);
         }
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        if (m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        //if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Lower.TextureHandle);
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
@@ -166,7 +171,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 verticies.AddRange(sideVerticies);
         }
 
-        if (side.Middle.TextureHandle != Constants.NoTextureIndex && !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+        if (side.Middle.TextureHandle != Constants.NoTextureIndex)
+        //if (side.Middle.TextureHandle != Constants.NoTextureIndex && !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
         {
             var verticies = GetTextureVerticies(side.Middle.TextureHandle);
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);

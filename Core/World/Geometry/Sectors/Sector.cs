@@ -93,6 +93,8 @@ public class Sector
     public bool IsFloorStatic { get; set; } = true;
     public bool IsCeilingStatic { get; set; } = true;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
+    public SectorDynamic FloorDynamic { get; set; }
+    public SectorDynamic CeilingDynamic { get; set; }
 
     public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
     public bool Has3DFloors => !Floors3D.Empty();

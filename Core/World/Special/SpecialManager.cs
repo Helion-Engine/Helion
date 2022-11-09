@@ -28,14 +28,7 @@ using Helion.World.Stats;
 namespace Helion.World.Special;
 
 public class SpecialManager : ITickable, IDisposable
-{    private enum SectorDynamic
-    {
-        Movement,
-        Light,
-        TransferHeights,
-        Scroll
-    }
-
+{ 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
@@ -701,9 +694,15 @@ public class SpecialManager : ITickable, IDisposable
         SideDataTypes lightWalls = AllWallTypes)
     {
         if (floor)
+        {
             sector.IsFloorStatic = false;
+            sector.FloorDynamic |= sectorDynamic;
+        }
         if (ceiling)
+        {
             sector.IsCeilingStatic = false;
+            sector.CeilingDynamic |= sectorDynamic;
+        }
 
         foreach (var line in sector.Lines)
         {
