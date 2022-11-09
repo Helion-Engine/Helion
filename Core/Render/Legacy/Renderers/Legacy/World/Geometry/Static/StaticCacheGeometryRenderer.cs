@@ -90,6 +90,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
 
+        HashSet<int> addedLines = new();
+
         foreach (Sector sector in world.Sectors)
         {
             if (sector.IsFloorStatic)
@@ -99,6 +101,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             foreach (Line line in sector.Lines)
             {
+                if (addedLines.Contains(line.Id))
+                    continue;
+
+                addedLines.Add(line.Id);
                 AddLine(line);
                 if (line.Back != null)
                     AddLine(line);
