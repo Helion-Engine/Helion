@@ -517,6 +517,10 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
+                // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
+                if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+                    top = otherSector.Ceiling;                    
+
                 WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
                     isFrontSide, m_tickFraction);
                 if (m_cacheOverride)
