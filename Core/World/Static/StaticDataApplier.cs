@@ -177,14 +177,14 @@ public class StaticDataApplier
         }
     }
 
-    private static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
+    public static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
         SideTexture lightWalls = AllWallTypes)
     {
         foreach (Sector sector in sectors)
             SetSectorDynamic(sector, floor, ceiling, sectorDynamic, lightWalls);
     }
 
-    private static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic,
+    public static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic,
         SideTexture lightWalls = AllWallTypes)
     {
         if (floor)

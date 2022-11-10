@@ -1,6 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.Legacy.Renderers.Legacy.World;
+using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
@@ -34,6 +35,10 @@ public class Side : IRenderObject
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
+
+    public StaticGeometryData StaticUpper;
+    public StaticGeometryData StaticLower;
+    public StaticGeometryData StaticMiddle;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {

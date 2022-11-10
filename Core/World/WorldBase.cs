@@ -72,6 +72,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
+    public event EventHandler<SectorPlane>? SectorMove;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -1334,7 +1335,10 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager.IsPositionValid(entity, position);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
-         => PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
+    {
+        SectorMove?.Invoke(this, moveSpecial.SectorPlane);
+        return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
+    }
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
     {
