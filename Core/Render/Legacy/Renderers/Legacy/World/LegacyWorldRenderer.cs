@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
@@ -23,6 +24,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World;
@@ -94,11 +96,10 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         Clear(world, renderInfo);
 
-        m_geometryRenderer.RenderStaticGeometry(renderInfo);
-
         TraverseBsp(world, renderInfo);
         RenderWorldData(renderInfo);
         m_geometryRenderer.Render(renderInfo);
+        m_geometryRenderer.RenderStaticGeometry(renderInfo);
     }
 
     private void Clear(IWorld world, RenderInfo renderInfo)
@@ -150,6 +151,15 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         if (box.Contains(position))
             return false;
+
+        if (m_config.Render.MaxDistance > 0)
+        {
+            int max = m_config.Render.MaxDistance;
+            double dx = Math.Max(box.Min.X - position.X, Math.Max(0, position.X - box.Max.X));
+            double dy = Math.Max(box.Min.Y - position.Y, Math.Max(0, position.Y - box.Max.Y));
+            if (dx * dx + dy * dy > max * max)
+                return true;
+        }
 
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
         return m_viewClipper.InsideAnyRange(first, second);

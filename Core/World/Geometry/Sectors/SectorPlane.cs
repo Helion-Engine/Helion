@@ -2,11 +2,13 @@ using Helion.Audio;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
 using Helion.World.Special.Specials;
+using Helion.World.Static;
 using System;
 
 namespace Helion.World.Geometry.Sectors;
@@ -26,6 +28,7 @@ public class SectorPlane : ISoundSource
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
 
     public SectorScrollData? SectorScrollData { get; private set; }
+    public StaticGeometryData StaticData;
 
     private IAudioSource? m_audio;
 

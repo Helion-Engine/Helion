@@ -33,8 +33,9 @@ public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
 
 public interface IWorld : IDisposable
 {
-    public event EventHandler? WorldResumed;
-    public event EventHandler? ClearConsole;
+    event EventHandler? WorldResumed;
+    event EventHandler? ClearConsole;
+    event EventHandler<SectorPlane>? SectorMove;
 
     string MapName { get; }
     int Gametick { get; }

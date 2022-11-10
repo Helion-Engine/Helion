@@ -39,7 +39,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// respective buffer on the GPU. If not, any time a new upload is
     /// performed, the previous data on the GPU will be overwritten.
     /// </remarks>
-    protected DynamicArray<T> Data = new DynamicArray<T>();
+    public DynamicArray<T> Data = new DynamicArray<T>();
 
     /// <summary>
     /// Whether it was uploaded or not. This is only called upon binding
@@ -154,6 +154,17 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
         PerformUpload();
         Uploaded = true;
+    }
+
+    public void UploadSubData(int start, int length)
+    {
+        BufferSubData(start, length);
+        Uploaded = true;
+    }
+
+    protected virtual void BufferSubData(int start, int length)
+    {
+
     }
 
     /// <summary>

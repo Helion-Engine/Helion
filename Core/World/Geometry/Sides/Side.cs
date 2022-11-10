@@ -1,9 +1,11 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.Legacy.Renderers.Legacy.World;
+using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
+using Helion.World.Static;
 
 namespace Helion.World.Geometry.Sides; 
 
@@ -22,7 +24,7 @@ public class Side : IRenderObject
     // This is currently just for the renderer to know for scrolling lines to not cache
     public bool OffsetChanged { get; set; }
     public bool IsStatic { get; set; } = true;
-    public SideDataTypes DynamicWalls { get; set; }
+    public SideTexture DynamicWalls { get; set; }
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;
@@ -33,6 +35,10 @@ public class Side : IRenderObject
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
+
+    public StaticGeometryData StaticUpper;
+    public StaticGeometryData StaticLower;
+    public StaticGeometryData StaticMiddle;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {

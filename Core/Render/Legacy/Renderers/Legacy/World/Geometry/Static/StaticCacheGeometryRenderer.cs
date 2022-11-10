@@ -12,12 +12,15 @@ using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Static;
+using Newtonsoft.Json.Linq;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -28,23 +31,9 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
-    private class GeometryData
-    {
-        public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<LegacyVertex> vbo, VertexArrayObject vao)
-        {
-            TextureHandle = textureHandle;
-            Texture = texture;
-            Vbo = vbo;
-            Vao = vao;
-        }
-
-        public int TextureHandle { get; set; }
-        public GLLegacyTexture Texture { get; set; }
-        public StaticVertexBuffer<LegacyVertex> Vbo { get; set; }
-        public VertexArrayObject Vao { get; set; }
-    }
-
     public readonly VertexArrayAttributes Attributes;
+
+    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
     private readonly IGLFunctions gl;
     private readonly GLCapabilities m_capabilities;
@@ -54,6 +43,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, DynamicArray<LegacyVertex>> m_textureToVertices = new();
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
+    private RenderStaticMode m_mode;
     private bool m_disposed;
     private IWorld? m_world;
 
@@ -68,14 +58,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         Attributes = attributes;
     }
 
-    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
-    {
-        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
-            return;
-
-        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
-    }
-
     ~StaticCacheGeometryRenderer()
     {
         Dispose(false);
@@ -86,38 +68,44 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearData();
 
         m_world = world;
+        m_mode = world.Config.Render.StaticMode;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
+        m_world.SectorMove += World_SectorMove;
+
+        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+            return;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
 
         foreach (Sector sector in world.Sectors)
         {
-            if (sector.IsFloorStatic)
-                AddSectorPlane(sector, true);
-            if (sector.IsCeilingStatic)
-                AddSectorPlane(sector, false);
+            if (m_mode == RenderStaticMode.Aggressive)
+            {
+                if ((sector.FloorDynamic & IgnoreFlags) == 0)
+                    AddSectorPlane(sector, true);
+                if ((sector.CeilingDynamic & IgnoreFlags) == 0)
+                    AddSectorPlane(sector, false);
+            }
+            else
+            {
+                if (sector.IsFloorStatic)
+                    AddSectorPlane(sector, true);
+                if (sector.IsCeilingStatic)
+                    AddSectorPlane(sector, false);
+            }
         }
 
-        foreach (Line line in m_world.Lines)
-        {
+        foreach (Line line in world.Lines)
             AddLine(line);
-            if (line.Back != null)
-                AddLine(line);
-        }
 
-        foreach ((int textureHandle, DynamicArray<LegacyVertex> array) in m_textureToVertices)
+        foreach (var data in m_geometry)
         {
-            VertexArrayObject vao = new(m_capabilities, gl, Attributes);
-            StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
+            if (!m_textureToVertices.TryGetValue(data.TextureHandle, out var array))
+                continue;
 
-            vbo.Bind();
-            vbo.Add(array.Data);
-            vbo.UploadIfNeeded();
-
-            var texture = m_textureManager.GetTexture(textureHandle);
-            var data = new GeometryData(textureHandle, texture, vbo, vao);
-            m_geometry.Add(data);
-            m_textureToGeometryLookup.Add(textureHandle, data);
+            data.Vbo.Bind();
+            data.Vbo.Add(array.Data);
+            data.Vbo.UploadIfNeeded();
         }
 
         // Don't need these anymore, don't hold a reference to all that data.
@@ -128,13 +116,21 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            if (line.Front.DynamicWalls != SideDataTypes.None)
+            bool dynamic = line.Front.DynamicWalls != SideTexture.None;
+            if (m_mode == RenderStaticMode.On && dynamic)
+                return;
+
+            var sector = line.Front.Sector;
+            if (dynamic && (sector.FloorDynamic == SectorDynamic.Movement || sector.CeilingDynamic == SectorDynamic.Movement))
                 return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
             m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
             if (lineVerticies != null)
+            {
+                SetSideData(line.Front, line.Front.Middle.TextureHandle, SideTexture.Middle, vertices, lineVerticies);
                 vertices.AddRange(lineVerticies);
+            }
 
             return;
         }
@@ -148,30 +144,82 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         Side otherSide = side.PartnerSide!;
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
-        Sector otherSector = otherSide.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
+        Sector otherSector = otherSide.Sector.GetRenderSector(otherSide.Sector, side.Sector.Floor.Z + 1);
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        bool upper, lower, middle;
+        if (m_mode == RenderStaticMode.Aggressive)
+        {
+            bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
+            bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
+            upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideTexture.Upper));
+            lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideTexture.Lower));
+            middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideTexture.Middle));
+        }
+        else
+        {
+            upper = !side.DynamicWalls.HasFlag(SideTexture.Upper);
+            lower = !side.DynamicWalls.HasFlag(SideTexture.Lower);
+            middle = !side.DynamicWalls.HasFlag(SideTexture.Middle);
+        }
+
+        if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Upper.TextureHandle);
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
             if (sideVerticies != null)
+            {
+                SetSideData(side, side.Upper.TextureHandle, SideTexture.Upper, verticies, sideVerticies);
                 verticies.AddRange(sideVerticies);
+            }
         }
 
-        if (!side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             var verticies = GetTextureVerticies(side.Lower.TextureHandle);
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
             if (sideVerticies != null)
+            {
+                SetSideData(side, side.Lower.TextureHandle, SideTexture.Lower, verticies, sideVerticies);
                 verticies.AddRange(sideVerticies);
+            }
         }
 
-        if (side.Middle.TextureHandle != Constants.NoTextureIndex && !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             var verticies = GetTextureVerticies(side.Middle.TextureHandle);
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
             if (sideVerticies != null)
+            {
+                SetSideData(side, side.Middle.TextureHandle, SideTexture.Middle, verticies, sideVerticies);
                 verticies.AddRange(sideVerticies);
+            }
+        }
+    }
+
+    private void SetSideData(Side side, int textureHandle, SideTexture sideTexture, DynamicArray<LegacyVertex> vboVertices, LegacyVertex[] sideVerticies)
+    {
+        if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out var geometryData))
+            return;
+
+        switch (sideTexture)
+        {
+            case SideTexture.Upper:
+                side.StaticUpper.GeometryData = geometryData;
+                side.StaticUpper.GeometryDataStartIndex = vboVertices.Length;
+                side.StaticUpper.GeometryDataLength = sideVerticies.Length;
+                break;
+            case SideTexture.Lower:
+                side.StaticLower.GeometryData = geometryData;
+                side.StaticLower.GeometryDataStartIndex = vboVertices.Length;
+                side.StaticLower.GeometryDataLength = sideVerticies.Length;
+                break;
+            case SideTexture.Middle:
+                side.StaticMiddle.GeometryData = geometryData;
+                side.StaticMiddle.GeometryDataStartIndex = vboVertices.Length;
+                side.StaticMiddle.GeometryDataLength = sideVerticies.Length;
+                break;
+            default:
+                break;
         }
     }
 
@@ -181,6 +229,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             vertices = new();
             m_textureToVertices[textureHandle] = vertices;
+
+            VertexArrayObject vao = new(m_capabilities, gl, Attributes);
+            StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
+
+            var texture = m_textureManager.GetTexture(textureHandle);
+            var data = new GeometryData(textureHandle, texture, vbo, vao);
+            m_geometry.Add(data);
+            m_textureToGeometryLookup.Add(textureHandle, data);
         }
 
         return vertices;
@@ -191,6 +247,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_world != null)
         {
             m_world.TextureManager.AnimationChanged -= TextureManager_AnimationChanged;
+            m_world.SectorMove -= World_SectorMove;
             m_world = null;
         }
 
@@ -212,12 +269,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vertices = GetTextureVerticies(plane.TextureHandle);
         m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVerticies, out var renderedSkyVerticies);
 
-        if (renderedVerticies != null)
-            vertices.AddRange(renderedVerticies);
+        if (renderedVerticies == null)
+            return;
+
+        if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
+        {
+            plane.StaticData.GeometryData = geometryData;
+            plane.StaticData.GeometryDataStartIndex = vertices.Length;
+            plane.StaticData.GeometryDataLength = renderedVerticies.Length;
+        }
+
+        vertices.AddRange(renderedVerticies);
     }
 
     public void Render(RenderInfo renderInfo)
     {
+        if (m_mode == RenderStaticMode.Off)
+            return;
+
         m_shader.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
@@ -255,5 +324,77 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
+    {
+        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
+            return;
+
+        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
+    }
+
+    private void World_SectorMove(object? sender, SectorPlane plane)
+    {
+        // This sector doesn't have static geometry
+        if (plane.StaticData.GeometryData == null)
+            return;
+
+        bool floor = plane.Facing == SectorPlaneFace.Floor;
+        bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
+
+        if (floor && !plane.Sector.IsFloorStatic)
+            return;
+        if (ceiling && !plane.Sector.IsCeilingStatic)
+            return;
+
+        StaticDataApplier.SetSectorDynamic(plane.Sector, floor, ceiling, SectorDynamic.Movement);
+        ClearGeometryVertices(plane.StaticData);
+
+        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+        {
+            var line = plane.Sector.Lines[i];
+            if (line.Front.DynamicWalls.HasFlag(SideTexture.Upper))
+                ClearGeometryVertices(line.Front.StaticUpper);
+            if (line.Front.DynamicWalls.HasFlag(SideTexture.Lower))
+                ClearGeometryVertices(line.Front.StaticLower);
+            if (line.Front.DynamicWalls.HasFlag(SideTexture.Middle))
+                ClearGeometryVertices(line.Front.StaticMiddle);
+
+            if (line.Back == null)
+                continue;
+
+            if (line.Back.DynamicWalls.HasFlag(SideTexture.Upper))
+                ClearGeometryVertices(line.Back.StaticUpper);
+            if (line.Back.DynamicWalls.HasFlag(SideTexture.Lower))
+                ClearGeometryVertices(line.Back.StaticLower);
+            if (line.Back.DynamicWalls.HasFlag(SideTexture.Middle))
+                ClearGeometryVertices(line.Back.StaticMiddle);
+        }
+    }
+
+    private static void ClearGeometryVertices(in StaticGeometryData data)
+    {
+        if (data.GeometryData == null)
+            return;
+
+        ClearGeometryVerticies(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private static void ClearGeometryVerticies(GeometryData geometryData, int startIndex, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            int index = startIndex + i;
+            geometryData.Vbo.Data.Data[index].Alpha = 0;
+            geometryData.Vbo.Data.Data[index].X = 0;
+            geometryData.Vbo.Data.Data[index].Y = 0;
+            geometryData.Vbo.Data.Data[index].Z = 0;
+            geometryData.Vbo.Data.Data[index].U = 0;
+            geometryData.Vbo.Data.Data[index].V = 0;
+        }
+
+        geometryData.Vbo.Bind();
+        geometryData.Vbo.UploadSubData(startIndex, length);
     }
 }

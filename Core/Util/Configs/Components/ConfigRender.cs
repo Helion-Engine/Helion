@@ -12,6 +12,13 @@ public enum RenderVsyncMode
     Adaptive
 }
 
+public enum RenderStaticMode
+{
+    Off,
+    On,
+    Aggressive
+}
+
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
@@ -94,4 +101,10 @@ public class ConfigRender
 
     [ConfigInfo("Enable texture transparency.")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);
+
+    [ConfigInfo("Max render distance.")]
+    public readonly ConfigValue<int> MaxDistance = new(0);
+
+    [ConfigInfo("Static rendering mode.", restartRequired: true)]
+    public readonly ConfigValue<RenderStaticMode> StaticMode = new(RenderStaticMode.On);
 }
