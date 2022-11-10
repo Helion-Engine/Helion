@@ -24,6 +24,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World;
@@ -154,13 +155,9 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_config.Render.MaxDistance > 0)
         {
             int max = m_config.Render.MaxDistance;
-            var edge1 = new Seg2D(box.BottomLeft, box.TopLeft);
-            var edge2 = new Seg2D(box.TopLeft, box.TopRight);
-            var edge3 = new Seg2D(box.TopRight, box.BottomRight);
-            var edge4 = new Seg2D(box.BottomRight, box.BottomLeft);
-
-            if (edge1.ClosestPoint(position).Distance(position) > max && edge2.ClosestPoint(position).Distance(position) > max &&
-                edge3.ClosestPoint(position).Distance(position) > max && edge4.ClosestPoint(position).Distance(position) > max)
+            double dx = Math.Max(box.Min.X - position.X, Math.Max(0, position.X - box.Max.X));
+            double dy = Math.Max(box.Min.Y - position.Y, Math.Max(0, position.Y - box.Max.Y));
+            if (dx * dx + dy * dy > max * max)
                 return true;
         }
 
