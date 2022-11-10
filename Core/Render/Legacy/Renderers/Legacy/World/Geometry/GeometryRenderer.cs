@@ -17,6 +17,7 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -60,6 +61,7 @@ public class GeometryRenderer : IDisposable
     private Sector m_viewSector;
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
+    private RenderStaticMode m_staticMode;
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -110,6 +112,7 @@ public class GeometryRenderer : IDisposable
         m_world = world;
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
+        m_staticMode = m_world.Config.Render.StaticMode;
         PreloadAllTextures(world);
 
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];
@@ -214,7 +217,7 @@ public class GeometryRenderer : IDisposable
             m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
 
             RenderWalls(subsector, position, position.XY);
-            if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
+            if (!hasRenderedSector && (m_staticMode == RenderStaticMode.Off || !subsector.Sector.AreFlatsStatic))
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
@@ -223,7 +226,7 @@ public class GeometryRenderer : IDisposable
         m_transferHeightsView = TransferHeightView.Middle;
 
         RenderWalls(subsector, position, position.XY);
-        if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
+        if (!hasRenderedSector && (m_staticMode == RenderStaticMode.Off || !subsector.Sector.AreFlatsStatic))
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
@@ -236,13 +239,13 @@ public class GeometryRenderer : IDisposable
 
         bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
         bool ceilingVisible = m_position.Z <= renderSector.ToCeilingZ(m_position);
-        if (floorVisible && !sector.IsFloorStatic)
+        if (floorVisible && (m_staticMode == RenderStaticMode.Off || !sector.IsFloorStatic))
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
             RenderFlat(subsectors, renderSector.Floor, true, out _, out _);
         }
-        if (ceilingVisible && !sector.IsCeilingStatic)
+        if (ceilingVisible && (m_staticMode == RenderStaticMode.Off || !sector.IsCeilingStatic))
         {
             sector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
@@ -313,7 +316,7 @@ public class GeometryRenderer : IDisposable
                 AlphaSides.Add(side);
             }
 
-            if (!side.IsStatic)
+            if (m_staticMode == RenderStaticMode.Off || !side.IsStatic)
                 RenderSide(side, onFrontSide);
             m_lineDrawnTracker.MarkDrawn(line);
 
@@ -352,7 +355,7 @@ public class GeometryRenderer : IDisposable
         m_skyOverride = false;
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
-        else if (side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+        else if (m_staticMode == RenderStaticMode.Off || side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
             RenderOneSided(side, out _, out _);
     }
 
@@ -429,11 +432,12 @@ public class GeometryRenderer : IDisposable
         m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
 
-        if (facingSide.DynamicWalls.HasFlag(SideDataTypes.LowerTexture) && LowerIsVisible(facingSector, otherSector))
+        if ((m_staticMode == RenderStaticMode.Off || facingSide.DynamicWalls.HasFlag(SideDataTypes.LowerTexture)) && LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
-        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && facingSide.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture))
+        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
+            (m_staticMode == RenderStaticMode.Off || facingSide.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture)))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if (facingSide.DynamicWalls.HasFlag(SideDataTypes.UpperTexture) && UpperIsVisible(facingSide, facingSector, otherSector))
+        if ((m_staticMode == RenderStaticMode.Off || facingSide.DynamicWalls.HasFlag(SideDataTypes.UpperTexture)) && UpperIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 

@@ -10,6 +10,7 @@ using Helion.Models;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
@@ -521,7 +522,8 @@ public class SpecialManager : ITickable, IDisposable
             if (line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart))
                 HandleLineInitSpecial(line);
 
-            DetermineStaticSector(line);
+            if (m_world.Config.Render.StaticMode != RenderStaticMode.Off)
+                DetermineStaticSector(line);
         }
 
         for (int i = 0; i < m_world.Sectors.Count; i++)
@@ -531,6 +533,9 @@ public class SpecialManager : ITickable, IDisposable
                 levelStats.TotalSecrets++;
             HandleSectorSpecial(sector);
         }
+
+        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+            return;
 
         foreach (var bossDeathSpecial in m_world.BossDeathSpecials)
         {

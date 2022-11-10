@@ -12,6 +12,7 @@ using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -55,6 +56,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, DynamicArray<LegacyVertex>> m_textureToVertices = new();
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
+    private RenderStaticMode m_mode;
     private bool m_disposed;
     private IWorld? m_world;
 
@@ -89,16 +91,30 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearData();
 
         m_world = world;
+        m_mode = world.Config.Render.StaticMode;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
+
+        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+            return;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
 
         foreach (Sector sector in world.Sectors)
         {
-            if ((sector.FloorDynamic & IgnoreFlags) == 0)
-                AddSectorPlane(sector, true);
-            if ((sector.CeilingDynamic & IgnoreFlags) == 0)
-                AddSectorPlane(sector, false);
+            if (m_mode == RenderStaticMode.Aggressive)
+            {
+                if ((sector.FloorDynamic & IgnoreFlags) == 0)
+                    AddSectorPlane(sector, true);
+                if ((sector.CeilingDynamic & IgnoreFlags) == 0)
+                    AddSectorPlane(sector, false);
+            }
+            else
+            {
+                if (sector.IsFloorStatic)
+                    AddSectorPlane(sector, true);
+                if (sector.IsCeilingStatic)
+                    AddSectorPlane(sector, false);
+            }
         }
 
         foreach (Line line in world.Lines)
@@ -127,8 +143,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            if (line.Front.DynamicWalls != SideDataTypes.None && 
-                (line.Front.Sector.FloorDynamic == SectorDynamic.Movement || line.Front.Sector.CeilingDynamic == SectorDynamic.Movement))
+            bool dynamic = line.Front.DynamicWalls != SideDataTypes.None;
+            if (m_mode == RenderStaticMode.On && dynamic)
+                return;
+
+            var sector = line.Front.Sector;
+            if (dynamic && (sector.FloorDynamic == SectorDynamic.Movement || sector.CeilingDynamic == SectorDynamic.Movement))
                 return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
@@ -150,11 +170,21 @@ public class StaticCacheGeometryRenderer : IDisposable
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
         Sector otherSector = otherSide.Sector.GetRenderSector(otherSide.Sector, side.Sector.Floor.Z + 1);
 
-        bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
-        bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
-        bool upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture));
-        bool lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture));
-        bool middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture));
+        bool upper, lower, middle;
+        if (m_mode == RenderStaticMode.Aggressive)
+        {
+            bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
+            bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
+            upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture));
+            lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture));
+            middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture));
+        }
+        else
+        {
+            upper = !side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture);
+            lower = !side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture);
+            middle = !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture);
+        }
 
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
@@ -224,6 +254,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
+        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+            return;
+
         m_shader.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
