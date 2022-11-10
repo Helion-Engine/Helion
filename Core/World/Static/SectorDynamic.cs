@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.World.Special;
+namespace Helion.World.Static;
 
 [Flags]
 public enum SectorDynamic

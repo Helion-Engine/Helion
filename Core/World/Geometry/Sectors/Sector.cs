@@ -16,6 +16,7 @@ using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
+using Helion.World.Static;
 
 namespace Helion.World.Geometry.Sectors;
 

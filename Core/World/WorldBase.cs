@@ -53,6 +53,8 @@ using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Demo;
+using Helion.Util.Configs.Components;
+using Helion.World.Static;
 
 namespace Helion.World;
 
@@ -208,6 +210,9 @@ public abstract partial class WorldBase : IWorld
 
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
+
+        if (Config.Render.StaticMode != RenderStaticMode.Off)
+            StaticDataApplier.DetermineStaticData(this);
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allaround)

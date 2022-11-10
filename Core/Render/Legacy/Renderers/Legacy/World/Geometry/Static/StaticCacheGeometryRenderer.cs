@@ -19,7 +19,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using Helion.World.Special;
+using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -30,23 +30,9 @@ namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
-    private class GeometryData
-    {
-        public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<LegacyVertex> vbo, VertexArrayObject vao)
-        {
-            TextureHandle = textureHandle;
-            Texture = texture;
-            Vbo = vbo;
-            Vao = vao;
-        }
-
-        public int TextureHandle { get; set; }
-        public GLLegacyTexture Texture { get; set; }
-        public StaticVertexBuffer<LegacyVertex> Vbo { get; set; }
-        public VertexArrayObject Vao { get; set; }
-    }
-
     public readonly VertexArrayAttributes Attributes;
+
+    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
     private readonly IGLFunctions gl;
     private readonly GLCapabilities m_capabilities;
@@ -71,20 +57,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         Attributes = attributes;
     }
 
-    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
-    {
-        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
-            return;
-
-        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
-    }
-
     ~StaticCacheGeometryRenderer()
     {
         Dispose(false);
     }
-
-    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
     public void UpdateTo(IWorld world)
     {
@@ -143,7 +119,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            bool dynamic = line.Front.DynamicWalls != SideDataTypes.None;
+            bool dynamic = line.Front.DynamicWalls != SideTexture.None;
             if (m_mode == RenderStaticMode.On && dynamic)
                 return;
 
@@ -175,15 +151,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
             bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
-            upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture));
-            lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture));
-            middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture));
+            upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideTexture.Upper));
+            lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideTexture.Lower));
+            middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideTexture.Middle));
         }
         else
         {
-            upper = !side.DynamicWalls.HasFlag(SideDataTypes.UpperTexture);
-            lower = !side.DynamicWalls.HasFlag(SideDataTypes.LowerTexture);
-            middle = !side.DynamicWalls.HasFlag(SideDataTypes.MiddleTexture);
+            upper = !side.DynamicWalls.HasFlag(SideTexture.Upper);
+            lower = !side.DynamicWalls.HasFlag(SideTexture.Lower);
+            middle = !side.DynamicWalls.HasFlag(SideTexture.Middle);
         }
 
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
@@ -254,7 +230,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+        if (m_mode == RenderStaticMode.Off)
             return;
 
         m_shader.Bind();
@@ -294,5 +270,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
+    {
+        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
+            return;
+
+        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
     }
 }
