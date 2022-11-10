@@ -2,7 +2,7 @@
 
 namespace Helion.World;
 
-public struct SectorMoveEvent
+public readonly struct SectorMoveEvent
 {
     public readonly Sector Sector;
     public readonly SectorPlane Plane;

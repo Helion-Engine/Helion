@@ -36,6 +36,9 @@ public interface IWorld : IDisposable
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
     event EventHandler<SectorPlane>? SectorMove;
+    event EventHandler<SectorPlane>? SectorMoveComplete;
+    event EventHandler<SideTextureEvent>? SideTextureChanged;
+    event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
 
     string MapName { get; }
     int Gametick { get; }
@@ -125,6 +128,8 @@ public interface IWorld : IDisposable
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
     void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);
+    void SetSideTexture(Side side, WallLocation location, int textureHandle);
+    void SetPlaneTexture(SectorPlane plane, int textureHandle);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

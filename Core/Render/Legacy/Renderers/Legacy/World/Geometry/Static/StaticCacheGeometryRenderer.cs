@@ -71,6 +71,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_mode = world.Config.Render.StaticMode;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
         m_world.SectorMove += World_SectorMove;
+        m_world.SideTextureChanged += World_SideTextureChanged;
+        m_world.PlaneTextureChanged += World_PlaneTextureChanged;
 
         if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
             return;
@@ -248,6 +250,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_world.TextureManager.AnimationChanged -= TextureManager_AnimationChanged;
             m_world.SectorMove -= World_SectorMove;
+            m_world.SideTextureChanged -= World_SideTextureChanged;
+            m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world = null;
         }
 
@@ -371,6 +375,16 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back.DynamicWalls.HasFlag(SideTexture.Middle))
                 ClearGeometryVertices(line.Back.StaticMiddle);
         }
+    }
+
+    private void World_SideTextureChanged(object? sender, SideTextureEvent e)
+    {
+
+    }
+
+    private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
+    {
+
     }
 
     private static void ClearGeometryVertices(in StaticGeometryData data)

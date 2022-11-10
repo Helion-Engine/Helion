@@ -431,14 +431,6 @@ public class Sector
             ActiveCeilingMove = special;
     }
 
-    public void SetTexture(SectorPlaneFace planeType, int texture, int gametick)
-    {
-        if (planeType == SectorPlaneFace.Floor)
-            Floor.SetTexture(texture, gametick);
-        else
-            Ceiling.SetTexture(texture, gametick);
-    }
-
     public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
     public Sector? GetLowestAdjacentFloor()

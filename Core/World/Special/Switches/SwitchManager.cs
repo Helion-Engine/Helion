@@ -15,30 +15,15 @@ public static class SwitchManager
     public static bool IsLineSwitch(ArchiveCollection archiveCollection, Line line) => 
         GetLineLineSwitchTexture(archiveCollection, line, false).Item1 != Constants.NoTextureIndex;
 
-    public static void SetLineSwitch(ArchiveCollection archiveCollection, Line line, bool off)
+    public static void SetLineSwitch(IWorld world, Line line, bool off)
     {
-        (int, WallLocation) switchSet = GetLineLineSwitchTexture(archiveCollection, line, off);
+        (int, WallLocation) switchSet = GetLineLineSwitchTexture(world.ArchiveCollection, line, off);
         if (switchSet.Item1 != Constants.NoTextureIndex)
         {
             if (line.Back != null)
-            {
-                switch (switchSet.Item2)
-                {
-                    case WallLocation.Upper:
-                        line.Front.Upper.SetTexture(switchSet.Item1, SideDataTypes.UpperTexture);
-                        break;
-                    case WallLocation.Middle:
-                        line.Front.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
-                        break;
-                    case WallLocation.Lower:
-                        line.Front.Lower.SetTexture(switchSet.Item1, SideDataTypes.LowerTexture);
-                        break;
-                }
-            }
+                world.SetSideTexture(line.Back, switchSet.Item2, switchSet.Item1);
             else
-            {
-                line.Front.Middle.SetTexture(switchSet.Item1, SideDataTypes.MiddleTexture);
-            }
+                world.SetSideTexture(line.Front, WallLocation.Middle, switchSet.Item1);
         }
     }
 

@@ -225,10 +225,10 @@ public class SectorMoveSpecial : ISectorSpecial
         if ((IsNonRepeat && SectorPlane.Z == DestZ) || MoveStatus == SectorMoveStatus.BlockedAndStop)
         {
             if (MoveData.FloorChangeTextureHandle != null)
-                Sector.Floor.SetTexture(MoveData.FloorChangeTextureHandle.Value, m_world.Gametick);
+                m_world.SetPlaneTexture(Sector.Floor, MoveData.FloorChangeTextureHandle.Value);
 
             if (MoveData.CeilingChangeTextureHandle != null)
-                Sector.Ceiling.SetTexture(MoveData.CeilingChangeTextureHandle.Value, m_world.Gametick);
+                m_world.SetPlaneTexture(Sector.Ceiling, MoveData.CeilingChangeTextureHandle.Value);
 
             if (MoveData.DamageSpecial != null)
                 Sector.SectorDamageSpecial = MoveData.DamageSpecial;

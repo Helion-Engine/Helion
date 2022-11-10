@@ -66,6 +66,8 @@ public class SpecialManager : ITickable, IDisposable
 
     public LinkedList<ISpecial> GetSpecials() => m_specials;
 
+    public EventHandler<ISectorSpecial>? SectorSpecialDestroyed;
+
     public SpecialManager(WorldBase world, IRandom random)
     {
         m_world = world;
@@ -217,7 +219,10 @@ public class SpecialManager : ITickable, IDisposable
                 {
                     m_specials.Remove(node);
                     if (node.Value is ISectorSpecial sectorSpecial)
+                    {
                         m_destroyedMoveSpecials.Add(sectorSpecial);
+                        SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
+                    }
                 }
 
                 node = nextNode;
@@ -1427,7 +1432,7 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.NextHighestFloor);
-        sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle, m_world.Gametick);
+        m_world.SetPlaneTexture(sector.Floor, line.Front.Sector.Floor.TextureHandle);
         sector.SectorDamageSpecial = null;
 
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);

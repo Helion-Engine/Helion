@@ -73,6 +73,9 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
     public event EventHandler<SectorPlane>? SectorMove;
+    public event EventHandler<SectorPlane>? SectorMoveComplete;
+    public event EventHandler<SideTextureEvent>? SideTextureChanged;
+    public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -214,6 +217,16 @@ public abstract partial class WorldBase : IWorld
 
         if (Config.Render.StaticMode != RenderStaticMode.Off)
             StaticDataApplier.DetermineStaticData(this);
+
+        SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
+    }
+
+    private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)
+    {
+        if (special is not SectorMoveSpecial move)
+            return;
+
+        SectorMoveComplete?.Invoke(this, move.SectorPlane);
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -613,6 +626,7 @@ public abstract partial class WorldBase : IWorld
 
     public void Dispose()
     {
+        SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
         PerformDispose();
         GC.SuppressFinalize(this);
     }
@@ -2252,6 +2266,30 @@ public abstract partial class WorldBase : IWorld
 
     private Player? GetRealPlayer(int playerNumber)
         => EntityManager.Players.FirstOrDefault(x => x.PlayerNumber == playerNumber && !x.IsVooDooDoll);
+
+    public void SetSideTexture(Side side, WallLocation location, int textureHandle)
+    {
+        switch (location)
+        {
+            case WallLocation.Upper:
+                side.Upper.SetTexture(textureHandle, SideDataTypes.UpperTexture);
+                break;
+            case WallLocation.Lower:
+                side.Lower.SetTexture(textureHandle, SideDataTypes.LowerTexture);
+                break;
+            case WallLocation.Middle:
+                side.Middle.SetTexture(textureHandle, SideDataTypes.MiddleTexture);
+                break;
+        }
+
+        SideTextureChanged?.Invoke(this, new SideTextureEvent(side, location, textureHandle));
+    }
+
+    public void SetPlaneTexture(SectorPlane plane, int textureHandle)
+    {
+        plane.SetTexture(textureHandle, Gametick);
+        PlaneTextureChanged?.Invoke(this, new PlaneTextureEvent(plane, textureHandle));
+    }
 
     public WorldModel ToWorldModel()
     {
