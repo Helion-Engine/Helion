@@ -9,5 +9,6 @@ public enum SectorDynamic
     Light = 2,
     TransferHeights = 4,
     TransferHeightStatic = 8,
-    Scroll = 16
+    Scroll = 16,
+    ChangeFloorTexture = 32,
 }

@@ -134,7 +134,7 @@ public class StaticDataApplier
         if (special == LineSpecial.Default)
             return;
 
-        if (special.IsSectorSpecial())
+        if (special.IsSectorSpecial() && !special.IsSectorStopMove())
         {
             var sectors = world.SpecialManager.GetSectorsFromSpecialLine(line);
             if (special.IsStairBuild())
@@ -147,8 +147,8 @@ public class StaticDataApplier
                 SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (special.IsCeilingMove())
                 SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
-            else if (special.IsSectorTrigger())
-                SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
+            else if (special.IsSectorFloorTrigger())
+                SetSectorsDynamic(sectors, true, false, SectorDynamic.ChangeFloorTexture);
             else if (!special.IsTransferLight())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
         }
@@ -197,6 +197,9 @@ public class StaticDataApplier
             sector.IsCeilingStatic = false;
             sector.CeilingDynamic |= sectorDynamic;
         }
+
+        if (sectorDynamic == SectorDynamic.ChangeFloorTexture)
+            return;
 
         foreach (var line in sector.Lines)
         {
