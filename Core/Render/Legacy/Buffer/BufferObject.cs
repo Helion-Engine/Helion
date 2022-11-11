@@ -104,15 +104,15 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// <param name="index">The index to write at.</param>
     /// <exception cref="IndexOutOfRangeException">If the index it out of
     /// range.</exception>
-    public virtual T this[int index]
-    {
-        set
-        {
-            if (index < 0 || index >= Count)
-                throw new IndexOutOfRangeException($"Trying to set buffer object out of range: {index} (size = {Count})");
-            gl.BufferSubData(GetBufferType(), index * BytesPerElement, BytesPerElement, value);
-        }
-    }
+    //public virtual T this[int index]
+    //{
+    //    set
+    //    {
+    //        if (index < 0 || index >= Count)
+    //            throw new IndexOutOfRangeException($"Trying to set buffer object out of range: {index} (size = {Count})");
+    //        gl.BufferSubData(GetBufferType(), index * BytesPerElement, BytesPerElement, value);
+    //    }
+    //}
 
     /// <summary>
     /// Adds a single element.

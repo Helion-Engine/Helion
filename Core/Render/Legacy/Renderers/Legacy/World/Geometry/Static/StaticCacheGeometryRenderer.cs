@@ -79,6 +79,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+        m_geometryRenderer.SetBuffer(false);
 
         foreach (Sector sector in world.Sectors)
         {
@@ -101,21 +102,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         foreach (Line line in world.Lines)
             AddLine(line);
 
+        int index = 0;
         foreach (var data in m_geometry)
         {
             if (!m_textureToVertices.TryGetValue(data.TextureHandle, out var array))
                 continue;
 
             data.Vbo.Bind();
-            data.Vbo.Add(array.Data);
+            data.Vbo.Add(array.Data, array.Length);
+            //data.Vbo.UploadSubData(0, array.Length);
             data.Vbo.UploadIfNeeded();
+            index++;
         }
 
         // Don't need these anymore, don't hold a reference to all that data.
         m_textureToVertices.Clear();
     }
 
-    private void AddLine(Line line)
+    private void AddLine(Line line, bool update = false)
     {
         if (line.OneSided)
         {
@@ -127,23 +131,35 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
-            var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
             m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
-            if (lineVerticies != null)
+
+            if (update)
             {
-                SetSideData(line.Front, line.Front.Middle.TextureHandle, SideTexture.Middle, vertices, lineVerticies);
-                vertices.AddRange(lineVerticies);
+                if (lineVerticies != null)
+                    UpdateVerticies(line.Front.StaticMiddle.GeometryData, line.Front.StaticMiddle.GeometryDataStartIndex, 
+                        line.Front.StaticMiddle.GeometryDataLength, lineVerticies);
+            }
+            else
+            {
+                if (lineVerticies != null)
+                {
+                    var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
+                    SetSideData(line.Front, line.Front.Middle.TextureHandle, SideTexture.Middle, vertices, lineVerticies);
+                    vertices.AddRange(lineVerticies);
+                }
             }
 
             return;
         }
 
-        AddSide(line.Front, true);
+        AddSide(line.Front, true, update);
         if (line.Back != null)
-            AddSide(line.Back, false);
+            AddSide(line.Back, false, update);
     }
 
-    private void AddSide(Side side, bool isFrontSide)
+    private LegacyVertex[]? _savedata = null;
+
+    private void AddSide(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
@@ -165,36 +181,62 @@ public class StaticCacheGeometryRenderer : IDisposable
             middle = !side.DynamicWalls.HasFlag(SideTexture.Middle);
         }
 
+        m_geometryRenderer.SetRenderTwoSided(side, isFrontSide);
+
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
-            var verticies = GetTextureVerticies(side.Upper.TextureHandle);
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
+            if (_savedata == null && side.Line.Id == 149)
+                _savedata = sideVerticies;
+
             if (sideVerticies != null)
             {
-                SetSideData(side, side.Upper.TextureHandle, SideTexture.Upper, verticies, sideVerticies);
-                verticies.AddRange(sideVerticies);
+                if (update)
+                {
+                    UpdateVerticies(side.StaticUpper.GeometryData, side.StaticUpper.GeometryDataStartIndex, side.StaticUpper.GeometryDataLength, sideVerticies);
+                }
+                else
+                {
+                    var verticies = GetTextureVerticies(side.Upper.TextureHandle);
+                    SetSideData(side, side.Upper.TextureHandle, SideTexture.Upper, verticies, sideVerticies);
+                    verticies.AddRange(sideVerticies);
+                }
             }
         }
 
         if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
-            var verticies = GetTextureVerticies(side.Lower.TextureHandle);
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
             if (sideVerticies != null)
             {
-                SetSideData(side, side.Lower.TextureHandle, SideTexture.Lower, verticies, sideVerticies);
-                verticies.AddRange(sideVerticies);
+                if (update)
+                {
+                    UpdateVerticies(side.StaticLower.GeometryData, side.StaticLower.GeometryDataStartIndex, side.StaticLower.GeometryDataLength, sideVerticies);
+                }
+                else
+                {
+                    var verticies = GetTextureVerticies(side.Lower.TextureHandle);
+                    SetSideData(side, side.Lower.TextureHandle, SideTexture.Lower, verticies, sideVerticies);
+                    verticies.AddRange(sideVerticies);
+                }
             }
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
-            var verticies = GetTextureVerticies(side.Middle.TextureHandle);
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
             if (sideVerticies != null)
             {
-                SetSideData(side, side.Middle.TextureHandle, SideTexture.Middle, verticies, sideVerticies);
-                verticies.AddRange(sideVerticies);
+                if (update)
+                {
+                    UpdateVerticies(side.StaticMiddle.GeometryData, side.StaticMiddle.GeometryDataStartIndex, side.StaticMiddle.GeometryDataLength, sideVerticies);
+                }
+                else
+                {
+                    var verticies = GetTextureVerticies(side.Middle.TextureHandle);
+                    SetSideData(side, side.Middle.TextureHandle, SideTexture.Middle, verticies, sideVerticies);
+                    verticies.AddRange(sideVerticies);
+                }
             }
         }
     }
@@ -203,6 +245,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out var geometryData))
             return;
+
+        if (side.Line.Id == 149)
+        {
+            int lol = 1;
+        }
 
         switch (sideTexture)
         {
@@ -268,24 +315,34 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureToVertices.Clear();
     }
 
-    private void AddSectorPlane(Sector sector, bool floor)
+    private void AddSectorPlane(Sector sector, bool floor, bool update = false)
     {
         var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
         var plane = floor ? renderSector.Floor : renderSector.Ceiling;
-        var vertices = GetTextureVerticies(plane.TextureHandle);
         m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVerticies, out var renderedSkyVerticies);
 
         if (renderedVerticies == null)
             return;
 
-        if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
+        if (update)
         {
-            plane.StaticData.GeometryData = geometryData;
-            plane.StaticData.GeometryDataStartIndex = vertices.Length;
-            plane.StaticData.GeometryDataLength = renderedVerticies.Length;
-        }
+            if (plane.StaticData.GeometryData == null)
+                return;
 
-        vertices.AddRange(renderedVerticies);
+            UpdateVerticies(plane.StaticData.GeometryData, plane.StaticData.GeometryDataStartIndex, plane.StaticData.GeometryDataLength, renderedVerticies);
+        }
+        else
+        {
+            var vertices = GetTextureVerticies(plane.TextureHandle);
+            if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
+            {
+                plane.StaticData.GeometryData = geometryData;
+                plane.StaticData.GeometryDataStartIndex = vertices.Length;
+                plane.StaticData.GeometryDataLength = renderedVerticies.Length;
+            }
+
+            vertices.AddRange(renderedVerticies);
+        }
     }
 
     public void Render(RenderInfo renderInfo)
@@ -380,6 +437,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (plane.StaticData.GeometryData == null)
             return;
+
+        StaticDataApplier.ClearSectorDynamicMovement(plane);
+        m_geometryRenderer.SetBuffer(false);
+        AddSectorPlane(plane.Sector, plane.Facing == SectorPlaneFace.Floor, true);
+        foreach (var line in plane.Sector.Lines)
+            AddLine(line, true);
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
@@ -398,6 +461,18 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         ClearGeometryVerticies(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private void UpdateVerticies(GeometryData? geometryData, int startIndex, int length, LegacyVertex[] renderedVerticies)
+    {
+        if (geometryData == null)
+            return;
+
+        for (int i = 0; i < length && i < renderedVerticies.Length; i++)
+            geometryData.Vbo.Data.Data[startIndex + i] = renderedVerticies[i];
+
+        geometryData.Vbo.Bind();
+        geometryData.Vbo.UploadSubData(startIndex, length);
     }
 
     private static void ClearGeometryVerticies(GeometryData geometryData, int startIndex, int length)

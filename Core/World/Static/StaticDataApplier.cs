@@ -21,8 +21,11 @@ public class StaticDataApplier
     const SideTexture MiddleLower = SideTexture.Middle | SideTexture.Lower;
     const SideTexture MiddleUpper = SideTexture.Middle | SideTexture.Upper;
 
+    private static bool IsLoading;
+
     public static void DetermineStaticData(WorldBase world)
     {
+        IsLoading = true;
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
@@ -54,6 +57,8 @@ public class StaticDataApplier
 
         for (int i = 0; i < world.Sectors.Count; i++)
             DetermineStaticSector(world.Sectors[i]);
+
+        IsLoading = false;
     }
 
     private static void SetLevelModificationFrames(WorldBase world)
@@ -175,6 +180,9 @@ public class StaticDataApplier
     public static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic,
         SideTexture lightWalls = AllWallTypes)
     {
+        if (IsLoading && sectorDynamic == SectorDynamic.Movement)
+            return;
+
         if (floor)
             sector.Floor.Dynamic |= sectorDynamic;
         if (ceiling)
@@ -201,6 +209,21 @@ public class StaticDataApplier
 
             SetLineDynamic(line);
         }
+    }
+
+    public static void ClearSectorDynamicMovement(SectorPlane plane)
+    {
+        bool isMovementOnly = plane.Dynamic == SectorDynamic.Movement;
+        plane.Dynamic &= ~SectorDynamic.Movement;
+
+        if (!isMovementOnly)
+            return;
+
+        bool floor = plane.Facing == SectorPlaneFace.Floor;
+        bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
+
+        foreach (var line in plane.Sector.Lines)
+            ClearDynamicMovement(line, floor, ceiling);
     }
 
     private static void SetLineDynamic(Line line)
@@ -235,6 +258,28 @@ public class StaticDataApplier
                 line.Back.DynamicWalls |= MiddleUpper;
 
             line.Front.DynamicWalls |= MiddleUpper;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool ClearDynamicMovement(Line line, bool floor, bool ceiling)
+    {
+        if (floor && !ceiling)
+        {
+            if (line.Back != null)
+                line.Back.DynamicWalls &= ~MiddleLower;
+
+            line.Front.DynamicWalls &= ~MiddleLower;
+            return true;
+        }
+        else if (!floor && ceiling)
+        {
+            if (line.Back != null)
+                line.Back.DynamicWalls &= ~MiddleUpper;
+
+            line.Front.DynamicWalls &= ~MiddleUpper;
             return true;
         }
 

@@ -63,6 +63,7 @@ public class GeometryRenderer : IDisposable
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_dynamic;
+    private bool m_buffer = true;
 
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -204,6 +205,7 @@ public class GeometryRenderer : IDisposable
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, bool hasRenderedSector)
     {
+        m_buffer = true;
         m_viewSector = viewSector;
         m_floorChanged = subsector.Sector.Floor.CheckRenderingChanged();
         m_ceilingChanged = subsector.Sector.Ceiling.CheckRenderingChanged();
@@ -397,8 +399,11 @@ public class GeometryRenderer : IDisposable
             SetLightToVertices(data, GetRenderLightLevel(side));
         }
 
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
-        renderData.Vbo.Add(data);
+        if (m_buffer)
+        {
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+            renderData.Vbo.Add(data);
+        }
         veticies = data;
     }
 
@@ -421,6 +426,13 @@ public class GeometryRenderer : IDisposable
     {
         for (int i = 0; i < data.Length; i++)
             data[i].LightLevelUnit = lightLevel;
+    }
+
+    public void SetRenderTwoSided(Side facingSide, bool isFrontSide)
+    {
+        Side otherSide = facingSide.PartnerSide!;
+        m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
+        m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
     }
 
     private void RenderTwoSided(Side facingSide, bool isFrontSide)
@@ -547,7 +559,8 @@ public class GeometryRenderer : IDisposable
             }
 
             // See RenderOneSided() for an ASCII image of why we do this.
-            renderData.Vbo.Add(data);
+            if (m_buffer)
+                renderData.Vbo.Add(data);
             verticies = data;
             skyVerticies = null;
         }
@@ -634,7 +647,8 @@ public class GeometryRenderer : IDisposable
             }
 
             // See RenderOneSided() for an ASCII image of why we do this.
-            renderData.Vbo.Add(data);
+            if (m_buffer)
+                renderData.Vbo.Add(data);
             verticies = data;
             skyVerticies = null;
         }
@@ -727,7 +741,8 @@ public class GeometryRenderer : IDisposable
         }
 
         // See RenderOneSided() for an ASCII image of why we do this.
-        renderData.Vbo.Add(data);
+        if (m_buffer)
+            renderData.Vbo.Add(data);
         verticies = data;
     }
 
@@ -787,6 +802,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;
+    public void SetBuffer(bool set) => m_buffer = set;
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {

@@ -48,6 +48,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper = new();
     private int m_renderCount;
+    private Sector m_viewSector;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -110,8 +111,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);       
     }
-
-    private Sector m_viewSector;
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
     {
