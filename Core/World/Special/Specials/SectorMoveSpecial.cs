@@ -25,6 +25,7 @@ public class SectorMoveSpecial : ISectorSpecial
     // If this sector started out with the ceiling clipped through the floor
     public bool StartClipped { get; private set; }
     public bool OverrideEquals => true;
+    public bool IsInitialMove { get; private set; } = true;
 
     protected readonly IWorld m_world;
     protected double DestZ;
@@ -216,6 +217,8 @@ public class SectorMoveSpecial : ISectorSpecial
         double destZ = CalculateDestination();
         PerformAndHandleMoveZ(destZ);
         CheckStartClip();
+
+        IsInitialMove = false;
 
         if (MoveStatus == SectorMoveStatus.BlockedAndStop)
             DestZ = SectorPlane.Z;

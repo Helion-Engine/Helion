@@ -21,7 +21,7 @@ public static class SwitchManager
         if (switchSet.Item1 != Constants.NoTextureIndex)
         {
             if (line.Back != null)
-                world.SetSideTexture(line.Back, switchSet.Item2, switchSet.Item1);
+                world.SetSideTexture(line.Front, switchSet.Item2, switchSet.Item1);
             else
                 world.SetSideTexture(line.Front, WallLocation.Middle, switchSet.Item1);
         }

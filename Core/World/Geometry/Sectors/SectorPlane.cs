@@ -28,6 +28,7 @@ public class SectorPlane : ISoundSource
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
 
     public SectorScrollData? SectorScrollData { get; private set; }
+    public SectorDynamic Dynamic;
     public StaticGeometryData StaticData;
 
     private IAudioSource? m_audio;

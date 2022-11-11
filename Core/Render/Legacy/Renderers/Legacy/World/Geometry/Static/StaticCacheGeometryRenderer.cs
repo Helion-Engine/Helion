@@ -70,7 +70,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_mode = world.Config.Render.StaticMode;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
-        m_world.SectorMove += World_SectorMove;
+        m_world.SectorMoveStart += World_SectorMoveStart;
+        m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
 
@@ -83,9 +84,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             if (m_mode == RenderStaticMode.Aggressive)
             {
-                if ((sector.FloorDynamic & IgnoreFlags) == 0)
+                if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                     AddSectorPlane(sector, true);
-                if ((sector.CeilingDynamic & IgnoreFlags) == 0)
+                if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                     AddSectorPlane(sector, false);
             }
             else
@@ -123,7 +124,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             var sector = line.Front.Sector;
-            if (dynamic && (sector.FloorDynamic == SectorDynamic.Movement || sector.CeilingDynamic == SectorDynamic.Movement))
+            if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
             var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
@@ -151,8 +152,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool upper, lower, middle;
         if (m_mode == RenderStaticMode.Aggressive)
         {
-            bool floorDynamic = side.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.FloorDynamic.HasFlag(SectorDynamic.Movement);
-            bool ceilingDynamic = side.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.CeilingDynamic.HasFlag(SectorDynamic.Movement);
+            bool floorDynamic = side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement);
+            bool ceilingDynamic = side.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement);
             upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideTexture.Upper));
             lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideTexture.Lower));
             middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideTexture.Middle));
@@ -249,7 +250,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_world != null)
         {
             m_world.TextureManager.AnimationChanged -= TextureManager_AnimationChanged;
-            m_world.SectorMove -= World_SectorMove;
+            m_world.SectorMoveStart -= World_SectorMoveStart;
+            m_world.SectorMoveComplete -= World_SectorMoveComplete;
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world = null;
@@ -338,20 +340,17 @@ public class StaticCacheGeometryRenderer : IDisposable
         data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
     }
 
-    private void World_SectorMove(object? sender, SectorPlane plane)
+    private void World_SectorMoveStart(object? sender, SectorPlane plane)
     {
         // This sector doesn't have static geometry
         if (plane.StaticData.GeometryData == null)
             return;
 
+        if (plane.Dynamic.HasFlag(SectorDynamic.Movement))
+            return;
+
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
-
-        if (floor && !plane.Sector.IsFloorStatic)
-            return;
-        if (ceiling && !plane.Sector.IsCeilingStatic)
-            return;
-
         StaticDataApplier.SetSectorDynamic(plane.Sector, floor, ceiling, SectorDynamic.Movement);
         ClearGeometryVertices(plane.StaticData);
 
@@ -375,6 +374,12 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back.DynamicWalls.HasFlag(SideTexture.Middle))
                 ClearGeometryVertices(line.Back.StaticMiddle);
         }
+    }
+
+    private void World_SectorMoveComplete(object? sender, SectorPlane plane)
+    {
+        if (plane.StaticData.GeometryData == null)
+            return;
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)

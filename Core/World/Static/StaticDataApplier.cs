@@ -24,7 +24,7 @@ public class StaticDataApplier
     public static void DetermineStaticData(WorldBase world)
     {
         for (int i = 0; i < world.Lines.Count; i++)
-            DetermineStaticSector(world, world.Lines[i]);
+            DetermineStaticSectorLine(world, world.Lines[i]);
 
         foreach (var bossDeathSpecial in world.BossDeathSpecials)
         {
@@ -73,7 +73,7 @@ public class StaticDataApplier
                     continue;
 
                 Line line = EntityActionFunctions.CreateDummyLine(flags, lineSpecial, specialArgs, sector);
-                DetermineStaticSector(world, line);
+                DetermineStaticSectorLine(world, line);
             }
         }
     }
@@ -95,39 +95,27 @@ public class StaticDataApplier
             SetSectorDynamic(sector, false, true, SectorDynamic.Light, SideTexture.None);
     }
 
-    private static void DetermineStaticSector(WorldBase world, Line line)
+    private static void DetermineStaticSectorLine(WorldBase world, Line line)
     {
         if (line.Back != null && line.Alpha < 1)
         {
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls = AllWallTypes;
-            line.Back.IsStatic = false;
             line.Front.DynamicWalls = AllWallTypes;
             return;
         }
 
         if (line.Front.ScrollData != null)
-        {
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls = AllWallTypes;
-        }
 
         if (line.Back != null && line.Back.ScrollData != null)
-        {
-            line.Back.IsStatic = false;
             line.Front.DynamicWalls = AllWallTypes;
-        }
 
         if (line.Flags.Activations != LineActivations.None && line.Flags.Activations != LineActivations.CrossLine &&
             SwitchManager.IsLineSwitch(world.ArchiveCollection, line))
         {
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls = AllWallTypes;
             if (line.Back != null)
-            {
-                line.Back.IsStatic = false;
                 line.Back.DynamicWalls = AllWallTypes;
-            }
         }
 
         var special = line.Special;
@@ -188,15 +176,9 @@ public class StaticDataApplier
         SideTexture lightWalls = AllWallTypes)
     {
         if (floor)
-        {
-            sector.IsFloorStatic = false;
-            sector.FloorDynamic |= sectorDynamic;
-        }
+            sector.Floor.Dynamic |= sectorDynamic;
         if (ceiling)
-        {
-            sector.IsCeilingStatic = false;
-            sector.CeilingDynamic |= sectorDynamic;
-        }
+            sector.Ceiling.Dynamic |= sectorDynamic;
 
         if (sectorDynamic == SectorDynamic.ChangeFloorTexture)
             return;
@@ -216,13 +198,6 @@ public class StaticDataApplier
                 if (SetDynamicMovement(line, floor, ceiling))
                     continue;
             }
-            else if (sectorDynamic == SectorDynamic.Scroll)
-            {
-                if (floor)
-                    sector.IsFloorStatic = false;
-                if (ceiling)
-                    sector.IsCeilingStatic = false;
-            }
 
             SetLineDynamic(line);
         }
@@ -231,27 +206,17 @@ public class StaticDataApplier
     private static void SetLineDynamic(Line line)
     {
         line.Front.DynamicWalls |= AllWallTypes;
-        line.Front.IsStatic = false;
         if (line.Back != null)
-        {
-            line.Back.IsStatic = false;
             line.Back.DynamicWalls |= AllWallTypes;
-        }
     }
 
     private static void SetDynamicLight(Sector sector, SideTexture lightWalls, Line line)
     {
         if (line.Front.Sector.Id == sector.Id)
-        {
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls |= lightWalls;
-        }
 
         if (line.Back != null && line.Back.Sector.Id == sector.Id)
-        {
-            line.Back.IsStatic = false;
             line.Back.DynamicWalls |= lightWalls;
-        }
     }
 
     private static bool SetDynamicMovement(Line line, bool floor, bool ceiling)
@@ -259,24 +224,16 @@ public class StaticDataApplier
         if (floor && !ceiling)
         {
             if (line.Back != null)
-            {
-                line.Back.IsStatic = false;
                 line.Back.DynamicWalls |= MiddleLower;
-            }
 
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls |= MiddleLower;
             return true;
         }
         else if (!floor && ceiling)
         {
             if (line.Back != null)
-            {
-                line.Back.IsStatic = false;
                 line.Back.DynamicWalls |= MiddleUpper;
-            }
 
-            line.Front.IsStatic = false;
             line.Front.DynamicWalls |= MiddleUpper;
             return true;
         }

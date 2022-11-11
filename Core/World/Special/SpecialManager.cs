@@ -100,7 +100,11 @@ public class SpecialManager : ITickable, IDisposable
             special.ResetInterpolation();
 
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
-            m_destroyedMoveSpecials[i].ResetInterpolation();
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            sectorSpecial.ResetInterpolation();
+            SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
+        }
     }
 
     public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
@@ -192,7 +196,11 @@ public class SpecialManager : ITickable, IDisposable
         if (m_destroyedMoveSpecials.Count > 0)
         {
             for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
-                m_destroyedMoveSpecials[i].FinalizeDestroy();
+            {
+                ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+                sectorSpecial.FinalizeDestroy();
+                SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
+            }
 
             m_destroyedMoveSpecials.Clear();
         }
@@ -219,10 +227,7 @@ public class SpecialManager : ITickable, IDisposable
                 {
                     m_specials.Remove(node);
                     if (node.Value is ISectorSpecial sectorSpecial)
-                    {
                         m_destroyedMoveSpecials.Add(sectorSpecial);
-                        SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
-                    }
                 }
 
                 node = nextNode;

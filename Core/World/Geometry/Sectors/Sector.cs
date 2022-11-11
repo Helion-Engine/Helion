@@ -92,11 +92,9 @@ public class Sector
     public int DamageAmount { get; private set; }
     public int? SkyTextureHandle { get; private set; }
     public bool FlipSkyTexture { get; set; }
-    public bool IsFloorStatic { get; set; } = true;
-    public bool IsCeilingStatic { get; set; } = true;
+    public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
+    public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
-    public SectorDynamic FloorDynamic { get; set; }
-    public SectorDynamic CeilingDynamic { get; set; }
 
     public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
     public bool Has3DFloors => !Floors3D.Empty();

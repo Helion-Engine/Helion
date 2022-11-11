@@ -23,7 +23,7 @@ public class Side : IRenderObject
     public bool DataChanged => DataChanges > 0;
     // This is currently just for the renderer to know for scrolling lines to not cache
     public bool OffsetChanged { get; set; }
-    public bool IsStatic { get; set; } = true;
+    public bool IsStatic => DynamicWalls == SideTexture.None;
     public SideTexture DynamicWalls { get; set; }
 
     public bool IsFront => ReferenceEquals(this, Line.Front);

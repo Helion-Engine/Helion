@@ -35,7 +35,7 @@ public interface IWorld : IDisposable
 {
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
-    event EventHandler<SectorPlane>? SectorMove;
+    event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;

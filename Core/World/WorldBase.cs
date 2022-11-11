@@ -72,7 +72,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
-    public event EventHandler<SectorPlane>? SectorMove;
+    public event EventHandler<SectorPlane>? SectorMoveStart;
     public event EventHandler<SectorPlane>? SectorMoveComplete;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
@@ -1350,7 +1350,8 @@ public abstract partial class WorldBase : IWorld
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
-        SectorMove?.Invoke(this, moveSpecial.SectorPlane);
+        if (moveSpecial.IsInitialMove)
+            SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
         return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
     }
 
