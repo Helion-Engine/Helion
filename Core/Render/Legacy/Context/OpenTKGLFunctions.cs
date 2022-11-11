@@ -76,15 +76,9 @@ public class OpenTKGLFunctions : IGLFunctions
         GL.BufferStorage((BufferTarget)bufferType, totalBytes, data, (BufferStorageFlags)flags);
     }
 
-    public void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, T[] values, int valuesOffset) where T : struct
+    public void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, IntPtr values, int valuesOffset) where T : struct
     {
-        IntPtr offset = new IntPtr(byteOffset);
-        GCHandle pinnedArray = GCHandle.Alloc(values, GCHandleType.Pinned);
-        IntPtr pointer = pinnedArray.AddrOfPinnedObject();
-        pointer += valuesOffset;
-
-        GL.BufferSubData((BufferTarget)type, offset, numBytes, pointer);
-        pinnedArray.Free();
+        GL.BufferSubData((BufferTarget)type, new IntPtr(byteOffset), numBytes, values + valuesOffset);
     }
 
     public void Clear(ClearType type)

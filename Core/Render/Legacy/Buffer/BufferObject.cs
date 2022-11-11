@@ -68,6 +68,24 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// </summary>
     public int TotalBytes => Count * BytesPerElement;
 
+    private int _dataVersion;
+
+    public IntPtr _vboArrayPtr;
+    private GCHandle _pinnedArray;
+
+    public IntPtr GetVboArray()
+    {
+        if (_dataVersion != Data.Version)
+        {
+            _pinnedArray.Free();
+            _pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
+            _vboArrayPtr = _pinnedArray.AddrOfPinnedObject();
+            _dataVersion = Data.Version;
+        }
+
+        return _vboArrayPtr;
+    }
+
     /// <summary>
     /// Creates a new buffer object and sets the label if the capabilities
     /// exist.
@@ -80,6 +98,10 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     {
         gl = functions;
         BufferId = gl.GenBuffer();
+
+        _pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
+        _vboArrayPtr = _pinnedArray.AddrOfPinnedObject();
+        _dataVersion = Data.Version;
 
         Bind();
         SetObjectLabel(capabilities, objectLabel);
@@ -223,6 +245,8 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 #nullable disable
         Data = null;
 #nullable enable
+
+        _pinnedArray.Free();
     }
 
     /// <summary>

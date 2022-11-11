@@ -20,8 +20,7 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 
     protected override void BufferSubData(int index, int length)
     {
-        //gl.BufferSubData(GetBufferType(), BytesPerElement * index, BytesPerElement * length, Data.Data.Skip(index).Take(length).ToArray());
-        gl.BufferSubData(GetBufferType(), BytesPerElement * index, BytesPerElement * length, Data.Data, BytesPerElement * index);
+        gl.BufferSubData<T>(GetBufferType(), BytesPerElement * index, BytesPerElement * length, GetVboArray(), BytesPerElement * index);
     }
 
     protected abstract BufferUsageType GetBufferUsageType();
