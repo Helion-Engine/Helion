@@ -270,15 +270,20 @@ public class StaticDataApplier
         return false;
     }
 
-    private static bool ClearDynamicMovement(Line line, bool floor, bool ceiling)
+    private static void ClearDynamicMovement(Line line, bool floor, bool ceiling)
     {
+        if (line.Front.Sector.IsMoving)
+            return;
+
+        if (line.Back != null && line.Back.Sector.IsMoving)
+            return;
+
         if (floor && !ceiling)
         {
-            if (line.Back != null)
+            if (line.Back != null && !line.Back.Sector.IsMoving)
                 line.Back.DynamicWalls &= ~MiddleLower;
 
             line.Front.DynamicWalls &= ~MiddleLower;
-            return true;
         }
         else if (!floor && ceiling)
         {
@@ -286,9 +291,6 @@ public class StaticDataApplier
                 line.Back.DynamicWalls &= ~MiddleUpper;
 
             line.Front.DynamicWalls &= ~MiddleUpper;
-            return true;
         }
-
-        return false;
     }
 }

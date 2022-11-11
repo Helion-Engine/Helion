@@ -123,7 +123,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            bool dynamic = line.Front.DynamicWalls != SideTexture.None;
+            bool dynamic = line.Front.DynamicWalls != SideTexture.None || line.Front.Sector.IsMoving;
             if (m_mode == RenderStaticMode.On && dynamic)
                 return;
 
@@ -157,11 +157,12 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSide(line.Back, false, update);
     }
 
-    private LegacyVertex[]? _savedata = null;
-
     private void AddSide(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
+        if (side.Sector.IsMoving || otherSide.Sector.IsMoving)
+            return;
+
         Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
         Sector otherSector = otherSide.Sector.GetRenderSector(otherSide.Sector, side.Sector.Floor.Z + 1);
 
@@ -186,9 +187,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
-            if (_savedata == null && side.Line.Id == 149)
-                _savedata = sideVerticies;
-
             if (sideVerticies != null)
             {
                 if (update)
@@ -245,11 +243,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out var geometryData))
             return;
-
-        if (side.Line.Id == 149)
-        {
-            int lol = 1;
-        }
 
         switch (sideTexture)
         {
@@ -319,6 +312,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
         var plane = floor ? renderSector.Floor : renderSector.Ceiling;
+
+        if (floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.FloorTexture))
+            return;
+        else if (!floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
+            return;
+
         m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVerticies, out var renderedSkyVerticies);
 
         if (renderedVerticies == null)
@@ -452,7 +451,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
+        if (e.Plane.Facing != SectorPlaneFace.Floor)
+            return;
 
+        StaticDataApplier.SetSectorDynamic(e.Plane.Sector, true, false, SectorDynamic.ChangeFloorTexture);
     }
 
     private static void ClearGeometryVertices(in StaticGeometryData data)
