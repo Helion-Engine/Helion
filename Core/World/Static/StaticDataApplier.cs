@@ -94,11 +94,10 @@ public class StaticDataApplier
             return;
         }
 
-        // TODO: SectorDynamic.Movement is not correct, I chose that just to make this work.
-        bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
-        bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
-        if (isFloorSky || isCeilSky)
-            SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Movement, SideTexture.None);
+        //bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
+        //bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
+        //if (isFloorSky || isCeilSky)
+        //    SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Sky, SideTexture.None);
 
         if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
             SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
