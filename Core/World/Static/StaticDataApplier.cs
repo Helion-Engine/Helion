@@ -12,6 +12,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special.Switches;
+using Helion.Resources;
 
 namespace Helion.World.Static;
 
@@ -56,7 +57,7 @@ public class StaticDataApplier
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
-            DetermineStaticSector(world.Sectors[i]);
+            DetermineStaticSector(world.Sectors[i], world.TextureManager);
 
         IsLoading = false;
     }
@@ -83,7 +84,7 @@ public class StaticDataApplier
         }
     }
 
-    private static void DetermineStaticSector(Sector sector)
+    private static void DetermineStaticSector(Sector sector, TextureManager textureManager)
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
@@ -92,6 +93,12 @@ public class StaticDataApplier
             SetSectorDynamic(sector, true, true, SectorDynamic.TransferHeights);
             return;
         }
+
+        // TODO: SectorDynamic.Movement is not correct, I chose that just to make this work.
+        bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
+        bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
+        if (isFloorSky || isCeilSky)
+            SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Movement, SideTexture.None);
 
         if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
             SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
@@ -105,7 +112,7 @@ public class StaticDataApplier
         if (line.Back != null && line.Alpha < 1)
         {
             line.Front.DynamicWalls = AllWallTypes;
-            line.Front.DynamicWalls = AllWallTypes;
+            line.Back.DynamicWalls = AllWallTypes;
             return;
         }
 
