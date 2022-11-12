@@ -68,10 +68,14 @@ public class RenderWorldDataManager : IDisposable
         m_alphaRenderData.Clear();
     }
 
-    public void Draw()
+    public void DrawNonAlpha()
     {
         for (int i = 0; i < m_renderData.Count; i++)
             m_renderData[i].Draw();
+    }
+
+    public void DrawAlpha()
+    {
         for (int i = 0; i < m_alphaRenderData.Count; i++)
             m_alphaRenderData[i].Draw();
     }

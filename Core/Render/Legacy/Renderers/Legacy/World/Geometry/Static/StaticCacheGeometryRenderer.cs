@@ -40,7 +40,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GLCapabilities m_capabilities;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
-    private readonly LegacyShader m_shader;
     private readonly Dictionary<int, DynamicArray<LegacyVertex>> m_textureToVertices = new();
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
@@ -49,13 +48,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     private IWorld? m_world;
 
     public StaticCacheGeometryRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager, 
-        GeometryRenderer geometryRenderer, LegacyShader shader, VertexArrayAttributes attributes)
+        GeometryRenderer geometryRenderer, VertexArrayAttributes attributes)
     {
         gl = functions;
         m_capabilities = capabilities;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
-        m_shader = shader;
         Attributes = attributes;
     }
 
@@ -291,18 +289,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         vertices.AddRange(renderedVerticies);
     }
 
-    public void Render(RenderInfo renderInfo)
+    public void Render()
     {
         if (m_mode == RenderStaticMode.Off)
             return;
-
-        m_shader.Bind();
-
-        gl.ActiveTexture(TextureUnitType.Zero);
-        m_shader.BoundTexture.Set(gl, 0);
-
-        mat4 mvp = GLLegacyRenderer.CalculateMvpMatrix(renderInfo);
-        m_shader.Mvp.Set(gl, mvp);
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
@@ -318,7 +308,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_disposed)
             return;
 
-        m_shader.Dispose();
+        //m_shader.Dispose();
 
         foreach (var data in m_geometry)
         {

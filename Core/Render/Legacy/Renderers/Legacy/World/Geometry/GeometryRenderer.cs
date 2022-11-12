@@ -82,7 +82,7 @@ public class GeometryRenderer : IDisposable
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
-        RenderWorldDataManager worldDataManager, LegacyShader shader, VertexArrayAttributes attributes)
+        RenderWorldDataManager worldDataManager, VertexArrayAttributes attributes)
     {
         m_config = config;
         m_glTextureManager = textureManager;
@@ -91,7 +91,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(capabilities, functions, textureManager, this, shader, attributes);
+        m_staticCacheGeometryRenderer = new(capabilities, functions, textureManager, this, attributes);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -193,15 +193,11 @@ public class GeometryRenderer : IDisposable
         AlphaSides.Clear();
     }
 
-    public void RenderStaticGeometry(RenderInfo renderInfo)
-    {
-        m_staticCacheGeometryRenderer.Render(renderInfo);
-    }
+    public void RenderStaticGeometry() =>
+        m_staticCacheGeometryRenderer.Render();
 
-    public void Render(RenderInfo renderInfo)
-    {
+    public void Render(RenderInfo renderInfo) =>
         m_skyRenderer.Render(renderInfo);
-    }
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, bool hasRenderedSector)
     {

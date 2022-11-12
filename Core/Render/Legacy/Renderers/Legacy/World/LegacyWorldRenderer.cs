@@ -64,7 +64,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
 
         m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
-            textureManager, m_viewClipper, m_worldDataManager, m_shaderProgram, Attributes);
+            textureManager, m_viewClipper, m_worldDataManager, Attributes);
     }
 
     ~LegacyWorldRenderer()
@@ -96,11 +96,20 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
-
         TraverseBsp(world, renderInfo);
-        RenderWorldData(renderInfo);
+
+        m_shaderProgram.Bind();
+
+        SetUniforms(renderInfo);
+        gl.ActiveTexture(TextureUnitType.Zero);
+
+        m_worldDataManager.DrawNonAlpha();
+        m_geometryRenderer.RenderStaticGeometry();
+        m_worldDataManager.DrawAlpha();
+
+        m_shaderProgram.Unbind();
+
         m_geometryRenderer.Render(renderInfo);
-        m_geometryRenderer.RenderStaticGeometry(renderInfo);
     }
 
     private void Clear(IWorld world, RenderInfo renderInfo)
@@ -232,17 +241,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_shaderProgram.TimeFrac.Set(gl, timeFrac);
         m_shaderProgram.LightLevelMix.Set(gl, mix);
         m_shaderProgram.ExtraLight.Set(gl, extraLight);
-    }
-
-    private void RenderWorldData(RenderInfo renderInfo)
-    {
-        m_shaderProgram.Bind();
-
-        SetUniforms(renderInfo);
-        gl.ActiveTexture(TextureUnitType.Zero);
-        m_worldDataManager.Draw();
-
-        m_shaderProgram.Unbind();
     }
 
     private void ReleaseUnmanagedResources()
