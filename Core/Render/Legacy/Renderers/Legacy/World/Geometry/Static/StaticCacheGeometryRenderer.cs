@@ -219,7 +219,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             vertices = new();
             AllocateGeometryData(textureHandle, out GeometryData data);
-            m_textureToGeometryLookup.Add(textureHandle, data);
             m_textureToVertices[textureHandle] = vertices;
         }
 
@@ -234,6 +233,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);
         m_geometry.Add(data);
+        m_textureToGeometryLookup.Add(textureHandle, data);
     }
 
     private void ClearData()

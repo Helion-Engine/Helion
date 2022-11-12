@@ -13,6 +13,6 @@ public enum SectorDynamic
     Scroll = 16,
     ChangeFloorTexture = 32,
     ChangeWallTexture = 64,
-    Alpha = 64,
-    Sky = 128
+    Alpha = 128,
+    Sky = 256
 }
