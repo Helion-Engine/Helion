@@ -10,6 +10,7 @@ using Helion.Render.Legacy.Shared.World;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
+using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Configs.Components;
@@ -43,6 +44,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, DynamicArray<LegacyVertex>> m_textureToVertices = new();
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
+    private readonly List<GeometryData> m_runtimeGeometry = new();
+    private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private IWorld? m_world;
@@ -128,7 +131,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVerticies);
-            SetSideVerticies(line.Front.Middle, update, sideVertices, true);
+            SetSideVertices(line.Front, line.Front.Middle, update, sideVertices, true);
             return;
         }
 
@@ -166,73 +169,71 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (upper && side.Upper.TextureHandle != Constants.NoTextureIndex)
         {
-            m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
-            SetSideVerticies(side.Upper, update, sideVerticies, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
+            m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
+            SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
         }
 
         if (lower && side.Lower.TextureHandle != Constants.NoTextureIndex)
         {
-            m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
-            SetSideVerticies(side.Lower, update, sideVerticies, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
+            m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
+            SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
-            m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
-            SetSideVerticies(side.Middle, update, sideVerticies, true);
+            m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
+            SetSideVertices(side, side.Middle, update, sideVertices, true);
         }
     }
 
-    private void SetSideVerticies(Wall wall, bool update, LegacyVertex[]? sideVerticies, bool visible)
+    private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible)
     {
-        if (sideVerticies == null)
+        if (sideVertices == null || !visible)
             return;
         
         if (update)
         {
-            UpdateVerticies(wall.Static.GeometryData, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVerticies);
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVertices,
+                null, side, wall);
             return;
         }
 
-        // For now we have to allocate space for sides that aren't visible, otherwise we can't update it if it moves.
-        if (!visible)
-        {
-            for (int i = 0; i < sideVerticies.Length; i++)
-                sideVerticies[i].Z = 0;
-        }
-
-        var verticies = GetTextureVerticies(wall.TextureHandle);
-        SetSideData(wall, wall.TextureHandle, verticies, sideVerticies);
-        verticies.AddRange(sideVerticies);
+        var vertices = GetTextureVertices(wall.TextureHandle);
+        SetSideData(wall, wall.TextureHandle, vertices.Length, sideVertices.Length, null);
+        vertices.AddRange(sideVertices);
     }
 
-    private void SetSideData(Wall wall, int textureHandle, DynamicArray<LegacyVertex> vboVertices, LegacyVertex[] sideVerticies)
+    private void SetSideData(Wall wall, int textureHandle, int vboIndex, int vertexCount, GeometryData? geometryData)
     {
-        if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out var geometryData))
+        if (geometryData == null && !m_textureToGeometryLookup.TryGetValue(textureHandle, out geometryData))
             return;
 
         wall.Static.GeometryData = geometryData;
-        wall.Static.GeometryDataStartIndex = vboVertices.Length;
-        wall.Static.GeometryDataLength = sideVerticies.Length;
+        wall.Static.GeometryDataStartIndex = vboIndex;
+        wall.Static.GeometryDataLength = vertexCount;
     }
 
-    private DynamicArray<LegacyVertex> GetTextureVerticies(int textureHandle)
+    private DynamicArray<LegacyVertex> GetTextureVertices(int textureHandle)
     {
         if (!m_textureToVertices.TryGetValue(textureHandle, out DynamicArray<LegacyVertex>? vertices))
         {
             vertices = new();
-            m_textureToVertices[textureHandle] = vertices;
-
-            VertexArrayObject vao = new(m_capabilities, gl, Attributes);
-            StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
-
-            var texture = m_textureManager.GetTexture(textureHandle);
-            var data = new GeometryData(textureHandle, texture, vbo, vao);
-            m_geometry.Add(data);
+            AllocateGeometryData(textureHandle, out GeometryData data);
             m_textureToGeometryLookup.Add(textureHandle, data);
+            m_textureToVertices[textureHandle] = vertices;
         }
 
         return vertices;
+    }
+
+    private void AllocateGeometryData(int textureHandle, out GeometryData data)
+    {
+        VertexArrayObject vao = new(m_capabilities, gl, Attributes);
+        StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
+
+        var texture = m_textureManager.GetTexture(textureHandle);
+        data = new GeometryData(textureHandle, texture, vbo, vao);
+        m_geometry.Add(data);
     }
 
     private void ClearData()
@@ -268,9 +269,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         else if (!floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
             return;
 
-        m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVerticies, out var renderedSkyVerticies);
+        m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVertices, out var renderedSkyVertices);
 
-        if (renderedVerticies == null)
+        if (renderedVertices == null)
             return;
 
         if (update)
@@ -278,25 +279,40 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (plane.StaticData.GeometryData == null)
                 return;
 
-            UpdateVerticies(plane.StaticData.GeometryData, plane.StaticData.GeometryDataStartIndex, plane.StaticData.GeometryDataLength, renderedVerticies);
+            UpdateVertices(plane.StaticData.GeometryData, plane.TextureHandle, plane.StaticData.GeometryDataStartIndex, 
+                plane.StaticData.GeometryDataLength, renderedVertices, plane, null, null);
             return;
         }
 
-        var vertices = GetTextureVerticies(plane.TextureHandle);
+        var vertices = GetTextureVertices(plane.TextureHandle);
         if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
         {
             plane.StaticData.GeometryData = geometryData;
             plane.StaticData.GeometryDataStartIndex = vertices.Length;
-            plane.StaticData.GeometryDataLength = renderedVerticies.Length;
+            plane.StaticData.GeometryDataLength = renderedVertices.Length;
         }
 
-        vertices.AddRange(renderedVerticies);
+        vertices.AddRange(renderedVertices);
     }
 
     public void Render()
     {
         if (m_mode == RenderStaticMode.Off)
             return;
+
+        // These are textures added at run time. Need to be uploaded then cleared.
+        if (m_runtimeGeometry.Count > 0)
+        {
+            for (int i = 0; i < m_runtimeGeometry.Count; i++)
+            {
+                var data = m_runtimeGeometry[i];
+                data.Vbo.Bind();
+                data.Vbo.UploadIfNeeded();
+            }
+
+            m_runtimeGeometry.Clear();
+            m_runtimeGeometryTextures.Clear();
+        }
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
@@ -311,8 +327,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (m_disposed)
             return;
-
-        //m_shader.Dispose();
 
         foreach (var data in m_geometry)
         {
@@ -403,22 +417,63 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        ClearGeometryVerticies(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
+        ClearGeometryVertices(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
-    private static void UpdateVerticies(GeometryData? geometryData, int startIndex, int length, LegacyVertex[] renderedVerticies)
+    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, int length, LegacyVertex[] vertices,
+        SectorPlane? plane, Side? side, Wall? wall)
     {
         if (geometryData == null)
+        {
+            AddRuntimeGeometry(textureHandle, vertices, plane, side, wall);
             return;
+        }
 
-        for (int i = 0; i < length && i < renderedVerticies.Length; i++)
-            geometryData.Vbo.Data.Data[startIndex + i] = renderedVerticies[i];
+        for (int i = 0; i < length && i < vertices.Length; i++)
+            geometryData.Vbo.Data.Data[startIndex + i] = vertices[i];
 
         geometryData.Vbo.Bind();
         geometryData.Vbo.UploadSubData(startIndex, length);
     }
 
-    private static void ClearGeometryVerticies(GeometryData geometryData, int startIndex, int length)
+    private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall)
+    {
+        // This texture exists, append to the vbo
+        if (m_textureToGeometryLookup.TryGetValue(textureHandle, out GeometryData? data))
+        {
+            SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices);
+            data.Vbo.Add(vertices);
+            if (!m_runtimeGeometryTextures.Contains(textureHandle))
+            {
+                m_runtimeGeometry.Add(data);
+                m_runtimeGeometryTextures.Add(textureHandle);
+            }
+            return;
+        }
+
+        AllocateGeometryData(textureHandle, out data);
+        SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices);
+        data.Vbo.Add(vertices);
+        m_runtimeGeometry.Add(data);
+    }
+
+    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, LegacyVertex[] vertices)
+    {
+        if (side != null && wall != null)
+        {
+            SetSideData(wall, textureHandle, geometryData.Vbo.Count, vertices.Length, geometryData);
+            return;
+        }
+
+        if (plane != null)
+        {
+            plane.StaticData.GeometryData = geometryData;
+            plane.StaticData.GeometryDataStartIndex = geometryData.Vbo.Count;
+            plane.StaticData.GeometryDataLength = vertices.Length;
+        }
+    }
+
+    private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
         for (int i = 0; i < length; i++)
         {
