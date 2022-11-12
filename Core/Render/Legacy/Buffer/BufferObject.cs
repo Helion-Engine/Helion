@@ -181,7 +181,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public void UploadSubData(int start, int length)
     {
         BufferSubData(start, length);
-        Uploaded = true;
     }
 
     protected virtual void BufferSubData(int start, int length)

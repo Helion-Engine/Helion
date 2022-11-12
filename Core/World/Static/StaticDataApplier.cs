@@ -13,6 +13,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special.Switches;
 using Helion.Resources;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Helion.World.Static;
 
@@ -136,6 +137,7 @@ public class StaticDataApplier
         if (special.IsSectorSpecial() && !special.IsSectorStopMove())
         {
             var sectors = world.SpecialManager.GetSectorsFromSpecialLine(line);
+
             if (special.IsStairBuild())
                 SetStairBuildDynamic(world, line, special, sectors);
             else if (special.IsFloorDonut())
@@ -146,9 +148,7 @@ public class StaticDataApplier
                 SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (special.IsCeilingMove())
                 SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
-            else if (special.IsSectorFloorTrigger())
-                SetSectorsDynamic(sectors, true, false, SectorDynamic.ChangeFloorTexture);
-            else if (!special.IsTransferLight())
+            else if (!special.IsTransferLight() && !special.IsSectorFloorTrigger())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
         }
     }
@@ -193,9 +193,6 @@ public class StaticDataApplier
             sector.Floor.Dynamic |= sectorDynamic;
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
-
-        if (sectorDynamic == SectorDynamic.ChangeFloorTexture)
-            return;
 
         foreach (var line in sector.Lines)
         {

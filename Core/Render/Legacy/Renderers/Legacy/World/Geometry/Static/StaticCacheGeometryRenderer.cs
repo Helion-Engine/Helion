@@ -46,6 +46,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
     private readonly List<GeometryData> m_runtimeGeometry = new();
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
+    private readonly List<FreeGeometryData> m_freeGeometryData = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private IWorld? m_world;
@@ -85,6 +86,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         foreach (Sector sector in world.Sectors)
         {
+            if (sector.Id == 3514)
+            {
+                int lol = 1;
+            }
+
             if (m_mode == RenderStaticMode.Aggressive)
             {
                 if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
@@ -218,7 +224,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_textureToVertices.TryGetValue(textureHandle, out DynamicArray<LegacyVertex>? vertices))
         {
             vertices = new();
-            AllocateGeometryData(textureHandle, out GeometryData data);
+            AllocateGeometryData(textureHandle, out _);
             m_textureToVertices[textureHandle] = vertices;
         }
 
@@ -263,12 +269,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var plane = floor ? renderSector.Floor : renderSector.Ceiling;
-
-        if (floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.FloorTexture))
-            return;
-        else if (!floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
-            return;
-
         m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVertices, out var renderedSkyVertices);
 
         if (renderedVertices == null)
@@ -276,9 +276,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (update)
         {
-            if (plane.StaticData.GeometryData == null)
-                return;
-
             UpdateVertices(plane.StaticData.GeometryData, plane.TextureHandle, plane.StaticData.GeometryDataStartIndex, 
                 plane.StaticData.GeometryDataLength, renderedVertices, plane, null, null);
             return;
@@ -293,6 +290,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         vertices.AddRange(renderedVertices);
+        return;
     }
 
     public void Render()
@@ -406,10 +404,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
-        if (e.Plane.Facing != SectorPlaneFace.Floor)
-            return;
-
-        StaticDataApplier.SetSectorDynamic(e.Plane.Sector, true, false, SectorDynamic.ChangeFloorTexture);
+        e.Plane.StaticData.GeometryData = null;
+        m_freeGeometryData.Add(new FreeGeometryData(e.PreviousTextureHandle, e.Plane.StaticData));
+        ClearGeometryVertices(e.Plane.StaticData);
+        AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 
     private static void ClearGeometryVertices(in StaticGeometryData data)
