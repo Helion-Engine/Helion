@@ -175,7 +175,7 @@ public class GeometryRenderer : IDisposable
                 continue;
 
             var sector = subsectors[0].Sector;
-            var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
+            var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
 
             // Set position Z within plane view so it's not culled
             m_position.Z = sector.Floor.Plane.ToZ(pos) + 1;

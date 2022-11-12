@@ -101,7 +101,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         foreach (Line line in world.Lines)
             AddLine(line);
 
-        int index = 0;
         foreach (var data in m_geometry)
         {
             if (!m_textureToVertices.TryGetValue(data.TextureHandle, out var array))
@@ -110,7 +109,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.Add(array.Data, array.Length);
             data.Vbo.UploadIfNeeded();
-            index++;
         }
 
         // Don't need these anymore, don't hold a reference to all that data.
@@ -130,7 +128,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVerticies);
-            SetSideVerticies(line.Front, line.Front.Middle, update, sideVertices);
+            SetSideVerticies(line.Front.Middle, update, sideVertices, true);
             return;
         }
 
@@ -145,8 +143,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (side.Sector.IsMoving || otherSide.Sector.IsMoving)
             return;
 
-        Sector facingSector = side.Sector.GetRenderSector(side.Sector, side.Sector.Floor.Z + 1);
-        Sector otherSector = otherSide.Sector.GetRenderSector(otherSide.Sector, side.Sector.Floor.Z + 1);
+        Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
+        Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
 
         bool upper, lower, middle;
         if (m_mode == RenderStaticMode.Aggressive)
@@ -166,26 +164,26 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        if (upper)
+        if (upper && side.Upper.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
-            SetSideVerticies(side, side.Upper, update, sideVerticies);
+            SetSideVerticies(side.Upper, update, sideVerticies, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
         }
 
-        if (lower)
+        if (lower && side.Lower.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
-            SetSideVerticies(side, side.Lower, update, sideVerticies);
+            SetSideVerticies(side.Lower, update, sideVerticies, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
-            SetSideVerticies(side, side.Middle, update, sideVerticies);
+            SetSideVerticies(side.Middle, update, sideVerticies, true);
         }
     }
 
-    private void SetSideVerticies(Side side, Wall wall, bool update, LegacyVertex[]? sideVerticies)
+    private void SetSideVerticies(Wall wall, bool update, LegacyVertex[]? sideVerticies, bool visible)
     {
         if (sideVerticies == null)
             return;
@@ -196,10 +194,16 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
+        // For now we have to allocate space for sides that aren't visible, otherwise we can't update it if it moves.
+        if (!visible)
+        {
+            for (int i = 0; i < sideVerticies.Length; i++)
+                sideVerticies[i].Z = 0;
+        }
+
         var verticies = GetTextureVerticies(wall.TextureHandle);
         SetSideData(wall, wall.TextureHandle, verticies, sideVerticies);
         verticies.AddRange(sideVerticies);
-
     }
 
     private void SetSideData(Wall wall, int textureHandle, DynamicArray<LegacyVertex> vboVertices, LegacyVertex[] sideVerticies)
@@ -256,7 +260,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
     {
-        var renderSector = sector.GetRenderSector(sector, sector.Floor.Z + 1);
+        var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var plane = floor ? renderSector.Floor : renderSector.Ceiling;
 
         if (floor && plane.Sector.DataChanges.HasFlag(SectorDataTypes.FloorTexture))

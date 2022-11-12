@@ -149,7 +149,15 @@ public class Sector
         if (TransferHeights == null)
             return this;
 
-        return TransferHeights.GetRenderSector(sector, viewZ);
+        return TransferHeights.GetRenderSector(TransferHeights.GetView(sector, viewZ));
+    }
+
+    public Sector GetRenderSector(TransferHeightView view)
+    {
+        if (TransferHeights == null)
+            return this;
+
+        return TransferHeights.GetRenderSector(view);
     }
 
     public void SetTransferFloorLight(Sector sector, int gametick)
