@@ -13,6 +13,7 @@ public class Wall
 
     public Line Line => Side.Line;
     public SectorDynamic Dynamic;
+    public StaticGeometryData Static;
     public bool IsDynamic => Dynamic != SectorDynamic.None;
 
     public Wall(int id, int textureHandle, WallLocation location)

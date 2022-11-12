@@ -358,7 +358,7 @@ public class GeometryRenderer : IDisposable
         m_skyOverride = false;
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
-        else if (m_dynamic || side.Upper.IsDynamic)
+        else
             RenderOneSided(side, out _, out _);
     }
 

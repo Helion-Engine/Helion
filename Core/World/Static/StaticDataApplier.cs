@@ -94,10 +94,10 @@ public class StaticDataApplier
             return;
         }
 
-        //bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
-        //bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
-        //if (isFloorSky || isCeilSky)
-        //    SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Sky, SideTexture.None);
+        bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
+        bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
+        if (isFloorSky || isCeilSky)
+            SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Sky, AllWallTypes);
 
         if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
             SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
@@ -212,11 +212,24 @@ public class StaticDataApplier
                 if (SetDynamicMovement(line, floor, ceiling))
                     continue;
             }
+            else if (sectorDynamic == SectorDynamic.Sky)
+            {
+                if (line.Front.Sector.Id == sector.Id)
+                {
+                    if (floor)
+                        line.Front.SetWallsDynamic(SideTexture.Lower, SectorDynamic.Sky);
+                    if (ceiling)
+                        line.Front.SetWallsDynamic(SideTexture.Upper, SectorDynamic.Sky);
+                }
 
-            int lol = 1;
-            //line.Front.DynamicWalls |= AllWallTypes;
-            //if (line.Back != null)
-            //    line.Back.DynamicWalls |= AllWallTypes;
+                if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                {
+                    if (floor)
+                        line.Back.SetWallsDynamic(SideTexture.Lower, SectorDynamic.Sky);
+                    if (ceiling)
+                        line.Back.SetWallsDynamic(SideTexture.Upper, SectorDynamic.Sky);
+                }
+            }
         }
     }
 

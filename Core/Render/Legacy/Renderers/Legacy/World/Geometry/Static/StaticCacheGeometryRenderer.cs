@@ -19,6 +19,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 using Newtonsoft.Json.Linq;
 using OpenTK.Graphics.OpenGL;
@@ -130,24 +131,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
-            m_geometryRenderer.RenderOneSided(line.Front, out var lineVerticies, out var skyVerticies);
-
-            if (update)
-            {
-                if (lineVerticies != null)
-                    UpdateVerticies(line.Front.StaticMiddle.GeometryData, line.Front.StaticMiddle.GeometryDataStartIndex, 
-                        line.Front.StaticMiddle.GeometryDataLength, lineVerticies);
-            }
-            else
-            {
-                if (lineVerticies != null)
-                {
-                    var vertices = GetTextureVerticies(line.Front.Middle.TextureHandle);
-                    SetSideData(line.Front, line.Front.Middle.TextureHandle, SideTexture.Middle, vertices, lineVerticies);
-                    vertices.AddRange(lineVerticies);
-                }
-            }
-
+            m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVerticies);
+            SetSideVerticies(line.Front, line.Front.Middle, update, sideVertices);
             return;
         }
 
@@ -183,86 +168,50 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        if (upper)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies, out var skyVerticies2);
-            if (sideVerticies != null)
-            {
-                if (update)
-                {
-                    UpdateVerticies(side.StaticUpper.GeometryData, side.StaticUpper.GeometryDataStartIndex, side.StaticUpper.GeometryDataLength, sideVerticies);
-                }
-                else
-                {
-                    var verticies = GetTextureVerticies(side.Upper.TextureHandle);
-                    SetSideData(side, side.Upper.TextureHandle, SideTexture.Upper, verticies, sideVerticies);
-                    verticies.AddRange(sideVerticies);
-                }
-            }
+            SetSideVerticies(side, side.Upper, update, sideVerticies);
         }
 
-        if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        if (lower)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies, out var skyVerticies);
-            if (sideVerticies != null)
-            {
-                if (update)
-                {
-                    UpdateVerticies(side.StaticLower.GeometryData, side.StaticLower.GeometryDataStartIndex, side.StaticLower.GeometryDataLength, sideVerticies);
-                }
-                else
-                {
-                    var verticies = GetTextureVerticies(side.Lower.TextureHandle);
-                    SetSideData(side, side.Lower.TextureHandle, SideTexture.Lower, verticies, sideVerticies);
-                    verticies.AddRange(sideVerticies);
-                }
-            }
+            SetSideVerticies(side, side.Lower, update, sideVerticies);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVerticies);
-            if (sideVerticies != null)
-            {
-                if (update)
-                {
-                    UpdateVerticies(side.StaticMiddle.GeometryData, side.StaticMiddle.GeometryDataStartIndex, side.StaticMiddle.GeometryDataLength, sideVerticies);
-                }
-                else
-                {
-                    var verticies = GetTextureVerticies(side.Middle.TextureHandle);
-                    SetSideData(side, side.Middle.TextureHandle, SideTexture.Middle, verticies, sideVerticies);
-                    verticies.AddRange(sideVerticies);
-                }
-            }
+            SetSideVerticies(side, side.Middle, update, sideVerticies);
         }
     }
 
-    private void SetSideData(Side side, int textureHandle, SideTexture sideTexture, DynamicArray<LegacyVertex> vboVertices, LegacyVertex[] sideVerticies)
+    private void SetSideVerticies(Side side, Wall wall, bool update, LegacyVertex[]? sideVerticies)
+    {
+        if (sideVerticies == null)
+            return;
+        
+        if (update)
+        {
+            UpdateVerticies(wall.Static.GeometryData, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVerticies);
+            return;
+        }
+
+        var verticies = GetTextureVerticies(wall.TextureHandle);
+        SetSideData(wall, wall.TextureHandle, verticies, sideVerticies);
+        verticies.AddRange(sideVerticies);
+
+    }
+
+    private void SetSideData(Wall wall, int textureHandle, DynamicArray<LegacyVertex> vboVertices, LegacyVertex[] sideVerticies)
     {
         if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out var geometryData))
             return;
 
-        switch (sideTexture)
-        {
-            case SideTexture.Upper:
-                side.StaticUpper.GeometryData = geometryData;
-                side.StaticUpper.GeometryDataStartIndex = vboVertices.Length;
-                side.StaticUpper.GeometryDataLength = sideVerticies.Length;
-                break;
-            case SideTexture.Lower:
-                side.StaticLower.GeometryData = geometryData;
-                side.StaticLower.GeometryDataStartIndex = vboVertices.Length;
-                side.StaticLower.GeometryDataLength = sideVerticies.Length;
-                break;
-            case SideTexture.Middle:
-                side.StaticMiddle.GeometryData = geometryData;
-                side.StaticMiddle.GeometryDataStartIndex = vboVertices.Length;
-                side.StaticMiddle.GeometryDataLength = sideVerticies.Length;
-                break;
-            default:
-                break;
-        }
+        wall.Static.GeometryData = geometryData;
+        wall.Static.GeometryDataStartIndex = vboVertices.Length;
+        wall.Static.GeometryDataLength = sideVerticies.Length;
     }
 
     private DynamicArray<LegacyVertex> GetTextureVerticies(int textureHandle)
@@ -412,21 +361,21 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var line = plane.Sector.Lines[i];
             if (line.Front.Upper.IsDynamic)
-                ClearGeometryVertices(line.Front.StaticUpper);
+                ClearGeometryVertices(line.Front.Upper.Static);
             if (line.Front.Lower.IsDynamic)
-                ClearGeometryVertices(line.Front.StaticLower);
+                ClearGeometryVertices(line.Front.Lower.Static);
             if (line.Front.Middle.IsDynamic)
-                ClearGeometryVertices(line.Front.StaticMiddle);
+                ClearGeometryVertices(line.Front.Middle.Static);
 
             if (line.Back == null)
                 continue;
 
             if (line.Back.Upper.IsDynamic)
-                ClearGeometryVertices(line.Back.StaticUpper);
+                ClearGeometryVertices(line.Back.Upper.Static);
             if (line.Back.Lower.IsDynamic)
-                ClearGeometryVertices(line.Back.StaticLower);
+                ClearGeometryVertices(line.Back.Lower.Static);
             if (line.Back.Middle.IsDynamic)
-                ClearGeometryVertices(line.Back.StaticMiddle);
+                ClearGeometryVertices(line.Back.Middle.Static);
         }
     }
 

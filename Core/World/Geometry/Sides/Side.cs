@@ -36,10 +36,6 @@ public class Side : IRenderObject
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
 
-    public StaticGeometryData StaticUpper;
-    public StaticGeometryData StaticLower;
-    public StaticGeometryData StaticMiddle;
-
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {
         Id = id;
