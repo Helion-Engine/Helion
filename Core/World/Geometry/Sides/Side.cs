@@ -23,8 +23,8 @@ public class Side : IRenderObject
     public bool DataChanged => DataChanges > 0;
     // This is currently just for the renderer to know for scrolling lines to not cache
     public bool OffsetChanged { get; set; }
-    public bool IsStatic => DynamicWalls == SideTexture.None;
-    public SideTexture DynamicWalls { get; set; }
+    public bool IsStatic => Upper.Dynamic == SectorDynamic.None && Middle.Dynamic == SectorDynamic.None && Lower.Dynamic == SectorDynamic.None;
+    public bool IsDynamic => Upper.Dynamic != SectorDynamic.None || Middle.Dynamic != SectorDynamic.None || Lower.Dynamic != SectorDynamic.None;
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;
@@ -62,5 +62,32 @@ public class Side : IRenderObject
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
         Line = null !;
+    }
+
+    public void SetAllWallsDynamic(SectorDynamic sectorDynamic)
+    {
+        Upper.Dynamic |= sectorDynamic;
+        Lower.Dynamic |= sectorDynamic;
+        Middle.Dynamic |= sectorDynamic;
+    }
+
+    public void SetWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
+    {
+        if (types.HasFlag(SideTexture.Upper))
+            Upper.Dynamic |= sectorDynamic;
+        if (types.HasFlag(SideTexture.Lower))
+            Lower.Dynamic |= sectorDynamic;
+        if (types.HasFlag(SideTexture.Middle))
+            Middle.Dynamic |= sectorDynamic;
+    }
+
+    public void ClearWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
+    {
+        if (types.HasFlag(SideTexture.Upper))
+            Upper.Dynamic &= ~sectorDynamic;
+        if (types.HasFlag(SideTexture.Lower))
+            Lower.Dynamic &= ~sectorDynamic;
+        if (types.HasFlag(SideTexture.Middle))
+            Middle.Dynamic &= ~sectorDynamic;
     }
 }

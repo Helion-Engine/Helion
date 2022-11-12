@@ -358,7 +358,7 @@ public class GeometryRenderer : IDisposable
         m_skyOverride = false;
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
-        else if (m_dynamic || side.DynamicWalls.HasFlag(SideTexture.Middle))
+        else if (m_dynamic || side.Upper.IsDynamic)
             RenderOneSided(side, out _, out _);
     }
 
@@ -428,7 +428,7 @@ public class GeometryRenderer : IDisposable
             data[i].LightLevelUnit = lightLevel;
     }
 
-    public void SetRenderTwoSided(Side facingSide, bool isFrontSide)
+    public void SetRenderTwoSided(Side facingSide)
     {
         Side otherSide = facingSide.PartnerSide!;
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
@@ -445,12 +445,12 @@ public class GeometryRenderer : IDisposable
         m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
 
-        if ((m_dynamic || facingSide.DynamicWalls.HasFlag(SideTexture.Lower)) && LowerIsVisible(facingSector, otherSector))
+        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
-            (m_dynamic || facingSide.DynamicWalls.HasFlag(SideTexture.Middle)))
+            (m_dynamic || facingSide.Middle.IsDynamic))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.DynamicWalls.HasFlag(SideTexture.Upper)) && UpperIsVisible(facingSide, facingSector, otherSector))
+        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 

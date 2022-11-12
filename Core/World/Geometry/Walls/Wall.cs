@@ -1,5 +1,6 @@
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
+using Helion.World.Static;
 
 namespace Helion.World.Geometry.Walls;
 
@@ -11,6 +12,8 @@ public class Wall
     public int TextureHandle { get; private set; }
 
     public Line Line => Side.Line;
+    public SectorDynamic Dynamic;
+    public bool IsDynamic => Dynamic != SectorDynamic.None;
 
     public Wall(int id, int textureHandle, WallLocation location)
     {

@@ -110,23 +110,23 @@ public class StaticDataApplier
     {
         if (line.Back != null && line.Alpha < 1)
         {
-            line.Front.DynamicWalls = AllWallTypes;
-            line.Back.DynamicWalls = AllWallTypes;
+            line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
+            line.Back.SetAllWallsDynamic(SectorDynamic.Alpha);
             return;
         }
 
         if (line.Front.ScrollData != null)
-            line.Front.DynamicWalls = AllWallTypes;
+            line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
 
         if (line.Back != null && line.Back.ScrollData != null)
-            line.Front.DynamicWalls = AllWallTypes;
+            line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
 
         if (line.Flags.Activations != LineActivations.None && line.Flags.Activations != LineActivations.CrossLine &&
             SwitchManager.IsLineSwitch(world.ArchiveCollection, line))
         {
-            line.Front.DynamicWalls = AllWallTypes;
+            line.Front.SetAllWallsDynamic(SectorDynamic.ChangeWallTexture);
             if (line.Back != null)
-                line.Back.DynamicWalls = AllWallTypes;
+                line.Back.SetAllWallsDynamic(SectorDynamic.ChangeWallTexture);
         }
 
         var special = line.Special;
@@ -213,7 +213,10 @@ public class StaticDataApplier
                     continue;
             }
 
-            SetLineDynamic(line);
+            int lol = 1;
+            //line.Front.DynamicWalls |= AllWallTypes;
+            //if (line.Back != null)
+            //    line.Back.DynamicWalls |= AllWallTypes;
         }
     }
 
@@ -232,20 +235,13 @@ public class StaticDataApplier
             ClearDynamicMovement(line, floor, ceiling);
     }
 
-    private static void SetLineDynamic(Line line)
-    {
-        line.Front.DynamicWalls |= AllWallTypes;
-        if (line.Back != null)
-            line.Back.DynamicWalls |= AllWallTypes;
-    }
-
     private static void SetDynamicLight(Sector sector, SideTexture lightWalls, Line line)
     {
         if (line.Front.Sector.Id == sector.Id)
-            line.Front.DynamicWalls |= lightWalls;
+            line.Front.SetWallsDynamic(lightWalls, SectorDynamic.Light);
 
         if (line.Back != null && line.Back.Sector.Id == sector.Id)
-            line.Back.DynamicWalls |= lightWalls;
+            line.Back.SetWallsDynamic(lightWalls, SectorDynamic.Light);
     }
 
     private static bool SetDynamicMovement(Line line, bool floor, bool ceiling)
@@ -253,17 +249,17 @@ public class StaticDataApplier
         if (floor && !ceiling)
         {
             if (line.Back != null)
-                line.Back.DynamicWalls |= MiddleLower;
+                line.Back.SetWallsDynamic(MiddleLower, SectorDynamic.Movement);
 
-            line.Front.DynamicWalls |= MiddleLower;
+            line.Front.SetWallsDynamic(MiddleLower, SectorDynamic.Movement);
             return true;
         }
         else if (!floor && ceiling)
         {
             if (line.Back != null)
-                line.Back.DynamicWalls |= MiddleUpper;
+                line.Back.SetWallsDynamic(MiddleUpper, SectorDynamic.Movement);
 
-            line.Front.DynamicWalls |= MiddleUpper;
+            line.Front.SetWallsDynamic(MiddleUpper, SectorDynamic.Movement);
             return true;
         }
 
@@ -281,16 +277,16 @@ public class StaticDataApplier
         if (floor && !ceiling)
         {
             if (line.Back != null && !line.Back.Sector.IsMoving)
-                line.Back.DynamicWalls &= ~MiddleLower;
+                line.Back.ClearWallsDynamic(MiddleLower, SectorDynamic.Movement);
 
-            line.Front.DynamicWalls &= ~MiddleLower;
+            line.Front.ClearWallsDynamic(MiddleLower, SectorDynamic.Movement);
         }
         else if (!floor && ceiling)
         {
             if (line.Back != null)
-                line.Back.DynamicWalls &= ~MiddleUpper;
+                line.Back.ClearWallsDynamic(MiddleUpper, SectorDynamic.Movement);
 
-            line.Front.DynamicWalls &= ~MiddleUpper;
+            line.Front.ClearWallsDynamic(MiddleUpper, SectorDynamic.Movement);
         }
     }
 }

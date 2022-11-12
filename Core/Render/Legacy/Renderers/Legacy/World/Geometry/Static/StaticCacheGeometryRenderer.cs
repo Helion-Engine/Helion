@@ -110,7 +110,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             data.Vbo.Bind();
             data.Vbo.Add(array.Data, array.Length);
-            //data.Vbo.UploadSubData(0, array.Length);
             data.Vbo.UploadIfNeeded();
             index++;
         }
@@ -123,7 +122,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            bool dynamic = line.Front.DynamicWalls != SideTexture.None || line.Front.Sector.IsMoving;
+            bool dynamic = line.Front.IsDynamic || line.Front.Sector.IsMoving;
             if (m_mode == RenderStaticMode.On && dynamic)
                 return;
 
@@ -171,18 +170,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             bool floorDynamic = side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement);
             bool ceilingDynamic = side.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement);
-            upper = !(ceilingDynamic && side.DynamicWalls.HasFlag(SideTexture.Upper));
-            lower = !(floorDynamic && side.DynamicWalls.HasFlag(SideTexture.Lower));
-            middle = !((floorDynamic || ceilingDynamic) && side.DynamicWalls.HasFlag(SideTexture.Middle));
+            upper = !(ceilingDynamic && side.Upper.IsDynamic);
+            lower = !(floorDynamic && side.Lower.IsDynamic);
+            middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic);
         }
         else
         {
-            upper = !side.DynamicWalls.HasFlag(SideTexture.Upper);
-            lower = !side.DynamicWalls.HasFlag(SideTexture.Lower);
-            middle = !side.DynamicWalls.HasFlag(SideTexture.Middle);
+            upper = !side.Upper.IsDynamic;
+            lower = !side.Lower.IsDynamic;
+            middle = !side.Middle.IsDynamic;
         }
 
-        m_geometryRenderer.SetRenderTwoSided(side, isFrontSide);
+        m_geometryRenderer.SetRenderTwoSided(side);
 
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
@@ -329,19 +328,18 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             UpdateVerticies(plane.StaticData.GeometryData, plane.StaticData.GeometryDataStartIndex, plane.StaticData.GeometryDataLength, renderedVerticies);
+            return;
         }
-        else
-        {
-            var vertices = GetTextureVerticies(plane.TextureHandle);
-            if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
-            {
-                plane.StaticData.GeometryData = geometryData;
-                plane.StaticData.GeometryDataStartIndex = vertices.Length;
-                plane.StaticData.GeometryDataLength = renderedVerticies.Length;
-            }
 
-            vertices.AddRange(renderedVerticies);
+        var vertices = GetTextureVerticies(plane.TextureHandle);
+        if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
+        {
+            plane.StaticData.GeometryData = geometryData;
+            plane.StaticData.GeometryDataStartIndex = vertices.Length;
+            plane.StaticData.GeometryDataLength = renderedVerticies.Length;
         }
+
+        vertices.AddRange(renderedVerticies);
     }
 
     public void Render(RenderInfo renderInfo)
@@ -413,21 +411,21 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
-            if (line.Front.DynamicWalls.HasFlag(SideTexture.Upper))
+            if (line.Front.Upper.IsDynamic)
                 ClearGeometryVertices(line.Front.StaticUpper);
-            if (line.Front.DynamicWalls.HasFlag(SideTexture.Lower))
+            if (line.Front.Lower.IsDynamic)
                 ClearGeometryVertices(line.Front.StaticLower);
-            if (line.Front.DynamicWalls.HasFlag(SideTexture.Middle))
+            if (line.Front.Middle.IsDynamic)
                 ClearGeometryVertices(line.Front.StaticMiddle);
 
             if (line.Back == null)
                 continue;
 
-            if (line.Back.DynamicWalls.HasFlag(SideTexture.Upper))
+            if (line.Back.Upper.IsDynamic)
                 ClearGeometryVertices(line.Back.StaticUpper);
-            if (line.Back.DynamicWalls.HasFlag(SideTexture.Lower))
+            if (line.Back.Lower.IsDynamic)
                 ClearGeometryVertices(line.Back.StaticLower);
-            if (line.Back.DynamicWalls.HasFlag(SideTexture.Middle))
+            if (line.Back.Middle.IsDynamic)
                 ClearGeometryVertices(line.Back.StaticMiddle);
         }
     }
@@ -465,7 +463,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearGeometryVerticies(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
-    private void UpdateVerticies(GeometryData? geometryData, int startIndex, int length, LegacyVertex[] renderedVerticies)
+    private static void UpdateVerticies(GeometryData? geometryData, int startIndex, int length, LegacyVertex[] renderedVerticies)
     {
         if (geometryData == null)
             return;
