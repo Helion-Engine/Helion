@@ -28,7 +28,8 @@ public class ViewClipper
     private const uint PiAngle = uint.MaxValue / 2;
     private const double RadiansToDiamondAngleFactor = uint.MaxValue / MathHelper.TwoPi;
 
-    private readonly LinkedList<ClipSpan> m_nodes = new LinkedList<ClipSpan>();
+    private readonly LinkedList<ClipSpan> m_nodes = new();
+    private readonly DataCache m_dataCache;
 
     /// <summary>
     /// The center point from which we will clip from.
@@ -36,6 +37,11 @@ public class ViewClipper
     public Vec2D Center { private get; set; } = Vec2D.Zero;
 
     public IEnumerable<ClipSpan> Elements => m_nodes;
+
+    public ViewClipper(DataCache dataCache)
+    {
+        m_dataCache = dataCache;
+    }
 
     /// <summary>
     /// Takes two positions and finds the diamond angle that exists from
@@ -118,7 +124,15 @@ public class ViewClipper
     /// </remarks>
     public void Clear()
     {
-        m_nodes.Clear();
+        LinkedListNode<ClipSpan>? node = m_nodes.First;
+        LinkedListNode<ClipSpan>? nextNode;
+        while (node != null)
+        {
+            nextNode = node.Next;
+            m_dataCache.FreeClipSpan(node);
+            m_nodes.Remove(node);
+            node = nextNode;
+        }
     }
 
     /// <summary>
@@ -247,21 +261,33 @@ public class ViewClipper
     private LinkedListNode<ClipSpan> FindOrMakeStartNode(uint startAngle, uint endAngle)
     {
         if (m_nodes.Empty())
-            return m_nodes.AddLast(new ClipSpan(startAngle, endAngle));
+        {
+            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
+            m_nodes.AddLast(newNode);
+            return newNode;
+        }
 
         LinkedListNode<ClipSpan>? startNode = FindNodeJustAfterOrIncluding(startAngle);
 
         // If all the nodes end before the starting point, add a new one
         // onto the end.
         if (startNode == null)
-            return m_nodes.AddLast(new ClipSpan(startAngle, endAngle));
+        {
+            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
+            m_nodes.AddLast(newNode);
+            return newNode;
+        }
 
         if (startNode.Value.Contains(startAngle))
             return startNode;
 
         // If we're in between a gap, we'll make a new node.
         if (startNode.Value.StartAngle > endAngle)
-            return m_nodes.AddBefore(startNode, new ClipSpan(startAngle, endAngle));
+        {
+            var newNode = m_dataCache.GetClipSpan(new ClipSpan(startAngle, endAngle));
+            m_nodes.AddBefore(startNode, newNode);
+            return newNode;
+        }
 
         // We can extend the starting node backwards without worrying about
         // creating an overlap, since `startNode` would have been that node
@@ -325,6 +351,7 @@ public class ViewClipper
 
             LinkedListNode<ClipSpan>? next = current.Next;
             m_nodes.Remove(current);
+            m_dataCache.FreeClipSpan(current);
             current = next;
 
             // We do this last because we need to make sure we unlink the

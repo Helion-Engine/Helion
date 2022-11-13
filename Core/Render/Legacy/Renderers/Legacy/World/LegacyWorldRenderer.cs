@@ -46,7 +46,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyShader m_shaderProgram;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
-    private readonly ViewClipper m_viewClipper = new();
+    private readonly ViewClipper m_viewClipper;
     private int m_renderCount;
     private Sector m_viewSector;
 
@@ -58,6 +58,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl, archiveCollection);
         m_worldDataManager = new RenderWorldDataManager(capabilities, gl, archiveCollection.DataCache);
         m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
+        m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
 
         using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
@@ -144,8 +145,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                short lightLevel = entity.Sector.GetRenderSector(m_viewSector, position3D.Z).LightLevel;
-                m_entityRenderer.RenderEntity(entity, position3D, lightLevel);
+                m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {
