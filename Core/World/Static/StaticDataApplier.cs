@@ -24,11 +24,12 @@ public class StaticDataApplier
     const SideTexture MiddleUpper = SideTexture.Middle | SideTexture.Upper;
 
     private static bool IsLoading;
+    private static bool StaticLights;
 
     public static void DetermineStaticData(WorldBase world)
     {
-        return;
         IsLoading = true;
+        StaticLights = world.Config.Render.StaticLights;
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
@@ -59,7 +60,7 @@ public class StaticDataApplier
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
-            DetermineStaticSector(world.Sectors[i], world.TextureManager);
+            DetermineStaticSector(world, world.Sectors[i], world.TextureManager);
 
         IsLoading = false;
     }
@@ -86,7 +87,7 @@ public class StaticDataApplier
         }
     }
 
-    private static void DetermineStaticSector(Sector sector, TextureManager textureManager)
+    private static void DetermineStaticSector(WorldBase world, Sector sector, TextureManager textureManager)
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
@@ -101,11 +102,14 @@ public class StaticDataApplier
         if (isFloorSky || isCeilSky)
             SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Sky, AllWallTypes);
 
-        if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
-            SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
+        if (!StaticLights)
+        {
+            if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
+                SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
 
-        if (sector.TransferCeilingLightSector.Id != sector.Id && !sector.TransferCeilingLightSector.IsCeilingStatic)
-            SetSectorDynamic(sector, false, true, SectorDynamic.Light, SideTexture.None);
+            if (sector.TransferCeilingLightSector.Id != sector.Id && !sector.TransferCeilingLightSector.IsCeilingStatic)
+                SetSectorDynamic(sector, false, true, SectorDynamic.Light, SideTexture.None);
+        }
     }
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
@@ -141,7 +145,7 @@ public class StaticDataApplier
                 SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
             else if (special.IsCeilingMove())
                 SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
-            else if (!special.IsTransferLight() && !special.IsSectorFloorTrigger())
+            else if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
                 SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
         }
     }
@@ -180,6 +184,9 @@ public class StaticDataApplier
         SideTexture lightWalls = AllWallTypes)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
+            return;
+
+        if (StaticLights && sectorDynamic == SectorDynamic.Light)
             return;
 
         if (floor)

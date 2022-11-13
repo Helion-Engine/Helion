@@ -48,6 +48,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly FreeGeometryManager m_freeManager = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
+    private bool m_staticLights;
     private IWorld? m_world;
 
     public StaticCacheGeometryRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager, 
@@ -71,6 +72,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_world = world;
         m_mode = world.Config.Render.StaticMode;
+        m_staticLights = world.Config.Render.StaticLights;
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
@@ -243,6 +245,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
+            m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world = null;
         }
 
@@ -414,6 +417,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
+        if (!m_staticLights)
+            return;
+
         short level = e.LightLevel;
         UpdateLightVertices(e.Floor.StaticData, level);
         UpdateLightVertices(e.Ceiling.StaticData, level);

@@ -106,5 +106,8 @@ public class ConfigRender
     public readonly ConfigValue<int> MaxDistance = new(0);
 
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
-    public readonly ConfigValue<RenderStaticMode> StaticMode = new(RenderStaticMode.On);
+    public readonly ConfigValue<RenderStaticMode> StaticMode = new(RenderStaticMode.Aggressive);
+
+    [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
+    public readonly ConfigValue<bool> StaticLights = new(true);
 }
