@@ -133,8 +133,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                short lightLevel = entity.Sector.GetRenderSector(m_viewSector, position3D.Z).LightLevel;
-                m_entityRenderer.RenderEntity(entity, position3D, lightLevel);
+                m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {

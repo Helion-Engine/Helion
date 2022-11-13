@@ -80,7 +80,6 @@ public class EntityRenderer
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
     {
-        short lightLevel = subsector.Sector.GetRenderSector(viewSector, position.Z).LightLevel;
         LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
         while (node != null)
         {
@@ -99,7 +98,7 @@ public class EntityRenderer
                 continue;
             }
 
-            RenderEntity(entity, position, lightLevel);
+            RenderEntity(viewSector, entity, position);
             m_EntityDrawnTracker.MarkDrawn(entity);
         }
     }
@@ -121,6 +120,13 @@ public class EntityRenderer
         // Then we can do a bit shift trick which converts the higher order
         // three bits into the angle rotation between 0 - 7.
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
+    }
+
+    private static short CalculateLightLevel(Entity entity, short sectorLightLevel)
+    {
+        if (entity.Flags.Bright || entity.Frame.Properties.Bright)
+            return 255;
+        return sectorLightLevel;
     }
 
     private bool ShouldNotDraw(Entity entity)
@@ -268,7 +274,7 @@ public class EntityRenderer
         }
     }
 
-    public void RenderEntity(Entity entity, in Vec3D position, short lightLevel)
+    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
     {
         const double NudgeFactor = 0.0001;
         Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
@@ -319,8 +325,7 @@ public class EntityRenderer
             spriteRotation = m_textureManager.NullSpriteRotation;
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
-        if (entity.Flags.Bright || entity.Frame.Properties.Bright)
-            lightLevel = 255;
+        short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
         AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
     }
 }
