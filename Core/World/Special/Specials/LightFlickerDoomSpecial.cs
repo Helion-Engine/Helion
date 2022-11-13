@@ -52,12 +52,12 @@ public class LightFlickerDoomSpecial : SectorSpecialBase
 
         if (Sector.LightLevel == MaxBright)
         {
-            Sector.SetLightLevel(MinBright, World.Gametick);
+            World.SetSectorLightLevel(Sector, MinBright);
             Delay = (m_random.NextByte() & 7) + 1;
         }
         else
         {
-            Sector.SetLightLevel(MaxBright, World.Gametick);
+            World.SetSectorLightLevel(Sector, MaxBright);
             Delay = (m_random.NextByte() & 31) + 1;
         }
 

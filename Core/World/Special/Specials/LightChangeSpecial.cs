@@ -57,7 +57,7 @@ public class LightChangeSpecial : SectorSpecialBase
     public override SpecialTickStatus Tick()
     {
         int set = MathHelper.Clamp(Sector.LightLevel + m_step, m_min, m_max);
-        Sector.SetLightLevel((short)set, World.Gametick);
+        World.SetSectorLightLevel(Sector, (short)set);
 
         if (set == m_lightLevel)
             return SpecialTickStatus.Destroy;

@@ -27,6 +27,7 @@ public class StaticDataApplier
 
     public static void DetermineStaticData(WorldBase world)
     {
+        return;
         IsLoading = true;
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);

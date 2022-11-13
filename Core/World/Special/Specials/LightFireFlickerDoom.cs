@@ -52,9 +52,9 @@ public class LightFireFlickerDoom : SectorSpecialBase
         int change = (m_random.NextByte() & 3) * 16;
 
         if (Sector.LightLevel - change < MinBright)
-            Sector.SetLightLevel(MinBright, World.Gametick);
+            World.SetSectorLightLevel(Sector, MinBright);
         else
-            Sector.SetLightLevel((short)(MaxBright - change), World.Gametick);
+            World.SetSectorLightLevel(Sector, (short)(MaxBright - change));
 
         m_delay = 4;
 

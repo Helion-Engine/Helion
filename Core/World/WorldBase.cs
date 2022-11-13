@@ -76,6 +76,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SectorPlane>? SectorMoveComplete;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
+    public event EventHandler<Sector>? SectorLightChanged;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -2300,6 +2301,12 @@ public abstract partial class WorldBase : IWorld
         int previousTextureHandle = plane.TextureHandle;
         plane.SetTexture(textureHandle, Gametick);
         PlaneTextureChanged?.Invoke(this, new PlaneTextureEvent(plane, textureHandle, previousTextureHandle));
+    }
+
+    public void SetSectorLightLevel(Sector sector, short lightLevel)
+    {
+        sector.SetLightLevel(lightLevel, Gametick);
+        SectorLightChanged?.Invoke(this, sector);
     }
 
     public WorldModel ToWorldModel()

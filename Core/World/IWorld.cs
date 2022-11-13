@@ -39,6 +39,7 @@ public interface IWorld : IDisposable
     event EventHandler<SectorPlane>? SectorMoveComplete;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
+    event EventHandler<Sector>? SectorLightChanged;
 
     string MapName { get; }
     int Gametick { get; }
@@ -130,6 +131,7 @@ public interface IWorld : IDisposable
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);
     void SetSideTexture(Side side, WallLocation location, int textureHandle);
     void SetPlaneTexture(SectorPlane plane, int textureHandle);
+    void SetSectorLightLevel(Sector sector, short lightLevel);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

@@ -76,6 +76,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
+        m_world.SectorLightChanged += World_SectorLightChanged;
 
         if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
             return;
@@ -411,6 +412,30 @@ public class StaticCacheGeometryRenderer : IDisposable
         AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 
+    private void World_SectorLightChanged(object? sender, Sector e)
+    {
+        short level = e.LightLevel;
+        UpdateLightVertices(e.Floor.StaticData, level);
+        UpdateLightVertices(e.Ceiling.StaticData, level);
+        for (int i = 0; i < e.Lines.Count; i++)
+        {
+            var line = e.Lines[i];
+            if (line.Front.Sector.Id == e.Id)
+            {
+                UpdateLightVertices(line.Front.Upper.Static, level);
+                UpdateLightVertices(line.Front.Lower.Static, level);
+                UpdateLightVertices(line.Front.Middle.Static, level);
+            }
+
+            if (line.Back != null && line.Back.Sector.Id == e.Id)
+            {
+                UpdateLightVertices(line.Back.Upper.Static, level);
+                UpdateLightVertices(line.Back.Lower.Static, level);
+                UpdateLightVertices(line.Back.Middle.Static, level);
+            }
+        }
+    }
+
     private static void ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
@@ -480,6 +505,23 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.StaticData.GeometryDataStartIndex = geometryData.Vbo.Count;
             plane.StaticData.GeometryDataLength = vertices.Length;
         }
+    }
+
+    private static void UpdateLightVertices(in StaticGeometryData data, short lightLevel)
+    {
+        if (data.GeometryData == null)
+            return;
+
+        var geometryData = data.GeometryData;
+        for (int i = 0; i < data.GeometryDataLength; i++)
+        {
+            int index = data.GeometryDataStartIndex + i;
+            geometryData.Vbo.Data.Data[index].LightLevelUnit = lightLevel;
+        }
+
+
+        geometryData.Vbo.Bind();
+        geometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
     private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)

@@ -46,7 +46,7 @@ public class LightPulsateSpecial : SectorSpecialBase
     {
         int lightLevel = Sector.LightLevel + m_inc;
         lightLevel = MathHelper.Clamp(lightLevel, MinBright, short.MaxValue);
-        Sector.SetLightLevel((short)lightLevel, World.Gametick);
+        World.SetSectorLightLevel(Sector, (short)lightLevel);
 
         if ((m_inc < 0 && Sector.LightLevel <= MinBright) || (m_inc > 0 && Sector.LightLevel >= MaxBright))
             m_inc = -m_inc;
