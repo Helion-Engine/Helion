@@ -424,11 +424,27 @@ public class GeometryRenderer : IDisposable
             data[i].LightLevelUnit = lightLevel;
     }
 
+    public void SetRenderOneSided(Side side)
+    {
+        m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
+        m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
+    }
+
     public void SetRenderTwoSided(Side facingSide)
     {
         Side otherSide = facingSide.PartnerSide!;
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
+    }
+
+    public void SetRenderFloor(SectorPlane floor)
+    {
+        m_floorChanged = floor.CheckRenderingChanged();
+    }
+
+    public void SetRenderCeiling(SectorPlane ceiling)
+    {
+        m_ceilingChanged = ceiling.CheckRenderingChanged();
     }
 
     private void RenderTwoSided(Side facingSide, bool isFrontSide)

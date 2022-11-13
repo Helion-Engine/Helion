@@ -11,7 +11,6 @@ public enum SectorDynamic
     TransferHeights = 4,
     TransferHeightStatic = 8,
     Scroll = 16,
-    ChangeWallTexture = 32,
-    Alpha = 64,
-    Sky = 128
+    Alpha = 32,
+    Sky = 64
 }

@@ -41,12 +41,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GLCapabilities m_capabilities;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
-    private readonly Dictionary<int, DynamicArray<LegacyVertex>> m_textureToVertices = new();
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
     private readonly List<GeometryData> m_runtimeGeometry = new();
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
-    private readonly List<FreeGeometryData> m_freeGeometryData = new();
+    private readonly FreeGeometryManager m_freeManager = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private IWorld? m_world;
@@ -86,11 +85,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         foreach (Sector sector in world.Sectors)
         {
-            if (sector.Id == 3514)
-            {
-                int lol = 1;
-            }
-
             if (m_mode == RenderStaticMode.Aggressive)
             {
                 if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
@@ -112,16 +106,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         foreach (var data in m_geometry)
         {
-            if (!m_textureToVertices.TryGetValue(data.TextureHandle, out var array))
-                continue;
-
             data.Vbo.Bind();
-            data.Vbo.Add(array.Data, array.Length);
             data.Vbo.UploadIfNeeded();
         }
-
-        // Don't need these anymore, don't hold a reference to all that data.
-        m_textureToVertices.Clear();
     }
 
     private void AddLine(Line line, bool update = false)
@@ -136,8 +123,16 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
+            m_geometryRenderer.SetRenderOneSided(line.Front);
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVerticies);
-            SetSideVertices(line.Front, line.Front.Middle, update, sideVertices, true);
+
+            if (sideVertices != null)
+            {
+                var wall = line.Front.Middle;
+                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVertices,
+                    null, line.Front, wall);
+            }
+
             return;
         }
 
@@ -221,14 +216,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private DynamicArray<LegacyVertex> GetTextureVertices(int textureHandle)
     {
-        if (!m_textureToVertices.TryGetValue(textureHandle, out DynamicArray<LegacyVertex>? vertices))
-        {
-            vertices = new();
-            AllocateGeometryData(textureHandle, out _);
-            m_textureToVertices[textureHandle] = vertices;
-        }
+        if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out GeometryData? geometryData))
+            AllocateGeometryData(textureHandle, out geometryData);
 
-        return vertices;
+        return geometryData.Vbo.Data;
     }
 
     private void AllocateGeometryData(int textureHandle, out GeometryData data)
@@ -262,7 +253,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometry.Clear();
         m_textureToGeometryLookup.Clear();
-        m_textureToVertices.Clear();
+        m_freeManager.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -391,22 +382,32 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         StaticDataApplier.ClearSectorDynamicMovement(plane);
+        bool floor = plane.Facing == SectorPlaneFace.Floor;
         m_geometryRenderer.SetBuffer(false);
-        AddSectorPlane(plane.Sector, plane.Facing == SectorPlaneFace.Floor, true);
+
+        if (floor)
+            m_geometryRenderer.SetRenderFloor(plane);
+        else
+            m_geometryRenderer.SetRenderCeiling(plane);
+
+        AddSectorPlane(plane.Sector, floor, true);
         foreach (var line in plane.Sector.Lines)
             AddLine(line, true);
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
     {
-
+        ClearGeometryVertices(e.Wall.Static);
+        m_freeManager.Add(e.PreviousTextureHandle, e.Wall.Static);
+        e.Wall.Static.GeometryData = null;
+        AddLine(e.Side.Line, update: true);
     }
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
-        e.Plane.StaticData.GeometryData = null;
-        m_freeGeometryData.Add(new FreeGeometryData(e.PreviousTextureHandle, e.Plane.StaticData));
         ClearGeometryVertices(e.Plane.StaticData);
+        m_freeManager.Add(e.PreviousTextureHandle, e.Plane.StaticData);
+        e.Plane.StaticData.GeometryData = null;
         AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 
@@ -427,15 +428,25 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        for (int i = 0; i < length && i < vertices.Length; i++)
-            geometryData.Vbo.Data.Data[startIndex + i] = vertices[i];
-
+        Array.Copy(vertices, 0, geometryData.Vbo.Data.Data, startIndex, length);
         geometryData.Vbo.Bind();
         geometryData.Vbo.UploadSubData(startIndex, length);
     }
 
     private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall)
     {
+        if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
+        {
+            if (plane != null)
+                plane.StaticData = existing.Value;
+            else if (wall != null)
+                wall.Static = existing.Value;
+
+            UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.GeometryDataStartIndex, existing.Value.GeometryDataLength,
+                vertices, plane, side, wall);
+            return;
+        }
+
         // This texture exists, append to the vbo
         if (m_textureToGeometryLookup.TryGetValue(textureHandle, out GeometryData? data))
         {

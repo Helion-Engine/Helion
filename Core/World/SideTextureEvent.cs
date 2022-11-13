@@ -6,14 +6,14 @@ namespace Helion.World;
 public readonly struct SideTextureEvent
 {
     public readonly Side Side;
-    public readonly WallLocation Location;
+    public readonly Wall Wall;
     public readonly int TextureHandle;
     public readonly int PreviousTextureHandle;
 
-    public SideTextureEvent(Side side, WallLocation location, int textureHandle, int previousTextureHandle)
+    public SideTextureEvent(Side side, Wall wall, int textureHandle, int previousTextureHandle)
     {
         Side = side;
-        Location = location;
+        Wall = wall;
         TextureHandle = textureHandle;
         PreviousTextureHandle = previousTextureHandle;
     }

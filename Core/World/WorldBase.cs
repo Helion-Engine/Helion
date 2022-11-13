@@ -2270,24 +2270,29 @@ public abstract partial class WorldBase : IWorld
 
     public void SetSideTexture(Side side, WallLocation location, int textureHandle)
     {
-        int previousTextureHandle = Constants.NoTextureIndex;
+        int previousTextureHandle;
+        Wall wall;
         switch (location)
         {
             case WallLocation.Upper:
                 previousTextureHandle = side.Upper.TextureHandle;
-                side.Upper.SetTexture(textureHandle, SideDataTypes.UpperTexture);
+                wall = side.Upper;
+                wall.SetTexture(textureHandle, SideDataTypes.UpperTexture);
                 break;
             case WallLocation.Lower:
                 previousTextureHandle = side.Lower.TextureHandle;
-                side.Lower.SetTexture(textureHandle, SideDataTypes.LowerTexture);
+                wall = side.Lower;
+                wall.SetTexture(textureHandle, SideDataTypes.LowerTexture);
                 break;
             case WallLocation.Middle:
+            default:
                 previousTextureHandle = side.Middle.TextureHandle;
-                side.Middle.SetTexture(textureHandle, SideDataTypes.MiddleTexture);
+                wall = side.Middle;
+                wall.SetTexture(textureHandle, SideDataTypes.MiddleTexture);
                 break;
         }
 
-        SideTextureChanged?.Invoke(this, new SideTextureEvent(side, location, textureHandle, previousTextureHandle));
+        SideTextureChanged?.Invoke(this, new SideTextureEvent(side, wall, textureHandle, previousTextureHandle));
     }
 
     public void SetPlaneTexture(SectorPlane plane, int textureHandle)

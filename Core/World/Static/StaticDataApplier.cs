@@ -122,14 +122,6 @@ public class StaticDataApplier
         if (line.Back != null && line.Back.ScrollData != null)
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
 
-        if (line.Flags.Activations != LineActivations.None && line.Flags.Activations != LineActivations.CrossLine &&
-            SwitchManager.IsLineSwitch(world.ArchiveCollection, line))
-        {
-            line.Front.SetAllWallsDynamic(SectorDynamic.ChangeWallTexture);
-            if (line.Back != null)
-                line.Back.SetAllWallsDynamic(SectorDynamic.ChangeWallTexture);
-        }
-
         var special = line.Special;
         if (special == LineSpecial.Default)
             return;
