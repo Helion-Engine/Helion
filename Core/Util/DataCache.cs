@@ -20,6 +20,7 @@ using Helion.Render.Legacy.Texture.Fonts;
 using Helion.Graphics.Fonts;
 using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Render.Legacy.Renderers.Legacy.Hud;
+using Helion.Render.Legacy.Shared.World.ViewClipping;
 
 namespace Helion.Util;
 
@@ -44,6 +45,7 @@ public class DataCache
     private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
+    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
 
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
@@ -316,5 +318,22 @@ public class DataCache
         data.Texture = null!;
         data.Vertices.Clear();
         m_hudDrawBufferData.Add(data);
+    }
+
+    public LinkedListNode<ClipSpan> GetClipSpan(ClipSpan clipSpan)
+    {
+        if (m_clipSpans.Length > 0)
+        {
+            var node = m_clipSpans.RemoveLast();
+            node.Value = clipSpan;
+            return node;
+        }
+
+        return new LinkedListNode<ClipSpan>(clipSpan);
+    }
+
+    public void FreeClipSpan(LinkedListNode<ClipSpan> clipSpan)
+    {
+        m_clipSpans.Add(clipSpan);
     }
 }
