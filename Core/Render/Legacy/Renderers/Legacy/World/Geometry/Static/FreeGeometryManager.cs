@@ -19,7 +19,7 @@ public class FreeGeometryManager
         {
             if (m_data[i].TextureHandle == textureHandle && m_data[i].GeometryData.GeometryDataLength >= vertexLength)
             {
-                data = m_data[i].GeometryData;
+                data = new StaticGeometryData(m_data[i].GeometryData.GeometryData, m_data[i].GeometryData.GeometryDataStartIndex, vertexLength);
                 m_data.RemoveAt(i);
                 return true;
             }    

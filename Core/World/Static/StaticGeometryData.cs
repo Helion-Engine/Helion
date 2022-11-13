@@ -12,4 +12,11 @@ public struct StaticGeometryData
     public GeometryData? GeometryData;
     public int GeometryDataStartIndex;
     public int GeometryDataLength;
+
+    public StaticGeometryData(GeometryData? geometryData, int geometryDataStartIndex, int geometryDataLength)
+    {
+        GeometryData = geometryData;
+        GeometryDataStartIndex = geometryDataStartIndex;
+        GeometryDataLength = geometryDataLength;
+    }
 }
