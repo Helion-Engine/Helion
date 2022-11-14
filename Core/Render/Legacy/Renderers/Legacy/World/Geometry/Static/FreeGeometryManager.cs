@@ -15,14 +15,23 @@ public class FreeGeometryManager
 
     public bool GetAndRemove(int textureHandle, int vertexLength, [NotNullWhen(true)] out StaticGeometryData? data)
     {
+        int minLength = int.MaxValue;
+        int minIndex = -1;
         for (int i = 0; i < m_data.Count; i++)
         {
-            if (m_data[i].TextureHandle == textureHandle && m_data[i].GeometryData.GeometryDataLength >= vertexLength)
+            int geometryLength = m_data[i].GeometryData.GeometryDataLength;
+            if (m_data[i].TextureHandle == textureHandle && geometryLength >= vertexLength && geometryLength < minLength)
             {
-                data = new StaticGeometryData(m_data[i].GeometryData.GeometryData, m_data[i].GeometryData.GeometryDataStartIndex, vertexLength);
-                m_data.RemoveAt(i);
-                return true;
+                minLength = geometryLength;
+                minIndex = i;
             }    
+        }
+
+        if (minIndex != -1)
+        {
+            data = new StaticGeometryData(m_data[minIndex].GeometryData.GeometryData, m_data[minIndex].GeometryData.GeometryDataStartIndex, vertexLength);
+            m_data.RemoveAt(minIndex);
+            return true;
         }
 
         data = null;
