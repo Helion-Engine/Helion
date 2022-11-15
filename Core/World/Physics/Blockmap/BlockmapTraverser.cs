@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
@@ -324,13 +326,23 @@ public class BlockmapTraverser
         return intersections;
     }
 
-    public void RenderTraverse(Box2D box, Action<Entity> renderEntity, Action<Sector> renderSector)
+    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D viewDirection, int maxViewDistance, Action<Entity> renderEntity, Action<Sector> renderSector)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        Vec2D origin = m_blockmap.Blocks.Origin;
+        int dimension = UniformGrid<Block>.Dimension;
+        double maxDistSquared = maxViewDistance * maxViewDistance;
+
         m_blockmap.Iterate(box, IterateBlock);
 
         GridIterationStatus IterateBlock(Block block)
         {
+            var point = new Vec2D(block.X * dimension, block.Y * dimension) + origin;
+            Box2D box = new(point, point + (dimension, dimension));
+
+            if (!box.InView(viewPos, viewDirection))
+                return GridIterationStatus.Continue;
+
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 renderEntity(entityNode.Value);
 
@@ -338,7 +350,13 @@ public class BlockmapTraverser
                 renderEntity(entityNode.Value);
 
             for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
-                renderSector(sectorNode.Value);
+            {
+                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
+                double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
+                double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
+                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared && sectorBox.InView(viewPos, viewDirection))
+                    renderSector(sectorNode.Value);
+            }
 
             return GridIterationStatus.Continue;
         }

@@ -26,6 +26,8 @@ public class BlockMap
     public readonly Box2D Bounds;
     private readonly UniformGrid<Block> m_blocks;
 
+    public UniformGrid<Block> Blocks => m_blocks;
+
     /// <summary>
     /// Creates a blockmap grid for the map provided.
     /// </summary>

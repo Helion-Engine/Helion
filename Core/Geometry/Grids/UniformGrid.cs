@@ -27,7 +27,7 @@ public enum GridIterationStatus
 public class UniformGrid<T> where T : new()
 {
     // TODO: This should not be hardcoded.
-    private const int Dimension = 128;
+    public const int Dimension = 128;
 
     /// <summary>
     /// How many blocks wide the grid is.

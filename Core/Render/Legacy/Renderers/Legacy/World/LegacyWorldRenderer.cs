@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Models;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers.Legacy.World.Automap;
@@ -101,11 +103,12 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
-        Vec2D position = renderInfo.Camera.Position.XY.Double;
+        Vec2D viewPos = renderInfo.Camera.Position.XY.Double;
         Vec3D position3D = renderInfo.Camera.Position.Double;
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(position3D);
 
+        m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.SetViewDirection(viewDirection);
         m_renderCount++;
 
@@ -113,8 +116,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (maxDistance <= 0)
             maxDistance = 4096;
 
-        Box2D box = new(position, maxDistance / 2);
-        world.BlockmapTraverser.RenderTraverse(box, RenderEntity, RenderSector);
+        Box2D box = new(viewPos, maxDistance);
+        world.BlockmapTraverser.RenderTraverse(box, viewPos, viewDirection, maxDistance, RenderEntity, RenderSector);
 
         void RenderEntity(Entity entity)
         {
@@ -122,13 +125,18 @@ public class LegacyWorldRenderer : WorldRenderer
                 return;
 
             // Not in front 180 FOV
-            Vec2D entityToTarget = entity.Position.XY - renderInfo.ViewerEntity.Position.XY;
+            Vec2D entityToTarget = entity.Position.XY - viewPos;
             if (entityToTarget.Dot(viewDirection) < 0)
+                return;
+
+            double dx = Math.Max(entity.Position.X - viewPos.X, Math.Max(0, viewPos.X - entity.Position.X));
+            double dy = Math.Max(entity.Position.Y - viewPos.Y, Math.Max(0, viewPos.Y - entity.Position.Y));
+            if (dx * dx + dy * dy > maxDistance * maxDistance)
                 return;
 
             if (entity.Definition.Properties.Alpha < 1)
             {
-                entity.RenderDistance = entity.Position.XY.Distance(position);
+                entity.RenderDistance = entity.Position.XY.Distance(viewPos);
                 m_alphaEntities.Add(entity);
                 return;
             }
@@ -145,7 +153,7 @@ public class LegacyWorldRenderer : WorldRenderer
             sector.RenderCount = m_renderCount;
         }
 
-        RenderAlphaObjects(position, position3D, m_alphaEntities);
+        RenderAlphaObjects(viewPos, position3D, m_alphaEntities);
         m_alphaEntities.Clear();
     }
 
@@ -218,7 +226,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private bool Occluded(in Box2D box, in Vec2D position)
+    private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
     {
         if (box.Contains(position))
             return false;
@@ -232,6 +240,9 @@ public class LegacyWorldRenderer : WorldRenderer
                 return true;
         }
 
+        if (!box.InView(position, viewDirection))
+            return true;
+
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
         return m_viewClipper.InsideAnyRange(first, second);
     }
@@ -243,7 +254,7 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
             {
-                if (Occluded(node->BoundingBox, pos2D))
+                if (Occluded(node->BoundingBox, pos2D, viewDirection))
                     return;
 
                 int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
@@ -255,7 +266,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, pos2D))
+        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
             return;
 
         bool hasRenderedSector = subsector.Sector.RenderCount == m_renderCount;
