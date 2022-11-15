@@ -17,6 +17,8 @@ using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
@@ -24,6 +26,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Physics.Blockmap;
 using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
@@ -49,6 +52,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private int m_renderCount;
     private Sector m_viewSector;
+
+    private readonly List<IRenderObject> m_alphaEntities = new();
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -94,10 +99,64 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer.Render(world, renderInfo);
     }
 
+    private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
+    {
+        Vec2D position = renderInfo.Camera.Position.XY.Double;
+        Vec3D position3D = renderInfo.Camera.Position.Double;
+        Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_viewSector = world.BspTree.ToSector(position3D);
+
+        m_entityRenderer.SetViewDirection(viewDirection);
+        m_renderCount++;
+
+        int maxDistance = world.Config.Render.MaxDistance;
+        if (maxDistance <= 0)
+            maxDistance = 4096;
+
+        Box2D box = new(position, maxDistance / 2);
+        world.BlockmapTraverser.RenderTraverse(box, RenderEntity, RenderSector);
+
+        void RenderEntity(Entity entity)
+        {
+            if (m_entityRenderer.ShouldNotDraw(entity))
+                return;
+
+            // Not in front 180 FOV
+            Vec2D entityToTarget = entity.Position.XY - renderInfo.ViewerEntity.Position.XY;
+            if (entityToTarget.Dot(viewDirection) < 0)
+                return;
+
+            if (entity.Definition.Properties.Alpha < 1)
+            {
+                entity.RenderDistance = entity.Position.XY.Distance(position);
+                m_alphaEntities.Add(entity);
+                return;
+            }
+
+            m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
+        }
+
+        void RenderSector(Sector sector)
+        {
+            if (sector.RenderCount == m_renderCount)
+                return;
+
+            m_geometryRenderer.RenderSector(m_viewSector, sector, position3D);
+            sector.RenderCount = m_renderCount;
+        }
+
+        RenderAlphaObjects(position, position3D, m_alphaEntities);
+        m_alphaEntities.Clear();
+    }
+
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
-        TraverseBsp(world, renderInfo);
+
+        if (m_config.Render.Blockmap)
+            IterateBlockmap(world, renderInfo);
+        else
+            TraverseBsp(world, renderInfo);
 
         m_shaderProgram.Bind();
 
@@ -133,10 +192,14 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Center = position;
         m_renderCount++;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
+        RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
+    }
 
+    private void RenderAlphaObjects(Vec2D position, Vec3D position3D, List<IRenderObject> alphaEntities)
+    {
         // This will just render based on distance from their center point.
         // Not really correct, but mostly correct enough for now.
-        List<IRenderObject> alphaObjects = m_entityRenderer.AlphaEntities;
+        List<IRenderObject> alphaObjects = alphaEntities;
         alphaObjects.AddRange(m_geometryRenderer.AlphaSides);
         alphaObjects.Sort((i1, i2) => i2.RenderDistance.CompareTo(i1.RenderDistance));
         for (int i = 0; i < alphaObjects.Count; i++)

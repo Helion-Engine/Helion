@@ -355,7 +355,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
-        StaticDataApplier.SetSectorDynamic(plane.Sector, floor, ceiling, SectorDynamic.Movement);
+        StaticDataApplier.SetSectorDynamic((WorldBase)sender!, plane.Sector, floor, ceiling, SectorDynamic.Movement);
         ClearGeometryVertices(plane.StaticData);
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)

@@ -18,6 +18,7 @@ using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
 using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+using Helion.Geometry.Boxes;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -68,6 +69,8 @@ public class Sector
     /// </summary>
     public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
 
+    public List<LinkableNode<Sector>> BlockmapNodes = new();
+
     /// <summary>
     /// The light level of the sector. This is usually between 0 - 255, but
     /// can be outside the range.
@@ -117,6 +120,7 @@ public class Sector
 
     private Sector m_transferFloorLightSector;
     private Sector m_transferCeilingLightSector;
+    private Box2D? m_boundingBox;
 
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
@@ -722,7 +726,54 @@ public class Sector
         return currentHeight;
     }
 
+    public Box2D GetBoundingBox()
+    {
+        if (m_boundingBox != null)
+            return m_boundingBox.Value;
+
+        Vec2D min = new(double.MaxValue, double.MaxValue);
+        Vec2D max = new(double.MinValue, double.MinValue);
+
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            Line line = Lines[i];
+            if (line.Segment.Start.X < min.X)
+                min.X = line.Segment.Start.X;
+            if (line.Segment.Start.X > max.X)
+                max.X = line.Segment.Start.X;
+
+            if (line.Segment.Start.Y < min.Y)
+                min.Y = line.Segment.Start.Y;
+            if (line.Segment.Start.Y > max.Y)
+                max.Y = line.Segment.Start.Y;
+
+            if (line.Segment.End.X < min.X)
+                min.X = line.Segment.End.X;
+            if (line.Segment.End.X > max.X)
+                max.X = line.Segment.End.X;
+
+            if (line.Segment.End.Y < min.Y)
+                min.Y = line.Segment.End.Y;
+            if (line.Segment.End.Y > max.Y)
+                max.Y = line.Segment.End.Y;
+        }
+
+        m_boundingBox = new(min, max);
+        return m_boundingBox.Value;
+    }
+
     public override bool Equals(object? obj) => obj is Sector sector && Id == sector.Id;
 
     public override int GetHashCode() => Id.GetHashCode();
+
+    public void UnlinkFromWorld(IWorld world)
+    {
+        for (int i = 0; i < BlockmapNodes.Count; i++)
+        {
+            BlockmapNodes[i].Unlink();
+            world.DataCache.FreeLinkableNodeSector(BlockmapNodes[i]);
+        }
+
+        BlockmapNodes.Clear();
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
@@ -8,6 +9,7 @@ using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics.Blockmap;
 
@@ -320,5 +322,25 @@ public class BlockmapTraverser
 
         intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
         return intersections;
+    }
+
+    public void RenderTraverse(Box2D box, Action<Entity> renderEntity, Action<Sector> renderSector)
+    {
+        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        m_blockmap.Iterate(box, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                renderEntity(entityNode.Value);
+
+            for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
+                renderEntity(entityNode.Value);
+
+            for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+                renderSector(sectorNode.Value);
+
+            return GridIterationStatus.Continue;
+        }
     }
 }

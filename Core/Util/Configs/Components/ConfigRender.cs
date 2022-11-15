@@ -110,4 +110,7 @@ public class ConfigRender
 
     [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticLights = new(true);
+
+    [ConfigInfo("Use blockmap rendering. Static mode required.")]
+    public readonly ConfigValue<bool> Blockmap = new(true);
 }

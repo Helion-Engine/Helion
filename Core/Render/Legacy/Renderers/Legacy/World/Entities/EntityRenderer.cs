@@ -99,7 +99,6 @@ public class EntityRenderer
             }
 
             RenderEntity(viewSector, entity, position);
-            m_EntityDrawnTracker.MarkDrawn(entity);
         }
     }
 
@@ -129,7 +128,7 @@ public class EntityRenderer
         return sectorLightLevel;
     }
 
-    private bool ShouldNotDraw(Entity entity)
+    public bool ShouldNotDraw(Entity entity)
     {
         return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector ||
                 m_EntityDrawnTracker.HasDrawn(entity) ||
@@ -327,5 +326,7 @@ public class EntityRenderer
 
         short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
         AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
+
+        m_EntityDrawnTracker.MarkDrawn(entity);
     }
 }

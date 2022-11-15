@@ -41,7 +41,7 @@ public class StaticDataApplier
             if (!floor && !ceiling)
                 continue;
 
-            SetSectorsDynamic(sectors, floor, ceiling, SectorDynamic.Movement);
+            SetSectorsDynamic(world, sectors, floor, ceiling, SectorDynamic.Movement);
         }
 
         SetLevelModificationFrames(world);
@@ -50,12 +50,12 @@ public class StaticDataApplier
         {
             if (special is SectorSpecialBase sectorSpecial)
             {
-                SetSectorDynamic(sectorSpecial.Sector, true, true, SectorDynamic.Light);
+                SetSectorDynamic(world, sectorSpecial.Sector, true, true, SectorDynamic.Light);
             }
             else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
             {
                 bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
-                SetSectorDynamic(scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
+                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
             }
         }
 
@@ -73,7 +73,7 @@ public class StaticDataApplier
             if (frame.ActionFunction == EntityActionFunctions.A_KeenDie)
             {
                 var sectors = world.FindBySectorTag(666);
-                SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
+                SetSectorsDynamic(world, sectors, false, true, SectorDynamic.Movement);
             }
             else if (frame.ActionFunction == EntityActionFunctions.A_LineEffect)
             {
@@ -93,22 +93,22 @@ public class StaticDataApplier
         if (heights != null &&
             (heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
         {
-            SetSectorDynamic(sector, true, true, SectorDynamic.TransferHeights);
+            SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
             return;
         }
 
         bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
         bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
         if (isFloorSky || isCeilSky)
-            SetSectorDynamic(sector, isFloorSky, isCeilSky, SectorDynamic.Sky, AllWallTypes);
+            SetSectorDynamic(world, sector, isFloorSky, isCeilSky, SectorDynamic.Sky, AllWallTypes);
 
         if (!StaticLights)
         {
             if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
-                SetSectorDynamic(sector, true, false, SectorDynamic.Light, SideTexture.None);
+                SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
 
             if (sector.TransferCeilingLightSector.Id != sector.Id && !sector.TransferCeilingLightSector.IsCeilingStatic)
-                SetSectorDynamic(sector, false, true, SectorDynamic.Light, SideTexture.None);
+                SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
         }
     }
 
@@ -122,10 +122,16 @@ public class StaticDataApplier
         }
 
         if (line.Front.ScrollData != null)
+        {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
+            world.Blockmap.Link(world, line.Front.Sector);
+        }
 
         if (line.Back != null && line.Back.ScrollData != null)
+        {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
+            world.Blockmap.Link(world, line.Back.Sector);
+        }
 
         var special = line.Special;
         if (special == LineSpecial.Default)
@@ -138,22 +144,22 @@ public class StaticDataApplier
             if (special.IsStairBuild())
                 SetStairBuildDynamic(world, line, special, sectors);
             else if (special.IsFloorDonut())
-                SetFloorDonutDynamic(special, sectors);
+                SetFloorDonutDynamic(world, special, sectors);
             if (special.IsFloorMove() && special.IsCeilingMove())
-                SetSectorsDynamic(sectors, true, true, SectorDynamic.Movement);
+                SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Movement);
             else if (special.IsFloorMove())
-                SetSectorsDynamic(sectors, true, false, SectorDynamic.Movement);
+                SetSectorsDynamic(world, sectors, true, false, SectorDynamic.Movement);
             else if (special.IsCeilingMove())
-                SetSectorsDynamic(sectors, false, true, SectorDynamic.Movement);
+                SetSectorsDynamic(world, sectors, false, true, SectorDynamic.Movement);
             else if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
-                SetSectorsDynamic(sectors, true, true, SectorDynamic.Light);
+                SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Light);
         }
     }
 
-    private static void SetFloorDonutDynamic(LineSpecial lineSpecial, IEnumerable<Sector> sectors)
+    private static void SetFloorDonutDynamic(WorldBase world, LineSpecial lineSpecial, IEnumerable<Sector> sectors)
     {
         foreach (var sector in sectors)
-            SetSectorsDynamic(DonutSpecial.GetDonutSectors(sector), lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
+            SetSectorsDynamic(world, DonutSpecial.GetDonutSectors(sector), lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
     }
 
     private static void SetStairBuildDynamic(WorldBase world, Line line, LineSpecial lineSpecial, IEnumerable<Sector> sectors)
@@ -165,7 +171,7 @@ public class StaticDataApplier
                 continue;
 
             var stairSectors = stairSpecial.GetBuildSectors();
-            SetSectorsDynamic(stairSectors, lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
+            SetSectorsDynamic(world, stairSectors, lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
 
             // Need to clear any floor movement pointers set from the created special
             foreach (var stairSector in stairSectors)
@@ -173,14 +179,14 @@ public class StaticDataApplier
         }
     }
 
-    public static void SetSectorsDynamic(IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
+    public static void SetSectorsDynamic(WorldBase world, IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
         SideTexture lightWalls = AllWallTypes)
     {
         foreach (Sector sector in sectors)
-            SetSectorDynamic(sector, floor, ceiling, sectorDynamic, lightWalls);
+            SetSectorDynamic(world, sector, floor, ceiling, sectorDynamic, lightWalls);
     }
 
-    public static void SetSectorDynamic(Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic,
+    public static void SetSectorDynamic(WorldBase world, Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic,
         SideTexture lightWalls = AllWallTypes)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
@@ -193,6 +199,9 @@ public class StaticDataApplier
             sector.Floor.Dynamic |= sectorDynamic;
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
+
+        if (sectorDynamic == SectorDynamic.Scroll)
+            world.Blockmap.Link(world, sector);
 
         foreach (var line in sector.Lines)
         {

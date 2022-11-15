@@ -30,6 +30,7 @@ public class DataCache
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
+    private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
     private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
     private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
     private readonly DynamicArray<FrameState> m_frameStates = new(DefaultLength);
@@ -68,6 +69,27 @@ public class DataCache
         node.Next = null;
         node.Value = null!;
         m_entityNodes.Add(node);
+    }
+
+    public LinkableNode<Sector> GetLinkableNodeSector(Sector sector)
+    {
+        LinkableNode<Sector> node;
+        if (m_sectorNodes.Length > 0)
+        {
+            node = m_sectorNodes.RemoveLast();
+            node.Value = sector;
+            return node;
+        }
+
+        return new LinkableNode<Sector> { Value = sector };
+    }
+
+    public void FreeLinkableNodeSector(LinkableNode<Sector> node)
+    {
+        node.Previous = null!;
+        node.Next = null;
+        node.Value = null!;
+        m_sectorNodes.Add(node);
     }
 
     public List<LinkableNode<Entity>> GetLinkableNodeEntityList()

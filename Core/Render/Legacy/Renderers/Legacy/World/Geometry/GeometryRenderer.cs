@@ -229,6 +229,36 @@ public class GeometryRenderer : IDisposable
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
+    public void RenderSector(Sector viewSector, Sector sector, in Vec3D position)
+    {
+        m_buffer = true;
+        m_viewSector = viewSector;
+        m_floorChanged = sector.Floor.CheckRenderingChanged();
+        m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
+        m_position = position;
+
+        if (sector.TransferHeights != null)
+        {
+            m_floorChanged = m_floorChanged || sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
+            m_ceilingChanged = m_ceilingChanged || sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
+            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
+            // Walls can only cache if middle view
+            m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
+
+            RenderSectorWalls(sector, position, position.XY);
+            if ((m_dynamic || !sector.AreFlatsStatic))
+                RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
+            return;
+        }
+
+        m_cacheOverride = false;
+        m_transferHeightsView = TransferHeightView.Middle;
+
+        RenderSectorWalls(sector, position, position.XY);
+        if ((m_dynamic || !sector.AreFlatsStatic))
+            RenderSectorFlats(sector, sector, sector);
+    }
+
     // The set sector is optional for the transfer heights control sector.
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
     private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
@@ -280,6 +310,29 @@ public class GeometryRenderer : IDisposable
         }
 
         TextureManager.LoadTextureImages(textures);
+    }
+
+    private void RenderSectorWalls(Sector sector, in Vec3D position, Vec2D pos2D)
+    {
+        for (int i = 0; i < sector.Lines.Count; i++)
+        {
+            Line line = sector.Lines[i];
+            if (m_lineDrawnTracker.HasDrawn(line))
+                continue;
+
+            m_lineDrawnTracker.MarkDrawn(line);
+
+            bool onFrontSide = line.Segment.OnRight(pos2D);
+            if (!onFrontSide && line.OneSided)
+                continue;
+
+            Side? side = onFrontSide ? line.Front : line.Back;
+            if (side == null)
+                throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
+
+            if (m_dynamic || !side.IsStatic)
+                RenderSide(side, onFrontSide);
+        }
     }
 
     private void RenderWalls(Subsector subsector, in Vec3D position, Vec2D pos2D)
