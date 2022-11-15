@@ -200,7 +200,7 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sectorDynamic == SectorDynamic.Scroll)
+        if (sectorDynamic == SectorDynamic.Scroll || sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights)
             world.Blockmap.Link(world, sector);
 
         foreach (var line in sector.Lines)
@@ -217,6 +217,13 @@ public class StaticDataApplier
             {
                 if (SetDynamicMovement(line, floor, ceiling))
                     continue;
+            }
+            else if (sectorDynamic == SectorDynamic.TransferHeights)
+            {
+                if (line.Front.Sector.Id == sector.Id)
+                    line.Front.SetAllWallsDynamic(sectorDynamic);
+                if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                    line.Back.SetAllWallsDynamic(sectorDynamic);
             }
             else if (sectorDynamic == SectorDynamic.Sky)
             {
