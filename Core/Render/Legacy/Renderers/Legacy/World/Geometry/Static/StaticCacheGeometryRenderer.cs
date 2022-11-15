@@ -27,7 +27,6 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
@@ -35,7 +34,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 {
     public readonly VertexArrayAttributes Attributes;
 
-    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
+    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement | SectorDynamic.TransferHeights;
 
     private readonly IGLFunctions gl;
     private readonly GLCapabilities m_capabilities;
@@ -147,7 +146,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSide(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
-        if (side.Sector.IsMoving || otherSide.Sector.IsMoving || side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.TransferHeights))
+        if (side.Sector.IsMoving || otherSide.Sector.IsMoving)
             return;
 
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
@@ -279,6 +278,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vertices = GetTextureVertices(plane.TextureHandle);
         if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
         {
+            // Need to set to actual plane, not potential transfer heights plane.
+            plane = floor ? sector.Floor : renderSector.Ceiling;
             plane.StaticData.GeometryData = geometryData;
             plane.StaticData.GeometryDataStartIndex = vertices.Length;
             plane.StaticData.GeometryDataLength = renderedVertices.Length;
