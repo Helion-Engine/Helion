@@ -147,7 +147,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSide(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
-        if (side.Sector.IsMoving || otherSide.Sector.IsMoving)
+        if (side.Sector.IsMoving || otherSide.Sector.IsMoving || side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.TransferHeights))
             return;
 
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);

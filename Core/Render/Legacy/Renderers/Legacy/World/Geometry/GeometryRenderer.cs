@@ -245,7 +245,7 @@ public class GeometryRenderer : IDisposable
             // Walls can only cache if middle view
             m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
 
-            RenderSectorWalls(sector, position, position.XY);
+            RenderSectorWalls(sector, position.XY);
             if ((m_dynamic || !sector.AreFlatsStatic))
                 RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
             return;
@@ -254,7 +254,7 @@ public class GeometryRenderer : IDisposable
         m_cacheOverride = false;
         m_transferHeightsView = TransferHeightView.Middle;
 
-        RenderSectorWalls(sector, position, position.XY);
+        RenderSectorWalls(sector, position.XY);
         if ((m_dynamic || !sector.AreFlatsStatic))
             RenderSectorFlats(sector, sector, sector);
     }
@@ -312,15 +312,13 @@ public class GeometryRenderer : IDisposable
         TextureManager.LoadTextureImages(textures);
     }
 
-    private void RenderSectorWalls(Sector sector, in Vec3D position, Vec2D pos2D)
+    private void RenderSectorWalls(Sector sector, Vec2D pos2D)
     {
         for (int i = 0; i < sector.Lines.Count; i++)
         {
             Line line = sector.Lines[i];
             if (m_lineDrawnTracker.HasDrawn(line))
                 continue;
-
-            m_lineDrawnTracker.MarkDrawn(line);
 
             bool onFrontSide = line.Segment.OnRight(pos2D);
             if (!onFrontSide && line.OneSided)
@@ -330,8 +328,14 @@ public class GeometryRenderer : IDisposable
             if (side == null)
                 throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
+            // Transfer heights has to be drawn by the transfer heights sector
+            if (side.Sector.TransferHeights != null && (sector.TransferHeights == null || sector.TransferHeights.ControlSector != side.Sector.TransferHeights.ControlSector))
+                continue;
+
             if (m_dynamic || !side.IsStatic)
                 RenderSide(side, onFrontSide);
+
+            m_lineDrawnTracker.MarkDrawn(line);
         }
     }
 
