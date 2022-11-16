@@ -328,6 +328,12 @@ public class GeometryRenderer : IDisposable
             if (side == null)
                 throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
 
+            if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
+            {
+                side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
+                AlphaSides.Add(side);
+            }
+
             // Transfer heights has to be drawn by the transfer heights sector
             if (side.Sector.TransferHeights != null && (sector.TransferHeights == null || sector.TransferHeights.ControlSector != side.Sector.TransferHeights.ControlSector))
                 continue;
