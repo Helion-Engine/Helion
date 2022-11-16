@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Context;
@@ -16,6 +17,7 @@ using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Bsp;
@@ -46,6 +48,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
     private int m_renderCount;
+    private Sector m_viewSector;
+    private Vec2D m_occludeViewPos;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -94,9 +98,18 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         Clear(world, renderInfo);
 
+        SetPosition(renderInfo);
         TraverseBsp(world, renderInfo);
         RenderWorldData(renderInfo);
         m_geometryRenderer.Render(renderInfo);
+    }
+
+    private void SetPosition(RenderInfo renderInfo)
+    {
+        // This is a hack until frustum culling exists.
+        // Push the position back to stop occluding things that are straight up/down
+        Vec2D unit = Vec2D.UnitCircle(renderInfo.ViewerEntity.AngleRadians + MathHelper.Pi);
+        m_occludeViewPos = renderInfo.Camera.Position.XY.Double + (unit * 32);
     }
 
     private void Clear(IWorld world, RenderInfo renderInfo)
@@ -107,8 +120,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);       
     }
-
-    private Sector m_viewSector;
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
     {
@@ -143,10 +154,13 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private bool Occluded(in Box2D box, in Vec2D position)
+    private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
     {
         if (box.Contains(position))
             return false;
+
+        if (!box.InView(m_occludeViewPos, viewDirection))
+            return true;
 
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
         return m_viewClipper.InsideAnyRange(first, second);
@@ -159,7 +173,7 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
             {
-                if (Occluded(node->BoundingBox, pos2D))
+                if (Occluded(node->BoundingBox, pos2D, viewDirection))
                     return;
 
                 int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
@@ -171,7 +185,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, pos2D))
+        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
             return;
 
         bool hasRenderedSector = subsector.Sector.RenderCount == m_renderCount;
