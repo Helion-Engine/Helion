@@ -109,7 +109,7 @@ public class ConfigRender
     public readonly ConfigValue<RenderStaticMode> StaticMode = new(RenderStaticMode.Aggressive);
 
     [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
-    public readonly ConfigValue<bool> StaticLights = new(true);
+    public readonly ConfigValue<bool> StaticLights = new(false);
 
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);

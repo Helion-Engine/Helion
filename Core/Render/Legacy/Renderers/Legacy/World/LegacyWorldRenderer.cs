@@ -114,7 +114,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         int maxDistance = world.Config.Render.MaxDistance;
         if (maxDistance <= 0)
-            maxDistance = 4096;
+            maxDistance = 8192;
 
         Box2D box = new(viewPos, maxDistance);
         world.BlockmapTraverser.RenderTraverse(box, viewPos, m_occludeViewPos, viewDirection, maxDistance, RenderEntity, RenderSector);
