@@ -326,7 +326,8 @@ public class BlockmapTraverser
         return intersections;
     }
 
-    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D viewDirection, int maxViewDistance, Action<Entity> renderEntity, Action<Sector> renderSector)
+    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D occludeViewPos, Vec2D viewDirection, int maxViewDistance, 
+        Action<Entity> renderEntity, Action<Sector> renderSector)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         Vec2D origin = m_blockmap.Blocks.Origin;
@@ -340,7 +341,7 @@ public class BlockmapTraverser
             var point = new Vec2D(block.X * dimension, block.Y * dimension) + origin;
             Box2D box = new(point, point + (dimension, dimension));
 
-            if (!box.InView(viewPos, viewDirection))
+            if (!box.InView(occludeViewPos, viewDirection))
                 return GridIterationStatus.Continue;
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)

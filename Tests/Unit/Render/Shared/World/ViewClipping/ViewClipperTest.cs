@@ -3,6 +3,7 @@ using System.Linq;
 using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Render.Legacy.Shared.World.ViewClipping;
+using Helion.Util;
 using Xunit;
 
 namespace Helion.Tests.Unit.Render.Shared.World.ViewClipping;
@@ -23,7 +24,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Empty clipper matches nothing")]
     public void EmptyClipperHasNoMatch()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.InsideAnyRange(Right, Top).Should().BeFalse();
         clipper.InsideAnyRange(Top, Right).Should().BeFalse();
@@ -38,7 +39,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Can add a single span")]
     public void AddSingleSpan()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Top, Right);
 
@@ -63,7 +64,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Can add a span that crosses the origin vector")]
     public void AddSpanThatCrossesOriginVector()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         Vec2D topRight = new Vec2D(5, 1);
         Vec2D bottomRight = new Vec2D(5, -1);
@@ -97,7 +98,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Can add multiple disjoint spans")]
     public void AddMultipleDisjointSpans()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Top, Right);
         clipper.AddLine(Left, Bottom);
@@ -129,7 +130,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add two spans where the end of the second touches the beginning of the first")]
     public void AddTwoSpansThatMergeNoOverlapBeginningAtNewCenter()
     {
-        ViewClipper clipper = new()
+        ViewClipper clipper = new(new DataCache())
         {
             Center = new Vec2D(0.1, 0.3)
         };
@@ -151,7 +152,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add two spans that overlap at the beginning, and fuse into one span")]
     public void AddTwoSpansThatMergeOverlapBeginning()
     {
-        ViewClipper clipper = new ViewClipper();
+        ViewClipper clipper = new ViewClipper(new DataCache());
 
         Vec2D first = new Vec2D(5, 1);
         Vec2D second = new Vec2D(4, 1);
@@ -175,7 +176,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add two spans that overlap at the end and fuse into one")]
     public void AddTwoSpansThatMergeOverlapEnd()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         Vec2D first = new Vec2D(5, 1);
         Vec2D second = new Vec2D(4, 1);
@@ -199,7 +200,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add two spans where the end of the first touches the beginning of the second")]
     public void AddTwoSpansThatMergeNoOverlapEnd()
     {
-        ViewClipper clipper = new ViewClipper();
+        ViewClipper clipper = new ViewClipper(new DataCache());
 
         clipper.AddLine(Top, Left);
         clipper.AddLine(Left, Bottom);
@@ -219,7 +220,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add three adjacent spans that fuse into one")]
     public void AddThreeSpansMiddleMergesBothNoOverlap()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Right, Top);
         clipper.Elements.Should().HaveCount(1);
@@ -244,7 +245,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add three overlapping spans that merge into one")]
     public void AddThreeSpansMiddleMergesBothOverlap()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Right, Top);
         clipper.Elements.Should().HaveCount(1);
@@ -271,7 +272,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Add a long span that covers multiple smaller ones")]
     public void AddThreeSpansCompleteOverlap()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         Vec2D first = new Vec2D(1, 1);
         Vec2D second = new Vec2D(1, 2);
@@ -331,7 +332,7 @@ public class ViewClipperTest
         Vec2D vecL = new Vec2D(1, -3);
         Vec2D vecM = new Vec2D(1, -1);
 
-        ViewClipper clipper = new ViewClipper();
+        ViewClipper clipper = new ViewClipper(new DataCache());
 
         uint b = clipper.GetDiamondAngle(vecB);
         uint c = clipper.GetDiamondAngle(vecC);
@@ -468,7 +469,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Can check if span is exactly inside")]
     public void CanSeeExactSpanOrInside()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Top, Left);
 
@@ -488,7 +489,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Check if span crosses origin vector")]
     public void CanSeeSpanThatCrossesOriginVector()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         Vec2D topRight = new Vec2D(1, 1);
         Vec2D bottomRight = new Vec2D(1, -1);
@@ -506,7 +507,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Can check if span is slightly outside clipper")]
     public void CannotSeeIfSpanSlightlyOutside()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         clipper.AddLine(Top, Left);
 
@@ -525,7 +526,7 @@ public class ViewClipperTest
     [Fact(DisplayName = "Classifies a hole in the range")]
     public void CannotSeeIfHoleBetweenRange()
     {
-        ViewClipper clipper = new();
+        ViewClipper clipper = new(new DataCache());
 
         Vec2D first = new Vec2D(5, 1);
         Vec2D second = new Vec2D(4, 1);
