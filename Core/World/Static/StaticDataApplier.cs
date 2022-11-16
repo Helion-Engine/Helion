@@ -26,6 +26,8 @@ public class StaticDataApplier
     private static bool IsLoading;
     private static bool StaticLights;
 
+    private static readonly HashSet<int> SectorMovementLookup = new();
+
     public static void DetermineStaticData(WorldBase world)
     {
         IsLoading = true;
@@ -63,6 +65,7 @@ public class StaticDataApplier
             DetermineStaticSector(world, world.Sectors[i], world.TextureManager);
 
         IsLoading = false;
+        SectorMovementLookup.Clear();
     }
 
     private static void SetLevelModificationFrames(WorldBase world)
@@ -91,9 +94,14 @@ public class StaticDataApplier
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
-            (heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
+            (SectorMovementLookup.Contains(heights.ControlSector.Id) || heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
         {
+            bool save = IsLoading;
+            IsLoading = false;
             SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
+            if (SectorMovementLookup.Contains(heights.ControlSector.Id))
+                SetSectorDynamic(world, sector, true, true, SectorDynamic.Movement);
+            IsLoading = save;
             return;
         }
 
@@ -190,7 +198,10 @@ public class StaticDataApplier
         SideTexture lightWalls = AllWallTypes)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
+        {
+            //SectorMovementLookup.Add(sector.Id);
             return;
+        }
 
         if (StaticLights && sectorDynamic == SectorDynamic.Light)
             return;
@@ -248,11 +259,7 @@ public class StaticDataApplier
 
     public static void ClearSectorDynamicMovement(SectorPlane plane)
     {
-        bool isMovementOnly = plane.Dynamic == SectorDynamic.Movement;
         plane.Dynamic &= ~SectorDynamic.Movement;
-
-        if (!isMovementOnly)
-            return;
 
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;

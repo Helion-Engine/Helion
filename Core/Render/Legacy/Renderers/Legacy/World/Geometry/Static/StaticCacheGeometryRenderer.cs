@@ -27,6 +27,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
@@ -34,7 +35,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 {
     public readonly VertexArrayAttributes Attributes;
 
-    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement | SectorDynamic.TransferHeights;
+    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
     private readonly IGLFunctions gl;
     private readonly GLCapabilities m_capabilities;
@@ -45,6 +46,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly List<GeometryData> m_runtimeGeometry = new();
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
+    private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -72,6 +74,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_mode = world.Config.Render.StaticMode;
         m_staticLights = world.Config.Render.StaticLights;
+
+        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+            return;
+
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
@@ -79,14 +85,13 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
 
-        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
-            return;
-
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
 
         foreach (Sector sector in world.Sectors)
         {
+            AddTransferHeightsSector(sector);
+
             if (m_mode == RenderStaticMode.Aggressive)
             {
                 if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
@@ -111,6 +116,20 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.UploadIfNeeded();
         }
+    }
+
+    private void AddTransferHeightsSector(Sector sector)
+    {
+        if (sector.TransferHeights == null)
+            return;
+
+        if (!m_transferHeightsLookup.TryGetValue(sector.TransferHeights.ControlSector.Id, out var sectors))
+        {
+            sectors = new();
+            m_transferHeightsLookup[sector.TransferHeights.ControlSector.Id] = sectors;
+        }
+
+        sectors.Add(sector);
     }
 
     private void AddLine(Line line, bool update = false)
@@ -262,24 +281,24 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
     {
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
-        var plane = floor ? renderSector.Floor : renderSector.Ceiling;
-        m_geometryRenderer.RenderSectorFlats(sector, plane, floor, out var renderedVertices, out var renderedSkyVertices);
+        var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
+        // Need to set to actual plane, not potential transfer heights plane.
+        var plane = floor ? sector.Floor : renderSector.Ceiling;
+        m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, out var renderedVertices, out var renderedSkyVertices);
 
         if (renderedVertices == null)
             return;
 
         if (update)
         {
-            UpdateVertices(plane.StaticData.GeometryData, plane.TextureHandle, plane.StaticData.GeometryDataStartIndex, 
-                plane.StaticData.GeometryDataLength, renderedVertices, plane, null, null);
+            UpdateVertices(plane.StaticData.GeometryData, plane.TextureHandle, plane.StaticData.GeometryDataStartIndex,
+                plane.StaticData.GeometryDataLength, renderedVertices, renderPlane, null, null);
             return;
         }
 
-        var vertices = GetTextureVertices(plane.TextureHandle);
-        if (m_textureToGeometryLookup.TryGetValue(plane.TextureHandle, out var geometryData))
+        var vertices = GetTextureVertices(renderPlane.TextureHandle);
+        if (m_textureToGeometryLookup.TryGetValue(renderPlane.TextureHandle, out var geometryData))
         {
-            // Need to set to actual plane, not potential transfer heights plane.
-            plane = floor ? sector.Floor : renderSector.Ceiling;
             plane.StaticData.GeometryData = geometryData;
             plane.StaticData.GeometryDataStartIndex = vertices.Length;
             plane.StaticData.GeometryDataLength = renderedVertices.Length;
@@ -347,17 +366,28 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorMoveStart(object? sender, SectorPlane plane)
     {
-        // This sector doesn't have static geometry
-        if (plane.StaticData.GeometryData == null)
-            return;
+        WorldBase world = (WorldBase)sender!;
+        if (m_transferHeightsLookup.TryGetValue(plane.Sector.Id, out var sectors))
+        {
+            foreach (var sector in sectors)
+                HandleSectorMoveStart(world, sector.GetSectorPlane(plane.Facing));
+        }
 
+        HandleSectorMoveStart(world, plane);
+    }
+
+    private static void HandleSectorMoveStart(WorldBase world, SectorPlane plane)
+    {
         if (plane.Dynamic.HasFlag(SectorDynamic.Movement))
             return;
 
-        bool floor = plane.Facing == SectorPlaneFace.Floor;
-        bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
-        StaticDataApplier.SetSectorDynamic((WorldBase)sender!, plane.Sector, floor, ceiling, SectorDynamic.Movement);
-        ClearGeometryVertices(plane.StaticData);
+        if (plane.StaticData.GeometryData != null)
+        {
+            bool floor = plane.Facing == SectorPlaneFace.Floor;
+            bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
+            StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
+            ClearGeometryVertices(plane.StaticData);
+        }
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
@@ -383,19 +413,31 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorMoveComplete(object? sender, SectorPlane plane)
     {
-        if (plane.StaticData.GeometryData == null)
-            return;
+        if (m_transferHeightsLookup.TryGetValue(plane.Sector.Id, out var sectors))
+        {
+            foreach (var sector in sectors)
+                HandleSectorMoveComplete(sector.GetSectorPlane(plane.Facing));
+        }
 
-        StaticDataApplier.ClearSectorDynamicMovement(plane);
-        bool floor = plane.Facing == SectorPlaneFace.Floor;
-        m_geometryRenderer.SetBuffer(false);
+        HandleSectorMoveComplete(plane);
+    }
 
-        if (floor)
-            m_geometryRenderer.SetRenderFloor(plane);
-        else
-            m_geometryRenderer.SetRenderCeiling(plane);
+    private void HandleSectorMoveComplete(SectorPlane plane)
+    {
+        if (plane.StaticData.GeometryData != null)
+        {
+            StaticDataApplier.ClearSectorDynamicMovement(plane);
+            bool floor = plane.Facing == SectorPlaneFace.Floor;
+            m_geometryRenderer.SetBuffer(false);
 
-        AddSectorPlane(plane.Sector, floor, true);
+            if (floor)
+                m_geometryRenderer.SetRenderFloor(plane);
+            else
+                m_geometryRenderer.SetRenderCeiling(plane);
+
+            AddSectorPlane(plane.Sector, floor, true);
+        }
+
         foreach (var line in plane.Sector.Lines)
             AddLine(line, true);
     }
