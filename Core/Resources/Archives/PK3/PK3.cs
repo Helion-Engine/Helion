@@ -13,10 +13,12 @@ namespace Helion.Resources.Archives;
 public class PK3 : Archive, IDisposable
 {
     private readonly ZipArchive m_zipArchive;
+    private readonly IIndexGenerator m_indexGenerator;
 
-    public PK3(IEntryPath path) : base(path)
+    public PK3(IEntryPath path, IIndexGenerator indexGenerator) : base(path)
     {
         m_zipArchive = new ZipArchive(File.Open(Path.FullPath, FileMode.Open));
+        m_indexGenerator = indexGenerator;
         Pk3EntriesFromData();
     }
 
@@ -51,7 +53,7 @@ public class PK3 : Archive, IDisposable
 
         EntryPath entryPath = new(zipEntry.FullName);
         ResourceNamespace resourceNamespace = NamespaceFromEntryPath(entryPath.FullPath);
-        Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, Entries.Count));
+        Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, m_indexGenerator.GetIndex(this)));
     }
 
     private void Pk3EntriesFromData()
