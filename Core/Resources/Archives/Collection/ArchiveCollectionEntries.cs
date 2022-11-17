@@ -92,11 +92,8 @@ public class ArchiveCollectionEntries
     }
 
     // WARNING: Should only be used sparingly on startup. Never at runtime. This list is allocated each time.
-    public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace, OrderType orderType = OrderType.Descinding)
+    public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
     {
-        if (orderType == OrderType.Ascending)
-            return m_namespaceNameEntries.GetValues(resourceNamespace).OrderBy(x => x.Index).ToList();
-
-        return m_namespaceNameEntries.GetValues(resourceNamespace).OrderByDescending(x => x.Index).ToList();
+        return m_namespaceNameEntries.GetValues(resourceNamespace).OrderBy(x => x.Index).ToList();
     }
 }

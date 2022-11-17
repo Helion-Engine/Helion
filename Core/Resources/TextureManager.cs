@@ -32,8 +32,6 @@ public class TextureManager : ITickable
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;
 
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
@@ -49,7 +47,7 @@ public class TextureManager : ITickable
         m_unitTest = unitTest;
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
-        var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats, OrderType.Ascending);
+        var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
         int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
         m_textures = new List<Texture>(count);
         m_translations = new List<int>(count);
