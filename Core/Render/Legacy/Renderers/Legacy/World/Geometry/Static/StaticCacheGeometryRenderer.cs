@@ -276,6 +276,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometry.Clear();
         m_textureToGeometryLookup.Clear();
         m_freeManager.Clear();
+        m_transferHeightsLookup.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)

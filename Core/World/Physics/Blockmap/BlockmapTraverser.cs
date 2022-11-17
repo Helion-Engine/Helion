@@ -355,7 +355,7 @@ public class BlockmapTraverser
                 Box2D sectorBox = sectorNode.Value.GetBoundingBox();
                 double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
                 double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
-                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared && sectorBox.InView(viewPos, viewDirection))
+                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
                     renderSector(sectorNode.Value);
             }
 
