@@ -226,6 +226,8 @@ public class OpenALAudioSource : IAudioSource
         Completed?.Invoke(this, EventArgs.Empty);
 
         Owner.Unlink(this);
+        Owner = null!;
+        AudioData = new();
         OpenALDebug.Start("Deleting sound source");
         AL.DeleteSource(m_sourceId);
         OpenALDebug.End("Deleting sound source");
