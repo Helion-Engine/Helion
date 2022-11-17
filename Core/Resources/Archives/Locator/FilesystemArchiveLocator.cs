@@ -29,6 +29,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// provided.
     /// </remarks>
     private readonly IList<string> m_paths = new List<string> { "" };
+    private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
     /// Creates a file system locator that only looks in the working
@@ -67,9 +68,9 @@ public class FilesystemArchiveLocator : IArchiveLocator
                 if (IsDirectory(path))
                     return new DirectoryArchive(new EntryPath(path));
                 if (IsWad(path))
-                    return new Wad(new EntryPath(path));
+                    return new Wad(new EntryPath(path), m_indexGenerator);
                 if (IsPk3(path))
-                    return new PK3(new EntryPath(path));
+                    return new PK3(new EntryPath(path), m_indexGenerator);
             }
             catch (Exception e)
             {

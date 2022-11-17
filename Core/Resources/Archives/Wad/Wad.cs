@@ -18,6 +18,7 @@ public class Wad : Archive
 
     public WadHeader Header;
     private readonly ByteReader m_byteReader;
+    private readonly IIndexGenerator m_indexGenerator;
 
     private readonly Dictionary<string, ResourceNamespace> m_entryToNamespace = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -41,9 +42,10 @@ public class Wad : Archive
         ["TX_END"] = ResourceNamespace.Global,
     };
 
-    public Wad(IEntryPath path) : base(path)
+    public Wad(IEntryPath path, IIndexGenerator indexGenerator) : base(path)
     {
         m_byteReader = new ByteReader(new BinaryReader(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)));
+        m_indexGenerator = indexGenerator;
         LoadWadEntries();
     }
 
@@ -110,8 +112,9 @@ public class Wad : Archive
                 currentNamespace = resourceNamespace;
             }
 
-            WadEntryPath entryPath = new WadEntryPath(upperName);
-            Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace, Entries.Count));
+            int index = m_indexGenerator.GetIndex(this);
+            WadEntryPath entryPath = new(upperName);
+            Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace, index));
         }
     }
 }
