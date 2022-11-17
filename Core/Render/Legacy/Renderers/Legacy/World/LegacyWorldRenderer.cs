@@ -56,6 +56,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_renderCount;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
+    private bool m_occlude;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -116,8 +117,9 @@ public class LegacyWorldRenderer : WorldRenderer
         if (maxDistance <= 0)
             maxDistance = 8192;
 
+        Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
-        world.BlockmapTraverser.RenderTraverse(box, viewPos, m_occludeViewPos, viewDirection, maxDistance, RenderEntity, RenderSector);
+        world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance, RenderEntity, RenderSector);
 
         void RenderEntity(Entity entity)
         {
@@ -125,9 +127,12 @@ public class LegacyWorldRenderer : WorldRenderer
                 return;
 
             // Not in front 180 FOV
-            Vec2D entityToTarget = entity.Position.XY - viewPos;
-            if (entityToTarget.Dot(viewDirection) < 0)
-                return;
+            if (occludePos.HasValue)
+            {
+                Vec2D entityToTarget = entity.Position.XY - occludePos.Value;
+                if (entityToTarget.Dot(viewDirection) < 0)
+                    return;
+            }
 
             double dx = Math.Max(entity.Position.X - viewPos.X, Math.Max(0, viewPos.X - entity.Position.X));
             double dy = Math.Max(entity.Position.Y - viewPos.Y, Math.Max(0, viewPos.Y - entity.Position.Y));
@@ -183,6 +188,13 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         // This is a hack until frustum culling exists.
         // Push the position back to stop occluding things that are straight up/down
+        if (Math.Abs(renderInfo.Camera.PitchRadians) > MathHelper.QuarterPi)
+        {
+            m_occlude = false;
+            return;
+        }
+
+        m_occlude = true;
         Vec2D unit = Vec2D.UnitCircle(renderInfo.ViewerEntity.AngleRadians + MathHelper.Pi);
         m_occludeViewPos = renderInfo.Camera.Position.XY.Double + (unit * 32);
     }
@@ -247,7 +259,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 return true;
         }
 
-        if (!box.InView(m_occludeViewPos, viewDirection))
+        if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
             return true;
 
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
