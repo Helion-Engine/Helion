@@ -61,6 +61,12 @@ public class RenderWorldDataManager : IDisposable
 
     public void Clear()
     {
+        for (int i = 0; i < m_allRenderData.Length; i++)
+        {
+            var data = m_allRenderData[i];
+            if (data != null)
+                data.Clear();
+        }
         for (int i = 0; i < m_renderData.Count; i++)
             m_renderData[i].Clear();
         for (int i = 0; i < m_alphaRenderData.Count; i++)
