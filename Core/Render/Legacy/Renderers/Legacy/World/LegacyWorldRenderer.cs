@@ -50,6 +50,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_renderCount;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
+    private bool m_occlude;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
@@ -108,6 +109,13 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         // This is a hack until frustum culling exists.
         // Push the position back to stop occluding things that are straight up/down
+        if (Math.Abs(renderInfo.Camera.PitchRadians) > MathHelper.QuarterPi)
+        {
+            m_occlude = false;
+            return;
+        }
+
+        m_occlude = true;
         Vec2D unit = Vec2D.UnitCircle(renderInfo.ViewerEntity.AngleRadians + MathHelper.Pi);
         m_occludeViewPos = renderInfo.Camera.Position.XY.Double + (unit * 32);
     }
@@ -159,7 +167,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (box.Contains(position))
             return false;
 
-        if (!box.InView(m_occludeViewPos, viewDirection))
+        if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
             return true;
 
         (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
