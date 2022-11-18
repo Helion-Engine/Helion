@@ -4,6 +4,8 @@ using Helion.Render.Legacy.Buffer.Array;
 using Helion.Render.Legacy.Buffer.Array.Vertex;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
+using Helion.Render.Legacy.Renderers.Legacy.World.Sky;
+using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.Legacy.Shader;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Shared.World;
@@ -12,7 +14,9 @@ using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
@@ -47,19 +51,22 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
+    private readonly LegacySkyRenderer m_skyRenderer;
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private bool m_staticLights;
     private IWorld? m_world;
 
-    public StaticCacheGeometryRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager, 
-        GeometryRenderer geometryRenderer, VertexArrayAttributes attributes)
+    public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
+        IGLFunctions functions, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer, 
+        VertexArrayAttributes attributes)
     {
         gl = functions;
         m_capabilities = capabilities;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         Attributes = attributes;
+        m_skyRenderer = new(config, archiveCollection, capabilities, functions, textureManager);
     }
 
     ~StaticCacheGeometryRenderer()
@@ -193,12 +200,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
             SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
+            AddSkyWallGeometry(skyVertices, facingSector);
+            AddSkyWallGeometry(skyVertices2, facingSector);
         }
 
         if (lower && side.Lower.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
             SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
+            AddSkyWallGeometry(skyVertices, facingSector);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -206,6 +216,12 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true);
         }
+    }
+
+    private void AddSkyWallGeometry(SkyGeometryVertex[]? vertices, Sector sector)
+    {
+        if (vertices != null)
+            m_skyRenderer.Add(vertices, vertices.Length, sector.SkyTextureHandle, sector.FlipSkyTexture);
     }
 
     private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible)
@@ -277,6 +293,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureToGeometryLookup.Clear();
         m_freeManager.Clear();
         m_transferHeightsLookup.Clear();
+        m_skyRenderer.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -286,6 +303,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         // Need to set to actual plane, not potential transfer heights plane.
         var plane = floor ? sector.Floor : renderSector.Ceiling;
         m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, out var renderedVertices, out var renderedSkyVertices);
+
+        if (renderedSkyVertices != null)
+            AddSkyPlaneGeometry(renderedSkyVertices, sector);
 
         if (renderedVertices == null)
             return;
@@ -307,6 +327,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         vertices.AddRange(renderedVertices);
         return;
+    }
+
+    private void AddSkyPlaneGeometry(SkyGeometryVertex[] vertices, Sector sector)
+    {
+        m_skyRenderer.Add(vertices, vertices.Length, sector.SkyTextureHandle, sector.FlipSkyTexture);
     }
 
     public void Render()
@@ -335,6 +360,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vao.Bind();
             data.Vbo.DrawArrays();
         }
+    }
+
+    public void RenderSkies(RenderInfo renderInfo)
+    {
+        m_skyRenderer.Render(renderInfo);
     }
 
     protected virtual void Dispose(bool disposing)

@@ -91,7 +91,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(capabilities, functions, textureManager, this, attributes);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, capabilities, functions, textureManager, this, attributes);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -195,6 +195,9 @@ public class GeometryRenderer : IDisposable
 
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
+
+    public void RenderStaticSkies(RenderInfo renderInfo) =>
+        m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
 
     public void Render(RenderInfo renderInfo) =>
         m_skyRenderer.Render(renderInfo);

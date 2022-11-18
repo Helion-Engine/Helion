@@ -173,15 +173,16 @@ public class LegacyWorldRenderer : WorldRenderer
             TraverseBsp(world, renderInfo);
 
         m_shaderProgram.Bind();
-
-        SetUniforms(renderInfo);
         gl.ActiveTexture(TextureUnitType.Zero);
-
+        SetUniforms(renderInfo);
         m_worldDataManager.DrawNonAlpha();
         m_geometryRenderer.RenderStaticGeometry();
         m_worldDataManager.DrawAlpha();
-
         m_shaderProgram.Unbind();
+
+        // Does shader bindings, which has to come outside of the above shader bindings
+        // to avoid clobbering GL state.
+        m_geometryRenderer.RenderStaticSkies(renderInfo);
     }
 
     private void SetPosition(RenderInfo renderInfo)
