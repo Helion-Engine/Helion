@@ -152,7 +152,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
 
             m_geometryRenderer.SetRenderOneSided(line.Front);
-            m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVerticies);
+            m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
+            AddSkyWallGeometry(skyVertices, line.Front.Sector);
 
             if (sideVertices != null)
             {
