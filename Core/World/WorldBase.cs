@@ -227,7 +227,6 @@ public abstract partial class WorldBase : IWorld
         if (special is not SectorMoveSpecial move)
             return;
 
-        move.Sector.UnlinkFromWorld(this);
         SectorMoveComplete?.Invoke(this, move.SectorPlane);
     }
 
@@ -1353,10 +1352,7 @@ public abstract partial class WorldBase : IWorld
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
         if (moveSpecial.IsInitialMove)
-        {
-            Blockmap.Link(this, moveSpecial.Sector);
             SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
-        }
 
         return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
     }

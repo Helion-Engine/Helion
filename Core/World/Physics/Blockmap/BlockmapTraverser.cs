@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
@@ -326,6 +327,9 @@ public class BlockmapTraverser
         return intersections;
     }
 
+    private readonly Stopwatch m_sw = new();
+    private readonly List<double> m_times = new(1024);
+
     public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, 
         Action<Entity> renderEntity, Action<Sector> renderSector)
     {
@@ -334,6 +338,8 @@ public class BlockmapTraverser
         int dimension = UniformGrid<Block>.Dimension;
         double maxDistSquared = maxViewDistance * maxViewDistance;
 
+        m_sw.Reset();
+        m_sw.Start();
         m_blockmap.Iterate(box, IterateBlock);
 
         GridIterationStatus IterateBlock(Block block)
@@ -359,7 +365,12 @@ public class BlockmapTraverser
                     renderSector(sectorNode.Value);
             }
 
+
             return GridIterationStatus.Continue;
         }
+
+        m_sw.Stop();
+        double elapsed = m_sw.ElapsedMilliseconds;
+        m_times.Add(elapsed);
     }
 }
