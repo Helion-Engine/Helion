@@ -105,11 +105,6 @@ public class StaticDataApplier
             return;
         }
 
-        bool isFloorSky = textureManager.IsSkyTexture(sector.Floor.TextureHandle);
-        bool isCeilSky = textureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
-        if (isFloorSky || isCeilSky)
-            SetSectorDynamic(world, sector, isFloorSky, isCeilSky, SectorDynamic.Sky, AllWallTypes);
-
         if (!StaticLights)
         {
             if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
@@ -235,24 +230,6 @@ public class StaticDataApplier
                     line.Front.SetAllWallsDynamic(sectorDynamic);
                 if (line.Back != null && line.Back.Sector.Id == sector.Id)
                     line.Back.SetAllWallsDynamic(sectorDynamic);
-            }
-            else if (sectorDynamic == SectorDynamic.Sky)
-            {
-                if (line.Front.Sector.Id == sector.Id)
-                {
-                    if (floor)
-                        line.Front.SetWallsDynamic(SideTexture.Lower, SectorDynamic.Sky);
-                    if (ceiling)
-                        line.Front.SetWallsDynamic(SideTexture.Upper, SectorDynamic.Sky);
-                }
-
-                if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                {
-                    if (floor)
-                        line.Back.SetWallsDynamic(SideTexture.Lower, SectorDynamic.Sky);
-                    if (ceiling)
-                        line.Back.SetWallsDynamic(SideTexture.Upper, SectorDynamic.Sky);
-                }
             }
         }
     }
