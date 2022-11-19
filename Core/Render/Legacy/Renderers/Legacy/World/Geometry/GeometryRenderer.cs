@@ -196,11 +196,13 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
 
-    public void RenderStaticSkies(RenderInfo renderInfo) =>
-        m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
-
-    public void Render(RenderInfo renderInfo) =>
-        m_skyRenderer.Render(renderInfo);
+    public void Render(RenderInfo renderInfo)
+    {
+        if (m_dynamic)
+            m_skyRenderer.Render(renderInfo);
+        else
+            m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
+    }
 
     public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, bool hasRenderedSector)
     {
