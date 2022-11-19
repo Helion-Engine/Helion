@@ -700,6 +700,13 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null)
+            {
+                verticies = null;
+                skyVerticies = null;
+                return;
+            }
+
             LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)

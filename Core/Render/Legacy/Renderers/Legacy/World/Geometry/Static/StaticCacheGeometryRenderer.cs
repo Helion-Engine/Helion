@@ -212,7 +212,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        if (upper && side.Upper.TextureHandle != Constants.NoTextureIndex && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
             SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
@@ -220,7 +220,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyWallGeometry(skyVertices2, facingSector);
         }
 
-        if (lower && side.Lower.TextureHandle != Constants.NoTextureIndex && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
             SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
