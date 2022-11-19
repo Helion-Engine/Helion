@@ -114,7 +114,7 @@ public class GeometryRenderer : IDisposable
         m_world = world;
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
-        m_dynamic = m_world.Config.Render.StaticMode == RenderStaticMode.Off;
+        m_dynamic = !m_world.Config.Render.StaticMode;
         PreloadAllTextures(world);
 
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];

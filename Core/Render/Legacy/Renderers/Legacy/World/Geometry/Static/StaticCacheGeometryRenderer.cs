@@ -56,7 +56,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly HashSet<int> m_updatelightSectorsLookup = new();
-    private RenderStaticMode m_mode;
+    private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
     private IWorld? m_world;
@@ -83,10 +83,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearData();
 
         m_world = world;
-        m_mode = world.Config.Render.StaticMode;
+        m_staticMode = world.Config.Render.StaticMode;
         m_staticLights = world.Config.Render.StaticLights;
 
-        if (m_world.Config.Render.StaticMode == RenderStaticMode.Off)
+        if (!m_staticMode)
             return;
 
         m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
@@ -103,30 +103,20 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             AddTransferHeightsSector(sector);
 
-            if (m_mode == RenderStaticMode.Aggressive)
-            {
-                if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
-                    AddSectorPlane(sector, true);
-                if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
-                    AddSectorPlane(sector, false);
+            if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
+                AddSectorPlane(sector, true);
+            if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
+                AddSectorPlane(sector, false);
 
-                // Sectors can be actively moving loading a save game.
-                if (sector.IsMoving)
-                {
-                    WorldBase worldBase = (WorldBase)world;
-                    if (sector.ActiveFloorMove != null)
-                        HandleSectorMoveStart(worldBase, sector.Floor);
-                    if (sector.ActiveCeilingMove != null)
-                        HandleSectorMoveStart(worldBase, sector.Ceiling);
-                    continue;
-                }
-            }
-            else
+            // Sectors can be actively moving loading a save game.
+            if (sector.IsMoving)
             {
-                if (sector.IsFloorStatic)
-                    AddSectorPlane(sector, true);
-                if (sector.IsCeilingStatic)
-                    AddSectorPlane(sector, false);
+                WorldBase worldBase = (WorldBase)world;
+                if (sector.ActiveFloorMove != null)
+                    HandleSectorMoveStart(worldBase, sector.Floor);
+                if (sector.ActiveCeilingMove != null)
+                    HandleSectorMoveStart(worldBase, sector.Ceiling);
+                continue;
             }
         }
 
@@ -159,9 +149,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (line.OneSided)
         {
             bool dynamic = line.Front.IsDynamic || line.Front.Sector.IsMoving;
-            if (m_mode == RenderStaticMode.On && dynamic)
-                return;
-
             var sector = line.Front.Sector;
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
@@ -194,21 +181,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
 
-        bool upper, lower, middle;
-        if (m_mode == RenderStaticMode.Aggressive)
-        {
-            bool floorDynamic = side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement);
-            bool ceilingDynamic = side.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement);
-            upper = !(ceilingDynamic && side.Upper.IsDynamic);
-            lower = !(floorDynamic && side.Lower.IsDynamic);
-            middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic);
-        }
-        else
-        {
-            upper = !side.Upper.IsDynamic;
-            lower = !side.Lower.IsDynamic;
-            middle = !side.Middle.IsDynamic;
-        }
+        bool floorDynamic = side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement);
+        bool ceilingDynamic = side.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement);
+        bool upper = !(ceilingDynamic && side.Upper.IsDynamic);
+        bool lower = !(floorDynamic && side.Lower.IsDynamic);
+        bool middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic);
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
@@ -352,7 +329,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render()
     {
-        if (m_mode == RenderStaticMode.Off)
+        if (!m_staticMode)
             return;
 
         // These are textures added at run time. Need to be uploaded then cleared.

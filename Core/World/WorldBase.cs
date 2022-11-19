@@ -216,7 +216,7 @@ public abstract partial class WorldBase : IWorld
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
 
-        if (Config.Render.StaticMode != RenderStaticMode.Off)
+        if (Config.Render.StaticMode)
             StaticDataApplier.DetermineStaticData(this);
 
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;

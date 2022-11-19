@@ -12,13 +12,6 @@ public enum RenderVsyncMode
     Adaptive
 }
 
-public enum RenderStaticMode
-{
-    Off,
-    On,
-    Aggressive
-}
-
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
@@ -106,10 +99,10 @@ public class ConfigRender
     public readonly ConfigValue<int> MaxDistance = new(0);
 
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
-    public readonly ConfigValue<RenderStaticMode> StaticMode = new(RenderStaticMode.Aggressive);
+    public readonly ConfigValue<bool> StaticMode = new(true);
 
     [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
-    public readonly ConfigValue<bool> StaticLights = new(false);
+    public readonly ConfigValue<bool> StaticLights = new(true);
 
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);
