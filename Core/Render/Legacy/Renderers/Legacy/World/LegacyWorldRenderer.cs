@@ -115,7 +115,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         int maxDistance = world.Config.Render.MaxDistance;
         if (maxDistance <= 0)
-            maxDistance = 8192;
+            maxDistance = 6000;
 
         Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
