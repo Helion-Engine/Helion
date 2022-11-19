@@ -257,7 +257,12 @@ public class UniformGrid<T> where T : new()
         // to the next row, we just add the `Width` to the base index and
         // we're on the next row. We avoid O(n) muliplication for this very
         // hot loop.
-        int baseIndex = Math.Clamp((blockUnitStart.Y * Width) + blockUnitStart.X, 0, int.MaxValue);
+        int baseIndex = blockUnitStart.Y * Width + blockUnitStart.X;
+        if (baseIndex < 0)
+            baseIndex += Math.Abs(baseIndex) / Width * Width;
+        if (baseIndex < 0)
+            baseIndex += Width;
+
         for (int y = blockUnitStart.Y; y < blockUnitEnd.Y; y++)
         {
             int currentIndex = baseIndex;
