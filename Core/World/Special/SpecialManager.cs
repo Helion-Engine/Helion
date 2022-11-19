@@ -194,16 +194,7 @@ public class SpecialManager : ITickable, IDisposable
     public void Tick()
     {
         if (m_destroyedMoveSpecials.Count > 0)
-        {
-            for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
-            {
-                ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
-                sectorSpecial.FinalizeDestroy();
-                SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
-            }
-
-            m_destroyedMoveSpecials.Clear();
-        }
+            TickDestroyedMoveSepcials();
 
         if (m_world.WorldState == WorldState.Exit)
         {
@@ -233,6 +224,33 @@ public class SpecialManager : ITickable, IDisposable
                 node = nextNode;
             }
         }
+    }
+
+    private void TickDestroyedMoveSepcials()
+    {
+        for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            sectorSpecial.FinalizeDestroy();
+
+            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
+                continue;
+
+            if (!moveSpecial.MultiSector)
+            {
+                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                continue;
+            }
+
+            foreach ((Sector sector, SectorPlane plane) in moveSpecial.GetSectors())
+            {
+                moveSpecial.Sector = sector;
+                moveSpecial.SectorPlane = plane;
+                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+            }
+        }
+
+        m_destroyedMoveSpecials.Clear();
     }
 
     public ISpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)

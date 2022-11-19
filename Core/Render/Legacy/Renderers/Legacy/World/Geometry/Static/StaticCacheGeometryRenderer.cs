@@ -26,12 +26,14 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
+using MoreLinq;
 using Newtonsoft.Json.Linq;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
+using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 
@@ -52,6 +54,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly LegacySkyRenderer m_skyRenderer;
+    private readonly List<Sector> m_updateLightSectors = new();
+    private readonly HashSet<int> m_updatelightSectorsLookup = new();
     private RenderStaticMode m_mode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -105,6 +109,17 @@ public class StaticCacheGeometryRenderer : IDisposable
                     AddSectorPlane(sector, true);
                 if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                     AddSectorPlane(sector, false);
+
+                // Sectors can be actively moving loading a save game.
+                if (sector.IsMoving)
+                {
+                    WorldBase worldBase = (WorldBase)world;
+                    if (sector.ActiveFloorMove != null)
+                        HandleSectorMoveStart(worldBase, sector.Floor);
+                    if (sector.ActiveCeilingMove != null)
+                        HandleSectorMoveStart(worldBase, sector.Ceiling);
+                    continue;
+                }
             }
             else
             {
@@ -354,6 +369,36 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_runtimeGeometryTextures.Clear();
         }
 
+        if (m_updateLightSectors.Count > 0)
+        {
+            foreach (var sector in m_updateLightSectors)
+            {
+                short level = sector.LightLevel;
+                UpdateLightVertices(sector.Floor.StaticData, level);
+                UpdateLightVertices(sector.Ceiling.StaticData, level);
+                for (int i = 0; i < sector.Lines.Count; i++)
+                {
+                    var line = sector.Lines[i];
+                    if (line.Front.Sector.Id == sector.Id)
+                    {
+                        UpdateLightVertices(line.Front.Upper.Static, level);
+                        UpdateLightVertices(line.Front.Lower.Static, level);
+                        UpdateLightVertices(line.Front.Middle.Static, level);
+                    }
+
+                    if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                    {
+                        UpdateLightVertices(line.Back.Upper.Static, level);
+                        UpdateLightVertices(line.Back.Lower.Static, level);
+                        UpdateLightVertices(line.Back.Middle.Static, level);
+                    }
+                }
+            }
+
+            m_updateLightSectors.Clear();
+            m_updatelightSectorsLookup.Clear();
+        }
+
         for (int i = 0; i < m_geometry.Count; i++)
         {
             var data = m_geometry[i];
@@ -445,20 +490,21 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorMoveComplete(object? sender, SectorPlane plane)
     {
+        WorldBase world = (WorldBase)sender!;
         if (m_transferHeightsLookup.TryGetValue(plane.Sector.Id, out var sectors))
         {
             foreach (var sector in sectors)
-                HandleSectorMoveComplete(sector.GetSectorPlane(plane.Facing));
+                HandleSectorMoveComplete(world, sector.GetSectorPlane(plane.Facing));
         }
 
-        HandleSectorMoveComplete(plane);
+        HandleSectorMoveComplete(world, plane);
     }
 
-    private void HandleSectorMoveComplete(SectorPlane plane)
+    private void HandleSectorMoveComplete(IWorld world, SectorPlane plane)
     {
         if (plane.StaticData.GeometryData != null)
         {
-            StaticDataApplier.ClearSectorDynamicMovement(plane);
+            StaticDataApplier.ClearSectorDynamicMovement(world, plane);
             bool floor = plane.Facing == SectorPlaneFace.Floor;
             m_geometryRenderer.SetBuffer(false);
 
@@ -495,26 +541,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticLights)
             return;
 
-        short level = e.LightLevel;
-        UpdateLightVertices(e.Floor.StaticData, level);
-        UpdateLightVertices(e.Ceiling.StaticData, level);
-        for (int i = 0; i < e.Lines.Count; i++)
-        {
-            var line = e.Lines[i];
-            if (line.Front.Sector.Id == e.Id)
-            {
-                UpdateLightVertices(line.Front.Upper.Static, level);
-                UpdateLightVertices(line.Front.Lower.Static, level);
-                UpdateLightVertices(line.Front.Middle.Static, level);
-            }
+        if (m_updatelightSectorsLookup.Contains(e.Id))
+            return;
 
-            if (line.Back != null && line.Back.Sector.Id == e.Id)
-            {
-                UpdateLightVertices(line.Back.Upper.Static, level);
-                UpdateLightVertices(line.Back.Lower.Static, level);
-                UpdateLightVertices(line.Back.Middle.Static, level);
-            }
-        }
+        m_updatelightSectorsLookup.Add(e.Id);
+        m_updateLightSectors.Add(e);
     }
 
     private static void ClearGeometryVertices(in StaticGeometryData data)
@@ -600,9 +631,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             geometryData.Vbo.Data.Data[index].LightLevelUnit = lightLevel;
         }
 
-
-        geometryData.Vbo.Bind();
-        geometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
+        data.GeometryData.Vbo.Bind();
+        data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
     private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)

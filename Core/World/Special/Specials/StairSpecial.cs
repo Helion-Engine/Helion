@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Models;
+using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -36,6 +37,19 @@ public class StairSpecial : SectorMoveSpecial
 
     public IEnumerable<Sector> GetBuildSectors() => m_stairs.Select(x => x.Sector);
 
+    public override bool MultiSector => true;
+
+    public override IEnumerable<(Sector, SectorPlane)> GetSectors()
+    {
+        foreach (var stair in m_stairs)
+        {
+            if (stair.Sector.IsMoving)
+                continue;
+
+            yield return (stair.Sector, stair.Sector.GetSectorPlane(MoveData.SectorMoveType));
+        }
+    }
+
     public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) :
         this (world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
     {
@@ -60,7 +74,7 @@ public class StairSpecial : SectorMoveSpecial
 
         do
         {
-            if (stairMove.Sector.ActiveFloorMove == null || ReferenceEquals(stairMove.Sector.ActiveFloorMove, this))
+            if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
                 m_stairs.Add(stairMove);
             stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height, ignoreTexture);
         }
@@ -122,8 +136,10 @@ public class StairSpecial : SectorMoveSpecial
 
     public override SpecialTickStatus Tick()
     {
+        bool setInitialMove = false;
         if (m_init)
         {
+            setInitialMove = true;
             m_init = false;
             InitStairMovement();
         }
@@ -162,6 +178,7 @@ public class StairSpecial : SectorMoveSpecial
 
         for (int i = 0; i < m_stairs.Count; i++)
         {
+            IsInitialMove = setInitialMove;
             height += m_stairs[i].Height;
             Sector = m_stairs[i].Sector;
             SectorPlane = Sector.Floor;
@@ -169,7 +186,7 @@ public class StairSpecial : SectorMoveSpecial
                 DestZ = m_startZ;
             else
                 DestZ = m_startZ + height;
-            if (ReferenceEquals(Sector.ActiveFloorMove, this))
+            if (OwnsPlane(Sector))
                 currentStatus = base.Tick();
 
             if (currentStatus == SpecialTickStatus.Destroy)
@@ -193,7 +210,7 @@ public class StairSpecial : SectorMoveSpecial
     {
         foreach (var stairMove in m_stairs)
         {
-            if (stairMove.Sector.ActiveFloorMove == null || ReferenceEquals(stairMove.Sector.ActiveFloorMove, this))
+            if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
             {
                 stairMove.Sector.ActiveFloorMove = this;
                 CreateMovementSound(stairMove.Sector);
@@ -217,7 +234,7 @@ public class StairSpecial : SectorMoveSpecial
             Sector sector = m_stairs[i].Sector;
             // Other specials can interact with a sector before this entire special is complete.
             // Only reset interpolation if this stair special is the active floor move.
-            if (!ReferenceEquals(sector.ActiveFloorMove, this))
+            if (!OwnsPlane(sector))
                 continue;
 
             sector.Floor.PrevZ = sector.Floor.Z;
@@ -245,4 +262,12 @@ public class StairSpecial : SectorMoveSpecial
 
     private void CreateMovementSound(Sector sector) =>
         m_world.SoundManager.CreateSoundOn(sector.Floor, Constants.PlatMoveSound, new SoundParams(sector.Floor, true));
+
+    private bool OwnsPlane(Sector sector)
+    {
+        if (MoveData.SectorMoveType == SectorPlaneFace.Floor)
+            return ReferenceEquals(sector.ActiveFloorMove, this);
+
+        return ReferenceEquals(sector.ActiveCeilingMove, this);
+    }
 }

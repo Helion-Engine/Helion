@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
@@ -12,10 +13,10 @@ namespace Helion.World.Special.Specials;
 
 public class SectorMoveSpecial : ISectorSpecial
 {
-    public Sector Sector { get; protected set; }
+    public Sector Sector { get; set; }
+    public SectorPlane SectorPlane { get; set; }
     public SectorMoveData MoveData { get; protected set; }
     public SectorSoundData SoundData { get; protected set; }
-    public SectorPlane SectorPlane { get; protected set; }
     public bool IsPaused { get; private set; }
     public SectorMoveStatus MoveStatus { get; private set; }
     public MoveDirection MoveDirection => m_direction;
@@ -25,7 +26,9 @@ public class SectorMoveSpecial : ISectorSpecial
     // If this sector started out with the ceiling clipped through the floor
     public bool StartClipped { get; private set; }
     public bool OverrideEquals => true;
-    public bool IsInitialMove { get; private set; } = true;
+    public bool IsInitialMove { get; protected set; } = true;
+    public virtual bool MultiSector => false;
+    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
 
     protected readonly IWorld m_world;
     protected double DestZ;

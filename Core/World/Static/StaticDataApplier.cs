@@ -206,7 +206,7 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sectorDynamic == SectorDynamic.Scroll || sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights)
+        if (sectorDynamic == SectorDynamic.Scroll || sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
             world.Blockmap.Link(world, sector);
 
         foreach (var line in sector.Lines)
@@ -234,8 +234,9 @@ public class StaticDataApplier
         }
     }
 
-    public static void ClearSectorDynamicMovement(SectorPlane plane)
+    public static void ClearSectorDynamicMovement(IWorld world, SectorPlane plane)
     {
+        plane.Sector.UnlinkFromWorld(world);
         plane.Dynamic &= ~SectorDynamic.Movement;
 
         bool floor = plane.Facing == SectorPlaneFace.Floor;
