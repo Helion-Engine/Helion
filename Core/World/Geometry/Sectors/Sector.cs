@@ -86,6 +86,7 @@ public class Sector
     public SectorMoveSpecial? ActiveCeilingMove;
     public int RenderGametick;
     public int ChangeGametick;
+    public int BlockmapCount;
 
     /// <summary>
     /// The special sector type.

@@ -334,6 +334,7 @@ public class BlockmapTraverser
         int dimension = UniformGrid<Block>.Dimension;
         double maxDistSquared = maxViewDistance * maxViewDistance;
 
+        m_blockmapCount++;
         m_blockmap.Iterate(box, IterateBlock);
 
         GridIterationStatus IterateBlock(Block block)
@@ -345,13 +346,27 @@ public class BlockmapTraverser
                 return GridIterationStatus.Continue;
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
                 renderEntity(entityNode.Value);
+            }
 
             for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
                 renderEntity(entityNode.Value);
+            }
 
             for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
             {
+                if (sectorNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                sectorNode.Value.BlockmapCount = m_blockmapCount;
                 Box2D sectorBox = sectorNode.Value.GetBoundingBox();
                 double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
                 double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
