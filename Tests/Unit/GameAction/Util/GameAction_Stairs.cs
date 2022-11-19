@@ -11,6 +11,8 @@ namespace Helion.Tests.Unit.GameAction
     {
         public static void RunStairs(WorldBase world, IEnumerable<int> sectorIds, double startZ, double stepHeight, int speed)
         {
+            world.Tick();
+
             List<Sector> sectors = new();
             sectorIds.ForEach(x => sectors.Add(GetSector(world, x)));
             foreach (var sector in sectors)

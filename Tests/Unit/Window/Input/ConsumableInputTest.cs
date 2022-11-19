@@ -19,41 +19,41 @@ public class ConsumableInputTest
         //  B      down         up
         //  C       up         down
         //  D       up          up
-        ConsumableInput MakeInput()
-        {
-            InputManager inputManager = new();
+        //ConsumableInput MakeInput()
+        //{
+        //    InputManager inputManager = new();
 
-            inputManager.SetKeyDown(Key.A);
-            inputManager.SetKeyDown(Key.C);
-            inputManager.Processed();
-            inputManager.SetKeyDown(Key.B);
-            inputManager.SetKeyUp(Key.C);
+        //    inputManager.SetKeyDown(Key.A);
+        //    inputManager.SetKeyDown(Key.C);
+        //    inputManager.Processed();
+        //    inputManager.SetKeyDown(Key.B);
+        //    inputManager.SetKeyUp(Key.C);
 
-            IConsumableInput interfaceInput = inputManager.Poll();
-            interfaceInput.Should().BeOfType<ConsumableInput>();
-            return (ConsumableInput)interfaceInput;
-        }
+        //    IConsumableInput interfaceInput = inputManager.Poll();
+        //    interfaceInput.Should().BeOfType<ConsumableInput>();
+        //    return (ConsumableInput)interfaceInput;
+        //}
 
-        // This wants us to pass in a consuming function (ex: like ConsumeKeyDown)
-        // and check its results as to whether keys A, B, C, and D should result
-        // true or false based on the function type provided.
-        void TestConsumeFunc(Func<ConsumableInput, Key, bool> consumeFunc, bool a, bool b, bool c, bool d)
-        {
-            foreach ((Key key, bool expected) in new[] { (Key.A, a), (Key.B, b), (Key.C, c), (Key.D, d) })
-            {
-                ConsumableInput input = MakeInput();
-                consumeFunc(input, key).Should().Be(expected);
-                consumeFunc(input, key).Should().BeFalse();
-            }
-        }
+        //// This wants us to pass in a consuming function (ex: like ConsumeKeyDown)
+        //// and check its results as to whether keys A, B, C, and D should result
+        //// true or false based on the function type provided.
+        //void TestConsumeFunc(Func<ConsumableInput, Key, bool> consumeFunc, bool a, bool b, bool c, bool d)
+        //{
+        //    foreach ((Key key, bool expected) in new[] { (Key.A, a), (Key.B, b), (Key.C, c), (Key.D, d) })
+        //    {
+        //        ConsumableInput input = MakeInput();
+        //        consumeFunc(input, key).Should().Be(expected);
+        //        consumeFunc(input, key).Should().BeFalse();
+        //    }
+        //}
 
-        TestConsumeFunc((input, key) => input.ConsumeKeyDown(key), true, true, false, false);
-        TestConsumeFunc((input, key) => input.ConsumeKeyPrevDown(key), true, false, true, false);
-        TestConsumeFunc((input, key) => input.ConsumeKeyHeldDown(key), true, false, false, false);
-        TestConsumeFunc((input, key) => input.ConsumeKeyUp(key), false, false, true, true);
-        TestConsumeFunc((input, key) => input.ConsumeKeyPrevUp(key), false, true, false, true);
-        TestConsumeFunc((input, key) => input.ConsumeKeyPressed(key), false, true, false, false);
-        TestConsumeFunc((input, key) => input.ConsumeKeyReleased(key), false, false, true, false);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyDown(key), true, true, false, false);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyPrevDown(key), true, false, true, false);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyHeldDown(key), true, false, false, false);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyUp(key), false, false, true, true);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyPrevUp(key), false, true, false, true);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyPressed(key), false, true, false, false);
+        //TestConsumeFunc((input, key) => input.ConsumeKeyReleased(key), false, false, true, false);
     }
 
     [Fact(DisplayName = "Can consume mouse movement")]
