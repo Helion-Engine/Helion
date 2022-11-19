@@ -35,19 +35,6 @@ public class StaticDataApplier
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
-        foreach (var bossDeathSpecial in world.BossDeathSpecials)
-        {
-            var sectors = world.FindBySectorTag(bossDeathSpecial.SectorTag);
-            bool floor = bossDeathSpecial.IsFloorMove();
-            bool ceiling = bossDeathSpecial.IsCeilingMove();
-            if (!floor && !ceiling)
-                continue;
-
-            SetSectorsDynamic(world, sectors, floor, ceiling, SectorDynamic.Movement);
-        }
-
-        SetLevelModificationFrames(world);
-
         foreach (var special in world.SpecialManager.GetSpecials())
         {
             if (special is SectorSpecialBase sectorSpecial)
@@ -66,28 +53,6 @@ public class StaticDataApplier
 
         IsLoading = false;
         SectorMovementLookup.Clear();
-    }
-
-    private static void SetLevelModificationFrames(WorldBase world)
-    {
-        var sector = Sector.CreateDefault();
-        foreach (var frame in world.ArchiveCollection.EntityFrameTable.Frames)
-        {
-            if (frame.ActionFunction == EntityActionFunctions.A_KeenDie)
-            {
-                var sectors = world.FindBySectorTag(666);
-                SetSectorsDynamic(world, sectors, false, true, SectorDynamic.Movement);
-            }
-            else if (frame.ActionFunction == EntityActionFunctions.A_LineEffect)
-            {
-                SpecialArgs specialArgs = new();
-                if (world.Sectors.Count == 0 || !EntityActionFunctions.CreateLineEffectSpecial(frame, out var lineSpecial, out var flags, ref specialArgs))
-                    continue;
-
-                Line line = EntityActionFunctions.CreateDummyLine(flags, lineSpecial, specialArgs, sector);
-                DetermineStaticSectorLine(world, line);
-            }
-        }
     }
 
     private static void DetermineStaticSector(WorldBase world, Sector sector, TextureManager textureManager)
@@ -143,42 +108,8 @@ public class StaticDataApplier
         if (special.IsSectorSpecial() && !special.IsSectorStopMove())
         {
             var sectors = world.SpecialManager.GetSectorsFromSpecialLine(line);
-
-            if (special.IsStairBuild())
-                SetStairBuildDynamic(world, line, special, sectors);
-            else if (special.IsFloorDonut())
-                SetFloorDonutDynamic(world, special, sectors);
-            if (special.IsFloorMove() && special.IsCeilingMove())
-                SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Movement);
-            else if (special.IsFloorMove())
-                SetSectorsDynamic(world, sectors, true, false, SectorDynamic.Movement);
-            else if (special.IsCeilingMove())
-                SetSectorsDynamic(world, sectors, false, true, SectorDynamic.Movement);
-            else if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
+            if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
                 SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Light);
-        }
-    }
-
-    private static void SetFloorDonutDynamic(WorldBase world, LineSpecial lineSpecial, IEnumerable<Sector> sectors)
-    {
-        foreach (var sector in sectors)
-            SetSectorsDynamic(world, DonutSpecial.GetDonutSectors(sector), lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
-    }
-
-    private static void SetStairBuildDynamic(WorldBase world, Line line, LineSpecial lineSpecial, IEnumerable<Sector> sectors)
-    {
-        foreach (var sector in sectors)
-        {
-            ISpecial? special = world.SpecialManager.CreateSingleSectorSpecial(line, lineSpecial, sector);
-            if (special == null || special is not StairSpecial stairSpecial)
-                continue;
-
-            var stairSectors = stairSpecial.GetBuildSectors();
-            SetSectorsDynamic(world, stairSectors, lineSpecial.IsFloorMove(), lineSpecial.IsCeilingMove(), SectorDynamic.Movement);
-
-            // Need to clear any floor movement pointers set from the created special
-            foreach (var stairSector in stairSectors)
-                stairSector.ClearActiveMoveSpecial();
         }
     }
 
