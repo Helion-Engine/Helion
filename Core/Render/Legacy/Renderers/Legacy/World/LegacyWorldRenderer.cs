@@ -182,7 +182,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         // Does shader bindings, which has to come outside of the above shader bindings
         // to avoid clobbering GL state.
-        m_geometryRenderer.RenderStaticSkies(renderInfo);
+        m_geometryRenderer.Render(renderInfo);
     }
 
     private void SetPosition(RenderInfo renderInfo)
