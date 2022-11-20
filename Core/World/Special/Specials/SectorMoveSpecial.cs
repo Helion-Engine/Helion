@@ -237,7 +237,7 @@ public class SectorMoveSpecial : ISectorSpecial
                 m_world.SetPlaneTexture(Sector.Ceiling, MoveData.CeilingChangeTextureHandle.Value);
 
             if (MoveData.DamageSpecial != null)
-                Sector.SectorDamageSpecial = MoveData.DamageSpecial;
+                Sector.SectorDamageSpecial = MoveData.DamageSpecial.Copy(Sector);
 
             if (MoveData.Flags.HasFlag(SectorMoveFlags.ClearDamage))
                 Sector.SectorDamageSpecial = null;
