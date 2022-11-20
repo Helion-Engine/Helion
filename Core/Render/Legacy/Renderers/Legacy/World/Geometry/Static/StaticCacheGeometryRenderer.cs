@@ -81,6 +81,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     public void UpdateTo(IWorld world)
     {
         ClearData();
+        m_skyRenderer.Reset();
 
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
