@@ -4,16 +4,12 @@ using Helion.World.Special.Specials;
 using Helion.World.Special;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special.Switches;
 using Helion.Resources;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Helion.World.Static;
 
@@ -70,14 +66,15 @@ public class StaticDataApplier
             return;
         }
 
-        if (!StaticLights)
-        {
-            if (sector.TransferFloorLightSector.Id != sector.Id && !sector.TransferFloorLightSector.IsFloorStatic)
-                SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
+        var transferFloor = sector.TransferFloorLightSector;
+        var transferCeiling = sector.TransferCeilingLightSector;
 
-            if (sector.TransferCeilingLightSector.Id != sector.Id && !sector.TransferCeilingLightSector.IsCeilingStatic)
-                SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
-        }
+        // Transfer lights can affect many sectors. Even with StaticLights = true, handle these dynamically for now.
+        if (transferFloor.Id != sector.Id && (!transferFloor.IsFloorStatic || transferFloor.DataChanges.HasFlag(SectorDataTypes.Light)))
+            SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
+
+        if (transferCeiling.Id != sector.Id && (!transferCeiling.IsFloorStatic || transferCeiling.DataChanges.HasFlag(SectorDataTypes.Light)))
+            SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
     }
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
