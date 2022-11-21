@@ -75,6 +75,9 @@ public class ConfigRender
     [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
     public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
 
+    [ConfigInfo("Checks if sprites will overlap and z-fight.")]
+    public readonly ConfigValue<bool> SpriteZCheck = new(true);
+
     public readonly ConfigRenderVirtualDimension VirtualDimension = new();
 
     [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
@@ -91,4 +94,16 @@ public class ConfigRender
 
     [ConfigInfo("Enable texture transparency.")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);
+
+    [ConfigInfo("Max render distance.")]
+    public readonly ConfigValue<int> MaxDistance = new(0);
+
+    [ConfigInfo("Static rendering mode.", restartRequired: true)]
+    public readonly ConfigValue<bool> StaticMode = new(true);
+
+    [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
+    public readonly ConfigValue<bool> StaticLights = new(true);
+
+    [ConfigInfo("Use blockmap rendering. Static mode required.")]
+    public readonly ConfigValue<bool> Blockmap = new(true);
 }

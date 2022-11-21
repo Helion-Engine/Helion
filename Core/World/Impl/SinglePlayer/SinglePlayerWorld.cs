@@ -191,6 +191,12 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Start(WorldModel? worldModel)
     {
+        if (Config.Render.Blockmap && !Config.Render.StaticMode)
+        {
+            Config.Render.Blockmap.Set(false);
+            Log.Warn("Render.blockmap disabled. Render.staticmode required.");
+        }
+
         base.Start(worldModel);
         if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
             AudioSystem.Music.Stop();

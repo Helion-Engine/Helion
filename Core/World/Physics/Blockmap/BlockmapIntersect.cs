@@ -1,6 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics.Blockmap;
 

@@ -11,6 +11,7 @@ public class EntityFrame
 {
     public string VanillaActorName { get; private set; }
     public string Sprite { get; private set; }
+    public int SpriteIndex { get; set; }
     public string OriginalSprite { get; private set; }
     public int Frame { get; set; }
     public int Ticks { get; set; }
@@ -62,6 +63,7 @@ public class EntityFrame
     public void SetSprite(string sprite)
     {
         Sprite = sprite;
+        SpriteIndex = m_table.GetSpriteIndex(sprite);
         CheckSetInvisible();
     }
 

@@ -299,7 +299,10 @@ namespace Helion.Tests.Unit.GameAction
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
-            monster.BlockmapNodes.Count.Should().Be(0);
+
+            var intersections = World.BlockmapTraverser.GetEntityIntersections(monster.Box.To2D());
+            intersections.Count.Should().Be(0);
+
             monster.SectorNodes.Count.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 

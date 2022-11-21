@@ -21,7 +21,7 @@ public interface IGLFunctions
     void BlendFunc(BlendingFactorType sourceFactor, BlendingFactorType destFactor);
     void BufferData<T>(BufferType bufferType, int totalBytes, T[] data, BufferUsageType usageType) where T : struct;
     void BufferStorage<T>(BufferType bufferType, int totalBytes, T[] data, BufferStorageFlagType flags) where T : struct;
-    void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, T[] values) where T : struct;
+    void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, IntPtr values, int valuesOffset) where T : struct;
     void Clear(ClearType type);
     void ClearColor(float r, float g, float b, float a);
     void ColorMask(bool red, bool green, bool blue, bool alpha);

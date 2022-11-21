@@ -39,7 +39,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// respective buffer on the GPU. If not, any time a new upload is
     /// performed, the previous data on the GPU will be overwritten.
     /// </remarks>
-    protected DynamicArray<T> Data = new DynamicArray<T>();
+    public DynamicArray<T> Data = new DynamicArray<T>();
 
     /// <summary>
     /// Whether it was uploaded or not. This is only called upon binding
@@ -68,6 +68,24 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// </summary>
     public int TotalBytes => Count * BytesPerElement;
 
+    private int _dataVersion;
+
+    public IntPtr _vboArrayPtr;
+    private GCHandle _pinnedArray;
+
+    public IntPtr GetVboArray()
+    {
+        if (_dataVersion != Data.Version)
+        {
+            _pinnedArray.Free();
+            _pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
+            _vboArrayPtr = _pinnedArray.AddrOfPinnedObject();
+            _dataVersion = Data.Version;
+        }
+
+        return _vboArrayPtr;
+    }
+
     /// <summary>
     /// Creates a new buffer object and sets the label if the capabilities
     /// exist.
@@ -80,6 +98,10 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     {
         gl = functions;
         BufferId = gl.GenBuffer();
+
+        _pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
+        _vboArrayPtr = _pinnedArray.AddrOfPinnedObject();
+        _dataVersion = Data.Version;
 
         Bind();
         SetObjectLabel(capabilities, objectLabel);
@@ -104,15 +126,15 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     /// <param name="index">The index to write at.</param>
     /// <exception cref="IndexOutOfRangeException">If the index it out of
     /// range.</exception>
-    public virtual T this[int index]
-    {
-        set
-        {
-            if (index < 0 || index >= Count)
-                throw new IndexOutOfRangeException($"Trying to set buffer object out of range: {index} (size = {Count})");
-            gl.BufferSubData(GetBufferType(), index * BytesPerElement, BytesPerElement, value);
-        }
-    }
+    //public virtual T this[int index]
+    //{
+    //    set
+    //    {
+    //        if (index < 0 || index >= Count)
+    //            throw new IndexOutOfRangeException($"Trying to set buffer object out of range: {index} (size = {Count})");
+    //        gl.BufferSubData(GetBufferType(), index * BytesPerElement, BytesPerElement, value);
+    //    }
+    //}
 
     /// <summary>
     /// Adds a single element.
@@ -154,6 +176,16 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
         PerformUpload();
         Uploaded = true;
+    }
+
+    public void UploadSubData(int start, int length)
+    {
+        BufferSubData(start, length);
+    }
+
+    protected virtual void BufferSubData(int start, int length)
+    {
+
     }
 
     /// <summary>
@@ -212,6 +244,8 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 #nullable disable
         Data = null;
 #nullable enable
+
+        _pinnedArray.Free();
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Blockmap;
@@ -15,12 +16,14 @@ public class Block
     /// <summary>
     /// All the lines for this block.
     /// </summary>
-    public readonly List<Line> Lines = new List<Line>();
+    public readonly List<Line> Lines = new();
 
     /// <summary>
     /// All the entities in this block.
     /// </summary>
-    public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
+    public readonly LinkableList<Entity> Entities = new();
+    public readonly LinkableList<Entity> NoBlockmapEntities = new();
+    public readonly LinkableList<Sector> DynamicSectors = new();
 
     /// <summary>
     /// Gets the block X coordinate, assuming the coordinate was set.

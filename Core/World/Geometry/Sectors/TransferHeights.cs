@@ -27,10 +27,10 @@ public class TransferHeights
         ControlSector = controlSector;
     }
 
-    public Sector GetRenderSector(Sector viewSector, double viewZ)
+    public Sector GetRenderSector(TransferHeightView view)
     {
         Sector sector = RenderSectors[++RenderSectorIndex % RenderSectors.Length];
-        switch (GetView(viewSector, viewZ))
+        switch (view)
         {
             case TransferHeightView.Top:
                 sector.Ceiling.Plane = ParentSector.Ceiling.Plane;

@@ -5,12 +5,14 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Blockmap;
 
@@ -23,6 +25,8 @@ public class BlockMap
 {
     public readonly Box2D Bounds;
     private readonly UniformGrid<Block> m_blocks;
+
+    public UniformGrid<Block> Blocks => m_blocks;
 
     /// <summary>
     /// Creates a blockmap grid for the map provided.
@@ -94,6 +98,37 @@ public class BlockMap
             block.Entities.Add(blockEntityNode);
 
             entity.BlockmapNodes.Add(blockEntityNode);
+            return GridIterationStatus.Continue;
+        }
+    }
+
+    public void NoBlockmapLink(Entity entity)
+    {
+        Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
+
+        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+
+        GridIterationStatus BlockLinkFunc(Block block)
+        {
+            LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
+            block.NoBlockmapEntities.Add(blockEntityNode);
+
+            entity.BlockmapNodes.Add(blockEntityNode);
+            return GridIterationStatus.Continue;
+        }
+    }
+
+    public void Link(IWorld world, Sector sector)
+    {
+        Box2D box = sector.GetBoundingBox();
+        m_blocks.Iterate(box, BlockLinkFunc);
+
+        GridIterationStatus BlockLinkFunc(Block block)
+        {
+            LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
+            block.DynamicSectors.Add(sectorNode);
+
+            sector.BlockmapNodes.Add(sectorNode);
             return GridIterationStatus.Continue;
         }
     }

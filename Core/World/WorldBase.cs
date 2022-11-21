@@ -53,6 +53,8 @@ using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Demo;
+using Helion.Util.Configs.Components;
+using Helion.World.Static;
 
 namespace Helion.World;
 
@@ -70,6 +72,11 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
+    public event EventHandler<SectorPlane>? SectorMoveStart;
+    public event EventHandler<SectorPlane>? SectorMoveComplete;
+    public event EventHandler<SideTextureEvent>? SideTextureChanged;
+    public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
+    public event EventHandler<Sector>? SectorLightChanged;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -107,6 +114,7 @@ public abstract partial class WorldBase : IWorld
     public CheatManager CheatManager { get; } = new();
     public DataCache DataCache => ArchiveCollection.DataCache;
     public abstract Player Player { get; protected set; }
+    public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -207,6 +215,19 @@ public abstract partial class WorldBase : IWorld
 
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
+
+        if (Config.Render.StaticMode)
+            StaticDataApplier.DetermineStaticData(this);
+
+        SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
+    }
+
+    private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)
+    {
+        if (special is not SectorMoveSpecial move)
+            return;
+
+        SectorMoveComplete?.Invoke(this, move.SectorPlane);
     }
 
     public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
@@ -606,6 +627,7 @@ public abstract partial class WorldBase : IWorld
 
     public void Dispose()
     {
+        SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
         PerformDispose();
         GC.SuppressFinalize(this);
     }
@@ -1328,7 +1350,12 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager.IsPositionValid(entity, position);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
-         => PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
+    {
+        if (moveSpecial.IsInitialMove)
+            SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
+
+        return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
+    }
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)
     {
@@ -2242,6 +2269,46 @@ public abstract partial class WorldBase : IWorld
 
     private Player? GetRealPlayer(int playerNumber)
         => EntityManager.Players.FirstOrDefault(x => x.PlayerNumber == playerNumber && !x.IsVooDooDoll);
+
+    public void SetSideTexture(Side side, WallLocation location, int textureHandle)
+    {
+        int previousTextureHandle;
+        Wall wall;
+        switch (location)
+        {
+            case WallLocation.Upper:
+                previousTextureHandle = side.Upper.TextureHandle;
+                wall = side.Upper;
+                wall.SetTexture(textureHandle, SideDataTypes.UpperTexture);
+                break;
+            case WallLocation.Lower:
+                previousTextureHandle = side.Lower.TextureHandle;
+                wall = side.Lower;
+                wall.SetTexture(textureHandle, SideDataTypes.LowerTexture);
+                break;
+            case WallLocation.Middle:
+            default:
+                previousTextureHandle = side.Middle.TextureHandle;
+                wall = side.Middle;
+                wall.SetTexture(textureHandle, SideDataTypes.MiddleTexture);
+                break;
+        }
+
+        SideTextureChanged?.Invoke(this, new SideTextureEvent(side, wall, textureHandle, previousTextureHandle));
+    }
+
+    public void SetPlaneTexture(SectorPlane plane, int textureHandle)
+    {
+        int previousTextureHandle = plane.TextureHandle;
+        plane.SetTexture(textureHandle, Gametick);
+        PlaneTextureChanged?.Invoke(this, new PlaneTextureEvent(plane, textureHandle, previousTextureHandle));
+    }
+
+    public void SetSectorLightLevel(Sector sector, short lightLevel)
+    {
+        sector.SetLightLevel(lightLevel, Gametick);
+        SectorLightChanged?.Invoke(this, sector);
+    }
 
     public WorldModel ToWorldModel()
     {

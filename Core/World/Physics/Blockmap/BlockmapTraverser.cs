@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics.Blockmap;
 
@@ -320,5 +324,57 @@ public class BlockmapTraverser
 
         intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
         return intersections;
+    }
+
+    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, 
+        Action<Entity> renderEntity, Action<Sector> renderSector)
+    {
+        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
+        Vec2D origin = m_blockmap.Blocks.Origin;
+        int dimension = UniformGrid<Block>.Dimension;
+        double maxDistSquared = maxViewDistance * maxViewDistance;
+
+        m_blockmapCount++;
+        m_blockmap.Iterate(box, IterateBlock);
+
+        GridIterationStatus IterateBlock(Block block)
+        {
+            var point = new Vec2D(block.X * dimension, block.Y * dimension) + origin;
+            Box2D box = new(point, point + (dimension, dimension));
+
+            if (occludeViewPos.HasValue && !box.InView(occludeViewPos.Value, viewDirection))
+                return GridIterationStatus.Continue;
+
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
+                renderEntity(entityNode.Value);
+            }
+
+            for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
+                renderEntity(entityNode.Value);
+            }
+
+            for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+            {
+                if (sectorNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                sectorNode.Value.BlockmapCount = m_blockmapCount;
+                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
+                double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
+                double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
+                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
+                    renderSector(sectorNode.Value);
+            }
+
+            return GridIterationStatus.Continue;
+        }
     }
 }

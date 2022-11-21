@@ -25,6 +25,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
+using Helion.Resources;
 
 namespace Helion.World;
 
@@ -32,8 +33,13 @@ public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
 
 public interface IWorld : IDisposable
 {
-    public event EventHandler? WorldResumed;
-    public event EventHandler? ClearConsole;
+    event EventHandler? WorldResumed;
+    event EventHandler? ClearConsole;
+    event EventHandler<SectorPlane>? SectorMoveStart;
+    event EventHandler<SectorPlane>? SectorMoveComplete;
+    event EventHandler<SideTextureEvent>? SideTextureChanged;
+    event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
+    event EventHandler<Sector>? SectorLightChanged;
 
     string MapName { get; }
     int Gametick { get; }
@@ -57,6 +63,7 @@ public interface IWorld : IDisposable
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
     SpecialManager SpecialManager { get; }
+    TextureManager TextureManager { get; }
     IConfig Config { get; }
     SkillDef SkillDefinition { get; }
     ArchiveCollection ArchiveCollection { get; }
@@ -122,6 +129,9 @@ public interface IWorld : IDisposable
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
     void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);
+    void SetSideTexture(Side side, WallLocation location, int textureHandle);
+    void SetPlaneTexture(SectorPlane plane, int textureHandle);
+    void SetSectorLightLevel(Sector sector, short lightLevel);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

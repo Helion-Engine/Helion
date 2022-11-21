@@ -1,12 +1,14 @@
 using Helion.Models;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.World.Special;
 
 public abstract class SectorSpecialBase : ISectorSpecial
 {
-    public Sector Sector { get; protected set; }
+    public Sector Sector { get; set; }
     public IWorld World { get; protected set; }
 
     public SectorSpecialBase(IWorld world, Sector sector)
@@ -41,4 +43,7 @@ public abstract class SectorSpecialBase : ISectorSpecial
 
     public virtual bool IsPaused { get; }
     public virtual bool OverrideEquals => false;
+
+    public virtual bool MultiSector => false;
+    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
 }

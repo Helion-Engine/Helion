@@ -19,13 +19,13 @@ public static class TriggerSpecials
         if (type == PlaneTransferType.Numeric && GetNumericModelChange(world, sector, planeType, sector.GetZ(planeType),
             out int changeTexture, out SectorDamageSpecial? damageSpecial))
         {
-            sector.SetTexture(planeType, changeTexture, world.Gametick);
+            world.SetPlaneTexture(sector.GetSectorPlane(planeType), changeTexture);
             if (transferSpecial)
                 sector.SectorDamageSpecial = damageSpecial?.Copy(sector);
         }
         else if (type == PlaneTransferType.Trigger && line != null)
         {
-            sector.SetTexture(planeType, line.Front.Sector.GetTexture(planeType), world.Gametick);
+            world.SetPlaneTexture(sector.GetSectorPlane(planeType), line.Front.Sector.GetTexture(planeType));
             if (transferSpecial)
                 sector.SectorDamageSpecial = line.Front.Sector.SectorDamageSpecial?.Copy(sector);
         }

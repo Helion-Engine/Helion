@@ -8,13 +8,18 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
+using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -24,7 +29,7 @@ using Helion.World.Stats;
 namespace Helion.World.Special;
 
 public class SpecialManager : ITickable, IDisposable
-{
+{ 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
@@ -61,6 +66,8 @@ public class SpecialManager : ITickable, IDisposable
 
     public LinkedList<ISpecial> GetSpecials() => m_specials;
 
+    public EventHandler<ISectorSpecial>? SectorSpecialDestroyed;
+
     public SpecialManager(WorldBase world, IRandom random)
     {
         m_world = world;
@@ -93,7 +100,11 @@ public class SpecialManager : ITickable, IDisposable
             special.ResetInterpolation();
 
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
-            m_destroyedMoveSpecials[i].ResetInterpolation();
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            sectorSpecial.ResetInterpolation();
+            SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
+        }
     }
 
     public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
@@ -183,12 +194,7 @@ public class SpecialManager : ITickable, IDisposable
     public void Tick()
     {
         if (m_destroyedMoveSpecials.Count > 0)
-        {
-            for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
-                m_destroyedMoveSpecials[i].FinalizeDestroy();
-
-            m_destroyedMoveSpecials.Clear();
-        }
+            TickDestroyedMoveSepcials();
 
         if (m_world.WorldState == WorldState.Exit)
         {
@@ -218,6 +224,33 @@ public class SpecialManager : ITickable, IDisposable
                 node = nextNode;
             }
         }
+    }
+
+    private void TickDestroyedMoveSepcials()
+    {
+        for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            sectorSpecial.FinalizeDestroy();
+
+            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
+                continue;
+
+            if (!moveSpecial.MultiSector)
+            {
+                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                continue;
+            }
+
+            foreach ((Sector sector, SectorPlane plane) in moveSpecial.GetSectors())
+            {
+                moveSpecial.Sector = sector;
+                moveSpecial.SectorPlane = plane;
+                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+            }
+        }
+
+        m_destroyedMoveSpecials.Clear();
     }
 
     public ISpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
@@ -508,9 +541,11 @@ public class SpecialManager : ITickable, IDisposable
 
     public void StartInitSpecials(LevelStats levelStats)
     {
-        var lines = m_world.Lines.Where(line => line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart));
-        foreach (var line in lines)
-            HandleLineInitSpecial(line);
+        foreach (var line in m_world.Lines)
+        {
+            if (line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart))
+                HandleLineInitSpecial(line);
+        }
 
         for (int i = 0; i < m_world.Sectors.Count; i++)
         {
@@ -1046,17 +1081,15 @@ public class SpecialManager : ITickable, IDisposable
                 return CreateFloorAndCeilingLowerRaise(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2 * SpeedFactor, line.Args.Arg3);
 
             default:
-                ISpecial? sectorSpecial = CreateSingleSectorSpecial(args, special, sector);
+                ISpecial? sectorSpecial = CreateSingleSectorSpecial(args.ActivateLineSpecial, special, sector);
                 if (sectorSpecial != null)
                     AddSpecial(sectorSpecial);
                 return sectorSpecial != null;
         }
     }
 
-    private ISpecial? CreateSingleSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+    public ISpecial? CreateSingleSectorSpecial(Line line, LineSpecial special, Sector sector)
     {
-        Line line = args.ActivateLineSpecial;
-
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorGeneric:
@@ -1422,7 +1455,7 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.NextHighestFloor);
-        sector.Floor.SetTexture(line.Front.Sector.Floor.TextureHandle, m_world.Gametick);
+        m_world.SetPlaneTexture(sector.Floor, line.Front.Sector.Floor.TextureHandle);
         sector.SectorDamageSpecial = null;
 
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
@@ -1467,7 +1500,7 @@ public class SpecialManager : ITickable, IDisposable
             floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
     }
 
-    private IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
+    public IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
     {
         if (line.Special.CanActivateByTag && line.HasSectorTag)
             return m_world.FindBySectorTag(line.SectorTag);

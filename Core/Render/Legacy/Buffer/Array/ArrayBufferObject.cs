@@ -1,5 +1,6 @@
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
+using System.Linq;
 
 namespace Helion.Render.Legacy.Buffer.Array;
 
@@ -15,6 +16,11 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     protected override void PerformUpload()
     {
         gl.BufferData(GetBufferType(), BytesPerElement * Data.Length, Data.Data, GetBufferUsageType());
+    }
+
+    protected override void BufferSubData(int index, int length)
+    {
+        gl.BufferSubData<T>(GetBufferType(), BytesPerElement * index, BytesPerElement * length, GetVboArray(), BytesPerElement * index);
     }
 
     protected abstract BufferUsageType GetBufferUsageType();

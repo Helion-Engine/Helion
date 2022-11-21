@@ -3,6 +3,8 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
+using System.Collections.Generic;
+using System;
 
 namespace Helion.World.Special.Specials;
 
@@ -11,10 +13,17 @@ public class ElevatorSpecial : ISectorSpecial
     private readonly SectorMoveSpecial m_firstMove;
     private readonly SectorMoveSpecial m_secondMove;
 
-    public Sector Sector { get; }
+    public Sector Sector { get; set; }
     public bool IsPaused => false;
 
     public bool OverrideEquals => true;
+
+    public virtual bool MultiSector => true;
+    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors()
+    {
+        yield return (m_firstMove.Sector, m_firstMove.SectorPlane);
+        yield return (m_secondMove.Sector, m_secondMove.SectorPlane);
+    }
 
     public ElevatorSpecial(IWorld world, Sector sector, double floorDestZ, double speed,
         MoveDirection moveDirection, SectorSoundData soundData)

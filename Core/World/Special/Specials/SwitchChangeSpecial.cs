@@ -68,7 +68,7 @@ public class SwitchChangeSpecial : ISpecial
             return SpecialTickStatus.Continue;
         }
 
-        SwitchManager.SetLineSwitch(m_world.ArchiveCollection, Line, !m_init);
+        SwitchManager.SetLineSwitch(m_world, Line, !m_init);
 
         if (m_repeat)
         {

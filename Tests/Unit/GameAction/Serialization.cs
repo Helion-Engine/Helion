@@ -88,7 +88,7 @@ public class Serialization : IDisposable
         GameActions.ActivateLine(world, world.Player, 178, ActivationContext.UseLine);
 
         GameActions.ActivateLine(world, world.Player, 124, ActivationContext.CrossLine);
-
+        world.Tick();
         GameActions.GetSector(world, 4).ActiveCeilingMove.Should().NotBeNull();
         GameActions.GetSector(world, 6).ActiveFloorMove.Should().NotBeNull();
         GameActions.GetSector(world, 8).ActiveCeilingMove.Should().NotBeNull();

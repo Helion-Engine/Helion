@@ -33,6 +33,8 @@ public class DynamicArray<T>
     /// </summary>
     public int Capacity => Data.Length;
 
+    public int Version { get; private set; }
+
     /// <summary>
     /// Creates a new dynamic array.
     /// </summary>
@@ -185,5 +187,6 @@ public class DynamicArray<T>
         T[] newData = new T[newCapacity];
         Array.Copy(Data, newData, Data.Length);
         Data = newData;
+        Version++;
     }
 }

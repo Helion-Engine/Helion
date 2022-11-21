@@ -67,12 +67,12 @@ public class LightStrobeSpecial : SectorSpecialBase
 
         if (Sector.LightLevel == m_maxBright)
         {
-            Sector.SetLightLevel(m_minBright, World.Gametick);
+            World.SetSectorLightLevel(Sector, m_minBright);
             m_delay = m_darkTics;
         }
         else if (Sector.LightLevel == m_minBright)
         {
-            Sector.SetLightLevel(m_maxBright, World.Gametick);
+            World.SetSectorLightLevel(Sector, m_maxBright);
             m_delay = m_brightTics;
         }
 

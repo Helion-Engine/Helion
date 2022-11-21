@@ -10,6 +10,7 @@ using System;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.World.Entities.Definition;
 
 namespace Helion.World.Special.Specials;
 
@@ -230,7 +231,7 @@ public class TeleportSpecial : ISpecial
                     node = node.Next;
                     if (entity.Flags.IsTeleportSpot)
                     {
-                        pos = entity.Position;
+                        pos = GetTeleportPosition(entity);
                         angle = entity.AngleRadians;
                         return true;
                     }
@@ -242,7 +243,7 @@ public class TeleportSpecial : ISpecial
             foreach (Entity entity in m_world.FindByTid(m_tid))
                 if (entity.Flags.IsTeleportSpot)
                 {
-                    pos = entity.Position;
+                    pos = GetTeleportPosition(entity);
                     angle = entity.AngleRadians;
                     return true;
                 }
@@ -267,6 +268,16 @@ public class TeleportSpecial : ISpecial
         }
 
         return false;
+    }
+
+    private static Vec3D GetTeleportPosition(Entity entity)
+    {
+        // Teleport landings had no blockmap flag which means they didn't move
+        // Doom used the sector floor z here
+        if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
+            return entity.Position.XY.To3D(entity.Sector.ToFloorZ(entity.Position));
+
+        return entity.Position;
     }
 
     private static double GetTeleportLineZ(Entity teleportEntity, Line line, in Vec2D pos, out double offsetZ)

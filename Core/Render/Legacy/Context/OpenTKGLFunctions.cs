@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
@@ -75,10 +76,9 @@ public class OpenTKGLFunctions : IGLFunctions
         GL.BufferStorage((BufferTarget)bufferType, totalBytes, data, (BufferStorageFlags)flags);
     }
 
-    public void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, T[] values) where T : struct
+    public void BufferSubData<T>(BufferType type, int byteOffset, int numBytes, IntPtr values, int valuesOffset) where T : struct
     {
-        IntPtr offset = new IntPtr(byteOffset);
-        GL.BufferSubData((BufferTarget)type, offset, numBytes, values);
+        GL.BufferSubData((BufferTarget)type, new IntPtr(byteOffset), numBytes, values + valuesOffset);
     }
 
     public void Clear(ClearType type)
