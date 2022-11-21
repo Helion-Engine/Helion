@@ -6,6 +6,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Models;
+using Helion.Render;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers.Legacy.World.Automap;
@@ -330,8 +331,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_shaderProgram.BoundTexture.Set(gl, 0);
         m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
         m_shaderProgram.LightDropoff.Set(gl, m_config.Render.LightDropoff ? 1 : 0);
-        m_shaderProgram.Mvp.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo));
-        m_shaderProgram.MvpNoPitch.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo, true));
+        m_shaderProgram.Mvp.Set(gl, Renderer.CalculateMvpMatrix(renderInfo));
+        m_shaderProgram.MvpNoPitch.Set(gl, Renderer.CalculateMvpMatrix(renderInfo, true));
         m_shaderProgram.TimeFrac.Set(gl, timeFrac);
         m_shaderProgram.LightLevelMix.Set(gl, mix);
         m_shaderProgram.ExtraLight.Set(gl, extraLight);

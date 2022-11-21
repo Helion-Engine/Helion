@@ -51,10 +51,6 @@ public static class Constants
     /// </summary>
     public static readonly string DebugBoxTexture = "DEBUGBOX";
 
-    // Note: This is temporary and to be removed.
-    public static readonly bool UseNewRenderer =
-        bool.TryParse(Environment.GetEnvironmentVariable("newrenderer"), out bool result) && result;
-
     public static readonly string PlatStartSound = "plats/pt1_strt";
     public static readonly string PlatStopSound = "plats/pt1_stop";
     public static readonly string PlatMoveSound = "plats/pt1_mid";

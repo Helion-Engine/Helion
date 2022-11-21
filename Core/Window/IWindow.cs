@@ -17,7 +17,7 @@ public interface IWindow : IDisposable
     /// <summary>
     /// The renderer that draws to this window.
     /// </summary>
-    IRenderer Renderer { get; }
+    Renderer Renderer { get; }
 
     /// <summary>
     /// The current dimensions of this window.

@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using Helion.Geometry.Boxes;
+using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Legacy.Commands;
@@ -17,7 +18,7 @@ public class GLLegacyRenderableSurfaceContext : IRenderableSurfaceContext
     private readonly GLLegacyWorldRenderContext m_worldRenderContext;
     private Box2I m_viewport;
 
-    internal GLLegacyRenderableSurfaceContext(GLLegacyRenderer renderer, GLLegacySurface surface)
+    internal GLLegacyRenderableSurfaceContext(Renderer renderer, GLLegacySurface surface)
     {
         Surface = surface;
         Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,

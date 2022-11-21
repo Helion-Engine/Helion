@@ -1,4 +1,5 @@
 using System;
+using Helion.Render;
 using Helion.Render.Legacy.Buffer.Array.Vertex;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
@@ -64,7 +65,7 @@ public class SkySphereComponent : ISkyComponent
         m_geometryShaderProgram.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
-        m_geometryShaderProgram.Mvp.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo));
+        m_geometryShaderProgram.Mvp.Set(gl, Renderer.CalculateMvpMatrix(renderInfo));
 
         m_geometryVbo.UploadIfNeeded();
 

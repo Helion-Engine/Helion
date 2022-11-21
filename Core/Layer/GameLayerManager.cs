@@ -274,7 +274,7 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
-    public void Render(IRenderer renderer)
+    public void Render(Renderer renderer)
     {
         renderer.DefaultSurface.Render(ctx =>
         {
@@ -282,7 +282,7 @@ public class GameLayerManager : IGameLayerParent
 
             ctx.Viewport(WindowBox);
             ctx.Scissor(WindowBox);
-            ctx.Clear(IRenderer.DefaultBackground, true, true);
+            ctx.Clear(Renderer.DefaultBackground, true, true);
 
             WorldLayer?.Render(ctx);
 

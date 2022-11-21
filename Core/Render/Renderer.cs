@@ -2,10 +2,14 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using GlmSharp;
+using Helion;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render;
+using Helion.Render;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.Legacy;
 using Helion.Render.Legacy.Commands;
 using Helion.Render.Legacy.Commands.Types;
 using Helion.Render.Legacy.Context;
@@ -26,10 +30,12 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render;
 
-public class GLLegacyRenderer : ILegacyRenderer
+public class Renderer : IDisposable
 {
+    public const string DefaultSurfaceName = "Default";
+    public static Color DefaultBackground => Color.FromArgb(16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
 
@@ -49,7 +55,7 @@ public class GLLegacyRenderer : ILegacyRenderer
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-    public GLLegacyRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
+    public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
         FpsTracker fpsTracker)
     {
         Window = window;
@@ -72,7 +78,7 @@ public class GLLegacyRenderer : ILegacyRenderer
         WarnForInvalidStates(config);
     }
 
-    ~GLLegacyRenderer()
+    ~Renderer()
     {
         FailedToDispose(this);
         ReleaseUnmanagedResources();
@@ -217,17 +223,17 @@ public class GLLegacyRenderer : ILegacyRenderer
         {
             switch (level)
             {
-            case DebugLevel.Low:
-                Log.Warn("OpenGL minor issue: {0}", message);
-                return;
-            case DebugLevel.Medium:
-                Log.Error("OpenGL warning: {0}", message);
-                return;
-            case DebugLevel.High:
-                Log.Error("OpenGL major error: {0}", message);
-                return;
-            default:
-                throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
+                case DebugLevel.Low:
+                    Log.Warn("OpenGL minor issue: {0}", message);
+                    return;
+                case DebugLevel.Medium:
+                    Log.Error("OpenGL warning: {0}", message);
+                    return;
+                case DebugLevel.High:
+                    Log.Error("OpenGL major error: {0}", message);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
             }
         });
     }
@@ -247,12 +253,12 @@ public class GLLegacyRenderer : ILegacyRenderer
     {
         switch (renderType)
         {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
         }
     }
 
@@ -260,13 +266,13 @@ public class GLLegacyRenderer : ILegacyRenderer
     {
         switch (renderType)
         {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
         }
     }
 
@@ -274,13 +280,13 @@ public class GLLegacyRenderer : ILegacyRenderer
     {
         switch (renderType)
         {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
+            case GLRenderType.Modern:
+                throw new NotImplementedException("Modern GL renderer not implemented yet");
+            case GLRenderType.Standard:
+                throw new NotImplementedException("Standard GL renderer not implemented yet");
+            default:
+                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
+                return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
         }
     }
 
