@@ -11,12 +11,12 @@ using Helion.Render.Legacy.Vertex;
 
 namespace Helion.Render.Legacy.Renderers.World.Automap;
 
-public class LegacyAutomapShader : ShaderProgram
+public class AutomapShader : ShaderProgram
 {
     public readonly UniformVec3 Color = new();
     public readonly UniformMatrix4 Mvp = new();
 
-    public LegacyAutomapShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
+    public AutomapShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
         base(functions, builder, attributes)
     {
     }

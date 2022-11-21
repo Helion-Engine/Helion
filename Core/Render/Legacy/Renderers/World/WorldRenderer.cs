@@ -53,9 +53,9 @@ public class WorldRenderer : IDisposable
     private readonly IGLFunctions gl;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
-    private readonly LegacyShader m_shaderProgram;
+    private readonly WorldShader m_shaderProgram;
     private readonly RenderWorldDataManager m_worldDataManager;
-    private readonly LegacyAutomapRenderer m_automapRenderer;
+    private readonly AutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
     private readonly List<IRenderObject> m_alphaEntities = new();
     private WeakReference<IWorld> m_lastRenderedWorld = new(null);
@@ -70,14 +70,14 @@ public class WorldRenderer : IDisposable
     {
         m_config = config;
         gl = functions;
-        m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl, archiveCollection);
+        m_automapRenderer = new AutomapRenderer(capabilities, gl, archiveCollection);
         m_worldDataManager = new RenderWorldDataManager(capabilities, gl, archiveCollection.DataCache);
         m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
 
-        using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
-            m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
+        using (ShaderBuilder shaderBuilder = WorldShader.MakeBuilder(functions))
+            m_shaderProgram = new WorldShader(functions, shaderBuilder, Attributes);
 
         m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
             textureManager, m_viewClipper, m_worldDataManager, Attributes);

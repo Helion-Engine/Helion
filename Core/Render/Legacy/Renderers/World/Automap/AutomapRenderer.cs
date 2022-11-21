@@ -32,13 +32,13 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.World.Automap;
 
-public class LegacyAutomapRenderer : IDisposable
+public class AutomapRenderer : IDisposable
 {
     private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
 
     private readonly IGLFunctions gl;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly LegacyAutomapShader m_shader;
+    private readonly AutomapShader m_shader;
     private readonly StreamVertexBuffer<vec2> m_vbo;
     private readonly VertexArrayObject m_vao;
     private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
@@ -52,7 +52,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     private readonly Dictionary<string, AutomapColor> m_keys = new(StringComparer.OrdinalIgnoreCase);
 
-    public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
+    public AutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
     {
         gl = glFunctions;
         m_archiveCollection = archiveCollection;
@@ -62,8 +62,8 @@ public class LegacyAutomapRenderer : IDisposable
         foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
             m_colorEnumToLines.Add(new DynamicArray<vec2>());
 
-        using (var shaderBuilder = LegacyAutomapShader.MakeBuilder(gl))
-            m_shader = new LegacyAutomapShader(gl, shaderBuilder, Attributes);
+        using (var shaderBuilder = AutomapShader.MakeBuilder(gl))
+            m_shader = new AutomapShader(gl, shaderBuilder, Attributes);
 
         foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
         {
@@ -78,7 +78,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    ~LegacyAutomapRenderer()
+    ~AutomapRenderer()
     {
         FailedToDispose(this);
         PerformDispose();

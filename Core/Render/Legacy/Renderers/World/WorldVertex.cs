@@ -9,7 +9,7 @@ using Helion.Render.Legacy.Renderers.World;
 namespace Helion.Render.Legacy.Renderers.World;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct LegacyVertex
+public struct WorldVertex
 {
     public float X;
     public float Y;
@@ -23,7 +23,7 @@ public struct LegacyVertex
     public float B;
     public float Fuzz;
 
-    public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256,
+    public WorldVertex(float x, float y, float z, float u, float v, short lightLevel = 256,
         float alpha = 1.0f, float fuzz = 0.0f)
     {
         X = x;

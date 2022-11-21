@@ -17,7 +17,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Renderers.World.Sky;
 
-public class LegacySkyRenderer : IDisposable
+public class SkyRenderer : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
@@ -29,7 +29,7 @@ public class LegacySkyRenderer : IDisposable
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
     private readonly List<ISkyComponent> m_skyComponentsList = new();
 
-    public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
+    public SkyRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager)
     {
         m_config = config;
@@ -39,7 +39,7 @@ public class LegacySkyRenderer : IDisposable
         gl = functions;
     }
 
-    ~LegacySkyRenderer()
+    ~SkyRenderer()
     {
         FailedToDispose(this);
         ReleaseUnmanagedResources();

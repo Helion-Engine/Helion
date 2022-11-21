@@ -172,10 +172,10 @@ public class EntityRenderer
             rightU = 0.0f;
         }
 
-        LegacyVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
+        WorldVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
+        WorldVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
+        WorldVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
+        WorldVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
 
         RenderWorldData renderWorldData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         renderWorldData.Vbo.Add(topLeft);
@@ -241,10 +241,10 @@ public class EntityRenderer
 
         void AddCubeFace(int topLeft, int bottomLeft, int topRight, int bottomRight)
         {
-            LegacyVertex topLeftVertex = MakeVertex(topLeft, 0.0f, 0.0f);
-            LegacyVertex bottomLeftVertex = MakeVertex(bottomLeft, 0.0f, 1.0f);
-            LegacyVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
-            LegacyVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
+            WorldVertex topLeftVertex = MakeVertex(topLeft, 0.0f, 0.0f);
+            WorldVertex bottomLeftVertex = MakeVertex(bottomLeft, 0.0f, 1.0f);
+            WorldVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
+            WorldVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
 
             m_debugBoxRenderWorldData.Vbo.Add(topLeftVertex);
             m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
@@ -254,7 +254,7 @@ public class EntityRenderer
             m_debugBoxRenderWorldData.Vbo.Add(bottomRightVertex);
         }
 
-        LegacyVertex MakeVertex(int cornerIndex, float u, float v)
+        WorldVertex MakeVertex(int cornerIndex, float u, float v)
         {
             // The vertices look like this:
             //
@@ -266,14 +266,14 @@ public class EntityRenderer
             //  (min) 0----1            o--> X
             return cornerIndex switch
             {
-                0 => new LegacyVertex(min.X, min.Y, min.Z, u, v),
-                1 => new LegacyVertex(max.X, min.Y, min.Z, u, v),
-                2 => new LegacyVertex(min.X, min.Y, max.Z, u, v),
-                3 => new LegacyVertex(max.X, min.Y, max.Z, u, v),
-                4 => new LegacyVertex(min.X, max.Y, min.Z, u, v),
-                5 => new LegacyVertex(max.X, max.Y, min.Z, u, v),
-                6 => new LegacyVertex(min.X, max.Y, max.Z, u, v),
-                7 => new LegacyVertex(max.X, max.Y, max.Z, u, v),
+                0 => new WorldVertex(min.X, min.Y, min.Z, u, v),
+                1 => new WorldVertex(max.X, min.Y, min.Z, u, v),
+                2 => new WorldVertex(min.X, min.Y, max.Z, u, v),
+                3 => new WorldVertex(max.X, min.Y, max.Z, u, v),
+                4 => new WorldVertex(min.X, max.Y, min.Z, u, v),
+                5 => new WorldVertex(max.X, max.Y, min.Z, u, v),
+                6 => new WorldVertex(min.X, max.Y, max.Z, u, v),
+                7 => new WorldVertex(max.X, max.Y, max.Z, u, v),
                 _ => throw new Exception("Out of bounds cube index when debugging entity bounding box")
             };
         }

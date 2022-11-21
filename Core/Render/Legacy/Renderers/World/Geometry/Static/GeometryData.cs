@@ -17,7 +17,7 @@ namespace Helion.Render.Legacy.Renderers.World.Geometry.Static;
 
 public sealed class GeometryData
 {
-    public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<LegacyVertex> vbo, VertexArrayObject vao)
+    public GeometryData(int textureHandle, GLLegacyTexture texture, StaticVertexBuffer<WorldVertex> vbo, VertexArrayObject vao)
     {
         TextureHandle = textureHandle;
         Texture = texture;
@@ -27,6 +27,6 @@ public sealed class GeometryData
 
     public int TextureHandle { get; set; }
     public GLLegacyTexture Texture { get; set; }
-    public StaticVertexBuffer<LegacyVertex> Vbo { get; set; }
+    public StaticVertexBuffer<WorldVertex> Vbo { get; set; }
     public VertexArrayObject Vao { get; set; }
 }

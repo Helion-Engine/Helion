@@ -16,14 +16,14 @@ namespace Helion.Render.Legacy.Renderers.World.Data;
 public class RenderWorldData : IDisposable
 {
     public readonly GLLegacyTexture Texture;
-    public readonly StreamVertexBuffer<LegacyVertex> Vbo;
+    public readonly StreamVertexBuffer<WorldVertex> Vbo;
     public readonly VertexArrayObject Vao;
 
     public RenderWorldData(GLCapabilities capabilities, IGLFunctions functions, GLLegacyTexture texture)
     {
         Texture = texture;
         Vao = new VertexArrayObject(capabilities, functions, WorldRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
-        Vbo = new StreamVertexBuffer<LegacyVertex>(capabilities, functions, Vao, $"VBO: Geometry for {texture.Name}");
+        Vbo = new StreamVertexBuffer<WorldVertex>(capabilities, functions, Vao, $"VBO: Geometry for {texture.Name}");
     }
 
     ~RenderWorldData()

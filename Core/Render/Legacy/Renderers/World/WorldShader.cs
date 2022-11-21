@@ -11,7 +11,7 @@ using Helion.Render.Legacy.Vertex;
 
 namespace Helion.Render.Legacy.Renderers.World;
 
-public class LegacyShader : ShaderProgram
+public class WorldShader : ShaderProgram
 {
     public readonly UniformInt BoundTexture = new();
     public readonly UniformInt HasInvulnerability = new();
@@ -22,7 +22,7 @@ public class LegacyShader : ShaderProgram
     public readonly UniformFloat LightLevelMix = new();
     public readonly UniformInt ExtraLight = new();
 
-    public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
+    public WorldShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
         base(functions, builder, attributes)
     {
     }

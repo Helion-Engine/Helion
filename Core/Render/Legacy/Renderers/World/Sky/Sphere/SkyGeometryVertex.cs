@@ -22,7 +22,7 @@ public struct SkyGeometryVertex
         Z = z;
     }
 
-    public SkyGeometryVertex(WorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
+    public SkyGeometryVertex(Shared.World.WorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
     {
     }
 }

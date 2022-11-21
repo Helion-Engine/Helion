@@ -59,7 +59,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
-    private readonly LegacySkyRenderer m_skyRenderer;
+    private readonly SkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly HashSet<int> m_updatelightSectorsLookup = new();
     private bool m_staticMode;
@@ -224,7 +224,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_skyRenderer.Add(vertices, vertices.Length, sector.SkyTextureHandle, sector.FlipSkyTexture);
     }
 
-    private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible)
+    private void SetSideVertices(Side side, Wall wall, bool update, WorldVertex[]? sideVertices, bool visible)
     {
         if (sideVertices == null || !visible)
             return;
@@ -251,7 +251,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         wall.Static.GeometryDataLength = vertexCount;
     }
 
-    private DynamicArray<LegacyVertex> GetTextureVertices(int textureHandle)
+    private DynamicArray<WorldVertex> GetTextureVertices(int textureHandle)
     {
         if (!m_textureToGeometryLookup.TryGetValue(textureHandle, out GeometryData? geometryData))
             AllocateGeometryData(textureHandle, out geometryData);
@@ -262,7 +262,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AllocateGeometryData(int textureHandle, out GeometryData data)
     {
         VertexArrayObject vao = new(m_capabilities, gl, Attributes);
-        StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
+        StaticVertexBuffer<WorldVertex> vbo = new(m_capabilities, gl, vao);
 
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);
@@ -540,7 +540,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearGeometryVertices(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
-    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, int length, LegacyVertex[] vertices,
+    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, int length, WorldVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall)
     {
         if (geometryData == null)
@@ -554,7 +554,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         geometryData.Vbo.UploadSubData(startIndex, length);
     }
 
-    private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall)
+    private void AddRuntimeGeometry(int textureHandle, WorldVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -587,7 +587,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_runtimeGeometry.Add(data);
     }
 
-    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, LegacyVertex[] vertices)
+    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, WorldVertex[] vertices)
     {
         if (side != null && wall != null)
         {
