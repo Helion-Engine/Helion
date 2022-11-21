@@ -1,13 +1,12 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
-using Helion.Render.Legacy.Renderers.Legacy.World;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+using Helion.Render.Legacy.Renderers.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 
-namespace Helion.World.Geometry.Sides; 
+namespace Helion.World.Geometry.Sides;
 
 public class Side : IRenderObject
 {

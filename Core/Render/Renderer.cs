@@ -15,8 +15,8 @@ using Helion.Render.Legacy.Commands.Types;
 using Helion.Render.Legacy.Context;
 using Helion.Render.Legacy.Context.Types;
 using Helion.Render.Legacy.Renderers;
-using Helion.Render.Legacy.Renderers.Legacy.Hud;
-using Helion.Render.Legacy.Renderers.Legacy.World;
+using Helion.Render.Legacy.Renderers.Hud;
+using Helion.Render.Legacy.Renderers.World;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Texture;
 using Helion.Render.Legacy.Texture.Legacy;
@@ -264,30 +264,12 @@ public class Renderer : IDisposable
 
     private WorldRenderer CreateWorldRenderer(GLRenderType renderType)
     {
-        switch (renderType)
-        {
-            case GLRenderType.Modern:
-                throw new NotImplementedException("Modern GL renderer not implemented yet");
-            case GLRenderType.Standard:
-                throw new NotImplementedException("Standard GL renderer not implemented yet");
-            default:
-                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-                return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
-        }
+        return new(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
     }
 
     private HudRenderer CreateHudRenderer(GLRenderType renderType)
     {
-        switch (renderType)
-        {
-            case GLRenderType.Modern:
-                throw new NotImplementedException("Modern GL renderer not implemented yet");
-            case GLRenderType.Standard:
-                throw new NotImplementedException("Standard GL renderer not implemented yet");
-            default:
-                Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-                return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
-        }
+        return new(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
     }
 
     private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

@@ -12,13 +12,12 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
-using static Helion.Util.Assertion.Assert;
-using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.Geometry.Boxes;
+using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Geometry.Sectors;
 

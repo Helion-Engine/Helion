@@ -9,7 +9,6 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
 using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Renderers.Legacy.World.Data;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Definition;
@@ -19,8 +18,9 @@ using NLog;
 using Helion.Render.Legacy.Texture.Fonts;
 using Helion.Graphics.Fonts;
 using Helion.Render.Legacy.Commands.Alignment;
-using Helion.Render.Legacy.Renderers.Legacy.Hud;
 using Helion.Render.Legacy.Shared.World.ViewClipping;
+using Helion.Render.Legacy.Renderers.World.Data;
+using Helion.Render.Legacy.Renderers.Hud;
 
 namespace Helion.Util;
 

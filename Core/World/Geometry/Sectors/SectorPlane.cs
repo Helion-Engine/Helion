@@ -2,7 +2,6 @@ using Helion.Audio;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
