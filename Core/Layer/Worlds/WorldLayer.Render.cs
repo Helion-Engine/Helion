@@ -7,7 +7,7 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
-    private readonly Camera m_camera = new(Vec3F.Zero, 0, 0);
+    private readonly WorldCamera m_camera = new(Vec3F.Zero, 0, 0);
     private readonly WorldRenderContext m_worldContext;
     private readonly HudRenderContext m_hudContext;
 

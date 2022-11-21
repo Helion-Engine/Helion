@@ -5,7 +5,7 @@ using Helion.Audio.Sounds;
 using Helion.Layer.Images;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
-using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.IWad;
 using Helion.Util.Configs;

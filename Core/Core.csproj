@@ -31,6 +31,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Render\OpenGL\**" />
+    <EmbeddedResource Remove="Render\OpenGL\**" />
+    <None Remove="Render\OpenGL\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
     <PackageReference Include="GlmSharp" Version="0.9.8" />
     <PackageReference Include="ini-parser" Version="2.5.2" />
@@ -64,9 +70,5 @@
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Render\OpenGL\" />
   </ItemGroup>
 </Project>

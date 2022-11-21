@@ -1,5 +1,6 @@
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;
+using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
@@ -7,7 +8,6 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using NLog;
 using System;
-using Helion.Render.Legacy.Commands.Alignment;
 
 namespace Helion.Menus.Impl;
 

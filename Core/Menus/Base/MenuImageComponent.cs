@@ -1,5 +1,5 @@
 using System;
-using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Render.Common.Enums;
 
 namespace Helion.Menus.Base;
 
