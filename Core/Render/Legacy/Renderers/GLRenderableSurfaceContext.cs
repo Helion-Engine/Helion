@@ -1,13 +1,16 @@
 using System;
 using System.Drawing;
+using Helion;
 using Helion.Geometry.Boxes;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Legacy;
 using Helion.Render.Legacy.Commands;
+using Helion.Render.Legacy.Renderers;
 using Helion.Window;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.Legacy.Renderers;
 
 public class GLRenderableSurfaceContext : IRenderableSurfaceContext
 {

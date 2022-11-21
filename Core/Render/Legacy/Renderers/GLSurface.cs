@@ -1,10 +1,13 @@
 using System;
+using Helion;
 using Helion.Geometry;
 using Helion.Render;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Legacy;
+using Helion.Render.Legacy.Renderers;
 using Helion.Window;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.Legacy.Renderers;
 
 public class GLSurface : IRenderableSurface
 {

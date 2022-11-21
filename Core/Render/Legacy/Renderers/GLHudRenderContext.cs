@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Helion;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
+using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.Legacy;
 using Helion.Render.Legacy.Commands;
+using Helion.Render.Legacy.Renderers;
 using Helion.Render.Legacy.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -18,7 +22,7 @@ using Helion.Util.Extensions;
 using Font = Helion.Graphics.Fonts.Font;
 using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.Legacy.Renderers;
 
 public class GLHudRenderContext : IHudRenderContext
 {
@@ -58,7 +62,7 @@ public class GLHudRenderContext : IHudRenderContext
             return;
 
         Dimension dim = m_commands.WindowDimension;
-        m_commands.FillRect(new((0, 0), (dim.Vector)), color, alpha);
+        m_commands.FillRect(new((0, 0), dim.Vector), color, alpha);
     }
 
     public void Point(Vec2I point, Color color, Align window = Align.TopLeft, float alpha = 1.0f)
@@ -156,7 +160,7 @@ public class GLHudRenderContext : IHudRenderContext
 
     public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
         TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-        Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float scale = 1.0f,
+        Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, float scale = 1.0f,
         float alpha = 1.0f)
     {
         drawArea = default;
