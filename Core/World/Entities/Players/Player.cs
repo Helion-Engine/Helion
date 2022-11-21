@@ -4,7 +4,6 @@ using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Render.Legacy.Shared;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
@@ -13,12 +12,13 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
-using static Helion.Util.Assertion.Assert;
 using Helion.World.Cheats;
 using Helion.Resources.Definitions.MapInfo;
 using NLog;
-using static Helion.World.Entities.EntityManager;
 using Helion.Audio;
+using Helion.Render.Common.Shared;
+using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Entities.Players;
 

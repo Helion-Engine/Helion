@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Shared.World.ViewClipping;
+using Helion.Render.Common.Shared.World.ViewClipping;
 using Helion.Util;
 using Xunit;
 

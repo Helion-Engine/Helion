@@ -1,7 +1,7 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Models;
-using Helion.Render.Legacy.Renderers.World;
+using Helion.Render.Renderers.World;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Container;

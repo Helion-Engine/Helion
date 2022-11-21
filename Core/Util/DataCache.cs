@@ -8,19 +8,19 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Texture.Legacy;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Definition;
 using Helion.Models;
 using Helion.Geometry.Vectors;
 using NLog;
-using Helion.Render.Legacy.Texture.Fonts;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Enums;
-using Helion.Render.Legacy.Shared.World.ViewClipping;
-using Helion.Render.Legacy.Renderers.World.Data;
-using Helion.Render.Legacy.Renderers.Hud;
+using Helion.Render.Renderers.Hud;
+using Helion.Render.Renderers.World.Data;
+using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.Common.Shared.World.ViewClipping;
 
 namespace Helion.Util;
 
