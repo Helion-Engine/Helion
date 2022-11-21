@@ -33,6 +33,8 @@ public class ViewClipper
     private readonly LinkedList<ClipSpan> m_nodes = new();
     private readonly DataCache m_dataCache;
 
+    public IEnumerable<ClipSpan> Elements => m_nodes;
+
     public ViewClipper(DataCache dataCache)
     {
         m_dataCache = dataCache;
