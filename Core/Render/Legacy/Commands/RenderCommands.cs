@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
+using Helion.Render.Common.Enums;
 using Helion.Render.Legacy.Commands.Types;
 using Helion.Render.Legacy.Shared;
 using Helion.Render.Legacy.Texture.Fonts;
