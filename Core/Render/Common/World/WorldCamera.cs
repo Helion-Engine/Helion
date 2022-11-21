@@ -6,10 +6,7 @@ using Helion.World.Entities.Players;
 
 namespace Helion.Render.Common.World;
 
-/// <summary>
-/// A camera in a world.
-/// </summary>
-public class Camera
+public class WorldCamera
 {
     public static readonly vec3 Up = new(0, 0, 1);
 
@@ -23,7 +20,7 @@ public class Camera
 
     public Vec3F CurrentPosition => m_position;
 
-    public Camera(Vec3F position, float yawRadians, float pitchRadians)
+    public WorldCamera(Vec3F position, float yawRadians, float pitchRadians)
     {
         m_position = position;
         Direction = Vec3F.UnitSphere(yawRadians, pitchRadians);
@@ -41,35 +38,13 @@ public class Camera
         m_prevPosition = position;
     }
 
-    public Camera(Player player, double frac)
+    public WorldCamera(Player player, double frac)
     {
         m_position = player.GetPrevViewPosition().Interpolate(player.GetViewPosition(), frac).Float;
         m_prevPosition = m_position;
         YawRadians = ClampYaw(player.AngleRadians);
         PitchRadians = ClampPitch(player.PitchRadians);
         Direction = Vec3F.UnitSphere(YawRadians, PitchRadians);
-
-        // TODO
-        // // When rendering, we always want the most up-to-date values. We
-        // // would only want to interpolate here if looking at another player
-        // // and would likely need to add more logic for wrapping around if
-        // // the player rotates from 359 degrees -> 2 degrees since that will
-        // // interpolate in the wrong direction.
-        //
-        // if (IsDead)
-        // {
-        //     float yaw = (float)(m_prevAngle + t * (AngleRadians - m_prevAngle));
-        //     float pitch = (float)(m_prevPitch + t * (PitchRadians - m_prevPitch));
-        //
-        //     return new Camera(this, t);
-        // }
-        // else
-        // {
-        //     float yaw = (float)AngleRadians;
-        //     float pitch = (float)PitchRadians;
-        //
-        //     return new Camera(this);
-        // }
     }
 
     private void SetYaw(float yaw)

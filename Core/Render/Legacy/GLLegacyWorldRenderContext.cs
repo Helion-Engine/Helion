@@ -34,7 +34,7 @@ public class GLLegacyWorldRenderContext : IWorldRenderContext
 
     public void Draw(IWorld world)
     {
-        Camera camera = m_context.Camera;
+        WorldCamera camera = m_context.Camera;
         Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
         m_oldCamera.Set(cameraPosition, camera.YawRadians, camera.PitchRadians);
 
