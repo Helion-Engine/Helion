@@ -6,7 +6,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Render.Common.Enums;
 using Helion.Util;
 using Helion.Util.Extensions;
 
