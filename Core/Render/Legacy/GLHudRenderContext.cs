@@ -20,7 +20,7 @@ using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
 namespace Helion.Render.Legacy;
 
-public class GLLegacyHudRenderContext : IHudRenderContext
+public class GLHudRenderContext : IHudRenderContext
 {
     private readonly RenderCommands m_commands;
     private readonly Stack<ResolutionInfo> m_resolutionInfos = new();
@@ -39,7 +39,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         }
     }
 
-    public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
+    public GLHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
         IRendererTextureManager textureManager)
     {
         m_archiveCollection = archiveCollection;

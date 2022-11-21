@@ -6,19 +6,19 @@ using Helion.Window;
 
 namespace Helion.Render.Legacy;
 
-public class GLLegacySurface : IRenderableSurface
+public class GLSurface : IRenderableSurface
 {
     public string Name => IRenderableSurface.DefaultName;
     public Dimension Dimension => m_window.Dimension;
     private readonly IWindow m_window;
     private readonly Renderer m_renderer;
-    private readonly GLLegacyRenderableSurfaceContext ctx;
+    private readonly GLRenderableSurfaceContext ctx;
 
-    public GLLegacySurface(IWindow window, Renderer renderer)
+    public GLSurface(IWindow window, Renderer renderer)
     {
         m_window = window;
         m_renderer = renderer;
-        ctx = new GLLegacyRenderableSurfaceContext(renderer, this);
+        ctx = new GLRenderableSurfaceContext(renderer, this);
     }
 
     public void Render(Action<IRenderableSurfaceContext> action)

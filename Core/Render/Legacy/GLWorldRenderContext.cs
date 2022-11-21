@@ -17,13 +17,13 @@ using Helion.World.Impl.SinglePlayer;
 
 namespace Helion.Render.Legacy;
 
-public class GLLegacyWorldRenderContext : IWorldRenderContext
+public class GLWorldRenderContext : IWorldRenderContext
 {
     private readonly Camera m_oldCamera = new(Vec3F.Zero, 0, 0);
     private readonly RenderCommands m_commands;
     private WorldRenderContext? m_context;
 
-    public GLLegacyWorldRenderContext(RenderCommands commands)
+    public GLWorldRenderContext(RenderCommands commands)
     {
         m_commands = commands;
     }

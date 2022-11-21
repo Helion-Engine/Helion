@@ -9,24 +9,24 @@ using Helion.Window;
 
 namespace Helion.Render.Legacy;
 
-public class GLLegacyRenderableSurfaceContext : IRenderableSurfaceContext
+public class GLRenderableSurfaceContext : IRenderableSurfaceContext
 {
     public IRenderableSurface Surface { get; }
     public readonly RenderCommands Commands;
     private readonly IWindow m_window;
-    private readonly GLLegacyHudRenderContext m_hudRenderContext;
-    private readonly GLLegacyWorldRenderContext m_worldRenderContext;
+    private readonly GLHudRenderContext m_hudRenderContext;
+    private readonly GLWorldRenderContext m_worldRenderContext;
     private Box2I m_viewport;
 
-    internal GLLegacyRenderableSurfaceContext(Renderer renderer, GLLegacySurface surface)
+    internal GLRenderableSurfaceContext(Renderer renderer, GLSurface surface)
     {
         Surface = surface;
         Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,
             renderer.ImageDrawInfoProvider, renderer.m_fpsTracker);
 
-        m_hudRenderContext = new GLLegacyHudRenderContext(renderer.m_archiveCollection, Commands,
+        m_hudRenderContext = new GLHudRenderContext(renderer.m_archiveCollection, Commands,
             renderer.Textures);
-        m_worldRenderContext = new GLLegacyWorldRenderContext(Commands);
+        m_worldRenderContext = new GLWorldRenderContext(Commands);
         m_window = renderer.Window;
     }
 
