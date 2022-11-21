@@ -8,8 +8,6 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.Legacy.Shared.World.ViewClipping;
 
-// TODO: Implement this with some kind of discrete fused interval tree for O(lg n).
-
 /// <summary>
 /// A helper class that treats a 360 circle as an interval range. Allows
 /// adding of ranges and querying whether some angle span is entire blocked
@@ -28,15 +26,12 @@ public class ViewClipper
     private const uint PiAngle = uint.MaxValue / 2;
     private const double RadiansToDiamondAngleFactor = uint.MaxValue / MathHelper.TwoPi;
 
-    private readonly LinkedList<ClipSpan> m_nodes = new();
-    private readonly DataCache m_dataCache;
-
     /// <summary>
     /// The center point from which we will clip from.
     /// </summary>
     public Vec2D Center { private get; set; } = Vec2D.Zero;
-
-    public IEnumerable<ClipSpan> Elements => m_nodes;
+    private readonly LinkedList<ClipSpan> m_nodes = new();
+    private readonly DataCache m_dataCache;
 
     public ViewClipper(DataCache dataCache)
     {
@@ -84,7 +79,6 @@ public class ViewClipper
         if (pos == Vec2D.Zero)
             return 0;
 
-        // TODO: Can we fuse two if statements into one statement somehow?
         if (pos.Y >= 0)
         {
             if (pos.X >= 0)

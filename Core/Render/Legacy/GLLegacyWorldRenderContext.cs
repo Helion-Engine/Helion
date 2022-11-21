@@ -11,6 +11,7 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
 using Helion.Render.Legacy.Commands;
+using Helion.Render.Legacy.Shared;
 using Helion.World;
 using Helion.World.Impl.SinglePlayer;
 
@@ -18,7 +19,7 @@ namespace Helion.Render.Legacy;
 
 public class GLLegacyWorldRenderContext : IWorldRenderContext
 {
-    private readonly Shared.Camera m_oldCamera = new(Vec3F.Zero, 0, 0);
+    private readonly Camera m_oldCamera = new(Vec3F.Zero, 0, 0);
     private readonly RenderCommands m_commands;
     private WorldRenderContext? m_context;
 
