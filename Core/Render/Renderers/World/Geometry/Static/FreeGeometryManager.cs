@@ -1,6 +1,5 @@
 ﻿using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Geometry.Static;
 using Helion.World.Static;
 using System.Collections.Generic;

@@ -3,7 +3,6 @@ using Helion;
 using Helion.Geometry;
 using Helion.Render;
 using Helion.Render.Common.Renderers;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers;
 using Helion.Window;
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Sky.Sphere;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;

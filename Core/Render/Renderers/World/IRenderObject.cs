@@ -1,6 +1,5 @@
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World;
 
 namespace Helion.Render.Renderers.World;

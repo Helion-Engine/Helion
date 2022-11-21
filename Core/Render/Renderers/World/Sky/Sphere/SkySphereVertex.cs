@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Sky.Sphere;
 
 namespace Helion.Render.Renderers.World.Sky.Sphere;

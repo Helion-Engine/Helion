@@ -1,11 +1,10 @@
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Shader;
-using Helion.Render.Legacy.Shader.Component;
-using Helion.Render.Legacy.Shader.Fields;
-using Helion.Render.Legacy.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Shader.Component;
+using Helion.Render.OpenGL.Shader.Fields;
+using Helion.Render.OpenGL.Vertex;
 using Helion.Render.Renderers.World;
 
 namespace Helion.Render.Renderers.World;

@@ -2,7 +2,6 @@ using System;
 using GlmSharp;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Automap;
 
 namespace Helion.Render.Renderers.World.Automap;

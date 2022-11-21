@@ -1,7 +1,6 @@
 using System.Collections;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Entities;
 using Helion.World;
 using Helion.World.Entities;

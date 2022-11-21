@@ -1,8 +1,7 @@
 using System;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.Common.Shared;
 using Helion.Render.Renderers.World.Sky;
 using Helion.Render.Renderers.World.Sky.Sphere;
 

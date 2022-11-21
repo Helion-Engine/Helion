@@ -2,7 +2,6 @@ using System.Collections;
 using System.Linq;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.World.Geometry;
 using Helion.World;
 using Helion.World.Geometry.Lines;

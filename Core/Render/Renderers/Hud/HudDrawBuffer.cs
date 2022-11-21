@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.Renderers.Hud;
 using Helion.Util;
 using Helion.Util.Extensions;

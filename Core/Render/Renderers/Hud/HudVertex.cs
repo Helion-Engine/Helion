@@ -2,7 +2,6 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using Helion;
 using Helion.Render;
-using Helion.Render.Legacy;
 using Helion.Render.Renderers.Hud;
 
 namespace Helion.Render.Renderers.Hud;
