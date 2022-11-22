@@ -172,8 +172,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
             return;
 
         int scaledFontSize = (int)(fontSize * scale);
-        Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
@@ -206,13 +205,12 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         }
 
         int scaledFontSize = (int)(fontSize * scale);
-        Commands.Alignment.TextAlign legacyAlign = (Commands.Alignment.TextAlign)textAlign;
 
         RenderableString renderableString;
         if (color.HasValue && color != Color.White)
-            renderableString = m_archiveCollection.DataCache.GetRenderableString($"{colorPrefix}{text}", fontObject, scaledFontSize, legacyAlign, maxWidth);
+            renderableString = m_archiveCollection.DataCache.GetRenderableString($"{colorPrefix}{text}", fontObject, scaledFontSize, textAlign, maxWidth);
         else
-            renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, legacyAlign, maxWidth);
+            renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth);
 
         drawArea = renderableString.DrawArea;
 
@@ -225,14 +223,12 @@ public class GLLegacyHudRenderContext : IHudRenderContext
     public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f)
     {
-        const Commands.Alignment.TextAlign align = Commands.Alignment.TextAlign.Left;
-
         Font? fontObject = m_archiveCollection.GetFont(font);
         if (fontObject == null)
             return default;
 
         int scaledFontSize = (int)(fontSize * scale);
-        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, align, maxWidth);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, TextAlign.Left, maxWidth);
         var drawArea = renderableString.DrawArea;
         m_archiveCollection.DataCache.FreeRenderableString(renderableString);
         return drawArea;

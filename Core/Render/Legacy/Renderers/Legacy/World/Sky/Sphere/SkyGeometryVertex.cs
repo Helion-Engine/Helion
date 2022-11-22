@@ -17,7 +17,7 @@ public struct SkyGeometryVertex
         Z = z;
     }
 
-    public SkyGeometryVertex(WorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
+    public SkyGeometryVertex(TriangulatedWorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
     {
     }
 }

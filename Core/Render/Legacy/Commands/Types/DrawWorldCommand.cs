@@ -15,10 +15,10 @@ public struct DrawWorldCommand
     public readonly double AutomapScale;
     public readonly Vec2I AutomapOffset;
     public readonly IWorld World;
-    public readonly Camera Camera;
+    public readonly OldCamera Camera;
     public readonly Entity ViewerEntity;
 
-    public DrawWorldCommand(IWorld world, Camera camera, int gametick, float gametickFraction,
+    public DrawWorldCommand(IWorld world, OldCamera camera, int gametick, float gametickFraction,
         Entity viewerEntity, bool drawAutomap, Vec2I automapOffset, double automapScale)
     {
         World = world;

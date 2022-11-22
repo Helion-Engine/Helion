@@ -9,7 +9,7 @@ namespace Helion.Render.Legacy.Shared;
 /// Represents a camera as a point in some world, while also supporting
 /// interpolation between a previous and current state.
 /// </summary>
-public class Camera
+public class OldCamera
 {
     /// <summary>
     /// The up direction for renderers to orient themselves with.
@@ -58,7 +58,7 @@ public class Camera
     /// <param name="pitchRadians">The vertical looking angle in radians.
     /// This should be between [-pi/2, pi/2], or else it will be clamped
     /// to that range.</param>
-    public Camera(Vec3F position, float yawRadians, float pitchRadians)
+    public OldCamera(Vec3F position, float yawRadians, float pitchRadians)
     {
         Position = position;
         YawRadians = ClampYaw(yawRadians);

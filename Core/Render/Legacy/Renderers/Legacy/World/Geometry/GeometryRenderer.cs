@@ -42,7 +42,7 @@ public class GeometryRenderer : IDisposable
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
-    private readonly DynamicArray<WorldVertex> m_subsectorVertices = new();
+    private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
     private readonly DynamicArray<LegacyVertex> m_vertices = new();
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
     private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
@@ -916,12 +916,12 @@ public class GeometryRenderer : IDisposable
                     Subsector subsector = subsectors[j];
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
-                    WorldVertex root = m_subsectorVertices[0];
+                    TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_skyVertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
-                        WorldVertex second = m_subsectorVertices[i];
-                        WorldVertex third = m_subsectorVertices[i + 1];
+                        TriangulatedWorldVertex second = m_subsectorVertices[i];
+                        TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
                         CreateSkyFlatVertices(m_skyVertices, root, second, third);
                     }
 
@@ -946,12 +946,12 @@ public class GeometryRenderer : IDisposable
                 {
                     Subsector subsector = subsectors[j];
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
-                    WorldVertex root = m_subsectorVertices[0];
+                    TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_vertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
-                        WorldVertex second = m_subsectorVertices[i];
-                        WorldVertex third = m_subsectorVertices[i + 1];
+                        TriangulatedWorldVertex second = m_subsectorVertices[i];
+                        TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
                         GetFlatVertices(m_vertices, ref root, ref second, ref third, flat.RenderLightLevel);
                     }
 
@@ -1101,7 +1101,7 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static void CreateSkyFlatVertices(DynamicArray<SkyGeometryVertex> vertices, in WorldVertex root, in WorldVertex second, in WorldVertex third)
+    private static void CreateSkyFlatVertices(DynamicArray<SkyGeometryVertex> vertices, in TriangulatedWorldVertex root, in TriangulatedWorldVertex second, in TriangulatedWorldVertex third)
     {
         vertices.Add(new SkyGeometryVertex()
         { 
@@ -1260,7 +1260,7 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static void GetFlatVertices(DynamicArray<LegacyVertex> vertices, ref WorldVertex root, ref WorldVertex second, ref WorldVertex third, float lightLevel)
+    private static void GetFlatVertices(DynamicArray<LegacyVertex> vertices, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third, float lightLevel)
     {
         vertices.Add(new LegacyVertex()
         {

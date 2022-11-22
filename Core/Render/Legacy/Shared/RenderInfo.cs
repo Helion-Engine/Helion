@@ -12,7 +12,7 @@ public class RenderInfo
 {
     public static Vec2F LastAutomapOffset;
 
-    public Camera Camera;
+    public OldCamera Camera;
     public float TickFraction;
     public Rectangle Viewport;
     public Entity ViewerEntity;
@@ -25,7 +25,7 @@ public class RenderInfo
 
     }
 
-    public void Set(Camera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
+    public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");

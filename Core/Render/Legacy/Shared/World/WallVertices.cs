@@ -2,12 +2,12 @@ namespace Helion.Render.Legacy.Shared.World;
 
 public struct WallVertices
 {
-    public readonly WorldVertex TopLeft;
-    public readonly WorldVertex TopRight;
-    public readonly WorldVertex BottomLeft;
-    public readonly WorldVertex BottomRight;
+    public readonly TriangulatedWorldVertex TopLeft;
+    public readonly TriangulatedWorldVertex TopRight;
+    public readonly TriangulatedWorldVertex BottomLeft;
+    public readonly TriangulatedWorldVertex BottomRight;
 
-    public WallVertices(in WorldVertex topLeft, in WorldVertex topRight, in WorldVertex bottomLeft, in WorldVertex bottomRight)
+    public WallVertices(in TriangulatedWorldVertex topLeft, in TriangulatedWorldVertex topRight, in TriangulatedWorldVertex bottomLeft, in TriangulatedWorldVertex bottomRight)
     {
         TopLeft = topLeft;
         TopRight = topRight;

@@ -77,7 +77,7 @@ public class SkySphereRenderer : IDisposable
         float w = renderInfo.Viewport.Width;
         float h = renderInfo.Viewport.Height;
         float aspectRatio = w / h;
-        float fovY = Camera.FieldOfViewXToY((float)MathHelper.HalfPi, aspectRatio);
+        float fovY = OldCamera.FieldOfViewXToY((float)MathHelper.HalfPi, aspectRatio);
 
         // We want the sky sphere to not be touching the NDC edges because
         // we'll be doing some translating which could push it outside of

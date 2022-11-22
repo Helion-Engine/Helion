@@ -2,7 +2,7 @@ using Helion.Geometry.Vectors;
 
 namespace Helion.Render.Legacy.Shared.World;
 
-public struct WorldVertex
+public struct TriangulatedWorldVertex
 {
     public readonly float X;
     public readonly float Y;
@@ -10,7 +10,7 @@ public struct WorldVertex
     public readonly float U;
     public readonly float V;
 
-    public WorldVertex(float x, float y, float z, float u, float v)
+    public TriangulatedWorldVertex(float x, float y, float z, float u, float v)
     {
         X = x;
         Y = y;
@@ -19,12 +19,12 @@ public struct WorldVertex
         V = v;
     }
 
-    public WorldVertex(double x, double y, double z, double u, double v) :
+    public TriangulatedWorldVertex(double x, double y, double z, double u, double v) :
         this((float)x, (float)y, (float)z, (float)u, (float)v)
     {
     }
 
-    public WorldVertex(Vec3F position, Vec2F uv) :
+    public TriangulatedWorldVertex(Vec3F position, Vec2F uv) :
         this(position.X, position.Y, position.Z, uv.X, uv.Y)
     {
     }

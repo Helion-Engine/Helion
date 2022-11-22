@@ -73,7 +73,7 @@ public class Player : Entity
     private WeakEntity m_killer = WeakEntity.Default;
     private bool m_interpolateAngle;
 
-    private readonly Camera m_camera = new (Vec3F.Zero, 0, 0);
+    private readonly OldCamera m_camera = new (Vec3F.Zero, 0, 0);
 
     public Inventory Inventory { get; private set; }
     public Weapon? Weapon { get; private set; }
@@ -461,7 +461,7 @@ public class Player : Entity
         return pitch;
     }
 
-    public Camera GetCamera(double t)
+    public OldCamera GetCamera(double t)
     {
         Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
         double playerAngle = AngleRadians;

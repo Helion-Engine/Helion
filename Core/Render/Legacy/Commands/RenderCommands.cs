@@ -120,7 +120,7 @@ public class RenderCommands
         TextCommands.Add(command);
     }
 
-    public void DrawWorld(IWorld world, Camera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
+    public void DrawWorld(IWorld world, OldCamera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale)
     {
         Commands.Add(new RenderCommand(RenderCommandType.World, WorldCommands.Count));

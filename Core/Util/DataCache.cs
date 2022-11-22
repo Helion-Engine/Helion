@@ -18,9 +18,9 @@ using Helion.Geometry.Vectors;
 using NLog;
 using Helion.Render.Legacy.Texture.Fonts;
 using Helion.Graphics.Fonts;
-using Helion.Render.Legacy.Commands.Alignment;
 using Helion.Render.Legacy.Renderers.Legacy.Hud;
 using Helion.Render.Legacy.Shared.World.ViewClipping;
+using Helion.Render.Common.Enums;
 
 namespace Helion.Util;
 

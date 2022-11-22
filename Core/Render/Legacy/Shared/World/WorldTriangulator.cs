@@ -35,10 +35,10 @@ public static class WorldTriangulator
         double spanZ = topZ - bottomZ;
         WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, tickFraction);
 
-        WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
-        WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
-        WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
-        WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex topLeft = new TriangulatedWorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex topRight = new TriangulatedWorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex bottomLeft = new TriangulatedWorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex bottomRight = new TriangulatedWorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
 
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
@@ -58,10 +58,10 @@ public static class WorldTriangulator
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, tickFraction);
 
-        WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
-        WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
-        WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
-        WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex topLeft = new TriangulatedWorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex topRight = new TriangulatedWorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex bottomLeft = new TriangulatedWorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex bottomRight = new TriangulatedWorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
 
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
@@ -89,10 +89,10 @@ public static class WorldTriangulator
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan, textureUVInverse, tickFraction);
 
-        WorldVertex topLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleTopZ, uv.TopLeft.X, uv.TopLeft.Y);
-        WorldVertex topRight = new WorldVertex(right.X, right.Y, drawSpan.VisibleTopZ, uv.BottomRight.X, uv.TopLeft.Y);
-        WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, drawSpan.VisibleBottomZ, uv.TopLeft.X, uv.BottomRight.Y);
-        WorldVertex bottomRight = new WorldVertex(right.X, right.Y, drawSpan.VisibleBottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex topLeft = new TriangulatedWorldVertex(left.X, left.Y, drawSpan.VisibleTopZ, uv.TopLeft.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex topRight = new TriangulatedWorldVertex(right.X, right.Y, drawSpan.VisibleTopZ, uv.BottomRight.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex bottomLeft = new TriangulatedWorldVertex(left.X, left.Y, drawSpan.VisibleBottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex bottomRight = new TriangulatedWorldVertex(right.X, right.Y, drawSpan.VisibleBottomZ, uv.BottomRight.X, uv.BottomRight.Y);
 
         nothingVisible = false;
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
@@ -115,16 +115,16 @@ public static class WorldTriangulator
         double spanZ = topZ - bottomZ;
         WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, tickFraction);
 
-        WorldVertex topLeft = new WorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
-        WorldVertex topRight = new WorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
-        WorldVertex bottomLeft = new WorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
-        WorldVertex bottomRight = new WorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex topLeft = new TriangulatedWorldVertex(left.X, left.Y, topZ, uv.TopLeft.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex topRight = new TriangulatedWorldVertex(right.X, right.Y, topZ, uv.BottomRight.X, uv.TopLeft.Y);
+        TriangulatedWorldVertex bottomLeft = new TriangulatedWorldVertex(left.X, left.Y, bottomZ, uv.TopLeft.X, uv.BottomRight.Y);
+        TriangulatedWorldVertex bottomRight = new TriangulatedWorldVertex(right.X, right.Y, bottomZ, uv.BottomRight.X, uv.BottomRight.Y);
 
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight);
     }
 
     public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
-        double tickFraction, DynamicArray<WorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
+        double tickFraction, DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick interpolation out of unit range");
         Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
@@ -147,7 +147,7 @@ public static class WorldTriangulator
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
                 Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, tickFraction);
 
-                verticesToPopulate.Add(new WorldVertex(position, uv));
+                verticesToPopulate.Add(new TriangulatedWorldVertex(position, uv));
             }
         }
         else
@@ -168,7 +168,7 @@ public static class WorldTriangulator
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
                 Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, tickFraction);
 
-                verticesToPopulate.Add(new WorldVertex(position, uv));
+                verticesToPopulate.Add(new TriangulatedWorldVertex(position, uv));
             }
         }
     }

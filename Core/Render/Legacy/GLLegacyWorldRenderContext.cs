@@ -18,7 +18,7 @@ namespace Helion.Render.Legacy;
 
 public class GLLegacyWorldRenderContext : IWorldRenderContext
 {
-    private readonly Shared.Camera m_oldCamera = new(Vec3F.Zero, 0, 0);
+    private readonly Shared.OldCamera m_oldCamera = new(Vec3F.Zero, 0, 0);
     private readonly RenderCommands m_commands;
     private WorldRenderContext? m_context;
 

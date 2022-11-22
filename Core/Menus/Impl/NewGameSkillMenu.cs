@@ -2,7 +2,7 @@ using System;
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
-using Helion.Render.Legacy.Commands.Alignment;
+using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
