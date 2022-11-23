@@ -1,6 +1,6 @@
 using System;
 
-namespace Helion.Render.Legacy.Shader.Fields;
+namespace Helion.Render.OpenGL.Shader.Fields;
 
 public class UniformAttribute : Attribute
 {

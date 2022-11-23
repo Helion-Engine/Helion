@@ -1,7 +1,7 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 
-namespace Helion.Render.Legacy.Shader.Component;
+namespace Helion.Render.OpenGL.Shader.Component;
 
 public class FragmentShaderComponent : ShaderComponent
 {

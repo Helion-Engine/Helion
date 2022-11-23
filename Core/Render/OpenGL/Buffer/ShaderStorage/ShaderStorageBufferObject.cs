@@ -1,8 +1,8 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Util;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Util;
 
-namespace Helion.Render.Legacy.Buffer.ShaderStorage;
+namespace Helion.Render.OpenGL.Buffer.ShaderStorage;
 
 public class ShaderStorageBufferObject<T> : ShaderDataBufferObject<T> where T : struct
 {

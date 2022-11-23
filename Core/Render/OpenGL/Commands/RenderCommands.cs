@@ -5,15 +5,15 @@ using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Commands.Types;
-using Helion.Render.Legacy.Shared;
-using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Render.OpenGL.Commands.Types;
+using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 
-namespace Helion.Render.Legacy.Commands;
+namespace Helion.Render.OpenGL.Commands;
 
 public enum RenderCommandType
 {

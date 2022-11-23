@@ -3,7 +3,7 @@ using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 
-namespace Helion.Render.Legacy.Shared;
+namespace Helion.Render.OpenGL.Shared;
 
 /// <summary>
 /// Represents a camera as a point in some world, while also supporting

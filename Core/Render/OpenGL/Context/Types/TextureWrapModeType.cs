@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Context.Types;
+namespace Helion.Render.OpenGL.Context.Types;
 
 public enum TextureWrapModeType
 {

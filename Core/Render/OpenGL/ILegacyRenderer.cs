@@ -1,7 +1,7 @@
-using Helion.Render.Legacy.Commands;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Commands;
+using Helion.Render.OpenGL.Shared;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.OpenGL;
 
 /// <summary>
 /// A renderer that can consume rendering commands and draw the results.

@@ -1,6 +1,6 @@
 using Helion.Util;
 
-namespace Helion.Render.Legacy.Shader;
+namespace Helion.Render.OpenGL.Shader;
 
 public class ShaderException : HelionException
 {

@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
+namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public readonly struct HudVertex

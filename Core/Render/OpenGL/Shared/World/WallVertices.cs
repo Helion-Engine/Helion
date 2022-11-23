@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Shared.World;
+namespace Helion.Render.OpenGL.Shared.World;
 
 public struct WallVertices
 {

@@ -17,7 +17,7 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Geometry.Boxes;
 
 namespace Helion.World.Geometry.Sectors;

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Data;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderWorldDataManager : IDisposable
 {

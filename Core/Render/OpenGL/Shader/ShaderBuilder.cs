@@ -1,8 +1,8 @@
 using System;
-using Helion.Render.Legacy.Shader.Component;
+using Helion.Render.OpenGL.Shader.Component;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shader;
+namespace Helion.Render.OpenGL.Shader;
 
 public class ShaderBuilder : IDisposable
 {

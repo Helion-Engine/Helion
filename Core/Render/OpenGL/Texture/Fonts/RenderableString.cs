@@ -10,7 +10,7 @@ using Helion.Render.Common.Enums;
 using Helion.Util;
 using Helion.Util.Extensions;
 
-namespace Helion.Render.Legacy.Texture.Fonts;
+namespace Helion.Render.OpenGL.Texture.Fonts;
 
 /// <summary>
 /// A collection of render information that can be used to draw a string.

@@ -1,6 +1,6 @@
-using Helion.Render.Legacy.Context;
+using Helion.Render.OpenGL.Context;
 
-namespace Helion.Render.Legacy.Shader.Fields;
+namespace Helion.Render.OpenGL.Shader.Fields;
 
 [Uniform]
 public abstract class UniformElement<T> where T : struct

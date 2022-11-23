@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Util;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Util;
 using NLog;
 
-namespace Helion.Render.Legacy.Context;
+namespace Helion.Render.OpenGL.Context;
 
 public class GLCapabilities
 {

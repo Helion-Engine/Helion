@@ -1,10 +1,10 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Shader;
-using Helion.Render.Legacy.Shader.Component;
-using Helion.Render.Legacy.Shader.Fields;
-using Helion.Render.Legacy.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Shader.Component;
+using Helion.Render.OpenGL.Shader.Fields;
+using Helion.Render.OpenGL.Vertex;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public class LegacyAutomapShader : ShaderProgram
 {

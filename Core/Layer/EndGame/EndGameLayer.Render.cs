@@ -6,7 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;

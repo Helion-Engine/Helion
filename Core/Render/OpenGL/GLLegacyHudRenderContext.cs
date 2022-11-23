@@ -10,15 +10,15 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using Helion.Render.Legacy.Commands;
-using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Render.OpenGL.Commands;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Font = Helion.Graphics.Fonts.Font;
 using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.OpenGL;
 
 public class GLLegacyHudRenderContext : IHudRenderContext
 {

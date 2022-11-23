@@ -4,7 +4,7 @@ using Helion.World;
 using Helion.World.Geometry.Lines;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public class LineDrawnTracker
 {

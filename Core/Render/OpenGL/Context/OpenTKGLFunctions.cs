@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context.Types;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.Legacy.Context;
+namespace Helion.Render.OpenGL.Context;
 
 public class OpenTKGLFunctions : IGLFunctions
 {

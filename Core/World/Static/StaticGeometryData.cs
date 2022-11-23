@@ -1,4 +1,4 @@
-﻿using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;

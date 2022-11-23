@@ -7,8 +7,8 @@ using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Images;
@@ -19,7 +19,7 @@ using static Helion.Util.Assertion.Assert;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
-namespace Helion.Render.Legacy.Texture;
+namespace Helion.Render.OpenGL.Texture;
 
 public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
     where GLTextureType : GLTexture

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using FluentAssertions;
 using Helion.Graphics.Fonts;
-using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Util;
 using Xunit;
 

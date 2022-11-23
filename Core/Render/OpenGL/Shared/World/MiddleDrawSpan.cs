@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Shared.World;
+namespace Helion.Render.OpenGL.Shared.World;
 
 /// <summary>
 /// Contains the drawing information for what is visible vertically in some

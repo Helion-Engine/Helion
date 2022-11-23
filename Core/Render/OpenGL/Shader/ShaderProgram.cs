@@ -1,15 +1,15 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Shader.Fields;
-using Helion.Render.Legacy.Util;
-using Helion.Render.Legacy.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Shader.Fields;
+using Helion.Render.OpenGL.Util;
+using Helion.Render.OpenGL.Vertex;
 using MoreLinq.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shader;
+namespace Helion.Render.OpenGL.Shader;
 
 public class ShaderProgram : IDisposable
 {

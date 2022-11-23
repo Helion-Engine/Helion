@@ -1,7 +1,7 @@
-using Helion.Render.Legacy.Context;
+using Helion.Render.OpenGL.Context;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shader.Fields;
+namespace Helion.Render.OpenGL.Shader.Fields;
 
 public class UniformInt : UniformElement<int>
 {

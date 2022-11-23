@@ -6,7 +6,7 @@ using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shared.World.ViewClipping;
+namespace Helion.Render.OpenGL.Shared.World.ViewClipping;
 
 // TODO: Implement this with some kind of discrete fused interval tree for O(lg n).
 

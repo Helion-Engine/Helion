@@ -1,8 +1,8 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Vertex.IntegralAttribute;
+namespace Helion.Render.OpenGL.Vertex.IntegralAttribute;
 
 public abstract class VertexIntAttribute : VertexArrayAttribute
 {

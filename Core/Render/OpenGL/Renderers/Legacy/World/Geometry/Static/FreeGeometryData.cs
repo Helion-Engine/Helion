@@ -1,5 +1,5 @@
 ﻿using Helion.World.Static;
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public readonly struct FreeGeometryData
 {

@@ -1,8 +1,8 @@
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Fonts;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.Legacy.Commands.Types;
+namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct DrawTextCommand

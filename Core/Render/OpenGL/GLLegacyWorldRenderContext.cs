@@ -10,11 +10,11 @@ using Helion.Geometry.Vectors;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
-using Helion.Render.Legacy.Commands;
+using Helion.Render.OpenGL.Commands;
 using Helion.World;
 using Helion.World.Impl.SinglePlayer;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.OpenGL;
 
 public class GLLegacyWorldRenderContext : IWorldRenderContext
 {

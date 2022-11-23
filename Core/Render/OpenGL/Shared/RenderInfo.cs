@@ -3,7 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shared;
+namespace Helion.Render.OpenGL.Shared;
 
 /// <summary>
 /// A simple container for render-related information.

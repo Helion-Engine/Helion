@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
+namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 public readonly struct HudQuad
 {

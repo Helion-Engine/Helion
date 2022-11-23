@@ -4,7 +4,7 @@ using Helion.World;
 using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 // TODO: Unused, remove?
 

@@ -3,12 +3,12 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Textures;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using Helion.Resources;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Texture;
+namespace Helion.Render.OpenGL.Texture;
 
 public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 {

@@ -5,11 +5,11 @@ using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Render.Legacy.Buffer.Array.Vertex;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Shared;
-using Helion.Render.Legacy.Vertex;
-using Helion.Render.Legacy.Vertex.Attribute;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Vertex;
+using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
@@ -25,7 +25,7 @@ using Helion.World.Geometry.Lines;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public class LegacyAutomapRenderer : IDisposable
 {

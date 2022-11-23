@@ -1,6 +1,6 @@
 using Helion.Geometry;
 
-namespace Helion.Render.Legacy.Commands;
+namespace Helion.Render.OpenGL.Commands;
 
 /// <summary>
 /// Information when handling resolution.

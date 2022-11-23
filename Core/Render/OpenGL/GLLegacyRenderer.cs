@@ -6,17 +6,17 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using Helion.Render.Legacy.Commands;
-using Helion.Render.Legacy.Commands.Types;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Renderers;
-using Helion.Render.Legacy.Renderers.Legacy.Hud;
-using Helion.Render.Legacy.Renderers.Legacy.World;
-using Helion.Render.Legacy.Shared;
-using Helion.Render.Legacy.Texture;
-using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Render.Legacy.Util;
+using Helion.Render.OpenGL.Commands;
+using Helion.Render.OpenGL.Commands.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.Hud;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -26,7 +26,7 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy;
+namespace Helion.Render.OpenGL;
 
 public class GLLegacyRenderer : ILegacyRenderer
 {

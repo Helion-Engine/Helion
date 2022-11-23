@@ -2,10 +2,10 @@ using System;
 using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 
-namespace Helion.Render.Legacy.Texture.Legacy;
+namespace Helion.Render.OpenGL.Texture.Legacy;
 
 public class GLLegacyImageDrawInfoProvider : IImageDrawInfoProvider
 {

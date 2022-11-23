@@ -1,6 +1,6 @@
 using System;
 
-namespace Helion.Render.Legacy.Context.Types;
+namespace Helion.Render.OpenGL.Context.Types;
 
 [Flags]
 public enum BufferStorageFlagType

@@ -3,16 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Renderers.Legacy.World.Data;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
-using Helion.Render.Legacy.Renderers.Legacy.World.Sky;
-using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
-using Helion.Render.Legacy.Shared;
-using Helion.Render.Legacy.Shared.World;
-using Helion.Render.Legacy.Shared.World.ViewClipping;
-using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Render.Legacy.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Shared.World;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -30,7 +30,7 @@ using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public class GeometryRenderer : IDisposable
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Texture.Legacy;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
+namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 public class HudDrawBufferData
 {

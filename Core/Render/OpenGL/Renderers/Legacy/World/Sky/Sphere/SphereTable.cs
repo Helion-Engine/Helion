@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 /// <summary>
 /// A collection of all the spherical coordinates which map onto a mercator

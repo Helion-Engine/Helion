@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class FreeGeometryManager
 {

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util;
 using Helion.Util.Extensions;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
+namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 /// <summary>
 /// Queues all the hud draw commands and merges ones that use the same

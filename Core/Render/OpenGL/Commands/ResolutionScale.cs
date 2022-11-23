@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Commands;
+namespace Helion.Render.OpenGL.Commands;
 
 /// <summary>
 /// Extra information on scaling a drawn image.

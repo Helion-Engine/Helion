@@ -1,8 +1,8 @@
 using System;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Shared;
 using Helion.World;
 
-namespace Helion.Render.Legacy.Renderers;
+namespace Helion.Render.OpenGL.Renderers;
 
 /// <summary>
 /// Responsible for rendering a world.

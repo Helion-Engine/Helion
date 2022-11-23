@@ -1,10 +1,10 @@
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Shared;
 using Helion.World;
 using Helion.World.Entities;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.Legacy.Commands.Types;
+namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct DrawWorldCommand

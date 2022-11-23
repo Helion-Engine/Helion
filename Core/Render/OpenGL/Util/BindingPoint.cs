@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Util;
+namespace Helion.Render.OpenGL.Util;
 
 /// <summary>
 /// An index for a binding point, which the index is either used for a

@@ -13,7 +13,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shared.World;
+namespace Helion.Render.OpenGL.Shared.World;
 
 public static class WorldTriangulator
 {

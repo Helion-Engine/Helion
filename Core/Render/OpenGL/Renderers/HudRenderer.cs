@@ -2,9 +2,9 @@ using System;
 using System.Drawing;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Fonts;
 
-namespace Helion.Render.Legacy.Renderers;
+namespace Helion.Render.OpenGL.Renderers;
 
 public abstract class HudRenderer : IDisposable
 {

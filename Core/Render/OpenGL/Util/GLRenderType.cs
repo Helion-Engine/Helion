@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Util;
+namespace Helion.Render.OpenGL.Util;
 
 /// <summary>
 /// What kind of renderer we want.

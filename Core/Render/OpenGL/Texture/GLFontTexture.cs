@@ -2,7 +2,7 @@ using System;
 using Helion.Graphics.Fonts;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Texture;
+namespace Helion.Render.OpenGL.Texture;
 
 public class GLFontTexture<GLTextureType> : IDisposable where GLTextureType : GLTexture
 {

@@ -1,7 +1,7 @@
 using System;
 using GlmSharp;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Automap;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public enum AutomapColor
 {

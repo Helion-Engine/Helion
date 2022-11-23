@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 
-namespace Helion.Render.Legacy.Texture.Fonts;
+namespace Helion.Render.OpenGL.Texture.Fonts;
 
 /// <summary>
 /// A single sentence. We define a sentence as a single line of horizontal

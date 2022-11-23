@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Renderers.Legacy.World.Data;
-using Helion.Render.Legacy.Shared.World.ViewClipping;
-using Helion.Render.Legacy.Texture.Legacy;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
@@ -17,7 +17,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Entities;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer
 {

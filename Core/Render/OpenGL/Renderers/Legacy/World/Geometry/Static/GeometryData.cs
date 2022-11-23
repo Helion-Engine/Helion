@@ -1,13 +1,13 @@
-﻿using Helion.Render.Legacy.Buffer.Array.Vertex;
-using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Render.Legacy.Vertex;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Geometry.Static;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public sealed class GeometryData
 {

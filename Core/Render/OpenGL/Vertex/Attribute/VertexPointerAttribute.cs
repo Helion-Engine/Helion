@@ -1,8 +1,8 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Vertex.Attribute;
+namespace Helion.Render.OpenGL.Vertex.Attribute;
 
 public abstract class VertexPointerAttribute : VertexArrayAttribute
 {

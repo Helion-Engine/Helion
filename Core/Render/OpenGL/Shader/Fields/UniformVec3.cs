@@ -1,8 +1,8 @@
 using GlmSharp;
-using Helion.Render.Legacy.Context;
+using Helion.Render.OpenGL.Context;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.Legacy.Shader.Fields;
+namespace Helion.Render.OpenGL.Shader.Fields;
 
 public class UniformVec3 : UniformElement<vec3>
 {

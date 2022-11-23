@@ -2,9 +2,9 @@ using System;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context.Types;
 
-namespace Helion.Render.Legacy.Context;
+namespace Helion.Render.OpenGL.Context;
 
 /// <summary>
 /// A provider of GL functions.

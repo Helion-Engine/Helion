@@ -1,6 +1,6 @@
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context.Types;
 
-namespace Helion.Render.Legacy.Context;
+namespace Helion.Render.OpenGL.Context;
 
 public class GLInfo
 {

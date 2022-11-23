@@ -2,7 +2,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
 
-namespace Helion.Render.Legacy.Shared;
+namespace Helion.Render.OpenGL.Shared;
 
 /// <summary>
 /// A helper class used with calculating the area that a string would take

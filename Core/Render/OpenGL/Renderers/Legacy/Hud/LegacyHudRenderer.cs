@@ -5,21 +5,21 @@ using System.Linq;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
-using Helion.Render.Legacy.Buffer.Array.Vertex;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Shader;
-using Helion.Render.Legacy.Texture;
-using Helion.Render.Legacy.Texture.Fonts;
-using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Render.Legacy.Vertex;
-using Helion.Render.Legacy.Vertex.Attribute;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
+using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.Hud;
+namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 public class LegacyHudRenderer : HudRenderer
 {

@@ -1,8 +1,8 @@
 using System;
-using Helion.Render.Legacy.Renderers.Legacy.World.Sky.Sphere;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+using Helion.Render.OpenGL.Shared;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World.Sky;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 
 /// <summary>
 /// A sky that can be rendered. This might be a skybox, or a sphere to

@@ -1,8 +1,8 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using System.Linq;
 
-namespace Helion.Render.Legacy.Buffer.Array;
+namespace Helion.Render.OpenGL.Buffer.Array;
 
 public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 {

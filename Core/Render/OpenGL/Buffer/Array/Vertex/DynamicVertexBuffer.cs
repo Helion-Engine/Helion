@@ -1,8 +1,8 @@
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Vertex;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Vertex;
 
-namespace Helion.Render.Legacy.Buffer.Array.Vertex;
+namespace Helion.Render.OpenGL.Buffer.Array.Vertex;
 
 public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {

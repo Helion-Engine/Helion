@@ -1,11 +1,11 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
 using Helion.Resources;
 
-namespace Helion.Render.Legacy.Texture.Legacy;
+namespace Helion.Render.OpenGL.Texture.Legacy;
 
 public class GLLegacyTexture : GLTexture
 {

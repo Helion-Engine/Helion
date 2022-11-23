@@ -1,6 +1,6 @@
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Shared.World.ViewClipping;
+namespace Helion.Render.OpenGL.Shared.World.ViewClipping;
 
 /// <summary>
 /// Represents a range of start and end diamond angles.

@@ -6,18 +6,18 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Models;
-using Helion.Render.Legacy.Context;
-using Helion.Render.Legacy.Context.Types;
-using Helion.Render.Legacy.Renderers.Legacy.World.Automap;
-using Helion.Render.Legacy.Renderers.Legacy.World.Data;
-using Helion.Render.Legacy.Renderers.Legacy.World.Entities;
-using Helion.Render.Legacy.Renderers.Legacy.World.Geometry;
-using Helion.Render.Legacy.Shader;
-using Helion.Render.Legacy.Shared;
-using Helion.Render.Legacy.Shared.World.ViewClipping;
-using Helion.Render.Legacy.Texture.Legacy;
-using Helion.Render.Legacy.Vertex;
-using Helion.Render.Legacy.Vertex.Attribute;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Context.Types;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
+using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Vertex;
+using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
@@ -32,7 +32,7 @@ using Helion.World.Physics.Blockmap;
 using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Renderers.Legacy.World;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class LegacyWorldRenderer : WorldRenderer
 {

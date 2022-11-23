@@ -2,7 +2,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using System.Runtime.InteropServices;
 
-namespace Helion.Render.Legacy.Commands.Types;
+namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct ViewportCommand

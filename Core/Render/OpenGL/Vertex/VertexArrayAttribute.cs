@@ -1,7 +1,7 @@
-using Helion.Render.Legacy.Context;
+using Helion.Render.OpenGL.Context;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.Legacy.Vertex;
+namespace Helion.Render.OpenGL.Vertex;
 
 public abstract class VertexArrayAttribute
 {

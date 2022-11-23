@@ -1,4 +1,4 @@
-namespace Helion.Render.Legacy.Renderers.Legacy.World;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public enum RenderObjectType
 {

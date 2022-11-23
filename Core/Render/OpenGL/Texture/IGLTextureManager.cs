@@ -1,7 +1,7 @@
 using Helion.Render.Common.Textures;
-using Helion.Render.Legacy.Shared;
+using Helion.Render.OpenGL.Shared;
 
-namespace Helion.Render.Legacy.Texture;
+namespace Helion.Render.OpenGL.Texture;
 
 /// <summary>
 /// Provides texture retrieval of loaded resources.
