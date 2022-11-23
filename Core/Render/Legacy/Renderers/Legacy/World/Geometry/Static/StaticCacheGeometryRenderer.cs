@@ -12,7 +12,6 @@ using Helion.Render.Legacy.Shared.World;
 using Helion.Render.Legacy.Texture.Legacy;
 using Helion.Render.Legacy.Vertex;
 using Helion.Render.Legacy.Vertex.Attribute;
-using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;

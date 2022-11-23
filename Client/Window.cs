@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.Legacy;
 using Helion.Render.Legacy.Context;
-using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
-using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -128,8 +123,8 @@ public class Window : GameWindow, IWindow
 
         var settings = new NativeWindowSettings
         {
-            Profile = Constants.UseNewRenderer ? ContextProfile.Any : ContextProfile.Core,
-            APIVersion = Constants.UseNewRenderer ? new Version(2, 0) : new Version(3, 3),
+            Profile = ContextProfile.Core,
+            APIVersion = new Version(3, 3),
             Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
@@ -172,8 +167,6 @@ public class Window : GameWindow, IWindow
 
     private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
     {
-        if (Constants.UseNewRenderer)
-            return new GLRenderer(config, this, archiveCollection);
         return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
     }
 
