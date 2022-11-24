@@ -28,7 +28,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL;
 
-public class GLLegacyRenderer : ILegacyRenderer
+public class GLLegacyRenderer : IRenderer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
