@@ -4,6 +4,9 @@ using NLog;
 
 namespace Helion.Util.Timing;
 
+// Fraction is always between [0, 1).
+public readonly record struct TickerInfo(int Ticks, float Fraction);
+
 /// <summary>
 /// Responsible for tracking tick pulses based on time elapsed.
 /// </summary>
@@ -90,7 +93,18 @@ public class Ticker
 
         RemoveExcessTicks(ticks);
 
-        return new TickerInfo(ticks, fraction);
+        // If we notice that our simulation/rendering loop is overflowing, then we do
+        // not want to buffer or else we run into a feedback loop that keeps growing.
+        // In such a case, toss out the extra tick(s), and treat it as a whole new 
+        // timeslice.
+        if (ticks >= 2)
+        {
+            m_tickAccumulation = 0;
+            ticks = 1;
+            fraction = 0;
+        }
+
+        return new(ticks, fraction);
     }
 
     private void RemoveExcessTicks(int ticks)
