@@ -86,6 +86,9 @@ public class StaticDataApplier
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
             line.Back.SetAllWallsDynamic(SectorDynamic.Alpha);
+            world.Blockmap.Link(world, line.Front.Sector);
+            if (line.Front.Sector != line.Back.Sector)
+                world.Blockmap.Link(world, line.Back.Sector);
             return;
         }
 

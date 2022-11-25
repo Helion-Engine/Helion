@@ -204,7 +204,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyWallGeometry(skyVertices, facingSector);
         }
 
-        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
+        // Alpha needs to be rendered last, currently can't be handled statically
+        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex && !side.Middle.Dynamic.HasFlag(SectorDynamic.Alpha))
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true);
