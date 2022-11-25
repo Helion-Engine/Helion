@@ -223,17 +223,17 @@ public class GLRenderer : IRenderer
         });
     }
 
-    private IGLTextureManager CreateTextureManager(GLRenderType renderType, ArchiveCollection archiveCollection)
+    private IGLTextureManager CreateTextureManager(ArchiveCollection archiveCollection)
     {
         return new LegacyGLTextureManager(m_config, archiveCollection);
     }
 
-    private WorldRenderer CreateWorldRenderer(GLRenderType renderType)
+    private WorldRenderer CreateWorldRenderer()
     {
         return new LegacyWorldRenderer(m_config, m_archiveCollection, (LegacyGLTextureManager)m_textureManager);
     }
 
-    private HudRenderer CreateHudRenderer(GLRenderType renderType)
+    private HudRenderer CreateHudRenderer()
     {
         return new LegacyHudRenderer((LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
     }

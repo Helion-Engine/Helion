@@ -1,6 +1,5 @@
 using System;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -28,9 +27,9 @@ public abstract class ShaderComponent : IDisposable
 
     public void AttachAnd(int programId, Action action)
     {
-        gl.AttachShader(programId, ShaderId);
+        GL.AttachShader(programId, ShaderId);
         action.Invoke();
-        gl.DetachShader(programId, ShaderId);
+        GL.DetachShader(programId, ShaderId);
     }
 
     public void Dispose()
@@ -43,19 +42,19 @@ public abstract class ShaderComponent : IDisposable
 
     private void CleanupAndThrowIfCompilationError()
     {
-        gl.GetShader(ShaderId, ShaderParameterType.CompileStatus, out int status);
+        GL.GetShader(ShaderId, ShaderParameter.CompileStatus, out int status);
         if (status == GLHelper.GLTrue)
             return;
 
-        string errorMsg = gl.GetShaderInfoLog(ShaderId);
+        string errorMsg = GL.GetShaderInfoLog(ShaderId);
 
         Dispose();
 
-        throw new ShaderException($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
+        throw new($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
     }
 
     private void ReleaseUnmanagedResources()
     {
-        gl.DeleteShader(ShaderId);
+        GL.DeleteShader(ShaderId);
     }
 }
