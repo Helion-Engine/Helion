@@ -2,6 +2,7 @@ using System;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader.Component;
@@ -9,14 +10,12 @@ namespace Helion.Render.OpenGL.Shader.Component;
 public abstract class ShaderComponent : IDisposable
 {
     protected readonly int ShaderId;
-    protected readonly IGLFunctions gl;
 
-    protected ShaderComponent(IGLFunctions functions, string shaderText)
+    protected ShaderComponent(string shaderText)
     {
-        gl = functions;
-        ShaderId = gl.CreateShader(GetShaderComponentType());
-        gl.ShaderSource(ShaderId, shaderText);
-        gl.CompileShader(ShaderId);
+        ShaderId = GL.CreateShader(GetShaderComponentType());
+        GL.ShaderSource(ShaderId, shaderText);
+        GL.CompileShader(ShaderId);
 
         CleanupAndThrowIfCompilationError();
     }
@@ -40,7 +39,7 @@ public abstract class ShaderComponent : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected abstract ShaderComponentType GetShaderComponentType();
+    protected abstract ShaderType GetShaderComponentType();
 
     private void CleanupAndThrowIfCompilationError()
     {

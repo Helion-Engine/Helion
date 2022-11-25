@@ -30,19 +30,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public bool NeedsUpload => !Uploaded && Count > 0;
     public int TotalBytes => Count * BytesPerElement;
 
-    public IntPtr GetVboArray()
-    {
-        if (m_dataVersion != Data.Version)
-        {
-            m_pinnedArray.Free();
-            m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
-            m_vboArrayPtr = m_pinnedArray.AddrOfPinnedObject();
-            m_dataVersion = Data.Version;
-        }
-
-        return m_vboArrayPtr;
-    }
-
     protected BufferObject(string objectLabel = "")
     {
         BufferId = GL.GenBuffer();
@@ -58,8 +45,20 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     ~BufferObject()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
+    }
+
+    public IntPtr GetVboArray()
+    {
+        if (m_dataVersion != Data.Version)
+        {
+            m_pinnedArray.Free();
+            m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
+            m_vboArrayPtr = m_pinnedArray.AddrOfPinnedObject();
+            m_dataVersion = Data.Version;
+        }
+
+        return m_vboArrayPtr;
     }
 
     public void Add(T element)

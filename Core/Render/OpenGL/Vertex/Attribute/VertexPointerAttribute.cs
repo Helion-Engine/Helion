@@ -1,5 +1,5 @@
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Vertex.Attribute;
@@ -14,14 +14,14 @@ public abstract class VertexPointerAttribute : VertexArrayAttribute
         Normalized = normalized;
     }
 
-    public override void Enable(IGLFunctions gl, int stride, int offset)
+    public override void Enable(int stride, int offset)
     {
         Precondition(stride >= ByteLength(), "Stride is smaller than the length of the VAO element");
         Precondition(offset >= 0 && offset < stride, "Offset relative to stride is wrong");
 
-        gl.VertexAttribPointer(Index, Size, GetAttributePointerType(), Normalized, stride, offset);
-        gl.EnableVertexAttribArray(Index);
+        GL.VertexAttribPointer(Index, Size, GetAttributePointerType(), Normalized, stride, offset);
+        GL.EnableVertexAttribArray(Index);
     }
 
-    protected abstract VertexAttributePointerType GetAttributePointerType();
+    protected abstract VertexAttribPointerType GetAttributePointerType();
 }

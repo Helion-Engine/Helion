@@ -1,5 +1,6 @@
 using Helion.Render.OpenGL.Context;
 using OpenTK.Graphics.OpenGL;
+using System;
 using System.Linq;
 
 namespace Helion.Render.OpenGL.Buffer.Array;
@@ -19,7 +20,11 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 
     protected override void BufferSubData(int index, int length)
     {
-        GL.BufferSubData<T>(GetBufferType(), BytesPerElement * index, BytesPerElement * length, GetVboArray(), BytesPerElement * index);
+        IntPtr offset = new(BytesPerElement * index);
+        int size = BytesPerElement * length;
+        IntPtr ptr = GetVboArray();
+
+        GL.BufferSubData(GetBufferType(), offset, size, ptr);
     }
 
     protected abstract BufferUsageHint GetBufferUsageType();
