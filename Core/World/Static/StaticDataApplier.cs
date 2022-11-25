@@ -155,7 +155,7 @@ public class StaticDataApplier
             }
             else if (sectorDynamic == SectorDynamic.Movement)
             {
-                if (SetDynamicMovement(line, floor, ceiling))
+                if (SetDynamicMovement(world, sector, line, floor, ceiling))
                     continue;
             }
             else if (sectorDynamic == SectorDynamic.TransferHeights)
@@ -189,22 +189,27 @@ public class StaticDataApplier
             line.Back.SetWallsDynamic(lightWalls, SectorDynamic.Light);
     }
 
-    private static bool SetDynamicMovement(Line line, bool floor, bool ceiling)
+    private static bool SetDynamicMovement(WorldBase world, Sector sector, Line line, bool floor, bool ceiling)
     {
+        bool isFloorSky = world.TextureManager.IsSkyTexture(sector.Floor.TextureHandle);
+        bool isCeilingSky = world.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
+
         if (floor && !ceiling)
         {
+            SideTexture types = isFloorSky ? AllWallTypes : MiddleLower;
             if (line.Back != null)
-                line.Back.SetWallsDynamic(MiddleLower, SectorDynamic.Movement);
+                line.Back.SetWallsDynamic(types, SectorDynamic.Movement);
 
-            line.Front.SetWallsDynamic(MiddleLower, SectorDynamic.Movement);
+            line.Front.SetWallsDynamic(types, SectorDynamic.Movement);
             return true;
         }
         else if (!floor && ceiling)
         {
+            SideTexture types = isCeilingSky ? AllWallTypes : MiddleUpper;
             if (line.Back != null)
-                line.Back.SetWallsDynamic(MiddleUpper, SectorDynamic.Movement);
+                line.Back.SetWallsDynamic(types, SectorDynamic.Movement);
 
-            line.Front.SetWallsDynamic(MiddleUpper, SectorDynamic.Movement);
+            line.Front.SetWallsDynamic(types, SectorDynamic.Movement);
             return true;
         }
 

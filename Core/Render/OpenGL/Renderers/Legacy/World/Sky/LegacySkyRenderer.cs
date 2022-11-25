@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -58,31 +59,38 @@ public class LegacySkyRenderer : IDisposable
             m_skyComponentsList[i].Clear();
     }
 
-    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, bool flipSkyTexture)
+    public bool GetOrCreateSky(int? textureHandle, bool flipSkyTexture, [NotNullWhen(true)] out ISkyComponent? sky)
     {
         if (m_skyComponents.Count >= MaxSkyTextures)
-            return;
+        {
+            sky = null;
+            return false;
+        }
 
         textureHandle ??= m_archiveCollection.TextureManager.GetDefaultSkyTexture().Index;
-        
+
         // This is a hack that is used to make us never have collisions. We will
         // eventually do this right in the new renderer.
         int textureHandleLookup = textureHandle.Value;
         if (flipSkyTexture)
             textureHandleLookup += short.MaxValue;
 
-        if (m_skyComponents.TryGetValue(textureHandleLookup, out ISkyComponent? sky))
-        {
-            sky.Add(data, length);
-        }
-        else
-        {
-            ISkyComponent newSky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl,
+        if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
+            return true;
+
+        sky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl,
                 m_textureManager, textureHandle.Value, flipSkyTexture);
-            m_skyComponents[textureHandleLookup] = newSky;
-            m_skyComponentsList.Add(newSky);
-            newSky.Add(data, length);
-        }
+        m_skyComponents[textureHandleLookup] = sky;
+        m_skyComponentsList.Add(sky);
+        return true;
+    }
+
+    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, bool flipSkyTexture)
+    {
+        if (!GetOrCreateSky(textureHandle, flipSkyTexture, out var sky))
+            return;
+
+        sky.Add(data, length);
     }
 
     public void Render(RenderInfo renderInfo)

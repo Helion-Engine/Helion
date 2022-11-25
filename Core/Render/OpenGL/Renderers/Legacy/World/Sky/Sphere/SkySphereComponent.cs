@@ -27,6 +27,7 @@ public class SkySphereComponent : ISkyComponent
     private readonly bool m_flipSkyTexture;
 
     public bool HasGeometry => !m_geometryVbo.Empty;
+    public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
     public SkySphereComponent(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
         IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle, bool flipSkyTexture)

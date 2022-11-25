@@ -1,4 +1,5 @@
 using System;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 
@@ -44,4 +45,6 @@ public interface ISkyComponent : IDisposable
     /// </summary>
     /// <param name="renderInfo">The position for rendering.</param>
     void RenderSky(RenderInfo renderInfo);
+
+    VertexBufferObject<SkyGeometryVertex> Vbo { get; }
 }

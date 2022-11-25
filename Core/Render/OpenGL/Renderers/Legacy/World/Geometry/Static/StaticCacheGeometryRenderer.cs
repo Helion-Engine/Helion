@@ -55,6 +55,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly HashSet<int> m_updatelightSectorsLookup = new();
+    private readonly SkyGeometryManager m_skyGeometry = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -155,7 +156,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             m_geometryRenderer.SetRenderOneSided(line.Front);
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
-            AddSkyWallGeometry(skyVertices, line.Front.Sector);
+            AddSkyGeometry(line.Front, WallLocation.Middle, null, skyVertices, line.Front.Sector, update);
 
             if (sideVertices != null)
             {
@@ -192,16 +193,20 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
+
+            // TODO this is dumb
+            if (skyVertices2 != null)
+                skyVertices = skyVertices2;
+
             SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
-            AddSkyWallGeometry(skyVertices, facingSector);
-            AddSkyWallGeometry(skyVertices2, facingSector);
+            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, facingSector, update);
         }
 
         if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
             SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
-            AddSkyWallGeometry(skyVertices, facingSector);
+            AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, facingSector, update);
         }
 
         // Alpha needs to be rendered last, currently can't be handled statically
@@ -212,10 +217,39 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddSkyWallGeometry(SkyGeometryVertex[]? vertices, Sector sector)
+    private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
+        SkyGeometryVertex[]? vertices, Sector sector, bool update)
     {
-        if (vertices != null)
-            m_skyRenderer.Add(vertices, vertices.Length, sector.SkyTextureHandle, sector.FlipSkyTexture);
+        if (vertices == null)
+            return;
+
+        if (update)
+        {
+            if (side != null)
+                m_skyGeometry.UpdateSide(side, wallLocation, vertices);
+
+            if (plane != null && vertices != null)
+                m_skyGeometry.UpdatePlane(plane, vertices);
+
+            return;
+        }
+
+        if (!m_skyRenderer.GetOrCreateSky(sector.SkyTextureHandle, sector.FlipSkyTexture, out var sky))
+            return;
+
+        int index = sky.Vbo.Count;
+        sky.Add(vertices, vertices.Length);
+
+        if (plane != null && vertices != null)
+        {
+            m_skyGeometry.AddPlane(sky, plane, vertices, index);
+            return;
+        }
+
+        if (side == null)
+            return;
+
+        m_skyGeometry.AddSide(sky, side, wallLocation, vertices, index);
     }
 
     private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible)
@@ -288,6 +322,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_freeManager.Clear();
         m_transferHeightsLookup.Clear();
         m_skyRenderer.Clear();
+        m_skyGeometry.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -298,8 +333,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var plane = floor ? sector.Floor : renderSector.Ceiling;
         m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, out var renderedVertices, out var renderedSkyVertices);
 
-        if (renderedSkyVertices != null)
-            AddSkyPlaneGeometry(renderedSkyVertices, sector);
+        AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sector, update);
 
         if (renderedVertices == null)
             return;
@@ -321,11 +355,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         vertices.AddRange(renderedVertices);
         return;
-    }
-
-    private void AddSkyPlaneGeometry(SkyGeometryVertex[] vertices, Sector sector)
-    {
-        m_skyRenderer.Add(vertices, vertices.Length, sector.SkyTextureHandle, sector.FlipSkyTexture);
     }
 
     public void Render()
@@ -431,38 +460,55 @@ public class StaticCacheGeometryRenderer : IDisposable
         HandleSectorMoveStart(world, plane);
     }
 
-    private static void HandleSectorMoveStart(WorldBase world, SectorPlane plane)
+    private void HandleSectorMoveStart(WorldBase world, SectorPlane plane)
     {
         if (plane.Dynamic.HasFlag(SectorDynamic.Movement))
             return;
 
-        if (plane.StaticData.GeometryData != null)
-        {
-            bool floor = plane.Facing == SectorPlaneFace.Floor;
-            bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
-            StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
-            ClearGeometryVertices(plane.StaticData);
-        }
+        bool floor = plane.Facing == SectorPlaneFace.Floor;
+        bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
+        StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
+        ClearGeometryVertices(plane.StaticData);
+
+        m_skyGeometry.ClearGeometryVertices(plane);
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
             if (line.Front.Upper.IsDynamic)
+            {
                 ClearGeometryVertices(line.Front.Upper.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
+            }
             if (line.Front.Lower.IsDynamic)
+            {
                 ClearGeometryVertices(line.Front.Lower.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Lower);
+            }
             if (line.Front.Middle.IsDynamic)
+            {
                 ClearGeometryVertices(line.Front.Middle.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
+            }
 
             if (line.Back == null)
                 continue;
 
             if (line.Back.Upper.IsDynamic)
+            {
                 ClearGeometryVertices(line.Back.Upper.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
+            }
             if (line.Back.Lower.IsDynamic)
+            {
                 ClearGeometryVertices(line.Back.Lower.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Lower);
+            }
             if (line.Back.Middle.IsDynamic)
+            {
                 ClearGeometryVertices(line.Back.Middle.Static);
+                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
+            }
         }
     }
 
@@ -480,19 +526,16 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void HandleSectorMoveComplete(IWorld world, SectorPlane plane)
     {
-        if (plane.StaticData.GeometryData != null)
-        {
-            StaticDataApplier.ClearSectorDynamicMovement(world, plane);
-            bool floor = plane.Facing == SectorPlaneFace.Floor;
-            m_geometryRenderer.SetBuffer(false);
+        StaticDataApplier.ClearSectorDynamicMovement(world, plane);
+        bool floor = plane.Facing == SectorPlaneFace.Floor;
+        m_geometryRenderer.SetBuffer(false);
 
-            if (floor)
-                m_geometryRenderer.SetRenderFloor(plane);
-            else
-                m_geometryRenderer.SetRenderCeiling(plane);
+        if (floor)
+            m_geometryRenderer.SetRenderFloor(plane);
+        else
+            m_geometryRenderer.SetRenderCeiling(plane);
 
-            AddSectorPlane(plane.Sector, floor, true);
-        }
+        AddSectorPlane(plane.Sector, floor, true);
 
         foreach (var line in plane.Sector.Lines)
             AddLine(line, true);
