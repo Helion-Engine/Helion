@@ -17,7 +17,7 @@ public class GLLegacyRenderableSurfaceContext : IRenderableSurfaceContext
     private readonly GLLegacyWorldRenderContext m_worldRenderContext;
     private Box2I m_viewport;
 
-    internal GLLegacyRenderableSurfaceContext(GLLegacyRenderer renderer, GLLegacySurface surface)
+    internal GLLegacyRenderableSurfaceContext(GLLegacyRenderer renderer, GLSurface surface)
     {
         Surface = surface;
         Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,

@@ -5,7 +5,7 @@ using Helion.Window;
 
 namespace Helion.Render.OpenGL;
 
-public class GLLegacySurface : IRenderableSurface
+public class GLSurface : IRenderableSurface
 {
     public string Name => IRenderableSurface.DefaultName;
     public Dimension Dimension => m_window.Dimension;
@@ -13,7 +13,7 @@ public class GLLegacySurface : IRenderableSurface
     private readonly GLLegacyRenderer m_renderer;
     private readonly GLLegacyRenderableSurfaceContext ctx;
 
-    public GLLegacySurface(IWindow window, GLLegacyRenderer renderer)
+    public GLSurface(IWindow window, GLLegacyRenderer renderer)
     {
         m_window = window;
         m_renderer = renderer;

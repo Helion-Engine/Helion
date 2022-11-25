@@ -64,7 +64,7 @@ public class GLLegacyRenderer : IRenderer
         m_worldRenderer = CreateWorldRenderer(renderType);
         m_hudRenderer = CreateHudRenderer(renderType);
 
-        Default = new GLLegacySurface(window, this);
+        Default = new GLSurface(window, this);
 
         PrintGLInfo(m_capabilities);
         SetGLDebugger();
