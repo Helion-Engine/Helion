@@ -323,6 +323,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferHeightsLookup.Clear();
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
+        m_runtimeGeometry.Clear();
+        m_updatelightSectorsLookup.Clear();
+        m_updateLightSectors.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
