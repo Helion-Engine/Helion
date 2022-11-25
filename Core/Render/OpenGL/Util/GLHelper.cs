@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Extensions;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Util;
@@ -13,6 +15,17 @@ public static class GLHelper
     /// A constant for GL_TRUE.
     /// </summary>
     public const int GLTrue = 1;
+
+    /// <summary>
+    /// Holds a reference to the last registered callback. Required due to
+    /// how the GC works or else we trigger SystemAccessViolations.
+    /// </summary>
+    /// <remarks>
+    /// See: https://stackoverflow.com/questions/16544511/prevent-delegate-from-being-garbage-collected
+    /// See: https://stackoverflow.com/questions/6193711/call-has-been-made-on-garbage-collected-delegate-in-c
+    /// </remarks>
+    private static Action<DebugLevel, string>? LastCallbackReference;
+    private static DebugProc? LastCallbackProcReference;
 
     // Defined in LegacyShader as well
     const int ColorMaps = 32;
@@ -94,5 +107,42 @@ public static class GLHelper
     {
         if (!name.Empty() && capabilities.Version.Supports(4, 3))
             gl.ObjectLabel(type, objectId, name);
+    }
+
+    /// <summary>
+    /// Registers a callback, and stores it so it will not get GC'd.
+    /// </summary>
+    /// <param name="callback">The callback to register with OpenGL.</param>
+    public static void DebugMessageCallback(Action<DebugLevel, string> callback)
+    {
+        if (LastCallbackReference != null)
+        {
+#if DEBUG
+            throw new("Trying to register a debug callback twice");
+#endif
+            return;
+        }
+
+        // If we don't do this, the GC will collect it (since the lambda
+        // below won't) and then we end up with a SystemAccessViolation.
+        // See the docs of this variable for more information.
+        LastCallbackReference = callback;
+        LastCallbackProcReference = (source, type, id, severity, length, message, userParam) =>
+        {
+            switch (severity)
+            {
+            case DebugSeverity.DebugSeverityHigh:
+                callback(DebugLevel.High, Marshal.PtrToStringAnsi(message, length));
+                break;
+            case DebugSeverity.DebugSeverityMedium:
+                callback(DebugLevel.Medium, Marshal.PtrToStringAnsi(message, length));
+                break;
+            case DebugSeverity.DebugSeverityLow:
+                callback(DebugLevel.Low, Marshal.PtrToStringAnsi(message, length));
+                break;
+            }
+        };
+
+        GL.DebugMessageCallback(LastCallbackProcReference, IntPtr.Zero);
     }
 }
