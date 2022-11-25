@@ -106,4 +106,7 @@ public class ConfigRender
 
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);
+
+    [ConfigInfo("Field of view. Default = 90")]
+    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60, 120));
 }

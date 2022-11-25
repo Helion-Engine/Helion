@@ -82,7 +82,8 @@ public class GLLegacyRenderer : IRenderer
     {
         float w = renderInfo.Viewport.Width;
         float h = renderInfo.Viewport.Height * 0.825f;
-        float fovY = (float)MathHelper.ToRadians(63.2);
+        // Default FOV is 63.2. Config default is 90 so we need to convert. (90 - 63.2 = 26.8).
+        float fovY = (float)MathHelper.ToRadians(renderInfo.Config.FieldOfView - 26.8);
 
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
@@ -336,7 +337,7 @@ public class GLLegacyRenderer : IRenderer
         DrawHudImagesIfAnyQueued(viewport);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render);
         m_worldRenderer.Render(cmd.World, m_renderInfo);
     }
 

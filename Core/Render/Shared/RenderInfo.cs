@@ -1,5 +1,7 @@
 using System.Drawing;
 using Helion.Geometry.Vectors;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 
@@ -19,6 +21,7 @@ public class RenderInfo
     public bool DrawAutomap;
     public Vec2I AutomapOffset;
     public double AutomapScale;
+    public ConfigRender Config;
 
     public RenderInfo()
     {
@@ -26,7 +29,7 @@ public class RenderInfo
     }
 
     public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
-        Vec2I automapOffset, double automapScale)
+        Vec2I automapOffset, double automapScale, ConfigRender config)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");
 
@@ -37,6 +40,7 @@ public class RenderInfo
         DrawAutomap = drawAutomap;
         AutomapOffset = automapOffset;
         AutomapScale = automapScale;
+        Config = config;
 
         if (!DrawAutomap)
             LastAutomapOffset = Vec2F.Zero;
