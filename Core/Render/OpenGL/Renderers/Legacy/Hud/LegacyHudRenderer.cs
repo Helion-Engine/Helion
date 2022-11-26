@@ -26,9 +26,9 @@ public class LegacyHudRenderer : HudRenderer
     private static readonly VertexArrayAttributes Attributes = new(
         new VertexPointerFloatAttribute("pos", 0, 3),
         new VertexPointerFloatAttribute("uv", 1, 2),
-        new VertexPointerUnsignedByteAttribute("rgbMultiplier", 3, 4, true),
-        new VertexPointerFloatAttribute("alpha", 4, 1),
-        new VertexPointerFloatAttribute("hasInvulnerability", 5, 1));
+        new VertexPointerUnsignedByteAttribute("rgbMultiplier", 2, 4, true),
+        new VertexPointerFloatAttribute("alpha", 3, 1),
+        new VertexPointerFloatAttribute("hasInvulnerability", 4, 1));
 
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly VertexArrayObject m_vao;
@@ -48,7 +48,6 @@ public class LegacyHudRenderer : HudRenderer
 
     ~LegacyHudRenderer()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 

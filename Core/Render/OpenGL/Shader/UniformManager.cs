@@ -25,6 +25,9 @@ public class UniformManager
             string name = GL.GetActiveUniform(program, i, out _, out _);
             int location = GL.GetUniformLocation(program, name);
             Debug.Assert(location != -1, $"Unable to index shader uniform (index {i}): {name}");
+            Debug.Assert(!m_nameToLocation.ContainsKey(name), $"Trying to add duplicate uniform name: {name}");
+
+            m_nameToLocation[name] = location;
         }
     }
 
