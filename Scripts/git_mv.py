@@ -3,7 +3,7 @@ import re
 import sys
 
 
-EXECUTE_COMMANDS = False
+EXECUTE_COMMANDS = True
 EXPECTED_WORKING_DIR = 'Scripts'
 PREFIX_PATH = '..'
 BRANCH_NAME = 'temp-move-file'
