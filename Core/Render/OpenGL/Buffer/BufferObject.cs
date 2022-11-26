@@ -30,7 +30,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public bool NeedsUpload => !Uploaded && Count > 0;
     public int TotalBytes => Count * BytesPerElement;
 
-    protected BufferObject(string objectLabel = "")
+    protected BufferObject(string objectLabel)
     {
         BufferId = GL.GenBuffer();
 

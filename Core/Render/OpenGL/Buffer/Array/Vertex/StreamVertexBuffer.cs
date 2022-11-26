@@ -6,8 +6,7 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex;
 
 public class StreamVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
-    public StreamVertexBuffer(VertexArrayObject vao, string objectLabel = "") :
-        base(vao, objectLabel)
+    public StreamVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
     {
     }
 

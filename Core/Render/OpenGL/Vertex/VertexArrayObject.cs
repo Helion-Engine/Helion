@@ -11,7 +11,7 @@ public class VertexArrayObject : IDisposable
     public readonly VertexArrayAttributes Attributes;
     private readonly int m_vaoId;
 
-    public VertexArrayObject(VertexArrayAttributes vaoAttributes, string objectLabel = "")
+    public VertexArrayObject(VertexArrayAttributes vaoAttributes, string objectLabel)
     {
         Attributes = vaoAttributes;
 

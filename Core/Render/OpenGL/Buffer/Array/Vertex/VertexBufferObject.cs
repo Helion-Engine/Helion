@@ -9,8 +9,7 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex;
 
 public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : struct
 {
-    public VertexBufferObject(VertexArrayObject vao, string objectLabel = "") : 
-        base(objectLabel)
+    public VertexBufferObject(VertexArrayObject vao, string objectLabel) : base(objectLabel)
     {
         BindAttributes(vao);
     }

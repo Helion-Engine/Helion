@@ -282,8 +282,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AllocateGeometryData(int textureHandle, out GeometryData data)
     {
-        VertexArrayObject vao = new(Attributes);
-        StaticVertexBuffer<LegacyVertex> vbo = new(vao);
+        VertexArrayObject vao = new(Attributes, "VAO: Geometry data");
+        StaticVertexBuffer<LegacyVertex> vbo = new(vao, "VBO: Geometry data");
 
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);

@@ -6,8 +6,7 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex;
 
 public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
-    public DynamicVertexBuffer(VertexArrayObject vao, string objectLabel = "") :
-        base(vao, objectLabel)
+    public DynamicVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
     {
     }
 

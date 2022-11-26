@@ -101,7 +101,7 @@ public static class GLHelper
     [Conditional("DEBUG")]
     public static void ObjectLabel(ObjectLabelIdentifier type, int objectId, string name)
     {
-        if (name != "" && GLCapabilities.Version.Supports(4, 3))
+        if (name != "" && GLExtensions.LabelDebug)
             GL.ObjectLabel(type, objectId, name.Length, name);
     }
 

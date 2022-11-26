@@ -7,7 +7,7 @@ namespace Helion.Render.OpenGL.Buffer.Array;
 
 public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 {
-    protected ArrayBufferObject(string objectLabel = "") : base(objectLabel)
+    protected ArrayBufferObject(string objectLabel) : base(objectLabel)
     {
     }
 

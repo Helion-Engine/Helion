@@ -195,7 +195,7 @@ public class GLRenderer : IRenderer
         // some glDebugControl... setting that changes them all to don't
         // cares if we have already registered a function? See:
         // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-        if (!GLCapabilities.Version.Supports(4, 3) || !m_config.Developer.Render.Debug)
+        if (!GLExtensions.DebugOutput || !m_config.Developer.Render.Debug)
             return;
 
         GL.Enable(EnableCap.DebugOutput);

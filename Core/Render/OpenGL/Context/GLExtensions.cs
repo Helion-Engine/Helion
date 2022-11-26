@@ -6,6 +6,8 @@ namespace Helion.Render.OpenGL.Context;
 public static class GLExtensions
 {
     public static readonly bool TextureFilterAnisotropic;
+    public static readonly bool DebugOutput;
+    public static readonly bool LabelDebug;
     private static readonly HashSet<string> Extensions = new HashSet<string>();
 
     public static int Count => Extensions.Count;
@@ -14,6 +16,8 @@ public static class GLExtensions
     {
         PopulateExtensions();
         TextureFilterAnisotropic = Supports("GL_EXT_texture_filter_anisotropic");
+        DebugOutput = Supports("GL_ARB_debug_output");
+        LabelDebug = Supports("GL_KHR_debug");
     }
 
     public static bool Supports(string extensionName) => Extensions.Contains(extensionName);
