@@ -7,5 +7,4 @@ public interface IGameLayer : IDisposable
 {
     void HandleInput(IConsumableInput input);
     void RunLogic();
-    void OnTick() {}
 }

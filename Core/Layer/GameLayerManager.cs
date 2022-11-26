@@ -274,6 +274,11 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
+    public void OnTick()
+    {
+        // Nothing to tick.
+    }
+
     public void Render(IRenderer renderer)
     {
         renderer.DefaultSurface.Render(ctx =>
