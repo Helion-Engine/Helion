@@ -28,12 +28,11 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
 
-public class Renderer
+public class Renderer : IDisposable
 {
     public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
-
     public readonly IWindow Window;
     public readonly GLSurface Default;
     public readonly LegacyGLTextureManager Textures;
@@ -43,6 +42,7 @@ public class Renderer
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
+    private bool m_disposed;
 
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
 
@@ -65,8 +65,7 @@ public class Renderer
 
     ~Renderer()
     {
-        FailedToDispose(this);
-        ReleaseUnmanagedResources();
+        Dispose(false);
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
@@ -145,12 +144,6 @@ public class Renderer
     public void FlushPipeline()
     {
         GL.Finish();
-    }
-
-    public void Dispose()
-    {
-        ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
     }
 
     private static void PrintGLInfo()
@@ -290,10 +283,21 @@ public class Renderer
         m_hudRenderer.Render(viewport);
     }
 
-    private void ReleaseUnmanagedResources()
+    protected virtual void Dispose(bool disposing)
     {
+        if (m_disposed)
+            return;
+
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
+
+        m_disposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }
