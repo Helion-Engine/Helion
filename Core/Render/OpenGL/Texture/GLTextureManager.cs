@@ -21,7 +21,7 @@ using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.OpenGL.Texture;
 
-public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
+public abstract class GLTextureManager<GLTextureType> : IDisposable
     where GLTextureType : GLTexture
 {
     protected readonly IConfig Config;

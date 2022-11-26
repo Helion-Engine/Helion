@@ -33,6 +33,7 @@ public class Renderer : IDisposable
     public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
+
     public readonly IWindow Window;
     public readonly GLSurface Default;
     public readonly LegacyGLTextureManager Textures;
