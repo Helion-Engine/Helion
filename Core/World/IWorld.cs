@@ -26,6 +26,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
 using Helion.Resources;
+using Helion.World.Static;
 
 namespace Helion.World;
 
@@ -40,6 +41,7 @@ public interface IWorld : IDisposable
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
+    event EventHandler<SideScrollEvent>? SideScrollChanged;
 
     string MapName { get; }
     int Gametick { get; }
@@ -132,6 +134,7 @@ public interface IWorld : IDisposable
     void SetSideTexture(Side side, WallLocation location, int textureHandle);
     void SetPlaneTexture(SectorPlane plane, int textureHandle);
     void SetSectorLightLevel(Sector sector, short lightLevel);
+    void SetSideScroll(Side side, SideTexture textures);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

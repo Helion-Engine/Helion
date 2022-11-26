@@ -13,6 +13,7 @@ using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Blockmap;
 
@@ -129,6 +130,17 @@ public class BlockMap
             block.DynamicSectors.Add(sectorNode);
 
             sector.BlockmapNodes.Add(sectorNode);
+            return GridIterationStatus.Continue;
+        }
+    }
+
+    public void LinkDynamicSide(IWorld world, Side side)
+    {
+        m_blocks.Iterate(side.Line.Segment, BlockLinkFunc);
+
+        GridIterationStatus BlockLinkFunc(Block block)
+        {
+            block.DynamicSides.Add(new LinkableNode<Side>() { Value = side });
             return GridIterationStatus.Continue;
         }
     }

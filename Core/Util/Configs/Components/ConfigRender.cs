@@ -104,6 +104,9 @@ public class ConfigRender
     [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticLights = new(true);
 
+    [ConfigInfo("Update scrolling walls for static rendering.", restartRequired: true)]
+    public readonly ConfigValue<bool> StaticScroll = new(false);
+
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);
 

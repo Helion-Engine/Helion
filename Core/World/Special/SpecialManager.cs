@@ -561,19 +561,19 @@ public class SpecialManager : ITickable, IDisposable
         switch (line.Special.LineSpecialType)
         {
             case ZDoomLineSpecialType.ScrollTextureLeft:
-                AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 * VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
+                AddSpecial(new ScrollSpecial(m_world, line, new Vec2D(line.Args.Arg0 * VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                 break;
             case ZDoomLineSpecialType.ScrollTextureRight:
-                AddSpecial(new ScrollSpecial(line, new Vec2D(line.Args.Arg0 * -VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
+                AddSpecial(new ScrollSpecial(m_world, line, new Vec2D(line.Args.Arg0 * -VisualScrollFactor, 0.0), (ZDoomLineScroll)line.Args.Arg1));
                 break;
             case ZDoomLineSpecialType.ScrollTextureUp:
-                AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 * VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
+                AddSpecial(new ScrollSpecial(m_world, line, new Vec2D(0.0, line.Args.Arg0 * VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                 break;
             case ZDoomLineSpecialType.ScrollTextureDown:
-                AddSpecial(new ScrollSpecial(line, new Vec2D(0.0, line.Args.Arg0 * -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
+                AddSpecial(new ScrollSpecial(m_world, line, new Vec2D(0.0, line.Args.Arg0 * -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1));
                 break;
             case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
-                AddSpecial(new ScrollSpecial(line, new Vec2D(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All));
+                AddSpecial(new ScrollSpecial(m_world, line, new Vec2D(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All));
                 break;
             case ZDoomLineSpecialType.ScrollTextureModel:
                 CreateScrollTextureModel(line);
@@ -723,7 +723,7 @@ public class SpecialManager : ITickable, IDisposable
                 speed = speeds.ScrollSpeed.Value;
             }
 
-            AddSpecial(new ScrollSpecial(line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
+            AddSpecial(new ScrollSpecial(m_world, line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
         }
     }
 

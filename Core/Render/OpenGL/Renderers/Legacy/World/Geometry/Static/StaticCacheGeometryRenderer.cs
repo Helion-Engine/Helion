@@ -1,5 +1,6 @@
 ﻿using GlmSharp;
 using Helion.Bsp.States.Miniseg;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
@@ -27,6 +28,7 @@ using Helion.World.Static;
 using MoreLinq;
 using Newtonsoft.Json.Linq;
 using OpenTK.Graphics.OpenGL;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -51,10 +53,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly HashSet<int> m_updatelightSectorsLookup = new();
+    private readonly List<SideScrollEvent> m_updateScrollSides = new();
+    private readonly HashSet<int> m_updateScrollSidesLookup = new();
     private readonly SkyGeometryManager m_skyGeometry = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
+    private bool m_staticScroll;
     private IWorld? m_world;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
@@ -79,6 +84,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticLights = world.Config.Render.StaticLights;
+        m_staticScroll = world.Config.Render.StaticScroll;
 
         if (!m_staticMode)
             return;
@@ -89,6 +95,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
+        m_world.SideScrollChanged += World_SideScrollChanged;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -301,6 +308,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorLightChanged -= World_SectorLightChanged;
+            m_world.SideScrollChanged -= World_SideScrollChanged;
             m_world = null;
         }
 
@@ -319,6 +327,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_runtimeGeometry.Clear();
         m_updatelightSectorsLookup.Clear();
         m_updateLightSectors.Clear();
+        m_updateScrollSides.Clear();
+        m_updateScrollSidesLookup.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -372,35 +382,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_runtimeGeometryTextures.Clear();
         }
 
-        if (m_updateLightSectors.Count > 0)
-        {
-            foreach (var sector in m_updateLightSectors)
-            {
-                short level = sector.LightLevel;
-                UpdateLightVertices(sector.Floor.StaticData, level);
-                UpdateLightVertices(sector.Ceiling.StaticData, level);
-                for (int i = 0; i < sector.Lines.Count; i++)
-                {
-                    var line = sector.Lines[i];
-                    if (line.Front.Sector.Id == sector.Id)
-                    {
-                        UpdateLightVertices(line.Front.Upper.Static, level);
-                        UpdateLightVertices(line.Front.Lower.Static, level);
-                        UpdateLightVertices(line.Front.Middle.Static, level);
-                    }
-
-                    if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                    {
-                        UpdateLightVertices(line.Back.Upper.Static, level);
-                        UpdateLightVertices(line.Back.Lower.Static, level);
-                        UpdateLightVertices(line.Back.Middle.Static, level);
-                    }
-                }
-            }
-
-            m_updateLightSectors.Clear();
-            m_updatelightSectorsLookup.Clear();
-        }
+        UpdateLights();
+        UpdateScroll();
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
@@ -410,6 +393,63 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
+    }
+
+    private void UpdateScroll()
+    {
+        if (m_updateScrollSides.Count == 0)
+            return;
+
+        for (int i = 0; i < m_updateScrollSides.Count; i++)
+        {
+            var scroll = m_updateScrollSides[i];
+            var side = scroll.Side;
+            if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
+                continue;
+
+            if (scroll.Textures.HasFlag(SideTexture.Upper));
+                UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
+            if (scroll.Textures.HasFlag(SideTexture.Lower))
+                UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);
+            if (scroll.Textures.HasFlag(SideTexture.Middle))
+                UpdateOffsetVertices(side.Middle.Static, side, SideTexture.Middle);
+        }
+
+        m_updateScrollSides.Clear();
+        m_updateScrollSidesLookup.Clear();
+    }
+
+    private void UpdateLights()
+    {
+        if (m_updateLightSectors.Count == 0)
+            return;
+
+        foreach (var sector in m_updateLightSectors)
+        {
+            short level = sector.LightLevel;
+            UpdateLightVertices(sector.Floor.StaticData, level);
+            UpdateLightVertices(sector.Ceiling.StaticData, level);
+            for (int i = 0; i < sector.Lines.Count; i++)
+            {
+                var line = sector.Lines[i];
+                if (line.Front.Sector.Id == sector.Id)
+                {
+                    UpdateLightVertices(line.Front.Upper.Static, level);
+                    UpdateLightVertices(line.Front.Lower.Static, level);
+                    UpdateLightVertices(line.Front.Middle.Static, level);
+                }
+
+                if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                {
+                    UpdateLightVertices(line.Back.Upper.Static, level);
+                    UpdateLightVertices(line.Back.Lower.Static, level);
+                    UpdateLightVertices(line.Back.Middle.Static, level);
+                }
+            }
+        }
+
+        m_updateLightSectors.Clear();
+        m_updatelightSectorsLookup.Clear();
     }
 
     public void RenderSkies(RenderInfo renderInfo)
@@ -566,6 +606,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Add(e);
     }
 
+    private void World_SideScrollChanged(object? sender, SideScrollEvent e)
+    {
+        if (!m_staticScroll)
+            return;
+
+        if (m_updateScrollSidesLookup.Contains(e.Side.Id))
+            return;
+
+        m_updateScrollSidesLookup.Add(e.Side.Id);
+        m_updateScrollSides.Add(e);
+    }
+
     private static void ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
@@ -651,6 +703,68 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         data.GeometryData.Vbo.Bind();
         data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private static void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
+    {
+        if (data.GeometryData == null)
+            return;
+
+        WallUV uv = GetSideUV(data, side, texture);
+        var geometryData = data.GeometryData;
+        int index = data.GeometryDataStartIndex;
+        //TopLeft
+        geometryData.Vbo.Data.Data[index].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index].V = uv.TopLeft.Y;
+        //BottomLeft
+        geometryData.Vbo.Data.Data[index + 1].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index + 1].V = uv.BottomRight.Y;
+        //TopRight
+        geometryData.Vbo.Data.Data[index + 2].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 2].V = uv.TopLeft.Y;
+        //TopRight
+        geometryData.Vbo.Data.Data[index + 3].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 3].V = uv.TopLeft.Y;
+        //BottomLeft
+        geometryData.Vbo.Data.Data[index + 4].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index + 4].V = uv.BottomRight.Y;
+        //BottomRight
+        geometryData.Vbo.Data.Data[index + 5].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 5].V = uv.BottomRight.Y;
+
+        data.GeometryData.Vbo.Bind();
+        data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private static WallUV GetSideUV(in StaticGeometryData data, Side side, SideTexture texture)
+    {
+        double length = side.Line.GetLength();
+        if (side.Line.OneSided)
+        {
+            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+        }
+
+        Side otherSide = side.PartnerSide!;
+        Sector facingSector = side.Sector;
+        Sector otherSector = otherSide.Sector;
+
+        WallUV uv;
+        switch (texture)
+        {
+            case SideTexture.Upper:
+                uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
+                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, 0);
+                break;
+            case SideTexture.Lower:
+                uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
+                    otherSector.Floor.Z, facingSector.Floor.Z, 0);
+                break;
+            default:
+                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+                break;
+        }
+
+        return uv;
     }
 
     private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)

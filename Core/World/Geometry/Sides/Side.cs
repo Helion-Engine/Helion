@@ -35,6 +35,7 @@ public class Side : IRenderObject
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
+    public int BlockmapCount;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {

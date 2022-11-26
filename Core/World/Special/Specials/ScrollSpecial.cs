@@ -7,6 +7,7 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Static;
 using System.Linq;
 
 namespace Helion.World.Special.Specials;
@@ -26,15 +27,18 @@ public class ScrollSpecial : ISpecial
 
     public bool OverrideEquals => true;
 
+    private readonly IWorld m_world;
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
+    private readonly SideTexture m_sideTextures;
     private readonly bool m_scrollLineFront;
     private Vec2D m_speed;
 
-    public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null,
+    public ScrollSpecial(IWorld world, Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
+        m_world = world;
         m_type = ScrollType.Scroll;
         m_speed = speed;
         Line = line;
@@ -42,6 +46,20 @@ public class ScrollSpecial : ISpecial
             m_lineScroll = ZDoomLineScroll.All;
         else
             m_lineScroll = scroll;
+
+        if (m_lineScroll == ZDoomLineScroll.All)
+        {
+            m_sideTextures = SideTexture.Upper | SideTexture.Lower | SideTexture.Middle;
+        }
+        else
+        {
+            if (m_lineScroll.HasFlag(ZDoomLineScroll.UpperTexture))
+                m_sideTextures |= SideTexture.Upper;
+            if (m_lineScroll.HasFlag(ZDoomLineScroll.LowerTexture))
+                m_sideTextures |= SideTexture.Lower;
+            if (m_lineScroll.HasFlag(ZDoomLineScroll.MiddleTexture))
+                m_sideTextures |= SideTexture.Middle;
+        }
 
         m_scrollLineFront = front;
         if (m_scrollLineFront)
@@ -67,8 +85,8 @@ public class ScrollSpecial : ISpecial
             SectorPlane.CreateScrollData();
     }
 
-    public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
-        : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, model.Front, accelSector, (ZDoomScroll)model.ScrollFlags)
+    public ScrollSpecial(IWorld world, Line line, Sector? accelSector, ScrollSpecialModel model)
+        : this(world, line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, model.Front, accelSector, (ZDoomScroll)model.ScrollFlags)
     {
 
     }
@@ -163,11 +181,13 @@ public class ScrollSpecial : ISpecial
         {
             Scroll(line.Front.ScrollData!, speed);
             line.Front.OffsetChanged = true;
+            m_world.SetSideScroll(Line.Front, m_sideTextures);
         }
         else if (line.Back != null)
         {
             Scroll(line.Back.ScrollData!, speed);
             line.Back.OffsetChanged = true;
+            m_world.SetSideScroll(Line.Back, m_sideTextures);
         }
     }
 
