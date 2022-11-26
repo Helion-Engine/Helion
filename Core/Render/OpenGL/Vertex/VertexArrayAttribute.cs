@@ -9,6 +9,8 @@ public abstract class VertexArrayAttribute
     public readonly int Index;
     public readonly int Size;
 
+    public abstract int ByteLength { get; }
+
     protected VertexArrayAttribute(string name, int index, int size)
     {
         Precondition(name.Length > 0, "Cannot have an empty VAO attribute name");
@@ -19,8 +21,6 @@ public abstract class VertexArrayAttribute
         Index = index;
         Size = size;
     }
-
-    public abstract int ByteLength();
 
     public abstract void Enable(int stride, int offset);
 }

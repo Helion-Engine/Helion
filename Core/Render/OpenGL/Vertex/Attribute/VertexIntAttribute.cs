@@ -12,7 +12,7 @@ public abstract class VertexIntAttribute : VertexArrayAttribute
 
     public override void Enable(int stride, int offset)
     {
-        Precondition(stride >= ByteLength(), "Stride is smaller than the length of the VAO element");
+        Precondition(stride >= ByteLength, "Stride is smaller than the length of the VAO element");
         Precondition(offset >= 0 && offset < stride, "Offset relative to stride is wrong");
 
         GL.VertexAttribIPointer(Index, Size, GetAttributeType(), stride, new(offset));

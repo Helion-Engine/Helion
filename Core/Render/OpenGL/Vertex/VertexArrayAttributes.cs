@@ -5,16 +5,15 @@ namespace Helion.Render.OpenGL.Vertex;
 
 public class VertexArrayAttributes
 {
-    public VertexArrayAttribute[] AttributesArray;
-    public int Stride;
+    public readonly VertexArrayAttribute[] AttributesArray;
+    public readonly int Stride;
 
-    public VertexArrayAttributes(params VertexArrayAttribute[] vaoAttributes)
+    public VertexArrayAttributes(params VertexArrayAttribute[] attributes)
     {
-        Precondition(vaoAttributes.Length > 0, "Cannot have a VAO with no attributes");
+        Precondition(attributes.Length > 0, "Cannot have a VAO with no attributes");
 
-        AttributesArray = vaoAttributes;
-        Stride = 0;
-        for (int i = 0; i < vaoAttributes.Length; i++)
-            Stride += vaoAttributes[i].ByteLength();
+        AttributesArray = attributes;
+        for (int i = 0; i < attributes.Length; i++)
+            Stride += attributes[i].ByteLength;
     }
 }
