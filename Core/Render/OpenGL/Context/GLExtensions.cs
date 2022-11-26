@@ -1,33 +1,31 @@
+using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Context.Types;
 
 namespace Helion.Render.OpenGL.Context;
 
-public class GLExtensions
+public static class GLExtensions
 {
-    public readonly bool TextureFilterAnisotropic;
-    public readonly bool BindlessTextures;
-    public readonly bool GpuShader5;
-    public readonly bool ShaderImageLoadStore;
-    private readonly HashSet<string> m_extensions = new HashSet<string>();
+    public static readonly bool TextureFilterAnisotropic;
+    public static readonly bool DebugOutput;
+    public static readonly bool LabelDebug;
+    private static readonly HashSet<string> Extensions = new HashSet<string>();
 
-    public int Count => m_extensions.Count;
+    public static int Count => Extensions.Count;
 
-    public GLExtensions(IGLFunctions functions)
+    static GLExtensions()
     {
-        PopulateExtensions(functions);
+        PopulateExtensions();
         TextureFilterAnisotropic = Supports("GL_EXT_texture_filter_anisotropic");
-        BindlessTextures = Supports("GL_ARB_bindless_texture");
-        GpuShader5 = Supports("GL_NV_gpu_shader5");
-        ShaderImageLoadStore = Supports("GL_ARB_shader_image_load_store");
+        DebugOutput = Supports("GL_ARB_debug_output");
+        LabelDebug = Supports("GL_KHR_debug");
     }
 
-    public bool Supports(string extensionName) => m_extensions.Contains(extensionName);
+    public static bool Supports(string extensionName) => Extensions.Contains(extensionName);
 
-    private void PopulateExtensions(IGLFunctions gl)
+    private static void PopulateExtensions()
     {
-        int count = gl.GetInteger(GetIntegerType.NumExtensions);
+        int count = GL.GetInteger(GetPName.NumExtensions);
         for (var i = 0; i < count; i++)
-            m_extensions.Add(gl.GetString(GetStringType.Extensions, i));
+            Extensions.Add(GL.GetString(StringName.Extensions, i));
     }
 }

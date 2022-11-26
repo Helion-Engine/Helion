@@ -1,14 +1,13 @@
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Buffer.Array;
 
 public class StaticArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 {
-    public StaticArrayBuffer(GLCapabilities capabilities, IGLFunctions functions, string objectLabel = "") :
-        base(capabilities, functions, objectLabel)
+    public StaticArrayBuffer(string objectLabel) : base(objectLabel)
     {
     }
 
-    protected override BufferUsageType GetBufferUsageType() => BufferUsageType.StaticDraw;
+    protected override BufferUsageHint GetBufferUsageType() => BufferUsageHint.StaticDraw;
 }

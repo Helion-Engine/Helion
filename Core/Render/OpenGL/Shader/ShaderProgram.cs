@@ -2,34 +2,32 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader.Fields;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.OpenGL.Vertex;
 using MoreLinq.Extensions;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader;
 
 public class ShaderProgram : IDisposable
 {
-    private readonly IGLFunctions gl;
-    private readonly int m_programId;
+    private readonly int m_program;
 
-    public ShaderProgram(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes)
+    public ShaderProgram(ShaderBuilder builder, VertexArrayAttributes attributes)
     {
-        gl = functions;
-        m_programId = gl.CreateProgram();
+        m_program = GL.CreateProgram();
 
-        builder.Vertex.AttachAnd(m_programId, () =>
+        builder.Vertex.AttachAnd(m_program, () =>
         {
-            builder.Fragment.AttachAnd(m_programId, () =>
+            builder.Fragment.AttachAnd(m_program, () =>
             {
                 // TODO: This will cause us to not detach if any throw.
                 for (int i = 0; i < attributes.AttributesArray.Length; i++)
                 {
                     var attr = attributes.AttributesArray[i];
-                    gl.BindAttribLocation(m_programId, attr.Index, attr.Name);
+                    GL.BindAttribLocation(m_program, attr.Index, attr.Name);
                 }
                 LinkProgramOrThrow();
                 AssertAttributesMatch(attributes);
@@ -47,12 +45,12 @@ public class ShaderProgram : IDisposable
 
     public void Bind()
     {
-        gl.UseProgram(m_programId);
+        GL.UseProgram(m_program);
     }
 
     public void Unbind()
     {
-        gl.UseProgram(0);
+        GL.UseProgram(0);
     }
 
     public void Dispose()
@@ -69,18 +67,18 @@ public class ShaderProgram : IDisposable
     [Conditional("DEBUG")]
     private void AssertAttributesMatch(VertexArrayAttributes attributes)
     {
-        gl.GetProgram(m_programId, GetProgramParameterType.ActiveAttributes, out int numAttributes);
+        GL.GetProgram(m_program, GetProgramParameterName.ActiveAttributes, out int numAttributes);
         Invariant(numAttributes == attributes.AttributesArray.Length, "Attribute mismatch, shader attributes do not match VAO attribute size (did you forget some? or not remove some?)");
     }
 
     private void IndexUniformsOrThrow()
     {
-        gl.GetProgram(m_programId, GetProgramParameterType.ActiveUniforms, out int numUniforms);
+        GL.GetProgram(m_program, GetProgramParameterName.ActiveUniforms, out int numUniforms);
 
         for (int uniformIndex = 0; uniformIndex < numUniforms; uniformIndex++)
         {
-            string name = gl.GetActiveUniform(m_programId, uniformIndex, out _, out _);
-            int location = gl.GetUniformLocation(m_programId, name);
+            string name = GL.GetActiveUniform(m_program, uniformIndex, out _, out _);
+            int location = GL.GetUniformLocation(m_program, name);
             Invariant(location != -1, $"Unable to index shader uniform {name}");
 
             FindAndSetUniformFieldIndexOrThrow(name, location);
@@ -111,27 +109,27 @@ public class ShaderProgram : IDisposable
                 uniformVec3.Location = location;
                 return;
             default:
-                throw new ShaderException($"Unexpected uniform type for uniform '{name}' in class '{GetType().Name}' with field '{field.Name}'");
+                throw new($"Unexpected uniform type for uniform '{name}' in class '{GetType().Name}' with field '{field.Name}'");
             }
         }
 
-        throw new ShaderException($"Encountered uniform '{name}' which has no backing field in the class: {GetType().Name}");
+        throw new($"Encountered uniform '{name}' which has no backing field in the class: {GetType().Name}");
     }
 
     private void LinkProgramOrThrow()
     {
-        gl.LinkProgram(m_programId);
+        GL.LinkProgram(m_program);
 
-        gl.GetProgram(m_programId, GetProgramParameterType.LinkStatus, out var status);
+        GL.GetProgram(m_program, GetProgramParameterName.LinkStatus, out var status);
         if (status == GLHelper.GLTrue)
             return;
 
-        string errorMsg = gl.GetProgramInfoLog(m_programId);
-        throw new ShaderException($"Error linking shader: {errorMsg}");
+        string errorMsg = GL.GetProgramInfoLog(m_program);
+        throw new($"Error linking shader: {errorMsg}");
     }
 
     private void ReleaseUnmanagedResources()
     {
-        gl.DeleteProgram(m_programId);
+        GL.DeleteProgram(m_program);
     }
 }

@@ -17,12 +17,12 @@ public class LegacyShader : ShaderProgram
     public readonly UniformFloat LightLevelMix = new();
     public readonly UniformInt ExtraLight = new();
 
-    public LegacyShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
-        base(functions, builder, attributes)
+    public LegacyShader( ShaderBuilder builder, VertexArrayAttributes attributes) :
+        base(builder, attributes)
     {
     }
 
-    public static ShaderBuilder MakeBuilder(IGLFunctions functions)
+    public static ShaderBuilder MakeBuilder()
     {
         const string vertexShaderText = @"
             #version 130
@@ -163,8 +163,8 @@ public class LegacyShader : ShaderProgram
             }
         ";
 
-        VertexShaderComponent vertexShaderComponent = new(functions, vertexShaderText);
-        FragmentShaderComponent fragmentShaderComponent = new(functions, fragmentShaderText);
-        return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
+        VertexShaderComponent vertexShaderComponent = new(vertexShaderText);
+        FragmentShaderComponent fragmentShaderComponent = new(fragmentShaderText);
+        return new(vertexShaderComponent, fragmentShaderComponent);
     }
 }

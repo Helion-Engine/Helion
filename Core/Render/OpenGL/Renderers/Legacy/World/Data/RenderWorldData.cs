@@ -13,16 +13,15 @@ public class RenderWorldData : IDisposable
     public readonly StreamVertexBuffer<LegacyVertex> Vbo;
     public readonly VertexArrayObject Vao;
 
-    public RenderWorldData(GLCapabilities capabilities, IGLFunctions functions, GLLegacyTexture texture)
+    public RenderWorldData(GLLegacyTexture texture)
     {
         Texture = texture;
-        Vao = new VertexArrayObject(capabilities, functions, LegacyWorldRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
-        Vbo = new StreamVertexBuffer<LegacyVertex>(capabilities, functions, Vao, $"VBO: Geometry for {texture.Name}");
+        Vao = new VertexArrayObject(LegacyWorldRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
+        Vbo = new StreamVertexBuffer<LegacyVertex>(Vao, $"VBO: Geometry for {texture.Name}");
     }
 
     ~RenderWorldData()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 

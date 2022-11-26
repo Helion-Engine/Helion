@@ -9,7 +9,6 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -40,33 +39,25 @@ public class GLRenderer : IRenderer
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
     internal readonly ArchiveCollection m_archiveCollection;
-    private readonly GLCapabilities m_capabilities;
-    private readonly IGLFunctions gl;
-    private readonly IGLTextureManager m_textureManager;
+    private readonly LegacyGLTextureManager m_textureManager;
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-    public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
-        FpsTracker fpsTracker)
+    public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
         Window = window;
-        gl = functions;
-        m_capabilities = new GLCapabilities(functions);
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
-
-        GLRenderType renderType = GetRenderTypeFromCapabilities();
-        m_textureManager = CreateTextureManager(renderType, archiveCollection);
-        m_worldRenderer = CreateWorldRenderer(renderType);
-        m_hudRenderer = CreateHudRenderer(renderType);
-
+        m_textureManager = new LegacyGLTextureManager(m_config, archiveCollection);
+        m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, m_textureManager);
+        m_hudRenderer = new LegacyHudRenderer(m_textureManager, archiveCollection.DataCache);
         Default = new GLSurface(window, this);
 
-        PrintGLInfo(m_capabilities);
+        PrintGLInfo();
         SetGLDebugger();
         SetGLStates();
         WarnForInvalidStates(config);
@@ -150,7 +141,7 @@ public class GLRenderer : IRenderer
     public void PerformThrowableErrorChecks()
     {
         if (m_config.Developer.Render.Debug)
-            GLHelper.AssertNoGLError(gl);
+            GLHelper.AssertNoGLError();
     }
 
     public void FlushPipeline()
@@ -164,37 +155,36 @@ public class GLRenderer : IRenderer
         GC.SuppressFinalize(this);
     }
 
-    private static void PrintGLInfo(GLCapabilities capabilities)
+    private static void PrintGLInfo()
     {
         if (InfoPrinted)
             return;
 
-        Log.Info("OpenGL v{0}", capabilities.Version);
-        Log.Info("OpenGL Shading Language: {0}", capabilities.Info.ShadingVersion);
-        Log.Info("OpenGL Vendor: {0}", capabilities.Info.Vendor);
-        Log.Info("OpenGL Hardware: {0}", capabilities.Info.Renderer);
-        Log.Info("OpenGL Extensions: {0}", capabilities.Extensions.Count);
+        Log.Info("OpenGL v{0}", GLCapabilities.Version);
+        Log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
+        Log.Info("OpenGL Vendor: {0}", GLInfo.Vendor);
+        Log.Info("OpenGL Hardware: {0}", GLInfo.Renderer);
+        Log.Info("OpenGL Extensions: {0}", GLExtensions.Count);
 
         InfoPrinted = true;
     }
 
     private void SetGLStates()
     {
-        gl.Enable(EnableType.DepthTest);
+        GL.Enable(EnableCap.DepthTest);
 
         if (m_config.Render.Multisample > 1)
-            gl.Enable(EnableType.Multisample);
+            GL.Enable(EnableCap.Multisample);
 
-        if (m_capabilities.Version.Supports(3, 2))
-            gl.Enable(EnableType.TextureCubeMapSeamless);
+        GL.Enable(EnableCap.TextureCubeMapSeamless);
 
-        gl.Enable(EnableType.Blend);
-        gl.BlendFunc(BlendingFactorType.SrcAlpha, BlendingFactorType.OneMinusSrcAlpha);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        gl.Enable(EnableType.CullFace);
-        gl.FrontFace(FrontFaceType.CounterClockwise);
-        gl.CullFace(CullFaceType.Back);
-        gl.PolygonMode(PolygonFaceType.FrontAndBack, PolygonModeType.Fill);
+        GL.Enable(EnableCap.CullFace);
+        GL.FrontFace(FrontFaceDirection.Ccw);
+        GL.CullFace(CullFaceMode.Back);
+        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
     }
 
     [Conditional("DEBUG")]
@@ -205,26 +195,26 @@ public class GLRenderer : IRenderer
         // some glDebugControl... setting that changes them all to don't
         // cares if we have already registered a function? See:
         // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-        if (!m_capabilities.Version.Supports(4, 3) || !m_config.Developer.Render.Debug)
+        if (!GLExtensions.DebugOutput || !m_config.Developer.Render.Debug)
             return;
 
-        gl.Enable(EnableType.DebugOutput);
-        gl.Enable(EnableType.DebugOutputSynchronous);
+        GL.Enable(EnableCap.DebugOutput);
+        GL.Enable(EnableCap.DebugOutputSynchronous);
 
         // TODO: We should filter messages we want to get since this could
         //       pollute us with lots of messages and we wouldn't know it.
         //       https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-        gl.DebugMessageCallback((level, message) =>
+        GLHelper.DebugMessageCallback((level, message) =>
         {
-            switch (level)
+            switch (level.Ordinal)
             {
-            case DebugLevel.Low:
+            case 2:
                 Log.Warn("OpenGL minor issue: {0}", message);
                 return;
-            case DebugLevel.Medium:
+            case 3:
                 Log.Error("OpenGL warning: {0}", message);
                 return;
-            case DebugLevel.High:
+            case 4:
                 Log.Error("OpenGL major error: {0}", message);
                 return;
             default:
@@ -233,72 +223,20 @@ public class GLRenderer : IRenderer
         });
     }
 
-    private GLRenderType GetRenderTypeFromCapabilities()
-    {
-        if (m_capabilities.Version.Supports(3, 1))
-        {
-            Log.Info("Using legacy OpenGL renderer");
-            return GLRenderType.Legacy;
-        }
-
-        throw new HelionException("OpenGL implementation too old or not supported");
-    }
-
-    private IGLTextureManager CreateTextureManager(GLRenderType renderType, ArchiveCollection archiveCollection)
-    {
-        switch (renderType)
-        {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            return new LegacyGLTextureManager(m_config, m_capabilities, gl, archiveCollection);
-        }
-    }
-
-    private WorldRenderer CreateWorldRenderer(GLRenderType renderType)
-    {
-        switch (renderType)
-        {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            return new LegacyWorldRenderer(m_config, m_archiveCollection, m_capabilities, gl, (LegacyGLTextureManager)m_textureManager);
-        }
-    }
-
-    private HudRenderer CreateHudRenderer(GLRenderType renderType)
-    {
-        switch (renderType)
-        {
-        case GLRenderType.Modern:
-            throw new NotImplementedException("Modern GL renderer not implemented yet");
-        case GLRenderType.Standard:
-            throw new NotImplementedException("Standard GL renderer not implemented yet");
-        default:
-            Precondition(m_textureManager is LegacyGLTextureManager, "Created wrong type of texture manager (should be legacy)");
-            return new LegacyHudRenderer(m_capabilities, gl, (LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
-        }
-    }
-
     private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
-        gl.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+        GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
 
-        ClearType clearMask = 0;
+        ClearBufferMask clearMask = 0;
         if (clearRenderCommand.Color)
-            clearMask |= ClearType.ColorBufferBit;
+            clearMask |= ClearBufferMask.ColorBufferBit;
         if (clearRenderCommand.Depth)
-            clearMask |= ClearType.DepthBufferBit;
+            clearMask |= ClearBufferMask.DepthBufferBit;
         if (clearRenderCommand.Stencil)
-            clearMask |= ClearType.StencilBufferBit;
+            clearMask |= ClearBufferMask.StencilBufferBit;
 
-        gl.Clear(clearMask);
+        GL.Clear(clearMask);
     }
 
     private void HandleDrawImage(DrawImageCommand cmd)
@@ -347,7 +285,7 @@ public class GLRenderer : IRenderer
         Dimension dimension = viewportCommand.Dimension;
         viewport = new Rectangle(offset.X, offset.Y, dimension.Width, dimension.Height);
 
-        gl.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
+        GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
     }
 
     private void DrawHudImagesIfAnyQueued(Rectangle viewport)

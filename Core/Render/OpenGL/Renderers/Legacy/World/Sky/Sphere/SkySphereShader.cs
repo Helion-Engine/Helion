@@ -14,12 +14,12 @@ public class SkySphereShader : ShaderProgram
     public readonly UniformFloat ScaleU = new();
     public readonly UniformInt FlipU = new();
 
-    public SkySphereShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
-        base(functions, builder, attributes)
+    public SkySphereShader(ShaderBuilder builder, VertexArrayAttributes attributes) :
+        base(builder, attributes)
     {
     }
 
-    public static ShaderBuilder MakeBuilder(IGLFunctions functions)
+    public static ShaderBuilder MakeBuilder()
     {
         const string vertexShaderText = @"
             #version 130
@@ -67,8 +67,8 @@ public class SkySphereShader : ShaderProgram
             }
         ";
 
-        VertexShaderComponent vertexShaderComponent = new VertexShaderComponent(functions, vertexShaderText);
-        FragmentShaderComponent fragmentShaderComponent = new FragmentShaderComponent(functions, fragmentShaderText);
-        return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
+        VertexShaderComponent vertexShaderComponent = new(vertexShaderText);
+        FragmentShaderComponent fragmentShaderComponent = new(fragmentShaderText);
+        return new(vertexShaderComponent, fragmentShaderComponent);
     }
 }

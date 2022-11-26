@@ -3,13 +3,13 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture.Legacy;
@@ -18,13 +18,10 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 {
     public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
-    public LegacyGLTextureManager(IConfig config, GLCapabilities capabilities, IGLFunctions functions,
-        ArchiveCollection archiveCollection)
-        : base(config, capabilities, functions, archiveCollection)
+    public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) : 
+        base(config, archiveCollection)
     {
         ImageDrawInfoProvider = new GLLegacyImageDrawInfoProvider(this);
-
-        // TODO: Listen for config changes to filtering/anisotropic.
     }
 
     ~LegacyGLTextureManager()
@@ -35,29 +32,28 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace)
     {
-        Precondition(image.Bitmap.PixelFormat == PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
+        Precondition(image.Bitmap.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
 
-        gl.BindTexture(texture.TextureType, texture.TextureId);
+        GL.BindTexture(texture.Target, texture.TextureId);
 
-        GLHelper.ObjectLabel(gl, Capabilities, ObjectLabelType.Texture, texture.TextureId, "Texture: " + name);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, "Texture: " + name);
 
         var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
         var lockMode = ImageLockMode.ReadOnly;
-        var format = PixelFormat.Format32bppArgb;
+        var format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
         var bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
 
         // Because the C# image format is 'ARGB', we can get it into the
         // RGBA format by doing a BGRA format and then reversing it.
-        gl.TexImage2D(texture.TextureType, 0, PixelInternalFormatType.Rgba8, image.Dimension,
-            PixelFormatType.Bgra, PixelDataType.UnsignedInt8888Rev, bitmapData.Scan0);
+        GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, 
+            OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, bitmapData.Scan0);
 
         image.Bitmap.UnlockBits(bitmapData);
 
-        Invariant(texture.TextureType == TextureTargetType.Texture2D, "Need to support non-2D textures for mipmapping");
-        gl.GenerateMipmap(MipmapTargetType.Texture2D);
-        SetTextureParameters(TextureTargetType.Texture2D, resourceNamespace);
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        SetTextureParameters(TextureTarget.Texture2D, resourceNamespace);
 
-        gl.BindTexture(texture.TextureType, 0);
+        GL.BindTexture(texture.Target, 0);
     }
 
     /// <summary>
@@ -71,8 +67,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     protected override GLLegacyTexture GenerateTexture(Image image, string name,
         ResourceNamespace resourceNamespace)
     {
-        int textureId = gl.GenTexture();
-        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, gl, TextureTargetType.Texture2D);
+        int textureId = GL.GenTexture();
+        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D);
         UploadAndSetParameters(texture, image, name, resourceNamespace);
 
         return texture;
@@ -91,7 +87,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return fontTexture;
     }
 
-    private void SetTextureParameters(TextureTargetType targetType, ResourceNamespace resourceNamespace)
+    private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace)
     {
         // Sprites are a special case where we want to clamp to the edge.
         // This stops artifacts from forming.
@@ -109,34 +105,34 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         (int minFilter, int maxFilter) = FindFilterValues(Config.Render.Filter.Texture.Value);
 
-        gl.TexParameter(targetType, TextureParameterNameType.MinFilter, minFilter);
-        gl.TexParameter(targetType, TextureParameterNameType.MagFilter, maxFilter);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.Repeat);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.Repeat);
+        GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, minFilter);
+        GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, maxFilter);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         SetAnisotropicFiltering(targetType);
     }
 
-    private void HandleSpriteTextureParameters(TextureTargetType targetType)
+    private void HandleSpriteTextureParameters(TextureTarget targetType)
     {
-        gl.TexParameter(targetType, TextureParameterNameType.MinFilter, (int)TextureMinFilterType.Nearest);
-        gl.TexParameter(targetType, TextureParameterNameType.MagFilter, (int)TextureMagFilterType.Nearest);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.ClampToEdge);
+        GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
     }
 
-    private void HandleFontTextureParameters(TextureTargetType targetType)
+    private void HandleFontTextureParameters(TextureTarget targetType)
     {
         (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.Filter.Font.Value);
-        gl.TexParameter(targetType, TextureParameterNameType.MinFilter, fontMinFilter);
-        gl.TexParameter(targetType, TextureParameterNameType.MagFilter, fontMaxFilter);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapS, (int)TextureWrapModeType.ClampToEdge);
-        gl.TexParameter(targetType, TextureParameterNameType.WrapT, (int)TextureWrapModeType.ClampToEdge);
+        GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, fontMinFilter);
+        GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, fontMaxFilter);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
     }
 
     private (int minFilter, int maxFilter) FindFilterValues(FilterType filterType)
     {
-        int minFilter = (int)TextureMinFilterType.Nearest;
-        int maxFilter = (int)TextureMagFilterType.Nearest;
+        int minFilter = (int)TextureMinFilter.Nearest;
+        int magFilter = (int)TextureMagFilter.Nearest;
 
         switch (filterType)
         {
@@ -144,24 +140,24 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
             // Already set as the default!
             break;
         case FilterType.Bilinear:
-            minFilter = (int)TextureMinFilterType.Linear;
-            maxFilter = (int)TextureMinFilterType.Linear;
+            minFilter = (int)TextureMinFilter.Linear;
+            magFilter = (int)TextureMagFilter.Linear;
             break;
         case FilterType.Trilinear:
-            minFilter = (int)TextureMinFilterType.LinearMipmapLinear;
-            maxFilter = (int)TextureMagFilterType.Linear;
+            minFilter = (int)TextureMinFilter.LinearMipmapLinear;
+            magFilter = (int)TextureMagFilter.Linear;
             break;
         }
 
-        return (minFilter, maxFilter);
+        return (minFilter, magFilter);
     }
 
-    private void SetAnisotropicFiltering(TextureTargetType targetType)
+    private void SetAnisotropicFiltering(TextureTarget targetType)
     {
         if (Config.Render.Anisotropy <= 1)
             return;
 
-        float value = Config.Render.Anisotropy.Value.Clamp(1, (int)Capabilities.Limits.MaxAnisotropy);
-        gl.TexParameterF(targetType, TextureParameterFloatNameType.AnisotropyExt, value);
+        float value = Config.Render.Anisotropy.Value.Clamp(1, (int)GLLimits.MaxAnisotropy);
+        GL.TexParameter(targetType, (TextureParameterName)All.TextureMaxAnisotropy, value);
     }
 }

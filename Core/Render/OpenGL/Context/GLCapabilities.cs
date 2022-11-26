@@ -1,39 +1,25 @@
 using System.Text.RegularExpressions;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
 using NLog;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Context;
 
-public class GLCapabilities
+public static class GLCapabilities
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Regex VersionRegex = new Regex(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public readonly GLVersion Version;
-    public readonly GLInfo Info;
-    public readonly GLLimits Limits;
-    public readonly GLExtensions Extensions;
+    public static readonly GLVersion Version;
 
-    public GLCapabilities(IGLFunctions functions)
+    static GLCapabilities()
     {
-        Version = DiscoverVersion(functions);
-        Info = new GLInfo(functions);
-        Limits = new GLLimits(functions);
-        Extensions = new GLExtensions(functions);
+        Version = DiscoverVersion();
     }
 
-    public bool SupportsModernRenderer()
+    private static GLVersion DiscoverVersion()
     {
-        return Version.Supports(4, 4) &&
-               Extensions.BindlessTextures &&
-               Extensions.GpuShader5 &&
-               Extensions.ShaderImageLoadStore;
-    }
-
-    private GLVersion DiscoverVersion(IGLFunctions gl)
-    {
-        string version = gl.GetString(GetStringType.Version);
+        string version = GL.GetString(StringName.Version);
         Match match = VersionRegex.Match(version);
         if (!match.Success)
         {

@@ -6,12 +6,12 @@ namespace Helion.Render.OpenGL.Shader.Fields;
 
 public class UniformVec3 : UniformElement<vec3>
 {
-    public override void Set(IGLFunctions gl, vec3 value)
+    public override void Set(vec3 value)
     {
-        Set(gl, value.x, value.y, value.z);
+        Set(value.x, value.y, value.z);
     }
 
-    public void Set(IGLFunctions gl, float x, float y, float z)
+    public void Set(float x, float y, float z)
     {
         GL.Uniform3(Location, x, y, z);
     }

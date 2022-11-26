@@ -1,13 +1,13 @@
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Shader.Component;
 
 public class VertexShaderComponent : ShaderComponent
 {
-    public VertexShaderComponent(IGLFunctions functions, string shaderText) : base(functions, shaderText)
+    public VertexShaderComponent(string shaderText) : base(shaderText)
     {
     }
 
-    protected override ShaderComponentType GetShaderComponentType() => ShaderComponentType.Vertex;
+    protected override ShaderType GetShaderComponentType() => ShaderType.VertexShader;
 }

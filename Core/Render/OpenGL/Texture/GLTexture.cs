@@ -4,8 +4,8 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Resources;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture;
@@ -21,28 +21,24 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly string Name;
     public readonly Vec2F UVInverse;
     public readonly ResourceNamespace Namespace;
-    public readonly TextureTargetType TextureType;
-    protected readonly IGLFunctions gl;
+    public readonly TextureTarget Target;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
 
-    protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset,
-        ResourceNamespace resourceNamespace, IGLFunctions functions, TextureTargetType textureType)
+    protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target)
     {
         TextureId = textureId;
         Name = name;
         Dimension = dimension;
         Offset = offset;
-        Namespace = resourceNamespace;
+        Namespace = ns;
         UVInverse = Vec2F.One / dimension.Vector.Float;
-        gl = functions;
-        TextureType = textureType;
+        Target = target;
     }
 
     ~GLTexture()
     {
-        //FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 
@@ -54,6 +50,6 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 
     protected virtual void ReleaseUnmanagedResources()
     {
-        gl.DeleteTexture(TextureId);
+        GL.DeleteTexture(TextureId);
     }
 }

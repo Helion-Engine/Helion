@@ -1,19 +1,17 @@
-using Helion.Render.OpenGL.Context.Types;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Context;
 
-public class GLInfo
+public static class GLInfo
 {
-    public readonly string Vendor;
+    public static readonly string Vendor;
+    public static readonly string ShadingVersion;
+    public static readonly string Renderer;
 
-    public readonly string ShadingVersion;
-
-    public readonly string Renderer;
-
-    public GLInfo(IGLFunctions gl)
+    static GLInfo()
     {
-        Renderer = gl.GetString(GetStringType.Renderer);
-        ShadingVersion = gl.GetString(GetStringType.ShadingLanguageVersion);
-        Vendor = gl.GetString(GetStringType.Vendor);
+        Renderer = GL.GetString(StringName.Renderer);
+        ShadingVersion = GL.GetString(StringName.ShadingLanguageVersion);
+        Vendor = GL.GetString(StringName.Vendor);
     }
 }
