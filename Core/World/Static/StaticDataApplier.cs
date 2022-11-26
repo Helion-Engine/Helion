@@ -86,22 +86,22 @@ public class StaticDataApplier
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
             line.Back.SetAllWallsDynamic(SectorDynamic.Alpha);
-            world.Blockmap.Link(world, line.Front.Sector);
+            world.Blockmap.LinkDynamicSide(world, line.Front);
             if (line.Front.Sector != line.Back.Sector)
-                world.Blockmap.Link(world, line.Back.Sector);
+                world.Blockmap.LinkDynamicSide(world, line.Back);
             return;
         }
 
         if (line.Front.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkScrollingSide(world, line.Front);
+            world.Blockmap.LinkDynamicSide(world, line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkScrollingSide(world, line.Back);
+            world.Blockmap.LinkDynamicSide(world, line.Back);
         }
 
         var special = line.Special;

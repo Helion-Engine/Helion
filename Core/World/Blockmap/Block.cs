@@ -25,7 +25,7 @@ public class Block
     public readonly LinkableList<Entity> Entities = new();
     public readonly LinkableList<Entity> NoBlockmapEntities = new();
     public readonly LinkableList<Sector> DynamicSectors = new();
-    public readonly LinkableList<Side> ScrollSides = new();
+    public readonly LinkableList<Side> DynamicSides = new();
 
     /// <summary>
     /// Gets the block X coordinate, assuming the coordinate was set.

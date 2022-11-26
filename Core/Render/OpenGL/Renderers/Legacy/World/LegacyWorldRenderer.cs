@@ -118,14 +118,11 @@ public class LegacyWorldRenderer : WorldRenderer
         int maxDistance = world.Config.Render.MaxDistance;
         if (maxDistance <= 0)
             maxDistance = 6000;
-        int maxScrollDistance = world.Config.Render.MaxScrollDistance;
-        if (maxScrollDistance <= 0)
-            maxDistance = 512;
 
         Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
 
-        world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance, maxScrollDistance,
+        world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
             RenderEntity, RenderSector, RenderSide);
 
         void RenderEntity(Entity entity)

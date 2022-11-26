@@ -77,7 +77,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
-    public event EventHandler<(Side, SideTexture)>? SideScrollChanged;
+    public event EventHandler<SideScrollEvent>? SideScrollChanged;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -2313,7 +2313,7 @@ public abstract partial class WorldBase : IWorld
 
     public void SetSideScroll(Side side, SideTexture textures)
     {
-        SideScrollChanged?.Invoke(this, (side, textures));
+        SideScrollChanged?.Invoke(this, new SideScrollEvent(side, textures));
     }
 
     public WorldModel ToWorldModel()

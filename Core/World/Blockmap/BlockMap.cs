@@ -134,13 +134,13 @@ public class BlockMap
         }
     }
 
-    public void LinkScrollingSide(IWorld world, Side side)
+    public void LinkDynamicSide(IWorld world, Side side)
     {
         m_blocks.Iterate(side.Line.Segment, BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)
         {
-            block.ScrollSides.Add(new LinkableNode<Side>() { Value = side });
+            block.DynamicSides.Add(new LinkableNode<Side>() { Value = side });
             return GridIterationStatus.Continue;
         }
     }

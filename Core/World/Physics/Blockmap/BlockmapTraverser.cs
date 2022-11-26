@@ -327,14 +327,13 @@ public class BlockmapTraverser
         return intersections;
     }
 
-    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, int maxScrollViewDistance,
+    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance,
         Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         Vec2D origin = m_blockmap.Blocks.Origin;
         int dimension = UniformGrid<Block>.Dimension;
         double maxDistSquared = maxViewDistance * maxViewDistance;
-        double maxScrollDistSquared = maxScrollViewDistance * maxScrollViewDistance;
 
         m_blockmapCount++;
         m_blockmap.Iterate(box, IterateBlock);
@@ -376,7 +375,7 @@ public class BlockmapTraverser
                     renderSector(sectorNode.Value);
             }
 
-            for (LinkableNode<Side>? sideNode = block.ScrollSides.Head; sideNode != null; sideNode = sideNode.Next)
+            for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
             {
                 if (sideNode.Value.BlockmapCount == m_blockmapCount)
                     continue;

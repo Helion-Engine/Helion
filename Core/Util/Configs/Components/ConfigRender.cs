@@ -98,14 +98,14 @@ public class ConfigRender
     [ConfigInfo("Max render distance.")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
-    [ConfigInfo("Max render scrolling distance for interpolation.")]
-    public readonly ConfigValue<int> MaxScrollDistance = new(512);
-
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
     [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticLights = new(true);
+
+    [ConfigInfo("Update scrolling walls for static rendering.", restartRequired: true)]
+    public readonly ConfigValue<bool> StaticScroll = new(false);
 
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);
