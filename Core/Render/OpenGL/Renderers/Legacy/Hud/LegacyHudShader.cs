@@ -11,12 +11,12 @@ public class LegacyHudShader : ShaderProgram
     public readonly UniformInt BoundTexture = new();
     public readonly UniformMatrix4 Mvp = new();
 
-    public LegacyHudShader(IGLFunctions functions, ShaderBuilder builder, VertexArrayAttributes attributes) :
-        base(functions, builder, attributes)
+    public LegacyHudShader(ShaderBuilder builder, VertexArrayAttributes attributes) :
+        base(builder, attributes)
     {
     }
 
-    public static ShaderBuilder MakeBuilder(IGLFunctions functions)
+    public static ShaderBuilder MakeBuilder()
     {
         const string vertexShaderText = @"
             #version 130
@@ -69,8 +69,8 @@ public class LegacyHudShader : ShaderProgram
             }
         ";
 
-        VertexShaderComponent vertexShaderComponent = new(functions, vertexShaderText);
-        FragmentShaderComponent fragmentShaderComponent = new(functions, fragmentShaderText);
-        return new ShaderBuilder(vertexShaderComponent, fragmentShaderComponent);
+        VertexShaderComponent vertexShaderComponent = new(vertexShaderText);
+        FragmentShaderComponent fragmentShaderComponent = new(fragmentShaderText);
+        return new(vertexShaderComponent, fragmentShaderComponent);
     }
 }

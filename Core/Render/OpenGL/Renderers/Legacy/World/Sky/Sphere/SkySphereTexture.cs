@@ -4,10 +4,10 @@ using System.Drawing.Drawing2D;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 using Image = Helion.Graphics.Image;
 
@@ -21,18 +21,15 @@ public class SkySphereTexture : IDisposable
     public float ScaleU = 1.0f;
     public bool FlipU;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly IGLFunctions gl;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly int m_textureHandleIndex;
     private GLLegacyTexture m_texture;
     private bool m_allocatedNewTexture;
     private bool m_generatedSky;
 
-    public SkySphereTexture(ArchiveCollection archiveCollection, IGLFunctions functions,
-        LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
         m_archiveCollection = archiveCollection;
-        gl = functions;
         m_textureManager = textureManager;
         m_texture = textureManager.NullTexture;
         m_textureHandleIndex = textureHandle;
@@ -240,10 +237,10 @@ public class SkySphereTexture : IDisposable
 
     private GLLegacyTexture CreateTexture(Bitmap fadedSkyImage, string debugName = "")
     {
-        int textureId = gl.GenTexture();
+        int textureId = GL.GenTexture();
         Dimension dim = new(fadedSkyImage.Width, fadedSkyImage.Height);
         Image image = new(fadedSkyImage, ImageType.Argb);
-        GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, gl, TextureTargetType.Texture2D);
+        GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, TextureTarget.Texture2D);
 
         m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global);
 

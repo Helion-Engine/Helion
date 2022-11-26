@@ -198,18 +198,18 @@ public class DataCache
         m_blockmapLists.Add(list);
     }
 
-    public RenderWorldData GetAlphaRenderWorldData(IGLFunctions functions, GLCapabilities capabilities, GLLegacyTexture texture)
+    public RenderWorldData GetAlphaRenderWorldData(GLLegacyTexture texture)
     {
         if (m_alphaRender.TryGetValue(texture, out var data))
         {
             if (data.Length > 0)
                 return data.RemoveLast();
 
-            return new RenderWorldData(capabilities, functions, texture);
+            return new RenderWorldData(texture);
         }
         else
         {
-            RenderWorldData renderWorldData = new(capabilities, functions, texture);
+            RenderWorldData renderWorldData = new(texture);
             m_alphaRender.Add(texture, new DynamicArray<RenderWorldData>());
             return renderWorldData;
         }

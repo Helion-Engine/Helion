@@ -5,7 +5,6 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
@@ -167,7 +166,7 @@ public class Window : GameWindow, IWindow
 
     private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
     {
-        return new GLRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
+        return new GLRenderer(this, config, archiveCollection, tracker);
     }
 
     private void Window_KeyUp(KeyboardKeyEventArgs args)

@@ -31,7 +31,6 @@ public class LegacyAutomapRenderer : IDisposable
 {
     private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
 
-    private readonly IGLFunctions gl;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyAutomapShader m_shader;
     private readonly StreamVertexBuffer<vec2> m_vbo;
@@ -47,18 +46,17 @@ public class LegacyAutomapRenderer : IDisposable
 
     private readonly Dictionary<string, AutomapColor> m_keys = new(StringComparer.OrdinalIgnoreCase);
 
-    public LegacyAutomapRenderer(GLCapabilities capabilities, IGLFunctions glFunctions, ArchiveCollection archiveCollection)
+    public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
     {
-        gl = glFunctions;
         m_archiveCollection = archiveCollection;
-        m_vao = new VertexArrayObject(capabilities, gl, Attributes, "VAO: Attributes for Automap");
-        m_vbo = new StreamVertexBuffer<vec2>(capabilities, gl, m_vao, "VBO: Geometry for Automap");
+        m_vao = new(Attributes, "VAO: Attributes for Automap");
+        m_vbo = new(m_vao, "VBO: Geometry for Automap");
 
         foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
             m_colorEnumToLines.Add(new DynamicArray<vec2>());
 
-        using (var shaderBuilder = LegacyAutomapShader.MakeBuilder(gl))
-            m_shader = new LegacyAutomapShader(gl, shaderBuilder, Attributes);
+        using (var shaderBuilder = LegacyAutomapShader.MakeBuilder())
+            m_shader = new(shaderBuilder, Attributes);
 
         foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
         {
@@ -103,14 +101,14 @@ public class LegacyAutomapRenderer : IDisposable
 
         m_shader.Bind();
 
-        m_shader.Mvp.Set(gl, CalculateMvp(renderInfo, worldBounds, world));
+        m_shader.Mvp.Set(CalculateMvp(renderInfo, worldBounds, world));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
         {
             (int first, vec3 color) = m_vboRanges[i];
             int count = i == m_vboRanges.Count - 1 ? m_vbo.Count - first : m_vboRanges[i + 1].start - first;
 
-            m_shader.Color.Set(gl, color);
+            m_shader.Color.Set(color);
             m_vao.Bind();
             GL.DrawArrays(PrimitiveType.Lines, first, count);
             m_vao.Unbind();

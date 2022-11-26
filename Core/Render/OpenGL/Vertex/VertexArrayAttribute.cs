@@ -22,5 +22,5 @@ public abstract class VertexArrayAttribute
 
     public abstract int ByteLength();
 
-    public abstract void Enable(IGLFunctions gl, int stride, int offset);
+    public abstract void Enable(int stride, int offset);
 }

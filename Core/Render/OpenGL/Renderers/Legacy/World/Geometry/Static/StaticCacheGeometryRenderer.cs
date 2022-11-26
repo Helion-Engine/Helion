@@ -3,7 +3,6 @@ using Helion.Bsp.States.Miniseg;
 using Helion.Render.OpenGL.Buffer.Array;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
@@ -38,12 +37,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
-    public readonly VertexArrayAttributes Attributes;
-
     private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
-    private readonly IGLFunctions gl;
-    private readonly GLCapabilities m_capabilities;
+    public readonly VertexArrayAttributes Attributes;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly List<GeometryData> m_geometry = new();
@@ -61,16 +57,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_staticLights;
     private IWorld? m_world;
 
-    public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities, 
-        IGLFunctions functions, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer, 
-        VertexArrayAttributes attributes)
+    public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
+        GeometryRenderer geometryRenderer, VertexArrayAttributes attributes)
     {
-        gl = functions;
-        m_capabilities = capabilities;
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         Attributes = attributes;
-        m_skyRenderer = new(config, archiveCollection, capabilities, functions, textureManager);
+        m_skyRenderer = new(config, archiveCollection, textureManager);
     }
 
     ~StaticCacheGeometryRenderer()
@@ -289,8 +282,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AllocateGeometryData(int textureHandle, out GeometryData data)
     {
-        VertexArrayObject vao = new(m_capabilities, gl, Attributes);
-        StaticVertexBuffer<LegacyVertex> vbo = new(m_capabilities, gl, vao);
+        VertexArrayObject vao = new(Attributes, "VAO: Geometry data");
+        StaticVertexBuffer<LegacyVertex> vbo = new(vao, "VBO: Geometry data");
 
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);
@@ -414,6 +407,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var data = m_geometry[i];
             data.Texture.Bind();
             data.Vao.Bind();
+            data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
     }

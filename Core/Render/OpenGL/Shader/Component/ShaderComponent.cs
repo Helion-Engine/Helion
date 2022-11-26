@@ -1,7 +1,7 @@
 using System;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Util;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shader.Component;
@@ -9,14 +9,12 @@ namespace Helion.Render.OpenGL.Shader.Component;
 public abstract class ShaderComponent : IDisposable
 {
     protected readonly int ShaderId;
-    protected readonly IGLFunctions gl;
 
-    protected ShaderComponent(IGLFunctions functions, string shaderText)
+    protected ShaderComponent(string shaderText)
     {
-        gl = functions;
-        ShaderId = gl.CreateShader(GetShaderComponentType());
-        gl.ShaderSource(ShaderId, shaderText);
-        gl.CompileShader(ShaderId);
+        ShaderId = GL.CreateShader(GetShaderComponentType());
+        GL.ShaderSource(ShaderId, shaderText);
+        GL.CompileShader(ShaderId);
 
         CleanupAndThrowIfCompilationError();
     }
@@ -29,9 +27,9 @@ public abstract class ShaderComponent : IDisposable
 
     public void AttachAnd(int programId, Action action)
     {
-        gl.AttachShader(programId, ShaderId);
+        GL.AttachShader(programId, ShaderId);
         action.Invoke();
-        gl.DetachShader(programId, ShaderId);
+        GL.DetachShader(programId, ShaderId);
     }
 
     public void Dispose()
@@ -40,23 +38,23 @@ public abstract class ShaderComponent : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected abstract ShaderComponentType GetShaderComponentType();
+    protected abstract ShaderType GetShaderComponentType();
 
     private void CleanupAndThrowIfCompilationError()
     {
-        gl.GetShader(ShaderId, ShaderParameterType.CompileStatus, out int status);
+        GL.GetShader(ShaderId, ShaderParameter.CompileStatus, out int status);
         if (status == GLHelper.GLTrue)
             return;
 
-        string errorMsg = gl.GetShaderInfoLog(ShaderId);
+        string errorMsg = GL.GetShaderInfoLog(ShaderId);
 
         Dispose();
 
-        throw new ShaderException($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
+        throw new($"Error compiling shader {GetShaderComponentType()}: {errorMsg}");
     }
 
     private void ReleaseUnmanagedResources()
     {
-        gl.DeleteShader(ShaderId);
+        GL.DeleteShader(ShaderId);
     }
 }
