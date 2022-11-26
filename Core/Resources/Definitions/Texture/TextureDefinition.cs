@@ -9,6 +9,8 @@ namespace Helion.Resources.Definitions.Texture;
 /// </summary>
 public class TextureDefinition
 {
+    private static int StaticIndex = 0;
+
     /// <summary>
     /// The name of this image.
     /// </summary>
@@ -41,6 +43,8 @@ public class TextureDefinition
 
     public readonly TextureOptions Options;
 
+    public readonly int Index;
+
     /// <summary>
     /// Creates a new texture definition.
     /// </summary>
@@ -59,6 +63,7 @@ public class TextureDefinition
         Components = components;
         Namespace = resourceNamespace;
         Options = options ?? TextureOptions.Default;
+        Index = StaticIndex++;
     }
 
     /// <inheritdoc/>

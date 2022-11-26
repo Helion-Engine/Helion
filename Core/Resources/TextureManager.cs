@@ -440,7 +440,7 @@ public class TextureManager : ITickable
         m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
 
         int index = Constants.NoTextureIndex + 1;
-        foreach (TextureDefinition texture in textures)
+        foreach (TextureDefinition texture in textures.OrderBy(x => x.Index))
         {
             m_textures.Add(new Texture(texture.Name, texture.Namespace, index));
             m_textureLookup[texture.Name] = m_textures[index];
