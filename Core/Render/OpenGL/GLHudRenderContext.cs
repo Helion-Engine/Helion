@@ -20,7 +20,7 @@ using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
 namespace Helion.Render.OpenGL;
 
-public class GLLegacyHudRenderContext : IHudRenderContext
+public class GLHudRenderContext : IHudRenderContext
 {
     private readonly RenderCommands m_commands;
     private readonly Stack<ResolutionInfo> m_resolutionInfos = new();
@@ -39,7 +39,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
         }
     }
 
-    public GLLegacyHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
+    public GLHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
         IRendererTextureManager textureManager)
     {
         m_archiveCollection = archiveCollection;
@@ -237,26 +237,9 @@ public class GLLegacyHudRenderContext : IHudRenderContext
     public void PushVirtualDimension(Dimension dimension, ResolutionScale? scale = null,
         float? aspectRatio = null)
     {
-        Commands.ResolutionScale legacyScale = default;
-
-        switch (scale)
-        {
-            case null:
-            case ResolutionScale.None:
-                // Already handled.
-                break;
-            case ResolutionScale.Center:
-                legacyScale = Commands.ResolutionScale.Center;
-                break;
-            case ResolutionScale.Stretch:
-                legacyScale = Commands.ResolutionScale.Stretch;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(scale), scale, null);
-        }
-
+        ResolutionScale resolutionScale = scale ?? ResolutionScale.None;
         float ratio = aspectRatio ?? dimension.AspectRatio;
-        ResolutionInfo resolutionInfo = new(dimension, legacyScale, ratio);
+        ResolutionInfo resolutionInfo = new(dimension, resolutionScale, ratio);
         m_commands.SetVirtualResolution(resolutionInfo);
         m_resolutionInfos.Push(resolutionInfo);
     }
@@ -273,7 +256,7 @@ public class GLLegacyHudRenderContext : IHudRenderContext
             }
         }
 
-        ResolutionInfo windowResolutionInfo = new(Dimension, Commands.ResolutionScale.None, Dimension.AspectRatio);
+        ResolutionInfo windowResolutionInfo = new(Dimension, ResolutionScale.None, Dimension.AspectRatio);
         m_commands.SetVirtualResolution(windowResolutionInfo);
     }
 

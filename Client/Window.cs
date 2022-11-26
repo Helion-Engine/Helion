@@ -167,7 +167,7 @@ public class Window : GameWindow, IWindow
 
     private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
     {
-        return new GLLegacyRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
+        return new GLRenderer(this, config, archiveCollection, new OpenTKGLFunctions(), tracker);
     }
 
     private void Window_KeyUp(KeyboardKeyEventArgs args)

@@ -65,7 +65,7 @@ public class SkySphereComponent : ISkyComponent
         m_geometryShaderProgram.Bind();
 
         gl.ActiveTexture(TextureUnitType.Zero);
-        m_geometryShaderProgram.Mvp.Set(gl, GLLegacyRenderer.CalculateMvpMatrix(renderInfo));
+        m_geometryShaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
 
         m_geometryVbo.UploadIfNeeded();
 

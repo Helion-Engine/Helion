@@ -28,7 +28,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL;
 
-public class GLLegacyRenderer : IRenderer
+public class GLRenderer : IRenderer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
@@ -49,7 +49,7 @@ public class GLLegacyRenderer : IRenderer
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-    public GLLegacyRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
+    public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, IGLFunctions functions,
         FpsTracker fpsTracker)
     {
         Window = window;
@@ -72,7 +72,7 @@ public class GLLegacyRenderer : IRenderer
         WarnForInvalidStates(config);
     }
 
-    ~GLLegacyRenderer()
+    ~GLRenderer()
     {
         FailedToDispose(this);
         ReleaseUnmanagedResources();
