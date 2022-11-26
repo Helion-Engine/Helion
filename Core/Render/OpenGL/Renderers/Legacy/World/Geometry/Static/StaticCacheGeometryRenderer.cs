@@ -49,13 +49,17 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly List<GeometryData> m_runtimeGeometry = new();
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
-    private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly HashSet<int> m_updatelightSectorsLookup = new();
     private readonly List<SideScrollEvent> m_updateScrollSides = new();
     private readonly HashSet<int> m_updateScrollSidesLookup = new();
     private readonly SkyGeometryManager m_skyGeometry = new();
+
+    private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
+    private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
+    private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
+
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -102,7 +106,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         foreach (Sector sector in world.Sectors)
         {
-            AddTransferHeightsSector(sector);
+            AddTransferSector(sector);
 
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, true);
@@ -131,15 +135,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddTransferHeightsSector(Sector sector)
+    private void AddTransferSector(Sector sector)
     {
-        if (sector.TransferHeights == null)
-            return;
+        if (sector.TransferHeights != null)
+            AddTransferSector(sector, sector.TransferHeights.ControlSector.Id, m_transferHeightsLookup);
 
-        if (!m_transferHeightsLookup.TryGetValue(sector.TransferHeights.ControlSector.Id, out var sectors))
+        if (sector.TransferFloorLightSector != sector)
+            AddTransferSector(sector, sector.TransferFloorLightSector.Id, m_transferFloorLightLookup);
+
+        if (sector.TransferCeilingLightSector != sector)
+            AddTransferSector(sector, sector.TransferCeilingLightSector.Id, m_transferCeilingLightLookup);
+    }
+
+    private static void AddTransferSector(Sector sector, int controlSectorId, Dictionary<int, List<Sector>> lookup)
+    {
+        if (!lookup.TryGetValue(controlSectorId, out var sectors))
         {
             sectors = new();
-            m_transferHeightsLookup[sector.TransferHeights.ControlSector.Id] = sectors;
+            lookup[controlSectorId] = sectors;
         }
 
         sectors.Add(sector);
@@ -321,7 +334,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometry.Clear();
         m_textureToGeometryLookup.Clear();
         m_freeManager.Clear();
-        m_transferHeightsLookup.Clear();
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
         m_runtimeGeometry.Clear();
@@ -329,6 +341,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Clear();
         m_updateScrollSides.Clear();
         m_updateScrollSidesLookup.Clear();
+
+        m_transferHeightsLookup.Clear();
+        m_transferFloorLightLookup.Clear();
+        m_transferCeilingLightLookup.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -427,8 +443,16 @@ public class StaticCacheGeometryRenderer : IDisposable
         foreach (var sector in m_updateLightSectors)
         {
             short level = sector.LightLevel;
-            UpdateLightVertices(sector.Floor.StaticData, level);
-            UpdateLightVertices(sector.Ceiling.StaticData, level);
+
+            if (sector.TransferFloorLightSector == sector)
+                UpdateLightVertices(sector.Floor.StaticData, level);
+
+            if (sector.TransferCeilingLightSector == sector)
+                UpdateLightVertices(sector.Ceiling.StaticData, level);
+
+            UpdateTransferLightVertices(sector.Id, level, false, m_transferCeilingLightLookup);
+            UpdateTransferLightVertices(sector.Id, level, true, m_transferFloorLightLookup);
+
             for (int i = 0; i < sector.Lines.Count; i++)
             {
                 var line = sector.Lines[i];
@@ -450,6 +474,23 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_updateLightSectors.Clear();
         m_updatelightSectorsLookup.Clear();
+    }
+
+    private void UpdateTransferLightVertices(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup)
+    {
+        if (!lookup.TryGetValue(sectorId, out var sectors))
+            return;
+
+        if (floor)
+        {
+            for (int i = 0; i < sectors.Count; i++)
+                UpdateLightVertices(sectors[i].Floor.StaticData, lightLevel);
+        }
+        else
+        {
+            for (int i = 0; i < sectors.Count; i++)
+                UpdateLightVertices(sectors[i].Ceiling.StaticData, lightLevel);
+        }
     }
 
     public void RenderSkies(RenderInfo renderInfo)

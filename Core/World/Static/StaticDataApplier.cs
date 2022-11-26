@@ -37,11 +37,11 @@ public class StaticDataApplier
             {
                 SetSectorDynamic(world, sectorSpecial.Sector, true, true, SectorDynamic.Light);
             }
-            //else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
-            //{
-            //    bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
-            //    SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
-            //}
+            else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
+            {
+                bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
+                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
+            }
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -66,15 +66,17 @@ public class StaticDataApplier
             return;
         }
 
-        var transferFloor = sector.TransferFloorLightSector;
-        var transferCeiling = sector.TransferCeilingLightSector;
+        if (!StaticLights)
+        {
+            var transferFloor = sector.TransferFloorLightSector;
+            var transferCeiling = sector.TransferCeilingLightSector;
 
-        // Transfer lights can affect many sectors. Even with StaticLights = true, handle these dynamically for now.
-        if (transferFloor.Id != sector.Id && (!transferFloor.IsFloorStatic || transferFloor.DataChanges.HasFlag(SectorDataTypes.Light)))
-            SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
+            if (transferFloor.Id != sector.Id && (!transferFloor.IsFloorStatic || transferFloor.DataChanges.HasFlag(SectorDataTypes.Light)))
+                SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
 
-        if (transferCeiling.Id != sector.Id && (!transferCeiling.IsFloorStatic || transferCeiling.DataChanges.HasFlag(SectorDataTypes.Light)))
-            SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
+            if (transferCeiling.Id != sector.Id && (!transferCeiling.IsFloorStatic || transferCeiling.DataChanges.HasFlag(SectorDataTypes.Light)))
+                SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
+        }
     }
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
