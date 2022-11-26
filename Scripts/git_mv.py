@@ -85,7 +85,10 @@ def populate_files_to_move(from_to_pair_list):
             add_dir(from_path, to_path)
         else:
             add_file(from_path, to_path)
-    
+
+def delete_temp_branch():
+    execute(f'git branch -D {BRANCH_NAME}')
+
 
 if __name__ == '__main__':
     exit_if(not in_script_dir(), f'Need to execute from the script directory, in {os.getcwd()} but need to be in {EXPECTED_WORKING_DIR}')
@@ -97,3 +100,4 @@ if __name__ == '__main__':
     checkout_and_commit_old_files()
     checkout_and_merge()
     delete_old_files()
+    delete_temp_branch()

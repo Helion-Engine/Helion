@@ -100,10 +100,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         BufferSubData(start, length);
     }
 
-    protected virtual void BufferSubData(int start, int length)
-    {
-        // To be implemented by children for now.
-    }
+    protected abstract void BufferSubData(int start, int length);
 
     public void UploadIfNeeded()
     {
