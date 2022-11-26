@@ -24,18 +24,18 @@ public static class GLCapabilities
         if (!match.Success)
         {
             Log.Error("Unable to match OpenGL version for: '{0}'", version);
-            return new GLVersion(0, 0);
+            return new(0, 0);
         }
 
         if (int.TryParse(match.Groups[1].Value, out int major))
         {
             if (int.TryParse(match.Groups[2].Value, out int minor))
-                return new GLVersion(major, minor);
+                return new(major, minor);
 
             Log.Error("Unable to read OpenGL minor version from: {0}", version);
         }
 
         Log.Error("Unable to read OpenGL major version from: {0}", version);
-        return new GLVersion(0, 0);
+        return new(0, 0);
     }
 }
