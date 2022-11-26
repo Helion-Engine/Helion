@@ -16,7 +16,6 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Font = Helion.Graphics.Fonts.Font;
-using ResolutionScale = Helion.Render.Common.Enums.ResolutionScale;
 
 namespace Helion.Render.OpenGL;
 
