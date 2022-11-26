@@ -22,7 +22,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     protected readonly int BufferId;
     protected bool Uploaded;
     private int m_dataVersion;
-    public IntPtr m_vboArrayPtr;
+    private IntPtr m_vboArrayPtr;
     private GCHandle m_pinnedArray;
 
     public int Count => Data.Length;

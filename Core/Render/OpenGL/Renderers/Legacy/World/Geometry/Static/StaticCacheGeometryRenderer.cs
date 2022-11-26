@@ -407,6 +407,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var data = m_geometry[i];
             data.Texture.Bind();
             data.Vao.Bind();
+            data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
     }

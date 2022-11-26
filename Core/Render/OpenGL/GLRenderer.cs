@@ -39,7 +39,7 @@ public class GLRenderer : IRenderer
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
     internal readonly ArchiveCollection m_archiveCollection;
-    private readonly IGLTextureManager m_textureManager;
+    private readonly LegacyGLTextureManager m_textureManager;
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
@@ -52,9 +52,9 @@ public class GLRenderer : IRenderer
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
-        m_textureManager = CreateTextureManager(archiveCollection);
-        m_worldRenderer = CreateWorldRenderer();
-        m_hudRenderer = CreateHudRenderer();
+        m_textureManager = new LegacyGLTextureManager(m_config, archiveCollection);
+        m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, m_textureManager);
+        m_hudRenderer = new LegacyHudRenderer(m_textureManager, archiveCollection.DataCache);
         Default = new GLSurface(window, this);
 
         PrintGLInfo();
@@ -221,21 +221,6 @@ public class GLRenderer : IRenderer
                 throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
             }
         });
-    }
-
-    private IGLTextureManager CreateTextureManager(ArchiveCollection archiveCollection)
-    {
-        return new LegacyGLTextureManager(m_config, archiveCollection);
-    }
-
-    private WorldRenderer CreateWorldRenderer()
-    {
-        return new LegacyWorldRenderer(m_config, m_archiveCollection, (LegacyGLTextureManager)m_textureManager);
-    }
-
-    private HudRenderer CreateHudRenderer()
-    {
-        return new LegacyHudRenderer((LegacyGLTextureManager)m_textureManager, m_archiveCollection.DataCache);
     }
 
     private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

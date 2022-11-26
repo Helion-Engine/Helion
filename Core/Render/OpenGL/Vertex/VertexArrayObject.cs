@@ -13,6 +13,7 @@ public class VertexArrayObject : IDisposable
 
     public VertexArrayObject(VertexArrayAttributes vaoAttributes, string objectLabel)
     {
+        m_vaoId = GL.GenVertexArray();
         Attributes = vaoAttributes;
 
         Bind();
