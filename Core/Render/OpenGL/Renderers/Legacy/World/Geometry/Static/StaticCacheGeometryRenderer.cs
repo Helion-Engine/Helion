@@ -60,6 +60,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
 
+    private static Dictionary<int, List<StaticGeometryData>> m_bufferData = new();
+
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -400,6 +402,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         UpdateLights();
         UpdateScroll();
+        UpdateBufferData();
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
@@ -409,6 +412,48 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
+    }
+
+    private void UpdateBufferData()
+    {
+        foreach (var item in m_bufferData)
+        {
+            var list = item.Value;
+            if (list.Count == 0)
+                continue;
+
+            list.Sort((i1, i2) => i1.GeometryDataStartIndex.CompareTo(i2.GeometryDataStartIndex));
+            var geometryData = list[0].GeometryData;
+            if (geometryData == null)
+                continue;
+
+            bool uploaded = false;
+            int startIndex = list[0].GeometryDataStartIndex;
+            int lastIndex = startIndex + list[0].GeometryDataLength;
+            for (int i = 1; i < list.Count; i++)
+            {
+                if (lastIndex != list[i].GeometryDataStartIndex)
+                {
+                    geometryData.Vbo.Bind();
+                    geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
+                    startIndex = list[i].GeometryDataStartIndex;
+                    lastIndex = startIndex + list[i].GeometryDataLength;
+                    uploaded = true;
+                    continue;
+                }
+
+                lastIndex += list[i].GeometryDataLength;
+                uploaded = false;
+            }
+
+            if (!uploaded)
+            {
+                geometryData.Vbo.Bind();
+                geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
+            }
+        }
+
+        m_bufferData.Clear();
     }
 
     private void UpdateScroll()
@@ -470,10 +515,11 @@ public class StaticCacheGeometryRenderer : IDisposable
                     UpdateLightVertices(line.Back.Middle.Static, level);
                 }
             }
-        }
+        }  
 
         m_updateLightSectors.Clear();
         m_updatelightSectorsLookup.Clear();
+
     }
 
     private void UpdateTransferLightVertices(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup)
@@ -735,21 +781,34 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
+        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
+        {
+            list = new List<StaticGeometryData>();
+            m_bufferData[data.GeometryData.TextureHandle] = list;
+        }
+
+        list.Add(data);
+
         var geometryData = data.GeometryData;
         for (int i = 0; i < data.GeometryDataLength; i++)
         {
             int index = data.GeometryDataStartIndex + i;
             geometryData.Vbo.Data.Data[index].LightLevelUnit = lightLevel;
         }
-
-        data.GeometryData.Vbo.Bind();
-        data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
     private static void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
     {
         if (data.GeometryData == null)
             return;
+
+        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
+        {
+            list = new List<StaticGeometryData>();
+            m_bufferData[data.GeometryData.TextureHandle] = list;
+        }
+
+        list.Add(data);
 
         WallUV uv = GetSideUV(data, side, texture);
         var geometryData = data.GeometryData;
@@ -772,9 +831,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         //BottomRight
         geometryData.Vbo.Data.Data[index + 5].U = uv.BottomRight.X;
         geometryData.Vbo.Data.Data[index + 5].V = uv.BottomRight.Y;
-
-        data.GeometryData.Vbo.Bind();
-        data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
     private static WallUV GetSideUV(in StaticGeometryData data, Side side, SideTexture texture)
