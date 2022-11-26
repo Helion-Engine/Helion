@@ -11,9 +11,9 @@ namespace Helion.Render.OpenGL.Util;
 public record GLVersion(int Major, int Minor)
 {
     public static readonly List<GLVersion> SupportedVersions = new List<GLVersion>() { new(4, 6), new(4, 5), new(4, 4), new(4, 3), new(4, 2), new(4, 1), new(4, 0), new(3, 3) };
+    public static readonly GLVersion Version;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Regex VersionRegex = new Regex(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly GLVersion Version;
 
     static GLVersion()
     {

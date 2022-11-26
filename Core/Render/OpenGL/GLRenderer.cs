@@ -160,7 +160,7 @@ public class GLRenderer : IRenderer
         if (InfoPrinted)
             return;
 
-        Log.Info("OpenGL v{0}", GLCapabilities.Version);
+        Log.Info("OpenGL v{0}", GLVersion.Version);
         Log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
         Log.Info("OpenGL Vendor: {0}", GLInfo.Vendor);
         Log.Info("OpenGL Hardware: {0}", GLInfo.Renderer);
