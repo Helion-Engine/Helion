@@ -13,6 +13,7 @@ using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Blockmap;
 
@@ -133,17 +134,13 @@ public class BlockMap
         }
     }
 
-    public void LinkScrolling(IWorld world, Sector sector)
+    public void LinkScrollingSide(IWorld world, Side side)
     {
-        Box2D box = sector.GetBoundingBox();
-        m_blocks.Iterate(box, BlockLinkFunc);
+        m_blocks.Iterate(side.Line.Segment, BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)
         {
-            LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
-            block.DynamicScrollSectors.Add(sectorNode);
-
-            sector.BlockmapNodes.Add(sectorNode);
+            block.ScrollSides.Add(new LinkableNode<Side>() { Value = side });
             return GridIterationStatus.Continue;
         }
     }

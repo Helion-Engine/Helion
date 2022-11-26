@@ -4,6 +4,7 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Blockmap;
@@ -24,7 +25,7 @@ public class Block
     public readonly LinkableList<Entity> Entities = new();
     public readonly LinkableList<Entity> NoBlockmapEntities = new();
     public readonly LinkableList<Sector> DynamicSectors = new();
-    public readonly LinkableList<Sector> DynamicScrollSectors = new();
+    public readonly LinkableList<Side> ScrollSides = new();
 
     /// <summary>
     /// Gets the block X coordinate, assuming the coordinate was set.

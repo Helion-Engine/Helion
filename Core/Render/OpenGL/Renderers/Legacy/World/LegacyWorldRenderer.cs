@@ -22,7 +22,9 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -122,8 +124,9 @@ public class LegacyWorldRenderer : WorldRenderer
 
         Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
+
         world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance, maxScrollDistance,
-            RenderEntity, RenderSector, RenderScrollingSector);
+            RenderEntity, RenderSector, RenderSide);
 
         void RenderEntity(Entity entity)
         {
@@ -162,13 +165,9 @@ public class LegacyWorldRenderer : WorldRenderer
             sector.RenderCount = m_renderCount;
         }
 
-        void RenderScrollingSector(Sector sector)
+        void RenderSide(Side side)
         {
-            if (sector.RenderCount == m_renderCount)
-                return;
-
-            m_geometryRenderer.RenderSector(m_viewSector, sector, position3D);
-            sector.RenderCount = m_renderCount;
+            m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, position3D);
         }
 
         RenderAlphaObjects(viewPos, position3D, m_alphaEntities);

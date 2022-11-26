@@ -95,13 +95,13 @@ public class StaticDataApplier
         if (line.Front.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkScrolling(world, line.Front.Sector);
+            world.Blockmap.LinkScrollingSide(world, line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkScrolling(world, line.Back.Sector);
+            world.Blockmap.LinkScrollingSide(world, line.Back);
         }
 
         var special = line.Special;
@@ -140,9 +140,7 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sectorDynamic == SectorDynamic.Scroll)
-            world.Blockmap.LinkScrolling(world, sector);
-        else if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
+        if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
             world.Blockmap.Link(world, sector);
 
         foreach (var line in sector.Lines)

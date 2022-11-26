@@ -262,6 +262,16 @@ public class GeometryRenderer : IDisposable
             RenderSectorFlats(sector, sector, sector);
     }
 
+    public void RenderSectorWall(Sector viewSector, Sector sector, Line line, Vec3D position)
+    {
+        m_buffer = true;
+        m_viewSector = viewSector;
+        m_floorChanged = sector.Floor.CheckRenderingChanged();
+        m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
+        m_position = position;
+        RenderSectorWall(sector, line, position.XY);
+    }
+
     // The set sector is optional for the transfer heights control sector.
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
     private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
@@ -320,32 +330,37 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < sector.Lines.Count; i++)
         {
             Line line = sector.Lines[i];
-            if (m_lineDrawnTracker.HasDrawn(line))
-                continue;
-
-            bool onFrontSide = line.Segment.OnRight(pos2D);
-            if (!onFrontSide && line.OneSided)
-                continue;
-
-            Side? side = onFrontSide ? line.Front : line.Back;
-            if (side == null)
-                throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
-
-            if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
-            {
-                side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
-                AlphaSides.Add(side);
-            }
-
-            // Transfer heights has to be drawn by the transfer heights sector
-            if (side.Sector.TransferHeights != null && (sector.TransferHeights == null || sector.TransferHeights.ControlSector != side.Sector.TransferHeights.ControlSector))
-                continue;
-
-            if (m_dynamic || !side.IsStatic)
-                RenderSide(side, onFrontSide);
-
-            m_lineDrawnTracker.MarkDrawn(line);
+            RenderSectorWall(sector, line, pos2D);
         }
+    }
+
+    private void RenderSectorWall(Sector sector, Line line, Vec2D pos2D)
+    {
+        if (m_lineDrawnTracker.HasDrawn(line))
+            return;
+
+        bool onFrontSide = line.Segment.OnRight(pos2D);
+        if (!onFrontSide && line.OneSided)
+            return;
+
+        Side? side = onFrontSide ? line.Front : line.Back;
+        if (side == null)
+            throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
+
+        if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
+        {
+            side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
+            AlphaSides.Add(side);
+        }
+
+        // Transfer heights has to be drawn by the transfer heights sector
+        if (side.Sector.TransferHeights != null && (sector.TransferHeights == null || sector.TransferHeights.ControlSector != side.Sector.TransferHeights.ControlSector))
+            return;
+
+        if (m_dynamic || !side.IsStatic)
+            RenderSide(side, onFrontSide);
+
+        m_lineDrawnTracker.MarkDrawn(line);
     }
 
     private void RenderWalls(Subsector subsector, in Vec3D position, Vec2D pos2D)

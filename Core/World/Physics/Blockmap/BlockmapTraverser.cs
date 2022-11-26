@@ -12,6 +12,7 @@ using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Physics.Blockmap;
 
@@ -327,7 +328,7 @@ public class BlockmapTraverser
     }
 
     public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, int maxScrollViewDistance,
-        Action<Entity> renderEntity, Action<Sector> renderSector, Action<Sector> renderScrollingSector)
+        Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         Vec2D origin = m_blockmap.Blocks.Origin;
@@ -375,18 +376,15 @@ public class BlockmapTraverser
                     renderSector(sectorNode.Value);
             }
 
-
-            for (LinkableNode<Sector>? sectorNode = block.DynamicScrollSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+            for (LinkableNode<Side>? sideNode = block.ScrollSides.Head; sideNode != null; sideNode = sideNode.Next)
             {
-                if (sectorNode.Value.BlockmapCount == m_blockmapCount)
+                if (sideNode.Value.BlockmapCount == m_blockmapCount)
                     continue;
 
-                sectorNode.Value.BlockmapCount = m_blockmapCount;
-                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
-                double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
-                double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
-                if (dx1 * dx1 + dy1 * dy1 <= maxScrollDistSquared)
-                    renderScrollingSector(sectorNode.Value);
+                if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
+                    continue;
+
+                renderSide(sideNode.Value);
             }
 
             return GridIterationStatus.Continue;
