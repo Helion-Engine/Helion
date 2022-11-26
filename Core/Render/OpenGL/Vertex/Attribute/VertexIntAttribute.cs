@@ -6,6 +6,8 @@ namespace Helion.Render.OpenGL.Vertex.IntegralAttribute;
 
 public abstract class VertexIntAttribute : VertexArrayAttribute
 {
+    protected abstract VertexAttribIntegerType AttributeType { get; }
+
     public VertexIntAttribute(string name, int index, int size) : base(name, index, size)
     {
     }
@@ -15,9 +17,7 @@ public abstract class VertexIntAttribute : VertexArrayAttribute
         Precondition(stride >= ByteLength, "Stride is smaller than the length of the VAO element");
         Precondition(offset >= 0 && offset < stride, "Offset relative to stride is wrong");
 
-        GL.VertexAttribIPointer(Index, Size, GetAttributeType(), stride, new(offset));
+        GL.VertexAttribIPointer(Index, Size, AttributeType, stride, new(offset));
         GL.EnableVertexAttribArray(Index);
     }
-
-    protected abstract VertexAttribIntegerType GetAttributeType();
 }
