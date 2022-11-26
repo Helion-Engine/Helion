@@ -24,6 +24,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     private int m_dataVersion;
     private IntPtr m_vboArrayPtr;
     private GCHandle m_pinnedArray;
+    private bool m_disposed;
 
     protected abstract BufferTarget Target { get; }
 
@@ -47,7 +48,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     ~BufferObject()
     {
-        ReleaseUnmanagedResources();
+        Dispose(false);
     }
 
     protected abstract void PerformUpload();
@@ -128,21 +129,21 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         GL.BindBuffer(Target, 0);
     }
 
-    public void Dispose()
+    protected virtual void Dispose(bool disposing)
     {
-        ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
+        if (m_disposed)
+            return;
+
+        GL.DeleteBuffer(BufferId);
+        Data = null!; // Encourage the GC to collect things.
+        m_pinnedArray.Free();
+
+        m_disposed = true;
     }
 
-    protected virtual void ReleaseUnmanagedResources()
+    public void Dispose()
     {
-        GL.DeleteBuffer(BufferId);
-
-        // Since VBOs can end up holding a lot of data, if we dispose of it
-        // but take a while to lose the reference, we still want to leave
-        // the option for the GC to retrieve memory.
-        Data = null!;
-
-        m_pinnedArray.Free();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }
