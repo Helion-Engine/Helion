@@ -34,10 +34,8 @@ public class Renderer
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
 
-    public IWindow Window { get; }
-    public IRenderableSurface DefaultSurface => Default;
-    public IRendererTextureManager Textures => m_textureManager;
-    public IRenderableSurface Default { get; }
+    public readonly IWindow Window;
+    public readonly GLSurface Default;
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
     internal readonly ArchiveCollection m_archiveCollection;
@@ -47,6 +45,7 @@ public class Renderer
     private readonly RenderInfo m_renderInfo = new();
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
+    public IRendererTextureManager Textures => m_textureManager;
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
@@ -57,7 +56,7 @@ public class Renderer
         m_textureManager = new LegacyGLTextureManager(m_config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, m_textureManager);
         m_hudRenderer = new LegacyHudRenderer(m_textureManager, archiveCollection.DataCache);
-        Default = new GLSurface(window, this);
+        Default = new(window, this);
 
         PrintGLInfo();
         SetGLDebugger();

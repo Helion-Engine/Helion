@@ -282,7 +282,7 @@ public class GameLayerManager : IGameLayerParent
 
     public void Render(Renderer renderer)
     {
-        renderer.DefaultSurface.Render(ctx =>
+        renderer.Default.Render(ctx =>
         {
             HudRenderContext hudContext = new(m_window.Dimension);
 
