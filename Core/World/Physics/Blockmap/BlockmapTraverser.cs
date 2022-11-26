@@ -326,13 +326,14 @@ public class BlockmapTraverser
         return intersections;
     }
 
-    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, 
-        Action<Entity> renderEntity, Action<Sector> renderSector)
+    public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance, int maxScrollViewDistance,
+        Action<Entity> renderEntity, Action<Sector> renderSector, Action<Sector> renderScrollingSector)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         Vec2D origin = m_blockmap.Blocks.Origin;
         int dimension = UniformGrid<Block>.Dimension;
         double maxDistSquared = maxViewDistance * maxViewDistance;
+        double maxScrollDistSquared = maxScrollViewDistance * maxScrollViewDistance;
 
         m_blockmapCount++;
         m_blockmap.Iterate(box, IterateBlock);
@@ -372,6 +373,20 @@ public class BlockmapTraverser
                 double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
                 if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
                     renderSector(sectorNode.Value);
+            }
+
+
+            for (LinkableNode<Sector>? sectorNode = block.DynamicScrollSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+            {
+                if (sectorNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+
+                sectorNode.Value.BlockmapCount = m_blockmapCount;
+                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
+                double dx1 = Math.Max(sectorBox.Min.X - viewPos.X, Math.Max(0, viewPos.X - sectorBox.Max.X));
+                double dy1 = Math.Max(sectorBox.Min.Y - viewPos.Y, Math.Max(0, viewPos.Y - sectorBox.Max.Y));
+                if (dx1 * dx1 + dy1 * dy1 <= maxScrollDistSquared)
+                    renderScrollingSector(sectorNode.Value);
             }
 
             return GridIterationStatus.Continue;
