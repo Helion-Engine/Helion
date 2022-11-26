@@ -334,7 +334,7 @@ public class LegacyWorldRenderer : WorldRenderer
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        m_shaderProgram.BoundTexture(0);
+        m_shaderProgram.BoundTexture(TextureUnit.Texture0);
         m_shaderProgram.HasInvulnerability(drawInvulnerability);
         m_shaderProgram.LightDropoff(m_config.Render.LightDropoff);
         m_shaderProgram.Mvp(Renderer.CalculateMvpMatrix(renderInfo));

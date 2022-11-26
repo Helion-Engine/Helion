@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Helion.Render.OpenGL.Texture.New;
 
@@ -9,7 +10,7 @@ public abstract class GLTexture : IDisposable
 
     protected GLTexture()
     {
-
+        Name = GL.GenTexture();
     }
 
     ~GLTexture()
@@ -25,7 +26,8 @@ public abstract class GLTexture : IDisposable
         if (m_disposed)
             return;
 
-        // TODO
+        GL.DeleteTexture(Name);
+        Name = 0;
 
         m_disposed = true;
     }
