@@ -1,4 +1,5 @@
 using OpenTK.Graphics.OpenGL;
+using System;
 using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Context;
@@ -8,7 +9,7 @@ public static class GLExtensions
     public static readonly bool TextureFilterAnisotropic;
     public static readonly bool DebugOutput;
     public static readonly bool LabelDebug;
-    private static readonly HashSet<string> Extensions = new HashSet<string>();
+    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase);
 
     public static int Count => Extensions.Count;
 
