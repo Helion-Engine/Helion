@@ -30,7 +30,6 @@ namespace Helion.Render;
 
 public class Renderer
 {
-    public const string DefaultSurfaceName = "Default";
     public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
@@ -98,8 +97,6 @@ public class Renderer
         if (config.Render.Anisotropy > 1 && config.Render.Filter.Texture.Value != FilterType.Trilinear)
             Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
     }
-
-    public IRenderableSurface GetOrCreateSurface(string name, Dimension dimension) => Default;
 
     public void Render(RenderCommands renderCommands)
     {
@@ -190,7 +187,6 @@ public class Renderer
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
     }
 
-    [Conditional("DEBUG")]
     private void SetGLDebugger()
     {
         // Note: This means it's not set if `RenderDebug` changes. As far
