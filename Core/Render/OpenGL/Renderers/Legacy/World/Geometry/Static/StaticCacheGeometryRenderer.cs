@@ -1,5 +1,6 @@
 ﻿using GlmSharp;
 using Helion.Bsp.States.Miniseg;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
@@ -28,6 +29,7 @@ using Helion.World.Static;
 using MoreLinq;
 using Newtonsoft.Json.Linq;
 using OpenTK.Graphics.OpenGL;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -96,6 +98,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
+        m_world.SideScrollChanged += World_SideScrollChanged;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -572,6 +575,16 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Add(e);
     }
 
+    private void World_SideScrollChanged(object? sender, (Side Side, SideTexture Texture) e)
+    {
+        if (e.Texture.HasFlag(SideTexture.Upper))
+            UpdateOffsetVertices(e.Side.Upper.Static, e.Side, SideTexture.Upper);
+        if (e.Texture.HasFlag(SideTexture.Lower))
+            UpdateOffsetVertices(e.Side.Lower.Static, e.Side, SideTexture.Lower);
+        if (e.Texture.HasFlag(SideTexture.Middle))
+            UpdateOffsetVertices(e.Side.Middle.Static, e.Side, SideTexture.Middle);
+    }
+
     private static void ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
@@ -657,6 +670,70 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         data.GeometryData.Vbo.Bind();
         data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private static void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
+    {
+        if (data.GeometryData == null)
+            return;
+
+        WallUV uv = GetSideUV(data, side, texture);
+        var geometryData = data.GeometryData;
+
+        int index = data.GeometryDataStartIndex;
+        //TopLeft
+        geometryData.Vbo.Data.Data[index].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index].V = uv.TopLeft.Y;
+        //BottomLeft
+        geometryData.Vbo.Data.Data[index + 1].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index + 1].V = uv.BottomRight.Y;
+        //TopRight
+        geometryData.Vbo.Data.Data[index + 2].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 2].V = uv.TopLeft.Y;
+        //TopRight
+        geometryData.Vbo.Data.Data[index + 3].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 3].V = uv.TopLeft.Y;
+        //BottomLeft
+        geometryData.Vbo.Data.Data[index + 4].U = uv.TopLeft.X;
+        geometryData.Vbo.Data.Data[index + 4].V = uv.BottomRight.Y;
+        //BottomRight
+        geometryData.Vbo.Data.Data[index + 5].U = uv.BottomRight.X;
+        geometryData.Vbo.Data.Data[index + 5].V = uv.BottomRight.Y;
+
+
+        data.GeometryData.Vbo.Bind();
+        data.GeometryData.Vbo.UploadSubData(data.GeometryDataStartIndex, data.GeometryDataLength);
+    }
+
+    private static WallUV GetSideUV(in StaticGeometryData data, Side side, SideTexture texture)
+    {
+        double length = side.Line.GetLength();
+        if (side.Line.OneSided)
+        {
+            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+        }
+
+        Side otherSide = side.PartnerSide!;
+        Sector facingSector = side.Sector;
+        Sector otherSector = otherSide.Sector;
+
+        WallUV uv;
+        switch (texture)
+        {
+            case SideTexture.Upper:
+                uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
+                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, 0);
+                break;
+            case SideTexture.Lower:
+                uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
+                    otherSector.Floor.Z, facingSector.Floor.Z, 0);
+                break;
+            default:
+                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+                break;
+        }
+
+        return uv;
     }
 
     private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)

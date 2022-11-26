@@ -37,11 +37,11 @@ public class StaticDataApplier
             {
                 SetSectorDynamic(world, sectorSpecial.Sector, true, true, SectorDynamic.Light);
             }
-            else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
-            {
-                bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
-                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
-            }
+            //else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
+            //{
+            //    bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
+            //    SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
+            //}
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -95,13 +95,13 @@ public class StaticDataApplier
         if (line.Front.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.Link(world, line.Front.Sector);
+            world.Blockmap.LinkScrolling(world, line.Front.Sector);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.Link(world, line.Back.Sector);
+            world.Blockmap.LinkScrolling(world, line.Back.Sector);
         }
 
         var special = line.Special;
@@ -140,7 +140,9 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sectorDynamic == SectorDynamic.Scroll || sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
+        if (sectorDynamic == SectorDynamic.Scroll)
+            world.Blockmap.LinkScrolling(world, sector);
+        else if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
             world.Blockmap.Link(world, sector);
 
         foreach (var line in sector.Lines)

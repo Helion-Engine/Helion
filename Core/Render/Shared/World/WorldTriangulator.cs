@@ -198,10 +198,11 @@ public static class WorldTriangulator
         return new MiddleDrawSpan(bottomZ, topZ, visibleBottomZ, visibleTopZ);
     }
 
-    private static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
+    public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, double tickFraction)
     {
         Vec2F offsetUV = side.Offset.Float * textureUVInverse;
+
         if (side.ScrollData != null)
             offsetUV += GetScrollOffset(side.ScrollData, SideScrollData.MiddlePosition, textureUVInverse, tickFraction);
         float wallSpanU = (float)length * textureUVInverse.U;
@@ -226,7 +227,7 @@ public static class WorldTriangulator
         return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));
     }
 
-    private static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length,
+    public static WallUV CalculateTwoSidedLowerWallUV(Line line, Side facingSide, double length,
         in Vec2F textureUVInverse, double topZ, double bottomZ, double tickFraction)
     {
         Vec2F offsetUV = facingSide.Offset.Float * textureUVInverse;
@@ -283,7 +284,7 @@ public static class WorldTriangulator
         return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));
     }
 
-    private static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
+    public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, double tickFraction)
     {
         Vec2F offsetUV = side.Offset.Float * textureUVInverse;

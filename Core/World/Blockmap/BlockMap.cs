@@ -133,6 +133,21 @@ public class BlockMap
         }
     }
 
+    public void LinkScrolling(IWorld world, Sector sector)
+    {
+        Box2D box = sector.GetBoundingBox();
+        m_blocks.Iterate(box, BlockLinkFunc);
+
+        GridIterationStatus BlockLinkFunc(Block block)
+        {
+            LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
+            block.DynamicScrollSectors.Add(sectorNode);
+
+            sector.BlockmapNodes.Add(sectorNode);
+            return GridIterationStatus.Continue;
+        }
+    }
+
     private static Box2D? FindMapBoundingBox(IEnumerable<Line> lines)
     {
         var boxes = lines.Select(l => l.Segment.Box);

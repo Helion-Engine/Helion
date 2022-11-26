@@ -37,7 +37,7 @@ public class ScrollSpecialModel : ISpecialModel
             if (!world.IsLineIdValid(lineId))
                 return null;
 
-            return new ScrollSpecial(world.Lines[lineId], accelSector, this);
+            return new ScrollSpecial(world, world.Lines[lineId], accelSector, this);
         }
         else if (SectorId.HasValue)
         {
@@ -48,6 +48,6 @@ public class ScrollSpecialModel : ISpecialModel
             return new ScrollSpecial(world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
         }
 
-        return new ScrollSpecial(world.Lines[0], Geometry.Vectors.Vec2D.Zero, Maps.Specials.ZDoom.ZDoomLineScroll.MiddleTexture);
+        return new ScrollSpecial(world, world.Lines[0], Geometry.Vectors.Vec2D.Zero, Maps.Specials.ZDoom.ZDoomLineScroll.MiddleTexture);
     }
 }

@@ -98,6 +98,9 @@ public class ConfigRender
     [ConfigInfo("Max render distance.")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
+    [ConfigInfo("Max render scrolling distance for interpolation.")]
+    public readonly ConfigValue<int> MaxScrollDistance = new(512);
+
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
