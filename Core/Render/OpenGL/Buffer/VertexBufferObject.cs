@@ -32,7 +32,7 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         for (int i = 0; i < vao.Attributes.AttributesArray.Length; i++)
         {
             vao.Attributes.AttributesArray[i].Enable(vao.Attributes.Stride, offset);
-            offset += vao.Attributes.AttributesArray[i].ByteLength();
+            offset += vao.Attributes.AttributesArray[i].ByteLength;
         }
 
         Unbind();
