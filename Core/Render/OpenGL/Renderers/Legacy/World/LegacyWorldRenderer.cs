@@ -67,9 +67,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer = new(config, textureManager, m_worldDataManager);
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
-
-        using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder())
-            m_shaderProgram = new(shaderBuilder, Attributes);
+        m_shaderProgram = new();
 
         m_geometryRenderer = new GeometryRenderer(config, archiveCollection, textureManager, m_viewClipper, m_worldDataManager, Attributes);
     }
@@ -311,8 +309,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void SetUniforms(RenderInfo renderInfo)
     {
-        int drawInvulnerability = 0;
-
         // We divide by 4 to make it so the noise changes every four ticks.
         // We then mod by 8 so that the number stays small (or else when it
         // is multiplied in the shader it will overflow very quickly if we
@@ -324,6 +320,7 @@ public class LegacyWorldRenderer : WorldRenderer
         const int ticksPerFrame = 4;
         const int differentFrames = 8;
         float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / ticksPerFrame) % differentFrames) + 1;
+        bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
 
@@ -332,19 +329,19 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
                 mix = 1.0f;
             if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
-                drawInvulnerability = 1;
+                drawInvulnerability = true;
 
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        m_shaderProgram.BoundTexture.Set(0);
-        m_shaderProgram.HasInvulnerability.Set(drawInvulnerability);
-        m_shaderProgram.LightDropoff.Set(m_config.Render.LightDropoff ? 1 : 0);
-        m_shaderProgram.Mvp.Set(GLRenderer.CalculateMvpMatrix(renderInfo));
-        m_shaderProgram.MvpNoPitch.Set(GLRenderer.CalculateMvpMatrix(renderInfo, true));
-        m_shaderProgram.TimeFrac.Set(timeFrac);
-        m_shaderProgram.LightLevelMix.Set(mix);
-        m_shaderProgram.ExtraLight.Set(extraLight);
+        m_shaderProgram.BoundTexture(0);
+        m_shaderProgram.HasInvulnerability(drawInvulnerability);
+        m_shaderProgram.LightDropoff(m_config.Render.LightDropoff);
+        m_shaderProgram.Mvp(GLRenderer.CalculateMvpMatrix(renderInfo));
+        m_shaderProgram.MvpNoPitch(GLRenderer.CalculateMvpMatrix(renderInfo, true));
+        m_shaderProgram.TimeFrac(timeFrac);
+        m_shaderProgram.LightLevelMix(mix);
+        m_shaderProgram.ExtraLight(extraLight);
     }
 
     private void ReleaseUnmanagedResources()

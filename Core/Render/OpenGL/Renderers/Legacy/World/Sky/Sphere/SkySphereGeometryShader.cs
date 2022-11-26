@@ -1,46 +1,35 @@
-using Helion.Render.OpenGL.Context;
+using GlmSharp;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Shader.Component;
-using Helion.Render.OpenGL.Shader.Fields;
-using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public class SkySphereGeometryShader : ShaderProgram
+public class SkySphereGeometryShader : RenderShader
 {
-    public readonly UniformMatrix4 Mvp = new UniformMatrix4();
-
-    public SkySphereGeometryShader(ShaderBuilder builder, VertexArrayAttributes attributes) :
-        base(builder, attributes)
+    public SkySphereGeometryShader() : base("Program: Sky sphere geometry")
     {
     }
 
-    public static ShaderBuilder MakeBuilder()
-    {
-        const string vertexShaderText = @"
-            #version 130
+    public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
-            in vec3 pos;
+    protected override string VertexShader() => @"
+        #version 130
 
-            uniform mat4 mvp;
+        in vec3 pos;
 
-            void main() {
-                gl_Position = mvp * vec4(pos, 1.0);
-            }
-        ";
+        uniform mat4 mvp;
 
-        const string fragmentShaderText = @"
-            #version 130
+        void main() {
+            gl_Position = mvp * vec4(pos, 1.0);
+        }
+    ";
 
-            out vec4 fragColor;
+    protected override string FragmentShader() => @"
+        #version 130
 
-            void main() {
-                fragColor = vec4(1.0, 1.0, 1.0, 1.0);
-            }
-        ";
+        out vec4 fragColor;
 
-        VertexShaderComponent vertexShaderComponent = new(vertexShaderText);
-        FragmentShaderComponent fragmentShaderComponent = new(fragmentShaderText);
-        return new(vertexShaderComponent, fragmentShaderComponent);
-    }
+        void main() {
+            fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    ";
 }

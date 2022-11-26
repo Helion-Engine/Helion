@@ -32,11 +32,11 @@ public class LegacyAutomapRenderer : IDisposable
     private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly LegacyAutomapShader m_shader;
+    private readonly AutomapShader m_shader;
     private readonly StreamVertexBuffer<vec2> m_vbo;
     private readonly VertexArrayObject m_vao;
     private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
-    private readonly List<(int start, vec3 color)> m_vboRanges = new();
+    private readonly List<(int start, Vec3F color)> m_vboRanges = new();
     private readonly DynamicArray<vec2> m_entityPoints = new();
     private float m_offsetX;
     private float m_offsetY;
@@ -51,12 +51,10 @@ public class LegacyAutomapRenderer : IDisposable
         m_archiveCollection = archiveCollection;
         m_vao = new(Attributes, "VAO: Attributes for Automap");
         m_vbo = new(m_vao, "VBO: Geometry for Automap");
+        m_shader = new();
 
         foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
             m_colorEnumToLines.Add(new DynamicArray<vec2>());
-
-        using (var shaderBuilder = LegacyAutomapShader.MakeBuilder())
-            m_shader = new(shaderBuilder, Attributes);
 
         foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
         {
@@ -73,7 +71,6 @@ public class LegacyAutomapRenderer : IDisposable
 
     ~LegacyAutomapRenderer()
     {
-        FailedToDispose(this);
         PerformDispose();
     }
 
@@ -101,14 +98,14 @@ public class LegacyAutomapRenderer : IDisposable
 
         m_shader.Bind();
 
-        m_shader.Mvp.Set(CalculateMvp(renderInfo, worldBounds, world));
+        m_shader.Mvp(CalculateMvp(renderInfo, worldBounds, world));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
         {
-            (int first, vec3 color) = m_vboRanges[i];
+            (int first, Vec3F color) = m_vboRanges[i];
             int count = i == m_vboRanges.Count - 1 ? m_vbo.Count - first : m_vboRanges[i + 1].start - first;
 
-            m_shader.Color.Set(color);
+            m_shader.Color(color);
             m_vao.Bind();
             GL.DrawArrays(PrimitiveType.Lines, first, count);
             m_vao.Unbind();
@@ -398,7 +395,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             AutomapColor color = (AutomapColor)i;
-            vec3 colorVec = color.ToColor();
+            Vec3F colorVec = color.ToColor();
             m_vboRanges.Add((m_vbo.Count, colorVec));
 
             for (int j = 0; j < lines.Length; j++)

@@ -1,12 +1,16 @@
 ﻿using GlmSharp;
+using Helion;
 using Helion.Geometry.Vectors;
+using Helion.Render;
+using Helion.Render.OpenGL;
+using Helion.Render.OpenGL.Shader;
 using OneOf;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Helion.Render.OpenGL.Shader.New;
+namespace Helion.Render.OpenGL.Shader;
 
 public class UniformManager
 {
@@ -24,7 +28,7 @@ public class UniformManager
         }
     }
 
-    public OneOf<bool, int, uint, float, Vec2F, Vec3F, Vec4F, mat4> this[string name]
+    public OneOf<bool, int, float, Vec2F, Vec3F, Vec4F, mat4, TextureUnit> this[string name]
     {
         set
         {
@@ -37,12 +41,12 @@ public class UniformManager
             value.Switch(
                 b => GL.Uniform1(location, b ? 1 : 0),
                 i => GL.Uniform1(location, i),
-                u => GL.Uniform1(location, u),
                 f => GL.Uniform1(location, f),
                 v => GL.Uniform2(location, v.X, v.Y),
                 v => GL.Uniform3(location, v.X, v.Y, v.Z),
                 v => GL.Uniform4(location, v.X, v.Y, v.Z, v.W),
-                mat => GL.UniformMatrix4(location, 1, false, mat.Values1D)
+                mat => GL.UniformMatrix4(location, 1, false, mat.Values1D),
+                texUnit => GL.Uniform1(location, (int)texUnit - (int)TextureUnit.Texture0)
             );
         }
     }

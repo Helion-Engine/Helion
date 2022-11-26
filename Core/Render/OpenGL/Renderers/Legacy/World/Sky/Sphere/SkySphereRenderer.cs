@@ -31,19 +31,16 @@ public class SkySphereRenderer : IDisposable
 
     public SkySphereRenderer(ArchiveCollection archiveCollection,  LegacyGLTextureManager textureManager, int textureHandle)
     {
-        m_sphereVao = new VertexArrayObject(SphereAttributes, "VAO: Sky sphere");
-        m_sphereVbo = new StaticVertexBuffer<SkySphereVertex>(m_sphereVao, "VBO: Sky sphere");
-        using (ShaderBuilder builder = SkySphereShader.MakeBuilder())
-            m_sphereShaderProgram = new SkySphereShader(builder, SphereAttributes);
-
-        m_skyTexture = new SkySphereTexture(archiveCollection, textureManager, textureHandle);
+        m_sphereVao = new(SphereAttributes, "VAO: Sky sphere");
+        m_sphereVbo = new(m_sphereVao, "VBO: Sky sphere");
+        m_sphereShaderProgram = new();
+        m_skyTexture = new(archiveCollection, textureManager, textureHandle);
 
         GenerateSphereVerticesAndUpload();
     }
 
     ~SkySphereRenderer()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 
@@ -52,7 +49,6 @@ public class SkySphereRenderer : IDisposable
         m_sphereShaderProgram.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        m_sphereShaderProgram.BoundTexture.Set(0);
         SetUniforms(renderInfo, flipSkyHorizontal);
 
         DrawSphere(m_skyTexture.GetTexture());
@@ -142,10 +138,11 @@ public class SkySphereRenderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
-        m_sphereShaderProgram.Mvp.Set(CalculateMvp(renderInfo));
-        m_sphereShaderProgram.ScaleU.Set(m_skyTexture.ScaleU);
-        m_sphereShaderProgram.FlipU.Set(flipSkyHorizontal ? 1 : 0);
-        m_sphereShaderProgram.HasInvulnerability.Set(invulnerability ? 1 : 0);
+        m_sphereShaderProgram.BoundTexture(TextureUnit.Texture0);
+        m_sphereShaderProgram.Mvp(CalculateMvp(renderInfo));
+        m_sphereShaderProgram.ScaleU(m_skyTexture.ScaleU);
+        m_sphereShaderProgram.FlipU(flipSkyHorizontal);
+        m_sphereShaderProgram.HasInvulnerability(invulnerability);
     }
 
     private void ReleaseUnmanagedResources()

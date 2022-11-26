@@ -1,76 +1,66 @@
-using Helion.Render.OpenGL.Context;
+using GlmSharp;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Shader.Component;
-using Helion.Render.OpenGL.Shader.Fields;
-using Helion.Render.OpenGL.Vertex;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
-public class LegacyHudShader : ShaderProgram
+public class LegacyHudShader : RenderShader
 {
-    public readonly UniformInt BoundTexture = new();
-    public readonly UniformMatrix4 Mvp = new();
-
-    public LegacyHudShader(ShaderBuilder builder, VertexArrayAttributes attributes) :
-        base(builder, attributes)
+    public LegacyHudShader() : base("Program: Hud")
     {
     }
 
-    public static ShaderBuilder MakeBuilder()
-    {
-        const string vertexShaderText = @"
-            #version 130
+    public void BoundTexture(TextureUnit unit) => Uniforms["boundTexture"] = unit;
+    public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
-            in vec3 pos;
-            in vec2 uv;
-            in vec4 rgbMultiplier;
-            in float alpha;
-            in float hasInvulnerability;
+    protected override string VertexShader() => @"
+        #version 130
 
-            out vec2 uvFrag;
-            flat out vec4 rgbMultiplierFrag;
-            flat out float alphaFrag;
-            flat out float hasInvulnerabilityFrag;
+        in vec3 pos;
+        in vec2 uv;
+        in vec4 rgbMultiplier;
+        in float alpha;
+        in float hasInvulnerability;
 
-            uniform mat4 mvp;
+        out vec2 uvFrag;
+        flat out vec4 rgbMultiplierFrag;
+        flat out float alphaFrag;
+        flat out float hasInvulnerabilityFrag;
 
-            void main() {
-                uvFrag = uv;
-                rgbMultiplierFrag = rgbMultiplier;
-                alphaFrag = alpha;
-                hasInvulnerabilityFrag = hasInvulnerability;
+        uniform mat4 mvp;
 
-                gl_Position = mvp * vec4(pos, 1.0);
+        void main() {
+            uvFrag = uv;
+            rgbMultiplierFrag = rgbMultiplier;
+            alphaFrag = alpha;
+            hasInvulnerabilityFrag = hasInvulnerability;
+
+            gl_Position = mvp * vec4(pos, 1.0);
+        }
+    ";
+
+    protected override string FragmentShader() => @"
+        #version 130
+
+        in vec2 uvFrag;
+        flat in vec4 rgbMultiplierFrag;
+        flat in float alphaFrag;
+        flat in float hasInvulnerabilityFrag;
+
+        out vec4 fragColor;
+
+        uniform sampler2D boundTexture;
+
+        void main() {
+            fragColor = texture(boundTexture, uvFrag.st);
+            fragColor.w *= alphaFrag;
+            fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
+
+            if (hasInvulnerabilityFrag != 0) {
+                float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
+                maxColor *= 1.5;
+                fragColor.xyz = vec3(maxColor, maxColor, maxColor);
             }
-        ";
-
-        const string fragmentShaderText = @"
-            #version 130
-
-            in vec2 uvFrag;
-            flat in vec4 rgbMultiplierFrag;
-            flat in float alphaFrag;
-            flat in float hasInvulnerabilityFrag;
-
-            out vec4 fragColor;
-
-            uniform sampler2D boundTexture;
-
-            void main() {
-                fragColor = texture(boundTexture, uvFrag.st);
-                fragColor.w *= alphaFrag;
-                fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
-
-                if (hasInvulnerabilityFrag != 0) {
-                    float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-                    maxColor *= 1.5;
-                    fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-                }
-            }
-        ";
-
-        VertexShaderComponent vertexShaderComponent = new(vertexShaderText);
-        FragmentShaderComponent fragmentShaderComponent = new(fragmentShaderText);
-        return new(vertexShaderComponent, fragmentShaderComponent);
-    }
+        }
+    ";
 }

@@ -1,11 +1,15 @@
-﻿using Helion.Render.OpenGL.Util;
+﻿using Helion;
+using Helion.Render;
+using Helion.Render.OpenGL;
+using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Helion.Render.OpenGL.Shader.New;
+namespace Helion.Render.OpenGL.Shader;
 
 public abstract class RenderShader : IDisposable
 {

@@ -43,9 +43,7 @@ public class LegacyHudRenderer : HudRenderer
         m_vao = new(Attributes, "VAO: Hud renderer");
         m_vbo = new(m_vao, "VBO: Hud renderer");
         m_drawBuffer = new(dataCache);
-
-        using (ShaderBuilder shaderBuilder = LegacyHudShader.MakeBuilder())
-            m_shaderProgram = new(shaderBuilder, Attributes);
+        m_shaderProgram = new();
     }
 
     ~LegacyHudRenderer()
@@ -124,10 +122,9 @@ public class LegacyHudRenderer : HudRenderer
         m_shaderProgram.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        m_shaderProgram.BoundTexture.Set(0);
-        m_shaderProgram.Mvp.Set(CreateMvp(viewport));
+        m_shaderProgram.BoundTexture(TextureUnit.Texture0);
+        m_shaderProgram.Mvp(CreateMvp(viewport));
 
-        // TODO: Bind VAO and VBO out here and not constantly bind/unbind?
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
             HudDrawBufferData data = m_drawBuffer.DrawBuffer[i];

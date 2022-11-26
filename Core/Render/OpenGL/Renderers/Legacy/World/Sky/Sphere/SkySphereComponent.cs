@@ -21,7 +21,7 @@ public class SkySphereComponent : ISkyComponent
     private readonly IConfig m_config;
     private readonly StreamVertexBuffer<SkyGeometryVertex> m_geometryVbo;
     private readonly VertexArrayObject m_geometryVao;
-    private readonly SkySphereGeometryShader m_geometryShaderProgram;
+    private readonly SkySphereGeometryShader m_geometryProgram;
     private readonly SkySphereRenderer m_skySphereRenderer;
     private readonly bool m_flipSkyTexture;
 
@@ -33,18 +33,14 @@ public class SkySphereComponent : ISkyComponent
     {
         m_config = config;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
-
         m_geometryVao = new(GeometryAttributes, "VAO: Sky sphere geometry");
         m_geometryVbo = new(m_geometryVao, "VBO: Sky sphere geometry");
-        using (ShaderBuilder builder = SkySphereGeometryShader.MakeBuilder())
-            m_geometryShaderProgram = new(builder, GeometryAttributes);
-
+        m_geometryProgram = new();
         m_flipSkyTexture = flipSkyTexture;
     }
 
     ~SkySphereComponent()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 
@@ -60,10 +56,9 @@ public class SkySphereComponent : ISkyComponent
 
     public void RenderWorldGeometry(RenderInfo renderInfo)
     {
-        m_geometryShaderProgram.Bind();
+        m_geometryProgram.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        m_geometryShaderProgram.Mvp.Set(GLRenderer.CalculateMvpMatrix(renderInfo));
+        m_geometryProgram.Mvp(GLRenderer.CalculateMvpMatrix(renderInfo));
 
         m_geometryVbo.UploadIfNeeded();
 
@@ -71,7 +66,7 @@ public class SkySphereComponent : ISkyComponent
         m_geometryVbo.DrawArrays();
         m_geometryVao.Unbind();
 
-        m_geometryShaderProgram.Unbind();
+        m_geometryProgram.Unbind();
     }
 
     public void RenderSky(RenderInfo renderInfo)
@@ -87,7 +82,7 @@ public class SkySphereComponent : ISkyComponent
 
     private void ReleaseUnmanagedResources()
     {
-        m_geometryShaderProgram.Dispose();
+        m_geometryProgram.Dispose();
         m_geometryVbo.Dispose();
         m_geometryVao.Dispose();
 
