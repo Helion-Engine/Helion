@@ -9,26 +9,27 @@ namespace Helion.Render.OpenGL.Vertex;
 public class VertexArrayObject : IDisposable
 {
     public readonly VertexArrayAttributes Attributes;
-    private readonly int m_vaoId;
+    private readonly int m_name;
+    private bool m_disposed;
 
-    public VertexArrayObject(VertexArrayAttributes vaoAttributes, string objectLabel)
+    public VertexArrayObject(VertexArrayAttributes attributes, string label)
     {
-        m_vaoId = GL.GenVertexArray();
-        Attributes = vaoAttributes;
+        m_name = GL.GenVertexArray();
+        Attributes = attributes;
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_vaoId, objectLabel);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, label);
         Unbind();
     }
 
     ~VertexArrayObject()
     {
-        ReleaseUnmanagedResources();
+        Dispose(false);
     }
 
     public void Bind()
     {
-        GL.BindVertexArray(m_vaoId);
+        GL.BindVertexArray(m_name);
     }
 
     public void Unbind()
@@ -36,14 +37,19 @@ public class VertexArrayObject : IDisposable
         GL.BindVertexArray(0);
     }
 
-    public void Dispose()
+    protected virtual void Dispose(bool disposing)
     {
-        ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
+        if (m_disposed)
+            return;
+
+        GL.DeleteVertexArray(m_name);
+
+        m_disposed = true;
     }
 
-    private void ReleaseUnmanagedResources()
+    public void Dispose()
     {
-        GL.DeleteVertexArray(m_vaoId);
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }
