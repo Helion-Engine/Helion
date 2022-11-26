@@ -7,15 +7,16 @@ namespace Helion.Render.OpenGL.Buffer.Array;
 
 public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 {
+    protected override BufferTarget Target => BufferTarget.ArrayBuffer;
+    protected abstract BufferUsageHint Hint { get; }
+
     protected ArrayBufferObject(string objectLabel) : base(objectLabel)
     {
     }
 
-    protected override BufferTarget GetBufferType() => BufferTarget.ArrayBuffer;
-
     protected override void PerformUpload()
     {
-        GL.BufferData(GetBufferType(), BytesPerElement * Data.Length, Data.Data, GetBufferUsageType());
+        GL.BufferData(Target, BytesPerElement * Data.Length, Data.Data, Hint);
     }
 
     protected override void BufferSubData(int index, int length)
@@ -24,8 +25,33 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
         int size = BytesPerElement * length;
         IntPtr ptr = GetVboArray();
 
-        GL.BufferSubData(GetBufferType(), offset, size, ptr);
+        GL.BufferSubData(Target, offset, size, ptr);
     }
+}
 
-    protected abstract BufferUsageHint GetBufferUsageType();
+public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
+
+    public DynamicArrayBuffer(string objectLabel) : base(objectLabel)
+    {
+    }
+}
+
+public class StaticArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
+
+    public StaticArrayBuffer(string objectLabel) : base(objectLabel)
+    {
+    }
+}
+
+public class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.StreamDraw;
+
+    public StreamArrayBuffer(string objectLabel) : base(objectLabel)
+    {
+    }
 }

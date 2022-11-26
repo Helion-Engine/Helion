@@ -25,6 +25,8 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     private IntPtr m_vboArrayPtr;
     private GCHandle m_pinnedArray;
 
+    protected abstract BufferTarget Target { get; }
+
     public int Count => Data.Length;
     public bool Empty => Count == 0;
     public bool NeedsUpload => !Uploaded && Count > 0;
@@ -39,7 +41,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         m_dataVersion = Data.Version;
 
         Bind();
-        SetObjectLabel(objectLabel);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, objectLabel);
         Unbind();
     }
 
@@ -47,6 +49,8 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     {
         ReleaseUnmanagedResources();
     }
+
+    protected abstract void PerformUpload();
 
     public IntPtr GetVboArray()
     {
@@ -119,12 +123,12 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     public void Bind()
     {
-        GL.BindBuffer(GetBufferType(), BufferId);
+        GL.BindBuffer(Target, BufferId);
     }
 
     public void Unbind()
     {
-        GL.BindBuffer(GetBufferType(), 0);
+        GL.BindBuffer(Target, 0);
     }
 
     public void Dispose()
@@ -143,14 +147,5 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Data = null!;
 
         m_pinnedArray.Free();
-    }
-
-    protected abstract BufferTarget GetBufferType();
-    protected abstract void PerformUpload();
-
-    [Conditional("DEBUG")]
-    private void SetObjectLabel(string objectLabel)
-    {
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, objectLabel);
     }
 }

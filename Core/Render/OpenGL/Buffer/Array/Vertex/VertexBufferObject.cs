@@ -41,3 +41,30 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         Postcondition(vao.Attributes.Stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
     }
 }
+
+public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
+
+    public DynamicVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    {
+    }
+}
+
+public class StaticVertexBuffer<T> : VertexBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
+
+    public StaticVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    {
+    }
+}
+
+public class StreamVertexBuffer<T> : VertexBufferObject<T> where T : struct
+{
+    protected override BufferUsageHint Hint => BufferUsageHint.StreamDraw;
+
+    public StreamVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    {
+    }
+}
