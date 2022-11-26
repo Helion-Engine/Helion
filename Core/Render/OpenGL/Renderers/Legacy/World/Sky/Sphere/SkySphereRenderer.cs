@@ -3,7 +3,6 @@ using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -11,6 +10,7 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -19,28 +19,24 @@ public class SkySphereRenderer : IDisposable
 {
     private const int HorizontalSpherePoints = 32;
     private const int VerticalSpherePoints = 32;
-
     private static readonly vec3 UpOpenGL = new(0, 1, 0);
     private static readonly VertexArrayAttributes SphereAttributes = new(
         new VertexPointerFloatAttribute("pos", 0, 3),
         new VertexPointerFloatAttribute("uv", 1, 2));
 
-    private readonly IGLFunctions gl;
     private readonly StaticVertexBuffer<SkySphereVertex> m_sphereVbo;
     private readonly VertexArrayObject m_sphereVao;
     private readonly SkySphereShader m_sphereShaderProgram;
     private readonly SkySphereTexture m_skyTexture;
 
-    public SkySphereRenderer(ArchiveCollection archiveCollection, GLCapabilities capabilities,
-        IGLFunctions functions, LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereRenderer(ArchiveCollection archiveCollection,  LegacyGLTextureManager textureManager, int textureHandle)
     {
-        gl = functions;
-        m_sphereVao = new VertexArrayObject(capabilities, functions, SphereAttributes, "VAO: Sky sphere");
-        m_sphereVbo = new StaticVertexBuffer<SkySphereVertex>(capabilities, functions, m_sphereVao, "VBO: Sky sphere");
-        using (ShaderBuilder builder = SkySphereShader.MakeBuilder(functions))
-            m_sphereShaderProgram = new SkySphereShader(functions, builder, SphereAttributes);
+        m_sphereVao = new VertexArrayObject(SphereAttributes, "VAO: Sky sphere");
+        m_sphereVbo = new StaticVertexBuffer<SkySphereVertex>(m_sphereVao, "VBO: Sky sphere");
+        using (ShaderBuilder builder = SkySphereShader.MakeBuilder())
+            m_sphereShaderProgram = new SkySphereShader(builder, SphereAttributes);
 
-        m_skyTexture = new SkySphereTexture(archiveCollection, functions, textureManager, textureHandle);
+        m_skyTexture = new SkySphereTexture(archiveCollection, textureManager, textureHandle);
 
         GenerateSphereVerticesAndUpload();
     }
@@ -55,8 +51,8 @@ public class SkySphereRenderer : IDisposable
     {
         m_sphereShaderProgram.Bind();
 
-        gl.ActiveTexture(TextureUnitType.Zero);
-        m_sphereShaderProgram.BoundTexture.Set(gl, 0);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        m_sphereShaderProgram.BoundTexture.Set(0);
         SetUniforms(renderInfo, flipSkyHorizontal);
 
         DrawSphere(m_skyTexture.GetTexture());
@@ -146,10 +142,10 @@ public class SkySphereRenderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
-        m_sphereShaderProgram.Mvp.Set(gl, CalculateMvp(renderInfo));
-        m_sphereShaderProgram.ScaleU.Set(gl, m_skyTexture.ScaleU);
-        m_sphereShaderProgram.FlipU.Set(gl, flipSkyHorizontal ? 1 : 0);
-        m_sphereShaderProgram.HasInvulnerability.Set(gl, invulnerability ? 1 : 0);
+        m_sphereShaderProgram.Mvp.Set(CalculateMvp(renderInfo));
+        m_sphereShaderProgram.ScaleU.Set(m_skyTexture.ScaleU);
+        m_sphereShaderProgram.FlipU.Set(flipSkyHorizontal ? 1 : 0);
+        m_sphereShaderProgram.HasInvulnerability.Set(invulnerability ? 1 : 0);
     }
 
     private void ReleaseUnmanagedResources()

@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Util.Extensions;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -24,7 +24,7 @@ public static class GLHelper
     /// See: https://stackoverflow.com/questions/16544511/prevent-delegate-from-being-garbage-collected
     /// See: https://stackoverflow.com/questions/6193711/call-has-been-made-on-garbage-collected-delegate-in-c
     /// </remarks>
-    private static Action<DebugLevel, string>? LastCallbackReference;
+    private static Action<LogLevel, string>? LastCallbackReference;
     private static DebugProc? LastCallbackProcReference;
 
     // Defined in LegacyShader as well
@@ -85,35 +85,31 @@ public static class GLHelper
     /// <remarks>
     /// Intended for debug builds only to assert nothing is wrong.
     /// </remarks>
-    /// <param name="gl">The GL functions.</param>
     [Conditional("DEBUG")]
-    public static void AssertNoGLError(IGLFunctions gl)
+    public static void AssertNoGLError()
     {
-        ErrorType error = gl.GetError();
-        Invariant(error == ErrorType.None, $"OpenGL error detected: ID {(int)error} ({error})");
+        ErrorCode error = GL.GetError();
+        Invariant(error == ErrorCode.NoError, $"OpenGL error detected: ID {(int)error} ({error})");
     }
 
     /// <summary>
     /// Attaches an object label for the provided GL object.
     /// </summary>
-    /// <param name="gl">The GL functions.</param>
-    /// <param name="capabilities">The GL capabilities.</param>
     /// <param name="type">The type of object.</param>
     /// <param name="objectId">The integral GL object name.</param>
     /// <param name="name">The label to attach.</param>
     [Conditional("DEBUG")]
-    public static void ObjectLabel(IGLFunctions gl, GLCapabilities capabilities, ObjectLabelType type,
-        int objectId, string name)
+    public static void ObjectLabel(ObjectLabelIdentifier type, int objectId, string name)
     {
-        if (!name.Empty() && capabilities.Version.Supports(4, 3))
-            gl.ObjectLabel(type, objectId, name);
+        if (name != "" && GLExtensions.LabelDebug)
+            GL.ObjectLabel(type, objectId, name.Length, name);
     }
 
     /// <summary>
     /// Registers a callback, and stores it so it will not get GC'd.
     /// </summary>
     /// <param name="callback">The callback to register with OpenGL.</param>
-    public static void DebugMessageCallback(Action<DebugLevel, string> callback)
+    public static void DebugMessageCallback(Action<LogLevel, string> callback)
     {
         if (LastCallbackReference != null)
         {
@@ -132,13 +128,13 @@ public static class GLHelper
             switch (severity)
             {
             case DebugSeverity.DebugSeverityHigh:
-                callback(DebugLevel.High, Marshal.PtrToStringAnsi(message, length));
+                callback(LogLevel.Error, Marshal.PtrToStringAnsi(message, length));
                 break;
             case DebugSeverity.DebugSeverityMedium:
-                callback(DebugLevel.Medium, Marshal.PtrToStringAnsi(message, length));
+                callback(LogLevel.Warn, Marshal.PtrToStringAnsi(message, length));
                 break;
             case DebugSeverity.DebugSeverityLow:
-                callback(DebugLevel.Low, Marshal.PtrToStringAnsi(message, length));
+                callback(LogLevel.Info, Marshal.PtrToStringAnsi(message, length));
                 break;
             }
         };

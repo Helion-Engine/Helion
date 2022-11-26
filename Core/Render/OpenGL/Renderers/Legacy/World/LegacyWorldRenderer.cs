@@ -7,7 +7,6 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
@@ -31,6 +30,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
+using OpenTK.Graphics.OpenGL;
 using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
@@ -47,7 +47,6 @@ public class LegacyWorldRenderer : WorldRenderer
         new VertexPointerFloatAttribute("fuzz", 5, 1));
 
     private readonly IConfig m_config;
-    private readonly IGLFunctions gl;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
     private readonly LegacyShader m_shaderProgram;
@@ -60,27 +59,23 @@ public class LegacyWorldRenderer : WorldRenderer
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
 
-    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
-        IGLFunctions functions, LegacyGLTextureManager textureManager)
+    public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
-        gl = functions;
-        m_automapRenderer = new LegacyAutomapRenderer(capabilities, gl, archiveCollection);
-        m_worldDataManager = new RenderWorldDataManager(capabilities, gl, archiveCollection.DataCache);
-        m_entityRenderer = new EntityRenderer(config, textureManager, m_worldDataManager);
+        m_automapRenderer = new(archiveCollection);
+        m_worldDataManager = new(archiveCollection.DataCache);
+        m_entityRenderer = new(config, textureManager, m_worldDataManager);
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
 
-        using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder(functions))
-            m_shaderProgram = new LegacyShader(functions, shaderBuilder, Attributes);
+        using (ShaderBuilder shaderBuilder = LegacyShader.MakeBuilder())
+            m_shaderProgram = new(shaderBuilder, Attributes);
 
-        m_geometryRenderer = new GeometryRenderer(config, archiveCollection, capabilities, functions,
-            textureManager, m_viewClipper, m_worldDataManager, Attributes);
+        m_geometryRenderer = new GeometryRenderer(config, archiveCollection, textureManager, m_viewClipper, m_worldDataManager, Attributes);
     }
 
     ~LegacyWorldRenderer()
     {
-        FailedToDispose(this);
         ReleaseUnmanagedResources();
     }
 
@@ -182,7 +177,7 @@ public class LegacyWorldRenderer : WorldRenderer
             TraverseBsp(world, renderInfo);
 
         m_shaderProgram.Bind();
-        gl.ActiveTexture(TextureUnitType.Zero);
+        GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
         m_worldDataManager.DrawNonAlpha();
         m_geometryRenderer.RenderStaticGeometry();
@@ -342,14 +337,14 @@ public class LegacyWorldRenderer : WorldRenderer
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        m_shaderProgram.BoundTexture.Set(gl, 0);
-        m_shaderProgram.HasInvulnerability.Set(gl, drawInvulnerability);
-        m_shaderProgram.LightDropoff.Set(gl, m_config.Render.LightDropoff ? 1 : 0);
-        m_shaderProgram.Mvp.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo));
-        m_shaderProgram.MvpNoPitch.Set(gl, GLRenderer.CalculateMvpMatrix(renderInfo, true));
-        m_shaderProgram.TimeFrac.Set(gl, timeFrac);
-        m_shaderProgram.LightLevelMix.Set(gl, mix);
-        m_shaderProgram.ExtraLight.Set(gl, extraLight);
+        m_shaderProgram.BoundTexture.Set(0);
+        m_shaderProgram.HasInvulnerability.Set(drawInvulnerability);
+        m_shaderProgram.LightDropoff.Set(m_config.Render.LightDropoff ? 1 : 0);
+        m_shaderProgram.Mvp.Set(GLRenderer.CalculateMvpMatrix(renderInfo));
+        m_shaderProgram.MvpNoPitch.Set(GLRenderer.CalculateMvpMatrix(renderInfo, true));
+        m_shaderProgram.TimeFrac.Set(timeFrac);
+        m_shaderProgram.LightLevelMix.Set(mix);
+        m_shaderProgram.ExtraLight.Set(extraLight);
     }
 
     private void ReleaseUnmanagedResources()

@@ -1,4 +1,4 @@
-using Helion.Render.OpenGL.Context.Types;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Vertex.Attribute;
 
@@ -11,8 +11,5 @@ public class VertexPointerUnsignedByteAttribute : VertexPointerAttribute
 
     public override int ByteLength() => 1 * Size;
 
-    protected override VertexAttributePointerType GetAttributePointerType()
-    {
-        return VertexAttributePointerType.UnsignedByte;
-    }
+    protected override VertexAttribPointerType GetAttributePointerType() => VertexAttribPointerType.UnsignedByte;
 }

@@ -80,18 +80,17 @@ public class GeometryRenderer : IDisposable
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
-        IGLFunctions functions, LegacyGLTextureManager textureManager, ViewClipper viewClipper,
-        RenderWorldDataManager worldDataManager, VertexArrayAttributes attributes)
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
+        ViewClipper viewClipper, RenderWorldDataManager worldDataManager, VertexArrayAttributes attributes)
     {
         m_config = config;
         m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, capabilities, functions, textureManager);
+        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, capabilities, functions, textureManager, this, attributes);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, this, attributes);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {

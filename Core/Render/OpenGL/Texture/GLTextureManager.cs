@@ -26,8 +26,6 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
 {
     protected readonly IConfig Config;
     protected readonly ArchiveCollection ArchiveCollection;
-    protected readonly GLCapabilities Capabilities;
-    protected readonly IGLFunctions gl;
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
 
@@ -57,13 +55,10 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
     /// </summary>
     public GLFontTexture<GLTextureType> NullFont { get; }
 
-    protected GLTextureManager(IConfig config, GLCapabilities capabilities, IGLFunctions functions,
-        ArchiveCollection archiveCollection)
+    protected GLTextureManager(IConfig config, ArchiveCollection archiveCollection)
     {
         Config = config;
         ArchiveCollection = archiveCollection;
-        Capabilities = capabilities;
-        gl = functions;
         NullTexture = CreateNullTexture();
         WhiteTexture = CreateWhiteTexture();
         NullSpriteRotation = CreateNullSpriteRotation();
@@ -79,7 +74,6 @@ public abstract class GLTextureManager<GLTextureType> : IGLTextureManager
 
     ~GLTextureManager()
     {
-        FailedToDispose(this);
         Dispose();
     }
 

@@ -7,7 +7,6 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
@@ -17,6 +16,7 @@ using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
@@ -30,7 +30,6 @@ public class LegacyHudRenderer : HudRenderer
         new VertexPointerFloatAttribute("alpha", 4, 1),
         new VertexPointerFloatAttribute("hasInvulnerability", 5, 1));
 
-    private readonly IGLFunctions gl;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly VertexArrayObject m_vao;
     private readonly StreamVertexBuffer<HudVertex> m_vbo;
@@ -38,16 +37,15 @@ public class LegacyHudRenderer : HudRenderer
     private readonly HudDrawBuffer m_drawBuffer;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(GLCapabilities capabilities, IGLFunctions functions, LegacyGLTextureManager textureManager, DataCache dataCache)
+    public LegacyHudRenderer(LegacyGLTextureManager textureManager, DataCache dataCache)
     {
-        gl = functions;
         m_textureManager = textureManager;
-        m_vao = new VertexArrayObject(capabilities, functions, Attributes, "VAO: Hud renderer");
-        m_vbo = new StreamVertexBuffer<HudVertex>(capabilities, functions, m_vao, "VBO: Hud renderer");
+        m_vao = new(Attributes, "VAO: Hud renderer");
+        m_vbo = new(m_vao, "VBO: Hud renderer");
         m_drawBuffer = new(dataCache);
 
-        using (ShaderBuilder shaderBuilder = LegacyHudShader.MakeBuilder(functions))
-            m_shaderProgram = new LegacyHudShader(functions, shaderBuilder, Attributes);
+        using (ShaderBuilder shaderBuilder = LegacyHudShader.MakeBuilder())
+            m_shaderProgram = new(shaderBuilder, Attributes);
     }
 
     ~LegacyHudRenderer()
@@ -125,9 +123,9 @@ public class LegacyHudRenderer : HudRenderer
     {
         m_shaderProgram.Bind();
 
-        gl.ActiveTexture(TextureUnitType.Zero);
-        m_shaderProgram.BoundTexture.Set(gl, 0);
-        m_shaderProgram.Mvp.Set(gl, CreateMvp(viewport));
+        GL.ActiveTexture(TextureUnit.Texture0);
+        m_shaderProgram.BoundTexture.Set(0);
+        m_shaderProgram.Mvp.Set(CreateMvp(viewport));
 
         // TODO: Bind VAO and VBO out here and not constantly bind/unbind?
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)

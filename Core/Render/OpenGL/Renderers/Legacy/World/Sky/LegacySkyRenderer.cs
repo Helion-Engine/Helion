@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Context.Types;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
+using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
@@ -19,20 +19,15 @@ public class LegacySkyRenderer : IDisposable
 
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly GLCapabilities m_capabilities;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly IGLFunctions gl;
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
     private readonly List<ISkyComponent> m_skyComponentsList = new();
 
-    public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, GLCapabilities capabilities,
-        IGLFunctions functions, LegacyGLTextureManager textureManager)
+    public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
         m_archiveCollection = archiveCollection;
-        m_capabilities = capabilities;
         m_textureManager = textureManager;
-        gl = functions;
     }
 
     ~LegacySkyRenderer()
@@ -78,8 +73,7 @@ public class LegacySkyRenderer : IDisposable
         if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_config, m_archiveCollection, m_capabilities, gl,
-                m_textureManager, textureHandle.Value, flipSkyTexture);
+        sky = new SkySphereComponent(m_config, m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture);
         m_skyComponents[textureHandleLookup] = sky;
         m_skyComponentsList.Add(sky);
         return true;
@@ -95,9 +89,9 @@ public class LegacySkyRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        gl.Enable(EnableType.StencilTest);
-        gl.StencilMask(0xFF);
-        gl.StencilOp(StencilOpType.Keep, StencilOpType.Keep, StencilOpType.Replace);
+        GL.Enable(EnableCap.StencilTest);
+        GL.StencilMask(0xFF);
+        GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
 
         int index = 1;
         for (int i = 0; i < m_skyComponentsList.Count; i++)
@@ -108,22 +102,22 @@ public class LegacySkyRenderer : IDisposable
 
             int stencilIndex = index++;
 
-            gl.Clear(ClearType.StencilBufferBit);
-            gl.ColorMask(false, false, false, false);
-            gl.StencilFunc(StencilFuncType.Always, stencilIndex, 0xFF);
+            GL.Clear(ClearBufferMask.StencilBufferBit);
+            GL.ColorMask(false, false, false, false);
+            GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
 
             sky.RenderWorldGeometry(renderInfo);
 
-            gl.ColorMask(true, true, true, true);
-            gl.StencilFunc(StencilFuncType.Equal, stencilIndex, 0xFF);
-            gl.Disable(EnableType.DepthTest);
+            GL.ColorMask(true, true, true, true);
+            GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
+            GL.Disable(EnableCap.DepthTest);
 
             sky.RenderSky(renderInfo);
-
-            gl.Enable(EnableType.DepthTest);
+                
+            GL.Enable(EnableCap.DepthTest);
         }
 
-        gl.Disable(EnableType.StencilTest);
+        GL.Disable(EnableCap.StencilTest);
     }
 
     public void Dispose()
