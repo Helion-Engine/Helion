@@ -47,6 +47,7 @@
     <PackageReference Include="NAudio.Core" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="5.0.1" />
+    <PackageReference Include="OneOf.FSharp" Version="3.0.223" />
     <PackageReference Include="OpenTK.Graphics" Version="4.7.4" />
     <PackageReference Include="OpenTK.OpenAL" Version="4.7.4" />
     <PackageReference Include="OpenTK.Windowing.Common" Version="4.7.4" />
