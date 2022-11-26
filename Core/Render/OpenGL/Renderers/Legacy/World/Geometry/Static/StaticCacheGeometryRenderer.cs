@@ -199,14 +199,14 @@ public class StaticCacheGeometryRenderer : IDisposable
                 skyVertices = skyVertices2;
 
             SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
-            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, facingSector, update);
+            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
         }
 
         if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
             SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
-            AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, facingSector, update);
+            AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
         }
 
         // Alpha needs to be rendered last, currently can't be handled statically
