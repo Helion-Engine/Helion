@@ -24,33 +24,33 @@ public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
 
     private static readonly Dictionary<string, PropertyInfo> MapEntryLookup = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "BEHAVIOR", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Behavior)) ! },
-        { "BLOCKMAP", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Blockmap)) ! },
-        { "DIALOGUE", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Dialogue)) ! },
-        { "ENDMAP",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Endmap)) ! },
-        { "GL_LEVEL", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLMap)) ! },
-        { "GL_NODES", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLNodes)) ! },
-        { "GL_PVS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLPVS)) ! },
-        { "GL_SEGS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSegments)) ! },
-        { "GL_SSECT", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSubsectors)) ! },
-        { "GL_VERT",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLVertices)) ! },
-        { "LINEDEFS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Linedefs)) ! },
-        { "NODES",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Nodes)) ! },
-        { "REJECT",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Reject)) ! },
-        { "SCRIPTS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Scripts)) ! },
-        { "SECTORS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sectors)) ! },
-        { "SEGS",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Segments)) ! },
-        { "SSECTORS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Subsectors)) ! },
-        { "SIDEDEFS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sidedefs)) ! },
-        { "THINGS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Things)) ! },
-        { "TEXTMAP",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Textmap)) ! },
-        { "VERTEXES", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Vertices)) ! },
-        { "ZNODES",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Znodes)) ! },
+        { "BEHAVIOR", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Behavior))! },
+        { "BLOCKMAP", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Blockmap))! },
+        { "DIALOGUE", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Dialogue))! },
+        { "ENDMAP",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Endmap))! },
+        { "GL_LEVEL", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLMap))! },
+        { "GL_NODES", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLNodes))! },
+        { "GL_PVS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLPVS))! },
+        { "GL_SEGS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSegments))! },
+        { "GL_SSECT", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLSubsectors))! },
+        { "GL_VERT",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.GLVertices))! },
+        { "LINEDEFS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Linedefs))! },
+        { "NODES",    typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Nodes))! },
+        { "REJECT",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Reject))! },
+        { "SCRIPTS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Scripts))! },
+        { "SECTORS",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sectors))! },
+        { "SEGS",     typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Segments))! },
+        { "SSECTORS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Subsectors))! },
+        { "SIDEDEFS", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Sidedefs))! },
+        { "THINGS",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Things))! },
+        { "TEXTMAP",  typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Textmap))! },
+        { "VERTEXES", typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Vertices))! },
+        { "ZNODES",   typeof(MapEntryCollection).GetProperty(nameof(MapEntryCollection.Znodes))! },
     };
 
     private readonly Archive m_archive;
-    private MapEntryCollection m_currentMap = new MapEntryCollection();
-    private string m_lastEntryName = string.Empty;
+    private MapEntryCollection m_currentMap = new();
+    private string m_lastEntryName = "";
     private bool m_makingMap;
 
     public ArchiveMapIterator(Archive archive)
