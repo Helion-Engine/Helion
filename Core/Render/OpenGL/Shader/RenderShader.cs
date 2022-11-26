@@ -38,19 +38,16 @@ public abstract class RenderShader : IDisposable
 
     private void CreateAndCompileShaderOrThrow()
     {
-        IEnumerable<int> shaderHandles = CompileShadersOrThrow();
+        (int vertex, int fragment) = CompileShadersOrThrow();
 
         GL.LinkProgram(m_program);
         ThrowIfLinkFailure();
 
-        foreach (int shaderHandle in shaderHandles)
-        {
-            GL.DetachShader(m_program, shaderHandle);
-            GL.DeleteShader(shaderHandle);
-        }
+        DetachAndDelete(m_program, vertex);
+        DetachAndDelete(m_program, fragment);
     }
 
-    private IEnumerable<int> CompileShadersOrThrow()
+    private (int vertex, int fragment) CompileShadersOrThrow()
     {
         int? vertexShader = null;
         int? fragmentShader = null;
@@ -59,7 +56,7 @@ public abstract class RenderShader : IDisposable
         {
             vertexShader = CompileShaderOrThrow(VertexShader(), ShaderType.VertexShader);
             fragmentShader = CompileShaderOrThrow(FragmentShader(), ShaderType.FragmentShader);
-            return new[] { vertexShader.Value, fragmentShader.Value };
+            return (vertexShader.Value, fragmentShader.Value);
         }
         catch
         {
@@ -77,6 +74,12 @@ public abstract class RenderShader : IDisposable
 
             throw;
         }
+    }
+
+    private static void DetachAndDelete(int program, int shader)
+    {
+        GL.DetachShader(program, shader);
+        GL.DeleteShader(shader);
     }
 
     private void ThrowIfLinkFailure()
@@ -107,7 +110,7 @@ public abstract class RenderShader : IDisposable
             return;
 
         string errorMsg = GL.GetShaderInfoLog(shaderHandle);
-        throw new Exception($"Error compiling render shader {type}: {errorMsg}");
+        throw new($"Error compiling render shader {type}: {errorMsg}");
     }
 
     public void Bind()
