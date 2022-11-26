@@ -6,6 +6,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Context;
@@ -25,9 +26,9 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL;
+namespace Helion.Render;
 
-public class GLRenderer : IRenderer
+public class Renderer
 {
     public const string DefaultSurfaceName = "Default";
     public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
@@ -48,7 +49,7 @@ public class GLRenderer : IRenderer
 
     public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
 
-    public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
+    public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
         Window = window;
         m_config = config;
@@ -65,7 +66,7 @@ public class GLRenderer : IRenderer
         WarnForInvalidStates(config);
     }
 
-    ~GLRenderer()
+    ~Renderer()
     {
         FailedToDispose(this);
         ReleaseUnmanagedResources();

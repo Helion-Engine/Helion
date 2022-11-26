@@ -10,10 +10,10 @@ public class GLSurface : IRenderableSurface
     public string Name => IRenderableSurface.DefaultName;
     public Dimension Dimension => m_window.Dimension;
     private readonly IWindow m_window;
-    private readonly GLRenderer m_renderer;
+    private readonly Renderer m_renderer;
     private readonly GLRenderableSurfaceContext ctx;
 
-    public GLSurface(IWindow window, GLRenderer renderer)
+    public GLSurface(IWindow window, Renderer renderer)
     {
         m_window = window;
         m_renderer = renderer;

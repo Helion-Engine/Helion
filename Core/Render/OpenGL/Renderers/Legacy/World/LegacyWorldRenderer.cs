@@ -337,8 +337,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_shaderProgram.BoundTexture(0);
         m_shaderProgram.HasInvulnerability(drawInvulnerability);
         m_shaderProgram.LightDropoff(m_config.Render.LightDropoff);
-        m_shaderProgram.Mvp(GLRenderer.CalculateMvpMatrix(renderInfo));
-        m_shaderProgram.MvpNoPitch(GLRenderer.CalculateMvpMatrix(renderInfo, true));
+        m_shaderProgram.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
+        m_shaderProgram.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
         m_shaderProgram.TimeFrac(timeFrac);
         m_shaderProgram.LightLevelMix(mix);
         m_shaderProgram.ExtraLight(extraLight);

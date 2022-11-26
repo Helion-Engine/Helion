@@ -30,7 +30,7 @@ public class Window : GameWindow, IWindow
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public IInputManager InputManager => m_inputManager;
-    public IRenderer Renderer { get; }
+    public Renderer Renderer { get; }
     public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
     public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
     private readonly IConfig m_config;
@@ -47,7 +47,7 @@ public class Window : GameWindow, IWindow
         m_config = config;
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
-        Renderer = CreateRenderer(config, archiveCollection, tracker);
+        Renderer = new(this, config, archiveCollection, tracker);
         RenderFrequency = config.Render.MaxFPS;
         SetVsync(config.Render.VSync.Value);
 
@@ -163,11 +163,6 @@ public class Window : GameWindow, IWindow
     }
 
     public void SetGrabCursor(bool set) => CursorState = set ? CursorState.Grabbed : CursorState.Hidden;
-
-    private IRenderer CreateRenderer(IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker)
-    {
-        return new GLRenderer(this, config, archiveCollection, tracker);
-    }
 
     private void Window_KeyUp(KeyboardKeyEventArgs args)
     {

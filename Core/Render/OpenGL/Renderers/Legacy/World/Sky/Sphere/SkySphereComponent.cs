@@ -58,7 +58,7 @@ public class SkySphereComponent : ISkyComponent
     {
         m_geometryProgram.Bind();
 
-        m_geometryProgram.Mvp(GLRenderer.CalculateMvpMatrix(renderInfo));
+        m_geometryProgram.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
 
         m_geometryVbo.UploadIfNeeded();
 

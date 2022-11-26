@@ -90,8 +90,10 @@ def delete_temp_branch():
     execute(f'git branch -D {BRANCH_NAME}')
 
 
+# Start off on the `dev` branch.
+#
 # Example usage:
-# git_mv.py "Core/Render/OpenGL/Vertex/Something.cs" "Core/Render/OpenGL/Moved.cs"
+#       git_mv.py "Core/Render/OpenGL/Vertex/Something.cs" "Core/Render/OpenGL/Moved.cs"
 if __name__ == '__main__':
     exit_if(not in_script_dir(), f'Need to execute from the script directory, in {os.getcwd()} but need to be in {EXPECTED_WORKING_DIR}')
     exit_if(len(sys.argv) == 1, f'Usage example: {sys.argv[0]} Core/oldFilePathA Core/newFilePathA Core/Render/oldFileDirB Core/Render/newFileDirB...')

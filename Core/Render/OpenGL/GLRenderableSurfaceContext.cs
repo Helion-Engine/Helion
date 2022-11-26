@@ -17,7 +17,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     private readonly GLWorldRenderContext m_worldRenderContext;
     private Box2I m_viewport;
 
-    internal GLRenderableSurfaceContext(GLRenderer renderer, GLSurface surface)
+    internal GLRenderableSurfaceContext(Renderer renderer, GLSurface surface)
     {
         Surface = surface;
         Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,
