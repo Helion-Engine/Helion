@@ -12,6 +12,7 @@ using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -287,7 +288,7 @@ public class GameLayerManager : IGameLayerParent
 
             ctx.Viewport(WindowBox);
             ctx.Scissor(WindowBox);
-            ctx.Clear(IRenderer.DefaultBackground, true, true);
+            ctx.Clear(GLRenderer.DefaultBackground, true, true);
 
             WorldLayer?.Render(ctx);
 

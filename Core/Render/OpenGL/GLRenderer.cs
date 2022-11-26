@@ -29,6 +29,8 @@ namespace Helion.Render.OpenGL;
 
 public class GLRenderer : IRenderer
 {
+    public const string DefaultSurfaceName = "Default";
+    public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
 
