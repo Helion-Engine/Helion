@@ -36,16 +36,15 @@ public class Renderer
 
     public readonly IWindow Window;
     public readonly GLSurface Default;
+    public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
     internal readonly ArchiveCollection m_archiveCollection;
-    private readonly LegacyGLTextureManager m_textureManager;
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
 
-    public IImageDrawInfoProvider ImageDrawInfoProvider => m_textureManager.ImageDrawInfoProvider;
-    public IRendererTextureManager Textures => m_textureManager;
+    public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
@@ -53,9 +52,9 @@ public class Renderer
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
-        m_textureManager = new LegacyGLTextureManager(m_config, archiveCollection);
-        m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, m_textureManager);
-        m_hudRenderer = new LegacyHudRenderer(m_textureManager, archiveCollection.DataCache);
+        Textures = new LegacyGLTextureManager(m_config, archiveCollection);
+        m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, Textures);
+        m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);
         Default = new(window, this);
 
         PrintGLInfo();
@@ -293,7 +292,7 @@ public class Renderer
 
     private void ReleaseUnmanagedResources()
     {
-        m_textureManager.Dispose();
+        Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
     }

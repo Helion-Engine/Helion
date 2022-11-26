@@ -21,7 +21,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     {
         Surface = surface;
         Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,
-            renderer.ImageDrawInfoProvider, renderer.m_fpsTracker);
+            renderer.DrawInfo, renderer.m_fpsTracker);
 
         m_hudRenderContext = new GLHudRenderContext(renderer.m_archiveCollection, Commands,
             renderer.Textures);
