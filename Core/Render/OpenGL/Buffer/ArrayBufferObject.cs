@@ -23,7 +23,7 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     {
         IntPtr offset = new(BytesPerElement * index);
         int size = BytesPerElement * length;
-        IntPtr ptr = GetVboArray();
+        IntPtr ptr = GetVboArray() + (BytesPerElement * index);
 
         GL.BufferSubData(Target, offset, size, ptr);
     }
