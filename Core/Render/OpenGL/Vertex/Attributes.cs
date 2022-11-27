@@ -94,6 +94,10 @@ public static class Attributes
         if (IsValid.Contains(type))
             return;
 
+        // We will evaluate struct layouts as well at the same time.
+        if ((type.Attributes & TypeAttributes.SequentialLayout) != TypeAttributes.SequentialLayout)
+            throw new($"Layout of {nameof(TVertex)} is not {LayoutKind.Sequential}");
+
         HashSet<string> activeIndices = shaderAttribs.Select(a => a.Name.ToLower()).ToHashSet();
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
@@ -119,18 +123,10 @@ public static class Attributes
         IsValid.Add(type);
     }
 
-    private static void AssertPackedOrThrow<TVertex>() where TVertex : struct
-    {
-        Type type = typeof(TVertex);
-        if ((type.Attributes & TypeAttributes.SequentialLayout) != TypeAttributes.SequentialLayout)
-            throw new($"Layout of {nameof(TVertex)} is not {LayoutKind.Sequential}");
-    }
-
     // Assumes the VBO and VAO have been bound.
     public static void Apply<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
         AssertCorrectMappingOrThrow<TVertex>(shaderAttribs);
-        AssertPackedOrThrow<TVertex>();
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
