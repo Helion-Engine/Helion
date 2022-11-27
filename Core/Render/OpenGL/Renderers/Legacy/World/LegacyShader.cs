@@ -22,14 +22,14 @@ public class LegacyShader : RenderProgram
     public void ExtraLight(int extraLight) => Uniforms["extraLight"] = extraLight;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec3 pos;
-        in vec2 uv;
-        in float lightLevel;
-        in float alpha;
-        in vec3 colorMul;
-        in float fuzz;
+        layout(location = 0) in vec3 pos;
+        layout(location = 1) in vec2 uv;
+        layout(location = 2) in float lightLevel;
+        layout(location = 3) in float alpha;
+        layout(location = 4) in vec3 colorMul;
+        layout(location = 5) in float fuzz;
 
         out vec2 uvFrag;
         flat out float lightLevelFrag;
@@ -55,7 +55,7 @@ public class LegacyShader : RenderProgram
     ";
 
     protected override string FragmentShader() => @"
-        #version 130
+        #version 330
 
         in vec2 uvFrag;
         flat in float lightLevelFrag;

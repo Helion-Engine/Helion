@@ -12,9 +12,9 @@ public class SkySphereGeometryShader : RenderProgram
     public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec3 pos;
+        layout(location = 0) in vec3 pos;
 
         uniform mat4 mvp;
 
