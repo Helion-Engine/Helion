@@ -61,6 +61,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
 
     private static Dictionary<int, List<StaticGeometryData>> m_bufferData = new();
+    private static List<List<StaticGeometryData>> m_bufferLists = new();
 
     private bool m_staticMode;
     private bool m_disposed;
@@ -100,8 +101,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
-        m_world.SectorLightChanged += World_SectorLightChanged;
-        m_world.SideScrollChanged += World_SideScrollChanged;
+        if (m_staticLights)
+            m_world.SectorLightChanged += World_SectorLightChanged;
+        if (m_staticScroll)
+            m_world.SideScrollChanged += World_SideScrollChanged;
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -347,6 +350,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferHeightsLookup.Clear();
         m_transferFloorLightLookup.Clear();
         m_transferCeilingLightLookup.Clear();
+
+        m_bufferData.Clear();
+        m_bufferLists.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
@@ -416,16 +422,16 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void UpdateBufferData()
     {
-        foreach (var item in m_bufferData)
+        foreach (List<StaticGeometryData> list in m_bufferLists)
         {
-            var list = item.Value;
             if (list.Count == 0)
                 continue;
 
-            list.Sort((i1, i2) => i1.GeometryDataStartIndex.CompareTo(i2.GeometryDataStartIndex));
-            var geometryData = list[0].GeometryData;
+            GeometryData? geometryData = list[0].GeometryData;
             if (geometryData == null)
                 continue;
+
+            list.Sort((i1, i2) => i1.GeometryDataStartIndex.CompareTo(i2.GeometryDataStartIndex));
 
             bool uploaded = false;
             int startIndex = list[0].GeometryDataStartIndex;
@@ -451,9 +457,9 @@ public class StaticCacheGeometryRenderer : IDisposable
                 geometryData.Vbo.Bind();
                 geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
             }
-        }
 
-        m_bufferData.Clear();
+            list.Clear();
+        }
     }
 
     private void UpdateScroll()
@@ -519,7 +525,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_updateLightSectors.Clear();
         m_updatelightSectorsLookup.Clear();
-
     }
 
     private void UpdateTransferLightVertices(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup)
@@ -781,12 +786,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
-        {
-            list = new List<StaticGeometryData>();
-            m_bufferData[data.GeometryData.TextureHandle] = list;
-        }
-
+        List<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         var geometryData = data.GeometryData;
@@ -802,12 +802,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
-        {
-            list = new List<StaticGeometryData>();
-            m_bufferData[data.GeometryData.TextureHandle] = list;
-        }
-
+        List<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         WallUV uv = GetSideUV(data, side, texture);
@@ -862,6 +857,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         return uv;
+    }
+
+    private static List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
+    {
+        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
+        {
+            list = new List<StaticGeometryData>(32);
+            m_bufferData[data.GeometryData.TextureHandle] = list;
+            m_bufferLists.Add(list);
+        }
+
+        return list;
     }
 
     private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
