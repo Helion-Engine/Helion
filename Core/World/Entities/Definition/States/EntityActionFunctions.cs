@@ -1794,6 +1794,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null && entity.PlayerObj.Weapon != null)
         {
             entity.PlayerObj.Weapon.ReadyState = true;
+            entity.PlayerObj.WeaponOffset.Y = Constants.WeaponTop;
             if (!entity.PlayerObj.Weapon.Definition.Flags.WeaponNoAutofire || !entity.PlayerObj.AttackDown)
                 entity.PlayerObj.Weapon.ReadyToFire = true;
 

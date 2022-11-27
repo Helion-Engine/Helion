@@ -74,6 +74,22 @@ public class FastSwitch : IDisposable
         ticks.Should().Be(SwitchTicks);
     }
 
+    [Fact(DisplayName = "Fast switch weapon during fire")]
+    public void FastSwitchWeaponDuringFire()
+    {
+        Player.GiveItem(GameActions.GetEntityDefinition(World, "Clip"), null);
+
+        Player.FireWeapon().Should().BeTrue();
+        Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+        InventoryUtil.RunWeaponFire(World, Player);
+
+        int startTick = World.Gametick;
+        InventoryUtil.RunWeaponSwitch(World, Player, "Fist");
+        InventoryUtil.AssertWeapon(Player.Weapon, "Fist");
+        int ticks = World.Gametick - startTick;
+        ticks.Should().Be(SwitchTicks);
+    }
+
     [Fact(DisplayName = "Fast switch weapon back and forth")]
     public void FastSwitchWeaponMultiple()
     {

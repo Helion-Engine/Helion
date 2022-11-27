@@ -17,8 +17,7 @@ public static class InventoryUtil
     {
         GameActions.TickWorld(world, () =>
         {
-            return player.PendingWeapon != null ||
-                !player.Weapon!.Definition.Name.EqualsIgnoreCase(switchToName) || player.WeaponOffset.Y != Constants.WeaponTop;
+            return player.Weapon == null || !player.Weapon.ReadyState;
         },
         () => { });
     }
@@ -69,6 +68,7 @@ public static class InventoryUtil
         player.Health = 100;
         player.Armor = 0;
         player.ArmorDefinition = null;
-        GameActions.TickWorld(world, () => { return player.PendingWeapon != null || player.WeaponOffset.Y != Constants.WeaponTop; }, () => { });
+        GameActions.TickWorld(world, 70);
+        player.WeaponOffset.Y = Constants.WeaponTop;
     }
 }

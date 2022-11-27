@@ -84,6 +84,8 @@ public class Player : Entity
     public int WeaponSubSlot { get; private set; }
     public Vec2D PrevWeaponOffset;
     public Vec2D WeaponOffset;
+    public Vec2D PrevBobOffset;
+    public Vec2D BobOffset;
     public WeakEntity Attacker { get; private set; } = WeakEntity.Default;
     public WeakEntity CrosshairTarget { get; private set; } = WeakEntity.Default;
     public PlayerStatusBar StatusBar { get; private set; }
@@ -417,6 +419,7 @@ public class Player : Entity
         m_prevPitch = PitchRadians;
         m_deltaViewHeight = 0;
         PrevWeaponOffset = WeaponOffset;
+        PrevBobOffset = BobOffset;
 
         base.ResetInterpolation();
     }
@@ -521,6 +524,7 @@ public class Player : Entity
         m_prevViewZ = m_viewZ;
 
         PrevWeaponOffset = WeaponOffset;
+        PrevBobOffset = BobOffset;
 
         if (m_jumpTics > 0)
             m_jumpTics--;
@@ -765,8 +769,7 @@ public class Player : Entity
         if (Weapon != null && Weapon.ReadyToFire)
         {
             double value = 0.1 * World.LevelTime;
-            WeaponOffset.X = m_bob * Math.Cos(value % MathHelper.TwoPi);
-            WeaponOffset.Y = Constants.WeaponTop + m_bob * Math.Sin(value % MathHelper.Pi);
+            BobOffset = (m_bob * Math.Cos(value % MathHelper.TwoPi), m_bob * Math.Sin(value % MathHelper.Pi));
         }
 
         double angle = MathHelper.TwoPi / 20 * World.LevelTime % MathHelper.TwoPi;
