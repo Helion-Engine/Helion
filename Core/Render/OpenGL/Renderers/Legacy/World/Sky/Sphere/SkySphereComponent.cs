@@ -5,7 +5,6 @@ using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
@@ -15,9 +14,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereComponent : ISkyComponent
 {
-    private static readonly VertexArrayAttributes GeometryAttributes = new(
-        new VertexPointerFloatAttribute("pos", 0, 3));
-
     private readonly IConfig m_config;
     private readonly StreamVertexBuffer<SkyGeometryVertex> m_geometryVbo;
     private readonly VertexArrayObject m_geometryVao;
@@ -33,10 +29,12 @@ public class SkySphereComponent : ISkyComponent
     {
         m_config = config;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
-        m_geometryVao = new(GeometryAttributes, "VAO: Sky sphere geometry");
-        m_geometryVbo = new(m_geometryVao, "VBO: Sky sphere geometry");
+        m_geometryVao = new("Sky geometry");
+        m_geometryVbo = new("Sky geometry");
         m_geometryProgram = new();
         m_flipSkyTexture = flipSkyTexture;
+
+        Attributes.BindAndApply(m_geometryVbo, m_geometryVao, m_geometryProgram.Attributes);
     }
 
     ~SkySphereComponent()

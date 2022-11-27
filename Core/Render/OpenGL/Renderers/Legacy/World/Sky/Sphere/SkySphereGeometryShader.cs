@@ -3,18 +3,18 @@ using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public class SkySphereGeometryShader : RenderShader
+public class SkySphereGeometryShader : RenderProgram
 {
-    public SkySphereGeometryShader() : base("Program: Sky sphere geometry")
+    public SkySphereGeometryShader() : base("Sky sphere geometry")
     {
     }
 
     public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec3 pos;
+        layout(location = 0) in vec3 pos;
 
         uniform mat4 mvp;
 

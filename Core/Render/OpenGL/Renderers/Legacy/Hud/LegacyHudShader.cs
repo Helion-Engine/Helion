@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
-public class LegacyHudShader : RenderShader
+public class LegacyHudShader : RenderProgram
 {
-    public LegacyHudShader() : base("Program: Hud")
+    public LegacyHudShader() : base("Hud")
     {
     }
 
@@ -14,13 +14,13 @@ public class LegacyHudShader : RenderShader
     public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec3 pos;
-        in vec2 uv;
-        in vec4 rgbMultiplier;
-        in float alpha;
-        in float hasInvulnerability;
+        layout(location = 0) in vec3 pos;
+        layout(location = 1) in vec2 uv;
+        layout(location = 2) in vec4 rgbMultiplier;
+        layout(location = 3) in float alpha;
+        layout(location = 4) in float hasInvulnerability;
 
         out vec2 uvFrag;
         flat out vec4 rgbMultiplierFrag;
@@ -40,7 +40,7 @@ public class LegacyHudShader : RenderShader
     ";
 
     protected override string FragmentShader() => @"
-        #version 130
+        #version 330
 
         in vec2 uvFrag;
         flat in vec4 rgbMultiplierFrag;

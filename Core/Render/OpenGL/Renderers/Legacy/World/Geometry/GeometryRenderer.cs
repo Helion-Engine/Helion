@@ -8,6 +8,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -37,8 +38,8 @@ public class GeometryRenderer : IDisposable
     private const double MaxSky = 16384;
 
     public readonly List<IRenderObject> AlphaSides = new();
-
     private readonly IConfig m_config;
+    private readonly RenderProgram m_program;
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
@@ -64,7 +65,6 @@ public class GeometryRenderer : IDisposable
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_dynamic;
     private bool m_buffer = true;
-
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
@@ -74,23 +74,23 @@ public class GeometryRenderer : IDisposable
     private DynamicArray<LegacyVertex[][]> m_vertexCeilingLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyFloorVertexLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyCeilingVertexLookup = new(3);
-
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        ViewClipper viewClipper, RenderWorldDataManager worldDataManager, VertexArrayAttributes attributes)
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
+        RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
+        m_program = program;
         m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, this, attributes);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, m_program, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -104,7 +104,6 @@ public class GeometryRenderer : IDisposable
 
     ~GeometryRenderer()
     {
-        Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         ReleaseUnmanagedResources();
     }
 
@@ -477,7 +476,7 @@ public class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
             renderData.Vbo.Add(data);
         }
         veticies = data;
@@ -501,7 +500,7 @@ public class GeometryRenderer : IDisposable
     private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
     {
         for (int i = 0; i < data.Length; i++)
-            data[i].LightLevelUnit = lightLevel;
+            data[i].LightLevel = lightLevel;
     }
 
     public void SetRenderOneSided(Side side)
@@ -596,7 +595,7 @@ public class GeometryRenderer : IDisposable
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -678,7 +677,7 @@ public class GeometryRenderer : IDisposable
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
 
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
@@ -810,8 +809,10 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
-        RenderWorldData renderData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
+        RenderWorldData renderData = alpha < 1 ? 
+            m_worldDataManager.GetAlphaRenderData(texture, m_program) : 
+            m_worldDataManager.GetRenderData(texture, m_program);
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -913,7 +914,7 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
 
@@ -1139,7 +1140,7 @@ public class GeometryRenderer : IDisposable
 
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevel, float alpha = 1.0f)
     {
-        data[0].LightLevelUnit = lightLevel;
+        data[0].LightLevel = lightLevel;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1147,7 +1148,7 @@ public class GeometryRenderer : IDisposable
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
 
-        data[1].LightLevelUnit = lightLevel;
+        data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1155,7 +1156,7 @@ public class GeometryRenderer : IDisposable
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
 
-        data[2].LightLevelUnit = lightLevel;
+        data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1163,7 +1164,7 @@ public class GeometryRenderer : IDisposable
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
 
-        data[3].LightLevelUnit = lightLevel;
+        data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1171,7 +1172,7 @@ public class GeometryRenderer : IDisposable
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
 
-        data[4].LightLevelUnit = lightLevel;
+        data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1179,7 +1180,7 @@ public class GeometryRenderer : IDisposable
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
 
-        data[5].LightLevelUnit = lightLevel;
+        data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1197,7 +1198,7 @@ public class GeometryRenderer : IDisposable
         //    |/  /|
         //    1  / |
         //      4--5
-        data[0].LightLevelUnit = lightLevel;
+        data[0].LightLevel = lightLevel;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1209,7 +1210,7 @@ public class GeometryRenderer : IDisposable
         data[0].B = 1.0f;
         data[0].Fuzz = 0;
 
-        data[1].LightLevelUnit = lightLevel;
+        data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1221,7 +1222,7 @@ public class GeometryRenderer : IDisposable
         data[1].B = 1.0f;
         data[1].Fuzz = 0;
 
-        data[2].LightLevelUnit = lightLevel;
+        data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1233,7 +1234,7 @@ public class GeometryRenderer : IDisposable
         data[2].B = 1.0f;
         data[2].Fuzz = 0;
 
-        data[3].LightLevelUnit = lightLevel;
+        data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1245,7 +1246,7 @@ public class GeometryRenderer : IDisposable
         data[3].B = 1.0f;
         data[3].Fuzz = 0;
 
-        data[4].LightLevelUnit = lightLevel;
+        data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1257,7 +1258,7 @@ public class GeometryRenderer : IDisposable
         data[4].B = 1.0f;
         data[4].Fuzz = 0;
 
-        data[5].LightLevelUnit = lightLevel;
+        data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1276,7 +1277,7 @@ public class GeometryRenderer : IDisposable
     {
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = root.X,
             Y = root.Y,
             Z = root.Z,
@@ -1291,7 +1292,7 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = second.X,
             Y = second.Y,
             Z = second.Z,
@@ -1306,7 +1307,7 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = third.X,
             Y = third.Y,
             Z = third.Z,

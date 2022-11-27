@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public class SkySphereShader : RenderShader
+public class SkySphereShader : RenderProgram
 {
-    public SkySphereShader() : base("Program: Sky sphere")
+    public SkySphereShader() : base("Sky sphere")
     {
     }
 
@@ -17,10 +17,10 @@ public class SkySphereShader : RenderShader
     public void FlipU(bool flip) => Uniforms["flipU"] = flip;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec3 pos;
-        in vec2 uv;
+        layout(location = 0) in vec3 pos;
+        layout(location = 1) in vec2 uv;
 
         out vec2 uvFrag;
 

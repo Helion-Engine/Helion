@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Shader;
 
-public class UniformManager
+public class ProgramUniforms
 {
     private readonly Dictionary<string, int> m_nameToLocation = new(StringComparer.OrdinalIgnoreCase);
 

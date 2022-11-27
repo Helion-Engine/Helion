@@ -53,13 +53,15 @@ public class Renderer : IDisposable
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
+
+        SetGLDebugger();
+
         Textures = new LegacyGLTextureManager(m_config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);
         Default = new(window, this);
 
         PrintGLInfo();
-        SetGLDebugger();
         SetGLStates();
         WarnForInvalidStates(config);
     }

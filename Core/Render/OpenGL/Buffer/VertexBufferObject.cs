@@ -9,9 +9,10 @@ namespace Helion.Render.OpenGL.Buffer.Array.Vertex;
 
 public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : struct
 {
-    public VertexBufferObject(VertexArrayObject vao, string objectLabel) : base(objectLabel)
+    protected override string LabelPrefix => "VBO";
+
+    protected VertexBufferObject(string label) : base(label)
     {
-        BindAttributes(vao);
     }
 
     public void DrawArrays()
@@ -22,31 +23,13 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
         Precondition(Uploaded, "Forgot to upload VBO data");
         GL.DrawArrays(PrimitiveType.Triangles, 0, Count);
     }
-
-    private void BindAttributes(VertexArrayObject vao)
-    {
-        vao.Bind();
-        Bind();
-
-        int offset = 0;
-        for (int i = 0; i < vao.Attributes.AttributesArray.Length; i++)
-        {
-            vao.Attributes.AttributesArray[i].Enable(vao.Attributes.Stride, offset);
-            offset += vao.Attributes.AttributesArray[i].ByteLength;
-        }
-
-        Unbind();
-        vao.Unbind();
-
-        Postcondition(vao.Attributes.Stride == Marshal.SizeOf<T>(), "VAO attributes do not match target struct size, attributes should map onto struct offsets");
-    }
 }
 
 public class DynamicVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
 
-    public DynamicVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    public DynamicVertexBuffer(string label) : base(label)
     {
     }
 }
@@ -55,7 +38,7 @@ public class StaticVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
 
-    public StaticVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    public StaticVertexBuffer(string label) : base(label)
     {
     }
 }
@@ -64,7 +47,7 @@ public class StreamVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StreamDraw;
 
-    public StreamVertexBuffer(VertexArrayObject vao, string objectLabel) : base(vao, objectLabel)
+    public StreamVertexBuffer(string label) : base(label)
     {
     }
 }

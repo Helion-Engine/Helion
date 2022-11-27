@@ -6,9 +6,9 @@ using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
-public class AutomapShader : RenderShader
+public class AutomapShader : RenderProgram
 {
-    public AutomapShader() : base("Program: Automap")
+    public AutomapShader() : base("Automap")
     {
     }
 
@@ -16,9 +16,9 @@ public class AutomapShader : RenderShader
     public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
 
     protected override string VertexShader() => @"
-        #version 130
+        #version 330
 
-        in vec2 pos;
+        layout(location = 0) in vec2 pos;
 
         uniform mat4 mvp;
 
@@ -28,7 +28,7 @@ public class AutomapShader : RenderShader
     ";
 
     protected override string FragmentShader() => @"
-        #version 130
+        #version 330
 
         out vec4 fragColor;
 

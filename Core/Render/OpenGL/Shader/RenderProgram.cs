@@ -11,24 +11,28 @@ using System.Reflection;
 
 namespace Helion.Render.OpenGL.Shader;
 
-public abstract class RenderShader : IDisposable
+public abstract class RenderProgram : IDisposable
 {
-    public readonly UniformManager Uniforms = new();
+    public readonly string Label;
+    public readonly ProgramUniforms Uniforms = new();
+    public readonly ProgramAttributes Attributes = new();
     private int m_program;
     private bool m_disposed;
 
-    protected RenderShader(string label)
+    protected RenderProgram(string label)
     {
+        Label = label;
         m_program = GL.CreateProgram();
         CreateAndCompileShaderOrThrow();
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Program, m_program, label);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Program, m_program, $"Program: {label}");
         Uniforms.Populate(m_program);
+        Attributes.Populate(m_program);
         Unbind();
     }
 
-    ~RenderShader()
+    ~RenderProgram()
     {
         PerformDispose();
     }

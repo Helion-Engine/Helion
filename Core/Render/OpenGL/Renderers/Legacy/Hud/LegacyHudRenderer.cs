@@ -12,7 +12,6 @@ using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -23,27 +22,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
 public class LegacyHudRenderer : HudRenderer
 {
-    private static readonly VertexArrayAttributes Attributes = new(
-        new VertexPointerFloatAttribute("pos", 0, 3),
-        new VertexPointerFloatAttribute("uv", 1, 2),
-        new VertexPointerUnsignedByteAttribute("rgbMultiplier", 2, 4, true),
-        new VertexPointerFloatAttribute("alpha", 3, 1),
-        new VertexPointerFloatAttribute("hasInvulnerability", 4, 1));
-
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly VertexArrayObject m_vao;
     private readonly StreamVertexBuffer<HudVertex> m_vbo;
-    private readonly LegacyHudShader m_shaderProgram;
+    private readonly LegacyHudShader m_program;
     private readonly HudDrawBuffer m_drawBuffer;
     private float DrawDepth = 1.0f;
 
     public LegacyHudRenderer(LegacyGLTextureManager textureManager, DataCache dataCache)
     {
         m_textureManager = textureManager;
-        m_vao = new(Attributes, "VAO: Hud renderer");
-        m_vbo = new(m_vao, "VBO: Hud renderer");
+        m_vao = new("Hud renderer");
+        m_vbo = new("Hud renderer");
+        m_program = new();
         m_drawBuffer = new(dataCache);
-        m_shaderProgram = new();
+
+        Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
     }
 
     ~LegacyHudRenderer()
@@ -118,11 +112,11 @@ public class LegacyHudRenderer : HudRenderer
 
     public override void Render(Rectangle viewport)
     {
-        m_shaderProgram.Bind();
+        m_program.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        m_shaderProgram.BoundTexture(TextureUnit.Texture0);
-        m_shaderProgram.Mvp(CreateMvp(viewport));
+        m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.Mvp(CreateMvp(viewport));
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
@@ -136,7 +130,7 @@ public class LegacyHudRenderer : HudRenderer
             data.Texture.Unbind();
         }
 
-        m_shaderProgram.Unbind();
+        m_program.Unbind();
     }
 
     public override void Dispose()
@@ -196,6 +190,6 @@ public class LegacyHudRenderer : HudRenderer
     {
         m_vao.Dispose();
         m_vbo.Dispose();
-        m_shaderProgram.Dispose();
+        m_program.Dispose();
     }
 }
