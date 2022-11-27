@@ -28,25 +28,19 @@ namespace Helion.Tests.Unit.GameAction
 
         public void Dispose()
         {
-            Player.Inventory.Clear();
-            Player.SetDefaultInventory();
-            Player.Inventory.ClearPowerups();
-            Player.Health = 100;
-            Player.Armor = 0;
-            Player.ArmorDefinition = null;
-            GameActions.TickWorld(World, () => { return Player.PendingWeapon != null || Player.WeaponOffset.Y != Constants.WeaponTop; }, () => { });
+            InventoryUtil.Reset(World, Player);
         }
 
         private void WorldInit(SinglePlayerWorld world)
         {
             world.CheatManager.ActivateCheat(world.Player, CheatType.God);
-            world.Player.WeaponOffset.Y.Should().Be(WeaponBottom);
-            AssertWeapon(world.Player.Weapon, "Fist");
+            world.Player.WeaponOffset.Y.Should().Be(InventoryUtil.WeaponBottomRaise);
+            InventoryUtil.AssertWeapon(world.Player.Weapon, "Pistol");
             GameActions.TickWorld(world, 1);
-            AssertWeapon(world.Player.AnimationWeapon, "Pistol");
+            InventoryUtil.AssertWeapon(world.Player.AnimationWeapon, "Pistol");
 
-            RunWeaponSwitch(world, world.Player, "Pistol");
-            AssertWeapon(world.Player.Weapon, "Pistol");
+            InventoryUtil.RunWeaponSwitch(world, world.Player, "Pistol");
+            InventoryUtil.AssertWeapon(world.Player.Weapon, "Pistol");
         }
 
         [Fact(DisplayName = "Set amount")]
@@ -88,15 +82,15 @@ namespace Helion.Tests.Unit.GameAction
             existingPlayer.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
             existingPlayer.GiveItem(GameActions.GetEntityDefinition(World, "Chaingun"), null);
             existingPlayer.GiveItem(GameActions.GetEntityDefinition(World, "RedCard"), null);
-            RunWeaponSwitch(World, existingPlayer, "Chaingun");
-            AssertWeapon(existingPlayer.Weapon, "Chaingun");
+            InventoryUtil.RunWeaponSwitch(World, existingPlayer, "Chaingun");
+            InventoryUtil.AssertWeapon(existingPlayer.Weapon, "Chaingun");
             existingPlayer.Inventory.HasItem("RedCard").Should().BeTrue();
 
             World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", Guid.NewGuid().ToString(), (SinglePlayerWorld world) => { }, IWadType.Doom2, 
                 existingPlayer: existingPlayer);
-            AssertWeapon(Player.Weapon, "Chaingun");
-            Player.WeaponOffset.Y.Should().Be(WeaponBottom);
-            RunWeaponSwitch(World, Player, "Chaingun");
+            InventoryUtil.AssertWeapon(Player.Weapon, "Chaingun");
+            Player.WeaponOffset.Y.Should().Be(InventoryUtil.WeaponBottomRaise);
+            InventoryUtil.RunWeaponSwitch(World, Player, "Chaingun");
 
             var existingWeapons = existingPlayer.Inventory.Weapons.GetWeapons();
             var carryWeapons = Player.Inventory.Weapons.GetWeapons();
@@ -128,7 +122,7 @@ namespace Helion.Tests.Unit.GameAction
             }
 
             if (Player.PendingWeapon != null)
-                RunWeaponSwitch(World, Player, Player.PendingWeapon.Definition.Name);
+                InventoryUtil.RunWeaponSwitch(World, Player, Player.PendingWeapon.Definition.Name);
         }
 
         private void GiveAllWeapons()
@@ -138,56 +132,7 @@ namespace Helion.Tests.Unit.GameAction
                 Player.GiveItem(GameActions.GetEntityDefinition(World, weaponData.Name), null);
 
             if (Player.PendingWeapon != null)
-                RunWeaponSwitch(World, Player, Player.PendingWeapon.Definition.Name);
-        }
-
-        private static Weapon GetWeapon(Player player, string name)
-        {
-            var weapon = player.Inventory.Weapons.GetWeapon(name);
-            weapon.Should().NotBeNull();
-            return weapon!;
-        }
-
-        private static void AssertWeapon(Weapon? weapon, string name)
-        {
-            weapon.Should().NotBeNull();
-            weapon!.Definition.Name.EqualsIgnoreCase(name).Should().BeTrue();
-        }
-
-        private static void AssertHasWeapon(Player player, string name) =>
-            player.Inventory.Weapons.OwnsWeapon(name).Should().BeTrue();
-
-        private static void AssertDoesNotHaveWeapon(Player player, string name) =>
-            player.Inventory.Weapons.OwnsWeapon(name).Should().BeFalse();
-
-        private static void AssertInventoryContains(Player player, string name) =>
-            player.Inventory.HasItem(name).Should().BeTrue();
-
-        private static void AssertInventoryDoesNotContain(Player player, string name) =>
-            player.Inventory.HasItem(name).Should().BeFalse();
-
-        private static void AssertAmount(Player player, string name, int amount) =>
-            player.Inventory.Amount(name).Should().Be(amount);
-
-        private static void RunWeaponSwitch(WorldBase world, Player player, string switchToName)
-        {
-            GameActions.TickWorld(world, () =>
-            {
-                return player.PendingWeapon != null || 
-                    !player.Weapon!.Definition.Name.EqualsIgnoreCase(switchToName) ||  player.WeaponOffset.Y != Constants.WeaponTop;
-            }, 
-            () => { });
-        }
-
-        private static void RunWeaponFire(WorldBase world, Player player) =>
-            RunWeaponFire(world, player, () => { });
-   
-
-        private static void RunWeaponFire(WorldBase world, Player player, Action onTick)
-        {
-            player.Weapon.Should().NotBeNull();
-            world.Tick();
-            GameActions.TickWorld(world, () => { return !player.Weapon!.ReadyToFire; }, onTick);
+                InventoryUtil.RunWeaponSwitch(World, Player, Player.PendingWeapon.Definition.Name);
         }
     }
 }
