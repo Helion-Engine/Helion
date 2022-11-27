@@ -6,17 +6,22 @@ using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Vertex;
 
 public static class Attributes
 {
     private static readonly Dictionary<Type, List<VaoAttribute>> TypeToData = new();
+    private static readonly HashSet<Type> IsValid = new(); // If present, there's no undefined attributes, and is safe to use.
 
     private static List<VaoAttribute> ReadStructAttributes<TVertex>() where TVertex : struct
     {
@@ -83,11 +88,49 @@ public static class Attributes
         }
     }
 
+    private static void AssertCorrectMappingOrThrow<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
+    {
+        Type type = typeof(TVertex);
+        if (IsValid.Contains(type))
+            return;
+
+        HashSet<string> activeIndices = shaderAttribs.Select(a => a.Name.ToLower()).ToHashSet();
+
+        foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
+        {
+            string lowerAttribName = attr.Name.ToLower();
+
+            ProgramAttribute? progAttr = shaderAttribs.FirstOrDefault(a => a.Name.ToLower() == lowerAttribName);
+            if (progAttr == null)
+                throw new($"Cannot find shader attribute named {attr.Name}, was it optimized out?");
+
+            // TODO: This doesn't work because Size = 1 for Vec2, but we supply Size = 2 for Float.
+            // This means we need to be able to find out if different types are the same size, since
+            // in the above they are, but the code below says they are not.
+            //if (attr.Size != progAttr.Size)
+            //    throw new($"Different attribute size in shader for {attr.Name}, expected {attr.Size}, got {progAttr.Size}");
+
+            activeIndices.Remove(lowerAttribName);
+        }
+
+        if (activeIndices.Any())
+            throw new($"Unable to find active attributes named: {activeIndices.Join(", ")}");
+
+        IsValid.Add(type);
+    }
+
+    private static void AssertPackedOrThrow<TVertex>() where TVertex : struct
+    {
+        Type type = typeof(TVertex);
+        if ((type.Attributes & TypeAttributes.SequentialLayout) != TypeAttributes.SequentialLayout)
+            throw new($"Layout of {nameof(TVertex)} is not {LayoutKind.Sequential}");
+    }
+
     // Assumes the VBO and VAO have been bound.
     public static void Apply<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
-        // TODO: Make sure mappings exist and are correct.
-        // TODO: Make sure TVertex is packed.
+        AssertCorrectMappingOrThrow<TVertex>(shaderAttribs);
+        AssertPackedOrThrow<TVertex>();
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
