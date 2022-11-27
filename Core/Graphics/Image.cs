@@ -295,7 +295,7 @@ public class Image
     private static Image CreateWhiteImage()
     {
         Bitmap bitmap = new(1, 1, PixelFormat.Format32bppArgb);
-        bitmap.SetPixel(1, 1, Color.White);
+        bitmap.SetPixel(0, 0, Color.White);
         return new(bitmap, ImageType.Argb);
     }
 }
