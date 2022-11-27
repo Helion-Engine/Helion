@@ -1,5 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,6 +100,22 @@ public static class Attributes
     // Assumes the VBO and VAO have been bound.
     public static void Apply<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
-        // TODO
+        foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
+        {
+            GL.VertexAttribPointer(attr.Index, attr.Size, VertexAttribPointerType.Float, attr.Normalized, attr.Stride, attr.Offset);
+            GL.EnableVertexAttribArray(attr.Index);
+        }
+    }
+
+    public static void BindAndApply<TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs) 
+        where TVertex : struct
+    {
+        vao.Bind();
+        vbo.Bind();
+
+        Apply<TVertex>(shaderAttribs);
+
+        vbo.Unbind();
+        vao.Unbind();
     }
 }
