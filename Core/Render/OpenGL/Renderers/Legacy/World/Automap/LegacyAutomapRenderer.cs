@@ -9,7 +9,7 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
+using Helion.Render.OpenGL.Vertex.Attributes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;

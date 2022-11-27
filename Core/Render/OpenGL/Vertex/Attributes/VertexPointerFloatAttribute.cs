@@ -1,6 +1,6 @@
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL.Vertex.Attribute;
+namespace Helion.Render.OpenGL.Vertex.Attributes;
 
 public class VertexPointerFloatAttribute : VertexPointerAttribute
 {

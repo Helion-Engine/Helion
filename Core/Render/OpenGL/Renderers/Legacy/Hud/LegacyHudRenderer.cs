@@ -12,7 +12,7 @@ using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
+using Helion.Render.OpenGL.Vertex.Attributes;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Extensions;

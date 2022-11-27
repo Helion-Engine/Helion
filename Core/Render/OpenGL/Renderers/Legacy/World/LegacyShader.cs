@@ -25,7 +25,6 @@ public class LegacyShader : RenderShader
         #version 130
 
         in vec3 pos;
-        in vec3 looking;
         in vec2 uv;
         in float lightLevel;
         in float alpha;

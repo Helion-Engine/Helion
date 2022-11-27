@@ -94,9 +94,7 @@ public class GeometryRenderer : IDisposable
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
-            m_wallVertices[i].R = 1.0f;
-            m_wallVertices[i].G = 1.0f;
-            m_wallVertices[i].B = 1.0f;
+            m_wallVertices[i].ColorMul = (1.0f, 1.0f, 1.0f);
             m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
         }
@@ -501,7 +499,7 @@ public class GeometryRenderer : IDisposable
     private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
     {
         for (int i = 0; i < data.Length; i++)
-            data[i].LightLevelUnit = lightLevel;
+            data[i].LightLevel = lightLevel;
     }
 
     public void SetRenderOneSided(Side side)
@@ -1139,7 +1137,7 @@ public class GeometryRenderer : IDisposable
 
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevel, float alpha = 1.0f)
     {
-        data[0].LightLevelUnit = lightLevel;
+        data[0].LightLevel = lightLevel;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1147,7 +1145,7 @@ public class GeometryRenderer : IDisposable
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
 
-        data[1].LightLevelUnit = lightLevel;
+        data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1155,7 +1153,7 @@ public class GeometryRenderer : IDisposable
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
 
-        data[2].LightLevelUnit = lightLevel;
+        data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1163,7 +1161,7 @@ public class GeometryRenderer : IDisposable
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
 
-        data[3].LightLevelUnit = lightLevel;
+        data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1171,7 +1169,7 @@ public class GeometryRenderer : IDisposable
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
 
-        data[4].LightLevelUnit = lightLevel;
+        data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1179,7 +1177,7 @@ public class GeometryRenderer : IDisposable
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
 
-        data[5].LightLevelUnit = lightLevel;
+        data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1197,7 +1195,7 @@ public class GeometryRenderer : IDisposable
         //    |/  /|
         //    1  / |
         //      4--5
-        data[0].LightLevelUnit = lightLevel;
+        data[0].LightLevel = lightLevel;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1209,7 +1207,7 @@ public class GeometryRenderer : IDisposable
         data[0].B = 1.0f;
         data[0].Fuzz = 0;
 
-        data[1].LightLevelUnit = lightLevel;
+        data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1221,7 +1219,7 @@ public class GeometryRenderer : IDisposable
         data[1].B = 1.0f;
         data[1].Fuzz = 0;
 
-        data[2].LightLevelUnit = lightLevel;
+        data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1233,7 +1231,7 @@ public class GeometryRenderer : IDisposable
         data[2].B = 1.0f;
         data[2].Fuzz = 0;
 
-        data[3].LightLevelUnit = lightLevel;
+        data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1245,7 +1243,7 @@ public class GeometryRenderer : IDisposable
         data[3].B = 1.0f;
         data[3].Fuzz = 0;
 
-        data[4].LightLevelUnit = lightLevel;
+        data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1257,7 +1255,7 @@ public class GeometryRenderer : IDisposable
         data[4].B = 1.0f;
         data[4].Fuzz = 0;
 
-        data[5].LightLevelUnit = lightLevel;
+        data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1276,7 +1274,7 @@ public class GeometryRenderer : IDisposable
     {
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = root.X,
             Y = root.Y,
             Z = root.Z,
@@ -1291,7 +1289,7 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = second.X,
             Y = second.Y,
             Z = second.Z,
@@ -1306,7 +1304,7 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevelUnit = lightLevel,
+            LightLevel = lightLevel,
             X = third.X,
             Y = third.Y,
             Z = third.Z,

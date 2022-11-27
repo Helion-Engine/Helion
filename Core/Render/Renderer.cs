@@ -49,6 +49,8 @@ public class Renderer : IDisposable
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
+        SetGLDebugger();
+       
         Window = window;
         m_config = config;
         m_archiveCollection = archiveCollection;
@@ -59,7 +61,6 @@ public class Renderer : IDisposable
         Default = new(window, this);
 
         PrintGLInfo();
-        SetGLDebugger();
         SetGLStates();
         WarnForInvalidStates(config);
     }

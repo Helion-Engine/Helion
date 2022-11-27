@@ -7,7 +7,7 @@ using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
+using Helion.Render.OpenGL.Vertex.Attributes;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using OpenTK.Graphics.OpenGL;
@@ -29,7 +29,7 @@ public class SkySphereRenderer : IDisposable
     private readonly SkySphereShader m_sphereShaderProgram;
     private readonly SkySphereTexture m_skyTexture;
 
-    public SkySphereRenderer(ArchiveCollection archiveCollection,  LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
         m_sphereVao = new(SphereAttributes, "VAO: Sky sphere");
         m_sphereVbo = new(m_sphereVao, "VBO: Sky sphere");

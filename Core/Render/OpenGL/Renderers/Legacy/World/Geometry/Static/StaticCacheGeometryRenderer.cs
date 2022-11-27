@@ -11,7 +11,6 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attribute;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -739,7 +738,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < data.GeometryDataLength; i++)
         {
             int index = data.GeometryDataStartIndex + i;
-            geometryData.Vbo.Data.Data[index].LightLevelUnit = lightLevel;
+            geometryData.Vbo.Data.Data[index].LightLevel = lightLevel;
         }
 
         data.GeometryData.Vbo.Bind();

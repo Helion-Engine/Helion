@@ -13,7 +13,8 @@ namespace Helion.Render.OpenGL.Shader;
 
 public abstract class RenderShader : IDisposable
 {
-    public readonly UniformManager Uniforms = new();
+    public readonly ProgramUniforms Uniforms = new();
+    public readonly ProgramAttributes Attributes = new();
     private int m_program;
     private bool m_disposed;
 
@@ -25,6 +26,7 @@ public abstract class RenderShader : IDisposable
         Bind();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Program, m_program, label);
         Uniforms.Populate(m_program);
+        Attributes.Populate(m_program);
         Unbind();
     }
 

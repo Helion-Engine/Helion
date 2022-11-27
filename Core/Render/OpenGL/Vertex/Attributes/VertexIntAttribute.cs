@@ -2,7 +2,7 @@ using Helion.Render.OpenGL.Context;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Render.OpenGL.Vertex.IntegralAttribute;
+namespace Helion.Render.OpenGL.Vertex.Attributes;
 
 public abstract class VertexIntAttribute : VertexArrayAttribute
 {
