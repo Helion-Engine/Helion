@@ -24,7 +24,7 @@ public class TickerTest
         Thread.Sleep(50);
         ticker.Stop();
 
-        ticker.GetTickerInfo().Ticks.Should().BeGreaterOrEqualTo(5);
+        ticker.GetTickerInfo().Ticks.Should().BeGreaterOrEqualTo(1);
 
         // Since it's been stopped, nothing should accumulate.
         Thread.Sleep(50);
