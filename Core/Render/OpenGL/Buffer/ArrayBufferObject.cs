@@ -28,30 +28,3 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
         GL.BufferSubData(Target, offset, size, ptr);
     }
 }
-
-public abstract class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
-{
-    protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
-
-    protected DynamicArrayBuffer(string objectLabel) : base(objectLabel)
-    {
-    }
-}
-
-public abstract class StaticArrayBuffer<T> : ArrayBufferObject<T> where T : struct
-{
-    protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
-
-    protected StaticArrayBuffer(string objectLabel) : base(objectLabel)
-    {
-    }
-}
-
-public abstract class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
-{
-    protected override BufferUsageHint Hint => BufferUsageHint.StreamDraw;
-
-    protected StreamArrayBuffer(string objectLabel) : base(objectLabel)
-    {
-    }
-}
