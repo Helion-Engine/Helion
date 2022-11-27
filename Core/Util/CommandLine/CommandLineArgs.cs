@@ -37,7 +37,18 @@ public class CommandLineArgs
     public static CommandLineArgs Parse(string[] args)
     {
         CommandLineArgs commandLineArgs = new() { OriginalArgs = args };
-        CommandParser parser = new(new[] { "-", "+" });
+        var argStart = new[] { "-", "+" };
+
+        // Drag and drop files will be specified as the file. Assume anything in front with -/+ is a file.
+        foreach (var arg in args)
+        {
+            if (argStart.Any(x => arg.StartsWith(x)))
+                break;
+
+            commandLineArgs.Files.Add(arg);
+        }
+
+        CommandParser parser = new(argStart);
         List<CommandArg> parsedArgs = parser.Parse(args);
 
         foreach (var parsedArg in parsedArgs)

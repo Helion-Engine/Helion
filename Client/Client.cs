@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -285,6 +286,7 @@ public partial class Client : IDisposable, IInputManagement
 
     public static void Main(string[] args)
     {
+        SetToExecutingDirectory();
         CommandLineArgs commandLineArgs = CommandLineArgs.Parse(args);
         HelionLoggers.Initialize(commandLineArgs);
         LogAnyCommandLineErrors(commandLineArgs);
@@ -297,6 +299,19 @@ public partial class Client : IDisposable, IInputManagement
 
         ForceFinalizersIfDebugMode();
         LogManager.Shutdown();
+    }
+
+    private static void SetToExecutingDirectory()
+    {
+        var assembly = Assembly.GetEntryAssembly();
+        if (assembly == null)
+            return;
+
+        string? dir = Path.GetDirectoryName(assembly.Location);
+        if (dir == null)
+            return;
+
+        Directory.SetCurrentDirectory(dir);
     }
 
     private static void RunRelease(CommandLineArgs commandLineArgs)
