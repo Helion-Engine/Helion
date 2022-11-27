@@ -22,6 +22,7 @@ public class Image
 {
     public const ushort TransparentIndex = 0xFF00;
     public static readonly Image NullImage = CreateNullImage();
+    public static readonly Image WhiteImage = CreateWhiteImage();
 
     public readonly Bitmap Bitmap;
     public readonly Dimension Dimension;
@@ -289,5 +290,12 @@ public class Image
                 bitmap.SetPixel(x, y, Color.Red);
 
         return new Image(bitmap, ImageType.Argb);
+    }
+
+    private static Image CreateWhiteImage()
+    {
+        Bitmap bitmap = new(1, 1, PixelFormat.Format32bppArgb);
+        bitmap.SetPixel(1, 1, Color.White);
+        return new(bitmap, ImageType.Argb);
     }
 }

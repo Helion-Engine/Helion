@@ -1,7 +1,10 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Helion;
+using Helion.Render;
+using Helion.Render.OpenGL;
+using OpenTK.Graphics.OpenGL;
 using System;
 
-namespace Helion.Render.OpenGL.Texture.New;
+namespace Helion.Render.OpenGL.Textures;
 
 public abstract class GLTexture : IDisposable
 {
