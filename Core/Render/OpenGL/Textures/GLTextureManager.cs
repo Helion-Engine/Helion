@@ -21,6 +21,8 @@ public class GLTextureManager : IDisposable
     private readonly Dictionary<string, GLTexture2DFont> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private bool m_disposed;
 
+    private float? Anisotropy => m_config.Render.Anisotropy.Value >= 1 ? m_config.Render.Anisotropy.Value : null;
+
     public GLTextureManager(IConfig config, ArchiveCollection archiveCollection)
     {
         m_config = config;
@@ -34,6 +36,11 @@ public class GLTextureManager : IDisposable
         Dispose(false);
     }
 
+    private static TextureWrapMode GetWrapMode(Resources.Texture tex)
+    {
+        return tex.Namespace == ResourceNamespace.Sprites ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+    }
+
     public bool TryGet(int index, out GLTexture2D glTexture)
     {
         if (m_textureidxToGLTexture.TryGetValue(index, out glTexture))
@@ -43,7 +50,7 @@ public class GLTextureManager : IDisposable
         Resources.Texture texture = m_archiveCollection.TextureManager.GetTexture(index);
         if (texture.Image != null)
         {
-            glTexture = new($"{texture.Name} ({texture.Namespace})", texture.Image, GetWrapMode(texture), GetAnisotropy());
+            glTexture = new($"{texture.Name} ({texture.Namespace})", texture.Image, GetWrapMode(texture), Anisotropy);
             m_textureidxToGLTexture[index] = NullTexture;
             return true;
         }
@@ -52,16 +59,6 @@ public class GLTextureManager : IDisposable
         glTexture = NullTexture;
         m_textureidxToGLTexture[index] = NullTexture;
         return false;
-    }
-
-    private float? GetAnisotropy()
-    {
-        return m_config.Render.Anisotropy.Value >= 1 ? m_config.Render.Anisotropy.Value : null;
-    }
-
-    private TextureWrapMode GetWrapMode(Resources.Texture tex)
-    {
-        return tex.Namespace == ResourceNamespace.Sprites ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
     }
 
     public bool TryGetFont(string name, [NotNullWhen(true)] out GLTexture2DFont? glFont)
