@@ -1,33 +1,18 @@
-﻿using Helion.Geometry.Vectors;
+﻿using GlmSharp;
+using Helion;
+using Helion.Geometry.Vectors;
+using Helion.Render;
+using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
+using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Helion.Render.OpenGL.Vertex.New;
-
-class VaoAttribute
-{
-    public string Name;
-    public int Index;
-    public int Size;
-    public int Offset;
-    public int Stride;
-    public bool Normalized;
-
-    public VaoAttribute(string name, int index, int size, int offset, int stride, bool normalized)
-    {
-        Name = name;
-        Index = index;
-        Size = size;
-        Offset = offset;
-        Stride = stride;
-        Normalized = normalized;
-    }
-}
+namespace Helion.Render.OpenGL.Vertex;
 
 public static class Attributes
 {
@@ -54,29 +39,30 @@ public static class Attributes
 
             if (info.FieldType == typeof(float))
                 size = 1;
-            else if (info.FieldType == typeof(Vec2F))
+            else if (info.FieldType == typeof(Vec2F) || info.FieldType == typeof(vec2))
                 size = 2;
-            else if (info.FieldType == typeof(Vec3F))
+            else if (info.FieldType == typeof(Vec3F) || info.FieldType == typeof(vec3))
                 size = 3;
-            else if (info.FieldType == typeof(Vec4F))
+            else if (info.FieldType == typeof(Vec4F) || info.FieldType == typeof(vec4))
                 size = 4;
             else
                 throw new($"Unsupported attribute type in {nameof(TVertex)}: {info.FieldType.FullName}");
 
-            int sizeBytes = size * primitiveSize;
-            offset += sizeBytes;
-            stride += sizeBytes;
-
-            VertexAttributeAttribute codeAttr = info.FieldType.GetCustomAttribute<VertexAttributeAttribute>();
+            VertexAttributeAttribute codeAttr = info.GetCustomAttribute<VertexAttributeAttribute>();
             if (codeAttr == null)
                 continue;
 
             string name = codeAttr.InferName ? info.Name : codeAttr.Name;
+            size = codeAttr.InferSize ? size : codeAttr.Size;
             int index = GetNextIndex(codeAttr);
             indexUsed.Add(index);
 
-            VaoAttribute attr = new(name, index, size, offset, stride, codeAttr.Normalized);
+            VaoAttribute attr = new(name, index, size, offset, codeAttr.Normalized, stride);
             attributes.Add(attr);
+
+            int sizeBytes = size * primitiveSize;
+            offset += sizeBytes;
+            stride += sizeBytes;
         }
 
         // Doing two passes over everything is extra code, so we'll update at the end
@@ -100,6 +86,9 @@ public static class Attributes
     // Assumes the VBO and VAO have been bound.
     public static void Apply<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
+        // TODO: Make sure mappings exist and are correct.
+        // TODO: Make sure TVertex is packed.
+
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
             GL.VertexAttribPointer(attr.Index, attr.Size, VertexAttribPointerType.Float, attr.Normalized, attr.Stride, attr.Offset);
@@ -107,7 +96,7 @@ public static class Attributes
         }
     }
 
-    public static void BindAndApply<TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs) 
+    public static void BindAndApply<TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs)
         where TVertex : struct
     {
         vao.Bind();

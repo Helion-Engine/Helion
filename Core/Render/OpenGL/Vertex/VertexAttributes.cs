@@ -3,11 +3,10 @@ using Helion.Render;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.New;
 using OpenTK.Graphics.OpenGL;
 using System;
 
-namespace Helion.Render.OpenGL.Vertex.New;
+namespace Helion.Render.OpenGL.Vertex;
 
 public class VertexAttributeAttribute : Attribute
 {

@@ -18,6 +18,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 {
     public static readonly int BytesPerElement = Marshal.SizeOf<T>();
 
+    public readonly string Label;
     public DynamicArray<T> Data = new DynamicArray<T>();
     protected readonly int BufferId;
     protected bool Uploaded;
@@ -27,22 +28,23 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     private bool m_disposed;
 
     protected abstract BufferTarget Target { get; }
+    protected abstract string LabelPrefix { get; }
 
     public int Count => Data.Length;
     public bool Empty => Count == 0;
     public bool NeedsUpload => !Uploaded && Count > 0;
     public int TotalBytes => Count * BytesPerElement;
 
-    protected BufferObject(string objectLabel)
+    protected BufferObject(string label)
     {
+        Label = label;
         BufferId = GL.GenBuffer();
-
         m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
         m_vboArrayPtr = m_pinnedArray.AddrOfPinnedObject();
         m_dataVersion = Data.Version;
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, objectLabel);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, $"{LabelPrefix}: {label}");
         Unbind();
     }
 

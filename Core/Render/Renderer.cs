@@ -49,12 +49,13 @@ public class Renderer : IDisposable
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
-        SetGLDebugger();
-       
         Window = window;
         m_config = config;
         m_archiveCollection = archiveCollection;
         m_fpsTracker = fpsTracker;
+
+        SetGLDebugger();
+
         Textures = new LegacyGLTextureManager(m_config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);

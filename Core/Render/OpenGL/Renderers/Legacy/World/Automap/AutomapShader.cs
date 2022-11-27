@@ -6,9 +6,9 @@ using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
-public class AutomapShader : RenderShader
+public class AutomapShader : RenderProgram
 {
-    public AutomapShader() : base("Program: Automap")
+    public AutomapShader() : base("Automap")
     {
     }
 

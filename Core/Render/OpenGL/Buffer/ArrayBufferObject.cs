@@ -29,29 +29,29 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     }
 }
 
-public class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+public abstract class DynamicArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.DynamicDraw;
 
-    public DynamicArrayBuffer(string objectLabel) : base(objectLabel)
+    protected DynamicArrayBuffer(string objectLabel) : base(objectLabel)
     {
     }
 }
 
-public class StaticArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+public abstract class StaticArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
 
-    public StaticArrayBuffer(string objectLabel) : base(objectLabel)
+    protected StaticArrayBuffer(string objectLabel) : base(objectLabel)
     {
     }
 }
 
-public class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
+public abstract class StreamArrayBuffer<T> : ArrayBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StreamDraw;
 
-    public StreamArrayBuffer(string objectLabel) : base(objectLabel)
+    protected StreamArrayBuffer(string objectLabel) : base(objectLabel)
     {
     }
 }

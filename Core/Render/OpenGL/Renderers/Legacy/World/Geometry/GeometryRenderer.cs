@@ -8,6 +8,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -37,8 +38,8 @@ public class GeometryRenderer : IDisposable
     private const double MaxSky = 16384;
 
     public readonly List<IRenderObject> AlphaSides = new();
-
     private readonly IConfig m_config;
+    private readonly RenderProgram m_program;
     private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
@@ -64,7 +65,6 @@ public class GeometryRenderer : IDisposable
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_dynamic;
     private bool m_buffer = true;
-
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
@@ -74,23 +74,23 @@ public class GeometryRenderer : IDisposable
     private DynamicArray<LegacyVertex[][]> m_vertexCeilingLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyFloorVertexLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]> m_skyCeilingVertexLookup = new(3);
-
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        ViewClipper viewClipper, RenderWorldDataManager worldDataManager, VertexArrayAttributes attributes)
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
+        RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
+        m_program = program;
         m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, this, attributes);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, m_program, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -104,7 +104,6 @@ public class GeometryRenderer : IDisposable
 
     ~GeometryRenderer()
     {
-        Fail($"Did not dispose of {GetType().FullName}, finalizer run when it should not be");
         ReleaseUnmanagedResources();
     }
 
@@ -477,7 +476,7 @@ public class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
             renderData.Vbo.Add(data);
         }
         veticies = data;
@@ -596,7 +595,7 @@ public class GeometryRenderer : IDisposable
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -678,7 +677,7 @@ public class GeometryRenderer : IDisposable
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
 
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
@@ -810,8 +809,10 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
-        RenderWorldData renderData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
+        RenderWorldData renderData = alpha < 1 ? 
+            m_worldDataManager.GetAlphaRenderData(texture, m_program) : 
+            m_worldDataManager.GetRenderData(texture, m_program);
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -913,7 +914,7 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
 

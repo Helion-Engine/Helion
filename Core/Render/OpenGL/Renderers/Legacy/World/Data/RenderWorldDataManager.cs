@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util;
 using static Helion.Util.Assertion.Assert;
@@ -25,7 +26,7 @@ public class RenderWorldDataManager : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public RenderWorldData GetRenderData(GLLegacyTexture texture)
+    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program)
     {
         if (m_allRenderData.Length <= texture.TextureId)
         {
@@ -38,18 +39,18 @@ public class RenderWorldDataManager : IDisposable
         if (data != null)
             return data;
 
-        RenderWorldData newData = new(texture);
+        RenderWorldData newData = new(texture, program);
         m_allRenderData[texture.TextureId] = newData;       
         m_renderData.Add(newData);
         return newData;
     }
 
-    public RenderWorldData GetAlphaRenderData(GLLegacyTexture texture)
+    public RenderWorldData GetAlphaRenderData(GLLegacyTexture texture, RenderProgram program)
     {
         // Since we have to order transparency drawing we can't store all the vbo data in the same texture
         // This will be a large performance penalty because we potentially have to switch textures often in the renderer
         // The RenderWorldData is at least cached new ones are not created on every render loop
-        RenderWorldData data = m_dataCache.GetAlphaRenderWorldData(texture);
+        RenderWorldData data = m_dataCache.GetAlphaRenderWorldData(texture, program);
         m_alphaRenderData.Add(data);
         return data;
     }

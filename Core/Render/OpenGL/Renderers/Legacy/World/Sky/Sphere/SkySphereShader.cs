@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public class SkySphereShader : RenderShader
+public class SkySphereShader : RenderProgram
 {
-    public SkySphereShader() : base("Program: Sky sphere")
+    public SkySphereShader() : base("Sky sphere")
     {
     }
 

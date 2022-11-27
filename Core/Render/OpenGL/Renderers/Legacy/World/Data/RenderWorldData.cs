@@ -1,6 +1,7 @@
 using System;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using static Helion.Util.Assertion.Assert;
@@ -13,11 +14,13 @@ public class RenderWorldData : IDisposable
     public readonly StreamVertexBuffer<LegacyVertex> Vbo;
     public readonly VertexArrayObject Vao;
 
-    public RenderWorldData(GLLegacyTexture texture)
+    public RenderWorldData(GLLegacyTexture texture, RenderProgram program)
     {
         Texture = texture;
-        Vao = new VertexArrayObject(LegacyWorldRenderer.Attributes, $"VAO: Attributes for {texture.Name}");
-        Vbo = new StreamVertexBuffer<LegacyVertex>(Vao, $"VBO: Geometry for {texture.Name}");
+        Vao = new($"Attributes for {texture.Name}");
+        Vbo = new($"Vertices for {texture.Name}");
+
+        Attributes.BindAndApply(Vbo, Vao, program.Attributes);
     }
 
     ~RenderWorldData()

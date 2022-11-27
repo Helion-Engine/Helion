@@ -40,9 +40,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 {
     private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
-    public readonly VertexArrayAttributes Attributes;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
+    private readonly RenderProgram m_program;
     private readonly List<GeometryData> m_geometry = new();
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
     private readonly List<GeometryData> m_runtimeGeometry = new();
@@ -54,11 +54,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly List<SideScrollEvent> m_updateScrollSides = new();
     private readonly HashSet<int> m_updateScrollSidesLookup = new();
     private readonly SkyGeometryManager m_skyGeometry = new();
-
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
-
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -66,11 +64,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     private IWorld? m_world;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        GeometryRenderer geometryRenderer, VertexArrayAttributes attributes)
+        RenderProgram program, GeometryRenderer geometryRenderer)
     {
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
-        Attributes = attributes;
+        m_program = program;
         m_skyRenderer = new(config, archiveCollection, textureManager);
     }
 
@@ -301,8 +299,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AllocateGeometryData(int textureHandle, out GeometryData data)
     {
-        VertexArrayObject vao = new(Attributes, "VAO: Geometry data");
-        StaticVertexBuffer<LegacyVertex> vbo = new(vao, "VBO: Geometry data");
+        VertexArrayObject vao = new($"Geometry (handle {textureHandle})");
+        StaticVertexBuffer<LegacyVertex> vbo = new($"Geometry (handle {textureHandle})");
+
+        Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);

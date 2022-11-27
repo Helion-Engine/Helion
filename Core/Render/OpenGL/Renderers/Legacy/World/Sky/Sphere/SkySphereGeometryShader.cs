@@ -3,9 +3,9 @@ using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public class SkySphereGeometryShader : RenderShader
+public class SkySphereGeometryShader : RenderProgram
 {
-    public SkySphereGeometryShader() : base("Program: Sky sphere geometry")
+    public SkySphereGeometryShader() : base("Sky sphere geometry")
     {
     }
 

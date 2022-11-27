@@ -4,9 +4,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
-public class LegacyHudShader : RenderShader
+public class LegacyHudShader : RenderProgram
 {
-    public LegacyHudShader() : base("Program: Hud")
+    public LegacyHudShader() : base("Hud")
     {
     }
 

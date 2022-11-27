@@ -1,6 +1,10 @@
 using System;
+using Helion;
+using Helion.Render;
+using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
+using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -8,14 +12,12 @@ namespace Helion.Render.OpenGL.Vertex;
 
 public class VertexArrayObject : IDisposable
 {
-    public readonly VertexArrayAttributes Attributes;
     private readonly int m_name;
     private bool m_disposed;
 
-    public VertexArrayObject(VertexArrayAttributes attributes, string label)
+    public VertexArrayObject(string label)
     {
         m_name = GL.GenVertexArray();
-        Attributes = attributes;
 
         Bind();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, label);

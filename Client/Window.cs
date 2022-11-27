@@ -4,7 +4,6 @@ using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;

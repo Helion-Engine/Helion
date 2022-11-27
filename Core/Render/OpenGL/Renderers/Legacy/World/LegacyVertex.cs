@@ -1,4 +1,4 @@
-using Helion.Render.OpenGL.Vertex.New;
+using Helion.Render.OpenGL.Vertex;
 using System.Drawing;
 using System.Runtime.InteropServices;
 

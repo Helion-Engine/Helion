@@ -6,9 +6,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-public class LegacyShader : RenderShader
+public class LegacyShader : RenderProgram
 {
-    public LegacyShader() : base("Program: World")
+    public LegacyShader() : base("World")
     {
     }
 

@@ -32,40 +32,30 @@ public class EntityRenderer
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly RenderWorldDataManager m_worldDataManager;
+    private readonly LegacyShader m_program;
     private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
     private readonly HashSet<Vec2D> m_renderPositions = new();
-    private bool m_drawDebugBox;
     private double m_tickFraction;
     private Entity? m_cameraEntity;
-    private GLLegacyTexture m_debugBoxTexture;
-    private RenderWorldData m_debugBoxRenderWorldData;
     private Vec2F m_viewRightNormal;
 
     public readonly List<IRenderObject> AlphaEntities = new();
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager, LegacyShader program)
     {
         m_config = config;
+        m_program = program;
         m_textureManager = textureManager;
         m_worldDataManager = worldDataManager;
-        m_debugBoxTexture = m_textureManager.NullTexture;
-        m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
     }
 
     public void UpdateTo(IWorld world)
     {
-        
+        // Unused currently.
     }
 
     public void Clear(IWorld world, double tickFraction, Entity cameraEntity)
     {
-        // I'm hitching a ride here so we don't keep making a bunch of
-        // invocations to this for every single sprite to avoid overhead
-        // of asking the config for a new value every time.
-        m_drawDebugBox = m_config.Developer.Render.Debug;
-        m_textureManager.TryGet(Constants.DebugBoxTexture, ResourceNamespace.Graphics, out m_debugBoxTexture);
-        m_debugBoxRenderWorldData = m_worldDataManager.GetRenderData(m_debugBoxTexture);
-
         m_tickFraction = tickFraction;
         m_cameraEntity = cameraEntity;
         m_EntityDrawnTracker.Reset(world);
@@ -85,8 +75,6 @@ public class EntityRenderer
         {
             Entity entity = node.Value;
             node = node.Next;
-            if (m_drawDebugBox)
-                AddSpriteDebugBox(entity);
 
             if (ShouldNotDraw(entity))
                 continue;
@@ -135,8 +123,7 @@ public class EntityRenderer
                 ReferenceEquals(m_cameraEntity, entity);
     }
 
-    private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity,
-        GLLegacyTexture texture, short lightLevel, bool mirror)
+    private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
     {
         // We need to find the perpendicular vector from the entity so we
         // know where to place the quad vertices.
@@ -171,7 +158,10 @@ public class EntityRenderer
         LegacyVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
         LegacyVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
 
-        RenderWorldData renderWorldData = alpha < 1 ? m_worldDataManager.GetAlphaRenderData(texture) : m_worldDataManager.GetRenderData(texture);
+        RenderWorldData renderWorldData = alpha < 1 ? 
+            m_worldDataManager.GetAlphaRenderData(texture, m_program) : 
+            m_worldDataManager.GetRenderData(texture, m_program);
+
         renderWorldData.Vbo.Add(topLeft);
         renderWorldData.Vbo.Add(bottomLeft);
         renderWorldData.Vbo.Add(topRight);
@@ -211,67 +201,70 @@ public class EntityRenderer
         return false;
     }
 
-    private void AddSpriteDebugBox(Entity entity)
-    {
-        Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
-        Vec3F min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).Float;
-        Vec3F max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).Float;
+    // Commenting this out because all of the faces and edges will be reused when
+    // we allow for debugging via 3D line rendering.
+    //
+    //private void AddSpriteDebugBox(Entity entity)
+    //{
+    //    Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
+    //    Vec3F min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).Float;
+    //    Vec3F max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).Float;
 
-        // These are the indices for the corners on the ASCII art further
-        // down in the image.
-        AddCubeFaces(2, 0, 3, 1);
-        AddCubeFaces(3, 1, 7, 5);
-        AddCubeFaces(7, 5, 6, 4);
-        AddCubeFaces(6, 4, 2, 0);
-        AddCubeFaces(0, 4, 1, 5);
-        AddCubeFaces(6, 2, 7, 3);
+    //    // These are the indices for the corners on the ASCII art further
+    //    // down in the image.
+    //    AddCubeFaces(2, 0, 3, 1);
+    //    AddCubeFaces(3, 1, 7, 5);
+    //    AddCubeFaces(7, 5, 6, 4);
+    //    AddCubeFaces(6, 4, 2, 0);
+    //    AddCubeFaces(0, 4, 1, 5);
+    //    AddCubeFaces(6, 2, 7, 3);
 
-        void AddCubeFaces(int topLeft, int bottomLeft, int topRight, int bottomRight)
-        {
-            // We want to draw it to both sides, not just the front.
-            AddCubeFace(topLeft, bottomLeft, topRight, bottomRight);
-            AddCubeFace(topRight, bottomRight, topLeft, bottomLeft);
-        }
+    //    void AddCubeFaces(int topLeft, int bottomLeft, int topRight, int bottomRight)
+    //    {
+    //        // We want to draw it to both sides, not just the front.
+    //        AddCubeFace(topLeft, bottomLeft, topRight, bottomRight);
+    //        AddCubeFace(topRight, bottomRight, topLeft, bottomLeft);
+    //    }
 
-        void AddCubeFace(int topLeft, int bottomLeft, int topRight, int bottomRight)
-        {
-            LegacyVertex topLeftVertex = MakeVertex(topLeft, 0.0f, 0.0f);
-            LegacyVertex bottomLeftVertex = MakeVertex(bottomLeft, 0.0f, 1.0f);
-            LegacyVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
-            LegacyVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
+    //    void AddCubeFace(int topLeft, int bottomLeft, int topRight, int bottomRight)
+    //    {
+    //        LegacyVertex topLeftVertex = MakeVertex(topLeft, 0.0f, 0.0f);
+    //        LegacyVertex bottomLeftVertex = MakeVertex(bottomLeft, 0.0f, 1.0f);
+    //        LegacyVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
+    //        LegacyVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
 
-            m_debugBoxRenderWorldData.Vbo.Add(topLeftVertex);
-            m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
-            m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
-            m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
-            m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
-            m_debugBoxRenderWorldData.Vbo.Add(bottomRightVertex);
-        }
+    //        m_debugBoxRenderWorldData.Vbo.Add(topLeftVertex);
+    //        m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
+    //        m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
+    //        m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
+    //        m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
+    //        m_debugBoxRenderWorldData.Vbo.Add(bottomRightVertex);
+    //    }
 
-        LegacyVertex MakeVertex(int cornerIndex, float u, float v)
-        {
-            // The vertices look like this:
-            //
-            //          6----7 (max)
-            //         /.   /|
-            //        2----3 |
-            //        | 4..|.5          Z Y
-            //        |.   |/           |/
-            //  (min) 0----1            o--> X
-            return cornerIndex switch
-            {
-                0 => new LegacyVertex(min.X, min.Y, min.Z, u, v),
-                1 => new LegacyVertex(max.X, min.Y, min.Z, u, v),
-                2 => new LegacyVertex(min.X, min.Y, max.Z, u, v),
-                3 => new LegacyVertex(max.X, min.Y, max.Z, u, v),
-                4 => new LegacyVertex(min.X, max.Y, min.Z, u, v),
-                5 => new LegacyVertex(max.X, max.Y, min.Z, u, v),
-                6 => new LegacyVertex(min.X, max.Y, max.Z, u, v),
-                7 => new LegacyVertex(max.X, max.Y, max.Z, u, v),
-                _ => throw new Exception("Out of bounds cube index when debugging entity bounding box")
-            };
-        }
-    }
+    //    LegacyVertex MakeVertex(int cornerIndex, float u, float v)
+    //    {
+    //        // The vertices look like this:
+    //        //
+    //        //          6----7 (max)
+    //        //         /.   /|
+    //        //        2----3 |
+    //        //        | 4..|.5          Z Y
+    //        //        |.   |/           |/
+    //        //  (min) 0----1            o--> X
+    //        return cornerIndex switch
+    //        {
+    //            0 => new LegacyVertex(min.X, min.Y, min.Z, u, v),
+    //            1 => new LegacyVertex(max.X, min.Y, min.Z, u, v),
+    //            2 => new LegacyVertex(min.X, min.Y, max.Z, u, v),
+    //            3 => new LegacyVertex(max.X, min.Y, max.Z, u, v),
+    //            4 => new LegacyVertex(min.X, max.Y, min.Z, u, v),
+    //            5 => new LegacyVertex(max.X, max.Y, min.Z, u, v),
+    //            6 => new LegacyVertex(min.X, max.Y, max.Z, u, v),
+    //            7 => new LegacyVertex(max.X, max.Y, max.Z, u, v),
+    //            _ => throw new Exception("Out of bounds cube index when debugging entity bounding box")
+    //        };
+    //    }
+    //}
 
     public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
     {

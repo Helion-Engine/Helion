@@ -23,7 +23,7 @@ public class ProgramAttributes : IReadOnlyList<ProgramAttribute>
         for (int i = 0; i < attrCount; i++)
         {
             GL.GetActiveAttrib(program, i, MaxNameLength, out int strLen, out int size, out ActiveAttribType type, out string name);
-            Debug.Assert(strLen >= MaxNameLength - 1, $"Attribute name is significantly longer than expected, something is likely wrong: {i} {strLen} {name}");
+            Debug.Assert(strLen < MaxNameLength - 1, $"Attribute name is significantly longer than expected, something is likely wrong: {i} {strLen} {name}");
 
             ProgramAttribute attr = new(name, i, size, type);
             m_attributes.Add(attr);

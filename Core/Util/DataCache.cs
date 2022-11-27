@@ -21,6 +21,7 @@ using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.Common.Enums;
+using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Util;
 
@@ -41,13 +42,11 @@ public class DataCache
     private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<List<Entity>> m_entityLists = new();
-
     private readonly DynamicArray<List<RenderableGlyph>> m_glyphs = new();
     private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
-
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
@@ -198,18 +197,18 @@ public class DataCache
         m_blockmapLists.Add(list);
     }
 
-    public RenderWorldData GetAlphaRenderWorldData(GLLegacyTexture texture)
+    public RenderWorldData GetAlphaRenderWorldData(GLLegacyTexture texture, RenderProgram program)
     {
         if (m_alphaRender.TryGetValue(texture, out var data))
         {
             if (data.Length > 0)
                 return data.RemoveLast();
 
-            return new RenderWorldData(texture);
+            return new RenderWorldData(texture, program);
         }
         else
         {
-            RenderWorldData renderWorldData = new(texture);
+            RenderWorldData renderWorldData = new(texture, program);
             m_alphaRender.Add(texture, new DynamicArray<RenderWorldData>());
             return renderWorldData;
         }

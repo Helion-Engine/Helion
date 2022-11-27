@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Render.OpenGL.Vertex.Attributes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
@@ -29,12 +28,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public class LegacyAutomapRenderer : IDisposable
 {
-    private static readonly VertexArrayAttributes Attributes = new(new VertexPointerFloatAttribute("pos", 0, 2));
-
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly AutomapShader m_shader;
-    private readonly StreamVertexBuffer<vec2> m_vbo;
+    private readonly StreamVertexBuffer<AutomapVertex> m_vbo;
     private readonly VertexArrayObject m_vao;
+    private readonly AutomapShader m_shader;
     private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
     private readonly List<(int start, Vec3F color)> m_vboRanges = new();
     private readonly DynamicArray<vec2> m_entityPoints = new();
@@ -49,9 +46,11 @@ public class LegacyAutomapRenderer : IDisposable
     public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
-        m_vao = new(Attributes, "VAO: Attributes for Automap");
-        m_vbo = new(m_vao, "VBO: Geometry for Automap");
+        m_vao = new("Automap");
+        m_vbo = new("Automap");
         m_shader = new();
+
+        Attributes.BindAndApply(m_vbo, m_vao, m_shader.Attributes);
 
         foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
             m_colorEnumToLines.Add(new DynamicArray<vec2>());
@@ -415,7 +414,7 @@ public class LegacyAutomapRenderer : IDisposable
 
         void AddLine(vec2 line)
         {
-            m_vbo.Add(line);
+            m_vbo.Add(new AutomapVertex(line.x, line.y));
 
             if (line.x < minX)
                 minX = line.x;
