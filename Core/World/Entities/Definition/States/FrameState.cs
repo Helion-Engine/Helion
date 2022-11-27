@@ -101,7 +101,7 @@ public class FrameState : ITickable
         m_frameIndex = index;
     }
 
-    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true)
+    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
     {
         if (!executeStateFunctions)
             return SetStateNoAction(label, offset, warn);
@@ -109,9 +109,9 @@ public class FrameState : ITickable
         if (m_definition.States.Labels.TryGetValue(label, out int index))
         {
             if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
-                SetFrameIndexInternal(index + offset);
+                SetFrameIndexInternal(index + offset, onSet);
             else
-                SetFrameIndexInternal(index);
+                SetFrameIndexInternal(index, onSet);
 
             return true;
         }
@@ -142,7 +142,7 @@ public class FrameState : ITickable
     }
 
     public void SetState(EntityFrame entityFrame) =>
-        SetFrameIndexInternal(entityFrame.MasterFrameIndex);
+        SetFrameIndexInternal(entityFrame.MasterFrameIndex, null);
 
     public bool IsState(string label)
     {
@@ -159,7 +159,7 @@ public class FrameState : ITickable
         m_tics = tics;
     }
 
-    private void SetFrameIndexInternal(int index)
+    private void SetFrameIndexInternal(int index, Action<EntityFrame>? onSet)
     {
         int loopCount = 0;
         EntityFrame frame;
@@ -176,6 +176,7 @@ public class FrameState : ITickable
                 m_tics *= 2;
 
             frame = Frame;
+            onSet?.Invoke(frame);
 
             if (m_destroyOnStop && frame.IsNullFrame)
             {
@@ -230,7 +231,7 @@ public class FrameState : ITickable
 
         m_tics--;
         if (m_tics <= 0)
-            SetFrameIndexInternal(Frame.NextFrameIndex);
+            SetFrameIndexInternal(Frame.NextFrameIndex, null);
     }
 
     public FrameStateModel ToFrameStateModel()

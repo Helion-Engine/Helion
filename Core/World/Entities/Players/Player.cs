@@ -19,6 +19,7 @@ using Helion.Resources.Definitions.MapInfo;
 using NLog;
 using static Helion.World.Entities.EntityManager;
 using Helion.Audio;
+using Helion.World.Entities.Definition.States;
 
 namespace Helion.World.Entities.Players;
 
@@ -335,8 +336,9 @@ public class Player : Entity
             var weapon = Inventory.Weapons.GetWeapon(startWeaponDef.Name);
             if (weapon != null)
             {
-                ChangeWeapon(weapon);
-                ForceLowerWeapon(false);
+                SetWeaponBottom();
+                PendingWeapon = weapon;
+                BringupWeapon();
             }
         }
 
@@ -350,7 +352,7 @@ public class Player : Entity
             return;
 
         if (IsWeapon(definition))
-            GiveWeapon(definition, false);
+            GiveWeapon(definition, false, false);
         else
             GiveItemBase(definition, null, false, amount);
     }
@@ -1091,7 +1093,7 @@ public class Player : Entity
         {
             if (setTop)
                 SetWeaponTop();
-            Weapon.FrameState.SetState(Constants.FrameStates.Deselect);
+            SetWeaponFrameState(Weapon, Constants.FrameStates.Deselect);
         }
     }
 
@@ -1099,6 +1101,12 @@ public class Player : Entity
     {
         WeaponOffset.X = PrevWeaponOffset.X = 0;
         WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponTop;
+    }
+
+    private void SetWeaponBottom()
+    {
+        WeaponOffset.X = PrevWeaponOffset.X = 0;
+        WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponBottom;
     }
 
     public void BringupWeapon()
@@ -1118,9 +1126,22 @@ public class Player : Entity
             World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, new SoundParams(this, channel: SoundChannel.Weapon));
 
         AnimationWeapon = PendingWeapon;
+        Weapon = PendingWeapon;
         PendingWeapon = null;
         WeaponOffset.Y = Constants.WeaponBottom;
-        AnimationWeapon.FrameState.SetState(Constants.FrameStates.Select);
+        SetWeaponFrameState(AnimationWeapon, Constants.FrameStates.Select);
+    }
+
+    private void SetWeaponFrameState(Weapon weapon, string label)
+    {
+        weapon.FrameState.SetState(label, onSet: (EntityFrame frame) =>
+        {
+            if (frame.DehackedMisc1 == 0)
+                return;
+
+            WeaponOffset.X = PrevWeaponOffset.X = frame.DehackedMisc1;
+            WeaponOffset.Y = PrevWeaponOffset.Y = frame.DehackedMisc2;
+        });
     }
 
     public void SetWeaponUp()
