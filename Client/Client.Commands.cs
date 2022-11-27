@@ -423,7 +423,7 @@ public partial class Client
 
         if (args.Args.Empty())
         {
-            Log.Info($"{component.Path} = {component.Value}");
+            Log.Info($"{component.Path} is {component.Value}");
             return true;
         }
 
