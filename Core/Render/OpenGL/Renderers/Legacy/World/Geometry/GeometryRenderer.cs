@@ -94,7 +94,9 @@ public class GeometryRenderer : IDisposable
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
-            m_wallVertices[i].ColorMul = (1.0f, 1.0f, 1.0f);
+            m_wallVertices[i].R = 1.0f;
+            m_wallVertices[i].G = 1.0f;
+            m_wallVertices[i].B = 1.0f;
             m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
         }
