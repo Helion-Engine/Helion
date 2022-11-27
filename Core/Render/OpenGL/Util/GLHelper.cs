@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Helion.Geometry;
 using Helion.Render.OpenGL.Context;
 using Helion.Util.Extensions;
 using NLog;
@@ -140,5 +141,11 @@ public static class GLHelper
         };
 
         GL.DebugMessageCallback(LastCallbackProcReference, IntPtr.Zero);
+    }
+
+    public static int CalculateMipmapLevels(Dimension dimension)
+    {
+        int smallerAxis = Math.Min(dimension.Width, dimension.Height);
+        return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
 }
