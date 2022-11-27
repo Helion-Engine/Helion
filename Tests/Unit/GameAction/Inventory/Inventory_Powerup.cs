@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Tests.Unit.GameAction.Util;
 using Helion.World;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
@@ -77,12 +78,12 @@ namespace Helion.Tests.Unit.GameAction
         public void Berserk()
         {
             Player.Health = 1;
-            AssertWeapon(Player.Weapon, "Pistol");
+            InventoryUtil.AssertWeapon(Player.Weapon, "Pistol");
             Player.PendingWeapon.Should().BeNull();
             AssertNoPowerups(Player);
             AssertPowerUp(World, Player, PowerupType.Strength, "Berserk", () => { }, color: true, effectTimeout: false);
             Player.Health.Should().Be(100);
-            AssertWeapon(Player.PendingWeapon, "Fist");
+            InventoryUtil.AssertWeapon(Player.PendingWeapon, "Fist");
             GameActions.TickWorld(World, 2100);
             Player.Inventory.PowerupEffectColor.Should().BeNull();
             // Powerup stays past color (effectively forever)

@@ -245,7 +245,8 @@ public partial class WorldLayer
             float tickFraction = m_lastTickInfo.Fraction;
 
             offset.Y += yOffset;
-            Vec2I weaponOffset = Player.PrevWeaponOffset.Interpolate(Player.WeaponOffset, tickFraction).Int;
+            Vec2I weaponOffset = Player.PrevWeaponOffset.Interpolate(Player.WeaponOffset, tickFraction).Int + 
+                Player.PrevBobOffset.Interpolate(Player.BobOffset, tickFraction).Int;
 
             float alpha = 1.0f;
             IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
