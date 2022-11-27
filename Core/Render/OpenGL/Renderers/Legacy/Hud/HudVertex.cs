@@ -12,7 +12,7 @@ public readonly struct HudVertex
     public readonly float Y;
     public readonly float Z;
 
-    [VertexAttribute("uv", size: 3)]
+    [VertexAttribute("uv", size: 2)]
     public readonly float U;
     public readonly float V;
 
