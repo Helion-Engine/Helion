@@ -751,7 +751,7 @@ public static class EntityActionFunctions
 
         if (entity.Target.Entity != null && entity.HasMeleeState() && entity.InMeleeRange(entity.Target.Entity))
         {
-            // ATTACK SOUND?
+            entity.PlayAttackSound();
             entity.SetMeleeState();
         }
 
@@ -1920,7 +1920,6 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        entity.PlayAttackSound();
         if (entity.InMeleeRange(entity.Target.Entity))
         {
             int damage = ((entity.World.Random.NextByte() % 10) + 1) * 4;
