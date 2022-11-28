@@ -25,7 +25,7 @@ public class Image
     public static readonly Image WhiteImage = CreateWhiteImage();
 
     public readonly Bitmap Bitmap;
-    public readonly Dimension Dimension;
+    public Dimension Dimension;
     public readonly ImageType ImageType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;

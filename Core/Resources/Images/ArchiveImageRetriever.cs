@@ -1,11 +1,13 @@
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
+using Helion.Util.Extensions;
 using NLog;
 using Image = Helion.Graphics.Image;
 
@@ -111,8 +113,54 @@ public class ArchiveImageRetriever : IImageRetriever
             subImage.DrawOnTopOf(image, component.Offset);
         }
 
+        if (definition.Namespace == ResourceNamespace.Sprites)
+            SetSpriteOffset(image);
+
         m_compiledImages.Insert(definition.Name, definition.Namespace, image);
         return image;
+    }
+
+    private static void SetSpriteOffset(Image image)
+    {
+        int blankRows = GetBlankRowsFromBottom(image);
+        if (blankRows > image.Dimension.Height || blankRows < 0)
+            return;
+
+        image.Dimension = new Geometry.Dimension(image.Dimension.Width, image.Dimension.Height - blankRows);
+    }
+
+    private static unsafe int GetBlankRowsFromBottom(Image image)
+    {
+        if (image.Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            return 0;
+
+        var bmp = image.Bitmap;
+        int bytesPerPixel = 3;
+        int y = image.Height - 1;
+
+        bmp.WithLockedBits(ReadScan, ImageLockMode.ReadWrite);
+
+        void ReadScan(BitmapData bmpData)
+        {
+            byte* scanData = (byte*)bmpData.Scan0.ToPointer();
+            int stride = bmpData.Stride;
+            int bytesPerPixel = System.Drawing.Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
+
+            while (y >= 0)
+            {
+                byte* row = scanData + (y * stride);
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    // Check if the alpha byte is set
+                    int index = x * bytesPerPixel;
+                    if (row[index + 3] != 0)
+                        return;
+                }
+                y--;
+            }
+        }
+
+        return image.Bitmap.Height - y;
     }
 
     private Image? ImageFromEntry(Entry entry)
@@ -148,9 +196,13 @@ public class ArchiveImageRetriever : IImageRetriever
             }
         }
 
-        if (image != null)
-            m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
+        if (image == null)
+            return null;
 
+        if (entry.Namespace == ResourceNamespace.Sprites)
+            SetSpriteOffset(image);
+
+        m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
         return image;
     }
 }

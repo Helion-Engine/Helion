@@ -21,4 +21,12 @@ public static class BitmapExtensions
         func(metadata.Scan0);
         bitmap.UnlockBits(metadata);
     }
+
+    public static void WithLockedBits(this Bitmap bitmap, Action<BitmapData> func, ImageLockMode lockMode = ImageLockMode.ReadWrite)
+    {
+        Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
+        BitmapData metadata = bitmap.LockBits(rect, lockMode, bitmap.PixelFormat);
+        func(metadata);
+        bitmap.UnlockBits(metadata);
+    }
 }
