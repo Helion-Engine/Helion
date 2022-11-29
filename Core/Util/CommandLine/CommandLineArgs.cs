@@ -29,6 +29,9 @@ public class CommandLineArgs
     public string? Record { get; set; }
     public string? PlayDemo { get; set; }
     public Vec3D? SetPosition { get; set; }
+    public double? SetAngle { get; set; }
+    public double? SetPitch { get; set; }
+    public IList<string> Cheats { get; set; } = Array.Empty<string>();
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -87,11 +90,33 @@ public class CommandLineArgs
                 commandLineArgs.PlayDemo = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "+setpos"))
                 commandLineArgs.SetPosition = GetPosition(GetString(commandLineArgs, parsedArg));
+            else if (IsArgMatch(parsedArg, "+cheats"))
+                commandLineArgs.Cheats = ParseCheats(GetString(commandLineArgs, parsedArg));
+            else if (IsArgMatch(parsedArg, "+setangle"))
+                commandLineArgs.SetAngle = ParseDouble(GetString(commandLineArgs, parsedArg));
+            else if (IsArgMatch(parsedArg, "+setpitch"))
+                commandLineArgs.SetPitch = ParseDouble(GetString(commandLineArgs, parsedArg));
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }
 
         return commandLineArgs;
+    }
+
+    private static double? ParseDouble(string? value)
+    {
+        if (!double.TryParse(value, out var dValue))
+            return null;
+
+        return dValue;
+    }
+
+    private static IList<string> ParseCheats(string? str)
+    {
+        if (str == null)
+            return Array.Empty<string>();
+
+        return str.Split(new char[] { ' ' });
     }
 
     private static Vec3D? GetPosition(string value)

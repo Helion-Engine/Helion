@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
-using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.CommandLine;
 using Helion.Util.Consoles;
 using Helion.World.Util;
 
@@ -77,13 +77,13 @@ public partial class Client
 
         if (m_commandLineArgs.Map != null)
         {
-            LoadMap(m_commandLineArgs.Map, m_commandLineArgs.SetPosition);
+            LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
         }
         else if (m_commandLineArgs.Warp != null &&
             MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
                 out MapInfoDef? mapInfoDef) && mapInfoDef != null)
         {
-            LoadMap(mapInfoDef.MapName, m_commandLineArgs.SetPosition);
+            LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
 
         InitializeDemoRecorderFromCommandArgs();
@@ -131,7 +131,7 @@ public partial class Client
             Log.Info($"Invalid skill level: {value}");
     }
 
-    private void LoadMap(string mapName, Vec3D? setPos = null)
+    private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
         m_console.ClearInputText();
         m_console.AddInput($"map {mapName}\n");
@@ -142,10 +142,30 @@ public partial class Client
             m_layerManager.Add(layer);
         }
 
-        if (setPos == null || m_layerManager.WorldLayer == null)
+        if (args == null || m_layerManager.WorldLayer == null)
             return;
 
         var world = m_layerManager.WorldLayer.World;
-        world.SetEntityPosition(world.Player, setPos.Value);
+        if (args.Cheats != null)
+        {
+            var player = m_layerManager.WorldLayer.World.Player;
+            foreach (string cheatCmd in args.Cheats)
+                world.CheatManager.HandleCommand(player, cheatCmd);
+        }
+
+        if (args.SetPosition != null)
+            world.SetEntityPosition(world.Player, args.SetPosition.Value);
+
+        if (args.SetAngle != null)
+        {
+            world.Player.AngleRadians = MathHelper.ToRadians(args.SetAngle.Value);
+            world.Player.ResetInterpolation();
+        }
+
+        if (args.SetPitch != null)
+        {
+            world.Player.PitchRadians = MathHelper.ToRadians(args.SetPitch.Value);
+            world.Player.ResetInterpolation();
+        }
     }
 }
