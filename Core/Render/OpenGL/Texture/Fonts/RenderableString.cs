@@ -82,8 +82,10 @@ public class RenderableString
 
         List<RenderableGlyph>? currentSentence = null;
         var colorRanges = GetColorRanges(str);
-        foreach (var colorRange in colorRanges)
+        //foreach (var colorRange in colorRanges)
+        for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
         {
+            var colorRange = colorRanges[colorRangeIndex];
             for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
                 char c = str[i];
@@ -247,8 +249,9 @@ public class RenderableString
 
         // We want to pick the largest X, but sum up the Y.
         Vec2I point = Vec2I.Zero;
-        foreach (var sentence in sentences)
+        for (int i = 0; i < sentences.Count; i++)
         {
+            var sentence = sentences[i];
             if (sentence.DrawArea.Vector.X > point.X)
                 point.X = sentence.DrawArea.Vector.X;
 
@@ -274,17 +277,19 @@ public class RenderableString
 
     private void AlignCenter()
     {
-        foreach (RenderableSentence sentence in Sentences)
+        for (int i = 0; i < Sentences.Count; i++)
         {
+            var sentence = Sentences[i];
             int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
             AdjustOffsetsBy(sentence, gutter);
         }
-    }
+    }       
 
     private void AlignRight()
     {
-        foreach (RenderableSentence sentence in Sentences)
+        for (int i = 0; i < Sentences.Count; i++)
         {
+            var sentence = Sentences[i];
             int gutter = DrawArea.Width - sentence.DrawArea.Width;
             AdjustOffsetsBy(sentence, gutter);
         }
@@ -313,8 +318,9 @@ public class RenderableString
         // do one final recalculation of the normalized coordinates here.
         Vec2D inverse = new(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
 
-        foreach (RenderableSentence sentence in Sentences)
+        for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
         {
+            var sentence = Sentences[sentenceIndex];
             for (int i = 0; i < sentence.Glyphs.Count; i++)
             {
                 RenderableGlyph renderGlyph = sentence.Glyphs[i];

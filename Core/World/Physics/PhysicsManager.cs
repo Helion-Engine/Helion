@@ -573,8 +573,8 @@ public class PhysicsManager
                 entity.SetOnEntity(highestEntity);
             }
 
-            foreach (Entity onEntity in m_onEntities)
-                onEntity.SetOverEntity(entity);
+            for (int i = 0; i < m_onEntities.Count; i++)
+                m_onEntities[i].SetOverEntity(entity);
 
             if (clippedFloor)
             {
@@ -709,8 +709,9 @@ public class PhysicsManager
         if (!clampToLinkedSectors)
             return;
 
-        foreach (Sector sector in entity.IntersectSectors)
+        for (int i = 0; i < entity.IntersectSectors.Count; i++)
         {
+            Sector sector = entity.IntersectSectors[i];
             double floorZ = sector.ToFloorZ(entity.Position);
             if (floorZ > highestFloorZ)
             {
@@ -871,8 +872,8 @@ public class PhysicsManager
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
         List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
 
-        foreach (var intersection in intersections)
-            ClampBetweenFloorAndCeiling(intersection.Entity!, smoothZ: false, clampToLinkedSectors: intersection.Entity!.MoveLinked);
+        for (int i = 0; i < intersections.Count; i++)
+            ClampBetweenFloorAndCeiling(intersections[i].Entity!, smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
     }
 
     private void StackedEntityMoveZ(Entity entity)
@@ -1327,8 +1328,9 @@ public class PhysicsManager
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;
-        foreach (var sector in entity.IntersectSectors)
+        for (int i = 0; i < entity.IntersectSectors.Count; i++)
         {
+            Sector sector = entity.IntersectSectors[i];
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))
                 continue;
 

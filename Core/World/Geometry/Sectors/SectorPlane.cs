@@ -120,8 +120,9 @@ public class SectorPlane : ISoundSource
         double minDist = double.MaxValue;
         Line? minLine = null;
 
-        foreach (var line in Sector.Lines)
+        for (int i = 0; i < Sector.Lines.Count; i++)
         {
+            var line = Sector.Lines[i];
             double dist = line.Segment.ClosestPoint(point).Distance(point);
             if (dist < minDist)
             {

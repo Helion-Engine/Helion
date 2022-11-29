@@ -420,8 +420,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void UpdateBufferData()
     {
-        foreach (List<StaticGeometryData> list in m_bufferLists)
+        for (int bufferIndex = 0; bufferIndex < m_bufferLists.Count; bufferIndex++)
         {
+            List<StaticGeometryData> list = m_bufferLists[bufferIndex];
             if (list.Count == 0)
                 continue;
 
@@ -489,8 +490,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_updateLightSectors.Count == 0)
             return;
 
-        foreach (var sector in m_updateLightSectors)
+        for (int i = 0; i < m_updateLightSectors.Count; i++)
         {
+            Sector sector = m_updateLightSectors[i];
             short level = sector.LightLevel;
 
             if (sector.TransferFloorLightSector == sector)
@@ -502,9 +504,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             UpdateTransferLightVertices(sector.Id, level, false, m_transferCeilingLightLookup);
             UpdateTransferLightVertices(sector.Id, level, true, m_transferFloorLightLookup);
 
-            for (int i = 0; i < sector.Lines.Count; i++)
+            for (int j = 0; j < sector.Lines.Count; j++)
             {
-                var line = sector.Lines[i];
+                var line = sector.Lines[j];
                 if (line.Front.Sector.Id == sector.Id)
                 {
                     UpdateLightVertices(line.Front.Upper.Static, level);
@@ -580,8 +582,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         WorldBase world = (WorldBase)sender!;
         if (m_transferHeightsLookup.TryGetValue(plane.Sector.Id, out var sectors))
         {
-            foreach (var sector in sectors)
+            for (int i = 0; i < sectors.Count; i++)
+            {
+                Sector sector = sectors[i];
                 HandleSectorMoveStart(world, sector.GetSectorPlane(plane.Facing));
+            }
         }
 
         HandleSectorMoveStart(world, plane);
@@ -644,8 +649,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         WorldBase world = (WorldBase)sender!;
         if (m_transferHeightsLookup.TryGetValue(plane.Sector.Id, out var sectors))
         {
-            foreach (var sector in sectors)
+            for (int i = 0; i < sectors.Count; i++)
+            {
+                Sector sector = sectors[i];
                 HandleSectorMoveComplete(world, sector.GetSectorPlane(plane.Facing));
+            }
         }
 
         HandleSectorMoveComplete(world, plane);
@@ -664,8 +672,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         AddSectorPlane(plane.Sector, floor, true);
 
-        foreach (var line in plane.Sector.Lines)
-            AddLine(line, true);
+        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+            AddLine(plane.Sector.Lines[i], true);
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)

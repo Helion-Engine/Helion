@@ -135,9 +135,12 @@ public partial class WorldLayer
 
     private void HandleCommandInput(IConsumableInput input)
     {
-        foreach ((string command, TickCommands tickCommand) in KeyPressCommandMapping)
+        for (int i = 0; i < KeyPressCommandMapping.Length; i++)
+        {
+            (string command, TickCommands tickCommand) = KeyPressCommandMapping[i];
             if (IsCommandDown(command, input))
                 m_tickCommand.Add(tickCommand);
+        }
 
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)

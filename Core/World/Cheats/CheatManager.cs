@@ -110,8 +110,10 @@ public class CheatManager
 
     public void HandleInput(Player player, IConsumableInput input)
     {
-        foreach (char key in input.ConsumeTypedCharacters())
+        var characters = input.ConsumeTypedCharacters();
+        for (int i = 0; i < characters.Length; i++)
         {
+            char key = characters[i];
             m_currentCheat.Append(key);
             string cheatString = m_currentCheat.ToString();
 

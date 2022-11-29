@@ -27,12 +27,13 @@ public readonly struct RenderableSentence
         DrawArea = CalculateDrawArea(glyphs);
     }
 
-    private static Dimension CalculateDrawArea(IEnumerable<RenderableGlyph> glyphs)
+    private static Dimension CalculateDrawArea(List<RenderableGlyph> glyphs)
     {
         int width = 0;
         int height = 0;
-        foreach (var glyph in glyphs)
+        for (int i = 0; i < glyphs.Count; i++)
         {
+            var glyph = glyphs[i];
             if (glyph.Coordinates.Right > width)
                 width = glyph.Coordinates.Right;
             if (glyph.Coordinates.Height > height)

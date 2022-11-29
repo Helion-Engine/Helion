@@ -203,10 +203,12 @@ public class SoundManager : IDisposable
 
     private void ClearSounds(LinkedList<IAudioSource> audioSources)
     {
-        foreach (IAudioSource sound in audioSources)
+        LinkedListNode<IAudioSource> node = audioSources.First;
+        while (node != null)
         {
-            sound.Stop();
-            ArchiveCollection.DataCache.FreeAudioSource(sound);
+            node.Value.Stop();
+            ArchiveCollection.DataCache.FreeAudioSource(node.Value);
+            node = node.Next;
         }
 
         audioSources.Clear();

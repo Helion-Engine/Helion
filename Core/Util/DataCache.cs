@@ -313,8 +313,8 @@ public class DataCache
 
     public void FreeRenderableString(RenderableString renderableString)
     {
-        foreach (var sentence in renderableString.Sentences)
-            FreeRenderableGlyphs(sentence.Glyphs);
+        for (int i = 0; i < renderableString.Sentences.Count; i++)
+            FreeRenderableGlyphs(renderableString.Sentences[i].Glyphs);
         FreeRenderableSentences(renderableString.Sentences);
 
         renderableString.Sentences = null!;

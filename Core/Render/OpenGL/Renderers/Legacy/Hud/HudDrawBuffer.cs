@@ -43,8 +43,8 @@ public class HudDrawBuffer
 
     public void Clear()
     {
-        foreach (var data in DrawBuffer)
-            m_dataCache.FreeDrawHudBufferData(data);
+        for (int i = 0; i < DrawBuffer.Count; i++)
+            m_dataCache.FreeDrawHudBufferData(DrawBuffer[i]);
         DrawBuffer.Clear();
     }
 
