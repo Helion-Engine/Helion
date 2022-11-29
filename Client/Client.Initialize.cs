@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Resources.Definitions.MapInfo;
@@ -76,13 +77,13 @@ public partial class Client
 
         if (m_commandLineArgs.Map != null)
         {
-            LoadMap(m_commandLineArgs.Map);
+            LoadMap(m_commandLineArgs.Map, m_commandLineArgs.SetPosition);
         }
         else if (m_commandLineArgs.Warp != null &&
             MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
                 out MapInfoDef? mapInfoDef) && mapInfoDef != null)
         {
-            LoadMap(mapInfoDef.MapName);
+            LoadMap(mapInfoDef.MapName, m_commandLineArgs.SetPosition);
         }
 
         InitializeDemoRecorderFromCommandArgs();
@@ -130,7 +131,7 @@ public partial class Client
             Log.Info($"Invalid skill level: {value}");
     }
 
-    private void LoadMap(string mapName)
+    private void LoadMap(string mapName, Vec3D? setPos = null)
     {
         m_console.ClearInputText();
         m_console.AddInput($"map {mapName}\n");
@@ -140,5 +141,11 @@ public partial class Client
             ConsoleLayer layer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
             m_layerManager.Add(layer);
         }
+
+        if (setPos == null || m_layerManager.WorldLayer == null)
+            return;
+
+        var world = m_layerManager.WorldLayer.World;
+        world.SetEntityPosition(world.Player, setPos.Value);
     }
 }

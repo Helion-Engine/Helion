@@ -1,3 +1,4 @@
+using Helion.Geometry.Vectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,7 @@ public class CommandLineArgs
     public string? DehackedPatch { get; set; }
     public string? Record { get; set; }
     public string? PlayDemo { get; set; }
+    public Vec3D? SetPosition { get; set; }
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -83,11 +85,24 @@ public class CommandLineArgs
                 commandLineArgs.Record = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-playdemo"))
                 commandLineArgs.PlayDemo = GetString(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "+setpos"))
+                commandLineArgs.SetPosition = GetPosition(GetString(commandLineArgs, parsedArg));
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }
 
         return commandLineArgs;
+    }
+
+    private static Vec3D? GetPosition(string value)
+    {
+        string[] items = value.Split(new char[] { ',' });
+        if (items.Length < 3)
+            return null;
+        if (!double.TryParse(items[0], out var x) || !double.TryParse(items[1], out var y) || !double.TryParse(items[2], out var z))
+            return null;
+
+        return new Vec3D(x, y, z);
     }
 
     private static bool IsArgMatch(CommandArg arg, string str) => arg.Key.Equals(str, StringComparison.OrdinalIgnoreCase);

@@ -2015,6 +2015,15 @@ public abstract partial class WorldBase : IWorld
         DataCache.FreeBlockmapIntersectList(intersections);
     }
 
+
+    public void SetEntityPosition(Entity entity, Vec3D pos)
+    {
+        entity.ResetInterpolation();
+        entity.UnlinkFromWorld();
+        entity.SetPosition(pos);
+        Link(entity);
+    }
+
     private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)
     {
         if (entity.Tracer.Entity == null)

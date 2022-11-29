@@ -39,6 +39,22 @@ public partial class Client
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
 
+    [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
+    private void SetPosition(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        if (args.Args.Count < 3)
+            return;
+
+        if (!double.TryParse(args.Args[0], out var x) || !double.TryParse(args.Args[1], out var y) || !double.TryParse(args.Args[2], out var z))
+            return;
+
+        m_layerManager.WorldLayer.World.SetEntityPosition(m_layerManager.WorldLayer.World.Player, (x, y, z));
+        m_layerManager.Remove(m_layerManager.ConsoleLayer);
+    }
+
     [ConsoleCommand("restart", "Lists all available commands.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
