@@ -138,7 +138,7 @@ public class ArchiveImageRetriever : IImageRetriever
         int bytesPerPixel = 3;
         int y = image.Height - 1;
 
-        bmp.WithLockedBits(ReadScan, ImageLockMode.ReadWrite);
+        bmp.WithLockedBits(ReadScan, ImageLockMode.ReadOnly);
 
         void ReadScan(BitmapData bmpData)
         {
@@ -160,7 +160,7 @@ public class ArchiveImageRetriever : IImageRetriever
             }
         }
 
-        return image.Bitmap.Height - y;
+        return image.Bitmap.Height - y - 1;
     }
 
     private Image? ImageFromEntry(Entry entry)
