@@ -383,6 +383,7 @@ public class BlockmapTraverser
                 if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
                     continue;
 
+                sideNode.Value.BlockmapCount = m_blockmapCount;
                 renderSide(sideNode.Value);
             }
 

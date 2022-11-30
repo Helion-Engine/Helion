@@ -25,6 +25,7 @@ public class Side : IRenderObject
     public bool OffsetChanged { get; set; }
     public bool IsStatic => Upper.Dynamic == SectorDynamic.None && Middle.Dynamic == SectorDynamic.None && Lower.Dynamic == SectorDynamic.None;
     public bool IsDynamic => Upper.Dynamic != SectorDynamic.None || Middle.Dynamic != SectorDynamic.None || Lower.Dynamic != SectorDynamic.None;
+    public SideTexture FloodTextures;
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;

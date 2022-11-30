@@ -29,6 +29,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
+using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
@@ -147,6 +148,14 @@ public class LegacyWorldRenderer : WorldRenderer
 
         void RenderSide(Side side)
         {
+            if (side.PartnerSide != null && side.FloodTextures != SideTexture.None)
+            {
+                Sector floodSector = side.PartnerSide.Sector;
+                //if (side.FloodTextures.HasFlag(SideTexture.Upper))
+                //if (side.FloodTextures.HasFlag(SideTexture.Lower))
+                return;
+            }
+
             m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, position3D);
         }
 

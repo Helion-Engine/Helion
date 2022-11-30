@@ -10,6 +10,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special.Switches;
 using Helion.Resources;
+using Helion.Util;
 
 namespace Helion.World.Static;
 
@@ -84,6 +85,8 @@ public class StaticDataApplier
         // Hack for now until we have a better solution.
         line.MarkSeenOnAutomap();
 
+        CheckFloodFill(world, line);
+
         if (line.Back != null && line.Alpha < 1)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
@@ -116,6 +119,27 @@ public class StaticDataApplier
             if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
                 SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Light);
         }
+    }
+
+    private static void CheckFloodFill(WorldBase world, Line line)
+    {
+        if (line.Back == null)
+            return;
+
+        CheckFloodFillSide(world, line.Front, line.Back);
+        CheckFloodFillSide(world, line.Back, line.Front);
+    }
+
+    private static void CheckFloodFillSide(WorldBase world, Side facingSide, Side otherSide)
+    {
+        if (facingSide.Lower.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Floor.Z < otherSide.Sector.Floor.Z)
+            facingSide.FloodTextures |= SideTexture.Lower;
+
+        if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z)
+            facingSide.FloodTextures |= SideTexture.Upper;
+
+        if (facingSide.FloodTextures != SideTexture.None)
+            world.Blockmap.LinkDynamicSide(world, facingSide);
     }
 
     public static void SetSectorsDynamic(WorldBase world, IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
