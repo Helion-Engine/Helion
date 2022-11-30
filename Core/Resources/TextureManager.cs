@@ -189,6 +189,9 @@ public class TextureManager : ITickable
 
     private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
     {
+        if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name))
+            return;
+
         Texture? addedTexture = null;
         // Have to set indicies even if texture doesn't exist. Otherwise stair builder testing will break because it depends on the texture.
         if (resourceNamespace == ResourceNamespace.Flats && !m_flatLookup.ContainsKey(name))

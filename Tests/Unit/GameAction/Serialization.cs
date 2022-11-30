@@ -81,13 +81,21 @@ public class Serialization : IDisposable
 
     private static void ChangeWorld(SinglePlayerWorld world)
     {
-        GameActions.ActivateLine(world, world.Player, 15, ActivationContext.UseLine);
-        GameActions.ActivateLine(world, world.Player, 27, ActivationContext.UseLine);
-        GameActions.ActivateLine(world, world.Player, 36, ActivationContext.UseLine);
-        GameActions.ActivateLine(world, world.Player, 172, ActivationContext.UseLine);
-        GameActions.ActivateLine(world, world.Player, 178, ActivationContext.UseLine);
+        var txSector = GameActions.GetSector(world, 41);
+        txSector.Floor.TextureHandle.Should().Be(world.TextureManager.GetTexture("NUKAGE1", Resources.ResourceNamespace.Global).Index);
 
-        GameActions.ActivateLine(world, world.Player, 124, ActivationContext.CrossLine);
+        var transferSkySector = GameActions.GetSectorByTag(world, 99);
+        transferSkySector.SkyTextureHandle.Should().NotBeNull();
+        world.TextureManager.GetTexture(transferSkySector.SkyTextureHandle!.Value).Name.Should().Be("SKY3");
+
+        GameActions.ActivateLine(world, world.Player, 15, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.ActivateLine(world, world.Player, 27, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.ActivateLine(world, world.Player, 36, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.ActivateLine(world, world.Player, 172, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.ActivateLine(world, world.Player, 178, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.ActivateLine(world, world.Player, 195, ActivationContext.UseLine).Should().BeTrue();
+
+        GameActions.ActivateLine(world, world.Player, 124, ActivationContext.CrossLine).Should().BeTrue();
         world.Tick();
         GameActions.GetSector(world, 4).ActiveCeilingMove.Should().NotBeNull();
         GameActions.GetSector(world, 6).ActiveFloorMove.Should().NotBeNull();
@@ -101,6 +109,9 @@ public class Serialization : IDisposable
         GameActions.GetSector(world, 28).ActiveFloorMove.Should().NotBeNull();
         GameActions.GetSector(world, 29).ActiveFloorMove.Should().NotBeNull();
         GameActions.GetSector(world, 39).ActiveFloorMove.Should().NotBeNull();
+
+        txSector.ActiveFloorMove.Should().NotBeNull();
+        txSector.Floor.TextureHandle.Should().Be(world.TextureManager.GetTexture("FLOOR5_1", Resources.ResourceNamespace.Global).Index);
 
         GameActions.PlayerRunForward(world, world.Player.AngleRadians, () => { return world.Gametick < 10; });
         GameActions.PlayerFirePistol(world, world.Player);
@@ -243,6 +254,7 @@ public class Serialization : IDisposable
             sector.SoundTarget.Entity?.Id.Should().Be(newSector.SoundTarget.Entity?.Id);
             sector.InstantKillEffect.Should().Be(newSector.InstantKillEffect);
             sector.SectorEffect.Should().Be(newSector.SectorEffect);
+            sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
 
             if (sector.SectorDamageSpecial != null)
                 sector.SectorDamageSpecial.Equals(newSector.SectorDamageSpecial).Should().BeTrue();
