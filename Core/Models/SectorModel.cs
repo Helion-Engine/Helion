@@ -13,8 +13,11 @@ public class SectorModel
     public short? LightLevel;
     public short? FloorLightLevel;
     public short? CeilingLightLevel;
+    // Integer textures handles are deprecated here. Keeping for backwards compatibiity.
     public int? FloorTexture;
     public int? CeilingTexture;
+    public string? FloorTex;
+    public string? CeilingTex;
     public int? SectorSpecialType;
     public int? SkyTexture;
     public bool Secret;

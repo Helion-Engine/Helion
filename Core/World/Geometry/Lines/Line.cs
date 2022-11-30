@@ -11,6 +11,7 @@ using System;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using Helion.World.Special.Switches;
+using Helion.Resources;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -88,7 +89,7 @@ public class Line : IBspUsableLine
         return m_length.Value;
     }
 
-    public LineModel ToLineModel()
+    public LineModel ToLineModel(IWorld world)
     {
         LineModel lineModel = new()
         {
@@ -102,9 +103,9 @@ public class Line : IBspUsableLine
         if (DataChanges.HasFlag(LineDataTypes.Texture))
         {
             if (Front.DataChanged)
-                lineModel.Front = ToSideModel(Front);
+                lineModel.Front = ToSideModel(world, Front);
             if (Back != null && Back.DataChanged)
-                lineModel.Back = ToSideModel(Back);
+                lineModel.Back = ToSideModel(world, Back);
         }
 
         if (DataChanges.HasFlag(LineDataTypes.Args))
@@ -116,7 +117,7 @@ public class Line : IBspUsableLine
         return lineModel;
     }
 
-    public void ApplyLineModel(LineModel lineModel)
+    public void ApplyLineModel(IWorld world, LineModel lineModel)
     {
         DataChanges = (LineDataTypes)lineModel.DataChanges;
         if (DataChanges.HasFlag(LineDataTypes.Activated) && lineModel.Activated.HasValue)
@@ -125,9 +126,9 @@ public class Line : IBspUsableLine
         if (DataChanges.HasFlag(LineDataTypes.Texture))
         {
             if (lineModel.Front != null && lineModel.Front.DataChanges > 0)
-                ApplySideModel(Front, lineModel.Front);
+                ApplySideModel(world, Front, lineModel.Front);
             if (Back != null && lineModel.Back != null && lineModel.Back.DataChanges > 0)
-                ApplySideModel(Back, lineModel.Back);
+                ApplySideModel(world, Back, lineModel.Back);
         }
 
         if (DataChanges.HasFlag(LineDataTypes.Args) && lineModel.Args.HasValue)
@@ -137,27 +138,44 @@ public class Line : IBspUsableLine
             Alpha = lineModel.Alpha.Value;
     }
 
-    private static void ApplySideModel(Side side, SideModel sideModel)
+    private static void ApplySideModel(IWorld world, Side side, SideModel sideModel)
     {
+        var tx = world.TextureManager;
         side.DataChanges = (SideDataTypes)sideModel.DataChanges;
+        if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
+        {
+            if (sideModel.UpperTex != null)
+                side.Upper.SetTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global).Index, SideDataTypes.UpperTexture);
+            else if (sideModel.UpperTexture.HasValue)
+                side.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
+        }
 
-        if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture) && sideModel.UpperTexture.HasValue)
-            side.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
-        if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture) && sideModel.MiddleTexture.HasValue)
-            side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
-        if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture) && sideModel.LowerTexture.HasValue)
-            side.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
+        if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
+        {
+            if(sideModel.MiddelTex != null)
+                side.Middle.SetTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global).Index, SideDataTypes.MiddleTexture);
+            else if (sideModel.MiddleTexture.HasValue)
+                side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
+        }
+
+        if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
+        {
+            if(sideModel.LowerTex != null)
+                side.Lower.SetTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global).Index, SideDataTypes.LowerTexture);
+            else if (sideModel.LowerTexture.HasValue)
+                side.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
+        }    
     }
 
-    private static SideModel ToSideModel(Side side)
+    private static SideModel ToSideModel(IWorld world, Side side)
     {
         SideModel sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
         if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
-            sideModel.UpperTexture = side.Upper.TextureHandle;
+            sideModel.UpperTex = world.TextureManager.GetTexture(side.Upper.TextureHandle).Name;
         if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
-            sideModel.MiddleTexture = side.Middle.TextureHandle;
+            sideModel.MiddelTex = world.TextureManager.GetTexture(side.Middle.TextureHandle).Name;
         if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
-            sideModel.LowerTexture = side.Lower.TextureHandle;
+            sideModel.LowerTex = world.TextureManager.GetTexture(side.Lower.TextureHandle).Name;
 
         return sideModel;
     }

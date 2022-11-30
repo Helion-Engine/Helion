@@ -2436,7 +2436,7 @@ public abstract partial class WorldBase : IWorld
         {
             Sector sector = Sectors[i];
             if (sector.SoundTarget.Entity != null || sector.DataChanged)
-                sectorModels.Add(sector.ToSectorModel());
+                sectorModels.Add(sector.ToSectorModel(this));
             if (sector.SectorDamageSpecial != null)
                 sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());
         }
@@ -2451,7 +2451,7 @@ public abstract partial class WorldBase : IWorld
             if (!line.DataChanged)
                 continue;
 
-            lineModels.Add(line.ToLineModel());
+            lineModels.Add(line.ToLineModel(this));
         }
 
         return lineModels;

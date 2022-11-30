@@ -167,7 +167,7 @@ public class SinglePlayerWorld : WorldBase
             if (lineModel.Id < 0 || lineModel.Id >= Lines.Count)
                 continue;
 
-            Lines[lineModel.Id].ApplyLineModel(lineModel);
+            Lines[lineModel.Id].ApplyLineModel(this, lineModel);
         }
     }
 
@@ -179,7 +179,7 @@ public class SinglePlayerWorld : WorldBase
             if (sectorModel.Id < 0 || sectorModel.Id >= Sectors.Count)
                 continue;
 
-            Sectors[sectorModel.Id].ApplySectorModel(sectorModel, result, Sectors);
+            Sectors[sectorModel.Id].ApplySectorModel(this, sectorModel, result);
         }
     }
 

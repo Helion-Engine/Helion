@@ -271,7 +271,7 @@ public class Sector
         DataChanges |= SectorDataTypes.TransferHeights;
     }
 
-    public SectorModel ToSectorModel()
+    public SectorModel ToSectorModel(IWorld world)
     {
         SectorModel sectorModel = new()
         {
@@ -295,9 +295,9 @@ public class Sector
             if (DataChanges.HasFlag(SectorDataTypes.CeilingZ))
                 sectorModel.CeilingZ = Ceiling.Z;
             if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
-                sectorModel.FloorTexture = Floor.TextureHandle;
+                sectorModel.FloorTex = world.TextureManager.GetTexture(Floor.TextureHandle).Name;
             if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
-                sectorModel.CeilingTexture = Ceiling.TextureHandle;
+                sectorModel.CeilingTex = world.TextureManager.GetTexture(Ceiling.TextureHandle).Name;
             if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType))
                 sectorModel.SectorSpecialType = (int)SectorSpecialType;
             if (DataChanges.HasFlag(SectorDataTypes.Light))
@@ -316,8 +316,9 @@ public class Sector
         return sectorModel;
     }
 
-    public void ApplySectorModel(SectorModel sectorModel, WorldModelPopulateResult result, IList<Sector> sectors)
+    public void ApplySectorModel(IWorld world, SectorModel sectorModel, WorldModelPopulateResult result)
     {
+        IList<Sector> sectors = world.Sectors;
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
         if (sectorModel.SoundTarget.HasValue && result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out var soundTarget))
@@ -353,11 +354,21 @@ public class Sector
                     SetCeilingLightLevel(sectorModel.CeilingLightLevel.Value, 0);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.FloorTexture) && sectorModel.FloorTexture.HasValue)
-                Floor.SetTexture(sectorModel.FloorTexture.Value, 0);
+            if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
+            {
+                if (sectorModel.FloorTex != null)
+                    Floor.SetTexture(world.TextureManager.GetTexture(sectorModel.FloorTex, ResourceNamespace.Global).Index, 0);
+                else if (sectorModel.FloorTexture.HasValue)
+                    Floor.SetTexture(sectorModel.FloorTexture.Value, 0);
+            }
 
-            if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture) && sectorModel.CeilingTexture.HasValue)
-                Ceiling.SetTexture(sectorModel.CeilingTexture.Value, 0);
+            if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
+            {
+                if (sectorModel.CeilingTex != null)
+                    Ceiling.SetTexture(world.TextureManager.GetTexture(sectorModel.CeilingTex, ResourceNamespace.Global).Index, 0);
+                else if (sectorModel.CeilingTexture.HasValue)
+                    Ceiling.SetTexture(sectorModel.CeilingTexture.Value, 0);
+            }
 
             if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
                 SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
