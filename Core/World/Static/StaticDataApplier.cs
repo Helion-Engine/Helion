@@ -145,8 +145,9 @@ public class StaticDataApplier
         if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
             world.Blockmap.Link(world, sector);
 
-        foreach (var line in sector.Lines)
+        for (int i = 0; i < world.Lines.Count; i++)
         {
+            var line = world.Lines[i];
             if (sectorDynamic == SectorDynamic.Light)
             {
                 if (lightWalls == SideTexture.None)
@@ -178,8 +179,8 @@ public class StaticDataApplier
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
 
-        foreach (var line in plane.Sector.Lines)
-            ClearDynamicMovement(line, floor, ceiling);
+        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+            ClearDynamicMovement(plane.Sector.Lines[i], floor, ceiling);
     }
 
     private static void SetDynamicLight(Sector sector, SideTexture lightWalls, Line line)

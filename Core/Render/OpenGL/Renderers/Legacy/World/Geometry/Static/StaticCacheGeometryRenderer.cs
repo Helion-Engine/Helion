@@ -105,29 +105,33 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
 
-        foreach (Sector sector in world.Sectors)
+        for (int i = 0; i < world.Sectors.Count; i++)
         {
+            var sector = world.Sectors[i];
             AddTransferSector(sector);
 
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, false);
-
-            // Sectors can be actively moving loading a save game.
-            if (sector.IsMoving)
-            {
-                WorldBase worldBase = (WorldBase)world;
-                if (sector.ActiveFloorMove != null)
-                    HandleSectorMoveStart(worldBase, sector.Floor);
-                if (sector.ActiveCeilingMove != null)
-                    HandleSectorMoveStart(worldBase, sector.Ceiling);
-                continue;
-            }
         }
 
-        foreach (Line line in world.Lines)
-            AddLine(line);
+        for (int i = 0; i < world.Lines.Count; i++)
+            AddLine(world.Lines[i]);
+
+        for (int i = 0; i < world.Sectors.Count; i++)
+        {
+            var sector = world.Sectors[i];
+            // Sectors can be actively moving loading a save game.
+            if (!sector.IsMoving)
+                continue;
+
+            WorldBase worldBase = (WorldBase)world;
+            if (sector.ActiveFloorMove != null)
+                HandleSectorMoveStart(worldBase, sector.Floor);
+            if (sector.ActiveCeilingMove != null)
+                HandleSectorMoveStart(worldBase, sector.Ceiling);
+        }
 
         foreach (var data in m_geometry)
         {
@@ -190,7 +194,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSide(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
-        if (side.Sector.IsMoving || otherSide.Sector.IsMoving)
+        if (update && (side.Sector.IsMoving || otherSide.Sector.IsMoving))
             return;
 
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
