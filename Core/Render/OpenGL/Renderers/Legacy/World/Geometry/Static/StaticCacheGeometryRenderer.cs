@@ -815,58 +815,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         List<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
-        WallUV uv = GetSideUV(data, side, texture);
-        var geometryData = data.GeometryData;
-        int index = data.GeometryDataStartIndex;
-        //TopLeft
-        geometryData.Vbo.Data.Data[index].U = uv.TopLeft.X;
-        geometryData.Vbo.Data.Data[index].V = uv.TopLeft.Y;
-        //BottomLeft
-        geometryData.Vbo.Data.Data[index + 1].U = uv.TopLeft.X;
-        geometryData.Vbo.Data.Data[index + 1].V = uv.BottomRight.Y;
-        //TopRight
-        geometryData.Vbo.Data.Data[index + 2].U = uv.BottomRight.X;
-        geometryData.Vbo.Data.Data[index + 2].V = uv.TopLeft.Y;
-        //TopRight
-        geometryData.Vbo.Data.Data[index + 3].U = uv.BottomRight.X;
-        geometryData.Vbo.Data.Data[index + 3].V = uv.TopLeft.Y;
-        //BottomLeft
-        geometryData.Vbo.Data.Data[index + 4].U = uv.TopLeft.X;
-        geometryData.Vbo.Data.Data[index + 4].V = uv.BottomRight.Y;
-        //BottomRight
-        geometryData.Vbo.Data.Data[index + 5].U = uv.BottomRight.X;
-        geometryData.Vbo.Data.Data[index + 5].V = uv.BottomRight.Y;
-    }
-
-    private static WallUV GetSideUV(in StaticGeometryData data, Side side, SideTexture texture)
-    {
-        double length = side.Line.GetLength();
-        if (side.Line.OneSided)
-        {
-            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
-        }
-
-        Side otherSide = side.PartnerSide!;
-        Sector facingSector = side.Sector;
-        Sector otherSector = otherSide.Sector;
-
-        WallUV uv;
-        switch (texture)
-        {
-            case SideTexture.Upper:
-                uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
-                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, 0);
-                break;
-            case SideTexture.Lower:
-                uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse,
-                    otherSector.Floor.Z, facingSector.Floor.Z, 0);
-                break;
-            default:
-                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, data.GeometryData.Texture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
-                break;
-        }
-
-        return uv;
+        GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
     private static List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)

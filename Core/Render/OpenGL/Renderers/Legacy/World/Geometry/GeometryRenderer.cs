@@ -270,6 +270,58 @@ public class GeometryRenderer : IDisposable
         RenderSectorWall(sector, line, position.XY);
     }
 
+    public static void UpdateOffsetVertices(LegacyVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
+    {
+        WallUV uv = GetSideUV(glTexture, side, texture);
+        //TopLeft
+        vertices[index].U = uv.TopLeft.X;
+        vertices[index].V = uv.TopLeft.Y;
+        //BottomLeft
+        vertices[index + 1].U = uv.TopLeft.X;
+        vertices[index + 1].V = uv.BottomRight.Y;
+        //TopRight
+        vertices[index + 2].U = uv.BottomRight.X;
+        vertices[index + 2].V = uv.TopLeft.Y;
+        //TopRight
+        vertices[index + 3].U = uv.BottomRight.X;
+        vertices[index + 3].V = uv.TopLeft.Y;
+        //BottomLeft
+        vertices[index + 4].U = uv.TopLeft.X;
+        vertices[index + 4].V = uv.BottomRight.Y;
+        //BottomRight
+        vertices[index + 5].U = uv.BottomRight.X;
+        vertices[index + 5].V = uv.BottomRight.Y;
+    }
+
+    private static WallUV GetSideUV(GLLegacyTexture glTexture, Side side, SideTexture texture)
+    {
+        double length = side.Line.GetLength();
+        if (side.Line.OneSided)
+            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+
+        Side otherSide = side.PartnerSide!;
+        Sector facingSector = side.Sector;
+        Sector otherSector = otherSide.Sector;
+
+        WallUV uv;
+        switch (texture)
+        {
+            case SideTexture.Upper:
+                uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, glTexture.UVInverse,
+                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, 0);
+                break;
+            case SideTexture.Lower:
+                uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, glTexture.UVInverse,
+                    otherSector.Floor.Z, facingSector.Floor.Z, 0);
+                break;
+            default:
+                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+                break;
+        }
+
+        return uv;
+    }
+
     // The set sector is optional for the transfer heights control sector.
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
     private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
