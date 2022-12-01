@@ -27,7 +27,7 @@ public class PortalRenderer : IDisposable
 
     public void Clear()
     {
-        // TODO
+        // Nothing to clear yet.
     }
 
     public void AddStaticFloodFillSide(SectorPlane sectorPlane, WallVertices vertices)

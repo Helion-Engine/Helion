@@ -45,9 +45,30 @@ public class FloodFillRenderer : IDisposable
 
     private void InitializePlaneVbo()
     {
-        // TODO
+        // We will assume that these go off into the horizon enough for planes.
+        // Maps do not allow us to go beyond [-32768, 32768), so this should be
+        // more than enough.
+        // This also assumes a flat is always 64 map units.
+        const float Coordinate = 65536;
+        const float UVCoord = Coordinate / 64;
 
-        m_planeVertexInfo.Vbo.UploadIfNeeded();
+        var vbo = m_planeVertexInfo.Vbo;
+        
+        FloodFillPlaneVertex topLeft = new((-Coordinate, Coordinate), (-UVCoord, UVCoord));
+        FloodFillPlaneVertex topRight = new((Coordinate, Coordinate), (UVCoord, UVCoord));
+        FloodFillPlaneVertex bottomLeft = new((-Coordinate, -Coordinate), (-UVCoord, -UVCoord));
+        FloodFillPlaneVertex bottomRight = new((Coordinate, -Coordinate), (UVCoord, -UVCoord));
+
+        vbo.Add(topLeft);
+        vbo.Add(bottomLeft);
+        vbo.Add(topRight);
+        vbo.Add(topRight);
+        vbo.Add(bottomLeft);
+        vbo.Add(bottomRight);
+
+        vbo.Bind();
+        vbo.Upload();
+        vbo.Unbind();
     }
 
     public void AddStaticWall(float z, int textureHandle, SectorPlaneFace face, WallVertices vertices)
@@ -134,7 +155,7 @@ public class FloodFillRenderer : IDisposable
 
         m_planeProgram.SetZ(info.Z);
         m_planeProgram.SetTexture(TextureUnit.Texture0);
-        m_planeProgram.SetMvp(Renderer.CalculateMvpMatrix(renderInfo, true));
+        m_planeProgram.SetMvp(Renderer.CalculateMvpMatrix(renderInfo));
 
         m_planeVertexInfo.Vao.Bind();
         m_planeVertexInfo.Vbo.DrawArrays();
