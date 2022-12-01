@@ -5,6 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -38,6 +39,7 @@ public class GeometryRenderer : IDisposable
     private const double MaxSky = 16384;
 
     public readonly List<IRenderObject> AlphaSides = new();
+    public readonly PortalRenderer Portals;
     private readonly IConfig m_config;
     private readonly RenderProgram m_program;
     private readonly LegacyGLTextureManager m_glTextureManager;
@@ -87,6 +89,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
+        Portals = new(textureManager);
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
@@ -187,6 +190,7 @@ public class GeometryRenderer : IDisposable
     {
         m_tickFraction = tickFraction;
         m_skyRenderer.Clear();
+        Portals.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
     }
@@ -197,6 +201,7 @@ public class GeometryRenderer : IDisposable
     public void Render(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);
+        Portals.Render(renderInfo);
         m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
     }
 
@@ -1377,5 +1382,6 @@ public class GeometryRenderer : IDisposable
     {
         m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
+        Portals.Dispose();
     }
 }
