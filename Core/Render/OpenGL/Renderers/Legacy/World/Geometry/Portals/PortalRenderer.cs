@@ -4,6 +4,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Static;
@@ -31,6 +32,11 @@ public class PortalRenderer : IDisposable
     public void Clear()
     {
         // Nothing to clear yet.
+    }
+
+    public void UpdateTo(IWorld world)
+    {
+        m_floodFillRenderer.UpdateTo(world);
     }
 
     public void AddStaticFloodFillSide(SectorPlane sectorPlane, WallVertices vertices)

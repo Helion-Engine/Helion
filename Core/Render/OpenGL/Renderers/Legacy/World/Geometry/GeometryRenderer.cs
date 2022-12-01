@@ -135,6 +135,7 @@ public class GeometryRenderer : IDisposable
         CacheData(world);
         Clear(m_tickFraction);
 
+        Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world);
     }
 

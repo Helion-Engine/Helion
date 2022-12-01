@@ -6,6 +6,7 @@ using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Extensions;
+using Helion.World;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -40,6 +41,11 @@ public class FloodFillRenderer : IDisposable
     ~FloodFillRenderer()
     {
         Dispose(false);
+    }
+
+    public void UpdateTo(IWorld world)
+    {
+        DisposeInfoToWorldGeometryVertices();
     }
 
     private void InitializePlaneVbo()
@@ -184,10 +190,17 @@ public class FloodFillRenderer : IDisposable
         m_stencilProgram.Dispose();
         m_planeProgram.Dispose();
         m_planeVertices.Dispose();
+        DisposeInfoToWorldGeometryVertices();
+
+        m_disposed = true;
+    }
+
+    private void DisposeInfoToWorldGeometryVertices()
+    {
         foreach (var renderableObjects in m_infoToWorldGeometryVertices.Values)
             renderableObjects.Dispose();
 
-        m_disposed = true;
+        m_infoToWorldGeometryVertices.Clear();
     }
 
     public void Dispose()
