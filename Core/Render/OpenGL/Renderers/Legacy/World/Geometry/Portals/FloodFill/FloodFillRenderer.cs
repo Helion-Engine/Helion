@@ -109,9 +109,15 @@ public class FloodFillRenderer : IDisposable
         // A smarter way of doing this to avoid tons of program changing would
         // be to draw everything in batches of 255, instead of changing programs
         // twice for every different portal.
+        double viewZ = renderInfo.Camera.Position.Z;
         int stencilIndex = 1;
         foreach ((FloodFillInfo info, RenderableVertices<PortalStencilVertex> handles) in m_infoToWorldGeometryVertices)
         {
+            if (info.Face == SectorPlaneFace.Ceiling && viewZ > info.Z)
+                continue;
+            if (info.Face == SectorPlaneFace.Floor && viewZ < info.Z)
+                continue;
+
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
             GL.ColorMask(false, false, false, false);
             DrawGeometryWithStencilBits(mvp, stencilIndex, handles.Vbo, handles.Vao);
