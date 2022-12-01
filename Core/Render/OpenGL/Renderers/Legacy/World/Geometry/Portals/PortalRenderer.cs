@@ -1,7 +1,9 @@
-﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
+﻿using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Static;
@@ -40,9 +42,23 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.AddStaticWall(z, textureHandle, face, vertices);
     }
 
-    public void AddStaticFloodFillSide(Side side, Sector floodSector, SideTexture sideTexture)
+    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture)
     {
-        // TODO (can we re-map to the above func?)
+        bool isFront = facingSide.Line.Front.Id == facingSide.Id;
+        if (sideTexture == SideTexture.Upper)
+        {
+            SectorPlane top = facingSide.Sector.Ceiling;
+            SectorPlane bottom = otherSide.Sector.Ceiling;
+            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
+            AddStaticFloodFillSide(floodSector.Ceiling, wall);
+        }
+        else
+        {
+            SectorPlane top = otherSide.Sector.Floor;
+            SectorPlane bottom = facingSide.Sector.Floor;
+            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
+            AddStaticFloodFillSide(floodSector.Floor, wall);
+        }
     }
 
     public void Render(RenderInfo renderInfo)

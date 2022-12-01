@@ -598,7 +598,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector))
+        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
@@ -609,15 +609,17 @@ public class GeometryRenderer : IDisposable
         return facingZ < otherZ;
     }
 
-    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
+        skyHack = false;
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
         if (isFacingSky && isOtherSky)
         {
             // The sky is only drawn if there is no opening height
             // Otherwise ignore this line for sky effects
-            return LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
+            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
+            return skyHack;
         }
 
         double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
@@ -627,10 +629,17 @@ public class GeometryRenderer : IDisposable
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
+            if (facingSide.FloodTextures.HasFlag(SideTexture.Upper))
+                return true;
+
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
-                return facingZ <= otherZ;
+            {
+                skyHack = facingZ <= otherZ;
+                return skyHack;
+            }
             // Need to draw sky upper if other sector is not sky.
-            return !isOtherSky;
+            skyHack = !isOtherSky;
+            return skyHack;
         }
 
         return upperVisible;

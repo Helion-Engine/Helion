@@ -208,7 +208,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        if (upper && m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector))
+        bool upperVisible = m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector, out bool skyHack);
+        if (upper && upperVisible)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
 
@@ -216,15 +217,22 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (skyVertices2 != null)
                 skyVertices = skyVertices2;
 
-            SetSideVertices(side, side.Upper, update, sideVertices, m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector));
+            SetSideVertices(side, side.Upper, update, sideVertices, upperVisible);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
+
+            if (!skyHack && skyVertices2 == null && side.FloodTextures.HasFlag(SideTexture.Upper))
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
         }
 
-        if (lower && m_geometryRenderer.LowerIsVisible(facingSector, otherSector))
+        bool lowerVisible = m_geometryRenderer.LowerIsVisible(facingSector, otherSector);
+        if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
-            SetSideVertices(side, side.Lower, update, sideVertices, m_geometryRenderer.LowerIsVisible(facingSector, otherSector));
+            SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
+
+            if (skyVertices == null && side.FloodTextures.HasFlag(SideTexture.Lower))
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
         }
 
         // Alpha needs to be rendered last, currently can't be handled statically

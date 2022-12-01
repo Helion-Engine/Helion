@@ -137,9 +137,6 @@ public class StaticDataApplier
 
         if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z)
             facingSide.FloodTextures |= SideTexture.Upper;
-
-        if (facingSide.FloodTextures != SideTexture.None)
-            world.Blockmap.LinkDynamicSide(world, facingSide);
     }
 
     public static void SetSectorsDynamic(WorldBase world, IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,

@@ -148,16 +148,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         void RenderSide(Side side)
         {
-            if (side.PartnerSide != null && side.FloodTextures != SideTexture.None)
-            {
-                Sector floodSector = side.PartnerSide.Sector;
-                if (side.FloodTextures.HasFlag(SideTexture.Upper))
-                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, floodSector, SideTexture.Upper);
-                if (side.FloodTextures.HasFlag(SideTexture.Lower))
-                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, floodSector, SideTexture.Lower);
-                return;
-            }
-
             m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, position3D);
         }
 
