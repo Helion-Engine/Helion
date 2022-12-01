@@ -14,17 +14,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 /// fragments for stencil writing.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public readonly struct PositionVertex
+public readonly struct PortalStencilVertex
 {
     [VertexAttribute]
     public readonly Vec3F Pos;
 
-    public PositionVertex(Vec3F pos)
+    public PortalStencilVertex(Vec3F pos)
     {
         Pos = pos;
     }
 
-    public PositionVertex(float x, float y, float z) : this((x, y, z))
+    public PortalStencilVertex(float x, float y, float z) : this((x, y, z))
     {
     }
 }

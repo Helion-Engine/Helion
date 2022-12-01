@@ -1,19 +1,28 @@
 ﻿using GlmSharp;
+using Helion;
 using Helion.Geometry.Vectors;
+using Helion.Render;
+using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Util.Extensions;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 
-namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
 // We want to group every possible piece of wall geometry together into the same
 // collection if they have the same Z, texture, and plane face direction. This
@@ -26,14 +35,14 @@ public class FloodFillRenderer : IDisposable
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly PortalStencilProgram m_stencilProgram = new();
     private readonly FloodFillPlaneProgram m_planeProgram = new();
-    private readonly RenderableStaticVertices<FloodFillPlaneVertex> m_planeVertexInfo;
-    private readonly Dictionary<FloodFillInfo, RenderableVertices<PositionVertex>> m_infoToVertexData = new();
+    private readonly RenderableStaticVertices<FloodFillPlaneVertex> m_planeVertices;
+    private readonly Dictionary<FloodFillInfo, RenderableVertices<PortalStencilVertex>> m_infoToWorldGeometryVertices = new();
     private bool m_disposed;
 
     public FloodFillRenderer(LegacyGLTextureManager textureManager)
     {
         m_textureManager = textureManager;
-        m_planeVertexInfo = new("Flood fill plane", m_planeProgram.Attributes);
+        m_planeVertices = new("Flood fill plane", m_planeProgram.Attributes);
 
         InitializePlaneVbo();
     }
@@ -52,8 +61,8 @@ public class FloodFillRenderer : IDisposable
         const float Coordinate = 65536;
         const float UVCoord = Coordinate / 64;
 
-        var vbo = m_planeVertexInfo.Vbo;
-        
+        var vbo = m_planeVertices.Vbo;
+
         FloodFillPlaneVertex topLeft = new((-Coordinate, Coordinate), (-UVCoord, UVCoord));
         FloodFillPlaneVertex topRight = new((Coordinate, Coordinate), (UVCoord, UVCoord));
         FloodFillPlaneVertex bottomLeft = new((-Coordinate, -Coordinate), (-UVCoord, -UVCoord));
@@ -75,17 +84,17 @@ public class FloodFillRenderer : IDisposable
     {
         FloodFillInfo info = new(z, textureHandle, face);
 
-        if (!m_infoToVertexData.TryGetValue(info, out var vertexData))
+        if (!m_infoToWorldGeometryVertices.TryGetValue(info, out var vertexData))
         {
             string label = $"Static flood fill geometry ({z}, {textureHandle} {face})";
-            vertexData = new RenderableStaticVertices<PositionVertex>(label, m_stencilProgram.Attributes);
-            m_infoToVertexData[info] = vertexData;
+            vertexData = new RenderableStaticVertices<PortalStencilVertex>(label, m_stencilProgram.Attributes);
+            m_infoToWorldGeometryVertices[info] = vertexData;
         }
 
-        PositionVertex topLeft = new(vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z);
-        PositionVertex topRight = new(vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z);
-        PositionVertex bottomLeft = new(vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z);
-        PositionVertex bottomRight = new(vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z);
+        PortalStencilVertex topLeft = new(vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z);
+        PortalStencilVertex topRight = new(vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z);
+        PortalStencilVertex bottomLeft = new(vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z);
+        PortalStencilVertex bottomRight = new(vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z);
 
         vertexData.Vbo.Add(topLeft);
         vertexData.Vbo.Add(bottomLeft);
@@ -97,6 +106,11 @@ public class FloodFillRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
+        if (m_infoToWorldGeometryVertices.Empty())
+            return;
+
+        mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
+
         GL.Enable(EnableCap.StencilTest);
         GL.StencilMask(0xFF);
         GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
@@ -106,17 +120,21 @@ public class FloodFillRenderer : IDisposable
         // be to draw everything in batches of 255, instead of changing programs
         // twice for every different portal.
         int stencilIndex = 1;
-        foreach ((FloodFillInfo info, RenderableVertices<PositionVertex> handles) in m_infoToVertexData)
+        foreach ((FloodFillInfo info, RenderableVertices<PortalStencilVertex> handles) in m_infoToWorldGeometryVertices)
         {
-            GL.ColorMask(false, false, false, false);
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
-            DrawGeometryWithStencilBits(stencilIndex, renderInfo, handles.Vbo, handles.Vao);
-
+            GL.ColorMask(false, false, false, false);
+            DrawGeometryWithStencilBits(mvp, stencilIndex, handles.Vbo, handles.Vao);
             GL.ColorMask(true, true, true, true);
+
+            // Culling is disabled only for flood fill rendering because the shader needs
+            // to draw the plane's quad whether the camera is above or below it.
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
+            GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(info, stencilIndex, renderInfo);
+            DrawFloodFillPlane(mvp, info, stencilIndex);
             GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
 
             stencilIndex++;
 
@@ -132,21 +150,20 @@ public class FloodFillRenderer : IDisposable
         GL.Disable(EnableCap.StencilTest);
     }
 
-    private void DrawGeometryWithStencilBits(int stencilIndex, RenderInfo renderInfo, VertexBufferObject<PositionVertex> vbo, 
-        VertexArrayObject vao)
+    private void DrawGeometryWithStencilBits(in mat4 mvp, int stencilIndex, VertexBufferObject<PortalStencilVertex> vbo, VertexArrayObject vao)
     {
         Debug.Assert(!vbo.Empty, "Why are we making an empty draw call for a portal flood fill (VBO is empty)?");
 
         m_stencilProgram.Bind();
 
-        m_stencilProgram.SetMvp(Renderer.CalculateMvpMatrix(renderInfo));
+        m_stencilProgram.SetMvp(mvp);
 
         vbo.UploadIfNeeded();
         vao.Bind();
         vbo.DrawArrays();
     }
 
-    private void DrawFloodFillPlane(in FloodFillInfo info, int stencilIndex, RenderInfo renderInfo)
+    private void DrawFloodFillPlane(in mat4 mvp, in FloodFillInfo info, int stencilIndex)
     {
         m_planeProgram.Bind();
 
@@ -155,10 +172,10 @@ public class FloodFillRenderer : IDisposable
 
         m_planeProgram.SetZ(info.Z);
         m_planeProgram.SetTexture(TextureUnit.Texture0);
-        m_planeProgram.SetMvp(Renderer.CalculateMvpMatrix(renderInfo));
+        m_planeProgram.SetMvp(mvp);
 
-        m_planeVertexInfo.Vao.Bind();
-        m_planeVertexInfo.Vbo.DrawArrays();
+        m_planeVertices.Vao.Bind();
+        m_planeVertices.Vbo.DrawArrays();
 
         m_planeProgram.Unbind();
     }
@@ -170,8 +187,8 @@ public class FloodFillRenderer : IDisposable
 
         m_stencilProgram.Dispose();
         m_planeProgram.Dispose();
-        m_planeVertexInfo.Dispose();
-        foreach (var renderableObjects in m_infoToVertexData.Values)
+        m_planeVertices.Dispose();
+        foreach (var renderableObjects in m_infoToWorldGeometryVertices.Values)
             renderableObjects.Dispose();
 
         m_disposed = true;
