@@ -1,13 +1,4 @@
 ﻿using GlmSharp;
-using Helion;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 

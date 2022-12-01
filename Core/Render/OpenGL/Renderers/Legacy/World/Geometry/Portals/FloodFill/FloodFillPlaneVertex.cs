@@ -1,13 +1,4 @@
-﻿using Helion;
-using Helion.Geometry.Vectors;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
+﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Vertex;
 using System.Runtime.InteropServices;
 

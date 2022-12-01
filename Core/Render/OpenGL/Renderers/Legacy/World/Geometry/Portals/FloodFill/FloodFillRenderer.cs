@@ -1,16 +1,6 @@
 ﻿using GlmSharp;
-using Helion;
-using Helion.Geometry.Vectors;
-using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -28,7 +18,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 // collection if they have the same Z, texture, and plane face direction. This
 // record does the heavy lifting for hashcode and equality implementations so that
 // we don't have to.
-public record struct FloodFillInfo(float Z, int TextureIndex, SectorPlaneFace Face);
+public readonly record struct FloodFillInfo(float Z, int TextureIndex, SectorPlaneFace Face);
 
 public class FloodFillRenderer : IDisposable
 {
