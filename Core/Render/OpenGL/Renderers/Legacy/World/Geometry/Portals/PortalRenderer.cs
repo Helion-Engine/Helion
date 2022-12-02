@@ -39,7 +39,7 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.UpdateTo(world);
     }
 
-    public void AddStaticFloodFillSide(SectorPlane sectorPlane, WallVertices vertices)
+    private void AddStaticFloodFillSide(SectorPlane sectorPlane, WallVertices vertices)
     {
         float z = (float)sectorPlane.Z;
         int textureHandle = sectorPlane.TextureHandle;
