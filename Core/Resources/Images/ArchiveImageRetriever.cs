@@ -126,7 +126,8 @@ public class ArchiveImageRetriever : IImageRetriever
         if (blankRows > image.Dimension.Height || blankRows < 0)
             return;
 
-        image.Dimension = new Geometry.Dimension(image.Dimension.Width, image.Dimension.Height - blankRows);
+        int height = Math.Max(image.Dimension.Height - blankRows, 1);
+        image.Dimension = (image.Dimension.Width, height);
     }
 
     private static unsafe int GetBlankRowsFromBottom(Image image)

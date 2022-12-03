@@ -32,6 +32,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace)
     {
+        Precondition(image.Dimension.Width > 0 && image.Dimension.Height > 0, $"Image {name} ({resourceNamespace}) has at least one dimension that is zero");
         Precondition(image.Bitmap.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
 
         GL.BindTexture(texture.Target, texture.TextureId);
