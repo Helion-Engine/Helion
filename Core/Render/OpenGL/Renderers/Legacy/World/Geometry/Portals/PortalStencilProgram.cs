@@ -9,11 +9,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 /// </summary>
 public class PortalStencilProgram : RenderProgram
 {
+    private readonly int m_mvpLocation;
+
     public PortalStencilProgram() : base("Portal stencil")
     {
+        m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void SetMvp(mat4 mvp) => Uniforms["mvp"] = mvp;
+    public void SetMvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

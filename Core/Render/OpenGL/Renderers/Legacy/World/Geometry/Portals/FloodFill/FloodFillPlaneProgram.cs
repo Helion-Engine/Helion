@@ -1,25 +1,45 @@
 ﻿using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shader;
+using Microsoft.FSharp.Core;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
 public class FloodFillPlaneProgram : RenderProgram
 {
+    private readonly int m_zLocation;
+    private readonly int m_boundTextureLocation;
+    private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_lightDropoffLocation;
+    private readonly int m_mvpLocation;
+    private readonly int m_mvpNoPitchLocation;
+    private readonly int m_lightLevelMixLocation;
+    private readonly int m_extraLightLocation;
+    private readonly int m_lightLevelFragLocation;
+
     public FloodFillPlaneProgram() : base("Flood fill plane")
     {
+        m_zLocation = Uniforms.GetLocation("z");
+        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_lightDropoffLocation = Uniforms.GetLocation("lightDropoff");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
+        m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
+        m_extraLightLocation = Uniforms.GetLocation("extraLight");
+        m_lightLevelFragLocation = Uniforms.GetLocation("lightLevelFrag");
     }
 
-    public void SetZ(float z) => Uniforms["z"] = z;
-    public void BoundTexture(TextureUnit unit) => Uniforms["boundTexture"] = unit;
-    public void HasInvulnerability(bool invul) => Uniforms["hasInvulnerability"] = invul;
-    public void LightDropoff(bool dropoff) => Uniforms["lightDropoff"] = dropoff;
-    public void Mvp(mat4 mvp) => Uniforms["mvp"] = mvp;
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms["mvpNoPitch"] = mvpNoPitch;
-    public void LightLevelMix(float lightLevelMix) => Uniforms["lightLevelMix"] = lightLevelMix;
-    public void ExtraLight(int extraLight) => Uniforms["extraLight"] = extraLight;
-    public void LightLevelFrag(float lightLevelFrag) => Uniforms["lightLevelFrag"] = lightLevelFrag;
+    public void SetZ(float z) => Uniforms.Set(z, m_zLocation);
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, m_lightDropoffLocation);
+    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
+    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
+    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
+    public void LightLevelFrag(float lightLevelFrag) => Uniforms.Set(lightLevelFrag, m_lightLevelFragLocation);
 
     protected override string VertexShader() => @"
         #version 330

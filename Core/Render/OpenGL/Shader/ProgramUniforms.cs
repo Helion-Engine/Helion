@@ -6,6 +6,7 @@ using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Shader;
 using OneOf;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.Common.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,6 +31,17 @@ public class ProgramUniforms
             m_nameToLocation[name] = location;
         }
     }
+
+    public void Set(bool value, int location) => GL.Uniform1(location, value ? 1 : 0);
+    public void Set(int value, int location) => GL.Uniform1(location, value);
+    public void Set(float value, int location) => GL.Uniform1(location, value);
+    public void Set(Vec2F value, int location) => GL.Uniform2(location, value.X, value.Y);
+    public void Set(Vec3F value, int location) => GL.Uniform3(location, value.X, value.Y, value.Z);
+    public void Set(Vec4F value, int location) => GL.Uniform4(location, value.X, value.Y, value.Z, value.W);
+    public void Set(mat4 value, int location) => GL.UniformMatrix4(location, 1, false, value.Values1D);
+    public void Set(TextureUnit value, int location) => GL.Uniform1(location, (int)value - (int)TextureUnit.Texture0);
+
+    public int GetLocation(string name) => m_nameToLocation[name];
 
     public OneOf<bool, int, float, Vec2F, Vec3F, Vec4F, mat4, TextureUnit> this[string name]
     {
