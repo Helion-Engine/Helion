@@ -21,9 +21,9 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 // collection if they have the same Z, texture, and plane face direction. This
 // record does the heavy lifting for hashcode and equality implementations so that
 // we don't have to.
-public readonly record struct FloodFillKey(double Z, short LightLevel, int TextureIndex, SectorPlaneFace Face);
+public readonly record struct FloodFillKey(double Z, short LightLevel, int TextureIndex, SectorPlaneFace Face, double MinZ, double MaxZ);
 public readonly record struct FloodData(FloodFillInfo Info, RenderableVertices<PortalStencilVertex> VertexData);
-public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
+public readonly record struct FloodFillInfo(SectorPlane SectorPlane, double MinViewZ, double MaxViewZ)
 {
     public int GetTextureIndex() => SectorPlane.TextureHandle;
     public SectorPlaneFace GetFace() => SectorPlane.Facing;
@@ -97,10 +97,11 @@ public class FloodFillRenderer : IDisposable
         vbo.Unbind();
     }
 
-    public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices)
+    public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minViewZ, double maxViewZ)
     {
-        FloodFillKey key = new(sectorPlane.Z, sectorPlane.RenderLightLevel, sectorPlane.TextureHandle, sectorPlane.Facing);
-        FloodFillInfo info = new(sectorPlane);
+        FloodFillKey key = new(sectorPlane.Z, sectorPlane.RenderLightLevel, sectorPlane.TextureHandle, sectorPlane.Facing, 
+            minViewZ, maxViewZ);
+        FloodFillInfo info = new(sectorPlane, minViewZ, maxViewZ);
 
         if (!m_infoToWorldGeometryVertices.TryGetValue(key, out var vertexData))
         {
@@ -143,10 +144,7 @@ public class FloodFillRenderer : IDisposable
         for (int i = 0; i < m_floodData.Count; i++)
         {
             FloodData floodData = m_floodData[i];
-            double planeZ = floodData.Info.GetZ(renderInfo.TickFraction);
-            if (floodData.Info.GetFace() == SectorPlaneFace.Ceiling && viewZ > planeZ)
-                continue;
-            if (floodData.Info.GetFace() == SectorPlaneFace.Floor && viewZ < planeZ)
+            if (viewZ < floodData.Info.MinViewZ || viewZ > floodData.Info.MaxViewZ)
                 continue;
 
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
@@ -159,7 +157,7 @@ public class FloodFillRenderer : IDisposable
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(sharedUniforms, floodData.Info, stencilIndex, planeZ);
+            DrawFloodFillPlane(sharedUniforms, floodData.Info, stencilIndex, floodData.Info.SectorPlane.Z);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
 
