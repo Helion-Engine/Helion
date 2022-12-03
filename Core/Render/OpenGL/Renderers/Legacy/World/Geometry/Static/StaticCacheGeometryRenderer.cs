@@ -36,6 +36,8 @@ using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
+public readonly record struct StaticFloodPlane(SectorPlane Flood, SectorPlane FloodWith);
+
 public class StaticCacheGeometryRenderer : IDisposable
 {
     private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
@@ -57,8 +59,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
-    private static Dictionary<int, List<StaticGeometryData>> m_bufferData = new();
-    private static List<List<StaticGeometryData>> m_bufferLists = new();
+    private Dictionary<int, List<StaticGeometryData>> m_bufferData = new();
+    private List<List<StaticGeometryData>> m_bufferLists = new();
+    private Dictionary<int, StaticFloodPlane> m_floodPlanes = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -133,11 +136,38 @@ public class StaticCacheGeometryRenderer : IDisposable
                 HandleSectorMoveStart(worldBase, sector.Ceiling);
         }
 
+        AddStaticFloodPlanes();
+
         foreach (var data in m_geometry)
         {
             data.Vbo.Bind();
             data.Vbo.UploadIfNeeded();
         }
+    }
+
+    private void AddStaticFloodPlanes()
+    {
+        foreach (var item in m_floodPlanes.Values)
+        {
+            SectorPlane flood = item.Flood;
+            SectorPlane floodWith = item.FloodWith;
+
+            double saveZ = flood.Z;
+            int saveTexture = flood.TextureHandle;
+            flood.Z = floodWith.Z;
+            flood.PrevZ = floodWith.Z;
+            flood.TextureHandle = floodWith.TextureHandle;
+
+            m_geometryRenderer.SetPlaneChanged(true);
+            AddSectorPlane(flood.Sector, flood.Facing == SectorPlaneFace.Floor, update: false, isFloodPlane: true);
+            m_geometryRenderer.SetPlaneChanged(false);
+
+            flood.Z = saveZ;
+            flood.PrevZ = saveZ;
+            flood.TextureHandle = saveTexture;
+        }
+
+        m_floodPlanes.Clear();
     }
 
     private void AddTransferSector(Sector sector)
@@ -221,7 +251,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!skyHack && skyVertices2 == null && side.FloodTextures.HasFlag(SideTexture.Upper))
+            {
                 m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
+                m_floodPlanes[otherSector.Ceiling.Id] = new(otherSector.Ceiling, facingSector.Ceiling);
+            }
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(facingSector, otherSector);
@@ -232,7 +265,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (skyVertices == null && side.FloodTextures.HasFlag(SideTexture.Lower))
+            {
                 m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
+                m_floodPlanes[otherSector.Floor.Id] = new(otherSector.Floor, facingSector.Floor);
+            }
         }
 
         // Alpha needs to be rendered last, currently can't be handled statically
@@ -365,7 +401,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_bufferLists.Clear();
     }
 
-    private void AddSectorPlane(Sector sector, bool floor, bool update = false)
+    private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)
     {
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
@@ -380,17 +416,26 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (update)
         {
-            UpdateVertices(plane.StaticData.GeometryData, plane.TextureHandle, plane.StaticData.GeometryDataStartIndex,
-                plane.StaticData.GeometryDataLength, renderedVertices, renderPlane, null, null);
+            UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.GeometryDataStartIndex,
+                plane.Static.GeometryDataLength, renderedVertices, renderPlane, null, null);
             return;
         }
 
         var vertices = GetTextureVertices(renderPlane.TextureHandle);
         if (m_textureToGeometryLookup.TryGetValue(renderPlane.TextureHandle, out var geometryData))
         {
-            plane.StaticData.GeometryData = geometryData;
-            plane.StaticData.GeometryDataStartIndex = vertices.Length;
-            plane.StaticData.GeometryDataLength = renderedVertices.Length;
+            if (isFloodPlane)
+            {
+                plane.StaticFlood.GeometryData = geometryData;
+                plane.StaticFlood.GeometryDataStartIndex = vertices.Length;
+                plane.StaticFlood.GeometryDataLength = renderedVertices.Length;
+            }
+            else
+            {
+                plane.Static.GeometryData = geometryData;
+                plane.Static.GeometryDataStartIndex = vertices.Length;
+                plane.Static.GeometryDataLength = renderedVertices.Length;
+            }
         }
 
         vertices.AddRange(renderedVertices);
@@ -508,10 +553,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             short level = sector.LightLevel;
 
             if (sector.TransferFloorLightSector == sector)
-                UpdateLightVertices(sector.Floor.StaticData, level);
+                UpdateLightVertices(sector.Floor.Static, level);
 
             if (sector.TransferCeilingLightSector == sector)
-                UpdateLightVertices(sector.Ceiling.StaticData, level);
+                UpdateLightVertices(sector.Ceiling.Static, level);
 
             UpdateTransferLightVertices(sector.Id, level, false, m_transferCeilingLightLookup);
             UpdateTransferLightVertices(sector.Id, level, true, m_transferFloorLightLookup);
@@ -547,12 +592,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (floor)
         {
             for (int i = 0; i < sectors.Count; i++)
-                UpdateLightVertices(sectors[i].Floor.StaticData, lightLevel);
+                UpdateLightVertices(sectors[i].Floor.Static, lightLevel);
         }
         else
         {
             for (int i = 0; i < sectors.Count; i++)
-                UpdateLightVertices(sectors[i].Ceiling.StaticData, lightLevel);
+                UpdateLightVertices(sectors[i].Ceiling.Static, lightLevel);
         }
     }
 
@@ -612,7 +657,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
-        ClearGeometryVertices(plane.StaticData);
+        ClearGeometryVertices(plane.Static);
 
         m_skyGeometry.ClearGeometryVertices(plane);
 
@@ -698,9 +743,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
-        ClearGeometryVertices(e.Plane.StaticData);
-        m_freeManager.Add(e.PreviousTextureHandle, e.Plane.StaticData);
-        e.Plane.StaticData.GeometryData = null;
+        ClearGeometryVertices(e.Plane.Static);
+        m_freeManager.Add(e.PreviousTextureHandle, e.Plane.Static);
+        e.Plane.Static.GeometryData = null;
         AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 
@@ -755,7 +800,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
             if (plane != null)
-                plane.StaticData = existing.Value;
+                plane.Static = existing.Value;
             else if (wall != null)
                 wall.Static = existing.Value;
 
@@ -793,13 +838,13 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (plane != null)
         {
-            plane.StaticData.GeometryData = geometryData;
-            plane.StaticData.GeometryDataStartIndex = geometryData.Vbo.Count;
-            plane.StaticData.GeometryDataLength = vertices.Length;
+            plane.Static.GeometryData = geometryData;
+            plane.Static.GeometryDataStartIndex = geometryData.Vbo.Count;
+            plane.Static.GeometryDataLength = vertices.Length;
         }
     }
 
-    private static void UpdateLightVertices(in StaticGeometryData data, short lightLevel)
+    private void UpdateLightVertices(in StaticGeometryData data, short lightLevel)
     {
         if (data.GeometryData == null)
             return;
@@ -815,7 +860,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private static void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
+    private void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
     {
         if (data.GeometryData == null)
             return;
@@ -826,7 +871,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private static List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
+    private List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
     {
         if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
         {
