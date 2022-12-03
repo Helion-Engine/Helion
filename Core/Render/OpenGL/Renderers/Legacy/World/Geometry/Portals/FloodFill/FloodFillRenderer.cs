@@ -68,22 +68,29 @@ public class FloodFillRenderer : IDisposable
         // Maps do not allow us to go beyond [-32768, 32768), so this should be
         // more than enough.
         // This also assumes a flat is always 64 map units.
-        const float Coordinate = short.MaxValue / 4;
-        const float UVCoord = Coordinate / 64;
+        const int Coordinate = 8192;
+        const float UvCoord = Coordinate / 64f / 2f;
 
         var vbo = m_planeVertices.Vbo;
+        const int MaxValue = 32768;
 
-        FloodFillPlaneVertex topLeft = new((-Coordinate, Coordinate), (-UVCoord, -UVCoord));
-        FloodFillPlaneVertex topRight = new((Coordinate, Coordinate), (UVCoord, -UVCoord));
-        FloodFillPlaneVertex bottomLeft = new((-Coordinate, -Coordinate), (-UVCoord, UVCoord));
-        FloodFillPlaneVertex bottomRight = new((Coordinate, -Coordinate), (UVCoord, UVCoord));
+        for (int xCoord = -MaxValue; xCoord <= MaxValue; xCoord += Coordinate)
+        {
+            for (int yCoord = -MaxValue; yCoord <= MaxValue; yCoord += Coordinate)
+            {
+                FloodFillPlaneVertex topLeft = new((xCoord, yCoord + Coordinate), (-UvCoord, -UvCoord));
+                FloodFillPlaneVertex topRight = new((xCoord + Coordinate, yCoord + Coordinate), (UvCoord, -UvCoord));
+                FloodFillPlaneVertex bottomLeft = new((xCoord, yCoord), (-UvCoord, UvCoord));
+                FloodFillPlaneVertex bottomRight = new((xCoord + Coordinate, yCoord), (UvCoord, UvCoord));
 
-        vbo.Add(topLeft);
-        vbo.Add(bottomLeft);
-        vbo.Add(topRight);
-        vbo.Add(topRight);
-        vbo.Add(bottomLeft);
-        vbo.Add(bottomRight);
+                vbo.Add(topLeft);
+                vbo.Add(bottomLeft);
+                vbo.Add(topRight);
+                vbo.Add(topRight);
+                vbo.Add(bottomLeft);
+                vbo.Add(bottomRight);
+            }
+        }
 
         vbo.Bind();
         vbo.Upload();
