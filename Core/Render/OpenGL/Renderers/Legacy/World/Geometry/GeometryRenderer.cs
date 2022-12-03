@@ -276,6 +276,12 @@ public class GeometryRenderer : IDisposable
         RenderSectorWall(sector, line, position.XY);
     }
 
+    public void SetPlaneChanged(bool set)
+    {
+        m_floorChanged = set;
+        m_ceilingChanged = set;
+    }
+
     public static void UpdateOffsetVertices(LegacyVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
     {
         WallUV uv = GetSideUV(glTexture, side, texture);
