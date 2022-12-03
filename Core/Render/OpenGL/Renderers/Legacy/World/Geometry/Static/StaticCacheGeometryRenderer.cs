@@ -250,7 +250,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
-            if (!skyHack && skyVertices2 == null && side.FloodTextures.HasFlag(SideTexture.Upper))
+            if (!skyHack && side.FloodTextures.HasFlag(SideTexture.Upper))
             {
                 m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
                 m_floodPlanes[otherSector.Ceiling.Id] = new(otherSector.Ceiling, facingSector.Ceiling);
