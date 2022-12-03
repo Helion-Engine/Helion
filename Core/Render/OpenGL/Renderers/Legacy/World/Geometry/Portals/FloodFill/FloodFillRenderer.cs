@@ -21,7 +21,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 // collection if they have the same Z, texture, and plane face direction. This
 // record does the heavy lifting for hashcode and equality implementations so that
 // we don't have to.
-public readonly record struct FloodFillKey(double Z, int TextureIndex, SectorPlaneFace Face);
+public readonly record struct FloodFillKey(double Z, short LightLevel, int TextureIndex, SectorPlaneFace Face);
 public readonly record struct FloodData(FloodFillInfo Info, RenderableVertices<PortalStencilVertex> VertexData);
 public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
 {
@@ -99,7 +99,7 @@ public class FloodFillRenderer : IDisposable
 
     public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices)
     {
-        FloodFillKey key = new(sectorPlane.Z, sectorPlane.TextureHandle, sectorPlane.Facing);
+        FloodFillKey key = new(sectorPlane.Z, sectorPlane.RenderLightLevel, sectorPlane.TextureHandle, sectorPlane.Facing);
         FloodFillInfo info = new(sectorPlane);
 
         if (!m_infoToWorldGeometryVertices.TryGetValue(key, out var vertexData))
