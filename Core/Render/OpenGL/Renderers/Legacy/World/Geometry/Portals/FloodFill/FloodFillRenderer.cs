@@ -28,7 +28,7 @@ public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
     public float GetZ(double frac) => (float)SectorPlane.GetInterpolatedZ(frac);
 }
 
-readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float Frac, float LightLevelMix, int ExtraLight);
+readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float LightLevelMix, int ExtraLight);
 readonly record struct PlaneProgramUniforms(float LightLevelFrag, float AlphaFrag, Vec3F ColorMulFrag, float FuzzFrag);
 
 public class FloodFillRenderer : IDisposable
@@ -149,7 +149,7 @@ public class FloodFillRenderer : IDisposable
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(sharedUniforms, planeUniforms, info, stencilIndex);
+            DrawFloodFillPlane(sharedUniforms, planeUniforms, info, stencilIndex, planeZ);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
 
@@ -173,8 +173,7 @@ public class FloodFillRenderer : IDisposable
             Invul: renderInfo.ViewerEntity.PlayerObj?.DrawInvulnerableColorMap() ?? false,
             Dropoff: m_config.Render.LightDropoff,
             Mvp: Renderer.CalculateMvpMatrix(renderInfo),
-            MvpNoPitch: Renderer.CalculateMvpMatrix(renderInfo, true), 
-            Frac: renderInfo.TickFraction,
+            MvpNoPitch: Renderer.CalculateMvpMatrix(renderInfo, true),
             LightLevelMix: (renderInfo.ViewerEntity.PlayerObj?.DrawFullBright() ?? false) ? 1.0f : 0.0f,
             ExtraLight: renderInfo.ViewerEntity.PlayerObj?.GetExtraLightRender() ?? 0
         );
@@ -204,25 +203,22 @@ public class FloodFillRenderer : IDisposable
     }
 
     private void DrawFloodFillPlane(in SharedProgramUniforms uniforms, in PlaneProgramUniforms planeUniforms, 
-        in FloodFillInfo info, int stencilIndex)
+        in FloodFillInfo info, int stencilIndex, double z)
     {
         m_planeProgram.Bind();
 
         GLLegacyTexture texture = m_textureManager.GetTexture(info.GetTextureIndex());
         texture.Bind();
 
+        m_planeProgram.SetZ((float)z);
         m_planeProgram.BoundTexture(TextureUnit.Texture0);
         m_planeProgram.HasInvulnerability(uniforms.Invul);
         m_planeProgram.LightDropoff(uniforms.Dropoff);
         m_planeProgram.Mvp(uniforms.Mvp);
         m_planeProgram.MvpNoPitch(uniforms.MvpNoPitch);
-        m_planeProgram.TimeFrac(uniforms.Frac);
         m_planeProgram.LightLevelMix(uniforms.LightLevelMix);
         m_planeProgram.ExtraLight(uniforms.ExtraLight);
         m_planeProgram.LightLevelFrag(planeUniforms.LightLevelFrag);
-        m_planeProgram.AlphaFrag(planeUniforms.AlphaFrag);
-        m_planeProgram.ColorMulFrag(planeUniforms.ColorMulFrag);
-        m_planeProgram.FuzzFrag(planeUniforms.FuzzFrag);
 
         m_planeVertices.Vao.Bind();
         m_planeVertices.Vbo.DrawArrays();
