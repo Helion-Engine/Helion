@@ -4,6 +4,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -19,9 +20,9 @@ public class PortalRenderer : IDisposable
     // TODO: Skies go here later.
     private bool m_disposed;
 
-    public PortalRenderer(LegacyGLTextureManager textureManager)
+    public PortalRenderer(IConfig config, LegacyGLTextureManager textureManager)
     {
-        m_floodFillRenderer = new(textureManager);
+        m_floodFillRenderer = new(config, textureManager);
     }
 
     ~PortalRenderer()
@@ -39,15 +40,6 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.UpdateTo(world);
     }
 
-    private void AddStaticFloodFillSide(SectorPlane sectorPlane, WallVertices vertices)
-    {
-        float z = (float)sectorPlane.Z;
-        int textureHandle = sectorPlane.TextureHandle;
-        SectorPlaneFace face = sectorPlane.Facing;
-
-        m_floodFillRenderer.AddStaticWall(z, textureHandle, face, vertices);
-    }
-
     public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture)
     {
         bool isFront = facingSide.Line.Front.Id == facingSide.Id;
@@ -56,14 +48,15 @@ public class PortalRenderer : IDisposable
             SectorPlane top = facingSide.Sector.Ceiling;
             SectorPlane bottom = otherSide.Sector.Ceiling;
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
-            AddStaticFloodFillSide(floodSector.Ceiling, wall);
+            m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall);
         }
         else
         {
+            Debug.Assert(sideTexture == SideTexture.Lower, $"Expected lower floor, got {sideTexture} instead");
             SectorPlane top = otherSide.Sector.Floor;
             SectorPlane bottom = facingSide.Sector.Floor;
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
-            AddStaticFloodFillSide(floodSector.Floor, wall);
+            m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall);
         }
     }
 

@@ -89,7 +89,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = textureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        Portals = new(textureManager);
+        Portals = new(config, textureManager);
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;

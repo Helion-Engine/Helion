@@ -8,7 +8,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class LegacyShader : RenderProgram
 {
-    public LegacyShader(string label) : base(label)
+    public LegacyShader() : base("World")
     {
     }
 

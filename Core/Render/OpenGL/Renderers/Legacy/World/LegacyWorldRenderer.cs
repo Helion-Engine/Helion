@@ -41,7 +41,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
-    private readonly LegacyShader m_program;
+    private readonly LegacyShader m_program = new();
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
@@ -54,7 +54,6 @@ public class LegacyWorldRenderer : WorldRenderer
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
-        m_program = new("World");
         m_automapRenderer = new(archiveCollection);
         m_worldDataManager = new(archiveCollection.DataCache);
         m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);

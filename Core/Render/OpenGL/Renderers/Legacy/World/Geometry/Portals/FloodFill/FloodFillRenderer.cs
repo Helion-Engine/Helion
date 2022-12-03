@@ -1,10 +1,12 @@
 ﻿using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -19,10 +21,19 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 // collection if they have the same Z, texture, and plane face direction. This
 // record does the heavy lifting for hashcode and equality implementations so that
 // we don't have to.
-public readonly record struct FloodFillInfo(float Z, int TextureIndex, SectorPlaneFace Face);
+public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
+{
+    public int GetTextureIndex() => SectorPlane.TextureHandle;
+    public SectorPlaneFace GetFace() => SectorPlane.Facing;
+    public float GetZ(double frac) => (float)SectorPlane.GetInterpolatedZ(frac);
+}
+
+readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float Frac, float LightLevelMix, int ExtraLight);
+readonly record struct PlaneProgramUniforms(float LightLevelFrag, float AlphaFrag, Vec3F ColorMulFrag, float FuzzFrag);
 
 public class FloodFillRenderer : IDisposable
 {
+    private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly PortalStencilProgram m_stencilProgram = new();
     private readonly FloodFillPlaneProgram m_planeProgram = new();
@@ -30,8 +41,9 @@ public class FloodFillRenderer : IDisposable
     private readonly Dictionary<FloodFillInfo, RenderableVertices<PortalStencilVertex>> m_infoToWorldGeometryVertices = new();
     private bool m_disposed;
 
-    public FloodFillRenderer(LegacyGLTextureManager textureManager)
+    public FloodFillRenderer(IConfig config, LegacyGLTextureManager textureManager)
     {
+        m_config = config;
         m_textureManager = textureManager;
         m_planeVertices = new("Flood fill plane", m_planeProgram.Attributes);
 
@@ -59,10 +71,10 @@ public class FloodFillRenderer : IDisposable
 
         var vbo = m_planeVertices.Vbo;
 
-        FloodFillPlaneVertex topLeft = new((-Coordinate, Coordinate), (-UVCoord, UVCoord));
-        FloodFillPlaneVertex topRight = new((Coordinate, Coordinate), (UVCoord, UVCoord));
-        FloodFillPlaneVertex bottomLeft = new((-Coordinate, -Coordinate), (-UVCoord, -UVCoord));
-        FloodFillPlaneVertex bottomRight = new((Coordinate, -Coordinate), (UVCoord, -UVCoord));
+        FloodFillPlaneVertex topLeft = new((-Coordinate, Coordinate), (-UVCoord, -UVCoord));
+        FloodFillPlaneVertex topRight = new((Coordinate, Coordinate), (UVCoord, -UVCoord));
+        FloodFillPlaneVertex bottomLeft = new((-Coordinate, -Coordinate), (-UVCoord, UVCoord));
+        FloodFillPlaneVertex bottomRight = new((Coordinate, -Coordinate), (UVCoord, UVCoord));
 
         vbo.Add(topLeft);
         vbo.Add(bottomLeft);
@@ -76,13 +88,13 @@ public class FloodFillRenderer : IDisposable
         vbo.Unbind();
     }
 
-    public void AddStaticWall(float z, int textureHandle, SectorPlaneFace face, WallVertices vertices)
+    public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices)
     {
-        FloodFillInfo info = new(z, textureHandle, face);
+        FloodFillInfo info = new(sectorPlane);
 
         if (!m_infoToWorldGeometryVertices.TryGetValue(info, out var vertexData))
         {
-            string label = $"Static flood fill geometry ({z}, {textureHandle} {face})";
+            string label = $"Static flood fill geometry ({sectorPlane.Id} {sectorPlane.Facing})";
             vertexData = new RenderableStaticVertices<PortalStencilVertex>(label, m_stencilProgram.Attributes);
             m_infoToWorldGeometryVertices[info] = vertexData;
         }
@@ -105,7 +117,7 @@ public class FloodFillRenderer : IDisposable
         if (m_infoToWorldGeometryVertices.Empty())
             return;
 
-        mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
+        SharedProgramUniforms sharedUniforms = MakeSharedUniforms(renderInfo);
 
         GL.Enable(EnableCap.StencilTest);
         GL.StencilMask(0xFF);
@@ -119,14 +131,17 @@ public class FloodFillRenderer : IDisposable
         int stencilIndex = 1;
         foreach ((FloodFillInfo info, RenderableVertices<PortalStencilVertex> handles) in m_infoToWorldGeometryVertices)
         {
-            if (info.Face == SectorPlaneFace.Ceiling && viewZ > info.Z)
+            double planeZ = info.GetZ(renderInfo.TickFraction);
+            if (info.GetFace() == SectorPlaneFace.Ceiling && viewZ > planeZ)
                 continue;
-            if (info.Face == SectorPlaneFace.Floor && viewZ < info.Z)
+            if (info.GetFace() == SectorPlaneFace.Floor && viewZ < planeZ)
                 continue;
+
+            PlaneProgramUniforms planeUniforms = MakePlaneUniforms(info.SectorPlane);
 
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
             GL.ColorMask(false, false, false, false);
-            DrawGeometryWithStencilBits(mvp, stencilIndex, handles.Vbo, handles.Vao);
+            DrawGeometryWithStencilBits(sharedUniforms.Mvp, stencilIndex, handles.Vbo, handles.Vao);
             GL.ColorMask(true, true, true, true);
 
             // Culling is disabled only for flood fill rendering because the shader needs
@@ -134,7 +149,7 @@ public class FloodFillRenderer : IDisposable
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(mvp, info, stencilIndex);
+            DrawFloodFillPlane(sharedUniforms, planeUniforms, info, stencilIndex);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
 
@@ -152,6 +167,29 @@ public class FloodFillRenderer : IDisposable
         GL.Disable(EnableCap.StencilTest);
     }
 
+    private SharedProgramUniforms MakeSharedUniforms(RenderInfo renderInfo)
+    {
+        return new(
+            Invul: renderInfo.ViewerEntity.PlayerObj?.DrawInvulnerableColorMap() ?? false,
+            Dropoff: m_config.Render.LightDropoff,
+            Mvp: Renderer.CalculateMvpMatrix(renderInfo),
+            MvpNoPitch: Renderer.CalculateMvpMatrix(renderInfo, true), 
+            Frac: renderInfo.TickFraction,
+            LightLevelMix: (renderInfo.ViewerEntity.PlayerObj?.DrawFullBright() ?? false) ? 1.0f : 0.0f,
+            ExtraLight: renderInfo.ViewerEntity.PlayerObj?.GetExtraLightRender() ?? 0
+        );
+    }
+
+    private static PlaneProgramUniforms MakePlaneUniforms(SectorPlane sectorPlane)
+    {
+        return new(
+            LightLevelFrag: sectorPlane.LightLevel,
+            AlphaFrag: 1, // TODO get this value
+            ColorMulFrag: (1, 1, 1), // TODO get this value
+            FuzzFrag: 0  // TODO get this value
+        );
+    }
+
     private void DrawGeometryWithStencilBits(in mat4 mvp, int stencilIndex, VertexBufferObject<PortalStencilVertex> vbo, VertexArrayObject vao)
     {
         Debug.Assert(!vbo.Empty, "Why are we making an empty draw call for a portal flood fill (VBO is empty)?");
@@ -165,16 +203,26 @@ public class FloodFillRenderer : IDisposable
         vbo.DrawArrays();
     }
 
-    private void DrawFloodFillPlane(in mat4 mvp, in FloodFillInfo info, int stencilIndex)
+    private void DrawFloodFillPlane(in SharedProgramUniforms uniforms, in PlaneProgramUniforms planeUniforms, 
+        in FloodFillInfo info, int stencilIndex)
     {
         m_planeProgram.Bind();
 
-        GLLegacyTexture texture = m_textureManager.GetTexture(info.TextureIndex);
+        GLLegacyTexture texture = m_textureManager.GetTexture(info.GetTextureIndex());
         texture.Bind();
 
-        m_planeProgram.SetZ(info.Z);
-        m_planeProgram.SetTexture(TextureUnit.Texture0);
-        m_planeProgram.SetMvp(mvp);
+        m_planeProgram.BoundTexture(TextureUnit.Texture0);
+        m_planeProgram.HasInvulnerability(uniforms.Invul);
+        m_planeProgram.LightDropoff(uniforms.Dropoff);
+        m_planeProgram.Mvp(uniforms.Mvp);
+        m_planeProgram.MvpNoPitch(uniforms.MvpNoPitch);
+        m_planeProgram.TimeFrac(uniforms.Frac);
+        m_planeProgram.LightLevelMix(uniforms.LightLevelMix);
+        m_planeProgram.ExtraLight(uniforms.ExtraLight);
+        m_planeProgram.LightLevelFrag(planeUniforms.LightLevelFrag);
+        m_planeProgram.AlphaFrag(planeUniforms.AlphaFrag);
+        m_planeProgram.ColorMulFrag(planeUniforms.ColorMulFrag);
+        m_planeProgram.FuzzFrag(planeUniforms.FuzzFrag);
 
         m_planeVertices.Vao.Bind();
         m_planeVertices.Vbo.DrawArrays();
