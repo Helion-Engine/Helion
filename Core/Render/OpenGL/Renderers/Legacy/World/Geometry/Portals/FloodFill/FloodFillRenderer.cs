@@ -29,7 +29,6 @@ public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
 }
 
 readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float LightLevelMix, int ExtraLight);
-readonly record struct PlaneProgramUniforms(float LightLevelFrag, float AlphaFrag, Vec3F ColorMulFrag, float FuzzFrag);
 
 public class FloodFillRenderer : IDisposable
 {
@@ -137,8 +136,6 @@ public class FloodFillRenderer : IDisposable
             if (info.GetFace() == SectorPlaneFace.Floor && viewZ < planeZ)
                 continue;
 
-            PlaneProgramUniforms planeUniforms = MakePlaneUniforms(info.SectorPlane);
-
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
             GL.ColorMask(false, false, false, false);
             DrawGeometryWithStencilBits(sharedUniforms.Mvp, stencilIndex, handles.Vbo, handles.Vao);
@@ -149,7 +146,7 @@ public class FloodFillRenderer : IDisposable
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(sharedUniforms, planeUniforms, info, stencilIndex, planeZ);
+            DrawFloodFillPlane(sharedUniforms, info, stencilIndex, planeZ);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
 
@@ -179,16 +176,6 @@ public class FloodFillRenderer : IDisposable
         );
     }
 
-    private static PlaneProgramUniforms MakePlaneUniforms(SectorPlane sectorPlane)
-    {
-        return new(
-            LightLevelFrag: sectorPlane.LightLevel,
-            AlphaFrag: 1, // TODO get this value
-            ColorMulFrag: (1, 1, 1), // TODO get this value
-            FuzzFrag: 0  // TODO get this value
-        );
-    }
-
     private void DrawGeometryWithStencilBits(in mat4 mvp, int stencilIndex, VertexBufferObject<PortalStencilVertex> vbo, VertexArrayObject vao)
     {
         Debug.Assert(!vbo.Empty, "Why are we making an empty draw call for a portal flood fill (VBO is empty)?");
@@ -202,8 +189,7 @@ public class FloodFillRenderer : IDisposable
         vbo.DrawArrays();
     }
 
-    private void DrawFloodFillPlane(in SharedProgramUniforms uniforms, in PlaneProgramUniforms planeUniforms, 
-        in FloodFillInfo info, int stencilIndex, double z)
+    private void DrawFloodFillPlane(in SharedProgramUniforms uniforms, in FloodFillInfo info, int stencilIndex, double z)
     {
         m_planeProgram.Bind();
 
@@ -218,7 +204,7 @@ public class FloodFillRenderer : IDisposable
         m_planeProgram.MvpNoPitch(uniforms.MvpNoPitch);
         m_planeProgram.LightLevelMix(uniforms.LightLevelMix);
         m_planeProgram.ExtraLight(uniforms.ExtraLight);
-        m_planeProgram.LightLevelFrag(planeUniforms.LightLevelFrag);
+        m_planeProgram.LightLevelFrag(info.SectorPlane.RenderLightLevel);
 
         m_planeVertices.Vao.Bind();
         m_planeVertices.Vbo.DrawArrays();
