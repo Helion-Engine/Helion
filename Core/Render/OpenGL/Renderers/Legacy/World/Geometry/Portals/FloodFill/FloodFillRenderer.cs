@@ -21,6 +21,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 // collection if they have the same Z, texture, and plane face direction. This
 // record does the heavy lifting for hashcode and equality implementations so that
 // we don't have to.
+public readonly record struct FloodFillKey(double Z, int TextureIndex, SectorPlaneFace Face);
+public readonly record struct FloodData(FloodFillInfo Info, RenderableVertices<PortalStencilVertex> VertexData);
 public readonly record struct FloodFillInfo(SectorPlane SectorPlane)
 {
     public int GetTextureIndex() => SectorPlane.TextureHandle;
@@ -37,7 +39,8 @@ public class FloodFillRenderer : IDisposable
     private readonly PortalStencilProgram m_stencilProgram = new();
     private readonly FloodFillPlaneProgram m_planeProgram = new();
     private readonly RenderableStaticVertices<FloodFillPlaneVertex> m_planeVertices;
-    private readonly Dictionary<FloodFillInfo, RenderableVertices<PortalStencilVertex>> m_infoToWorldGeometryVertices = new();
+    private readonly Dictionary<FloodFillKey, RenderableVertices<PortalStencilVertex>> m_infoToWorldGeometryVertices = new();
+    private readonly List<FloodData> m_floodData = new();
     private bool m_disposed;
 
     public FloodFillRenderer(IConfig config, LegacyGLTextureManager textureManager)
@@ -65,7 +68,7 @@ public class FloodFillRenderer : IDisposable
         // Maps do not allow us to go beyond [-32768, 32768), so this should be
         // more than enough.
         // This also assumes a flat is always 64 map units.
-        const float Coordinate = 65536;
+        const float Coordinate = short.MaxValue / 4;
         const float UVCoord = Coordinate / 64;
 
         var vbo = m_planeVertices.Vbo;
@@ -89,13 +92,15 @@ public class FloodFillRenderer : IDisposable
 
     public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices)
     {
+        FloodFillKey key = new(sectorPlane.Z, sectorPlane.TextureHandle, sectorPlane.Facing);
         FloodFillInfo info = new(sectorPlane);
 
-        if (!m_infoToWorldGeometryVertices.TryGetValue(info, out var vertexData))
+        if (!m_infoToWorldGeometryVertices.TryGetValue(key, out var vertexData))
         {
             string label = $"Static flood fill geometry ({sectorPlane.Id} {sectorPlane.Facing})";
             vertexData = new RenderableStaticVertices<PortalStencilVertex>(label, m_stencilProgram.Attributes);
-            m_infoToWorldGeometryVertices[info] = vertexData;
+            m_infoToWorldGeometryVertices[key] = vertexData;
+            m_floodData.Add(new FloodData(info, vertexData));
         }
 
         PortalStencilVertex topLeft = new(vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z);
@@ -113,7 +118,7 @@ public class FloodFillRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        if (m_infoToWorldGeometryVertices.Empty())
+        if (m_floodData.Count == 0)
             return;
 
         SharedProgramUniforms sharedUniforms = MakeSharedUniforms(renderInfo);
@@ -128,17 +133,18 @@ public class FloodFillRenderer : IDisposable
         // twice for every different portal.
         double viewZ = renderInfo.Camera.Position.Z;
         int stencilIndex = 1;
-        foreach ((FloodFillInfo info, RenderableVertices<PortalStencilVertex> handles) in m_infoToWorldGeometryVertices)
+        for (int i = 0; i < m_floodData.Count; i++)
         {
-            double planeZ = info.GetZ(renderInfo.TickFraction);
-            if (info.GetFace() == SectorPlaneFace.Ceiling && viewZ > planeZ)
+            FloodData floodData = m_floodData[i];
+            double planeZ = floodData.Info.GetZ(renderInfo.TickFraction);
+            if (floodData.Info.GetFace() == SectorPlaneFace.Ceiling && viewZ > planeZ)
                 continue;
-            if (info.GetFace() == SectorPlaneFace.Floor && viewZ < planeZ)
+            if (floodData.Info.GetFace() == SectorPlaneFace.Floor && viewZ < planeZ)
                 continue;
 
             GL.StencilFunc(StencilFunction.Always, stencilIndex, 0xFF);
             GL.ColorMask(false, false, false, false);
-            DrawGeometryWithStencilBits(sharedUniforms.Mvp, stencilIndex, handles.Vbo, handles.Vao);
+            DrawGeometryWithStencilBits(sharedUniforms.Mvp, stencilIndex, floodData.VertexData.Vbo, floodData.VertexData.Vao);
             GL.ColorMask(true, true, true, true);
 
             // Culling is disabled only for flood fill rendering because the shader needs
@@ -146,7 +152,7 @@ public class FloodFillRenderer : IDisposable
             GL.StencilFunc(StencilFunction.Equal, stencilIndex, 0xFF);
             GL.Disable(EnableCap.CullFace);
             GL.Disable(EnableCap.DepthTest);
-            DrawFloodFillPlane(sharedUniforms, info, stencilIndex, planeZ);
+            DrawFloodFillPlane(sharedUniforms, floodData.Info, stencilIndex, planeZ);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
 
@@ -227,10 +233,11 @@ public class FloodFillRenderer : IDisposable
 
     private void DisposeInfoToWorldGeometryVertices()
     {
-        foreach (var renderableObjects in m_infoToWorldGeometryVertices.Values)
-            renderableObjects.Dispose();
+        for (int i = 0; i < m_floodData.Count; i++)
+            m_floodData[i].VertexData.Dispose();
 
         m_infoToWorldGeometryVertices.Clear();
+        m_floodData.Clear();
     }
 
     public void Dispose()
