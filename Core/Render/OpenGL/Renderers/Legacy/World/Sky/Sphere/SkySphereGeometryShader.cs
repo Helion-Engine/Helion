@@ -9,7 +9,7 @@ public class SkySphereGeometryShader : RenderProgram
     {
     }
 
-    public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
 
     protected override string VertexShader() => @"
         #version 330

@@ -12,14 +12,14 @@ public class LegacyShader : RenderProgram
     {
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms["boundTexture"] = unit;
-    public void HasInvulnerability(bool invul) => Uniforms["hasInvulnerability"] = invul;
-    public void LightDropoff(bool dropoff) => Uniforms["lightDropoff"] = dropoff;
-    public void Mvp(mat4 mvp) => Uniforms["mvp"] = mvp;
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms["mvpNoPitch"] = mvpNoPitch;
-    public void TimeFrac(float frac) => Uniforms["timeFrac"] = frac;
-    public void LightLevelMix(float lightLevelMix) => Uniforms["lightLevelMix"] = lightLevelMix;
-    public void ExtraLight(int extraLight) => Uniforms["extraLight"] = extraLight;
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
+    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, "lightDropoff");
+    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
+    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
+    public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
+    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
+    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
 
     protected override string VertexShader() => @"
         #version 330
