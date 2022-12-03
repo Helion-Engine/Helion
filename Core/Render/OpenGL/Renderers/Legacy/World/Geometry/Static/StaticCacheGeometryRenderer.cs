@@ -95,7 +95,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticMode)
             return;
 
-        m_world.TextureManager.AnimationChanged += TextureManager_AnimationChanged;
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
@@ -366,7 +365,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (m_world != null)
         {
-            m_world.TextureManager.AnimationChanged -= TextureManager_AnimationChanged;
             m_world.SectorMoveStart -= World_SectorMoveStart;
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
             m_world.SideTextureChanged -= World_SideTextureChanged;
@@ -468,7 +466,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < m_geometry.Count; i++)
         {
             var data = m_geometry[i];
-            data.Texture.Bind();
+            var texture = m_textureManager.GetTexture(data.TextureHandle);
+            texture.Bind();
             data.Vao.Bind();
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
@@ -624,14 +623,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
-    }
-
-    private void TextureManager_AnimationChanged(object? sender, AnimationEvent e)
-    {
-        if (!m_textureToGeometryLookup.TryGetValue(e.TextureTranslationHandle, out var data))
-            return;
-
-        data.Texture = m_textureManager.GetTexture(e.TextureHandleTo);
     }
 
     private void World_SectorMoveStart(object? sender, SectorPlane plane)
