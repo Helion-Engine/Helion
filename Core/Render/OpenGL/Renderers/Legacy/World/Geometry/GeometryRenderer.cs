@@ -979,6 +979,13 @@ public class GeometryRenderer : IDisposable
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {
+        if (sector.Id >= m_subsectors.Length)
+        {
+            verticies = null;
+            skyVerticies = null;
+            return;
+        }
+
         DynamicArray<Subsector> subsectors = m_subsectors[sector.Id];
         RenderFlat(subsectors, flat, floor, out verticies, out skyVerticies);
     }

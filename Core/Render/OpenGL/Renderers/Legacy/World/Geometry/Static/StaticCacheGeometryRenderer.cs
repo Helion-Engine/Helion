@@ -250,10 +250,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!skyHack && side.FloodTextures.HasFlag(SideTexture.Upper))
-            {
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
-                m_floodPlanes[otherSector.Ceiling.Id] = new(otherSector.Ceiling, facingSector.Ceiling);
-            }
+                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper, update);
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(facingSector, otherSector);
@@ -264,10 +261,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (skyVertices == null && side.FloodTextures.HasFlag(SideTexture.Lower))
-            {
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
-                m_floodPlanes[otherSector.Floor.Id] = new(otherSector.Floor, facingSector.Floor);
-            }
+                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower, update);
         }
 
         // Alpha needs to be rendered last, currently can't be handled statically
@@ -276,6 +270,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true);
         }
+    }
+
+    private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
+        SectorPlane floodPlane, SideTexture texture, bool update)
+    {
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
+        // Not supported yet
+        if (!update)
+            m_floodPlanes[otherSector.Floor.Id] = new(otherSector.Floor, facingSector.Floor);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -401,6 +404,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (list != null)
                 list.Clear();
         }
+
+        m_floodPlanes.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)
