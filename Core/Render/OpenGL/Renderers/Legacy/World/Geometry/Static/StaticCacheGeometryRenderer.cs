@@ -488,7 +488,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             list.Sort((i1, i2) => i1.GeometryDataStartIndex.CompareTo(i2.GeometryDataStartIndex));
 
-            bool uploaded = false;
             int startIndex = list[0].GeometryDataStartIndex;
             int lastIndex = startIndex + list[0].GeometryDataLength;
             for (int i = 1; i < list.Count; i++)
@@ -499,19 +498,14 @@ public class StaticCacheGeometryRenderer : IDisposable
                     geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
                     startIndex = list[i].GeometryDataStartIndex;
                     lastIndex = startIndex + list[i].GeometryDataLength;
-                    uploaded = true;
                     continue;
                 }
 
                 lastIndex += list[i].GeometryDataLength;
-                uploaded = false;
             }
 
-            if (!uploaded)
-            {
-                geometryData.Vbo.Bind();
-                geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
-            }
+            geometryData.Vbo.Bind();
+            geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
 
             list.Clear();
         }
