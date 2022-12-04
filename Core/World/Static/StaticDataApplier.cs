@@ -166,29 +166,51 @@ public class StaticDataApplier
         if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
             world.Blockmap.Link(world, sector);
 
-        for (int i = 0; i < world.Lines.Count; i++)
+        if (sectorDynamic == SectorDynamic.Light)
         {
-            var line = world.Lines[i];
-            if (sectorDynamic == SectorDynamic.Light)
-            {
-                if (lightWalls == SideTexture.None)
-                    continue;
+            if (lightWalls == SideTexture.None)
+                return;
 
-                SetDynamicLight(sector, lightWalls, line);
-                continue;
-            }
-            else if (sectorDynamic == SectorDynamic.Movement)
-            {
-                if (SetDynamicMovement(world, sector, line, floor, ceiling))
-                    continue;
-            }
-            else if (sectorDynamic == SectorDynamic.TransferHeights)
-            {
-                if (line.Front.Sector.Id == sector.Id)
-                    line.Front.SetAllWallsDynamic(sectorDynamic);
-                if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                    line.Back.SetAllWallsDynamic(sectorDynamic);
-            }
+            SetSectorDynamicLight(sector, lightWalls);
+        }
+        else if (sectorDynamic == SectorDynamic.Movement)
+        {
+            SetSectorDynamicMovement(world, sector, floor, ceiling);
+        }
+        else if (sectorDynamic == SectorDynamic.TransferHeights)
+        {
+            SetSectorTransferHeights(sector);
+        }
+    }
+
+    private static void SetSectorTransferHeights(Sector sector)
+    {
+        for (int i = 0; i < sector.Lines.Count; i++)
+        {
+            var line = sector.Lines[i];
+            if (line.Front.Sector.Id == sector.Id)
+                line.Front.SetAllWallsDynamic(SectorDynamic.TransferHeights);
+            if (line.Back != null && line.Back.Sector.Id == sector.Id)
+                line.Back.SetAllWallsDynamic(SectorDynamic.TransferHeights);
+        }
+    }
+
+    private static void SetSectorDynamicMovement(WorldBase world, Sector sector, bool floor, bool ceiling)
+    {
+        for (int i = 0; i < sector.Lines.Count; i++)
+        {
+            var line = sector.Lines[i];
+            SetDynamicMovement(world, sector, line, floor, ceiling);
+        }
+    }
+
+    private static void SetSectorDynamicLight(Sector sector, SideTexture lightWalls)
+    {
+        for (int i = 0; i < sector.Lines.Count; i++)
+        {
+            var line = sector.Lines[i];
+            SetDynamicLight(sector, lightWalls, line);
+            continue;
         }
     }
 
