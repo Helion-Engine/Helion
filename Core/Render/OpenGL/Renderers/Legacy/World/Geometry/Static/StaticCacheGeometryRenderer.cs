@@ -59,7 +59,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
-    private Dictionary<int, List<StaticGeometryData>> m_bufferData = new();
+    private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private Dictionary<int, StaticFloodPlane> m_floodPlanes = new();
     private bool m_staticMode;
@@ -395,8 +395,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferFloorLightLookup.Clear();
         m_transferCeilingLightLookup.Clear();
 
-        m_bufferData.Clear();
-        m_bufferLists.Clear();
+        for (int i = 0; i < m_bufferData.Length; i++)
+            m_bufferData[i].Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)
@@ -858,7 +858,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
     {
-        if (!m_bufferData.TryGetValue(data.GeometryData.TextureHandle, out var list))
+        if (m_bufferData.Capacity <= data.GeometryData.TextureHandle)
+            m_bufferData.Resize(data.GeometryData.TextureHandle + 1024);
+
+        var list = m_bufferData[data.GeometryData.TextureHandle];
+        if (list == null)
         {
             list = new List<StaticGeometryData>(32);
             m_bufferData[data.GeometryData.TextureHandle] = list;
