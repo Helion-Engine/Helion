@@ -275,6 +275,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
         SectorPlane floodPlane, SideTexture texture, bool update)
     {
+        if (!m_world.Config.Render.FloodFill)
+            return;
+
         m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
         // Not supported yet
         if (!update)

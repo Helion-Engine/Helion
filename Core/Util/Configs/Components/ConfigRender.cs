@@ -112,4 +112,7 @@ public class ConfigRender
 
     [ConfigInfo("Field of view. Default = 90")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60, 120));
+
+    [ConfigInfo("Enable sector flood fill.", restartRequired: true)]
+    public readonly ConfigValue<bool> FloodFill = new(true);
 }
