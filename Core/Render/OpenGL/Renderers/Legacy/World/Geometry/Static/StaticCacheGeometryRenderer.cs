@@ -208,7 +208,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (sideVertices != null)
             {
                 var wall = line.Front.Middle;
-                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVertices,
+                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, sideVertices,
                     null, line.Front, wall);
             }
 
@@ -326,7 +326,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         
         if (update)
         {
-            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, wall.Static.GeometryDataLength, sideVertices,
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, sideVertices,
                 null, side, wall);
             return;
         }
@@ -416,7 +416,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
         // Need to set to actual plane, not potential transfer heights plane.
-        var plane = floor ? sector.Floor : renderSector.Ceiling;
+        var plane = floor ? sector.Floor : sector.Ceiling;
         m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, out var renderedVertices, out var renderedSkyVertices);
 
         AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sector, update);
@@ -427,7 +427,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (update)
         {
             UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.GeometryDataStartIndex,
-                plane.Static.GeometryDataLength, renderedVertices, renderPlane, null, null);
+                renderedVertices, renderPlane, null, null);
             return;
         }
 
@@ -778,7 +778,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearGeometryVertices(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
     }
 
-    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, int length, LegacyVertex[] vertices,
+    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, LegacyVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall)
     {
         if (geometryData == null)
@@ -787,9 +787,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        Array.Copy(vertices, 0, geometryData.Vbo.Data.Data, startIndex, length);
+        Array.Copy(vertices, 0, geometryData.Vbo.Data.Data, startIndex, vertices.Length);
         geometryData.Vbo.Bind();
-        geometryData.Vbo.UploadSubData(startIndex, length);
+        geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
     }
 
     private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall)
@@ -801,7 +801,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             else if (wall != null)
                 wall.Static = existing.Value;
 
-            UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.GeometryDataStartIndex, existing.Value.GeometryDataLength,
+            UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.GeometryDataStartIndex,
                 vertices, plane, side, wall);
             return;
         }
