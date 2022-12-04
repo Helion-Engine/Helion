@@ -396,7 +396,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferCeilingLightLookup.Clear();
 
         for (int i = 0; i < m_bufferData.Length; i++)
-            m_bufferData[i].Clear();
+        {
+            var list = m_bufferData.Data[i];
+            if (list != null)
+                list.Clear();
+        }
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)
@@ -861,11 +865,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_bufferData.Capacity <= data.GeometryData.TextureHandle)
             m_bufferData.Resize(data.GeometryData.TextureHandle + 1024);
 
-        var list = m_bufferData[data.GeometryData.TextureHandle];
+        var list = m_bufferData.Data[data.GeometryData.TextureHandle];
         if (list == null)
         {
             list = new List<StaticGeometryData>(32);
-            m_bufferData[data.GeometryData.TextureHandle] = list;
+            m_bufferData.Data[data.GeometryData.TextureHandle] = list;
             m_bufferLists.Add(list);
         }
 
