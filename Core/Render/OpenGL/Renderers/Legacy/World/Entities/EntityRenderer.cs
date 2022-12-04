@@ -34,7 +34,7 @@ public class EntityRenderer
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyShader m_program;
     private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
-    private readonly HashSet<Vec2D> m_renderPositions = new();
+    private readonly Dictionary<Vec2D, int> m_renderPositions = new();
     private double m_tickFraction;
     private Entity? m_cameraEntity;
     private Vec2F m_viewRightNormal;
@@ -289,24 +289,17 @@ public class EntityRenderer
 
         if (m_config.Render.SpriteZCheck)
         {
-            if (m_renderPositions.Contains(entityPos))
+            if (m_renderPositions.TryGetValue(centerBottom.XY, out int count))
             {
                 double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
-                Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge;
+                Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
                 centerBottom.X -= nudgeAmount.X;
                 centerBottom.Y -= nudgeAmount.Y;
-
-                while (m_renderPositions.Contains(centerBottom.XY))
-                {
-                    centerBottom.X -= nudgeAmount.X;
-                    centerBottom.Y -= nudgeAmount.Y;
-                }
-
-                m_renderPositions.Add(centerBottom.XY);
+                m_renderPositions[centerBottom.XY] = count + 1;
             }
             else
             {
-                m_renderPositions.Add(entityPos);
+                m_renderPositions[centerBottom.XY] = 1;
             }
         }
 
