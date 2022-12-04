@@ -289,17 +289,18 @@ public class EntityRenderer
 
         if (m_config.Render.SpriteZCheck)
         {
-            if (m_renderPositions.TryGetValue(centerBottom.XY, out int count))
+            Vec2D positionLookup = centerBottom.XY;
+            if (m_renderPositions.TryGetValue(positionLookup, out int count))
             {
                 double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
                 Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
                 centerBottom.X -= nudgeAmount.X;
                 centerBottom.Y -= nudgeAmount.Y;
-                m_renderPositions[centerBottom.XY] = count + 1;
+                m_renderPositions[positionLookup] = count + 1;
             }
             else
             {
-                m_renderPositions[centerBottom.XY] = 1;
+                m_renderPositions[positionLookup] = 1;
             }
         }
 
