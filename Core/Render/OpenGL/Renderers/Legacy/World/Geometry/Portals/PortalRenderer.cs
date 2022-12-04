@@ -61,7 +61,7 @@ public class PortalRenderer : IDisposable
             m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
             m_fakeCeiling.LightLevel = floodSector.LightLevel;
             wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront, 0);
-            m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
+            facingSide.UpperFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
         }
         else
         {
@@ -79,21 +79,36 @@ public class PortalRenderer : IDisposable
             m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
             m_fakeFloor.LightLevel = floodSector.LightLevel;
             wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, 0);
-            m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
+            facingSide.LowerFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
         }
     }
 
     public void ClearStaticFloodFillSide(Side side, bool floor)
     {
-        if (!floor && side.UpperFloodGeometryKey > 0)
+        if (!floor)
         {
-            m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey);
-            side.UpperFloodGeometryKey = 0;
+            if (side.UpperFloodGeometryKey > 0)
+            {
+                m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey);
+                side.UpperFloodGeometryKey = 0;
+            }
+            if (side.UpperFloodGeometryKey2 > 0)
+            {
+                m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey2);
+                side.UpperFloodGeometryKey = 0;
+            }
+            return;
         }
-        if (floor && side.LowerFloodGeometryKey > 0)
+
+        if (side.LowerFloodGeometryKey > 0)
         {
             m_floodFillRenderer.ClearStaticWall(side.LowerFloodGeometryKey);
             side.LowerFloodGeometryKey = 0;
+        }
+        if (side.LowerFloodGeometryKey2 > 0)
+        {
+            m_floodFillRenderer.ClearStaticWall(side.LowerFloodGeometryKey2);
+            side.LowerFloodGeometryKey2 = 0;
         }
     }
 
