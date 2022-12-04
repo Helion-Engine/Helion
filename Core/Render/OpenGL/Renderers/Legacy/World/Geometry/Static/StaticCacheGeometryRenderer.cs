@@ -23,6 +23,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
+using Helion.World.Special.SectorMovement;
 using Helion.World.Static;
 using MoreLinq;
 using Newtonsoft.Json.Linq;
@@ -655,8 +656,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
         ClearGeometryVertices(plane.Static);
+        ClearGeometryVertices(plane.StaticFlood);
 
         m_skyGeometry.ClearGeometryVertices(plane);
+
+        // This can be optimized more, but handles the most common case of raising a monster floor sector that is flood filled.
+        bool clearFloodSides = false;
+        if (floor && plane.Sector.ActiveFloorMove != null && plane.Sector.ActiveFloorMove.MoveDirection == MoveDirection.Down)
+            clearFloodSides = true;
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
@@ -677,6 +684,9 @@ public class StaticCacheGeometryRenderer : IDisposable
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
 
+            if (clearFloodSides)
+                m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Front, floor);
+
             if (line.Back == null)
                 continue;
 
@@ -695,6 +705,9 @@ public class StaticCacheGeometryRenderer : IDisposable
                 ClearGeometryVertices(line.Back.Middle.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
+
+            if (clearFloodSides)
+                m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Back, floor);
         }
     }
 

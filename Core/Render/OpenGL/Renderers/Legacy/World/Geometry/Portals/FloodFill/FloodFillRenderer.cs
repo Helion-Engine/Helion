@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -30,6 +31,8 @@ public readonly record struct FloodFillInfo(SectorPlane SectorPlane, double MinV
     public float GetZ(double frac) => (float)SectorPlane.GetInterpolatedZ(frac);
 }
 
+public readonly record struct StaticFloodGeometry(RenderableVertices<PortalStencilVertex> VertexData, int Index, int Length);
+
 readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float LightLevelMix, int ExtraLight);
 
 public class FloodFillRenderer : IDisposable
@@ -41,6 +44,8 @@ public class FloodFillRenderer : IDisposable
     private readonly RenderableStaticVertices<FloodFillPlaneVertex> m_planeVertices;
     private readonly Dictionary<FloodFillKey, RenderableVertices<PortalStencilVertex>> m_infoToWorldGeometryVertices = new();
     private readonly List<FloodData> m_floodData = new();
+    private readonly Dictionary<int, StaticFloodGeometry> m_floodGeometry = new();
+    private int m_floodGeometryKey = 1;
     private bool m_disposed;
 
     public FloodFillRenderer(IConfig config, LegacyGLTextureManager textureManager)
@@ -59,6 +64,7 @@ public class FloodFillRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
+        m_floodGeometry.Clear();
         DisposeInfoToWorldGeometryVertices();
     }
 
@@ -97,17 +103,18 @@ public class FloodFillRenderer : IDisposable
         vbo.Unbind();
     }
 
-    public void AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minViewZ, double maxViewZ)
+    public int AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minViewZ, double maxViewZ)
     {
         FloodFillKey key = new(sectorPlane.Z, sectorPlane.RenderLightLevel, sectorPlane.TextureHandle, sectorPlane.Facing, 
             minViewZ, maxViewZ);
-        FloodFillInfo info = new(sectorPlane, minViewZ, maxViewZ);
 
         if (!m_infoToWorldGeometryVertices.TryGetValue(key, out var vertexData))
         {
             string label = $"Static flood fill geometry ({sectorPlane.Id} {sectorPlane.Facing})";
             vertexData = new RenderableStaticVertices<PortalStencilVertex>(label, m_stencilProgram.Attributes);
             m_infoToWorldGeometryVertices[key] = vertexData;
+
+            FloodFillInfo info = new(sectorPlane, minViewZ, maxViewZ);
             m_floodData.Add(new FloodData(info, vertexData));
         }
 
@@ -116,12 +123,35 @@ public class FloodFillRenderer : IDisposable
         PortalStencilVertex bottomLeft = new(vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z);
         PortalStencilVertex bottomRight = new(vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z);
 
+        int geometryKey = m_floodGeometryKey++;
+        m_floodGeometry[geometryKey] = new(vertexData, vertexData.Vbo.Data.Length, 6);
+
         vertexData.Vbo.Add(topLeft);
         vertexData.Vbo.Add(bottomLeft);
         vertexData.Vbo.Add(topRight);
         vertexData.Vbo.Add(topRight);
         vertexData.Vbo.Add(bottomLeft);
         vertexData.Vbo.Add(bottomRight);
+
+        return geometryKey;
+    }
+
+    public void ClearStaticWall(int key)
+    {
+        if (!m_floodGeometry.TryGetValue(key, out var geometry))
+            return;
+
+        var vbo = geometry.VertexData.Vbo;
+        for (int i = 0; i < geometry.Length; i++)
+        {
+            int index = geometry.Index + i;
+            vbo.Data.Data[index] = new PortalStencilVertex(Vec3F.Zero);
+        }
+
+        vbo.Bind();
+        vbo.UploadSubData(geometry.Index, geometry.Length);
+
+        m_floodGeometry.Remove(key);
     }
 
     public void Render(RenderInfo renderInfo)

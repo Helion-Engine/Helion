@@ -6,6 +6,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.World;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Static;
@@ -52,7 +53,7 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = otherSide.Sector.Ceiling;
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
             double floodMaxZ = bottom.Z;
-            m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+            facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
 
             //bottom = facingSide.Sector.Ceiling;
             //m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
@@ -69,7 +70,7 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = facingSide.Sector.Floor;
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
             double floodMinZ = top.Z;
-            m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
+            facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
 
             // Leaving these alternate cases here for now since they are more technically correct, but are incredibly expensive...
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.
@@ -80,6 +81,20 @@ public class PortalRenderer : IDisposable
             //m_fakeFloor.LightLevel = floodSector.LightLevel;
             //wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, 0);
             //m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
+        }
+    }
+
+    public void ClearStaticFloodFillSide(Side side, bool floor)
+    {
+        if (!floor && side.UpperFloodGeometryKey > 0)
+        {
+            m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey);
+            side.UpperFloodGeometryKey = 0;
+        }
+        if (floor && side.LowerFloodGeometryKey > 0)
+        {
+            m_floodFillRenderer.ClearStaticWall(side.LowerFloodGeometryKey);
+            side.LowerFloodGeometryKey = 0;
         }
     }
 

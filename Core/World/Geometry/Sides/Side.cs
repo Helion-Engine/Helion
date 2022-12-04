@@ -37,6 +37,8 @@ public class Side : IRenderObject
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
     public int BlockmapCount;
+    public int UpperFloodGeometryKey;
+    public int LowerFloodGeometryKey;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {
