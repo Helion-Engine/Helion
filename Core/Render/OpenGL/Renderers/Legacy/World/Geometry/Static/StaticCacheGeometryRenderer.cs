@@ -62,7 +62,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
     private List<List<StaticGeometryData>> m_bufferLists = new();
-    private Dictionary<int, StaticFloodPlane> m_floodPlanes = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticLights;
@@ -136,38 +135,11 @@ public class StaticCacheGeometryRenderer : IDisposable
                 HandleSectorMoveStart(worldBase, sector.Ceiling);
         }
 
-        AddStaticFloodPlanes();
-
         foreach (var data in m_geometry)
         {
             data.Vbo.Bind();
             data.Vbo.UploadIfNeeded();
         }
-    }
-
-    private void AddStaticFloodPlanes()
-    {
-        foreach (var item in m_floodPlanes.Values)
-        {
-            SectorPlane flood = item.Flood;
-            SectorPlane floodWith = item.FloodWith;
-
-            double saveZ = flood.Z;
-            int saveTexture = flood.TextureHandle;
-            flood.Z = floodWith.Z;
-            flood.PrevZ = floodWith.Z;
-            flood.TextureHandle = floodWith.TextureHandle;
-
-            m_geometryRenderer.SetPlaneChanged(true);
-            AddSectorPlane(flood.Sector, flood.Facing == SectorPlaneFace.Floor, update: false, isFloodPlane: true);
-            m_geometryRenderer.SetPlaneChanged(false);
-
-            flood.Z = saveZ;
-            flood.PrevZ = saveZ;
-            flood.TextureHandle = saveTexture;
-        }
-
-        m_floodPlanes.Clear();
     }
 
     private void AddTransferSector(Sector sector)
@@ -280,9 +252,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
-        // Not supported yet
-        if (!update)
-            m_floodPlanes[otherSector.Floor.Id] = new(otherSector.Floor, facingSector.Floor);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -408,8 +377,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (list != null)
                 list.Clear();
         }
-
-        m_floodPlanes.Clear();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)

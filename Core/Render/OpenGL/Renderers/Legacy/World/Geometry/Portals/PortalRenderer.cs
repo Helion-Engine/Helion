@@ -55,13 +55,13 @@ public class PortalRenderer : IDisposable
             double floodMaxZ = bottom.Z;
             facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
 
-            //bottom = facingSide.Sector.Ceiling;
-            //m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
-            //m_fakeCeiling.Z = bottom.Z + FakeWallHeight;
-            //m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
-            //m_fakeCeiling.LightLevel = floodSector.LightLevel;
-            //wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront, 0);
-            //m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
+            bottom = facingSide.Sector.Ceiling;
+            m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
+            m_fakeCeiling.Z = bottom.Z + FakeWallHeight;
+            m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
+            m_fakeCeiling.LightLevel = floodSector.LightLevel;
+            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront, 0);
+            m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
         }
         else
         {
@@ -72,15 +72,14 @@ public class PortalRenderer : IDisposable
             double floodMinZ = top.Z;
             facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
 
-            // Leaving these alternate cases here for now since they are more technically correct, but are incredibly expensive...
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.
-            //top = facingSide.Sector.Floor;
-            //m_fakeFloor.TextureHandle = floodSector.Floor.TextureHandle;
-            //m_fakeFloor.Z = bottom.Z - FakeWallHeight;
-            //m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
-            //m_fakeFloor.LightLevel = floodSector.LightLevel;
-            //wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, 0);
-            //m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
+            top = facingSide.Sector.Floor;
+            m_fakeFloor.TextureHandle = floodSector.Floor.TextureHandle;
+            m_fakeFloor.Z = bottom.Z - FakeWallHeight;
+            m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
+            m_fakeFloor.LightLevel = floodSector.LightLevel;
+            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, 0);
+            m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
         }
     }
 
