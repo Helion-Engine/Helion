@@ -331,6 +331,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_program.LightDropoff(m_config.Render.LightDropoff);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
         m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
+        m_program.TimeFrac(timeFrac);
         m_program.LightLevelMix(mix);
         m_program.ExtraLight(extraLight);
     }
