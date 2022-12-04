@@ -178,6 +178,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_config.Render.TextureTransparency)
         {
             m_program.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetUniforms(renderInfo);
             m_worldDataManager.DrawAlpha();
             m_program.Unbind();
         }
