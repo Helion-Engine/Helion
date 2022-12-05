@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows7.0</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Helion.Client</RootNamespace>
     <Nullable>enable</Nullable>

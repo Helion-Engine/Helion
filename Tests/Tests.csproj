@@ -1,14 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-
+        <TargetFramework>net7.0</TargetFramework>
+        <EnablePreviewFeatures>true</EnablePreviewFeatures>
         <IsPackable>false</IsPackable>
-
         <RootNamespace>Helion.Tests</RootNamespace>
-
         <AssemblyName>Tests</AssemblyName>
-
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
