@@ -242,20 +242,18 @@ public class StaticDataApplier
 
         if (floor && !ceiling)
         {
-            SideTexture types = isFloorSky ? AllWallTypes : MiddleLower;
             if (line.Back != null)
-                line.Back.SetWallsDynamic(types, SectorDynamic.Movement);
+                line.Back.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
 
-            line.Front.SetWallsDynamic(types, SectorDynamic.Movement);
+            line.Front.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
             return true;
         }
         else if (!floor && ceiling)
         {
-            SideTexture types = isCeilingSky ? AllWallTypes : MiddleUpper;
             if (line.Back != null)
-                line.Back.SetWallsDynamic(types, SectorDynamic.Movement);
+                line.Back.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
 
-            line.Front.SetWallsDynamic(types, SectorDynamic.Movement);
+            line.Front.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
             return true;
         }
 
@@ -273,16 +271,16 @@ public class StaticDataApplier
         if (floor && !ceiling)
         {
             if (line.Back != null && !line.Back.Sector.IsMoving)
-                line.Back.ClearWallsDynamic(MiddleLower, SectorDynamic.Movement);
+                line.Back.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
 
-            line.Front.ClearWallsDynamic(MiddleLower, SectorDynamic.Movement);
+            line.Front.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
         }
         else if (!floor && ceiling)
         {
             if (line.Back != null)
-                line.Back.ClearWallsDynamic(MiddleUpper, SectorDynamic.Movement);
+                line.Back.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
 
-            line.Front.ClearWallsDynamic(MiddleUpper, SectorDynamic.Movement);
+            line.Front.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
         }
     }
 }
