@@ -64,7 +64,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
-    private bool m_staticLights;
     private bool m_staticScroll;
     private IWorld? m_world;
 
@@ -89,7 +88,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
-        m_staticLights = world.Config.Render.StaticLights;
         m_staticScroll = world.Config.Render.StaticScroll;
 
         if (!m_staticMode)
@@ -99,8 +97,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
-        if (m_staticLights)
-            m_world.SectorLightChanged += World_SectorLightChanged;
+        m_world.SectorLightChanged += World_SectorLightChanged;
         if (m_staticScroll)
             m_world.SideScrollChanged += World_SideScrollChanged;
 
@@ -732,9 +729,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
-        if (!m_staticLights)
-            return;
-
         if (m_updatelightSectorsLookup.Contains(e.Id))
             return;
 

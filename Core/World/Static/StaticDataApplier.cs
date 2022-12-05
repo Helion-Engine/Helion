@@ -21,14 +21,12 @@ public class StaticDataApplier
     const SideTexture MiddleUpper = SideTexture.Middle | SideTexture.Upper;
 
     private static bool IsLoading;
-    private static bool StaticLights;
 
     private static readonly HashSet<int> SectorMovementLookup = new();
 
     public static void DetermineStaticData(WorldBase world)
     {
         IsLoading = true;
-        StaticLights = world.Config.Render.StaticLights;
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
@@ -66,18 +64,6 @@ public class StaticDataApplier
             IsLoading = save;
             return;
         }
-
-        if (!StaticLights)
-        {
-            var transferFloor = sector.TransferFloorLightSector;
-            var transferCeiling = sector.TransferCeilingLightSector;
-
-            if (transferFloor.Id != sector.Id && (!transferFloor.IsFloorStatic || transferFloor.DataChanges.HasFlag(SectorDataTypes.Light)))
-                SetSectorDynamic(world, sector, true, false, SectorDynamic.Light, SideTexture.None);
-
-            if (transferCeiling.Id != sector.Id && (!transferCeiling.IsFloorStatic || transferCeiling.DataChanges.HasFlag(SectorDataTypes.Light)))
-                SetSectorDynamic(world, sector, false, true, SectorDynamic.Light, SideTexture.None);
-        }
     }
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
@@ -107,17 +93,6 @@ public class StaticDataApplier
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
             world.Blockmap.LinkDynamicSide(world, line.Back);
-        }
-
-        var special = line.Special;
-        if (special == LineSpecial.Default)
-            return;
-
-        if (special.IsSectorSpecial() && !special.IsSectorStopMove())
-        {
-            var sectors = world.SpecialManager.GetSectorsFromSpecialLine(line);
-            if (!StaticLights && !special.IsTransferLight() && !special.IsSectorFloorTrigger())
-                SetSectorsDynamic(world, sectors, true, true, SectorDynamic.Light);
         }
     }
 
@@ -155,7 +130,7 @@ public class StaticDataApplier
             return;
         }
 
-        if (StaticLights && sectorDynamic == SectorDynamic.Light)
+        if (sectorDynamic == SectorDynamic.Light)
             return;
 
         if (floor)
