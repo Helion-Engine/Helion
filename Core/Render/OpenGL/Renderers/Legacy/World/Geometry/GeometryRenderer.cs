@@ -605,7 +605,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector, out _))
+        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
@@ -616,7 +616,14 @@ public class GeometryRenderer : IDisposable
         return facingZ < otherZ;
     }
 
-    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
+    public bool UpperIsVisible(Sector facingSector, Sector otherSector)
+    {
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        return facingZ > otherZ;
+    }
+
+    public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         skyHack = false;
         double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
@@ -644,6 +651,7 @@ public class GeometryRenderer : IDisposable
                 skyHack = facingZ <= otherZ;
                 return skyHack;
             }
+
             // Need to draw sky upper if other sector is not sky.
             skyHack = !isOtherSky;
             return skyHack;
@@ -786,7 +794,7 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null)
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || !UpperIsVisible(facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;
