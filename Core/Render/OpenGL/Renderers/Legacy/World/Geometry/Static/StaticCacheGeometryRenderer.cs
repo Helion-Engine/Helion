@@ -217,7 +217,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             // TODO this is dumb
             if (skyVertices2 != null)
+            {
+                // The side has to be marked to be re-calculated on movement because it can completely change how the sky is rendered.
+                side.Upper.Sky = true;
                 skyVertices = skyVertices2;
+            }
 
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
@@ -635,7 +639,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
-            if (line.Front.Upper.IsDynamic)
+            if (line.Front.Upper.IsDynamic || line.Front.Upper.Sky)
             {
                 ClearGeometryVertices(line.Front.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
@@ -657,7 +661,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            if (line.Back.Upper.IsDynamic)
+            if (line.Back.Upper.IsDynamic || line.Back.Upper.Sky)
             {
                 ClearGeometryVertices(line.Back.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);

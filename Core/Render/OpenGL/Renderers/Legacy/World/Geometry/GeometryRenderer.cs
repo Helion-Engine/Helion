@@ -81,19 +81,19 @@ public class GeometryRenderer : IDisposable
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
         RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
         m_program = program;
-        m_glTextureManager = textureManager;
+        m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        Portals = new(config, textureManager);
-        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
+        Portals = new(config, archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, m_program, this);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -619,18 +619,18 @@ public class GeometryRenderer : IDisposable
     public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         skyHack = false;
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+
         if (isFacingSky && isOtherSky)
         {
             // The sky is only drawn if there is no opening height
             // Otherwise ignore this line for sky effects
-            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
+            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0 && facingZ != otherZ;
             return skyHack;
         }
-
-        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
 
         bool upperVisible = facingZ > otherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
@@ -841,10 +841,10 @@ public class GeometryRenderer : IDisposable
         }
 
         bool isFront = facingSide.IsFront;
-        WallVertices wall;
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
+        WallVertices wall;
         if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {

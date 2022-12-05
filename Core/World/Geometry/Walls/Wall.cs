@@ -15,6 +15,7 @@ public class Wall
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
     public bool IsDynamic => Dynamic != SectorDynamic.None;
+    public bool Sky;
 
     public Wall(int id, int textureHandle, WallLocation location)
     {

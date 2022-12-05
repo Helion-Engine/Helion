@@ -4,6 +4,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -18,14 +19,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 public class PortalRenderer : IDisposable
 {
     private readonly FloodFillRenderer m_floodFillRenderer;
-    private SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
-    private SectorPlane m_fakeCeiling = new(0, SectorPlaneFace.Floor, 0, 0, 0);
+    private readonly ArchiveCollection m_archiveCollection;
+    private readonly SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
+    private readonly SectorPlane m_fakeCeiling = new(0, SectorPlaneFace.Floor, 0, 0, 0);
     // TODO: Skies go here later.
     private bool m_disposed;
 
-    public PortalRenderer(IConfig config, LegacyGLTextureManager textureManager)
+    public PortalRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
-        m_floodFillRenderer = new(config, textureManager);
+        m_archiveCollection = archiveCollection;
+        m_floodFillRenderer = new(config, glTextureManager);
     }
 
     ~PortalRenderer()
@@ -53,7 +56,11 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = otherSide.Sector.Ceiling;
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
             double floodMaxZ = bottom.Z;
-            facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+            if (!IsSky(floodSector.Ceiling))
+                facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+
+            if (IsSky(facingSide.Sector.Ceiling))
+                return;
 
             bottom = facingSide.Sector.Ceiling;
             m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
@@ -70,7 +77,11 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = facingSide.Sector.Floor;
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
             double floodMinZ = top.Z;
-            facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
+            if (!IsSky(floodSector.Floor))
+                facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
+
+            if (IsSky(facingSide.Sector.Floor))
+                return;
 
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.
             top = facingSide.Sector.Floor;
@@ -134,4 +145,6 @@ public class PortalRenderer : IDisposable
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+
+    private bool IsSky(SectorPlane plane) => m_archiveCollection.TextureManager.IsSkyTexture(plane.TextureHandle);
 }
