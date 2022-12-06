@@ -1,6 +1,7 @@
 ﻿using GlmSharp;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Helion.GeometryNew;
@@ -15,6 +16,10 @@ public struct Vec2i
     public int Height => Y;
     public int Area => Width * Height;
     public float Aspect => (float)Width / (float)Height;
+    public Vec2i RotateRight90 => (Y, -X);
+    public Vec2i RotateLeft90 => (-Y, X);
+    public Vec2f Float => (X, Y);
+    public Vec2d Double => (X, Y);
 
     public Vec2i(int x, int y)
     {
@@ -36,8 +41,13 @@ public struct Vec2i
     public static Vec2i operator -(Vec2i self) => new(-self.X, -self.Y);
     public static Vec2i operator +(Vec2i self, Vec2i other) => new(self.X + other.X, self.Y + other.Y);
     public static Vec2i operator -(Vec2i self, Vec2i other) => new(self.X - other.X, self.Y - other.Y);
+    public static Vec2i operator *(Vec2i self, int scale) => new(self.X * scale, self.Y * scale);
+    public static Vec2i operator *(Vec2i self, Vec2i other) => new(self.X * other.X, self.Y * other.Y);
     public static bool operator ==(Vec2i self, Vec2i other) => self.X == other.X && self.Y == other.Y;
     public static bool operator !=(Vec2i self, Vec2i other) => !(self == other);
+
+    public Vec2i Min(Vec2i other) => (Math.Min(X, other.X), Math.Min(Y, other.Y));
+    public Vec2i Max(Vec2i other) => (Math.Max(X, other.X), Math.Max(Y, other.Y));
 
     public override string ToString() => $"{X}, {Y}";
     public override bool Equals(object? obj) => obj is Vec2f v && Equals(v);
@@ -66,11 +76,14 @@ public struct Vec2f :
     public float Width => X;
     public float Height => Y;
     public float Area => Width * Height;
-    public Vec2f Unit => this / Length;
     public float LengthSquared => (X * X) + (Y * Y);
     public float Length => MathF.Sqrt(LengthSquared);
-    public Vec2f Inverse => new(1.0f / X, 1.0f / Y);
+    public Vec2f Unit => this / Length;
+    public Vec2f RotateRight90 => (Y, -X);
+    public Vec2f RotateLeft90 => (-Y, X);
+    public Vec2f Inverse => (1.0f / X, 1.0f / Y);
     public vec2 Glm => new(X, Y);
+    public Vec2i Int => ((int)X, (int)Y);
     public Vec2d Double => (X, Y);
 
     public Vec2f(float x, float y)
@@ -108,14 +121,21 @@ public struct Vec2f :
     public float Distance(Vec2f other) => (other - this).Length;
     public float DistanceSquared(Vec2f other) => (other - this).LengthSquared;
     public void Normalize() => this /= Length;
-    public Vec2f Lerp(Vec2f end, float t) => this + ((end - this) * t);
+    public float Component(Vec2f onto) => Dot(onto) / onto.Length;
+    public Vec2f Projection(Vec2f onto) => Dot(onto) / onto.LengthSquared * onto;
     public float Angle(Vec2f other) => MathF.Atan2(other.Y - Y, other.X - X);
     public float Angle(Vec3f other) => MathF.Atan2(other.Y - Y, other.X - X);
-    public bool Equals(Vec2f other) => X == other.X && Y == other.Y;
+    public Vec2f Rotate(float radians)
+    {
+        float sin = MathF.Sin(radians);
+        float cos = MathF.Cos(radians);
+        return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
+    }
 
-    public override string ToString() => $"{X}, {Y}";
+    public bool Equals(Vec2f other) => X == other.X && Y == other.Y;
     public override bool Equals(object? obj) => obj is Vec2f v && Equals(v);
     public override int GetHashCode() => HashCode.Combine(X, Y);
+    public override string ToString() => $"{X}, {Y}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -140,10 +160,13 @@ public struct Vec2d :
     public double Width => X;
     public double Height => Y;
     public double Area => Width * Height;
-    public Vec2d Unit => this / Length;
     public double LengthSquared => (X * X) + (Y * Y);
     public double Length => Math.Sqrt(LengthSquared);
-    public Vec2d Inverse => new(1.0f / X, 1.0f / Y);
+    public Vec2d Unit => this / Length;
+    public Vec2d RotateRight90 => (Y, -X);
+    public Vec2d RotateLeft90 => (-Y, X);
+    public Vec2d Inverse => (1.0f / X, 1.0f / Y);
+    public Vec2i Int => ((int)X, (int)Y); 
     public Vec2f Float => ((float)X, (float)Y);
 
     public Vec2d(double x, double y)
@@ -181,13 +204,21 @@ public struct Vec2d :
     public void Normalize() => this /= Length;
     public double DistanceSquared(Vec2d other) => (this - other).LengthSquared;
     public double Distance(Vec2d other) => (this - other).Length;
+    public double Component(Vec2d onto) => Dot(onto) / onto.Length;
+    public Vec2d Projection(Vec2d onto) => Dot(onto) / onto.LengthSquared * onto;
     public double Angle(Vec2d other) => Math.Atan2(other.Y - Y, other.X - X);
     public double Angle(Vec3d other) => Math.Atan2(other.Y - Y, other.X - X);
-    public bool Equals(Vec2d other) => X == other.X && Y == other.Y;
+    public Vec2d Rotate(double radians)
+    {
+        double sin = Math.Sin(radians);
+        double cos = Math.Cos(radians);
+        return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
+    }
 
-    public override string ToString() => $"{X}, {Y}";
+    public bool Equals(Vec2d other) => X == other.X && Y == other.Y;
     public override bool Equals(object? obj) => obj is Vec2d v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
+    public override string ToString() => $"{X}, {Y}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -248,13 +279,12 @@ public struct Vec3f :
     public void Normalize() => this /= Length;
     public float DistanceSquared(Vec3f other) => (this - other).LengthSquared;
     public float Distance(Vec3f other) => (this - other).Length;
-    public Vec3f Lerp(Vec3f end, float t) => this + (t * (end - this));
     public float Dot(Vec3f other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
-    public bool Equals(Vec3f other) => X == other.X && Y == other.Y;
 
-    public override string ToString() => $"{X}, {Y}, {Z}";
+    public bool Equals(Vec3f other) => X == other.X && Y == other.Y;
     public override bool Equals(object? obj) => obj is Vec3f v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
+    public override string ToString() => $"{X}, {Y}, {Z}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -315,13 +345,12 @@ public struct Vec3d :
     public void Normalize() => this /= Length;
     public double DistanceSquared(Vec3d other) => (this - other).LengthSquared;
     public double Distance(Vec3d other) => (this - other).Length;
-    public Vec3d Lerp(Vec3d end, double t) => this + (t * (end - this));
     public double Dot(Vec3d other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
-    public bool Equals(Vec3d other) => X == other.X && Y == other.Y;
 
-    public override string ToString() => $"{X}, {Y}, {Z}";
+    public bool Equals(Vec3d other) => X == other.X && Y == other.Y;
     public override bool Equals(object? obj) => obj is Vec3d v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
+    public override string ToString() => $"{X}, {Y}, {Z}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]

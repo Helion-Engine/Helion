@@ -31,7 +31,6 @@ public static class MathHelper
         return T.Clamp(value, low, high);
     }
 
-
     public static bool IsZero<T>(this T value) where T : IFloatingPoint<T>
     {
         return IsZero(value, T.Epsilon);
