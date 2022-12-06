@@ -17,21 +17,22 @@ public class AccelScrollSpeed
     {
         Sector = changeSector;
         m_speed = speed;
-        LastChangeZ = Sector.Floor.Z;
+        LastChangeZ = GetZ();
         ScrollFlags = scrollFlags;
     }
 
     public void Tick()
     {
-        if (LastChangeZ == Sector.Floor.Z)
+        double currentZ = GetZ();
+        if (LastChangeZ == currentZ)
         {
             if (ScrollFlags.HasFlag(ZDoomScroll.Displacement))
                 AccelSpeed = Vec2D.Zero;
             return;
         }
 
-        double diff = Sector.Floor.Z - LastChangeZ;
-        LastChangeZ = Sector.Floor.Z;
+        double diff = currentZ - LastChangeZ;
+        LastChangeZ = currentZ;
         Vec2D speed = m_speed;
         speed *= diff;
 
@@ -40,4 +41,7 @@ public class AccelScrollSpeed
         else
             AccelSpeed = speed;
     }
+
+    private double GetZ() => Sector.Ceiling.Z - Sector.Floor.Z;
+
 }
