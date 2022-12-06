@@ -237,10 +237,7 @@ public class SpecialManager : ITickable, IDisposable
                 continue;
 
             if (!moveSpecial.MultiSector)
-            {
-                SectorSpecialDestroyed?.Invoke(this, moveSpecial);
                 continue;
-            }
 
             foreach ((Sector sector, SectorPlane plane) in moveSpecial.GetSectors())
             {
@@ -248,6 +245,16 @@ public class SpecialManager : ITickable, IDisposable
                 moveSpecial.SectorPlane = plane;
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
             }
+        }
+
+        // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can be off if referencing other sectors.
+        for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
+            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
+                continue;
+
+            SectorSpecialDestroyed?.Invoke(this, moveSpecial);
         }
 
         m_destroyedMoveSpecials.Clear();
