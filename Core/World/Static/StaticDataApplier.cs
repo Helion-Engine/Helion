@@ -191,8 +191,13 @@ public class StaticDataApplier
 
     public static void ClearSectorDynamicMovement(IWorld world, SectorPlane plane)
     {
-        plane.Sector.UnlinkFromWorld(world);
         plane.Dynamic &= ~SectorDynamic.Movement;
+
+        // Floor and ceiling can move independently so don't clear it yet.
+        if (plane.Sector.IsMoving)
+            return;
+
+        plane.Sector.UnlinkFromWorld(world);
 
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
