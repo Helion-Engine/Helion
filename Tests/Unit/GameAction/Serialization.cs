@@ -171,7 +171,7 @@ public class Serialization : IDisposable
         var specials = world.SpecialManager.GetSpecials();
         previousSpecials.Count.Should().Be(specials.Count);
 
-        foreach (var special in previousSpecials)
+        foreach (var special in specials)
         {
             if (!special.OverrideEquals)
                 continue;

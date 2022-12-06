@@ -89,6 +89,9 @@ public class LegacySkyRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
+        if (m_skyComponentsList.Count == 0)
+            return;
+
         GL.Enable(EnableCap.StencilTest);
         GL.StencilMask(0xFF);
         GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);

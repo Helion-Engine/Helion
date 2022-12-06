@@ -10,11 +10,11 @@ public class SkySphereShader : RenderProgram
     {
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms["boundTexture"] = unit;
-    public void HasInvulnerability(bool invul) => Uniforms["hasInvulnerability"] = invul;
-    public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
-    public void ScaleU(float u) => Uniforms["scaleU"] = u;
-    public void FlipU(bool flip) => Uniforms["flipU"] = flip;
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
+    public void ScaleU(float u) => Uniforms.Set(u, "scaleU");
+    public void FlipU(bool flip) => Uniforms.Set(flip, "flipU");
 
     protected override string VertexShader() => @"
         #version 330

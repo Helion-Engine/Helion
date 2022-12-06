@@ -10,8 +10,8 @@ public class LegacyHudShader : RenderProgram
     {
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms["boundTexture"] = unit;
-    public void Mvp(mat4 mat) => Uniforms["mvp"] = mat;
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
 
     protected override string VertexShader() => @"
         #version 330

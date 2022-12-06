@@ -1,56 +1,64 @@
-using GlmSharp;
-using Helion.Render.OpenGL.Context;
+﻿using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Vertex;
+using Microsoft.FSharp.Core;
 using OpenTK.Graphics.OpenGL;
 
-namespace Helion.Render.OpenGL.Renderers.Legacy.World;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public class LegacyShader : RenderProgram
+public class FloodFillPlaneProgram : RenderProgram
 {
-    public LegacyShader() : base("World")
+    private readonly int m_zLocation;
+    private readonly int m_boundTextureLocation;
+    private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_lightDropoffLocation;
+    private readonly int m_mvpLocation;
+    private readonly int m_mvpNoPitchLocation;
+    private readonly int m_lightLevelMixLocation;
+    private readonly int m_extraLightLocation;
+    private readonly int m_lightLevelFragLocation;
+
+    public FloodFillPlaneProgram() : base("Flood fill plane")
     {
+        m_zLocation = Uniforms.GetLocation("z");
+        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_lightDropoffLocation = Uniforms.GetLocation("lightDropoff");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
+        m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
+        m_extraLightLocation = Uniforms.GetLocation("extraLight");
+        m_lightLevelFragLocation = Uniforms.GetLocation("lightLevelFrag");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
-    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, "lightDropoff");
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
-    public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
-    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
-    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
+    public void SetZ(float z) => Uniforms.Set(z, m_zLocation);
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, m_lightDropoffLocation);
+    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
+    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
+    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
+    public void LightLevelFrag(float lightLevelFrag) => Uniforms.Set(lightLevelFrag, m_lightLevelFragLocation);
 
     protected override string VertexShader() => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
-        layout(location = 2) in float lightLevel;
-        layout(location = 3) in float alpha;
-        layout(location = 4) in vec3 colorMul;
-        layout(location = 5) in float fuzz;
 
         out vec2 uvFrag;
-        flat out float lightLevelFrag;
-        flat out float alphaFrag;
-        out vec3 colorMulFrag;
-        flat out float fuzzFrag;
         out float dist;
 
+        uniform float z;
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
 
         void main() {
             uvFrag = uv;
-            lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
-            alphaFrag = alpha;
-            colorMulFrag = colorMul;
-            fuzzFrag = fuzz;
+            dist = (mvpNoPitch * vec4(pos, 1.0)).z;
 
-            vec4 pos_ = vec4(pos, 1.0);
-            gl_Position = mvp * pos_;
-            dist = (mvpNoPitch * pos_).z;
+            gl_Position = mvp * vec4(pos.xy, z, 1.0);
         }
     ";
 
@@ -58,37 +66,17 @@ public class LegacyShader : RenderProgram
         #version 330
 
         in vec2 uvFrag;
-        flat in float lightLevelFrag;
-        flat in float alphaFrag;
-        in vec3 colorMulFrag;
-        flat in float fuzzFrag;
         in float dist;
 
         out vec4 fragColor;
 
         uniform int hasInvulnerability;
         uniform int lightDropoff;
-        uniform float timeFrac;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
-
-        // These two functions are found here:
-        // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-        float rand(vec2 n) {
-            return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
-        }
-
-        float noise(vec2 p) {
-            vec2 ip = floor(p);
-            vec2 u = fract(p);
-            u = u * u * (3.0 - 2.0 * u);
-
-            float res = mix(
-	            mix(rand(ip), rand(ip + vec2(1.0, 0.0)), u.x),
-	            mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x), u.y);
-            return res * res;
-        }
+        // Forgive me...
+        uniform float lightLevelFrag;
 
         // Defined in GLHelper as well
         const int colorMaps = 32;
@@ -113,7 +101,7 @@ public class LegacyShader : RenderProgram
         }
 
         void main() {
-            float lightLevel = lightLevelFrag;
+            float lightLevel = clamp(lightLevelFrag, 0.0, 256.0);
 
             if (lightDropoff > 0)
             {
@@ -133,20 +121,7 @@ public class LegacyShader : RenderProgram
             lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
             fragColor = texture(boundTexture, uvFrag.st);
 
-            if (fuzzFrag > 0) {
-                lightLevel = 0;
-                // The division/floor is to chunk pixels together to make
-                // blocks. A larger denominator makes it more blocky.
-                vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= step(0.25, noise(blockCoordinate * timeFrac));
-            }
-
-            fragColor.xyz *= colorMulFrag;
             fragColor.xyz *= lightLevel;
-            fragColor.w *= alphaFrag;
-
-            if (fragColor.w <= 0.0)
-                discard;
 
             // If invulnerable, grayscale everything and crank the brightness.
             // Note: The 1.5x is a visual guess to make it look closer to vanilla.

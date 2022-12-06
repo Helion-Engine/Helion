@@ -5,6 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -38,6 +39,7 @@ public class GeometryRenderer : IDisposable
     private const double MaxSky = 16384;
 
     public readonly List<IRenderObject> AlphaSides = new();
+    public readonly PortalRenderer Portals;
     private readonly IConfig m_config;
     private readonly RenderProgram m_program;
     private readonly LegacyGLTextureManager m_glTextureManager;
@@ -79,18 +81,19 @@ public class GeometryRenderer : IDisposable
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
         RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
         m_program = program;
-        m_glTextureManager = textureManager;
+        m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
+        Portals = new(config, archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, m_program, this);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -132,6 +135,7 @@ public class GeometryRenderer : IDisposable
         CacheData(world);
         Clear(m_tickFraction);
 
+        Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world);
     }
 
@@ -187,6 +191,7 @@ public class GeometryRenderer : IDisposable
     {
         m_tickFraction = tickFraction;
         m_skyRenderer.Clear();
+        Portals.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
     }
@@ -197,6 +202,7 @@ public class GeometryRenderer : IDisposable
     public void Render(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);
+        Portals.Render(renderInfo);
         m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
     }
 
@@ -268,6 +274,12 @@ public class GeometryRenderer : IDisposable
         m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
         m_position = position;
         RenderSectorWall(sector, line, position.XY);
+    }
+
+    public void SetPlaneChanged(bool set)
+    {
+        m_floorChanged = set;
+        m_ceilingChanged = set;
     }
 
     public static void UpdateOffsetVertices(LegacyVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
@@ -593,7 +605,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector))
+        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
@@ -604,28 +616,45 @@ public class GeometryRenderer : IDisposable
         return facingZ < otherZ;
     }
 
-    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Sector facingSector, Sector otherSector)
     {
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        return facingZ > otherZ;
+    }
+
+    public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
+    {
+        skyHack = false;
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+
         if (isFacingSky && isOtherSky)
         {
             // The sky is only drawn if there is no opening height
             // Otherwise ignore this line for sky effects
-            return LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
+            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0 && facingZ != otherZ;
+            return skyHack;
         }
-
-        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
 
         bool upperVisible = facingZ > otherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
+            if (facingSide.FloodTextures.HasFlag(SideTexture.Upper))
+                return true;
+
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
-                return facingZ <= otherZ;
+            {
+                skyHack = facingZ <= otherZ;
+                return skyHack;
+            }
+
             // Need to draw sky upper if other sector is not sky.
-            return !isOtherSky;
+            skyHack = !isOtherSky;
+            return skyHack;
         }
 
         return upperVisible;
@@ -765,7 +794,7 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null)
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || !UpperIsVisible(facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;
@@ -820,10 +849,10 @@ public class GeometryRenderer : IDisposable
         }
 
         bool isFront = facingSide.IsFront;
-        WallVertices wall;
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
+        WallVertices wall;
         if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
@@ -958,6 +987,13 @@ public class GeometryRenderer : IDisposable
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {
+        if (sector.Id >= m_subsectors.Length)
+        {
+            verticies = null;
+            skyVerticies = null;
+            return;
+        }
+
         DynamicArray<Subsector> subsectors = m_subsectors[sector.Id];
         RenderFlat(subsectors, flat, floor, out verticies, out skyVerticies);
     }
@@ -1377,5 +1413,6 @@ public class GeometryRenderer : IDisposable
     {
         m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
+        Portals.Dispose();
     }
 }

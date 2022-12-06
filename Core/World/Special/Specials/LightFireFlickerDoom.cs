@@ -35,6 +35,7 @@ public class LightFireFlickerDoom : SectorSpecialBase
     {
         return new LightFireFlickerDoomModel()
         {
+            SectorId = Sector.Id,
             Min = MinBright,
             Max = MaxBright,
             Delay = m_delay

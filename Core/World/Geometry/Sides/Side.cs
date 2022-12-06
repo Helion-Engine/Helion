@@ -25,6 +25,7 @@ public class Side : IRenderObject
     public bool OffsetChanged { get; set; }
     public bool IsStatic => Upper.Dynamic == SectorDynamic.None && Middle.Dynamic == SectorDynamic.None && Lower.Dynamic == SectorDynamic.None;
     public bool IsDynamic => Upper.Dynamic != SectorDynamic.None || Middle.Dynamic != SectorDynamic.None || Lower.Dynamic != SectorDynamic.None;
+    public SideTexture FloodTextures;
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;
@@ -36,6 +37,10 @@ public class Side : IRenderObject
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
     public int BlockmapCount;
+    public int UpperFloodGeometryKey;
+    public int LowerFloodGeometryKey;
+    public int UpperFloodGeometryKey2;
+    public int LowerFloodGeometryKey2;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {

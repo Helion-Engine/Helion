@@ -29,6 +29,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
+using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
@@ -40,7 +41,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
-    private readonly LegacyShader m_program;
+    private readonly LegacyShader m_program = new();
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
@@ -53,7 +54,6 @@ public class LegacyWorldRenderer : WorldRenderer
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
-        m_program = new();
         m_automapRenderer = new(archiveCollection);
         m_worldDataManager = new(archiveCollection.DataCache);
         m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);
@@ -178,6 +178,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_config.Render.TextureTransparency)
         {
             m_program.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetUniforms(renderInfo);
             m_worldDataManager.DrawAlpha();
             m_program.Unbind();
         }

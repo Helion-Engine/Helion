@@ -101,9 +101,6 @@ public class ConfigRender
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
-    [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
-    public readonly ConfigValue<bool> StaticLights = new(true);
-
     [ConfigInfo("Update scrolling walls for static rendering.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticScroll = new(false);
 
@@ -112,4 +109,7 @@ public class ConfigRender
 
     [ConfigInfo("Field of view. Default = 90")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60, 120));
+
+    [ConfigInfo("Enable sector flood fill.", restartRequired: true)]
+    public readonly ConfigValue<bool> FloodFill = new(true);
 }
