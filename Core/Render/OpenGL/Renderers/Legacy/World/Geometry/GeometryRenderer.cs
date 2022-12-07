@@ -97,9 +97,6 @@ public class GeometryRenderer : IDisposable
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
-            m_wallVertices[i].R = 1.0f;
-            m_wallVertices[i].G = 1.0f;
-            m_wallVertices[i].B = 1.0f;
             m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
         }
@@ -1301,9 +1298,6 @@ public class GeometryRenderer : IDisposable
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
-        data[0].R = 1.0f;
-        data[0].G = 1.0f;
-        data[0].B = 1.0f;
         data[0].Fuzz = 0;
 
         data[1].LightLevel = lightLevel;
@@ -1313,9 +1307,6 @@ public class GeometryRenderer : IDisposable
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
-        data[1].R = 1.0f;
-        data[1].G = 1.0f;
-        data[1].B = 1.0f;
         data[1].Fuzz = 0;
 
         data[2].LightLevel = lightLevel;
@@ -1325,9 +1316,6 @@ public class GeometryRenderer : IDisposable
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
-        data[2].R = 1.0f;
-        data[2].G = 1.0f;
-        data[2].B = 1.0f;
         data[2].Fuzz = 0;
 
         data[3].LightLevel = lightLevel;
@@ -1337,9 +1325,6 @@ public class GeometryRenderer : IDisposable
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
-        data[3].R = 1.0f;
-        data[3].G = 1.0f;
-        data[3].B = 1.0f;
         data[3].Fuzz = 0;
 
         data[4].LightLevel = lightLevel;
@@ -1349,9 +1334,6 @@ public class GeometryRenderer : IDisposable
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
-        data[4].R = 1.0f;
-        data[4].G = 1.0f;
-        data[4].B = 1.0f;
         data[4].Fuzz = 0;
 
         data[5].LightLevel = lightLevel;
@@ -1361,9 +1343,6 @@ public class GeometryRenderer : IDisposable
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
-        data[5].R = 1.0f;
-        data[5].G = 1.0f;
-        data[5].B = 1.0f;
         data[5].Fuzz = 0;
 
         return data;
@@ -1380,9 +1359,6 @@ public class GeometryRenderer : IDisposable
             U = root.U,
             V = root.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
 
@@ -1395,9 +1371,6 @@ public class GeometryRenderer : IDisposable
             U = second.U,
             V = second.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
 
@@ -1410,9 +1383,6 @@ public class GeometryRenderer : IDisposable
             U = third.U,
             V = third.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
     }

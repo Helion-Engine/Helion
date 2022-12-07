@@ -28,13 +28,11 @@ public class LegacyShader : RenderProgram
         layout(location = 1) in vec2 uv;
         layout(location = 2) in float lightLevel;
         layout(location = 3) in float alpha;
-        layout(location = 4) in vec3 colorMul;
-        layout(location = 5) in float fuzz;
+        layout(location = 4) in float fuzz;
 
         out vec2 uvFrag;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
-        out vec3 colorMulFrag;
         flat out float fuzzFrag;
         out float dist;
 
@@ -45,7 +43,6 @@ public class LegacyShader : RenderProgram
             uvFrag = uv;
             lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
             alphaFrag = alpha;
-            colorMulFrag = colorMul;
             fuzzFrag = fuzz;
 
             vec4 pos_ = vec4(pos, 1.0);
@@ -60,7 +57,6 @@ public class LegacyShader : RenderProgram
         in vec2 uvFrag;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
-        in vec3 colorMulFrag;
         flat in float fuzzFrag;
         in float dist;
 
@@ -141,7 +137,6 @@ public class LegacyShader : RenderProgram
                 fragColor.w *= step(0.25, noise(blockCoordinate * timeFrac));
             }
 
-            fragColor.xyz *= colorMulFrag;
             fragColor.xyz *= lightLevel;
             fragColor.w *= alphaFrag;
 

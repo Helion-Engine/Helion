@@ -22,11 +22,6 @@ public struct LegacyVertex
     [VertexAttribute]
     public float Alpha;
 
-    [VertexAttribute("colorMul", size: 3)]
-    public float R;
-    public float G;
-    public float B;
-
     [VertexAttribute]
     public float Fuzz;
 
@@ -39,9 +34,6 @@ public struct LegacyVertex
         V = v;
         LightLevel = lightLevel;
         Alpha = alpha;
-        R = 1f;
-        G = 1f;
-        B = 1f;
         Fuzz = fuzz;
     }
 }
