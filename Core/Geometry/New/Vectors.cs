@@ -17,8 +17,7 @@ public struct Vec2i
     public float Aspect => (float)Width / (float)Height;
     public Vec2i RotateRight90 => (Y, -X);
     public Vec2i RotateLeft90 => (-Y, X);
-    public Vec2f Float => (X, Y);
-    public Vec2d Double => (X, Y);
+    public Vec2 Float => (X, Y);
 
     public Vec2i(int x, int y)
     {
@@ -53,23 +52,23 @@ public struct Vec2i
     public Vec2i Max(Vec2i other) => (Math.Max(X, other.X), Math.Max(Y, other.Y));
 
     public override string ToString() => $"{X}, {Y}";
-    public override bool Equals(object? obj) => obj is Vec2f v && Equals(v);
+    public override bool Equals(object? obj) => obj is Vec2 v && Equals(v);
     public override int GetHashCode() => HashCode.Combine(X, Y);
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Vec2f : 
-    IAdditionOperators<Vec2f, Vec2f, Vec2f>,
-    ISubtractionOperators<Vec2f, Vec2f, Vec2f>,
-    IMultiplyOperators<Vec2f, Vec2f, Vec2f>,
-    IMultiplyOperators<Vec2f, float, Vec2f>,
-    IDivisionOperators<Vec2f, Vec2f, Vec2f>,
-    IDivisionOperators<Vec2f, float, Vec2f>,
-    IEqualityOperators<Vec2f, Vec2f>,
-    IUnaryNegationOperators<Vec2f, Vec2f>
+public struct Vec2 : 
+    IAdditionOperators<Vec2, Vec2, Vec2>,
+    ISubtractionOperators<Vec2, Vec2, Vec2>,
+    IMultiplyOperators<Vec2, Vec2, Vec2>,
+    IMultiplyOperators<Vec2, float, Vec2>,
+    IDivisionOperators<Vec2, Vec2, Vec2>,
+    IDivisionOperators<Vec2, float, Vec2>,
+    IEqualityOperators<Vec2, Vec2>,
+    IUnaryNegationOperators<Vec2, Vec2>
 {
-    public static readonly Vec2f Zero = (0.0f, 0.0f);
-    public static readonly Vec2f One = (1.0f, 1.0f);
+    public static readonly Vec2 Zero = (0.0f, 0.0f);
+    public static readonly Vec2 One = (1.0f, 1.0f);
 
     public float X;
     public float Y;
@@ -81,23 +80,22 @@ public struct Vec2f :
     public float Area => Width * Height;
     public float LengthSquared => (X * X) + (Y * Y);
     public float Length => MathF.Sqrt(LengthSquared);
-    public Vec2f Unit => this / Length;
-    public Vec2f RotateRight90 => (Y, -X);
-    public Vec2f RotateLeft90 => (-Y, X);
-    public Vec2f Inverse => (1.0f / X, 1.0f / Y);
-    public Vec2f Floor => (MathF.Floor(X), MathF.Floor(Y));
-    public Vec2f Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y));
+    public Vec2 Unit => this / Length;
+    public Vec2 RotateRight90 => (Y, -X);
+    public Vec2 RotateLeft90 => (-Y, X);
+    public Vec2 Inverse => (1.0f / X, 1.0f / Y);
+    public Vec2 Floor => (MathF.Floor(X), MathF.Floor(Y));
+    public Vec2 Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y));
     public vec2 Glm => new(X, Y);
     public Vec2i Int => ((int)X, (int)Y);
-    public Vec2d Double => (X, Y);
 
-    public Vec2f(float x, float y)
+    public Vec2(float x, float y)
     {
         X = x;
         Y = y;
     }
 
-    public static implicit operator Vec2f(ValueTuple<float, float> tuple)
+    public static implicit operator Vec2(ValueTuple<float, float> tuple)
     {
         return new(tuple.Item1, tuple.Item2);
     }
@@ -108,171 +106,80 @@ public struct Vec2f :
         y = Y;
     }
 
-    public static Vec2f operator -(Vec2f self) => new(-self.X, -self.Y);
-    public static Vec2f operator +(Vec2f self, Vec2f other) => new(self.X + other.X, self.Y + other.Y);
-    public static Vec2f operator -(Vec2f self, Vec2f other) => new(self.X - other.X, self.Y - other.Y);
-    public static Vec2f operator *(Vec2f self, Vec2f other) => new(self.X * other.X, self.Y * other.Y);
-    public static Vec2f operator *(Vec2f self, float value) => new(self.X * value, self.Y * value);
-    public static Vec2f operator *(float value, Vec2f self) => new(self.X * value, self.Y * value);
-    public static Vec2f operator /(Vec2f self, Vec2f other) => new(self.X / other.X, self.Y / other.Y);
-    public static Vec2f operator /(Vec2f self, float value) => new(self.X / value, self.Y / value);
-    public static bool operator <(Vec2f self, Vec2f other) => self.X < other.X && self.Y < other.Y;
-    public static bool operator <=(Vec2f self, Vec2f other) => self.X <= other.X && self.Y <= other.Y;
-    public static bool operator >(Vec2f self, Vec2f other) => self.X > other.X && self.Y > other.Y;
-    public static bool operator >=(Vec2f self, Vec2f other) => self.X >= other.X && self.Y >= other.Y;
-    public static bool operator ==(Vec2f self, Vec2f other) => self.X == other.X && self.Y == other.Y;
-    public static bool operator !=(Vec2f self, Vec2f other) => !(self == other);
+    public static Vec2 operator -(Vec2 self) => new(-self.X, -self.Y);
+    public static Vec2 operator +(Vec2 self, Vec2 other) => new(self.X + other.X, self.Y + other.Y);
+    public static Vec2 operator -(Vec2 self, Vec2 other) => new(self.X - other.X, self.Y - other.Y);
+    public static Vec2 operator *(Vec2 self, Vec2 other) => new(self.X * other.X, self.Y * other.Y);
+    public static Vec2 operator *(Vec2 self, float value) => new(self.X * value, self.Y * value);
+    public static Vec2 operator *(float value, Vec2 self) => new(self.X * value, self.Y * value);
+    public static Vec2 operator /(Vec2 self, Vec2 other) => new(self.X / other.X, self.Y / other.Y);
+    public static Vec2 operator /(Vec2 self, float value) => new(self.X / value, self.Y / value);
+    public static bool operator <(Vec2 self, Vec2 other) => self.X < other.X && self.Y < other.Y;
+    public static bool operator <=(Vec2 self, Vec2 other) => self.X <= other.X && self.Y <= other.Y;
+    public static bool operator >(Vec2 self, Vec2 other) => self.X > other.X && self.Y > other.Y;
+    public static bool operator >=(Vec2 self, Vec2 other) => self.X >= other.X && self.Y >= other.Y;
+    public static bool operator ==(Vec2 self, Vec2 other) => self.X == other.X && self.Y == other.Y;
+    public static bool operator !=(Vec2 self, Vec2 other) => !(self == other);
 
-    public Vec3f Z(float z) => (X, Y, z);
-    public Vec2f Min(Vec2f other) => (MathF.Min(X, other.X), MathF.Min(Y, other.Y));
-    public Vec2f Max(Vec2f other) => (MathF.Max(X, other.X), MathF.Max(Y, other.Y));
-    public float Dot(Vec2f other) => (X * other.X) + (Y * other.Y);
-    public float Distance(Vec2f other) => (other - this).Length;
-    public float DistanceSquared(Vec2f other) => (other - this).LengthSquared;
+    public Vec3 Z(float z) => (X, Y, z);
+    public Vec2 Min(Vec2 other) => (MathF.Min(X, other.X), MathF.Min(Y, other.Y));
+    public Vec2 Max(Vec2 other) => (MathF.Max(X, other.X), MathF.Max(Y, other.Y));
+    public float Dot(Vec2 other) => (X * other.X) + (Y * other.Y);
+    public float Distance(Vec2 other) => (other - this).Length;
+    public float DistanceSquared(Vec2 other) => (other - this).LengthSquared;
     public void Normalize() => this /= Length;
-    public float Component(Vec2f onto) => Dot(onto) / onto.Length;
-    public Vec2f Projection(Vec2f onto) => Dot(onto) / onto.LengthSquared * onto;
-    public float Angle(Vec2f other) => MathF.Atan2(other.Y - Y, other.X - X);
-    public float Angle(Vec3f other) => MathF.Atan2(other.Y - Y, other.X - X);
+    public float Component(Vec2 onto) => Dot(onto) / onto.Length;
+    public Vec2 Projection(Vec2 onto) => Dot(onto) / onto.LengthSquared * onto;
+    public float Angle(Vec2 other) => MathF.Atan2(other.Y - Y, other.X - X);
+    public float Angle(Vec3 other) => MathF.Atan2(other.Y - Y, other.X - X);
 
-    public Vec2f Rotate(float radians)
+    public Vec2 Rotate(float radians)
     {
         float sin = MathF.Sin(radians);
         float cos = MathF.Cos(radians);
         return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
     }
 
-    public bool Equals(Vec2f other) => X == other.X && Y == other.Y;
-    public bool ApproxEquals(Vec2f other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
-    public override bool Equals(object? obj) => obj is Vec2f v && Equals(v);
-    public override int GetHashCode() => HashCode.Combine(X, Y);
-    public override string ToString() => $"{X}, {Y}";
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
-public struct Vec2d :
-    IAdditionOperators<Vec2d, Vec2d, Vec2d>,
-    ISubtractionOperators<Vec2d, Vec2d, Vec2d>,
-    IMultiplyOperators<Vec2d, Vec2d, Vec2d>,
-    IMultiplyOperators<Vec2d, double, Vec2d>,
-    IDivisionOperators<Vec2d, Vec2d, Vec2d>,
-    IDivisionOperators<Vec2d, double, Vec2d>,
-    IEqualityOperators<Vec2d, Vec2d>,
-    IUnaryNegationOperators<Vec2d, Vec2d>
-{
-    public static readonly Vec2d Zero = (0.0, 0.0);
-    public static readonly Vec2d One = (1.0, 1.0);
-
-    public double X;
-    public double Y;
-
-    public double U => X;
-    public double V => Y;
-    public double Width => X;
-    public double Height => Y;
-    public double Area => Width * Height;
-    public double LengthSquared => (X * X) + (Y * Y);
-    public double Length => Math.Sqrt(LengthSquared);
-    public Vec2d Unit => this / Length;
-    public Vec2d RotateRight90 => (Y, -X);
-    public Vec2d RotateLeft90 => (-Y, X);
-    public Vec2d Inverse => (1.0f / X, 1.0f / Y);
-    public Vec2d Floor => (Math.Floor(X), Math.Floor(Y));
-    public Vec2d Ceil => (Math.Ceiling(X), Math.Ceiling(Y));
-    public Vec2i Int => ((int)X, (int)Y); 
-    public Vec2f Float => ((float)X, (float)Y);
-
-    public Vec2d(double x, double y)
-    {
-        X = x;
-        Y = y;
-    }
-
-    public static implicit operator Vec2d(ValueTuple<double, double> tuple)
-    {
-        return new(tuple.Item1, tuple.Item2);
-    }
-
-    public void Deconstruct(out double x, out double y)
-    {
-        x = X;
-        y = Y;
-    }
-
-    public static Vec2d operator -(Vec2d self) => new(-self.X, -self.Y);
-    public static Vec2d operator +(Vec2d self, Vec2d other) => new(self.X + other.X, self.Y + other.Y);
-    public static Vec2d operator -(Vec2d self, Vec2d other) => new(self.X - other.X, self.Y - other.Y);
-    public static Vec2d operator *(Vec2d self, Vec2d other) => new(self.X * other.X, self.Y * other.Y);
-    public static Vec2d operator *(Vec2d self, double value) => new(self.X * value, self.Y * value);
-    public static Vec2d operator *(double value, Vec2d self) => new(self.X * value, self.Y * value);
-    public static Vec2d operator /(Vec2d self, Vec2d other) => new(self.X / other.X, self.Y / other.Y);
-    public static Vec2d operator /(Vec2d self, double value) => new(self.X / value, self.Y / value);
-    public static bool operator <(Vec2d self, Vec2d other) => self.X < other.X && self.Y < other.Y;
-    public static bool operator <=(Vec2d self, Vec2d other) => self.X <= other.X && self.Y <= other.Y;
-    public static bool operator >(Vec2d self, Vec2d other) => self.X > other.X && self.Y > other.Y;
-    public static bool operator >=(Vec2d self, Vec2d other) => self.X >= other.X && self.Y >= other.Y;
-    public static bool operator ==(Vec2d self, Vec2d other) => self.X == other.X && self.Y == other.Y;
-    public static bool operator !=(Vec2d self, Vec2d other) => !(self == other);
-
-    public Vec3d Z(double z) => (X, Y, z);
-    public Vec2d Min(Vec2d other) => (Math.Min(X, other.X), Math.Min(Y, other.Y));
-    public Vec2d Max(Vec2d other) => (Math.Max(X, other.X), Math.Max(Y, other.Y));
-    public double Dot(Vec2d other) => (X * other.X) + (Y * other.Y);
-    public void Normalize() => this /= Length;
-    public double DistanceSquared(Vec2d other) => (this - other).LengthSquared;
-    public double Distance(Vec2d other) => (this - other).Length;
-    public double Component(Vec2d onto) => Dot(onto) / onto.Length;
-    public Vec2d Projection(Vec2d onto) => Dot(onto) / onto.LengthSquared * onto;
-    public double Angle(Vec2d other) => Math.Atan2(other.Y - Y, other.X - X);
-    public double Angle(Vec3d other) => Math.Atan2(other.Y - Y, other.X - X);
-
-    public Vec2d Rotate(double radians)
-    {
-        double sin = Math.Sin(radians);
-        double cos = Math.Cos(radians);
-        return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
-    }
-
-    public bool Equals(Vec2d other) => X == other.X && Y == other.Y;
-    public bool ApproxEquals(Vec2d other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
-    public override bool Equals(object? obj) => obj is Vec2d v && X == v.X && Y == v.Y;
+    public bool Equals(Vec2 other) => X == other.X && Y == other.Y;
+    public bool ApproxEquals(Vec2 other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
+    public override bool Equals(object? obj) => obj is Vec2 v && Equals(v);
     public override int GetHashCode() => HashCode.Combine(X, Y);
     public override string ToString() => $"{X}, {Y}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public struct Vec3f :
-    IAdditionOperators<Vec3f, Vec3f, Vec3f>,
-    ISubtractionOperators<Vec3f, Vec3f, Vec3f>,
-    IMultiplyOperators<Vec3f, Vec3f, Vec3f>,
-    IMultiplyOperators<Vec3f, float, Vec3f>,
-    IDivisionOperators<Vec3f, Vec3f, Vec3f>,
-    IDivisionOperators<Vec3f, float, Vec3f>,
-    IEqualityOperators<Vec3f, Vec3f>,
-    IUnaryNegationOperators<Vec3f, Vec3f>
+public struct Vec3 :
+    IAdditionOperators<Vec3, Vec3, Vec3>,
+    ISubtractionOperators<Vec3, Vec3, Vec3>,
+    IMultiplyOperators<Vec3, Vec3, Vec3>,
+    IMultiplyOperators<Vec3, float, Vec3>,
+    IDivisionOperators<Vec3, Vec3, Vec3>,
+    IDivisionOperators<Vec3, float, Vec3>,
+    IEqualityOperators<Vec3, Vec3>,
+    IUnaryNegationOperators<Vec3, Vec3>
 {
     public float X;
     public float Y;
     public float Z;
 
-    public Vec2f XY => new(X, Y);
-    public Vec2f XZ => new(X, Z);
-    public Vec2f YZ => new(Y, Z);
-    public Vec3f Unit => this / Length;
-    public Vec3f Inverse => new(1.0f / X, 1.0f / Y, 1.0f / Z);
-    public Vec3f Floor => (MathF.Floor(X), MathF.Floor(Y), MathF.Floor(Z));
-    public Vec3f Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y), MathF.Ceiling(Z));
+    public Vec2 XY => new(X, Y);
+    public Vec2 XZ => new(X, Z);
+    public Vec2 YZ => new(Y, Z);
+    public Vec3 Unit => this / Length;
+    public Vec3 Inverse => new(1.0f / X, 1.0f / Y, 1.0f / Z);
+    public Vec3 Floor => (MathF.Floor(X), MathF.Floor(Y), MathF.Floor(Z));
+    public Vec3 Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y), MathF.Ceiling(Z));
     public float LengthSquared => (X * X) + (Y * Y) + (Z * Z);
     public float Length => MathF.Sqrt(LengthSquared);
 
-    public Vec3f(float x, float y, float z)
+    public Vec3(float x, float y, float z)
     {
         X = x;
         Y = y;
         Z = z;
     }
 
-    public static implicit operator Vec3f(ValueTuple<float, float, float> tuple)
+    public static implicit operator Vec3(ValueTuple<float, float, float> tuple)
     {
         return new(tuple.Item1, tuple.Item2, tuple.Item3);
     }
@@ -284,123 +191,40 @@ public struct Vec3f :
         z = Z;
     }
 
-    public static Vec3f operator -(Vec3f self) => new(-self.X, -self.Y, -self.Z);
-    public static Vec3f operator +(Vec3f self, Vec3f other) => new(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
-    public static Vec3f operator -(Vec3f self, Vec3f other) => new(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
-    public static Vec3f operator *(Vec3f self, Vec3f other) => new(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
-    public static Vec3f operator *(Vec3f self, float value) => new(self.X * value, self.Y * value, self.Z * value);
-    public static Vec3f operator *(float value, Vec3f self) => new(self.X * value, self.Y * value, self.Z * value);
-    public static Vec3f operator /(Vec3f self, Vec3f other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
-    public static Vec3f operator /(Vec3f self, float value) => new(self.X / value, self.Y / value, self.Z / value);
-    public static bool operator <(Vec3f self, Vec3f other) => self.X < other.X && self.Y < other.Y && self.Z < other.Z;
-    public static bool operator <=(Vec3f self, Vec3f other) => self.X <= other.X && self.Y <= other.Y && self.Z <= other.Z;
-    public static bool operator >(Vec3f self, Vec3f other) => self.X > other.X && self.Y > other.Y && self.Z > other.Z;
-    public static bool operator >=(Vec3f self, Vec3f other) => self.X >= other.X && self.Y >= other.Y && self.Z >= other.Z;
-    public static bool operator ==(Vec3f self, Vec3f other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-    public static bool operator !=(Vec3f self, Vec3f other) => !(self == other);
+    public static Vec3 operator -(Vec3 self) => new(-self.X, -self.Y, -self.Z);
+    public static Vec3 operator +(Vec3 self, Vec3 other) => new(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
+    public static Vec3 operator -(Vec3 self, Vec3 other) => new(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
+    public static Vec3 operator *(Vec3 self, Vec3 other) => new(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
+    public static Vec3 operator *(Vec3 self, float value) => new(self.X * value, self.Y * value, self.Z * value);
+    public static Vec3 operator *(float value, Vec3 self) => new(self.X * value, self.Y * value, self.Z * value);
+    public static Vec3 operator /(Vec3 self, Vec3 other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
+    public static Vec3 operator /(Vec3 self, float value) => new(self.X / value, self.Y / value, self.Z / value);
+    public static bool operator <(Vec3 self, Vec3 other) => self.X < other.X && self.Y < other.Y && self.Z < other.Z;
+    public static bool operator <=(Vec3 self, Vec3 other) => self.X <= other.X && self.Y <= other.Y && self.Z <= other.Z;
+    public static bool operator >(Vec3 self, Vec3 other) => self.X > other.X && self.Y > other.Y && self.Z > other.Z;
+    public static bool operator >=(Vec3 self, Vec3 other) => self.X >= other.X && self.Y >= other.Y && self.Z >= other.Z;
+    public static bool operator ==(Vec3 self, Vec3 other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
+    public static bool operator !=(Vec3 self, Vec3 other) => !(self == other);
 
-    public Vec3f Min(Vec3f other) => (MathF.Min(X, other.X), MathF.Min(Y, other.Y), MathF.Min(Z, other.Z));
-    public Vec3f Max(Vec3f other) => (MathF.Max(X, other.X), MathF.Max(Y, other.Y), MathF.Min(Z, other.Z));
+    public Vec3 Min(Vec3 other) => (MathF.Min(X, other.X), MathF.Min(Y, other.Y), MathF.Min(Z, other.Z));
+    public Vec3 Max(Vec3 other) => (MathF.Max(X, other.X), MathF.Max(Y, other.Y), MathF.Min(Z, other.Z));
     public void Normalize() => this /= Length;
-    public float DistanceSquared(Vec3f other) => (this - other).LengthSquared;
-    public float Distance(Vec3f other) => (this - other).Length;
-    public float Dot(Vec3f other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
-    public Vec3f Cross(Vec3f v) => ((Y * v.Z) - (Z * v.Y), (Z * v.X) - (X * v.Z), (X * v.Y) - (Y * v.X));
+    public float DistanceSquared(Vec3 other) => (this - other).LengthSquared;
+    public float Distance(Vec3 other) => (this - other).Length;
+    public float Dot(Vec3 other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+    public Vec3 Cross(Vec3 v) => ((Y * v.Z) - (Z * v.Y), (Z * v.X) - (X * v.Z), (X * v.Y) - (Y * v.X));
 
-    public bool Equals(Vec3f other) => X == other.X && Y == other.Y && Z == other.Z;
-    public bool ApproxEquals(Vec3f other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
-    public override bool Equals(object? obj) => obj is Vec3f v && X == v.X && Y == v.Y && Z == v.Z;
-    public override int GetHashCode() => HashCode.Combine(X, Y, Z);
-    public override string ToString() => $"{X}, {Y}, {Z}";
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
-public struct Vec3d :
-    IAdditionOperators<Vec3d, Vec3d, Vec3d>,
-    ISubtractionOperators<Vec3d, Vec3d, Vec3d>,
-    IMultiplyOperators<Vec3d, Vec3d, Vec3d>,
-    IMultiplyOperators<Vec3d, double, Vec3d>,
-    IDivisionOperators<Vec3d, Vec3d, Vec3d>,
-    IDivisionOperators<Vec3d, double, Vec3d>,
-    IEqualityOperators<Vec3d, Vec3d>,
-    IUnaryNegationOperators<Vec3d, Vec3d>
-{
-    public double X;
-    public double Y;
-    public double Z;
-
-    public Vec2d XY => new(X, Y);
-    public Vec2d XZ => new(X, Z);
-    public Vec2d YZ => new(Y, Z);
-    public Vec3d Unit => this / Length;
-    public Vec3d Inverse => new(1.0 / X, 1.0 / Y, 1.0 / Z);
-    public Vec3d Floor => (Math.Floor(X), Math.Floor(Y), Math.Floor(Z));
-    public Vec3d Ceil => (Math.Ceiling(X), Math.Ceiling(Y), Math.Ceiling(Z));
-    public double LengthSquared => (X * X) + (Y * Y) + (Z * Z);
-    public double Length => Math.Sqrt(LengthSquared);
-
-    public Vec3d(double x, double y, double z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-
-    public static implicit operator Vec3d(ValueTuple<double, double, double> tuple)
-    {
-        return new(tuple.Item1, tuple.Item2, tuple.Item3);
-    }
-
-    public void Deconstruct(out double x, out double y, out double z)
-    {
-        x = X;
-        y = Y;
-        z = Z;
-    }
-
-    public static Vec3d operator -(Vec3d self) => new(-self.X, -self.Y, -self.Z);
-    public static Vec3d operator +(Vec3d self, Vec3d other) => new(self.X + other.X, self.Y + other.Y, self.Z + other.Z);
-    public static Vec3d operator -(Vec3d self, Vec3d other) => new(self.X - other.X, self.Y - other.Y, self.Z - other.Z);
-    public static Vec3d operator *(Vec3d self, Vec3d other) => new(self.X * other.X, self.Y * other.Y, self.Z * other.Z);
-    public static Vec3d operator *(Vec3d self, double value) => new(self.X * value, self.Y * value, self.Z * value);
-    public static Vec3d operator *(double value, Vec3d self) => new(self.X * value, self.Y * value, self.Z * value);
-    public static Vec3d operator /(Vec3d self, Vec3d other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
-    public static Vec3d operator /(Vec3d self, double value) => new(self.X / value, self.Y / value, self.Z / value);
-    public static bool operator <(Vec3d self, Vec3d other) => self.X < other.X && self.Y < other.Y && self.Z < other.Z;
-    public static bool operator <=(Vec3d self, Vec3d other) => self.X <= other.X && self.Y <= other.Y && self.Z <= other.Z;
-    public static bool operator >(Vec3d self, Vec3d other) => self.X > other.X && self.Y > other.Y && self.Z > other.Z;
-    public static bool operator >=(Vec3d self, Vec3d other) => self.X >= other.X && self.Y >= other.Y && self.Z >= other.Z;
-    public static bool operator ==(Vec3d self, Vec3d other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
-    public static bool operator !=(Vec3d self, Vec3d other) => !(self == other);
-
-    public Vec3d Min(Vec3d other) => (Math.Min(X, other.X), Math.Min(Y, other.Y), Math.Min(Z, other.Z));
-    public Vec3d Max(Vec3d other) => (Math.Max(X, other.X), Math.Max(Y, other.Y), Math.Min(Z, other.Z));
-    public void Normalize() => this /= Length;
-    public double DistanceSquared(Vec3d other) => (this - other).LengthSquared;
-    public double Distance(Vec3d other) => (this - other).Length;
-    public double Dot(Vec3d other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
-    public Vec3d Cross(Vec3d v) => ((Y * v.Z) - (Z * v.Y), (Z * v.X) - (X * v.Z), (X * v.Y) - (Y * v.X));
-
-    public bool Equals(Vec3d other) => X == other.X && Y == other.Y && Z == other.Z;
-    public bool ApproxEquals(Vec3d other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
-    public override bool Equals(object? obj) => obj is Vec3d v && X == v.X && Y == v.Y && Z == v.Z;
+    public bool Equals(Vec3 other) => X == other.X && Y == other.Y && Z == other.Z;
+    public bool ApproxEquals(Vec3 other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
+    public override bool Equals(object? obj) => obj is Vec3 v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     public override string ToString() => $"{X}, {Y}, {Z}";
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
-public record struct Vec4f(float X, float Y, float Z, float W)
+public record struct Vec4(float X, float Y, float Z, float W)
 {
-    public static implicit operator Vec4f(ValueTuple<float, float, float, float> tuple)
-    {
-        return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
-    }
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
-public record struct Vec4d(double X, double Y, double Z, double W)
-{
-    public static implicit operator Vec4d(ValueTuple<double, double, double, double> tuple)
+    public static implicit operator Vec4(ValueTuple<float, float, float, float> tuple)
     {
         return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
     }

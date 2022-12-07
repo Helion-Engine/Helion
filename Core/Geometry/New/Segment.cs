@@ -1,65 +1,66 @@
 ﻿using Helion.Util.Extensions;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Helion.Geometry.New;
 
-public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
-    IAdditionOperators<Seg2d, Vec2d, Seg2d>,
-    ISubtractionOperators<Seg2d, Vec2d, Seg2d>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public readonly record struct Seg2(Vec2 Start, Vec2 End) :
+    IAdditionOperators<Seg2, Vec2, Seg2>,
+    ISubtractionOperators<Seg2, Vec2, Seg2>
 {
-    public Vec2d Delta => End - Start;
-    public double Length => Start.Distance(End);
-    public Box2d Box => new(this);
-    public AABB2d AABB => new(this);
-    public Ray2d Ray => new(Start, Delta.Unit);
+    public Vec2 Delta => End - Start;
+    public float Length => Start.Distance(End);
+    public Box2 Box => new(this);
+    public Ray2 Ray => new(Start, Delta.Unit);
 
-    public static implicit operator Seg2d(ValueTuple<Vec2d, Vec2d> tuple)
+    public static implicit operator Seg2(ValueTuple<Vec2, Vec2> tuple)
     {
         return new(tuple.Item1, tuple.Item2);
     }
 
-    public void Deconstruct(out Vec2d start, out Vec2d end)
+    public void Deconstruct(out Vec2 start, out Vec2 end)
     {
         start = Start;
         end = End;
     }
 
-    public static Seg2d operator +(Seg2d self, Vec2d other) => new(self.Start + other, self.End + other);
-    public static Seg2d operator -(Seg2d self, Vec2d other) => new(self.Start - other, self.End - other);
-    public static Seg2d operator *(Seg2d self, double scale)
+    public static Seg2 operator +(Seg2 self, Vec2 other) => new(self.Start + other, self.End + other);
+    public static Seg2 operator -(Seg2 self, Vec2 other) => new(self.Start - other, self.End - other);
+    public static Seg2 operator *(Seg2 self, float scale)
     {
-        Vec2d scaledDelta = self.Delta * scale;
+        Vec2 scaledDelta = self.Delta * scale;
         return (self.Start, self.Start + scaledDelta);
     }
 
-    public Vec2d FromTime(double t) => Start + (Delta * t);
-    public bool OnRight(Vec2d point) => PerpDot(point) <= 0;
-    public bool OnRight(Vec3d point) => OnRight(point.XY);
-    public bool DifferentSides(Vec2d first, Vec2d second) => OnRight(first) != OnRight(second);
-    public double DoubleTriArea(Vec2d point) => new Triangle2d(Start, End, point).DoubleTriArea();
+    public Vec2 FromTime(float t) => Start + (Delta * t);
+    public bool OnRight(Vec2 point) => PerpDot(point) <= 0;
+    public bool OnRight(Vec3 point) => OnRight(point.XY);
+    public bool DifferentSides(Vec2 first, Vec2 second) => OnRight(first) != OnRight(second);
+    public float floatTriArea(Vec2 point) => new Triangle2(Start, End, point).DoubleTriArea();
 
-    public double PerpDot(Vec2d point)
+    public float PerpDot(Vec2 point)
     {
-        Vec2d delta = Delta;
+        Vec2 delta = Delta;
         return (delta.X * (point.Y - Start.Y)) - (delta.Y * (point.X - Start.X));
     }
 
-    public bool Parallel(Seg2d seg, double epsilon = double.Epsilon)
+    public bool Parallel(Seg2 seg, float epsilon = float.Epsilon)
     {
-        Vec2d thisDelta = Delta;
-        Vec2d otherDelta = seg.Delta;
+        Vec2 thisDelta = Delta;
+        Vec2 otherDelta = seg.Delta;
         return (thisDelta.Y * otherDelta.X).ApproxEquals(thisDelta.X * otherDelta.Y, epsilon);
     }
 
-    public bool Collinear(Seg2d seg)
+    public bool Collinear(Seg2 seg)
     {
         return CollinearHelper(seg.Start, Start, End) && CollinearHelper(seg.End, Start, End);
     }
 
-    public Vec2d ClosestPoint(Vec2d point)
+    public Vec2 ClosestPoint(Vec2 point)
     {
-        Vec2d pointToStartDelta = Start - point;
-        double t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
+        Vec2 pointToStartDelta = Start - point;
+        float t = -Delta.Dot(pointToStartDelta) / Delta.Dot(Delta);
 
         if (t <= 0)
             return Start;
@@ -68,15 +69,15 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
         return FromTime(t);
     }
 
-    public bool TryIntersect(Seg2d seg, out double t)
+    public bool TryIntersect(Seg2 seg, out float t)
     {
         // TODO: Is this right? The ordering of the last args?
-        double areaStart = DoubleTriArea(seg.End);
-        double areaEnd = DoubleTriArea(seg.Start);
+        float areaStart = floatTriArea(seg.End);
+        float areaEnd = floatTriArea(seg.Start);
         if (areaStart.DifferentSign(areaEnd))
         {
-            double areaThisStart = seg.DoubleTriArea(Start);
-            double areaThisEnd = seg.DoubleTriArea(End);
+            float areaThisStart = seg.floatTriArea(Start);
+            float areaThisEnd = seg.floatTriArea(End);
             if (areaThisStart.DifferentSign(areaThisEnd))
             {
                 t = areaThisStart / (areaThisStart - areaThisEnd);
@@ -88,9 +89,9 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
         return false;
     }
 
-    public bool TryIntersect(Seg2d seg, out Vec2d point)
+    public bool TryIntersect(Seg2 seg, out Vec2 point)
     {
-        if (TryIntersect(seg, out double t))
+        if (TryIntersect(seg, out float t))
         {
             point = FromTime(t);
             return true;
@@ -102,25 +103,25 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
 
     // Treats the current segment as a line and finds the intersection `t` along
     // this line with the target segment.
-    public bool TryLineIntersect(Seg2d seg, out double t)
+    public bool TryLineIntersect(Seg2 seg, out float t)
     {
-        Vec2d thisDelta = Delta;
-        Vec2d otherDelta = seg.Delta;
-        double determinant = (-otherDelta.X * thisDelta.Y) + (thisDelta.X * otherDelta.Y);
+        Vec2 thisDelta = Delta;
+        Vec2 otherDelta = seg.Delta;
+        float determinant = (-otherDelta.X * thisDelta.Y) + (thisDelta.X * otherDelta.Y);
         if (determinant.ApproxZero())
         {
             t = default;
             return false;
         }
 
-        Vec2d startDelta = Start - seg.Start;
+        Vec2 startDelta = Start - seg.Start;
         t = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) / determinant;
         return true;
     }
 
-    public bool TryLineIntersect(Seg2d seg, out Vec2d point)
+    public bool TryLineIntersect(Seg2 seg, out Vec2 point)
     {
-        if (TryLineIntersect(seg, out double t))
+        if (TryLineIntersect(seg, out float t))
         {
             point = FromTime(t);
             return true;
@@ -130,7 +131,7 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
         return false;
     }
 
-    private static bool CollinearHelper(Vec2d a, Vec2d b, Vec2d c)
+    private static bool CollinearHelper(Vec2 a, Vec2 b, Vec2 c)
     {
         return ((a.X * (b.Y - c.Y)) + (b.X * (c.Y - a.Y)) + (c.X * (a.Y - b.Y))).ApproxZero();
     }
@@ -138,33 +139,33 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
     public override string ToString() => $"({Start}), ({End})";
 }
 
-public readonly record struct Seg3d(Vec3d Start, Vec3d End) :
-    IAdditionOperators<Seg3d, Vec3d, Seg3d>,
-    ISubtractionOperators<Seg3d, Vec3d, Seg3d>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public readonly record struct Seg3(Vec3 Start, Vec3 End) :
+    IAdditionOperators<Seg3, Vec3, Seg3>,
+    ISubtractionOperators<Seg3, Vec3, Seg3>
 {
-    public Vec3d Delta => End - Start;
-    public double Length => Start.Distance(End);
-    public Box3d Box => new(this);
-    public AABB3d AABB => new(this);
-    public Ray3d Ray => new(Start, Delta.Unit);
+    public Vec3 Delta => End - Start;
+    public float Length => Start.Distance(End);
+    public Box3 Box => new(this);
+    public Ray3 Ray => new(Start, Delta.Unit);
 
-    public static implicit operator Seg3d(ValueTuple<Vec3d, Vec3d> tuple)
+    public static implicit operator Seg3(ValueTuple<Vec3, Vec3> tuple)
     {
         return new(tuple.Item1, tuple.Item2);
     }
 
-    public void Deconstruct(out Vec3d start, out Vec3d end)
+    public void Deconstruct(out Vec3 start, out Vec3 end)
     {
         start = Start;
         end = End;
     }
 
-    public static Seg3d operator +(Seg3d self, Vec3d other) => new(self.Start + other, self.End + other);
-    public static Seg3d operator -(Seg3d self, Vec3d other) => new(self.Start - other, self.End - other);
+    public static Seg3 operator +(Seg3 self, Vec3 other) => new(self.Start + other, self.End + other);
+    public static Seg3 operator -(Seg3 self, Vec3 other) => new(self.Start - other, self.End - other);
 
-    public Vec3d FromTime(double t) => Start + (Delta * t);
+    public Vec3 FromTime(float t) => Start + (Delta * t);
 
-    public bool TryIntersect(in AABB3d aabb, out double t)
+    public bool TryIntersect(in Box3 box, out float t)
     {
         // TODO
 
@@ -172,29 +173,9 @@ public readonly record struct Seg3d(Vec3d Start, Vec3d End) :
         return false;
     }
 
-    public bool TryIntersect(in AABB3d aabb, out Vec3d point)
+    public bool TryIntersect(in Box3 box, out Vec3 point)
     {
-        if (TryIntersect(aabb, out double t))
-        {
-            point = FromTime(t);
-            return true;
-        }
-
-        point = default;
-        return false;
-    }
-
-    public bool TryIntersect(in Box3d box, out double t)
-    {
-        // TODO
-
-        t = default;
-        return false;
-    }
-
-    public bool TryIntersect(in Box3d box, out Vec3d point)
-    {
-        if (TryIntersect(box, out double t))
+        if (TryIntersect(box, out float t))
         {
             point = FromTime(t);
             return true;

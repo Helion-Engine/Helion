@@ -7,25 +7,25 @@ namespace Helion.Geometry.New;
 public class UniformGrid
 {
     public readonly int Dimension;
-    public readonly Box2d Bounds;
+    public readonly Box2 Bounds;
     public readonly Vec2i BlockDimension;
 
-    public Vec2d Origin => Bounds.Min;
+    public Vec2 Origin => Bounds.Min;
 
-    public UniformGrid(int dimension, Box2d bounds, int padding = 0)
+    public UniformGrid(int dimension, Box2 bounds, int padding = 0)
     {
         Dimension = dimension;
         // TODO
     }
 
-    public Vec2i ToBlockCoordinate(Vec2d pos)
+    public Vec2i ToBlockCoordinate(Vec2 pos)
     {
         // TODO
         return default;
     }
 
-    public UniformGridSegmentIterator SegIterator(Seg2d seg) => new(this, seg);
-    public UniformGridBoxIterator BoxIterator(Box2d box) => new(this, box);
+    public UniformGridSegmentIterator SegIterator(Seg2 seg) => new(this, seg);
+    public UniformGridBoxIterator BoxIterator(Box2 box) => new(this, box);
 }
 
 public class UniformGrid<TBlock> : UniformGrid, IEnumerable<TBlock> where TBlock : new()
@@ -34,7 +34,7 @@ public class UniformGrid<TBlock> : UniformGrid, IEnumerable<TBlock> where TBlock
 
     public ReadOnlySpan<TBlock> Blocks => m_blocks;
 
-    public UniformGrid(int dimension, Box2d bounds, int padding = 0) : 
+    public UniformGrid(int dimension, Box2 bounds, int padding = 0) : 
         base(dimension, bounds, padding)
     {
         int numBlocks = BlockDimension.Area;
@@ -51,7 +51,7 @@ public class UniformGrid<TBlock> : UniformGrid, IEnumerable<TBlock> where TBlock
         return (coord.Y * BlockDimension.Width) + coord.X;
     }
 
-    public TBlock ToBlock(Vec2d pos)
+    public TBlock ToBlock(Vec2 pos)
     {
         return m_blocks[ToBlockIdx(ToBlockCoordinate(pos))];
     }
@@ -64,7 +64,7 @@ public readonly struct UniformGridSegmentIterator
 {
     private readonly UniformGrid m_grid;
 
-    public UniformGridSegmentIterator(UniformGrid grid, Seg2d seg)
+    public UniformGridSegmentIterator(UniformGrid grid, Seg2 seg)
     {
         m_grid = grid;
     }
@@ -86,7 +86,7 @@ public readonly struct UniformGridBoxIterator
 {
     private readonly UniformGrid m_grid;
 
-    public UniformGridBoxIterator(UniformGrid grid, Box2d box)
+    public UniformGridBoxIterator(UniformGrid grid, Box2 box)
     {
         m_grid = grid;
     }
@@ -109,7 +109,7 @@ public readonly struct UniformGridSegmentIterator<TBlock> where TBlock : new()
     private readonly UniformGrid<TBlock> m_grid;
     private readonly UniformGridSegmentIterator m_iterator;
 
-    public UniformGridSegmentIterator(UniformGrid<TBlock> grid, Seg2d seg)
+    public UniformGridSegmentIterator(UniformGrid<TBlock> grid, Seg2 seg)
     {
         m_grid = grid;
         m_iterator = grid.SegIterator(seg);
@@ -124,7 +124,7 @@ public readonly struct UniformGridBlockIterator<TBlock> where TBlock : new()
     private readonly UniformGrid<TBlock> m_grid;
     private readonly UniformGridBoxIterator m_iterator;
 
-    public UniformGridBlockIterator(UniformGrid<TBlock> grid, Box2d box)
+    public UniformGridBlockIterator(UniformGrid<TBlock> grid, Box2 box)
     {
         m_grid = grid;
         m_iterator = grid.BoxIterator(box);

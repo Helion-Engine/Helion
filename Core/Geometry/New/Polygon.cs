@@ -35,49 +35,49 @@ public class ConvexPolygon<T> : Polygon<T>
 {
 }
 
-public class ConvexPolygon2d : ConvexPolygon<Vec2d>
+public class ConvexPolygon2 : ConvexPolygon<Vec2>
 {
     // If true, a set of clipped vertices with a non-zero area was returned. Otherwise,
     // false means it was completely clipped, or clipped down to a single point or line.
-    public bool TryClip(Box2d box, out List<Vec2d> clippedVertices)
+    public bool TryClip(Box2 box, out List<Vec2> clippedVertices)
     {
         // This is the Sutherland-Hodgman algorithm.
         //
         // It needs to have all of the edges done such that the right side always points
         // inside the box, or else the algorithm will not work.
-        Span<Seg2d> clipEdges = stackalloc Seg2d[4];
+        Span<Seg2> clipEdges = stackalloc Seg2[4];
         clipEdges[0] = ((box.Min.X, box.Min.Y), (box.Min.X, box.Max.Y));
         clipEdges[1] = ((box.Min.X, box.Max.Y), (box.Max.X, box.Max.Y));
         clipEdges[2] = ((box.Max.X, box.Max.Y), (box.Max.X, box.Min.Y));
         clipEdges[3] = ((box.Max.X, box.Min.Y), (box.Min.X, box.Min.Y));
 
-        List<Vec2d> outputList = Vertices.ToList();
+        List<Vec2> outputList = Vertices.ToList();
         
-        foreach (Seg2d clipEdge in clipEdges)
+        foreach (Seg2 clipEdge in clipEdges)
         {
-            List<Vec2d> inputList = outputList.ToList();
+            List<Vec2> inputList = outputList.ToList();
             outputList.Clear();
 
             for (int i = 0; i < inputList.Count; i++)
             {
                 int prevIndex = (i - 1 + inputList.Count) % inputList.Count;
-                Vec2d prevPoint = inputList[prevIndex];
-                Vec2d currPoint = inputList[i];
+                Vec2 prevPoint = inputList[prevIndex];
+                Vec2 currPoint = inputList[i];
 
                 bool currInside = clipEdge.OnRight(currPoint);
                 bool prevInside = clipEdge.OnRight(prevPoint);
                 if (currInside)
                 {
-                    Seg2d polygonEdge = (prevPoint, currPoint);
-                    polygonEdge.TryIntersect(clipEdge, out Vec2d intersectPoint);
+                    Seg2 polygonEdge = (prevPoint, currPoint);
+                    polygonEdge.TryIntersect(clipEdge, out Vec2 intersectPoint);
                     if (!prevInside)
                         outputList.Add(intersectPoint);
                     outputList.Add(currPoint);
                 }
                 else if (prevInside)
                 {
-                    Seg2d polygonEdge = (prevPoint, currPoint);
-                    polygonEdge.TryIntersect(clipEdge, out Vec2d intersectPoint);
+                    Seg2 polygonEdge = (prevPoint, currPoint);
+                    polygonEdge.TryIntersect(clipEdge, out Vec2 intersectPoint);
                     outputList.Add(intersectPoint);
                 }
             }

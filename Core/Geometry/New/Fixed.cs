@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Helion.Geometry.New;
 
 /// <summary>
 /// An implementation of a 16.16 fixed point number as a 32-bit integer.
 /// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
 public readonly struct Fixed
 {
     public const int UnitBits = 16;
@@ -69,8 +71,8 @@ public readonly struct Fixed
         // This is not an optimization anymore, but it prevents numbers
         // that are really far apart from overflowing or becoming zero.
         if ((Math.Abs(numerator.Bits) >> 14) >= Math.Abs(denominator.Bits))
-            return new Fixed((numerator.Bits ^ denominator.Bits) < 0 ? 0x80000000 : 0x7FFFFFFF);
-        return new Fixed((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
+            return new((numerator.Bits ^ denominator.Bits) < 0 ? 0x80000000 : 0x7FFFFFFF);
+        return new((((ulong)numerator.Bits) << UnitBits) / (ulong)denominator.Bits);
     }
 
     public override string ToString() => $"{Double}";
