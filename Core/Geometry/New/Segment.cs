@@ -11,7 +11,7 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
     public double Length => Start.Distance(End);
     public Box2d Box => new(this);
     public AABB2d AABB => new(this);
-    public Ray2d Ray => new(Start, Delta);
+    public Ray2d Ray => new(Start, Delta.Unit);
 
     public static implicit operator Seg2d(ValueTuple<Vec2d, Vec2d> tuple)
     {
@@ -100,6 +100,8 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
         return false;
     }
 
+    // Treats the current segment as a line and finds the intersection `t` along
+    // this line with the target segment.
     public bool TryLineIntersect(Seg2d seg, out double t)
     {
         Vec2d thisDelta = Delta;
@@ -144,7 +146,7 @@ public readonly record struct Seg3d(Vec3d Start, Vec3d End) :
     public double Length => Start.Distance(End);
     public Box3d Box => new(this);
     public AABB3d AABB => new(this);
-    public Ray3d Ray => new(Start, Delta);
+    public Ray3d Ray => new(Start, Delta.Unit);
 
     public static implicit operator Seg3d(ValueTuple<Vec3d, Vec3d> tuple)
     {

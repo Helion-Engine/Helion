@@ -4,6 +4,7 @@ using System;
 
 namespace Helion.Geometry.New;
 
+// Dir should be normalized.
 public readonly record struct Ray2d(Vec2d Pos, Vec2d Dir)
 {
     public Seg2d Seg(double distance) => (Pos, Pos + (Dir * distance));
@@ -13,6 +14,7 @@ public readonly record struct Ray2d(Vec2d Pos, Vec2d Dir)
     // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 }
 
+// Dir should be normalized.
 public readonly record struct Ray3d(Vec3d Pos, Vec3d Dir)
 {
     public Seg3d Seg(double distance) => (Pos, Pos + (Dir * distance));
