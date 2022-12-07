@@ -121,6 +121,8 @@ public class BlockMap
 
     public void Link(IWorld world, Sector sector)
     {
+        Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
+
         Box2D box = sector.GetBoundingBox();
         m_blocks.Iterate(box, BlockLinkFunc);
 
@@ -136,6 +138,10 @@ public class BlockMap
 
     public void LinkDynamicSide(IWorld world, Side side)
     {
+        if (side.BlockmapLinked)
+            return;
+
+        side.BlockmapLinked = true;
         m_blocks.Iterate(side.Line.Segment, BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)

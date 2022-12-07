@@ -53,9 +53,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly List<Sector> m_updateLightSectors = new();
-    private readonly HashSet<int> m_updatelightSectorsLookup = new();
+    private readonly DynamicArray<int> m_updatelightSectorsLookup = new();
     private readonly List<SideScrollEvent> m_updateScrollSides = new();
-    private readonly HashSet<int> m_updateScrollSidesLookup = new();
+    private readonly DynamicArray<int> m_updateScrollSidesLookup = new();
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
@@ -64,7 +64,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
-    private bool m_staticLights;
     private bool m_staticScroll;
     private IWorld? m_world;
 
@@ -89,7 +88,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
-        m_staticLights = world.Config.Render.StaticLights;
         m_staticScroll = world.Config.Render.StaticScroll;
 
         if (!m_staticMode)
@@ -99,8 +97,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
-        if (m_staticLights)
-            m_world.SectorLightChanged += World_SectorLightChanged;
+        m_world.SectorLightChanged += World_SectorLightChanged;
         if (m_staticScroll)
             m_world.SideScrollChanged += World_SideScrollChanged;
 
@@ -140,6 +137,18 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.UploadIfNeeded();
         }
+
+        UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
+        UpdateLookup(m_updateScrollSidesLookup, world.Sides.Count);
+    }
+
+    private static void UpdateLookup(DynamicArray<int> array, int count)
+    {
+        if (array.Capacity < count)
+            array.Resize(count);
+
+        for (int i = 0; i < array.Capacity; i++)
+            array.Data[i] = -1;
     }
 
     private void AddTransferSector(Sector sector)
@@ -210,14 +219,18 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        bool upperVisible = m_geometryRenderer.UpperIsVisible(side, facingSector, otherSector, out bool skyHack);
+        bool upperVisible = m_geometryRenderer.UpperOrSkySideIsVisible(side, facingSector, otherSector, out bool skyHack);
         if (upper && upperVisible)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
 
             // TODO this is dumb
             if (skyVertices2 != null)
+            {
+                // The side has to be marked to be re-calculated on movement because it can completely change how the sky is rendered.
+                side.Upper.Sky = true;
                 skyVertices = skyVertices2;
+            }
 
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
@@ -362,10 +375,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
         m_runtimeGeometry.Clear();
-        m_updatelightSectorsLookup.Clear();
         m_updateLightSectors.Clear();
         m_updateScrollSides.Clear();
-        m_updateScrollSidesLookup.Clear();
 
         m_transferHeightsLookup.Clear();
         m_transferFloorLightLookup.Clear();
@@ -512,7 +523,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_updateScrollSides.Clear();
-        m_updateScrollSidesLookup.Clear();
     }
 
     private void UpdateLights()
@@ -554,7 +564,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }  
 
         m_updateLightSectors.Clear();
-        m_updatelightSectorsLookup.Clear();
     }
 
     private void UpdateTransferLightVertices(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup)
@@ -635,7 +644,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
-            if (line.Front.Upper.IsDynamic)
+            if (line.Front.Upper.IsDynamic || line.Front.Upper.Sky)
             {
                 ClearGeometryVertices(line.Front.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
@@ -657,7 +666,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            if (line.Back.Upper.IsDynamic)
+            if (line.Back.Upper.IsDynamic || line.Back.Upper.Sky)
             {
                 ClearGeometryVertices(line.Back.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
@@ -728,13 +737,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
-        if (!m_staticLights)
+        if (m_updatelightSectorsLookup.Data[e.Id] == m_world.Gametick)
             return;
 
-        if (m_updatelightSectorsLookup.Contains(e.Id))
-            return;
-
-        m_updatelightSectorsLookup.Add(e.Id);
+        m_updatelightSectorsLookup.Data[e.Id] = m_world.Gametick;
         m_updateLightSectors.Add(e);
     }
 
@@ -743,10 +749,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticScroll)
             return;
 
-        if (m_updateScrollSidesLookup.Contains(e.Side.Id))
+        if (m_updateScrollSidesLookup[e.Side.Id] == m_world.Gametick)
             return;
 
-        m_updateScrollSidesLookup.Add(e.Side.Id);
+        m_updateScrollSidesLookup[e.Side.Id] = m_world.Gametick;
         m_updateScrollSides.Add(e);
     }
 

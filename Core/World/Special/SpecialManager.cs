@@ -232,7 +232,12 @@ public class SpecialManager : ITickable, IDisposable
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
             sectorSpecial.FinalizeDestroy();
+        }
 
+        // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can beo
+        for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
+        {
+            ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
             if (sectorSpecial is not SectorMoveSpecial moveSpecial)
                 continue;
 

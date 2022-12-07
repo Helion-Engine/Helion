@@ -81,25 +81,22 @@ public class GeometryRenderer : IDisposable
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
-    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
+    public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
         RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
         m_program = program;
-        m_glTextureManager = textureManager;
+        m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        Portals = new(config, textureManager);
-        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, textureManager);
+        Portals = new(config, archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, textureManager, m_program, this);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
-            m_wallVertices[i].R = 1.0f;
-            m_wallVertices[i].G = 1.0f;
-            m_wallVertices[i].B = 1.0f;
             m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
         }
@@ -132,8 +129,8 @@ public class GeometryRenderer : IDisposable
         m_skyFloorVertexLookup = new(3);
         m_skyCeilingVertexLookup = new(3);
 
-        CacheData(world);
         Clear(m_tickFraction);
+        CacheData(world);
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world);
@@ -148,7 +145,7 @@ public class GeometryRenderer : IDisposable
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
 
-            if (subsector.Sector.TransferHeights != null)
+            if (subsector.Sector.TransferHeights != null || !m_dynamic)
                 continue;
 
             m_viewSector = subsector.Sector;
@@ -169,6 +166,9 @@ public class GeometryRenderer : IDisposable
                 RenderSide(edge.Side, true);
             }
         }
+
+        if (!m_dynamic)
+            return;
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -243,6 +243,11 @@ public class GeometryRenderer : IDisposable
         m_floorChanged = sector.Floor.CheckRenderingChanged();
         m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
         m_position = position;
+
+        if (sector.Id == 22)
+        {
+            int lol = 1;
+        }
 
         if (sector.TransferHeights != null)
         {
@@ -605,7 +610,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperIsVisible(facingSide, facingSector, otherSector, out _))
+        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
@@ -616,21 +621,28 @@ public class GeometryRenderer : IDisposable
         return facingZ < otherZ;
     }
 
-    public bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
+    public bool UpperIsVisible(Sector facingSector, Sector otherSector)
+    {
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        return facingZ > otherZ;
+    }
+
+    public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         skyHack = false;
+        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+
         if (isFacingSky && isOtherSky)
         {
             // The sky is only drawn if there is no opening height
             // Otherwise ignore this line for sky effects
-            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0;
+            skyHack = LineOpening.GetOpeningHeight(facingSide.Line) <= 0 && facingZ != otherZ;
             return skyHack;
         }
-
-        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
 
         bool upperVisible = facingZ > otherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
@@ -644,6 +656,7 @@ public class GeometryRenderer : IDisposable
                 skyHack = facingZ <= otherZ;
                 return skyHack;
             }
+
             // Need to draw sky upper if other sector is not sky.
             skyHack = !isOtherSky;
             return skyHack;
@@ -786,7 +799,7 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null)
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || !UpperIsVisible(facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;
@@ -841,10 +854,10 @@ public class GeometryRenderer : IDisposable
         }
 
         bool isFront = facingSide.IsFront;
-        WallVertices wall;
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
+        WallVertices wall;
         if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
@@ -1285,9 +1298,6 @@ public class GeometryRenderer : IDisposable
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
-        data[0].R = 1.0f;
-        data[0].G = 1.0f;
-        data[0].B = 1.0f;
         data[0].Fuzz = 0;
 
         data[1].LightLevel = lightLevel;
@@ -1297,9 +1307,6 @@ public class GeometryRenderer : IDisposable
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
-        data[1].R = 1.0f;
-        data[1].G = 1.0f;
-        data[1].B = 1.0f;
         data[1].Fuzz = 0;
 
         data[2].LightLevel = lightLevel;
@@ -1309,9 +1316,6 @@ public class GeometryRenderer : IDisposable
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
-        data[2].R = 1.0f;
-        data[2].G = 1.0f;
-        data[2].B = 1.0f;
         data[2].Fuzz = 0;
 
         data[3].LightLevel = lightLevel;
@@ -1321,9 +1325,6 @@ public class GeometryRenderer : IDisposable
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
-        data[3].R = 1.0f;
-        data[3].G = 1.0f;
-        data[3].B = 1.0f;
         data[3].Fuzz = 0;
 
         data[4].LightLevel = lightLevel;
@@ -1333,9 +1334,6 @@ public class GeometryRenderer : IDisposable
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
-        data[4].R = 1.0f;
-        data[4].G = 1.0f;
-        data[4].B = 1.0f;
         data[4].Fuzz = 0;
 
         data[5].LightLevel = lightLevel;
@@ -1345,9 +1343,6 @@ public class GeometryRenderer : IDisposable
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
-        data[5].R = 1.0f;
-        data[5].G = 1.0f;
-        data[5].B = 1.0f;
         data[5].Fuzz = 0;
 
         return data;
@@ -1364,9 +1359,6 @@ public class GeometryRenderer : IDisposable
             U = root.U,
             V = root.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
 
@@ -1379,9 +1371,6 @@ public class GeometryRenderer : IDisposable
             U = second.U,
             V = second.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
 
@@ -1394,9 +1383,6 @@ public class GeometryRenderer : IDisposable
             U = third.U,
             V = third.V,
             Alpha = 1.0f,
-            R = 1.0f,
-            G = 1.0f,
-            B = 1.0f,
             Fuzz = 0,
         });
     }

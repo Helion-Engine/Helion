@@ -101,9 +101,6 @@ public class ConfigRender
     [ConfigInfo("Static rendering mode.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
-    [ConfigInfo("Update lights for static rendering.", restartRequired: true)]
-    public readonly ConfigValue<bool> StaticLights = new(true);
-
     [ConfigInfo("Update scrolling walls for static rendering.", restartRequired: true)]
     public readonly ConfigValue<bool> StaticScroll = new(false);
 
