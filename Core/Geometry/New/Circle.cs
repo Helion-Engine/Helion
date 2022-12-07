@@ -18,8 +18,6 @@ public readonly record struct CircleF(Vec2f Center, float Radius)
     public float Angle(Vec2f other) => MathF.Atan2(other.Y - Center.Y, other.X - Center.X);
     public bool Inside(Vec2f point) => (Center - point).LengthSquared < Radius * Radius;
     public bool Outside(Vec2f point) => !Inside(point);
-    public bool Intersects(Box2d box) => false; // TODO
-    public bool Intersects(AABB2d aabb) => false; // TODO
 }
 
 public readonly record struct CircleD(Vec2d Center, double Radius)

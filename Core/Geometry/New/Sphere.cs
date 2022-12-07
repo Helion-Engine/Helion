@@ -1,5 +1,4 @@
-﻿using Helion.Geometry.Vectors;
-using System;
+﻿using System;
 
 namespace Helion.Geometry.New;
 

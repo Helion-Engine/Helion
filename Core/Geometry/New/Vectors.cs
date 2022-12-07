@@ -1,7 +1,7 @@
 ﻿using GlmSharp;
+using Helion.Util.Extensions;
+using OneOf.Types;
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Helion.Geometry.New;
@@ -133,6 +133,7 @@ public struct Vec2f :
     public Vec2f Projection(Vec2f onto) => Dot(onto) / onto.LengthSquared * onto;
     public float Angle(Vec2f other) => MathF.Atan2(other.Y - Y, other.X - X);
     public float Angle(Vec3f other) => MathF.Atan2(other.Y - Y, other.X - X);
+
     public Vec2f Rotate(float radians)
     {
         float sin = MathF.Sin(radians);
@@ -141,6 +142,7 @@ public struct Vec2f :
     }
 
     public bool Equals(Vec2f other) => X == other.X && Y == other.Y;
+    public bool ApproxEquals(Vec2f other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
     public override bool Equals(object? obj) => obj is Vec2f v && Equals(v);
     public override int GetHashCode() => HashCode.Combine(X, Y);
     public override string ToString() => $"{X}, {Y}";
@@ -220,6 +222,7 @@ public struct Vec2d :
     public Vec2d Projection(Vec2d onto) => Dot(onto) / onto.LengthSquared * onto;
     public double Angle(Vec2d other) => Math.Atan2(other.Y - Y, other.X - X);
     public double Angle(Vec3d other) => Math.Atan2(other.Y - Y, other.X - X);
+
     public Vec2d Rotate(double radians)
     {
         double sin = Math.Sin(radians);
@@ -228,6 +231,7 @@ public struct Vec2d :
     }
 
     public bool Equals(Vec2d other) => X == other.X && Y == other.Y;
+    public bool ApproxEquals(Vec2d other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y);
     public override bool Equals(object? obj) => obj is Vec2d v && X == v.X && Y == v.Y;
     public override int GetHashCode() => HashCode.Combine(X, Y);
     public override string ToString() => $"{X}, {Y}";
@@ -296,8 +300,10 @@ public struct Vec3f :
     public float DistanceSquared(Vec3f other) => (this - other).LengthSquared;
     public float Distance(Vec3f other) => (this - other).Length;
     public float Dot(Vec3f other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+    public Vec3f Cross(Vec3f v) => ((Y * v.Z) - (Z * v.Y), (Z * v.X) - (X * v.Z), (X * v.Y) - (Y * v.X));
 
-    public bool Equals(Vec3f other) => X == other.X && Y == other.Y;
+    public bool Equals(Vec3f other) => X == other.X && Y == other.Y && Z == other.Z;
+    public bool ApproxEquals(Vec3f other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
     public override bool Equals(object? obj) => obj is Vec3f v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     public override string ToString() => $"{X}, {Y}, {Z}";
@@ -366,8 +372,10 @@ public struct Vec3d :
     public double DistanceSquared(Vec3d other) => (this - other).LengthSquared;
     public double Distance(Vec3d other) => (this - other).Length;
     public double Dot(Vec3d other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+    public Vec3d Cross(Vec3d v) => ((Y * v.Z) - (Z * v.Y), (Z * v.X) - (X * v.Z), (X * v.Y) - (Y * v.X));
 
-    public bool Equals(Vec3d other) => X == other.X && Y == other.Y;
+    public bool Equals(Vec3d other) => X == other.X && Y == other.Y && Z == other.Z;
+    public bool ApproxEquals(Vec3d other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
     public override bool Equals(object? obj) => obj is Vec3d v && X == v.X && Y == v.Y && Z == v.Z;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     public override string ToString() => $"{X}, {Y}, {Z}";
