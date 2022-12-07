@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Helion.GeometryNew;
+namespace Helion.Geometry.New;
 
 public class UniformGrid
 {

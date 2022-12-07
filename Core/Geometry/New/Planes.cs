@@ -1,4 +1,4 @@
-﻿namespace Helion.GeometryNew;
+﻿namespace Helion.Geometry.New;
 
 public readonly struct PlaneD
 {
@@ -31,7 +31,7 @@ public readonly struct PlaneD
     {
         Vec3d delta = seg.Delta;
         double denominator = Normal.Dot(delta);
-        if (denominator.IsZero())
+        if (denominator.ApproxZero())
         {
             intersect = default;
             return false;
@@ -45,7 +45,7 @@ public readonly struct PlaneD
     public bool TryIntersect(in Ray3d ray, out Vec3d intersect)
     {
         double denominator = Normal.Dot(ray.Dir);
-        if (denominator.IsZero())
+        if (denominator.ApproxZero())
         {
             intersect = default;
             return false;

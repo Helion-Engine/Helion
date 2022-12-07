@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.GeometryNew;
+namespace Helion.Geometry.New;
 
 public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
     IAdditionOperators<Seg2d, Vec2d, Seg2d>,
@@ -9,6 +9,8 @@ public readonly record struct Seg2d(Vec2d Start, Vec2d End) :
     public Vec2d Delta => End - Start;
     public double Length => Start.Distance(End);
     public Box2d Box => new(this);
+    public AABB2d AABB => new(this);
+    public Ray2d Ray => new(Start, Delta);
 
     public static implicit operator Seg2d(ValueTuple<Vec2d, Vec2d> tuple)
     {
@@ -56,6 +58,9 @@ public readonly record struct Seg3d(Vec3d Start, Vec3d End) :
 {
     public Vec3d Delta => End - Start;
     public double Length => Start.Distance(End);
+    public Box3d Box => new(this);
+    public AABB3d AABB => new(this);
+    public Ray3d Ray => new(Start, Delta);
 
     public static implicit operator Seg3d(ValueTuple<Vec3d, Vec3d> tuple)
     {

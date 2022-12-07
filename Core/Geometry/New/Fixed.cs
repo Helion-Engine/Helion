@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helion.GeometryNew;
+namespace Helion.Geometry.New;
 
 /// <summary>
 /// An implementation of a 16.16 fixed point number as a 32-bit integer.

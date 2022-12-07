@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Helion.GeometryNew;
+namespace Helion.Geometry.New;
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct Vec2i
@@ -43,6 +43,10 @@ public struct Vec2i
     public static Vec2i operator -(Vec2i self, Vec2i other) => new(self.X - other.X, self.Y - other.Y);
     public static Vec2i operator *(Vec2i self, int scale) => new(self.X * scale, self.Y * scale);
     public static Vec2i operator *(Vec2i self, Vec2i other) => new(self.X * other.X, self.Y * other.Y);
+    public static bool operator <(Vec2i self, Vec2i other) => self.X < other.X && self.Y < other.Y;
+    public static bool operator <=(Vec2i self, Vec2i other) => self.X <= other.X && self.Y <= other.Y;
+    public static bool operator >(Vec2i self, Vec2i other) => self.X > other.X && self.Y > other.Y;
+    public static bool operator >=(Vec2i self, Vec2i other) => self.X >= other.X && self.Y >= other.Y;
     public static bool operator ==(Vec2i self, Vec2i other) => self.X == other.X && self.Y == other.Y;
     public static bool operator !=(Vec2i self, Vec2i other) => !(self == other);
 
@@ -111,6 +115,10 @@ public struct Vec2f :
     public static Vec2f operator *(float value, Vec2f self) => new(self.X * value, self.Y * value);
     public static Vec2f operator /(Vec2f self, Vec2f other) => new(self.X / other.X, self.Y / other.Y);
     public static Vec2f operator /(Vec2f self, float value) => new(self.X / value, self.Y / value);
+    public static bool operator <(Vec2f self, Vec2f other) => self.X < other.X && self.Y < other.Y;
+    public static bool operator <=(Vec2f self, Vec2f other) => self.X <= other.X && self.Y <= other.Y;
+    public static bool operator >(Vec2f self, Vec2f other) => self.X > other.X && self.Y > other.Y;
+    public static bool operator >=(Vec2f self, Vec2f other) => self.X >= other.X && self.Y >= other.Y;
     public static bool operator ==(Vec2f self, Vec2f other) => self.X == other.X && self.Y == other.Y;
     public static bool operator !=(Vec2f self, Vec2f other) => !(self == other);
 
@@ -194,6 +202,10 @@ public struct Vec2d :
     public static Vec2d operator *(double value, Vec2d self) => new(self.X * value, self.Y * value);
     public static Vec2d operator /(Vec2d self, Vec2d other) => new(self.X / other.X, self.Y / other.Y);
     public static Vec2d operator /(Vec2d self, double value) => new(self.X / value, self.Y / value);
+    public static bool operator <(Vec2d self, Vec2d other) => self.X < other.X && self.Y < other.Y;
+    public static bool operator <=(Vec2d self, Vec2d other) => self.X <= other.X && self.Y <= other.Y;
+    public static bool operator >(Vec2d self, Vec2d other) => self.X > other.X && self.Y > other.Y;
+    public static bool operator >=(Vec2d self, Vec2d other) => self.X >= other.X && self.Y >= other.Y;
     public static bool operator ==(Vec2d self, Vec2d other) => self.X == other.X && self.Y == other.Y;
     public static bool operator !=(Vec2d self, Vec2d other) => !(self == other);
 
@@ -271,6 +283,10 @@ public struct Vec3f :
     public static Vec3f operator *(float value, Vec3f self) => new(self.X * value, self.Y * value, self.Z * value);
     public static Vec3f operator /(Vec3f self, Vec3f other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
     public static Vec3f operator /(Vec3f self, float value) => new(self.X / value, self.Y / value, self.Z / value);
+    public static bool operator <(Vec3f self, Vec3f other) => self.X < other.X && self.Y < other.Y && self.Z < other.Z;
+    public static bool operator <=(Vec3f self, Vec3f other) => self.X <= other.X && self.Y <= other.Y && self.Z <= other.Z;
+    public static bool operator >(Vec3f self, Vec3f other) => self.X > other.X && self.Y > other.Y && self.Z > other.Z;
+    public static bool operator >=(Vec3f self, Vec3f other) => self.X >= other.X && self.Y >= other.Y && self.Z >= other.Z;
     public static bool operator ==(Vec3f self, Vec3f other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
     public static bool operator !=(Vec3f self, Vec3f other) => !(self == other);
 
@@ -337,6 +353,10 @@ public struct Vec3d :
     public static Vec3d operator *(double value, Vec3d self) => new(self.X * value, self.Y * value, self.Z * value);
     public static Vec3d operator /(Vec3d self, Vec3d other) => new(self.X / other.X, self.Y / other.Y, self.Z / other.Z);
     public static Vec3d operator /(Vec3d self, double value) => new(self.X / value, self.Y / value, self.Z / value);
+    public static bool operator <(Vec3d self, Vec3d other) => self.X < other.X && self.Y < other.Y && self.Z < other.Z;
+    public static bool operator <=(Vec3d self, Vec3d other) => self.X <= other.X && self.Y <= other.Y && self.Z <= other.Z;
+    public static bool operator >(Vec3d self, Vec3d other) => self.X > other.X && self.Y > other.Y && self.Z > other.Z;
+    public static bool operator >=(Vec3d self, Vec3d other) => self.X >= other.X && self.Y >= other.Y && self.Z >= other.Z;
     public static bool operator ==(Vec3d self, Vec3d other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
     public static bool operator !=(Vec3d self, Vec3d other) => !(self == other);
 

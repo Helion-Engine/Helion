@@ -1,7 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
 using System;
 
-namespace Helion.GeometryNew;
+namespace Helion.Geometry.New;
 
 public readonly record struct SphereF(Vec3f Center, float Radius)
 {
