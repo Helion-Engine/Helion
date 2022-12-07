@@ -132,8 +132,8 @@ public class GeometryRenderer : IDisposable
         m_skyFloorVertexLookup = new(3);
         m_skyCeilingVertexLookup = new(3);
 
-        CacheData(world);
         Clear(m_tickFraction);
+        CacheData(world);
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world);
@@ -148,7 +148,7 @@ public class GeometryRenderer : IDisposable
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
 
-            if (subsector.Sector.TransferHeights != null)
+            if (subsector.Sector.TransferHeights != null || !m_dynamic)
                 continue;
 
             m_viewSector = subsector.Sector;
@@ -169,6 +169,9 @@ public class GeometryRenderer : IDisposable
                 RenderSide(edge.Side, true);
             }
         }
+
+        if (!m_dynamic)
+            return;
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -243,6 +246,11 @@ public class GeometryRenderer : IDisposable
         m_floorChanged = sector.Floor.CheckRenderingChanged();
         m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
         m_position = position;
+
+        if (sector.Id == 22)
+        {
+            int lol = 1;
+        }
 
         if (sector.TransferHeights != null)
         {

@@ -22,8 +22,6 @@ public class StaticDataApplier
 
     private static bool IsLoading;
 
-    private static readonly HashSet<int> SectorMovementLookup = new();
-
     public static void DetermineStaticData(WorldBase world)
     {
         IsLoading = true;
@@ -47,20 +45,17 @@ public class StaticDataApplier
             DetermineStaticSector(world, world.Sectors[i], world.TextureManager);
 
         IsLoading = false;
-        SectorMovementLookup.Clear();
     }
 
     private static void DetermineStaticSector(WorldBase world, Sector sector, TextureManager textureManager)
     {
         var heights = sector.TransferHeights;
         if (heights != null &&
-            (SectorMovementLookup.Contains(heights.ControlSector.Id) || heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
+            (heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
         {
             bool save = IsLoading;
             IsLoading = false;
             SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
-            if (SectorMovementLookup.Contains(heights.ControlSector.Id))
-                SetSectorDynamic(world, sector, true, true, SectorDynamic.Movement);
             IsLoading = save;
             return;
         }
