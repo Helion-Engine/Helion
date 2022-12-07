@@ -1,17 +1,51 @@
 ﻿using GlmSharp;
-using Helion.Geometry.Spheres;
 using System;
+using System.Numerics;
 
 namespace Helion.Geometry.New;
 
 // Dir should be normalized.
 public readonly record struct Ray2d(Vec2d Pos, Vec2d Dir)
 {
+    public Ray2d(Vec2d pos, double angle) : this(pos, (Math.Cos(angle), Math.Sin(angle)))
+    {
+    }
+
     public Seg2d Seg(double distance) => (Pos, Pos + (Dir * distance));
     public Vec2d FromTime(double t) => Pos + (Dir * t);
 
-    // TODO: Box slab intersect:
-    // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+    public bool TryIntersect(in Seg2d seg, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in AABB2d aabb, out double t)
+    {
+        // TODO: Box slab intersect:
+        // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in Box2d box, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in CircleD circle, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
 }
 
 // Dir should be normalized.
@@ -19,6 +53,66 @@ public readonly record struct Ray3d(Vec3d Pos, Vec3d Dir)
 {
     public Seg3d Seg(double distance) => (Pos, Pos + (Dir * distance));
     public Vec3d FromTime(double t) => Pos + (Dir * t);
+
+    public bool TryIntersect(in AABB3d aabb, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in AABB3d aabb, out Vec3d point)
+    {
+        if (TryIntersect(aabb, out double t))
+        {
+            point = FromTime(t);
+            return true;
+        }
+
+        point = default;
+        return false;
+    }
+
+    public bool TryIntersect(in Box3d box, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in Box3d box, out Vec3d point)
+    {
+        if (TryIntersect(box, out double t))
+        {
+            point = FromTime(t);
+            return true;
+        }
+
+        point = default;
+        return false;
+    }
+
+    public bool TryIntersect(in PlaneD plane, out Vec3d point)
+    {
+        if (TryIntersect(plane, out double t))
+        {
+            point = FromTime(t);
+            return true;
+        }
+
+        point = default;
+        return false;
+    }
+
+    public bool TryIntersect(in PlaneD plane, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
 
     public bool TryIntersect(in Triangle3d triangle, out Vec3d point)
     {

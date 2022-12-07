@@ -1,6 +1,5 @@
 ﻿using GlmSharp;
 using Helion.Util.Extensions;
-using OneOf.Types;
 using System;
 using System.Runtime.InteropServices;
 
@@ -86,6 +85,8 @@ public struct Vec2f :
     public Vec2f RotateRight90 => (Y, -X);
     public Vec2f RotateLeft90 => (-Y, X);
     public Vec2f Inverse => (1.0f / X, 1.0f / Y);
+    public Vec2f Floor => (MathF.Floor(X), MathF.Floor(Y));
+    public Vec2f Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y));
     public vec2 Glm => new(X, Y);
     public Vec2i Int => ((int)X, (int)Y);
     public Vec2d Double => (X, Y);
@@ -176,6 +177,8 @@ public struct Vec2d :
     public Vec2d RotateRight90 => (Y, -X);
     public Vec2d RotateLeft90 => (-Y, X);
     public Vec2d Inverse => (1.0f / X, 1.0f / Y);
+    public Vec2d Floor => (Math.Floor(X), Math.Floor(Y));
+    public Vec2d Ceil => (Math.Ceiling(X), Math.Ceiling(Y));
     public Vec2i Int => ((int)X, (int)Y); 
     public Vec2f Float => ((float)X, (float)Y);
 
@@ -257,6 +260,8 @@ public struct Vec3f :
     public Vec2f YZ => new(Y, Z);
     public Vec3f Unit => this / Length;
     public Vec3f Inverse => new(1.0f / X, 1.0f / Y, 1.0f / Z);
+    public Vec3f Floor => (MathF.Floor(X), MathF.Floor(Y), MathF.Floor(Z));
+    public Vec3f Ceil => (MathF.Ceiling(X), MathF.Ceiling(Y), MathF.Ceiling(Z));
     public float LengthSquared => (X * X) + (Y * Y) + (Z * Z);
     public float Length => MathF.Sqrt(LengthSquared);
 
@@ -329,6 +334,8 @@ public struct Vec3d :
     public Vec2d YZ => new(Y, Z);
     public Vec3d Unit => this / Length;
     public Vec3d Inverse => new(1.0 / X, 1.0 / Y, 1.0 / Z);
+    public Vec3d Floor => (Math.Floor(X), Math.Floor(Y), Math.Floor(Z));
+    public Vec3d Ceil => (Math.Ceiling(X), Math.Ceiling(Y), Math.Ceiling(Z));
     public double LengthSquared => (X * X) + (Y * Y) + (Z * Z);
     public double Length => Math.Sqrt(LengthSquared);
 

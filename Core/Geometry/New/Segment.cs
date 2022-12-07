@@ -164,5 +164,45 @@ public readonly record struct Seg3d(Vec3d Start, Vec3d End) :
 
     public Vec3d FromTime(double t) => Start + (Delta * t);
 
+    public bool TryIntersect(in AABB3d aabb, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in AABB3d aabb, out Vec3d point)
+    {
+        if (TryIntersect(aabb, out double t))
+        {
+            point = FromTime(t);
+            return true;
+        }
+
+        point = default;
+        return false;
+    }
+
+    public bool TryIntersect(in Box3d box, out double t)
+    {
+        // TODO
+
+        t = default;
+        return false;
+    }
+
+    public bool TryIntersect(in Box3d box, out Vec3d point)
+    {
+        if (TryIntersect(box, out double t))
+        {
+            point = FromTime(t);
+            return true;
+        }
+
+        point = default;
+        return false;
+    }
+
     public override string ToString() => $"({Start}), ({End})";
 }
