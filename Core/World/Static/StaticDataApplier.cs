@@ -120,10 +120,7 @@ public class StaticDataApplier
         SideTexture lightWalls = AllWallTypes)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
-        {
-            //SectorMovementLookup.Add(sector.Id);
             return;
-        }
 
         if (sectorDynamic == SectorDynamic.Light)
             return;
@@ -133,7 +130,7 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement)
+        if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement))
             world.Blockmap.Link(world, sector);
 
         if (sectorDynamic == SectorDynamic.Light)
