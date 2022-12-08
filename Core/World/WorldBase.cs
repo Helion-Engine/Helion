@@ -1097,14 +1097,15 @@ public abstract partial class WorldBase : IWorld
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
         definition = item.Definition;
-        GiveVooDooItem(player, item, flags, pickupFlash);
 
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
             definition = vanillaDef;
             flags = vanillaDef.Flags;
-            return player.GiveItem(vanillaDef, flags, pickupFlash);
         }
+
+        if (player.IsVooDooDoll)
+            return GiveVooDooItem(player, item, flags, pickupFlash);
 
         return player.GiveItem(item.Definition, flags, pickupFlash);
     }
@@ -1132,6 +1133,18 @@ public abstract partial class WorldBase : IWorld
         if (!GiveItem(entity.PlayerObj, item, item.Flags, out EntityDefinition definition))
             return;
 
+        if (item.IsDisposed)
+            return;
+
+        PlayerPickedUpItem(entity, item, health, definition);
+        EntityManager.Destroy(item);
+    }
+
+    private void PlayerPickedUpItem(Entity entity, Entity item, int previousHealth, EntityDefinition definition)
+    {
+        if (entity.PlayerObj.IsVooDooDoll)
+            return;
+
         item.PickupPlayer = entity.PlayerObj;
         item.FrameState.SetState("Pickup", warn: false);
 
@@ -1143,11 +1156,10 @@ public abstract partial class WorldBase : IWorld
 
         string message = definition.Properties.Inventory.PickupMessage;
         var healthProperty = definition.Properties.HealthProperty;
-        if (healthProperty != null && health < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
+        if (healthProperty != null && previousHealth < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
             message = healthProperty.Value.LowMessage;
 
         DisplayMessage(entity.PlayerObj, null, message);
-        EntityManager.Destroy(item);
 
         if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
         {
@@ -2229,43 +2241,71 @@ public abstract partial class WorldBase : IWorld
         CompleteVooDooDollSync();
     }
 
-    private void GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
+    private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
     {
-        if (EntityManager.VoodooDolls.Count == 0)
-            return;
+        bool anySuccess = false;
+        SyncVooDooDollWithPlayer(player);
 
-        SyncVooDooDollsWithPlayer(player.PlayerNumber);
-
-        foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
+        for (int i = 0; i < EntityManager.Players.Count; i++)
         {
+            Player updatePlayer = EntityManager.Players[i];
             if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
                 continue;
 
+            int health = updatePlayer.Health;
             bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
-            if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
-            {
-                SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound, 
-                    new SoundParams(updatePlayer, channel: SoundChannel.Item));
-            }
+            if (!success || updatePlayer.IsVooDooDoll)
+                continue;
+
+            anySuccess = true;
+            PlayerPickedUpItem(updatePlayer, item, health, item.Definition);
         }
 
         CompleteVooDooDollSync();
+        return anySuccess;
+    }
+
+    private void GiveVooDooItemToPlayer(Player player, Player updatePlayer, Entity item, EntityFlags? flags, bool pickupFlash)
+    {
+        if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
+            return;
+
+        bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
+        if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
+        {
+            SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound,
+                new SoundParams(updatePlayer, channel: SoundChannel.Item));
+        }
     }
 
     private void SyncVooDooDollsWithPlayer(int playerNumber)
     {
-        Player? realPlayer = GetRealPlayer(playerNumber);
+        Player? realPlayer = EntityManager.GetRealPlayer(playerNumber);
         if (realPlayer == null)
             return;
 
-        foreach (var player in EntityManager.Players)
-            player.IsSyncVooDoo = true;
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+            EntityManager.Players[i].IsSyncVooDoo = true;
 
-        foreach (var voodooDoll in EntityManager.VoodooDolls)
+        for (int i = 0; i < EntityManager.VoodooDolls.Count; i++)
         {
+            Player voodooDoll = EntityManager.VoodooDolls[i];
             voodooDoll.IsSyncVooDoo = true;
-            voodooDoll.VodooSync(realPlayer);
+            voodooDoll.VoodooSync(realPlayer);
         }
+    }
+
+    private void SyncVooDooDollWithPlayer(Player voodooDoll)
+    {
+        Player? realPlayer = EntityManager.GetRealPlayer(voodooDoll.PlayerNumber);
+        if (realPlayer == null)
+            return;
+
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+            EntityManager.Players[i].IsSyncVooDoo = true;
+
+        voodooDoll.IsSyncVooDoo = true;
+        voodooDoll.VoodooSync(realPlayer);
     }
 
     private void CompleteVooDooDollSync()
@@ -2276,9 +2316,6 @@ public abstract partial class WorldBase : IWorld
         foreach (var voodooDoll in EntityManager.VoodooDolls)
             voodooDoll.IsSyncVooDoo = false;
     }
-
-    private Player? GetRealPlayer(int playerNumber)
-        => EntityManager.Players.FirstOrDefault(x => x.PlayerNumber == playerNumber && !x.IsVooDooDoll);
 
     public void SetSideTexture(Side side, WallLocation location, int textureHandle)
     {

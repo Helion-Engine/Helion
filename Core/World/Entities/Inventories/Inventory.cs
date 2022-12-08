@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
+using Helion.Util.Container;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
@@ -40,6 +41,7 @@ public class Inventory
     /// item (ex: weapons, which need more logic).
     /// </summary>
     private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
+    private DynamicArray<InventoryItem> ItemsById = new();
     private readonly List<InventoryItem> ItemList = new();
     private readonly List<InventoryItem> Keys = new();
     private readonly EntityDefinitionComposer EntityDefinitionComposer;
@@ -261,7 +263,11 @@ public class Inventory
 
     public bool SetAmount(EntityDefinition definition, int amount)
     {
-        if (!Items.TryGetValue(definition.Name, out InventoryItem? item) || amount < 0)
+        if (ItemsById.Capacity <= definition.Id || amount < 0)
+            return false;
+
+        InventoryItem? item = ItemsById.Data[definition.Id];
+        if (item == null)
             return false;
 
         item.Amount = amount;
@@ -364,10 +370,15 @@ public class Inventory
     public void Clear()
     {
         Items.Clear();
+        for (int i = 0; i < ItemsById.Capacity; i++)
+            ItemsById.Data[i] = null;
+
         ItemList.Clear();
         Keys.Clear();
         Weapons.Clear();
     }
+
+    public bool HasItem(EntityDefinition definition) => ItemsById.Capacity > definition.Id && ItemsById.Data[definition.Id] != null;
 
     public bool HasItem(string name) => Items.ContainsKey(name);
 
@@ -445,14 +456,20 @@ public class Inventory
         if (!Items.TryGetValue(name, out InventoryItem? item))
             return;
 
+        ItemsById.Data[item.Definition.Id] = null;
         Items.Remove(name);
         ItemList.Remove(item);
     }
 
     private void AddItem(EntityDefinition definition, InventoryItem item)
     {
-        if (Items.ContainsKey(definition.Name))
+        if (ItemsById.Capacity > item.Definition.Id && ItemsById.Data[definition.Id] != null)
             return;
+
+        if (ItemsById.Capacity <= item.Definition.Id)
+            ItemsById.Resize(item.Definition.Id + 32);
+
+        ItemsById.Data[definition.Id] = item;
 
         Items[definition.Name] = item;
         ItemList.Add(item);

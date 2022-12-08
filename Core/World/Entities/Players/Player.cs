@@ -276,16 +276,17 @@ public class Player : Entity
         return playerModel;
     }
 
-    public void VodooSync(Player player)
+    public void VoodooSync(Player player)
     {
         base.CopyProperties(player);
 
         // NoClip did not apply to the player
         Flags.NoClip = false;
-
-        foreach (InventoryItem item in player.Inventory.GetInventoryItems())
+        var items = player.Inventory.GetInventoryItems();
+        for (int i = 0; i < items.Count; i++)
         {
-            if (!Inventory.HasItem(item.Definition.Name))
+            InventoryItem item = items[i];
+            if (!Inventory.HasItem(item.Definition))
                 Inventory.Add(item.Definition, item.Amount);
             else
                 Inventory.SetAmount(item.Definition, item.Amount);
