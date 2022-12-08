@@ -406,6 +406,18 @@ public class Inventory
 
     public int Amount(string name) => Items.TryGetValue(name, out var item) ? item.Amount : 0;
 
+    public int Amount(EntityDefinition definition)
+    {
+        if (definition.Id >= ItemsById.Capacity)
+            return 0;
+
+        InventoryItem? item = ItemsById[definition.Id];
+        if (item == null)
+            return 0;
+
+        return item.Amount;
+    }
+
     public void Remove(string name, int amount)
     {
         if (amount <= 0)

@@ -46,6 +46,7 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Set amount")]
         public void SetAmount()
         {
+            InventoryUtil.AssertInventoryContains(Player, "Clip");
             Player.Inventory.Amount("Clip").Should().Be(50);
             Player.Inventory.SetAmount(GameActions.GetEntityDefinition(World, "Clip"), 100).Should().BeTrue();
             Player.Inventory.Amount("Clip").Should().Be(100);
@@ -55,6 +56,9 @@ namespace Helion.Tests.Unit.GameAction
 
             Player.Inventory.SetAmount(GameActions.GetEntityDefinition(World, "Clip"), 0).Should().BeTrue();
             Player.Inventory.Amount("Clip").Should().Be(0);
+
+            Player.Inventory.Remove("Clip", 100);
+            InventoryUtil.AssertInventoryDoesNotContain(Player, "Clip");
         }
 
         [Fact(DisplayName = "Set negative amount")]

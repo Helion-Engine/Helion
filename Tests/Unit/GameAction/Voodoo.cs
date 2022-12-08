@@ -136,6 +136,7 @@ public partial class Voodoo : IDisposable
         shellBox = shellBoxes[1];
         World.PerformItemPickup(VoodooDoll1, shellBox);
         shellBox.IsDisposed.Should().BeTrue();
+        InventoryUtil.AssertInventoryContains(Player, "Shell");
         InventoryUtil.AssertAmount(Player, "Shell", 40); Player.BonusCount.Should().Be(6);
         pickupMessage.Should().Be("Picked up a box of shotgun shells.");
 
@@ -260,5 +261,22 @@ public partial class Voodoo : IDisposable
         InventoryUtil.AssertHasWeapon(Player, "SuperShotgun");
         InventoryUtil.AssertHasWeapon(Player, "PlasmaRifle");
         Player.Armor.Should().Be(100);
+    }
+
+
+    [Fact(DisplayName = "Voodoo doll gives player radsuit")]
+    public void Powerup()
+    {
+        InventoryUtil.AssertInventoryDoesNotContain(Player, "RadSuit");
+        Player.Inventory.Powerups.Count.Should().Be(0);
+        var radsuit = GameActions.GetEntity(World, "RadSuit")!;
+        radsuit.Should().NotBeNull();
+
+        World.PerformItemPickup(VoodooDoll1, radsuit);
+        InventoryUtil.AssertInventoryContains(Player, "RadSuit");
+        Player.Inventory.Powerups.Count.Should().Be(1);
+
+        GameActions.TickWorld(World, Player.Inventory.Powerups[0].Ticks + 1);
+        Player.Inventory.Powerups.Count.Should().Be(0);
     }
 }
