@@ -62,6 +62,21 @@ namespace Helion.Tests.Unit.GameAction
             throw new NullReferenceException();
         }
 
+        public static List<Entity> GetEntities(WorldBase world, string name)
+        {
+            List<Entity> entities = new();
+            var node = world.Entities.Head;
+            while (node != null)
+            {
+                if (node.Value.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    entities.Add(node.Value);
+
+                node = node.Next;
+            }
+
+            return entities;
+        }
+
         public static List<Entity> GetSectorEntities(WorldBase world, int sectorId, string? type = null)
         {
             List<Entity> entities = new();

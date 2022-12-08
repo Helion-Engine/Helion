@@ -164,13 +164,17 @@ public class EntityManager : IDisposable
             return player;
         }
 
+        AddRealPlayer(player);
+        return player;
+    }
+
+    private void AddRealPlayer(Player player)
+    {
         if (RealPlayersByNumber.Capacity <= player.PlayerNumber)
             RealPlayersByNumber.Resize(RealPlayersByNumber.Capacity + 32);
 
         RealPlayersByNumber.Data[player.PlayerNumber] = player;
         Players.Add(player);
-
-        return player;
     }
 
     public void PopulateFrom(IMap map, LevelStats levelStats)
@@ -247,9 +251,12 @@ public class EntityManager : IDisposable
             bool isVoodooDoll = players.Any(x => x.PlayerNumber == worldModel.Players[i].Number);
             Player? player = CreatePlayerFromModel(worldModel.Players[i], entities, isVoodooDoll);
             if (player == null)
+            {
                 Log.Error($"Failed to create player {worldModel.Players[i].Name}.");
-            else
-                players.Add(player);
+                continue;
+            }
+
+            players.Add(player);
         }
 
         m_id = entities.Keys.Max() + 1;
@@ -344,10 +351,12 @@ public class EntityManager : IDisposable
             entities.Add(player.Id, new(playerModel, player));
 
             if (isVoodooDoll)
+            {
                 VoodooDolls.Add(player);
-            else
-                Players.Add(player);
+                return player;
+            }
 
+            AddRealPlayer(player);
             return player;
         }
 

@@ -33,9 +33,9 @@ namespace Helion.Tests.Unit.GameAction
 
         public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
             IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null, 
-            bool disposeExistingWorld = true)
+            bool disposeExistingWorld = true, bool cahceWorld = true)
         {
-            if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, out SinglePlayerWorld? existingWorld))
+            if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cahceWorld, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
 
             // Assets.pk3 is copied from the assets project.
@@ -80,14 +80,14 @@ namespace Helion.Tests.Unit.GameAction
             return world;
         }
 
-        private static bool UseExistingWorld(string resourceZip, string fileName, string mapName, string testKey,
+        private static bool UseExistingWorld(string resourceZip, string fileName, string mapName, string testKey, bool cacheWorld,
             [NotNullWhen(true)] out SinglePlayerWorld? existingWorld)
         {
             existingWorld = StaticWorld;
             if (StaticWorld == null)
                 return false;
 
-            if (existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) && 
+            if (cacheWorld && existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) && 
                 mapName.EqualsIgnoreCase(LastMapName) && testKey.EqualsIgnoreCase(LastTestKey))
                 return true;
 

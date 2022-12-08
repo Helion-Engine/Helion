@@ -78,6 +78,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<SideScrollEvent>? SideScrollChanged;
+    public event EventHandler<PlayerMessageEvent>? PlayerMessage;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -1142,8 +1143,12 @@ public abstract partial class WorldBase : IWorld
 
     private void PlayerPickedUpItem(Entity entity, Entity item, int previousHealth, EntityDefinition definition)
     {
-        if (entity.PlayerObj.IsVooDooDoll)
-            return;
+        if (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll)
+        {
+            entity = EntityManager.GetRealPlayer(entity.PlayerObj.PlayerNumber);
+            if (entity == null)
+                return;
+        }
 
         item.PickupPlayer = entity.PlayerObj;
         item.FrameState.SetState("Pickup", warn: false);
@@ -1437,7 +1442,10 @@ public abstract partial class WorldBase : IWorld
     {
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
+        {
             Log.Info(message);
+            PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
+        }
     }
 
     private void HandleRespawn(Entity entity)
@@ -2204,19 +2212,15 @@ public abstract partial class WorldBase : IWorld
 
     private void ApplyVooDooDamage(Player player, int damage, bool setPainState)
     {
-        if (EntityManager.VoodooDolls.Count == 0 || player.IsSyncVooDoo)
+        if (!player.IsVooDooDoll || EntityManager.VoodooDolls.Count == 0 || player.IsSyncVooDoo)
             return;
 
-        SyncVooDooDollsWithPlayer(player.PlayerNumber);
+        SyncVooDooDollWithPlayer(player);
+        Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
+        if (updatePlayer == null)
+            return;
 
-        foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
-        {
-            if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
-                continue;
-
-            updatePlayer.Damage(null, damage, setPainState, DamageType.AlwaysApply);
-        }
-
+        updatePlayer.Damage(null, damage, setPainState, DamageType.AlwaysApply);
         CompleteVooDooDollSync();
     }
 
@@ -2225,17 +2229,20 @@ public abstract partial class WorldBase : IWorld
         if (EntityManager.VoodooDolls.Count == 0 || player.IsSyncVooDoo)
             return;
 
-        SyncVooDooDollsWithPlayer(player.PlayerNumber);
+        SyncVooDooDollWithPlayer(player);
+        Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
+        if (updatePlayer == null)
+            return;
 
-        foreach (var updatePlayer in EntityManager.Players.Union(EntityManager.VoodooDolls))
+        if (forceGib)
         {
-            if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber || updatePlayer.IsDead)
-                continue;
-
-            if (forceGib)
-                updatePlayer.ForceGib();
-            else
-                updatePlayer.Kill(source);
+            updatePlayer.ForceGib();
+            player.ForceGib();
+        }
+        else
+        {
+            updatePlayer.Kill(source);
+            player.Kill(source);
         }
 
         CompleteVooDooDollSync();
@@ -2244,55 +2251,16 @@ public abstract partial class WorldBase : IWorld
     private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
     {
         bool anySuccess = false;
-        SyncVooDooDollWithPlayer(player);
+        Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
+        if (updatePlayer == null)
+            return false;
 
-        for (int i = 0; i < EntityManager.Players.Count; i++)
-        {
-            Player updatePlayer = EntityManager.Players[i];
-            if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
-                continue;
-
-            int health = updatePlayer.Health;
-            bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
-            if (!success || updatePlayer.IsVooDooDoll)
-                continue;
-
-            anySuccess = true;
-            PlayerPickedUpItem(updatePlayer, item, health, item.Definition);
-        }
-
-        CompleteVooDooDollSync();
-        return anySuccess;
-    }
-
-    private void GiveVooDooItemToPlayer(Player player, Player updatePlayer, Entity item, EntityFlags? flags, bool pickupFlash)
-    {
-        if (updatePlayer == player || updatePlayer.PlayerNumber != player.PlayerNumber)
-            return;
-
+        int health = updatePlayer.Health;
         bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
-        if (success && !updatePlayer.IsVooDooDoll && !string.IsNullOrEmpty(item.Definition.Properties.Inventory.PickupSound))
-        {
-            SoundManager.CreateSoundOn(updatePlayer, item.Definition.Properties.Inventory.PickupSound,
-                new SoundParams(updatePlayer, channel: SoundChannel.Item));
-        }
-    }
+        if (!success)
+            return false;
 
-    private void SyncVooDooDollsWithPlayer(int playerNumber)
-    {
-        Player? realPlayer = EntityManager.GetRealPlayer(playerNumber);
-        if (realPlayer == null)
-            return;
-
-        for (int i = 0; i < EntityManager.Players.Count; i++)
-            EntityManager.Players[i].IsSyncVooDoo = true;
-
-        for (int i = 0; i < EntityManager.VoodooDolls.Count; i++)
-        {
-            Player voodooDoll = EntityManager.VoodooDolls[i];
-            voodooDoll.IsSyncVooDoo = true;
-            voodooDoll.VoodooSync(realPlayer);
-        }
+        return true;
     }
 
     private void SyncVooDooDollWithPlayer(Player voodooDoll)
@@ -2310,11 +2278,11 @@ public abstract partial class WorldBase : IWorld
 
     private void CompleteVooDooDollSync()
     {
-        foreach (var player in EntityManager.Players)
-            player.IsSyncVooDoo = false;
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+            EntityManager.Players[i].IsSyncVooDoo = false;
 
-        foreach (var voodooDoll in EntityManager.VoodooDolls)
-            voodooDoll.IsSyncVooDoo = false;
+        for (int i = 0; i < EntityManager.VoodooDolls.Count; i++)
+            EntityManager.VoodooDolls[i].IsSyncVooDoo = false;
     }
 
     public void SetSideTexture(Side side, WallLocation location, int textureHandle)

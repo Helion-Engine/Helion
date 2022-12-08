@@ -42,6 +42,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<SideScrollEvent>? SideScrollChanged;
+    event EventHandler<PlayerMessageEvent>? PlayerMessage;
 
     string MapName { get; }
     int Gametick { get; }
