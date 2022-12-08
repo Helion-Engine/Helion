@@ -61,7 +61,7 @@ public class EntityManager : IDisposable
     public readonly EntityDefinitionComposer DefinitionComposer;
     public readonly List<Player> Players = new();
     public readonly List<Player> VoodooDolls = new();
-    private readonly DynamicArray<Player?> RealPlayersByNumber = new();
+    private readonly LookupArray<Player?> RealPlayersByNumber = new();
 
     private int m_id;
 
@@ -170,10 +170,7 @@ public class EntityManager : IDisposable
 
     private void AddRealPlayer(Player player)
     {
-        if (RealPlayersByNumber.Capacity <= player.PlayerNumber)
-            RealPlayersByNumber.Resize(RealPlayersByNumber.Capacity + 32);
-
-        RealPlayersByNumber.Data[player.PlayerNumber] = player;
+        RealPlayersByNumber.Set(player.PlayerNumber, player);
         Players.Add(player);
     }
 
@@ -313,10 +310,8 @@ public class EntityManager : IDisposable
 
     public Player? GetRealPlayer(int playerNumber)
     {
-        if (RealPlayersByNumber.Capacity <= playerNumber)
-            return null;
-
-        return RealPlayersByNumber.Data[playerNumber];
+        RealPlayersByNumber.TryGetValue(playerNumber, out var player);
+        return player;
     }
 
     private static object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)

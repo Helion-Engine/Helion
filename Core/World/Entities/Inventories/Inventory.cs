@@ -41,7 +41,7 @@ public class Inventory
     /// item (ex: weapons, which need more logic).
     /// </summary>
     private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
-    private DynamicArray<InventoryItem> ItemsById = new();
+    private LookupArray<InventoryItem> ItemsById = new();
     private readonly List<InventoryItem> ItemList = new();
     private readonly List<InventoryItem> Keys = new();
     private readonly EntityDefinitionComposer EntityDefinitionComposer;
@@ -263,11 +263,7 @@ public class Inventory
 
     public bool SetAmount(EntityDefinition definition, int amount)
     {
-        if (ItemsById.Capacity <= definition.Id || amount < 0)
-            return false;
-
-        InventoryItem? item = ItemsById.Data[definition.Id];
-        if (item == null)
+        if (!ItemsById.TryGetValue(definition.Id, out InventoryItem? item) || amount < 0)
             return false;
 
         item.Amount = amount;
@@ -370,15 +366,14 @@ public class Inventory
     public void Clear()
     {
         Items.Clear();
-        for (int i = 0; i < ItemsById.Capacity; i++)
-            ItemsById.Data[i] = null;
+        ItemsById.SetAll(null);
 
         ItemList.Clear();
         Keys.Clear();
         Weapons.Clear();
     }
 
-    public bool HasItem(EntityDefinition definition) => ItemsById.Capacity > definition.Id && ItemsById.Data[definition.Id] != null;
+    public bool HasItem(EntityDefinition definition) => ItemsById.TryGetValue(definition.Id, out _);
 
     public bool HasItem(string name) => Items.ContainsKey(name);
 
@@ -408,11 +403,7 @@ public class Inventory
 
     public int Amount(EntityDefinition definition)
     {
-        if (definition.Id >= ItemsById.Capacity)
-            return 0;
-
-        InventoryItem? item = ItemsById[definition.Id];
-        if (item == null)
+        if (!ItemsById.TryGetValue(definition.Id, out InventoryItem? item))
             return 0;
 
         return item.Amount;
@@ -468,21 +459,14 @@ public class Inventory
         if (!Items.TryGetValue(name, out InventoryItem? item))
             return;
 
-        ItemsById.Data[item.Definition.Id] = null;
+        ItemsById.Set(item.Definition.Id, null);
         Items.Remove(name);
         ItemList.Remove(item);
     }
 
     private void AddItem(EntityDefinition definition, InventoryItem item)
     {
-        if (ItemsById.Capacity > item.Definition.Id && ItemsById.Data[definition.Id] != null)
-            return;
-
-        if (ItemsById.Capacity <= item.Definition.Id)
-            ItemsById.Resize(item.Definition.Id + 32);
-
-        ItemsById.Data[definition.Id] = item;
-
+        ItemsById.Set(definition.Id, item);
         Items[definition.Name] = item;
         ItemList.Add(item);
         if (definition.IsType(KeyClassName))
