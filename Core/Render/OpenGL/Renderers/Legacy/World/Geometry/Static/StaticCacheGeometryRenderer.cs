@@ -264,7 +264,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_world.Config.Render.FloodFill)
             return;
 
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_world.Config.Render.FloodFillAlt);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,

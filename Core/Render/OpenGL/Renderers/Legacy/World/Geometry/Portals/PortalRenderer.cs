@@ -46,7 +46,7 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.UpdateTo(world);
     }
 
-    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture)
+    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool alternateMethod)
     {
         const int FakeWallHeight = 8192;
         bool isFront = facingSide.Line.Front.Id == facingSide.Id;
@@ -59,7 +59,7 @@ public class PortalRenderer : IDisposable
             if (!IsSky(floodSector.Ceiling))
                 facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
 
-            if (IsSky(facingSide.Sector.Ceiling))
+            if (!alternateMethod || IsSky(facingSide.Sector.Ceiling))
                 return;
 
             bottom = facingSide.Sector.Ceiling;
@@ -80,7 +80,7 @@ public class PortalRenderer : IDisposable
             if (!IsSky(floodSector.Floor))
                 facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
 
-            if (IsSky(facingSide.Sector.Floor))
+            if (!alternateMethod || IsSky(facingSide.Sector.Floor))
                 return;
 
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.

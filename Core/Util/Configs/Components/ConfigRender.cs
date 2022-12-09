@@ -112,4 +112,7 @@ public class ConfigRender
 
     [ConfigInfo("Enable sector flood fill.", restartRequired: true)]
     public readonly ConfigValue<bool> FloodFill = new(true);
+
+    [ConfigInfo("Enable alternate method for sector flood fill.", restartRequired: true)]
+    public readonly ConfigValue<bool> FloodFillAlt = new(false);
 }
