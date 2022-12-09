@@ -155,6 +155,7 @@ public class Serialization : IDisposable
         AssertSectorsEqual(world);
         AssertLinesEqual(world);
         AssertSpecials(world);
+        AssertVoodooDolls(world);
 
         PreviousWorld.LevelTime.Should().Be(world.LevelTime);
         PreviousWorld.Gametick.Should().Be(world.Gametick);
@@ -163,6 +164,18 @@ public class Serialization : IDisposable
         PreviousWorld.LevelStats.Equals(world.LevelStats).Should().BeTrue();
 
         PreviousWorld.Random.RandomIndex.Should().Be(world.Random.RandomIndex);
+    }
+
+    private static void AssertVoodooDolls(SinglePlayerWorld world)
+    {
+        world.EntityManager.VoodooDolls.Count.Should().Be(2);
+        world.EntityManager.Players.Count.Should().Be(1);
+
+        world.EntityManager.VoodooDolls[0].PlayerNumber.Should().Be(0);
+        world.EntityManager.VoodooDolls[1].PlayerNumber.Should().Be(0);
+
+        world.EntityManager.Players[0].PlayerNumber.Should().Be(0);
+        world.Player.Should().Be(world.EntityManager.Players[0]);
     }
 
     private void AssertSpecials(SinglePlayerWorld world)
