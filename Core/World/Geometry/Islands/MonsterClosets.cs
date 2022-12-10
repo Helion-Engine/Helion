@@ -32,6 +32,7 @@ public static class MonsterClosets
 
     private static bool CalculateIfMonsterCloset(Island island, WorldBase world)
     {
+        // Monster closets are simple, should not have a ton of lines.
         if (island.Lines.Count > 300)
             return false;
 
@@ -50,6 +51,7 @@ public static class MonsterClosets
             if (!subsectors.Contains(subsector))
                 continue;
 
+            // Anything not a monster is not a monster closet.
             bool isMonster = entity.Flags.CountKill;
             if (!isMonster)
                 return false;
