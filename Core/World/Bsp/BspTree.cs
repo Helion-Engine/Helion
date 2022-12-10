@@ -23,6 +23,7 @@ public class BspSubsectorSeg : Segment2D
     public readonly Sector? Sector;
     public readonly bool Front;
     public BspSubsectorSeg Partner { get; internal set; } = null!;
+    public BspSubsector Subsector { get; internal set; } = null!;
 
     public BspSubsectorSeg(int id, Vec2D start, Vec2D end, Line? line, Sector? sector, bool front) : base(start, end)
     {
@@ -38,18 +39,16 @@ public class BspSubsectorSeg : Segment2D
 public class BspSubsector
 {
     public readonly int Id;
-    public readonly Sector Sector;
+    public readonly Sector? Sector;
     public readonly List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
 
-    public BspSubsector(int id, Sector sector, List<BspSubsectorSeg> segs)
+    public BspSubsector(int id, Sector? sector, List<BspSubsectorSeg> segs)
     {
-        Debug.Assert(segs.Count >= 3, "Subsector must have at least 3 edges");
-
         Id = id;
         Sector = sector;
         Segments = segs;
-        Box = Box2D.Bound(segs).Value;
+        Box = Box2D.Bound(segs) ?? default;
     }
 
     public override string ToString() => $"{Id}, sector = {Sector.Id}, segs = {Segments.Count}, box = {Box}";
@@ -89,6 +88,9 @@ public class BspTreeNew
         CreateSegments(map, lines, sectors);
         CreateSubsectors(map);
         CreateNodes(map);
+
+        // If this ever fails, then we need to make BspSubsectorSeg.Subsector be nullable, and check for null.
+        Debug.Assert(Segments.All(s => s.Subsector != null), "There should not be a segment without a subsector");
     }
 
     private void CreateSegments(IMap map, List<Line> lines, List<Sector> sectors)
@@ -151,11 +153,14 @@ public class BspTreeNew
                 segments.Add(segment);
             }
 
-            if (sector == null)
-                throw new($"Unable to find sector for subsector {subsectorId} with segment range {start}...{end}");
-
             BspSubsector subsector = new(subsectorId, sector, segments);
             Subsectors.Add(subsector);
+
+            for (int i = start; i < end; i++)
+            {
+                BspSubsectorSeg segment = Segments[i];
+                segment.Subsector = subsector;
+            }
         }
     }
 

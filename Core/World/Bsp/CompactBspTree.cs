@@ -127,7 +127,13 @@ public class CompactBspTree
     /// </summary>
     /// <param name="point">The point to get the subsector for.</param>
     /// <returns>The subsector for the provided point.</returns>
-    public unsafe Subsector ToSubsector(in Vec3D point)
+    public Subsector ToSubsector(in Vec3D point)
+    {
+        int index = ToSubsectorIndex(point);
+        return Subsectors[index];
+    }
+
+    public unsafe int ToSubsectorIndex(in Vec3D point)
     {
         BspNodeCompact node = Root;
 
@@ -137,7 +143,7 @@ public class CompactBspTree
             uint nodeIndex = node.Children[next];
 
             if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
+                return (int)(nodeIndex & BspNodeCompact.SubsectorMask);
 
             node = Nodes[nodeIndex];
         }

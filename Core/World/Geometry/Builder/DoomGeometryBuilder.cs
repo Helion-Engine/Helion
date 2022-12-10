@@ -43,7 +43,7 @@ public static class DoomGeometryBuilder
             return null;
         }
 
-        return new(builder, bspTree);
+        return new(map, builder, bspTree);
     }
 
     private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face,

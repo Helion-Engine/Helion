@@ -15,6 +15,7 @@ using Helion.Resources;
 using Helion.World.Bsp;
 using System.Linq;
 using Helion.World.Geometry.Islands;
+using Helion.Maps.Components.GL;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -56,6 +57,7 @@ public class Line : IBspUsableLine
     public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
     public IEnumerable<Sector> Sectors => Sides.Select(s => s.Sector);
     public IEnumerable<Side> Sides => GetSides();
+    public IEnumerable<Vec2D> Vertices => GetVertices();
 
     public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
@@ -219,6 +221,12 @@ public class Line : IBspUsableLine
     {
         DataChanges |= LineDataTypes.Automap;
     }
+
+    private IEnumerable<Vec2D> GetVertices()
+    {
+        yield return Segment.Start;
+        yield return Segment.End;
+}
 
     private IEnumerable<Side> GetSides()
     {

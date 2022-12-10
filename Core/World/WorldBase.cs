@@ -121,14 +121,13 @@ public abstract partial class WorldBase : IWorld
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
+    public readonly MapGeometry Geometry;
     protected readonly IAudioSystem AudioSystem;
-    protected readonly MapGeometry Geometry;
     protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
     private readonly IRandom m_saveRandom;
     private IRandom m_random;
-
     private int m_exitTicks;
     private int m_easyBossBrain;
     private int m_soundCount;

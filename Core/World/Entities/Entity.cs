@@ -110,6 +110,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double SaveZ;
     public double PrevSaveZ;
     public bool WasCrushing;
+    public bool InMonsterCloset;
 
     public double Height => Box.Height;
     public double Radius => Definition.Properties.Radius;

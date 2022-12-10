@@ -93,12 +93,23 @@ public class LinkableList<T>
         LinkableNode<T>? node = Head;
         while (node != null)
         {
+            // TODO: This will break with structs? Use `where T : class`?
             if (ReferenceEquals(obj, node.Value))
                 return true;
             node = node.Next;
         }
 
         return false;
+    }
+
+    public IEnumerable<T> Enumerate()
+    {
+        LinkableNode<T>? node = Head;
+        while (node != null)
+        {
+            yield return node.Value;
+            node = node.Next;
+        }
     }
 }
 

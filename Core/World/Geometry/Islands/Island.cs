@@ -1,11 +1,5 @@
-﻿using Helion;
-using Helion.World;
-using Helion.World.Bsp;
-using Helion.World.Geometry;
-using Helion.World.Geometry.Islands;
+﻿using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;
@@ -17,7 +11,7 @@ namespace Helion.World.Geometry.Islands;
 public class Island
 {
     public readonly int Id;
-    public readonly List<Sector> Sectors = new();
+    public readonly List<BspSubsector> Subsectors = new();
     public readonly List<Line> Lines = new();
 
     public Island(int id)

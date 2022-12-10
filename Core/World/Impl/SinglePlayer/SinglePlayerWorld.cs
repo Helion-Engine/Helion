@@ -24,6 +24,7 @@ using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
+using Helion.World.Geometry.Islands;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -101,6 +102,8 @@ public class SinglePlayerWorld : WorldBase
 
             SpecialManager.AddSpecialModels(worldModel.Specials);
         }
+
+        MonsterClosets.Classify(this);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
         EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;

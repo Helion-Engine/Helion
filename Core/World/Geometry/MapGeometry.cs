@@ -19,12 +19,13 @@ public class MapGeometry
     public readonly List<Wall> Walls;
     public readonly List<Sector> Sectors;
     public readonly List<SectorPlane> SectorPlanes;
+    public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
     public readonly List<Island> Islands;
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
     private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
 
-    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree)
+    internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
@@ -32,12 +33,14 @@ public class MapGeometry
         Sectors = builder.Sectors;
         SectorPlanes = builder.SectorPlanes;
         CompactBspTree = bspTree;
+        BspTree = new(map, Lines, Sectors);
 
         TrackSectorsByTag();
         TrackLinesByLineId();
+        AttachBspToGeometry(BspTree);
 
         // Requires geometry to be attached to each other before classifying.
-        Islands = IslandClassifier.Classify(Lines);
+        Islands = IslandClassifier.Classify(BspTree.Subsectors);
     }
 
     public IEnumerable<Sector> FindBySectorTag(int tag)

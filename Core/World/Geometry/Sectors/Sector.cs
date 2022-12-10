@@ -17,10 +17,10 @@ using Helion.Util.Configs.Components;
 using Helion.World.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Geometry.Boxes;
-using static Helion.Util.Assertion.Assert;
-using static Helion.World.Entities.EntityManager;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Islands;
+using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -75,7 +75,6 @@ public class Sector
     private Sector m_transferFloorLightSector;
     private Sector m_transferCeilingLightSector;
     private Box2D? m_boundingBox;
-    public bool IsMonsterCloset;
 
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
