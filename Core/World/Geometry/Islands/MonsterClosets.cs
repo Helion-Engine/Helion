@@ -7,6 +7,7 @@ using Helion.World.Impl.SinglePlayer;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
@@ -23,15 +24,17 @@ public static class MonsterClosets
     // Assumes entities and geometry have been populated. Should be done as
     // a final post-processing step.
     public static void Classify(WorldBase world)
-    {
+     {
         foreach (Island island in world.Geometry.Islands)
-            if (CalculateIfMonsterCloset(island, world))
-                foreach (Entity entity in world.Entities.Enumerate())
+            if (CalculateIfMonsterCloset(island, world, out List<Entity> entitiesOnIsland))
+                foreach (Entity entity in entitiesOnIsland)
                     entity.InMonsterCloset = true;
     }
 
-    private static bool CalculateIfMonsterCloset(Island island, WorldBase world)
+    private static bool CalculateIfMonsterCloset(Island island, WorldBase world, [NotNullWhen(true)] out List<Entity>? entitiesOnIsland)
     {
+        entitiesOnIsland = null;
+
         // Monster closets are simple, should not have a ton of lines.
         if (island.Lines.Count > 300)
             return false;
@@ -44,6 +47,7 @@ public static class MonsterClosets
         }
 
         HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
+        entitiesOnIsland = new();
 
         foreach (Entity entity in world.Entities.Enumerate())
         {
@@ -55,6 +59,8 @@ public static class MonsterClosets
             bool isMonster = entity.Flags.CountKill;
             if (!isMonster)
                 return false;
+
+            entitiesOnIsland.Add(entity);
         }
 
         return true;

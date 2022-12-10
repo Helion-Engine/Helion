@@ -162,6 +162,9 @@ public class BspTreeNew
                 segment.Subsector = subsector;
             }
         }
+
+        // TODO: This is horrific, and is to match recursive indexing elsewhere, fix soon.
+        Subsectors.Reverse();
     }
 
     private void CreateNodes(IMap map)
