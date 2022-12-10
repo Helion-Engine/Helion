@@ -5,6 +5,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components.GL;
 using Helion.Util.Extensions;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
@@ -42,6 +43,7 @@ public class BspSubsector
     public readonly Sector? Sector;
     public readonly List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
+    public Island Island { get; internal set; } = null!;
 
     public BspSubsector(int id, Sector? sector, List<BspSubsectorSeg> segs)
     {
@@ -162,9 +164,6 @@ public class BspTreeNew
                 segment.Subsector = subsector;
             }
         }
-
-        // TODO: This is horrific, and is to match recursive indexing elsewhere, fix soon.
-        Subsectors.Reverse();
     }
 
     private void CreateNodes(IMap map)
@@ -207,5 +206,34 @@ public class BspTreeNew
             Right = child
         };
         Nodes.Add(root);
+    }
+
+    public BspSubsector Find(Vec2D point)
+    {
+        BspNodeNew node = Root;
+
+        // This is not optimal perf-wise, but this BSP tree is not intended to be traversed much.
+        while (true)
+        {
+            if (node.Splitter.OnRight(point))
+            {
+                if (node.Right.IsT0)
+                    node = node.Right.AsT0;
+                else
+                    return node.Right.AsT1;
+            }
+            else
+            {
+                if (node.Left.IsT0)
+                    node = node.Left.AsT0;
+                else
+                    return node.Left.AsT1;
+            }
+        }
+    }
+
+    public BspSubsector Find(Vec3D point)
+    {
+        return Find(point.XY);
     }
 }

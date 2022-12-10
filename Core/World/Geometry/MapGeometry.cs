@@ -41,6 +41,7 @@ public class MapGeometry
 
         // Requires geometry to be attached to each other before classifying.
         Islands = IslandClassifier.Classify(BspTree.Subsectors);
+        AttachIslandsToGeometry(Islands);
     }
 
     public IEnumerable<Sector> FindBySectorTag(int tag)
@@ -97,5 +98,12 @@ public class MapGeometry
         foreach (BspSubsectorSeg seg in bspTree.Segments)
             if (seg.Line != null)
                 seg.Line.SubsectorSegs.Add(seg);
+    }
+
+    private void AttachIslandsToGeometry(List<Island> islands)
+    {
+        foreach (Island island in islands)
+            foreach (BspSubsector subsector in island.Subsectors)
+                subsector.Island = island;
     }
 }
