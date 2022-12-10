@@ -31,10 +31,10 @@ public static class HexenGeometryBuilder
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
 
-        BspTree? bspTree;
+        CompactBspTree? bspTree;
         try
         {
-            bspTree = BspTree.Create(map, builder, bspBuilder);
+            bspTree = CompactBspTree.Create(map, builder, bspBuilder);
             if (bspTree == null)
                 return null;
         }
@@ -48,7 +48,7 @@ public static class HexenGeometryBuilder
             return null;
         }
 
-        return new MapGeometry(builder, bspTree);
+        return new(builder, bspTree, map);
     }
 
     private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,

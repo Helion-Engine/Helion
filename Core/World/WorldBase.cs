@@ -97,7 +97,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Side> Sides => Geometry.Sides;
     public IList<Wall> Walls => Geometry.Walls;
     public IList<Sector> Sectors => Geometry.Sectors;
-    public BspTree BspTree => Geometry.BspTree;
+    public CompactBspTree BspTree => Geometry.CompactBspTree;
     public LinkableList<Entity> Entities => EntityManager.Entities;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }

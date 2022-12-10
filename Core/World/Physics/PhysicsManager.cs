@@ -47,7 +47,7 @@ public class PhysicsManager
     public BlockmapTraverser BlockmapTraverser { get; private set; }
 
     private readonly IWorld m_world;
-    private readonly BspTree m_bspTree;
+    private readonly CompactBspTree m_bspTree;
     private readonly BlockMap m_blockmap;
     private readonly EntityManager m_entityManager;
     private readonly WorldSoundManager m_soundManager;
@@ -60,7 +60,7 @@ public class PhysicsManager
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly List<Entity> m_stackCrush = new();
 
-    public PhysicsManager(IWorld world, BspTree bspTree, BlockMap blockmap, IRandom random)
+    public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
         m_bspTree = bspTree;

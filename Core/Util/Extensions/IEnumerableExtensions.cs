@@ -42,4 +42,17 @@ public static class IEnumerableExtensions
     {
         return string.Join(joinToken, strings);
     }
+
+    /// <summary>
+    /// Enumerates a collection with the index.
+    /// </summary>
+    /// <typeparam name="T">The collection type.</typeparam>
+    /// <param name="items">The items to iterate over.</param>
+    /// <returns>A forward iteration with indices.</returns>
+    public static IEnumerable<(int Index, T Element)> Enumerate<T>(this IEnumerable<T> items)
+    {
+        int index = 0;
+        foreach (var item in items)
+            yield return (index++, item);
+    }
 }

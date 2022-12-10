@@ -1,295 +1,190 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Helion.Bsp;
-using Helion.Bsp.Node;
+﻿using Helion.Bsp.Node;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
-using Helion.Maps.Components;
-using Helion.Util;
-using Helion.World.Geometry.Builder;
+using Helion.Maps.Components.GL;
+using Helion.Util.Extensions;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using NLog;
-using static Helion.Util.Assertion.Assert;
+using OneOf;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using zdbspSharp;
 
 namespace Helion.World.Bsp;
 
-/// <summary>
-/// The compiled BSP tree that condenses the builder data into a cache
-/// efficient data structure.
-/// </summary>
-public class BspTree
+public class BspSubsectorEdge : Segment2D
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    public readonly int Id;
+    public readonly Line? Line;
+    public readonly Sector? Sector;
+    public BspSubsectorEdge Partner { get; internal set; } = null!;
 
-    /// <summary>
-    /// All the segments, which are the edges of the subsector.
-    /// </summary>
-    public List<SubsectorSegment> Segments = new List<SubsectorSegment>();
-
-    /// <summary>
-    /// All the subsectors, the convex leaves at the bottom of the BSP
-    /// tree.
-    /// </summary>
-    public Subsector[] Subsectors = new Subsector[0];
-
-    /// <summary>
-    /// A compact struct for all the nodes, specifically to speed up all
-    /// recursive BSP traversal.
-    /// </summary>
-    public BspNodeCompact[] Nodes = new BspNodeCompact[0];
-
-    /// <summary>
-    /// The next available subsector index. This is used only for building
-    /// the <see cref="Subsectors"/> list.
-    /// </summary>
-    private uint m_nextSubsectorIndex;
-
-    /// <summary>
-    /// The next available node index. This is used only for building the
-    /// <see cref="Nodes"/> list.
-    /// </summary>
-    private uint m_nextNodeIndex;
-
-    /// <summary>
-    /// The root node of the tree.
-    /// </summary>
-    /// <remarks>
-    /// This is the end index of the nodes array because the recursive
-    /// traversal fills in the array from post-order traversal.
-    /// </remarks>
-    public BspNodeCompact Root => Nodes[^1];
-
-    private BspTree(BspNode root, GeometryBuilder builder)
+    public BspSubsectorEdge(int id, Vec2D start, Vec2D end, Line? line, Sector? sector) : base(start, end)
     {
-        Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
-
-        CreateComponents(root, builder);
-
-        if (Subsectors.Length == 1)
-            HandleSingleSubsectorTree();
+        Id = id;
+        Line = line;
+        Sector = sector;
     }
 
-    /// <summary>
-    /// Creates a BSP from the map provided. This can fail if the geometry
-    /// for the map is corrupt and we cannot make a BSP tree.
-    /// </summary>
-    /// <param name="map">The map to build the tree from.</param>
-    /// <param name="builder">The geometry builder for the map.</param>
-    /// <param name="bspBuilder">The BSP builder.</param>
-    /// <returns>A built BSP tree, or a null value if the geometry for the
-    /// map is corrupt beyond repair.</returns>
-    public static BspTree? Create(IMap map, GeometryBuilder builder, IBspBuilder bspBuilder)
+    public override string ToString() => $"{Struct} (line = {Line?.Id ?? -1}, sector = {Sector?.Id ?? -1})";
+}
+
+public class BspSubsector
+{
+    public readonly int Id;
+    public readonly Sector Sector;
+    public readonly List<BspSubsectorEdge> Edges;
+    public readonly Box2D Box;
+
+    public BspSubsector(int id, Sector sector, List<BspSubsectorEdge> edges)
     {
-        BspNode? root = null;
+        Debug.Assert(edges.Count >= 3, "Subsector must have at least 3 edges");
 
-        // Currently the BSP builder has a fair amount of state, and having
-        // it detect errors, roll back, and try to repair a map mid-stream
-        // while resetting all of its data structures is a lot of work.
-        //
-        // Further assertions can occur due to malformed maps. The solution
-        // now is to attempt it, and if something goes wrong then try to
-        // run it with the map repairer and try again. We don't want to run
-        // the map repairer from the start because on bigger maps it uses a
-        // fair amount of computation due to how the implementation of some
-        // algorithms are.
-        try
-        {
-            root = bspBuilder.Build();
-        }
-        catch
-        {
-            // Unfortunately malformed maps trigger assertion exceptions.
-            // This means map corruption will be impossible to detect as
-            // to whether it's map corruption or if it's our fault. For
-            // now, we'll have to visit each on a case by case basis and
-            // evaluate each corrupt map to see if it really is our fault
-            // or not. Therefore we ignore the exception to leave root as
-            // null so it can warn the user.
-        }
-
-        if (root == null)
-        {
-            Log.Error("Cannot create BSP tree for map {0}, map geometry corrupt", map.Name);
-            return null;
-        }
-
-        return new BspTree(root, builder);
+        Id = id;
+        Sector = sector;
+        Edges = edges;
+        Box = Box2D.Bound(edges).Value;
     }
 
-    /// <summary>
-    /// Gets the subsector that maps onto the point provided.
-    /// </summary>
-    /// <param name="point">The point to get the subsector for.</param>
-    /// <returns>The subsector for the provided point.</returns>
-    public unsafe Subsector ToSubsector(in Vec3D point)
+    public override string ToString() => $"{Id}, sector = {Sector.Id}, edge count = {Edges.Count}, box = {Box}";
+}
+
+public class BspNodeNew
+{
+    public readonly int Id;
+    public readonly Seg2D Splitter;
+    public OneOf<BspNodeNew, BspSubsector> Left { get; internal set; } = default;
+    public OneOf<BspNodeNew, BspSubsector> Right { get; internal set; } = default;
+
+    public BspNodeNew(int id, Seg2D splitter)
     {
-        BspNodeCompact node = Root;
+        Id = id;
+        Splitter = splitter;
+    }
 
-        while (true)
+    public override string ToString() => $"{Id}, splitter = {Splitter}";
+}
+
+public class BspTreeNew
+{
+    public readonly List<BspSubsectorEdge> Edges = new();
+    public readonly List<BspSubsector> Subsectors = new();
+    public readonly List<BspNodeNew> Nodes = new();
+
+    public BspNodeNew Root => Nodes[^1];
+
+    public BspTreeNew(IMap map, List<Line> lines, List<Sector> sectors)
+    {
+        if (map.GL == null)
+            throw new("Cannot make a BSP tree from a map without any GL nodes");
+        if (map.GL.Segments.Empty() || map.GL.Subsectors.Empty())
+            throw new("Must have at least one edge and/or subsector in a BSP tree");
+
+        CreateEdges(map, lines, sectors);
+        CreateSubsectors(map);
+        CreateNodes(map);
+    }
+
+    private void CreateEdges(IMap map, List<Line> lines, List<Sector> sectors)
+    {
+        var vertices = map.GetVertices();
+        var glVertices = map.GL.Vertices;
+
+        // Create them so they can be indexed.
+        foreach ((int id, GLSegment seg) in map.GL.Segments.Enumerate())
         {
-            int next = Convert.ToInt32(node.Splitter.OnRight(point));
-            uint nodeIndex = node.Children[next];
+            Vec2D start = GetVertex(seg.IsStartVertexGL, seg.StartVertex);
+            Vec2D end = GetVertex(seg.IsEndVertexGL, seg.EndVertex);
+            Line? line = seg.IsMiniseg ? null : lines[(int)seg.Linedef.Value];
+            Sector? sector = seg.IsRightSide ? line?.Front.Sector : line.Back!.Sector;
 
-            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
+            BspSubsectorEdge edge = new(id, start, end, line, sector);
+            Edges.Add(edge);
+        }
 
-            node = Nodes[nodeIndex];
+        // Attaching partner segs must come after we have populated everything so
+        // that references are valid.
+        foreach ((int i, GLSegment seg) in map.GL.Segments.Enumerate())
+        {
+            BspSubsectorEdge edge = Edges[i];
+            if (seg.PartnerSegment.HasValue)
+                edge.Partner = Edges[(int)seg.PartnerSegment.Value];
+        }
+
+        Vec2D GetVertex(bool isGL, uint index)
+        {
+            return isGL ? glVertices[(int)index] : vertices[(int)index].Position;
         }
     }
 
-    public unsafe Sector ToSector(in Vec3D point)
+    private void CreateSubsectors(IMap map)
     {
-        BspNodeCompact node = Root;
-
-        while (true)
+        foreach ((int subsectorId, GLSubsector ssec) in map.GL.Subsectors.Enumerate())
         {
-            int next = Convert.ToInt32(node.Splitter.OnRight(point));
-            uint nodeIndex = node.Children[next];
+            Sector? sector = null;
+            List<BspSubsectorEdge> edges = new();
 
-            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask].Sector;
-
-            node = Nodes[nodeIndex];
-        }
-    }
-
-
-    private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
-    {
-        if (edge.Line == null)
-            return null;
-
-        // This should never be wrong because the edge line ID's should be
-        // shared with the instantiated lines.
-        Line line = builder.MapLines[edge.Line.Id];
-
-        Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
-        return edge.IsFront ? line.Front : line.Back;
-    }
-
-    private void CreateComponents(BspNode root, GeometryBuilder builder)
-    {
-        // Since it's a full binary tree, N nodes implies N + 1 leaves.
-        int parentNodeCount = root.CalculateParentNodeCount();
-        int subsectorNodeCount = parentNodeCount + 1;
-        int segmentCountGuess = subsectorNodeCount * 4;
-
-        Segments = new List<SubsectorSegment>(segmentCountGuess);
-        Subsectors = new Subsector[subsectorNodeCount];
-        Nodes = new BspNodeCompact[parentNodeCount];
-
-        RecursivelyCreateComponents(root, builder);
-
-        Postcondition(m_nextSubsectorIndex <= ushort.MaxValue, "Subsector index overflow (need a 4-byte BSP tree for this map)");
-        Postcondition(m_nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
-    }
-
-    private BspCreateResult RecursivelyCreateComponents(BspNode? node, GeometryBuilder builder)
-    {
-        if (node == null || node.IsDegenerate)
-            throw new HelionException("Should never recurse onto a null/degenerate node when composing a world BSP tree");
-
-        return node.IsSubsector ? CreateSubsector(node, builder) : CreateNode(node, builder);
-    }
-
-    private BspCreateResult CreateSubsector(BspNode node, GeometryBuilder builder)
-    {
-        List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
-
-        List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => new Seg2D(s.Start, s.End)).ToList();
-        Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
-
-        Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
-        Subsectors[m_nextSubsectorIndex] = subsector;
-
-        return BspCreateResult.Subsector(m_nextSubsectorIndex++);
-    }
-
-    private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
-    {
-        List<SubsectorSegment> returnSegments = new();
-
-        foreach (SubsectorEdge edge in node.ClockwiseEdges)
-        {
-            Side? side = GetSideFromEdge(edge, builder);
-            SubsectorSegment subsectorEdge = new(side, edge.Start, edge.End);
-
-            returnSegments.Add(subsectorEdge);
-            Segments.Add(subsectorEdge);
-        }
-
-        return returnSegments;
-    }
-
-    private Sector GetSectorFrom(BspNode node, GeometryBuilder builder)
-    {
-        foreach (SubsectorEdge edge in node.ClockwiseEdges)
-        {
-            if (edge.Line == null)
-                continue;
-
-            // We have built the BSP tree with this kind of line. If it's
-            // not, someone has some something unbelievably wrong.
-            ILine line = (ILine)edge.Line;
-            int sectorId;
-
-            if (line.OneSided)
-                sectorId = line.GetFront().GetSector().Id;
-            else
+            int start = ssec.FirstSegmentIndex;
+            int end = start + ssec.Count;
+            for (int i = start; i < end; i++)
             {
-                ISide side = edge.IsFront ? line.GetFront() : line.GetBack() !;
-                sectorId = side.GetSector().Id;
+                BspSubsectorEdge edge = Edges[i];
+                sector ??= edge.Sector;
+                edges.Add(edge);
             }
 
-            // If this ever is wrong, something has gone terribly wrong
-            // with building the geometry.
-            return builder.Sectors[sectorId];
+            if (sector == null)
+                throw new($"Unable to find sector for subsector {subsectorId} with segment range {start}...{end}");
+
+            BspSubsector subsector = new(subsectorId, sector, edges);
+            Subsectors.Add(subsector);
+        }
+    }
+
+    private void CreateNodes(IMap map)
+    {
+        if (map.GL.Nodes.Empty())
+        {
+            CreateZeroNodeTree();
+            return;
         }
 
-        throw new HelionException("BSP building malformed, subsector made up of only minisegs (or is a not a leaf)");
+        // Create them so we can index into them, in case the BSP indices are not
+        // in the expected order.
+        foreach ((int id, GLNode glNode) in map.GL.Nodes.Enumerate())
+        {
+            BspNodeNew node = new(id, glNode.Splitter);
+            Nodes.Add(node);
+        }
+
+        // Now attach the nodes since all our references are available.
+        foreach ((int id, GLNode glNode) in map.GL.Nodes.Enumerate())
+        {
+            BspNodeNew node = Nodes[id];
+            node.Left = GetChild(glNode.LeftChild, glNode.IsLeftSubsector);
+            node.Right = GetChild(glNode.RightChild, glNode.IsRightSubsector);
+        }
+
+        OneOf<BspNodeNew, BspSubsector> GetChild(uint index, bool isSubsector) 
+        {
+            return isSubsector ? Subsectors[(int)index] : Nodes[(int)index];
+        }
     }
 
-    private BspCreateResult CreateNode(BspNode node, GeometryBuilder builder)
+    private void CreateZeroNodeTree()
     {
-        if (node.Splitter == null)
-            throw new NullReferenceException("Malformed BSP node, splitter should never be null");
-
-        BspCreateResult left = RecursivelyCreateComponents(node.Left, builder);
-        BspCreateResult right = RecursivelyCreateComponents(node.Right, builder);
-        Box2D bbox = MakeBoundingBoxFrom(left, right);
-
-        BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter.Struct, bbox);
-        Nodes[m_nextNodeIndex] = compactNode;
-
-        return BspCreateResult.Node(m_nextNodeIndex++);
-    }
-
-    private Box2D MakeBoundingBoxFrom(BspCreateResult left, BspCreateResult right)
-    {
-        Box2D leftBox = (left.IsSubsector ? Subsectors[left.Index].BoundingBox : Nodes[left.Index].BoundingBox);
-        Box2D rightBox = (right.IsSubsector ? Subsectors[right.Index].BoundingBox : Nodes[right.Index].BoundingBox);
-        return leftBox.Combine(rightBox);
-    }
-
-    private void HandleSingleSubsectorTree()
-    {
-        Subsector subsector = Subsectors[0];
-        SubsectorSegment edge = subsector.ClockwiseEdges[0];
-        Seg2D splitter = new Seg2D(edge.Start, edge.End);
-        Box2D box = subsector.BoundingBox;
-
-        // Because we want index 0 with the subsector bit set, this is just
-        // the subsector bit.
-        const uint subsectorIndex = BspNodeCompact.IsSubsectorBit;
-
-        BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
-        Nodes = new[] { root };
+        Seg2D splitter = Edges[0].Struct;
+        BspSubsector child = Subsectors[0];
+        BspNodeNew root = new(0, splitter)
+        {
+            Left = child,
+            Right = child
+        };
+        Nodes.Add(root);
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Maps;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
@@ -16,18 +17,20 @@ public class MapGeometry
     public readonly List<Wall> Walls;
     public readonly List<Sector> Sectors;
     public readonly List<SectorPlane> SectorPlanes;
-    public readonly BspTree BspTree;
+    public readonly BspTreeNew BspTree;
+    public readonly CompactBspTree CompactBspTree;
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
     private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
 
-    internal MapGeometry(GeometryBuilder builder, BspTree bspTree)
+    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree, IMap map)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
         Walls = builder.Walls;
         Sectors = builder.Sectors;
         SectorPlanes = builder.SectorPlanes;
-        BspTree = bspTree;
+        CompactBspTree = bspTree;
+        BspTree = new(map, builder.Lines, builder.Sectors);
 
         TrackSectorsByTag();
         TrackLinesByLineId();

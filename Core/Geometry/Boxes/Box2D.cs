@@ -279,7 +279,7 @@ namespace Helion.Geometry.Boxes
             }
             );
         }
-        public static Box2D? Bound(IEnumerable<Segment2D> items) 
+        public static Box2D? Bound<TSeg>(IEnumerable<TSeg> items) where TSeg : Segment2D
         {
             if (items.Empty())
                 return null;

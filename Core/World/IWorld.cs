@@ -53,7 +53,7 @@ public interface IWorld : IDisposable
     IList<Side> Sides { get; }
     IList<Wall> Walls { get; }
     IList<Sector> Sectors { get; }
-    BspTree BspTree { get; }
+    CompactBspTree BspTree { get; }
     LinkableList<Entity> Entities { get; }
     Vec3D ListenerPosition { get; }
     double ListenerAngle { get; }

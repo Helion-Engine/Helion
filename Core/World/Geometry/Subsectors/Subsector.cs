@@ -8,7 +8,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Subsectors;
 
-public struct Subsector
+public class Subsector
 {
     public readonly int Id;
     public readonly Sector Sector;

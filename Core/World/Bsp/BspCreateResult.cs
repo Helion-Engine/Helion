@@ -3,7 +3,7 @@ namespace Helion.World.Bsp;
 /// <summary>
 /// A helper class for propagating recursive information when building.
 /// </summary>
-public readonly struct BspCreateResult
+public readonly struct BspCreateResultCompact
 {
     /// <summary>
     /// If this result is for a subsector (if true), or a node (if false).
@@ -11,8 +11,8 @@ public readonly struct BspCreateResult
     public readonly bool IsSubsector;
 
     /// <summary>
-    /// The index into either <see cref="BspTree.Segments"/> or
-    /// <see cref="BspTree.Nodes"/> for the component.
+    /// The index into either <see cref="CompactBspTree.Segments"/> or
+    /// <see cref="CompactBspTree.Nodes"/> for the component.
     /// </summary>
     public readonly uint Index;
 
@@ -22,7 +22,7 @@ public readonly struct BspCreateResult
     /// </summary>
     public uint IndexWithBit => IsSubsector ? (Index | BspNodeCompact.IsSubsectorBit) : Index;
 
-    private BspCreateResult(bool isSubsector, uint index)
+    private BspCreateResultCompact(bool isSubsector, uint index)
     {
         IsSubsector = isSubsector;
         Index = index;
@@ -33,12 +33,12 @@ public readonly struct BspCreateResult
     /// </summary>
     /// <param name="index">The subsector index.</param>
     /// <returns>A result with the subsector index.</returns>
-    public static BspCreateResult Subsector(uint index) => new BspCreateResult(true, index);
+    public static BspCreateResultCompact Subsector(uint index) => new BspCreateResultCompact(true, index);
 
     /// <summary>
     /// Creates a result from a node index.
     /// </summary>
     /// <param name="index">The node index.</param>
     /// <returns>A result with the node index.</returns>
-    public static BspCreateResult Node(uint index) => new BspCreateResult(false, index);
+    public static BspCreateResultCompact Node(uint index) => new BspCreateResultCompact(false, index);
 }
