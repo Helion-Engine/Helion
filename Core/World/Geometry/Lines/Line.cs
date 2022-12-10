@@ -55,15 +55,7 @@ public class Line : IBspUsableLine
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
     public IEnumerable<Sector> Sectors => Sides.Select(s => s.Sector);
-    public IEnumerable<Side> Sides
-    {
-        get
-        {
-            yield return Front;
-            if (Back != null)
-                yield return Back;
-        }
-    }
+    public IEnumerable<Side> Sides => GetSides();
 
     public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
@@ -226,6 +218,13 @@ public class Line : IBspUsableLine
     public void MarkSeenOnAutomap()
     {
         DataChanges |= LineDataTypes.Automap;
+    }
+
+    private IEnumerable<Side> GetSides()
+    {
+        yield return Front;
+        if (Back != null)
+            yield return Back;
     }
 
     public override string ToString()
