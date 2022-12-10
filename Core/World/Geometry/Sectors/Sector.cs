@@ -12,85 +12,39 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
-using static Helion.Util.Assertion.Assert;
-using static Helion.World.Entities.EntityManager;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Geometry.Boxes;
+using static Helion.Util.Assertion.Assert;
+using static Helion.World.Entities.EntityManager;
+using Helion.World.Bsp;
+using Helion.World.Geometry.Islands;
 
 namespace Helion.World.Geometry.Sectors;
 
 public class Sector
 {
-    /// <summary>
-    /// A value that indicates no tag is present.
-    /// </summary>
     public const int NoTag = 0;
 
-    /// <summary>
-    /// A unique identifier for this element.
-    /// </summary>
     public readonly int Id;
-
-    /// <summary>
-    /// The tag that other actions will use to reference this sector by.
-    /// </summary>
     public readonly int Tag;
-
-    /// <summary>
-    /// A list of all the sides that reference this sector.
-    /// </summary>
-    public readonly List<Side> Sides = new List<Side>();
-
-    /// <summary>
-    /// The floor plane of this sector.
-    /// </summary>
     public readonly SectorPlane Floor;
-
-    /// <summary>
-    /// The ceiling plane of this sector.
-    /// </summary>
     public readonly SectorPlane Ceiling;
-
-    /// <summary>
-    /// All the lines that this sector may influence in some way.
-    /// </summary>
-    public readonly List<Line> Lines = new List<Line>();
-
-    /// <summary>
-    /// All the 3D floors that exist for this sector.
-    /// </summary>
-    public readonly List<Sector3DFloor> Floors3D = new List<Sector3DFloor>();
-
-    /// <summary>
-    /// A list of all the entities that linked themselves into this sector.
-    /// </summary>
-    public readonly LinkableList<Entity> Entities = new LinkableList<Entity>();
-
+    public readonly List<Line> Lines = new();
+    public readonly List<Side> Sides = new();
+    public readonly LinkableList<Entity> Entities = new();
+    public readonly List<BspSubsector> Subsectors = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
-
-    /// <summary>
-    /// The light level of the sector. This is usually between 0 - 255, but
-    /// can be outside the range.
-    /// </summary>
+    public Island Island = null!; 
     public short LightLevel { get; set; }
-
-    /// <summary>
-    /// The transfer heights applied to this sector, or null if none are.
-    /// </summary>
     public TransferHeights? TransferHeights;
-
     public SectorMoveSpecial? ActiveFloorMove;
     public SectorMoveSpecial? ActiveCeilingMove;
     public int RenderGametick;
     public int ChangeGametick;
     public int BlockmapCount;
-
-    /// <summary>
-    /// The special sector type.
-    /// </summary>
     public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
     public bool Secret { get; private set; }
     public int DamageAmount { get; private set; }
@@ -101,7 +55,6 @@ public class Sector
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
 
     public bool IsMoving => ActiveFloorMove != null || ActiveCeilingMove != null;
-    public bool Has3DFloors => !Floors3D.Empty();
     public SectorDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
 
@@ -122,6 +75,7 @@ public class Sector
     private Sector m_transferFloorLightSector;
     private Sector m_transferCeilingLightSector;
     private Box2D? m_boundingBox;
+    public bool IsMonsterCloset;
 
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)

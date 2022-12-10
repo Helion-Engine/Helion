@@ -48,7 +48,7 @@ public static class HexenGeometryBuilder
             return null;
         }
 
-        return new(builder, bspTree, map);
+        return new(builder, bspTree);
     }
 
     private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,

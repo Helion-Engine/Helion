@@ -12,6 +12,9 @@ using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using Helion.World.Special.Switches;
 using Helion.Resources;
+using Helion.World.Bsp;
+using System.Linq;
+using Helion.World.Geometry.Islands;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -24,7 +27,8 @@ public class Line : IBspUsableLine
     public readonly Seg2D Segment;
     public readonly Side Front;
     public readonly Side? Back;
-    public readonly Side[] Sides;
+    public readonly List<BspSubsectorSeg> SubsectorSegs = new();
+    public Island Island = null!;
     public int LineId { get; set; }
     public SpecialArgs Args;
     public LineFlags Flags { get; set; }
@@ -36,24 +40,30 @@ public class Line : IBspUsableLine
     // Rendering hax...
     public bool Sky;
     public int BlockmapCount;
+    private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;
-
     public bool OneSided => Back == null;
     public bool TwoSided => !OneSided;
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
-
-    // TODO: Any way we can encapsulate this somehow?
     public int SectorTag => Args.Arg0;
     public int TagArg => Args.Arg0;
     public int SpeedArg => Args.Arg1;
     public int DelayArg => Args.Arg2;
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
-
-    private double? m_length;
+    public IEnumerable<Sector> Sectors => Sides.Select(s => s.Sector);
+    public IEnumerable<Side> Sides
+    {
+        get
+        {
+            yield return Front;
+            if (Back != null)
+                yield return Back;
+        }
+    }
 
     public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
@@ -63,7 +73,6 @@ public class Line : IBspUsableLine
         Segment = segment;
         Front = front;
         Back = back;
-        Sides = (back == null ? new[] { front } : new[] { front, back });
         Flags = flags;
         Special = lineSpecial;
         Args = args;

@@ -13,22 +13,23 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using zdbspSharp;
 
 namespace Helion.World.Bsp;
 
-public class BspSubsectorEdge : Segment2D
+public class BspSubsectorSeg : Segment2D
 {
     public readonly int Id;
     public readonly Line? Line;
     public readonly Sector? Sector;
-    public BspSubsectorEdge Partner { get; internal set; } = null!;
+    public readonly bool Front;
+    public BspSubsectorSeg Partner { get; internal set; } = null!;
 
-    public BspSubsectorEdge(int id, Vec2D start, Vec2D end, Line? line, Sector? sector) : base(start, end)
+    public BspSubsectorSeg(int id, Vec2D start, Vec2D end, Line? line, Sector? sector, bool front) : base(start, end)
     {
         Id = id;
         Line = line;
         Sector = sector;
+        Front = front;
     }
 
     public override string ToString() => $"{Struct} (line = {Line?.Id ?? -1}, sector = {Sector?.Id ?? -1})";
@@ -38,20 +39,20 @@ public class BspSubsector
 {
     public readonly int Id;
     public readonly Sector Sector;
-    public readonly List<BspSubsectorEdge> Edges;
+    public readonly List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
 
-    public BspSubsector(int id, Sector sector, List<BspSubsectorEdge> edges)
+    public BspSubsector(int id, Sector sector, List<BspSubsectorSeg> segs)
     {
-        Debug.Assert(edges.Count >= 3, "Subsector must have at least 3 edges");
+        Debug.Assert(segs.Count >= 3, "Subsector must have at least 3 edges");
 
         Id = id;
         Sector = sector;
-        Edges = edges;
-        Box = Box2D.Bound(edges).Value;
+        Segments = segs;
+        Box = Box2D.Bound(segs).Value;
     }
 
-    public override string ToString() => $"{Id}, sector = {Sector.Id}, edge count = {Edges.Count}, box = {Box}";
+    public override string ToString() => $"{Id}, sector = {Sector.Id}, segs = {Segments.Count}, box = {Box}";
 }
 
 public class BspNodeNew
@@ -72,7 +73,7 @@ public class BspNodeNew
 
 public class BspTreeNew
 {
-    public readonly List<BspSubsectorEdge> Edges = new();
+    public readonly List<BspSubsectorSeg> Segments = new();
     public readonly List<BspSubsector> Subsectors = new();
     public readonly List<BspNodeNew> Nodes = new();
 
@@ -85,12 +86,12 @@ public class BspTreeNew
         if (map.GL.Segments.Empty() || map.GL.Subsectors.Empty())
             throw new("Must have at least one edge and/or subsector in a BSP tree");
 
-        CreateEdges(map, lines, sectors);
+        CreateSegments(map, lines, sectors);
         CreateSubsectors(map);
         CreateNodes(map);
     }
 
-    private void CreateEdges(IMap map, List<Line> lines, List<Sector> sectors)
+    private void CreateSegments(IMap map, List<Line> lines, List<Sector> sectors)
     {
         var vertices = map.GetVertices();
         var glVertices = map.GL.Vertices;
@@ -100,20 +101,32 @@ public class BspTreeNew
         {
             Vec2D start = GetVertex(seg.IsStartVertexGL, seg.StartVertex);
             Vec2D end = GetVertex(seg.IsEndVertexGL, seg.EndVertex);
-            Line? line = seg.IsMiniseg ? null : lines[(int)seg.Linedef.Value];
-            Sector? sector = seg.IsRightSide ? line?.Front.Sector : line.Back!.Sector;
+            Line? line = null;
+            Sector? sector = null;
 
-            BspSubsectorEdge edge = new(id, start, end, line, sector);
-            Edges.Add(edge);
+            if (!seg.IsMiniseg)
+            {
+                // Apparently zdbsp writes segment indices that don't exist (ex: summer of slaughter map31)
+                int linedefId = (int)seg.Linedef.Value;
+                if (linedefId < lines.Count)
+                {
+                    line = seg.IsMiniseg ? null : lines[linedefId];
+                    sector = seg.IsRightSide ? line?.Front.Sector : line?.Back?.Sector;
+                }
+            }
+
+
+            BspSubsectorSeg segment = new(id, start, end, line, sector, seg.IsRightSide);
+            Segments.Add(segment);
         }
 
         // Attaching partner segs must come after we have populated everything so
         // that references are valid.
         foreach ((int i, GLSegment seg) in map.GL.Segments.Enumerate())
         {
-            BspSubsectorEdge edge = Edges[i];
+            BspSubsectorSeg segment = Segments[i];
             if (seg.PartnerSegment.HasValue)
-                edge.Partner = Edges[(int)seg.PartnerSegment.Value];
+                segment.Partner = Segments[(int)seg.PartnerSegment.Value];
         }
 
         Vec2D GetVertex(bool isGL, uint index)
@@ -127,21 +140,21 @@ public class BspTreeNew
         foreach ((int subsectorId, GLSubsector ssec) in map.GL.Subsectors.Enumerate())
         {
             Sector? sector = null;
-            List<BspSubsectorEdge> edges = new();
+            List<BspSubsectorSeg> segments = new();
 
             int start = ssec.FirstSegmentIndex;
             int end = start + ssec.Count;
             for (int i = start; i < end; i++)
             {
-                BspSubsectorEdge edge = Edges[i];
-                sector ??= edge.Sector;
-                edges.Add(edge);
+                BspSubsectorSeg segment = Segments[i];
+                sector ??= segment.Sector;
+                segments.Add(segment);
             }
 
             if (sector == null)
                 throw new($"Unable to find sector for subsector {subsectorId} with segment range {start}...{end}");
 
-            BspSubsector subsector = new(subsectorId, sector, edges);
+            BspSubsector subsector = new(subsectorId, sector, segments);
             Subsectors.Add(subsector);
         }
     }
@@ -178,7 +191,7 @@ public class BspTreeNew
 
     private void CreateZeroNodeTree()
     {
-        Seg2D splitter = Edges[0].Struct;
+        Seg2D splitter = Segments[0].Struct;
         BspSubsector child = Subsectors[0];
         BspNodeNew root = new(0, splitter)
         {
