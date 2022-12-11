@@ -1,4 +1,5 @@
 using System;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -16,6 +17,7 @@ public struct Dimension
     public Vec2I Vector => new(Width, Height);
     public int Area => Width * Height;
     public bool HasPositiveArea => Width > 0 && Height > 0;
+    public Box2I Box => (Vec2I.Zero, Vector);
 
     public Dimension(Vec2I dimensions) : this(dimensions.X, dimensions.Y)
     {

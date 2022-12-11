@@ -20,12 +20,9 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     internal GLRenderableSurfaceContext(Renderer renderer, GLSurface surface)
     {
         Surface = surface;
-        Commands = new RenderCommands(renderer.m_config, renderer.Window.Dimension,
-            renderer.DrawInfo, renderer.m_fpsTracker);
-
-        m_hudRenderContext = new GLHudRenderContext(renderer.m_archiveCollection, Commands,
-            renderer.Textures);
-        m_worldRenderContext = new GLWorldRenderContext(Commands);
+        Commands = new(renderer.m_config, renderer.RenderDimension, renderer.DrawInfo, renderer.m_fpsTracker);
+        m_hudRenderContext = new(renderer.m_archiveCollection, Commands, renderer.Textures);
+        m_worldRenderContext = new(Commands);
         m_window = renderer.Window;
     }
 

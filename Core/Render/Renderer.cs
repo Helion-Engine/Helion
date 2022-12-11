@@ -1,7 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Reflection.Emit;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -26,6 +22,9 @@ using Helion.Util.Timing;
 using Helion.Window;
 using NLog;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics;
+using System.Drawing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -48,8 +47,9 @@ public class Renderer : IDisposable
     private readonly FramebufferRenderer m_framebufferRenderer;
     private bool m_disposed;
 
-    private bool UseVirtualResolution => m_config.Render.VirtualDimension.Enable && m_config.Render.VirtualDimension.Dimension.Value.HasPositiveArea;
+    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
+    private bool UseVirtualResolution => m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea;
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
@@ -63,7 +63,7 @@ public class Renderer : IDisposable
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);
-        m_framebufferRenderer = new(window);
+        m_framebufferRenderer = new(config, window);
         Default = new(window, this);
 
         PrintGLInfo();
@@ -151,7 +151,7 @@ public class Renderer : IDisposable
 
     private void SetupAndBindVirtualFramebuffer()
     {
-        Dimension dimension = m_config.Render.VirtualDimension.Dimension;
+        Dimension dimension = m_config.Window.Virtual.Dimension;
         m_framebufferRenderer.UpdateToDimensionIfNeeded(dimension);
 
         m_framebufferRenderer.Framebuffer.Bind();
