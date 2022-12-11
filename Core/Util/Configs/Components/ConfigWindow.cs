@@ -15,7 +15,7 @@ public enum RenderWindowState
 public class ConfigWindowVirtual
 {
     [ConfigInfo("The width and height of the virtual dimension.")]
-    public readonly ConfigValue<Dimension> Dimension = new((800, 600), (_, dim) => dim.HasPositiveArea);
+    public readonly ConfigValue<Dimension> Dimension = new((800, 600), (_, dim) => dim.Width >= 320 && dim.Height >= 200);
 
     [ConfigInfo("Whether virtual dimensions should be used or not.")]
     public readonly ConfigValue<bool> Enable = new(false);

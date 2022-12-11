@@ -8,9 +8,9 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Window;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace Helion.Render.OpenGL.Renderers;
@@ -129,14 +129,13 @@ public class FramebufferRenderer : IDisposable
             return mat4.Identity;
 
         // How much we stretch depends on the window resolution, and the virtual
-        // dimension's resolution.
+        // dimension's resolution. Also don't let it be larger than the NDC box.
+        // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
         Dimension windowDim = m_window.Dimension;
         Dimension textureDim = Framebuffer.Textures[0].Dimension;
-        float scaleX = textureDim.AspectRatio / windowDim.AspectRatio;
-
-        // Don't let it be larger than the NDC box. Since our vertices are in NDC
-        // coordinates, 1.0 is the max we can go.
-        return mat4.Scale(Math.Min(scaleX, 1.0f), 1.0f, 1.0f);
+        float scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
+        
+        return mat4.Scale(scaleX, 1.0f, 1.0f);
     }
 
     public void Render()

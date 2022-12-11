@@ -44,7 +44,6 @@ public partial class WorldLayer
     private float m_scale = 1.0f;
     private int m_infoFontSize = DebugFontSize;
     private Dimension m_viewport;
-
     private readonly List<(string message, float alpha)> m_messages = new();
 
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)

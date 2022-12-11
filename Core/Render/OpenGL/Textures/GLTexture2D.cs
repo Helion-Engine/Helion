@@ -17,7 +17,7 @@ namespace Helion.Render.OpenGL.Textures;
 public class GLTexture2D : GLTexture
 {
     public readonly string Label;
-    public Dimension Dimension { get; protected set; } = (1, 1);
+    public Dimension Dimension = (1, 1);
     public Vec2I Offset { get; protected set; }
     public Vec2F UVInverse { get; protected set; } = Vec2F.One;
 
@@ -30,6 +30,11 @@ public class GLTexture2D : GLTexture
         Bind();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, Name, $"Texture: {Label}");
         Unbind();
+    }
+
+    public GLTexture2D(string label, Dimension dimension) : this(label)
+    {
+        Dimension = dimension;
     }
 
     public GLTexture2D(string label, Image image, TextureWrapMode wrapMode, float? anisotropy = 1.0f) : this(label)

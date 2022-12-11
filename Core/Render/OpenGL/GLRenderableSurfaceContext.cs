@@ -13,12 +13,14 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     public IRenderableSurface Surface { get; }
     public readonly RenderCommands Commands;
     private readonly IWindow m_window;
+    private readonly Renderer m_renderer;
     private readonly GLHudRenderContext m_hudRenderContext;
     private readonly GLWorldRenderContext m_worldRenderContext;
     private Box2I m_viewport;
 
     internal GLRenderableSurfaceContext(Renderer renderer, GLSurface surface)
     {
+        m_renderer = renderer;
         Surface = surface;
         Commands = new(renderer.m_config, renderer.RenderDimension, renderer.DrawInfo, renderer.m_fpsTracker);
         m_hudRenderContext = new(renderer.m_archiveCollection, Commands, renderer.Textures);
@@ -28,6 +30,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
 
     internal void Begin()
     {
+        Commands.UpdateRenderDimension(m_renderer.RenderDimension);
         Commands.Begin();
     }
 
