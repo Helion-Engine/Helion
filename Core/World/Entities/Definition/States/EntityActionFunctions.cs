@@ -1518,6 +1518,12 @@ public static class EntityActionFunctions
 
     private static void A_Look(Entity entity)
     {
+        if (entity.InMonsterCloset)
+        {
+            entity.SetClosetLook();
+            return;
+        }    
+
         entity.SetNewTarget(false);
     }
 
@@ -3165,6 +3171,16 @@ public static class EntityActionFunctions
 
         DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
         DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
+    }
+
+    public static void A_ClosetLook(Entity entity)
+    {
+        entity.ClosetLook();
+    }
+
+    public static void A_ClosetChase(Entity entity)
+    {
+        entity.ClosetChase();
     }
 
     private static void JumpToStateIfInSight(Entity from, Entity to, int state, double fov)

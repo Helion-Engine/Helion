@@ -99,6 +99,10 @@ public class TeleportSpecial : ISpecial
         if (!CanTeleport(entity, pos))
             return false;
 
+        entity.InMonsterCloset = false;
+        if (entity.IsClosetChase)
+            entity.ClearClosetChase();
+
         double oldAngle = entity.AngleRadians;
         Vec3D oldPos = entity.Position;
         entity.UnlinkFromWorld();

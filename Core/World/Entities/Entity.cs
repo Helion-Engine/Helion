@@ -12,6 +12,7 @@ using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -111,6 +112,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double PrevSaveZ;
     public bool WasCrushing;
     public bool InMonsterCloset;
+    public Island? Island;
 
     public double Height => Box.Height;
     public double Radius => Definition.Properties.Radius;

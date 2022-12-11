@@ -305,6 +305,7 @@ public class ArchiveCollection : IResources
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             EntityDefinitionComposer.LoadAllDefinitions();
             ApplyDehackedPatch();
+            EntityFrameTable.AddCustomFrames();
 
             if (dehackedPatch != null)
             {

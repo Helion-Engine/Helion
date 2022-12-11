@@ -96,9 +96,11 @@ public class FrameState : ITickable
     }
 
     // Only for end game cast - really shouldn't be used.
-    public void SetFrameIndex(int index)
+    public void SetFrameIndex(int index, bool execute = false)
     {
         m_frameIndex = index;
+        if (execute)
+            SetFrameIndexInternal(index, null);
     }
 
     public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)

@@ -2,7 +2,9 @@ using System;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World.Geometry.Lines;
 using Helion.World.Physics;
+using Helion.World.Special;
 
 namespace Helion.World.Entities;
 
@@ -46,9 +48,13 @@ public partial class Entity
     private static readonly double[] SpeedX = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed };
     private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
+    private static int ClosetChaseCount;
+    private static int ClosetLookCount;
+
     private MoveDir m_direction = MoveDir.None;
 
     public bool BlockFloating;
+    public bool IsClosetChase;
 
     public void SetEnemyDirection(MoveDir direction) =>
         m_direction = direction;
@@ -97,6 +103,53 @@ public partial class Entity
         }
 
         return false;
+    }
+
+    public void SetClosetLook()
+    {
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex, execute: true);
+        AddFrameTicks(ClosetLookCount);
+        ClosetLookCount++;
+    }
+
+    public void SetClosetChase()
+    {
+        IsClosetChase = true;
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex, execute: true);
+        AddFrameTicks(ClosetChaseCount);
+        ClosetChaseCount++;
+    }
+
+    private void AddFrameTicks(int ticks)
+    {
+        // Distribute the calls across game ticks
+        int frameTicks = FrameState.Frame.Ticks;
+        if (frameTicks == 0)
+            return;
+        FrameState.SetTics((frameTicks + ticks) % frameTicks);
+    }
+
+    public void ClearClosetChase()
+    {
+        IsClosetChase = false;
+        SetSeeState();
+    }
+
+    public void ClosetLook()
+    {
+        if (Sector.SoundTarget.Entity != null && ValidEnemyTarget(Sector.SoundTarget.Entity))
+        {
+            SetTarget(Sector.SoundTarget.Entity);
+            SetClosetChase();
+        }
+    }
+
+    public void ClosetChase()
+    {
+        if (Target.Entity.IsDead)
+            return;
+
+        SetNewChaseDirection();
     }
 
     private Entity? GetNewTarget(bool allaround)
@@ -234,8 +287,9 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speedX = SpeedX[(int)m_direction] * Properties.MonsterMovementSpeed;
-        double speedY = SpeedY[(int)m_direction] * Properties.MonsterMovementSpeed;
+        double speed = IsClosetChase ? 64 : Properties.MonsterMovementSpeed;
+        double speedX = SpeedX[(int)m_direction] * speed;
+        double speedY = SpeedY[(int)m_direction] * speed;
 
         return (Position.X + speedX, Position.Y + speedY);
     }

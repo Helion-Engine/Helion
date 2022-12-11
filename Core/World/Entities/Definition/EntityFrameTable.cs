@@ -1,3 +1,4 @@
+using Helion.Util;
 using Helion.World.Entities.Definition.States;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,9 @@ public class EntityFrameTable
     // Lookup by vanilla frame index
     public IDictionary<int, EntityFrame> VanillaFrameMap => m_vanillaFrameMap;
 
+    public int ClosetLookFrameIndex { get; set; }
+    public int ClosetChaseFrameIndex { get; set; }
+
     public int GetSpriteIndex(string spriteName)
     {
         if (!m_spriteNameToIndex.TryGetValue(spriteName, out int spriteIndex))
@@ -40,5 +44,18 @@ public class EntityFrameTable
         Frames.Add(entityFrame);
         m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
         entityFrame.SpriteIndex = GetSpriteIndex(entityFrame.Sprite);
+    }
+
+    public void AddCustomFrames()
+    {
+        EntityFrame entityFrame = new(this, Constants.InvisibleSprite, 0, 35, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
+        AddFrame(entityFrame);
+        entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
+        ClosetLookFrameIndex = entityFrame.MasterFrameIndex;
+
+        entityFrame = new(this, Constants.InvisibleSprite, 0, 35, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
+        AddFrame(entityFrame);
+        entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
+        ClosetChaseFrameIndex = entityFrame.MasterFrameIndex;
     }
 }
