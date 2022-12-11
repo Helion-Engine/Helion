@@ -190,6 +190,9 @@ public class EntityManager : IDisposable
                 continue;
             }
 
+            if (!definition.States.Labels.ContainsKey(Constants.FrameStates.Spawn))
+                continue;
+
             if (World.Config.Game.NoMonsters && definition.Flags.CountKill)
                 continue;
 
