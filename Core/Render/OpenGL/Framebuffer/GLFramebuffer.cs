@@ -34,7 +34,8 @@ public class GLFramebuffer : IDisposable
         Bind();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_name, $"Framebuffer: {Label}");
         CreateColorAttachments(numColorAttachments, dimension, label);
-        AttachRenderBuffer(storage);
+        if (storage != null)
+            AttachRenderBuffer();
         CheckFramebufferOrThrow();
         Unbind();
     }
@@ -46,10 +47,9 @@ public class GLFramebuffer : IDisposable
             throw new($"Framebuffer not complete ({Label}): {errorCode}");
     }
 
-    private void AttachRenderBuffer(RenderbufferStorage? storage = null)
+    private void AttachRenderBuffer()
     {
-        if (storage != null)
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, m_renderBuffer.Name);
+        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, m_renderBuffer.Name);
     }
 
     private void CreateColorAttachments(int numColorAttachments, Dimension dimension, string label)
