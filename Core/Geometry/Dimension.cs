@@ -15,6 +15,7 @@ public struct Dimension
     public float AspectRatio => (float)Width / Height;
     public Vec2I Vector => new(Width, Height);
     public int Area => Width * Height;
+    public bool HasPositiveArea => Width > 0 && Height > 0;
 
     public Dimension(Vec2I dimensions) : this(dimensions.X, dimensions.Y)
     {
