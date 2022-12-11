@@ -60,6 +60,8 @@ public class PhysicsManager
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly List<Entity> m_stackCrush = new();
 
+    private int m_checkCount;
+
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
@@ -732,26 +734,18 @@ public class PhysicsManager
     {
         Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
+        m_checkCount++;
         Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
         Sector centerSector = centerSubsector.Sector;
-        HashSet<Sector> sectors = m_world.DataCache.GetSectorSet();
-        sectors.Add(centerSector);
+        centerSector.PhysicsCount = m_checkCount;
 
-        // TODO: Can we replace this by iterating over the blocks were already in?
         Box2D box = entity.Box.To2D();
         m_blockmap.Iterate(box, SectorOverlapFinder);
 
         entity.Sector = centerSector;
-        foreach (Sector sector in sectors)
-        {
-            entity.IntersectSectors.Add(sector);
-            entity.SectorNodes.Add(sector.Link(entity));
-        }
 
         if (linkSubsector)
             entity.SubsectorNode = centerSubsector.Link(entity);
-
-        m_world.DataCache.FreeSectorSet(sectors);
 
         GridIterationStatus SectorOverlapFinder(Block block)
         {
@@ -759,12 +753,32 @@ public class PhysicsManager
             for (int i = 0; i < block.Lines.Count; i++)
             {
                 Line line = block.Lines[i];
+                if (line.PhysicsCount == m_checkCount)
+                    continue;
+
+                // This line's front and back sector are both checked
+                if (line.Front.Sector.PhysicsCount == m_checkCount && 
+                    (line.Back == null || line.Back.Sector.PhysicsCount == m_checkCount))
+                    continue;
+
+                line.PhysicsCount = m_checkCount;
                 if (line.Segment.Intersects(box))
                 {
-                    sectors.Add(line.Front.Sector);
+                    if (line.Front.Sector.PhysicsCount != m_checkCount)
+                    {
+                        Sector sector = line.Front.Sector;
+                        sector.PhysicsCount = m_checkCount;
+                        entity.IntersectSectors.Add(sector);
+                        entity.SectorNodes.Add(sector.Link(entity));
+                    }
 
-                    if (line.Back != null)
-                        sectors.Add(line.Back.Sector);
+                    if (line.Back != null && line.Back.Sector.PhysicsCount != m_checkCount)
+                    {
+                        Sector sector = line.Back.Sector;
+                        sector.PhysicsCount = m_checkCount;
+                        entity.IntersectSectors.Add(sector);
+                        entity.SectorNodes.Add(sector.Link(entity));
+                    }
                 }
             }
 
@@ -937,6 +951,7 @@ public class PhysicsManager
         entity.BlockingLine = null;
         entity.BlockingEntity = null;
         entity.ViewLineClip = false;
+        m_checkCount++;
         m_blockmap.Iterate(nextBox, CheckForBlockers);
 
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
@@ -965,6 +980,13 @@ public class PhysicsManager
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
                 {
                     Entity nextEntity = entityNode.Value;
+                    if (nextEntity.PhysicsCount == m_checkCount)
+                    {
+                        entityNode = entityNode.Next;
+                        continue;
+                    }
+
+                    nextEntity.PhysicsCount = m_checkCount;
                     if (ReferenceEquals(entity, nextEntity))
                     {
                         entityNode = entityNode.Next;
@@ -1000,6 +1022,10 @@ public class PhysicsManager
             for (int i = 0; i < block.Lines.Count; i++)
             {
                 Line line = block.Lines[i];
+                if (line.PhysicsCount == m_checkCount)
+                    continue;
+
+                line.PhysicsCount = m_checkCount;
                 if (line.Segment.Intersects(nextBox))
                 {
                     LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
@@ -1034,7 +1060,7 @@ public class PhysicsManager
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (ReferenceEquals(this, other))
+        if (ReferenceEquals(entity, other))
             return false;
 
         if (m_world.Config.Compatibility.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
