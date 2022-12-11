@@ -48,7 +48,7 @@ public class GLFramebuffer : IDisposable
 
     private void AttachRenderBuffer(RenderbufferStorage? storage = null)
     {
-        if (storage == null)
+        if (storage != null)
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, m_renderBuffer.Name);
     }
 
