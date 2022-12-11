@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Drawing;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -10,6 +7,7 @@ using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -24,6 +22,9 @@ using Helion.Util.Timing;
 using Helion.Window;
 using NLog;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Diagnostics;
+using System.Drawing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -43,9 +44,12 @@ public class Renderer : IDisposable
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
+    private readonly FramebufferRenderer m_framebufferRenderer;
     private bool m_disposed;
 
+    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
+    private bool UseVirtualResolution => m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea;
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
@@ -56,9 +60,10 @@ public class Renderer : IDisposable
 
         SetGLDebugger();
 
-        Textures = new LegacyGLTextureManager(m_config, archiveCollection);
-        m_worldRenderer = new LegacyWorldRenderer(m_config, archiveCollection, Textures);
+        Textures = new LegacyGLTextureManager(config, archiveCollection);
+        m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);
+        m_framebufferRenderer = new(config, window);
         Default = new(window, this);
 
         PrintGLInfo();
@@ -102,6 +107,9 @@ public class Renderer : IDisposable
     {
         m_hudRenderer.Clear();
 
+        if (UseVirtualResolution)
+            SetupAndBindVirtualFramebuffer();
+
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
@@ -136,6 +144,24 @@ public class Renderer : IDisposable
         }
 
         DrawHudImagesIfAnyQueued(viewport);
+
+        if (UseVirtualResolution)
+            DrawFramebufferOnDefault();
+    }
+
+    private void SetupAndBindVirtualFramebuffer()
+    {
+        Dimension dimension = m_config.Window.Virtual.Dimension;
+        m_framebufferRenderer.UpdateToDimensionIfNeeded(dimension);
+
+        m_framebufferRenderer.Framebuffer.Bind();
+    }
+
+    private void DrawFramebufferOnDefault()
+    {
+        m_framebufferRenderer.Framebuffer.Unbind();
+
+        m_framebufferRenderer.Render();
     }
 
     public void PerformThrowableErrorChecks()
@@ -294,6 +320,7 @@ public class Renderer : IDisposable
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
+        m_framebufferRenderer.Dispose();
 
         m_disposed = true;
     }

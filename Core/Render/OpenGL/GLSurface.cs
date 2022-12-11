@@ -8,7 +8,7 @@ namespace Helion.Render.OpenGL;
 public class GLSurface : IRenderableSurface
 {
     public string Name => IRenderableSurface.DefaultName;
-    public Dimension Dimension => m_window.Dimension;
+    public Dimension Dimension => m_renderer.RenderDimension;
     private readonly IWindow m_window;
     private readonly Renderer m_renderer;
     private readonly GLRenderableSurfaceContext ctx;

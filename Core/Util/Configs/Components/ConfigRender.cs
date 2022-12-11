@@ -21,15 +21,6 @@ public class ConfigRenderFilter
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
-public class ConfigRenderVirtualDimension
-{
-    [ConfigInfo("Whether virtual dimensions should be used or not.")]
-    public readonly ConfigValue<bool> Enable = new(true);
-
-    [ConfigInfo("The width and height of the virtual dimension.")]
-    public readonly ConfigValue<Dimension> Dimension = new((640, 480), (_, dim) => dim.Area > 0);
-}
-
 public class ConfigRender
 {
     [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
@@ -77,8 +68,6 @@ public class ConfigRender
 
     [ConfigInfo("Checks if sprites will overlap and z-fight.")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
-
-    public readonly ConfigRenderVirtualDimension VirtualDimension = new();
 
     [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);

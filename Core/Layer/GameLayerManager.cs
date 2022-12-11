@@ -284,10 +284,9 @@ public class GameLayerManager : IGameLayerParent
     {
         renderer.Default.Render(ctx =>
         {
-            HudRenderContext hudContext = new(m_window.Dimension);
+            HudRenderContext hudContext = new(renderer.RenderDimension);
 
-            ctx.Viewport(WindowBox);
-            ctx.Scissor(WindowBox);
+            ctx.Viewport(renderer.RenderDimension.Box);
             ctx.Clear(Renderer.DefaultBackground, true, true);
 
             WorldLayer?.Render(ctx);

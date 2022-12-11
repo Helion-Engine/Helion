@@ -42,14 +42,12 @@ public struct RenderCommand
 public class RenderCommands
 {
     public readonly IConfig Config;
-    public readonly Dimension WindowDimension;
     public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
     public readonly FpsTracker FpsTracker;
     public ResolutionInfo ResolutionInfo { get; private set; }
-    private readonly Dimension m_windowDimensions;
+    private Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
     private int m_centeringOffsetX;
-
     public List<RenderCommand> Commands = new();
     public List<ClearRenderCommand> ClearCommands = new();
     public List<DrawWorldCommand> WorldCommands = new();
@@ -58,15 +56,22 @@ public class RenderCommands
     public List<DrawTextCommand> TextCommands = new();
     public List<DrawShapeCommand> ShapeCommands = new();
 
+    public Dimension WindowDimension => m_windowDimensions;
+
     public RenderCommands(IConfig config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
         FpsTracker fpsTracker)
     {
         Config = config;
-        WindowDimension = windowDimensions;
+        m_windowDimensions = windowDimensions;
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
         ImageDrawInfoProvider = imageDrawInfoProvider;
         FpsTracker = fpsTracker;
-        m_windowDimensions = windowDimensions;
+    }
+
+    public void UpdateRenderDimension(Dimension dimension)
+    {
+        m_windowDimensions = dimension;
+        ResolutionInfo = new ResolutionInfo { VirtualDimensions = dimension };
     }
 
     public void Begin()
