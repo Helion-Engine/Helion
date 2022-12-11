@@ -80,10 +80,11 @@ public class TeleportSpecial : ISpecial
         if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
             return SpecialTickStatus.Destroy;
 
+        bool isMonsterCloset = entity.InMonsterCloset;
         Vec3D oldPosition = entity.Position;
         if (Teleport(entity, pos, angle, offsetZ))
         {
-            if ((m_fogFlags & TeleportFog.Source) != 0)
+            if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
                 m_world.CreateTeleportFog(oldPosition + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
