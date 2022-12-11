@@ -15,13 +15,13 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
     {
     }
 
-    public void DrawArrays()
+    public void DrawArrays(PrimitiveType type = PrimitiveType.Triangles)
     {
         if (Count == 0)
             return;
 
         Precondition(Uploaded, "Forgot to upload VBO data");
-        GL.DrawArrays(PrimitiveType.Triangles, 0, Count);
+        GL.DrawArrays(type, 0, Count);
     }
 }
 

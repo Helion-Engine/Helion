@@ -1,25 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
-using static Helion.Util.Assertion.Assert;
-using Helion.World.Cheats;
-using Helion.Resources.Definitions.MapInfo;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
-using Helion.Audio;
-using Helion.World.Entities.Definition.States;
 
 namespace Helion.World.Entities.Players;
 
@@ -91,6 +91,7 @@ public class Player : Entity
     public PlayerStatusBar StatusBar { get; private set; }
     public PlayerCheats Cheats { get; } = new PlayerCheats();
     public PlayerInfo Info { get; set; } = new PlayerInfo();
+    public PlayerTracers Tracers = new();
     public bool IsVooDooDoll { get; set; }
     public bool IsSyncVooDoo { get; set; }
     public double DeltaViewHeight => m_deltaViewHeight;

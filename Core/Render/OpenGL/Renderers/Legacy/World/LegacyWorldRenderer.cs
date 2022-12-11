@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
@@ -11,6 +12,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -25,13 +27,13 @@ using Helion.World;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
-using SixLabors.Primitives;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -41,6 +43,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
+    private readonly PrimitiveWorldRenderer m_primitiveRenderer;
     private readonly LegacyShader m_program = new();
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyAutomapRenderer m_automapRenderer;
@@ -57,6 +60,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer = new(archiveCollection);
         m_worldDataManager = new(archiveCollection.DataCache);
         m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);
+        m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
@@ -164,6 +168,8 @@ public class LegacyWorldRenderer : WorldRenderer
         else
             TraverseBsp(world, renderInfo);
 
+        PopulatePrimitives(world);
+
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
@@ -183,6 +189,8 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.DrawAlpha();
             m_program.Unbind();
         }
+
+        m_primitiveRenderer.Render(renderInfo);
     }
 
     private void SetPosition(RenderInfo renderInfo)
@@ -299,6 +307,34 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position);
     }
 
+    private void PopulatePrimitives(IWorld world)
+    {
+        const float MaxAlpha = 1.0f;
+
+        if (m_config.Developer.Render.Tracers)
+        {
+            foreach (PlayerTracerInfo info in world.Player.Tracers)
+            {
+                if (world.Gametick - info.Gametick > PlayerTracers.TracerRenderTicks)
+                    continue;
+
+                AddSeg(info.AimPath, PlayerTracers.AimColor);
+
+                if (info.AimPath != info.LookPath)
+                    AddSeg(info.LookPath, PlayerTracers.LookColor);
+
+                foreach (Seg3D tracer in info.Tracers)
+                    AddSeg(tracer, PlayerTracers.TracerColor);
+            }
+        }
+
+        void AddSeg(Seg3D segment, Vec3F color)
+        {
+            Seg3F seg = (segment.Start.Float, segment.End.Float);
+            m_primitiveRenderer.AddSegment(seg, color, MaxAlpha);
+        }
+    }
+
     private void SetUniforms(RenderInfo renderInfo)
     {
         // We divide by 4 to make it so the noise changes every four ticks.
@@ -342,5 +378,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
         m_automapRenderer.Dispose();
+        m_primitiveRenderer.Dispose();
     }
 }

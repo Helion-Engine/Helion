@@ -878,6 +878,8 @@ public abstract partial class WorldBase : IWorld
     public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<int>? damageFunc = null)
     {
+        double originalPitch = pitch;
+
         if (damageFunc == null)
             damageFunc = DefaultDamage;
 
@@ -886,7 +888,15 @@ public abstract partial class WorldBase : IWorld
             Vec3D start = shooter.HitscanAttackPos;
             if (GetAutoAimAngle(shooter, start, shooter.AngleRadians, distance, out double autoAimPitch, out _, out _,
                 tracers: Constants.AutoAimTracers))
+            {
                 pitch = autoAimPitch;
+            }
+        }
+
+        if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
+        {
+            shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
+            shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
         }
 
         if (!shooter.Refire && bulletCount == 1)
@@ -915,6 +925,10 @@ public abstract partial class WorldBase : IWorld
         Vec3D intersect = Vec3D.Zero;
 
         BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, damage <= 0, ref intersect, out Sector? hitSector);
+
+        if (bi != null || hitSector != null)
+            if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
+                shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick);
 
         if (bi != null)
         {
