@@ -60,6 +60,8 @@ public class PhysicsManager
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly List<Entity> m_stackCrush = new();
 
+    private int m_sectorBlockLinkCount;
+
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
@@ -732,26 +734,18 @@ public class PhysicsManager
     {
         Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
+        m_sectorBlockLinkCount++;
         Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
         Sector centerSector = centerSubsector.Sector;
-        HashSet<Sector> sectors = m_world.DataCache.GetSectorSet();
-        sectors.Add(centerSector);
+        centerSector.BlockLinkCount = m_sectorBlockLinkCount;
 
-        // TODO: Can we replace this by iterating over the blocks were already in?
         Box2D box = entity.Box.To2D();
         m_blockmap.Iterate(box, SectorOverlapFinder);
 
         entity.Sector = centerSector;
-        foreach (Sector sector in sectors)
-        {
-            entity.IntersectSectors.Add(sector);
-            entity.SectorNodes.Add(sector.Link(entity));
-        }
 
         if (linkSubsector)
             entity.SubsectorNode = centerSubsector.Link(entity);
-
-        m_world.DataCache.FreeSectorSet(sectors);
 
         GridIterationStatus SectorOverlapFinder(Block block)
         {
@@ -759,12 +753,32 @@ public class PhysicsManager
             for (int i = 0; i < block.Lines.Count; i++)
             {
                 Line line = block.Lines[i];
+                if (line.BlockLinkCount == m_sectorBlockLinkCount)
+                    continue;
+
+                // This line's front and back sector are both checked
+                if (line.Front.Sector.BlockLinkCount == m_sectorBlockLinkCount && 
+                    (line.Back == null || line.Back.Sector.BlockLinkCount == m_sectorBlockLinkCount))
+                    continue;
+
+                line.BlockLinkCount = m_sectorBlockLinkCount;
                 if (line.Segment.Intersects(box))
                 {
-                    sectors.Add(line.Front.Sector);
+                    if (line.Front.Sector.BlockLinkCount != m_sectorBlockLinkCount)
+                    {
+                        Sector sector = line.Front.Sector;
+                        sector.BlockLinkCount = m_sectorBlockLinkCount;
+                        entity.IntersectSectors.Add(sector);
+                        entity.SectorNodes.Add(sector.Link(entity));
+                    }
 
-                    if (line.Back != null)
-                        sectors.Add(line.Back.Sector);
+                    if (line.Back != null && line.Back.Sector.BlockLinkCount != m_sectorBlockLinkCount)
+                    {
+                        Sector sector = line.Back.Sector;
+                        sector.BlockLinkCount = m_sectorBlockLinkCount;
+                        entity.IntersectSectors.Add(sector);
+                        entity.SectorNodes.Add(sector.Link(entity));
+                    }
                 }
             }
 

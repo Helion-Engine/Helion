@@ -41,6 +41,7 @@ public class Line : IBspUsableLine
     // Rendering hax...
     public bool Sky;
     public int BlockmapCount;
+    public int BlockLinkCount;
     private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;
