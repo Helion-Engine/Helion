@@ -61,6 +61,7 @@ public class PhysicsManager
     private readonly List<Entity> m_stackCrush = new();
 
     private int m_sectorBlockLinkCount;
+    private int m_checkBlockersCount;
 
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
@@ -951,6 +952,7 @@ public class PhysicsManager
         entity.BlockingLine = null;
         entity.BlockingEntity = null;
         entity.ViewLineClip = false;
+        m_checkBlockersCount++;
         m_blockmap.Iterate(nextBox, CheckForBlockers);
 
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
@@ -979,6 +981,13 @@ public class PhysicsManager
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
                 {
                     Entity nextEntity = entityNode.Value;
+                    if (nextEntity.CheckBlockersCount == m_checkBlockersCount)
+                    {
+                        entityNode = entityNode.Next;
+                        continue;
+                    }
+
+                    nextEntity.CheckBlockersCount = m_checkBlockersCount;
                     if (ReferenceEquals(entity, nextEntity))
                     {
                         entityNode = entityNode.Next;
@@ -1014,6 +1023,10 @@ public class PhysicsManager
             for (int i = 0; i < block.Lines.Count; i++)
             {
                 Line line = block.Lines[i];
+                if (line.CheckBlockersCount == m_checkBlockersCount)
+                    continue;
+
+                line.CheckBlockersCount = m_checkBlockersCount;
                 if (line.Segment.Intersects(nextBox))
                 {
                     LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
@@ -1048,7 +1061,7 @@ public class PhysicsManager
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (ReferenceEquals(this, other))
+        if (ReferenceEquals(entity, other))
             return false;
 
         if (m_world.Config.Compatibility.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)

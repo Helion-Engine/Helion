@@ -42,6 +42,7 @@ public class Line : IBspUsableLine
     public bool Sky;
     public int BlockmapCount;
     public int BlockLinkCount;
+    public int CheckBlockersCount;
     private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;
