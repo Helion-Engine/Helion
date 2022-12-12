@@ -260,7 +260,7 @@ public abstract partial class WorldBase : IWorld
             if (checkEntity == null)
                 continue;
 
-            if (ReferenceEquals(entity, checkEntity) || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
+            if (entity.Id == checkEntity.Id || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
                 continue;
 
             if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, checkEntity))
@@ -1014,7 +1014,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
             }
-            else if (bi.Entity != null && !ReferenceEquals(shooter, bi.Entity) && bi.Entity.Box.Intersects(start, end, ref intersect))
+            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.Box.Intersects(start, end, ref intersect))
             {
                 returnValue = bi;
                 break;
@@ -1252,10 +1252,10 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
-            if (!entity.Box.OverlapsZ(intersectEntity.Box) || ReferenceEquals(entity, intersectEntity))
+            if (!entity.Box.OverlapsZ(intersectEntity.Box) || entity.Id == intersectEntity.Id)
                 continue;
 
-            if (entity.Flags.Ripper && !ReferenceEquals(entity.Owner.Entity, intersectEntity))
+            if (entity.Flags.Ripper && entity.Owner.Entity.Id != intersectEntity.Id)
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
@@ -1433,7 +1433,7 @@ public abstract partial class WorldBase : IWorld
         // If the player killed themself then don't display the obituary message
         // There is probably a special string for this in multiplayer for later
         Entity killer = deathSource.Owner.Entity ?? deathSource;
-        if (ReferenceEquals(player, killer))
+        if (player.Id == killer.Id)
             return;
 
         // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
@@ -1749,7 +1749,7 @@ public abstract partial class WorldBase : IWorld
                     return TraversalPitchStatus.Blocked;
                 }
             }
-            else if (bi.Entity != null && !ReferenceEquals(startEntity, bi.Entity))
+            else if (bi.Entity != null && startEntity.Id != bi.Entity.Id)
             {
                 double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
                 if (thingTopPitch < bottomPitch)

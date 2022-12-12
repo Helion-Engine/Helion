@@ -284,7 +284,7 @@ public class PhysicsManager
         for (int i = 0; i < intersections.Count; i++)
         {
             Entity? intersectEntity = intersections[i].Entity;
-            if (intersectEntity == null || ReferenceEquals(entity, intersectEntity) || intersectEntity.Flags.NoClip)
+            if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
                 continue;
 
             if (height > intersectEntity.Position.Z)
@@ -641,7 +641,7 @@ public class PhysicsManager
             for (int i = 0; i < intersections.Count; i++)
             {
                 Entity? intersectEntity = intersections[i].Entity;
-                if (intersectEntity == null || ReferenceEquals(entity, intersectEntity) || intersectEntity.Flags.NoClip)
+                if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
                     continue;
 
                 bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
@@ -1003,7 +1003,7 @@ public class PhysicsManager
                     }
 
                     nextEntity.PhysicsCount = m_checkCount;
-                    if (ReferenceEquals(entity, nextEntity))
+                    if (entity.Id == nextEntity.Id)
                     {
                         entityNode = entityNode.Next;
                         continue;
@@ -1076,7 +1076,7 @@ public class PhysicsManager
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (ReferenceEquals(entity, other))
+        if (entity.Id == other.Id)
             return false;
 
         if (m_world.Config.Compatibility.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
