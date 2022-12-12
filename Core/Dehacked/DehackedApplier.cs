@@ -511,6 +511,9 @@ public class DehackedApplier
             isNull = frameLookup.Label.Equals("Actor::null", StringComparison.OrdinalIgnoreCase);
         }
 
+        if (actionLabel.Equals(Constants.FrameStates.Spawn, StringComparison.OrdinalIgnoreCase))
+            Log.Warn($"Dehacked removed spawn state for: {definition.Name}");
+
         RemoveActionLabels(definition, actionLabel);
 
         if (!isNull)
