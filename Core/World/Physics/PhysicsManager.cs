@@ -743,6 +743,8 @@ public class PhysicsManager
         m_blockmap.Iterate(box, SectorOverlapFinder);
 
         entity.Sector = centerSector;
+        entity.IntersectSectors.Add(centerSector);
+        entity.SectorNodes.Add(centerSector.Link(entity));
 
         if (linkSubsector)
             entity.SubsectorNode = centerSubsector.Link(entity);
