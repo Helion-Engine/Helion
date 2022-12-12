@@ -513,8 +513,16 @@ public class PhysicsManager
         if (line.Back == null)
             return LineBlock.NoBlock;
 
-        LineOpening opening = GetLineOpening(position, line);
-        tryMove?.SetIntersectionData(opening);
+        LineOpening opening;
+        if (tryMove != null)
+        {
+            opening = GetLineOpeningWithDropoff(position, line);
+            tryMove.SetIntersectionData(opening);
+        }
+        else
+        {
+            opening = GetLineOpening(line);
+        }
 
         if (opening.CanPassOrStepThrough(entity))
             return LineBlock.NoBlock;
@@ -522,9 +530,15 @@ public class PhysicsManager
         return LineBlock.BlockContinue;
     }
 
-    public LineOpening GetLineOpening(in Vec2D position, Line line)
+    public LineOpening GetLineOpening(Line line)
     {
-        m_lineOpening.Set(position, line);
+        m_lineOpening.Set(line);
+        return m_lineOpening;
+    }
+
+    public LineOpening GetLineOpeningWithDropoff(in Vec2D position, Line line)
+    {
+        m_lineOpening.SetWithDropoff(position, line);
         return m_lineOpening;
     }
 

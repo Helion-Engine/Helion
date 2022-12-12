@@ -711,7 +711,7 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Line.Back != null)
             {
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
+                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
                 if (opening.OpeningHeight <= 0)
                 {
                     hitBlockLine = true;
@@ -1007,7 +1007,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
+                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
                 if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                 {
                     returnValue = bi;
@@ -1730,7 +1730,7 @@ public abstract partial class WorldBase : IWorld
                 if (bi.Line.Back == null)
                     return TraversalPitchStatus.Blocked;
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Intersection, bi.Line);
+                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
                     double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
