@@ -26,14 +26,14 @@ public class TeleportSpecial : ISpecial
 {
     public const int TeleportFreezeTicks = 18;
 
-    private readonly EntityActivateSpecialEventArgs m_args;
-    private readonly IWorld m_world;
-    private readonly int m_tid;
-    private readonly int m_tag;
-    private readonly int m_lineId;
-    private readonly bool m_teleportLineReverse;
-    private readonly TeleportFog m_fogFlags;
-    private readonly TeleportType m_type;
+    private EntityActivateSpecialEventArgs m_args;
+    private IWorld m_world;
+    private int m_tid;
+    private int m_tag;
+    private int m_lineId;
+    private bool m_teleportLineReverse;
+    private TeleportFog m_fogFlags;
+    private TeleportType m_type;
 
     public static TeleportFog GetTeleportFog(Line line)
     {
@@ -73,6 +73,35 @@ public class TeleportSpecial : ISpecial
         args.Entity.Flags.Teleport = true;
     }
 
+    public void Set(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags,
+        TeleportType type = TeleportType.Doom)
+    {
+        m_args = args;
+        m_world = world;
+        m_tid = tid;
+        m_tag = tag;
+        m_fogFlags = flags;
+        m_type = type;
+        args.Entity.Flags.Teleport = true;
+    }
+
+    public void Set(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
+        TeleportType type = TeleportType.Doom, bool reverseLine = false)
+    {
+        m_args = args;
+        m_world = world;
+        m_lineId = lineId;
+        m_teleportLineReverse = reverseLine;
+        m_fogFlags = flags;
+        m_type = type;
+        args.Entity.Flags.Teleport = true;
+    }
+
+    public void Destroy()
+    {
+        m_world.DataCache.FreeTeleportSpecial(this);
+    }
+
     public SpecialTickStatus Tick()
     {
         Entity entity = m_args.Entity;
@@ -92,6 +121,16 @@ public class TeleportSpecial : ISpecial
         }
 
         return SpecialTickStatus.Destroy;
+    }
+
+    public void Clear()
+    {
+        m_args = null!;
+        m_world = null!;
+        m_tid = 0;
+        m_tag = 0;
+        m_lineId = 0;
+        m_teleportLineReverse = false;
     }
 
     private bool Teleport(Entity entity, Vec3D pos, double teleportAngle, double offsetZ)

@@ -22,6 +22,10 @@ using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Shader;
+using Helion.World.Special.Specials;
+using Helion.Maps.Specials.ZDoom;
+using Helion.World.Physics;
+using Helion.World;
 
 namespace Helion.Util;
 
@@ -46,6 +50,7 @@ public class DataCache
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
+    private readonly DynamicArray<TeleportSpecial> m_teleportSpecials = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
@@ -341,5 +346,37 @@ public class DataCache
     public void FreeClipSpan(LinkedListNode<ClipSpan> clipSpan)
     {
         m_clipSpans.Add(clipSpan);
+    }
+
+    public TeleportSpecial GetTeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags,
+        TeleportType type = TeleportType.Doom)
+    {
+        if (m_teleportSpecials.Length > 0)
+        {
+            var teleport = m_teleportSpecials.RemoveLast();
+            teleport.Set(args, world, tid, tag, flags, type);
+            return teleport;
+        }
+
+        return new TeleportSpecial(args, world, tid, tag, flags, type);
+    }
+
+    public TeleportSpecial GetTeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
+        TeleportType type = TeleportType.Doom, bool reverseLine = false)
+    {
+        if (m_teleportSpecials.Length > 0)
+        {
+            var teleport = m_teleportSpecials.RemoveLast();
+            teleport.Set(args, world, lineId, flags, type, reverseLine);
+            return teleport;
+        }
+
+        return new TeleportSpecial(args, world, lineId, flags, type, reverseLine);
+    }
+
+    public void FreeTeleportSpecial(TeleportSpecial teleport)
+    {
+        teleport.Clear();
+        m_teleportSpecials.Add(teleport);
     }
 }

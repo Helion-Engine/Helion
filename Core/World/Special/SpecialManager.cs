@@ -219,6 +219,8 @@ public class SpecialManager : ITickable, IDisposable
                     m_specials.Remove(node);
                     if (node.Value is ISectorSpecial sectorSpecial)
                         m_destroyedMoveSpecials.Add(sectorSpecial);
+
+                    node.Value.Destroy();
                 }
 
                 node = nextNode;
@@ -859,11 +861,11 @@ public class SpecialManager : ITickable, IDisposable
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.Teleport:
-                AddSpecial(new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)));
+                AddSpecial(m_world.DataCache.GetTeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)));
                 return true;
 
             case ZDoomLineSpecialType.TeleportNoFog:
-                AddSpecial(new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
+                AddSpecial(m_world.DataCache.GetTeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
                     (TeleportType)line.Args.Arg1));
                 return true;
 

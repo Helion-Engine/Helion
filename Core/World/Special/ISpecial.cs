@@ -8,6 +8,7 @@ public interface ISpecial
     SpecialTickStatus Tick();
     bool Use(Entity entity);
     void ResetInterpolation() { }
+    void Destroy() { }
     SectorBaseSpecialType SectorBaseSpecialType => SectorBaseSpecialType.Default;
     ISpecialModel? ToSpecialModel() => null;
     // For integration testing
