@@ -26,7 +26,7 @@ public class TeleportSpecial : ISpecial
 {
     public const int TeleportFreezeTicks = 18;
 
-    private EntityActivateSpecialEventArgs m_args;
+    private EntityActivateSpecial m_args;
     private IWorld m_world;
     private int m_tid;
     private int m_tag;
@@ -49,7 +49,7 @@ public class TeleportSpecial : ISpecial
         return TeleportFog.None;
     }
 
-    public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags,
+    public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
         TeleportType type = TeleportType.Doom)
     {
         m_args = args;
@@ -61,7 +61,7 @@ public class TeleportSpecial : ISpecial
         args.Entity.Flags.Teleport = true;
     }
 
-    public TeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
+    public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
         TeleportType type = TeleportType.Doom, bool reverseLine = false)
     {
         m_args = args;
@@ -73,7 +73,7 @@ public class TeleportSpecial : ISpecial
         args.Entity.Flags.Teleport = true;
     }
 
-    public void Set(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags,
+    public void Set(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
         TeleportType type = TeleportType.Doom)
     {
         m_args = args;
@@ -85,7 +85,7 @@ public class TeleportSpecial : ISpecial
         args.Entity.Flags.Teleport = true;
     }
 
-    public void Set(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
+    public void Set(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
         TeleportType type = TeleportType.Doom, bool reverseLine = false)
     {
         m_args = args;
@@ -125,7 +125,7 @@ public class TeleportSpecial : ISpecial
 
     public void Clear()
     {
-        m_args = null!;
+        m_args = default;
         m_world = null!;
         m_tid = 0;
         m_tag = 0;

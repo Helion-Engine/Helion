@@ -2763,7 +2763,7 @@ public static class EntityActionFunctions
         m_dummyLine.Args = specialArgs;
         m_dummyLine.Flags = flags;
 
-        EntityActivateSpecialEventArgs args = new(ActivationContext.CrossLine, entity, m_dummyLine);
+        EntityActivateSpecial args = new(ActivationContext.CrossLine, entity, m_dummyLine);
         entity.World.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 

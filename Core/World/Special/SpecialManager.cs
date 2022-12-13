@@ -107,7 +107,7 @@ public class SpecialManager : ITickable, IDisposable
         }
     }
 
-    public bool TryAddActivatedLineSpecial(EntityActivateSpecialEventArgs args)
+    public bool TryAddActivatedLineSpecial(in EntityActivateSpecial args)
     {
         if (args.ActivateLineSpecial == null || (args.ActivateLineSpecial.Activated && !args.ActivateLineSpecial.Flags.Repeat))
             return false;
@@ -155,7 +155,7 @@ public class SpecialManager : ITickable, IDisposable
         return null;
     }
 
-    private bool ShouldCreateSwitchSpecial(EntityActivateSpecialEventArgs args)
+    private bool ShouldCreateSwitchSpecial(in EntityActivateSpecial args)
     {
         if (args.ActivationContext == ActivationContext.CrossLine)
             return false;
@@ -854,7 +854,7 @@ public class SpecialManager : ITickable, IDisposable
         return 0;
     }
 
-    private bool HandleDefault(EntityActivateSpecialEventArgs args, LineSpecial special, WorldBase world)
+    private bool HandleDefault(in EntityActivateSpecial args, LineSpecial special, WorldBase world)
     {
         Line line = args.ActivateLineSpecial;
 
@@ -885,7 +885,7 @@ public class SpecialManager : ITickable, IDisposable
         return false;
     }
 
-    private bool HandleSectorLineSpecial(EntityActivateSpecialEventArgs args, LineSpecial special)
+    private bool HandleSectorLineSpecial(in EntityActivateSpecial args, LineSpecial special)
     {
         bool success = false;
 
@@ -966,7 +966,7 @@ public class SpecialManager : ITickable, IDisposable
         return success;
     }
 
-    private static bool CheckUseActiveMoveSpecial(EntityActivateSpecialEventArgs args, LineSpecial lineSpecial, Sector sector)
+    private static bool CheckUseActiveMoveSpecial(in EntityActivateSpecial args, LineSpecial lineSpecial, Sector sector)
     {
         if (args.ActivationContext != ActivationContext.UseLine || args.ActivateLineSpecial.SectorTag != 0)
             return false;
@@ -983,7 +983,7 @@ public class SpecialManager : ITickable, IDisposable
         return success;
     }
 
-    private bool CreateSectorTriggerSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+    private bool CreateSectorTriggerSpecial(in EntityActivateSpecial args, LineSpecial special, Sector sector)
     {
         Line line = args.ActivateLineSpecial;
 
@@ -1073,7 +1073,7 @@ public class SpecialManager : ITickable, IDisposable
         };
     }
 
-    private bool CreateSectorSpecial(EntityActivateSpecialEventArgs args, LineSpecial special, Sector sector)
+    private bool CreateSectorSpecial(in EntityActivateSpecial args, LineSpecial special, Sector sector)
     {
         Line line = args.ActivateLineSpecial;
 

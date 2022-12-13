@@ -106,7 +106,6 @@ public class SinglePlayerWorld : WorldBase
         MonsterClosets.Classify(this);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
-        EntityActivatedSpecial += PhysicsManager_EntityActivatedSpecial;
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
@@ -300,7 +299,6 @@ public class SinglePlayerWorld : WorldBase
     protected override void PerformDispose()
     {
         CheatManager.CheatActivationChanged -= Instance_CheatActivationChanged;
-        EntityActivatedSpecial -= PhysicsManager_EntityActivatedSpecial;
 
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
@@ -311,12 +309,6 @@ public class SinglePlayerWorld : WorldBase
     private void Instance_CheatActivationChanged(object? sender, CheatEventArgs e)
     {
         ActivateCheat(e.Player, e.Cheat);
-    }
-
-    private void PhysicsManager_EntityActivatedSpecial(object? sender, EntityActivateSpecialEventArgs e)
-    {
-        if (e.ActivateLineSpecial != null)
-            e.Success = SpecialManager.TryAddActivatedLineSpecial(e);
     }
 
     private void HandleMouseLook(IConsumableInput input)

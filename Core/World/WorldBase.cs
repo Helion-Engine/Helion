@@ -65,10 +65,6 @@ public abstract partial class WorldBase : IWorld
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    /// <summary>
-    /// Fires when an entity activates a line special with use or by crossing a line.
-    /// </summary>
-    public event EventHandler<EntityActivateSpecialEventArgs>? EntityActivatedSpecial;
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
@@ -809,9 +805,8 @@ public abstract partial class WorldBase : IWorld
         if (!CanActivate(entity, line, context))
             return false;
 
-        EntityActivateSpecialEventArgs args = new(context, entity, line);
-        EntityActivatedSpecial?.Invoke(this, args);
-        return args.Success;
+        EntityActivateSpecial args = new(context, entity, line);
+        return EntityActivatedSpecial(args);
     }
 
     public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
@@ -966,8 +961,8 @@ public abstract partial class WorldBase : IWorld
             {
                 if (!isTest && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                 {
-                    var args = new EntityActivateSpecialEventArgs(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
-                    EntityActivatedSpecial?.Invoke(this, args);
+                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
+                    EntityActivatedSpecial(args);
                 }
 
                 intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
@@ -2342,6 +2337,9 @@ public abstract partial class WorldBase : IWorld
     {
         SideScrollChanged?.Invoke(this, new SideScrollEvent(side, textures));
     }
+
+    private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>
+        SpecialManager.TryAddActivatedLineSpecial(args);
 
     public WorldModel ToWorldModel()
     {

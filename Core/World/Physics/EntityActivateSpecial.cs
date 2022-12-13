@@ -18,7 +18,7 @@ public enum ActivationContext
 /// <summary>
 /// Event arguments for when a special is activated.
 /// </summary>
-public class EntityActivateSpecialEventArgs
+public readonly struct EntityActivateSpecial
 {
     /// <summary>
     /// How the special was activated.
@@ -35,12 +35,7 @@ public class EntityActivateSpecialEventArgs
     /// </summary>
     public readonly Line ActivateLineSpecial;
 
-    /// <summary>
-    /// If the activation was successful.
-    /// </summary>
-    public bool Success { get; set; }
-
-    public EntityActivateSpecialEventArgs(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
+    public EntityActivateSpecial(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
     {
         ActivationContext = activationContext;
         Entity = entity;

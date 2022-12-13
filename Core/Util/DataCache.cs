@@ -348,7 +348,7 @@ public class DataCache
         m_clipSpans.Add(clipSpan);
     }
 
-    public TeleportSpecial GetTeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int tid, int tag, TeleportFog flags,
+    public TeleportSpecial GetTeleportSpecial(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
         TeleportType type = TeleportType.Doom)
     {
         if (m_teleportSpecials.Length > 0)
@@ -361,7 +361,7 @@ public class DataCache
         return new TeleportSpecial(args, world, tid, tag, flags, type);
     }
 
-    public TeleportSpecial GetTeleportSpecial(EntityActivateSpecialEventArgs args, IWorld world, int lineId, TeleportFog flags,
+    public TeleportSpecial GetTeleportSpecial(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
         TeleportType type = TeleportType.Doom, bool reverseLine = false)
     {
         if (m_teleportSpecials.Length > 0)
