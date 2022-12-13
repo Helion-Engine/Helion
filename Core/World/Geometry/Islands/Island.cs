@@ -13,6 +13,8 @@ public class Island
     public readonly int Id;
     public readonly List<BspSubsector> Subsectors = new();
     public readonly List<Line> Lines = new();
+    public bool IsMonsterCloset;
+    public int InitialMonsterCount;
 
     public Island(int id)
     {

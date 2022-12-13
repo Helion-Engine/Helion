@@ -17,13 +17,19 @@ public static class MonsterClosets
     // Assumes entities and geometry have been populated. Should be done as
     // a final post-processing step.
     public static void Classify(WorldBase world)
-     {
+    {
         Dictionary<Island, List<Entity>> islandToEntities = PopulateEntityToIsland(world);
 
         foreach (Island island in world.Geometry.Islands)
-            if (CalculateIfMonsterCloset(island, world))
-                foreach (Entity entity in islandToEntities[island])
-                    entity.InMonsterCloset = true;
+        {
+            if (!CalculateIfMonsterCloset(island, world))
+                continue;
+
+            island.IsMonsterCloset = true;
+
+            foreach (Entity entity in islandToEntities[island])
+                entity.InMonsterCloset = true;
+        }
     }
 
     private static Dictionary<Island, List<Entity>> PopulateEntityToIsland(WorldBase world)
