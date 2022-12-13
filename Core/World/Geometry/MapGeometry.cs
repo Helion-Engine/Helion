@@ -93,7 +93,8 @@ public class MapGeometry
     private static void AttachBspToGeometry(BspTreeNew bspTree)
     {
         foreach (BspSubsector subsector in bspTree.Subsectors)
-            subsector.Sector.Subsectors.Add(subsector);
+            if (subsector.Sector != null)
+                subsector.Sector.Subsectors.Add(subsector);
 
         foreach (BspSubsectorSeg seg in bspTree.Segments)
             if (seg.Line != null)
