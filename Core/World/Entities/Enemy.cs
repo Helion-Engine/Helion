@@ -146,6 +146,7 @@ public partial class Entity
 
     public void ClosetChase()
     {
+        IsClosetChase = true;
         if (Target.Entity.IsDead)
             return;
 
