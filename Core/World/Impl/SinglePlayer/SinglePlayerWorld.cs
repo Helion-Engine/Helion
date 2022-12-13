@@ -103,7 +103,8 @@ public class SinglePlayerWorld : WorldBase
             SpecialManager.AddSpecialModels(worldModel.Specials);
         }
 
-        MonsterClosets.Classify(this);
+        if (config.Game.MonsterCloset.Value)
+            MonsterClosets.Classify(this);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
 
