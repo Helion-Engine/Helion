@@ -48,7 +48,7 @@ public class EntityFrameTable
 
     public void AddCustomFrames()
     {
-        EntityFrame entityFrame = new(this, Constants.InvisibleSprite, 0, 35, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
+        EntityFrame entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
         AddFrame(entityFrame);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetLookFrameIndex = entityFrame.MasterFrameIndex;

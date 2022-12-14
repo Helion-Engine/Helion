@@ -1,7 +1,9 @@
 using System;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Physics;
 using Helion.World.Special;
@@ -54,7 +56,8 @@ public partial class Entity
     private MoveDir m_direction = MoveDir.None;
 
     public bool BlockFloating;
-    public bool IsClosetChase;
+    public bool IsClosetLook => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
+    public bool IsClosetChase => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
     public void SetEnemyDirection(MoveDir direction) =>
         m_direction = direction;
@@ -112,9 +115,13 @@ public partial class Entity
         ClosetLookCount++;
     }
 
+    public void ClearClosetLook()
+    {
+        SetSpawnState();
+    }
+
     public void SetClosetChase()
     {
-        IsClosetChase = true;
         FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex, execute: true);
         AddFrameTicks(ClosetChaseCount);
         ClosetChaseCount++;
@@ -129,10 +136,13 @@ public partial class Entity
         FrameState.SetTics((frameTicks + ticks) % frameTicks);
     }
 
-    public void ClearClosetChase()
+    public void Teleported()
     {
-        IsClosetChase = false;
-        SetSeeState();
+        InMonsterCloset = false;
+        if (IsClosetChase)
+            SetSeeState();
+        if (IsClosetLook)
+            SetSpawnState();
     }
 
     public void ClosetLook()
@@ -146,7 +156,6 @@ public partial class Entity
 
     public void ClosetChase()
     {
-        IsClosetChase = true;
         if (Target.Entity.IsDead)
             return;
 
