@@ -6,11 +6,11 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
-using System;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities.Definition;
+using System;
 
 namespace Helion.World.Special.Specials;
 
@@ -22,18 +22,18 @@ public enum TeleportFog
     Dest = 2
 }
 
-public class TeleportSpecial : ISpecial
+public struct TeleportSpecial
 {
     public const int TeleportFreezeTicks = 18;
 
-    private EntityActivateSpecial m_args;
-    private IWorld m_world;
-    private int m_tid;
-    private int m_tag;
-    private int m_lineId;
-    private bool m_teleportLineReverse;
-    private TeleportFog m_fogFlags;
-    private TeleportType m_type;
+    private readonly EntityActivateSpecial m_args;
+    private readonly IWorld m_world;
+    private readonly int m_tid;
+    private readonly int m_tag;
+    private readonly int m_lineId;
+    private readonly bool m_teleportLineReverse;
+    private readonly TeleportFog m_fogFlags;
+    private readonly TeleportType m_type;
 
     public static TeleportFog GetTeleportFog(Line line)
     {
@@ -58,7 +58,6 @@ public class TeleportSpecial : ISpecial
         m_tag = tag;
         m_fogFlags = flags;
         m_type = type;
-        args.Entity.Flags.Teleport = true;
     }
 
     public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
@@ -70,44 +69,13 @@ public class TeleportSpecial : ISpecial
         m_teleportLineReverse = reverseLine;
         m_fogFlags = flags;
         m_type = type;
-        args.Entity.Flags.Teleport = true;
     }
 
-    public void Set(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
-        TeleportType type = TeleportType.Doom)
-    {
-        m_args = args;
-        m_world = world;
-        m_tid = tid;
-        m_tag = tag;
-        m_fogFlags = flags;
-        m_type = type;
-        args.Entity.Flags.Teleport = true;
-    }
-
-    public void Set(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
-        TeleportType type = TeleportType.Doom, bool reverseLine = false)
-    {
-        m_args = args;
-        m_world = world;
-        m_lineId = lineId;
-        m_teleportLineReverse = reverseLine;
-        m_fogFlags = flags;
-        m_type = type;
-        args.Entity.Flags.Teleport = true;
-    }
-
-    public void Destroy()
-    {
-        m_world.DataCache.FreeTeleportSpecial(this);
-    }
-
-    public SpecialTickStatus Tick()
+    public bool Teleport()
     {
         Entity entity = m_args.Entity;
-        entity.Flags.Teleport = false;
         if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
-            return SpecialTickStatus.Destroy;
+            return false;
 
         bool isMonsterCloset = entity.InMonsterCloset;
         Vec3D oldPosition = entity.Position;
@@ -118,19 +86,10 @@ public class TeleportSpecial : ISpecial
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
                 m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
+            return true;
         }
 
-        return SpecialTickStatus.Destroy;
-    }
-
-    public void Clear()
-    {
-        m_args = default;
-        m_world = null!;
-        m_tid = 0;
-        m_tag = 0;
-        m_lineId = 0;
-        m_teleportLineReverse = false;
+        return false;
     }
 
     private bool Teleport(Entity entity, Vec3D pos, double teleportAngle, double offsetZ)
@@ -139,9 +98,7 @@ public class TeleportSpecial : ISpecial
         if (!CanTeleport(entity, pos))
             return false;
 
-        entity.InMonsterCloset = false;
-        if (entity.IsClosetChase)
-            entity.ClearClosetChase();
+        entity.Flags.Teleport = true;
 
         double oldAngle = entity.AngleRadians;
         Vec3D oldPos = entity.Position;
@@ -189,6 +146,7 @@ public class TeleportSpecial : ISpecial
         m_world.TelefragBlockingEntities(entity);
         m_world.Link(entity);
         entity.CheckOnGround();
+        entity.Teleported();
 
         return true;
     }

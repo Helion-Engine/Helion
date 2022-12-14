@@ -859,9 +859,10 @@ public class PhysicsManager
             {
                 entity.MoveLinked = true;
                 MoveTo(entity, nextPosition, m_tryMoveData);
-                m_world.HandleEntityIntersections(entity, saveVelocity, m_tryMoveData);
                 if (entity.Flags.Teleport)
-                    break;
+                    return m_tryMoveData;
+
+                m_world.HandleEntityIntersections(entity, saveVelocity, m_tryMoveData);
                 continue;
             }
 
