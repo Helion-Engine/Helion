@@ -41,17 +41,34 @@ public static class Attributes
         {
             int size = 0;
             int primitiveSize = sizeof(float);
+            VertexAttribPointerType pointerType = VertexAttribPointerType.Float;
 
-            if (info.FieldType == typeof(float))
+            if (info.FieldType == typeof(byte))
+            {
+                primitiveSize = 1;
                 size = 1;
+                pointerType = VertexAttribPointerType.UnsignedByte;
+            }
+            else if (info.FieldType == typeof(float))
+            {
+                size = 1;
+            }
             else if (info.FieldType == typeof(Vec2F) || info.FieldType == typeof(vec2))
+            {
                 size = 2;
+            }
             else if (info.FieldType == typeof(Vec3F) || info.FieldType == typeof(vec3))
+            {
                 size = 3;
+            }
             else if (info.FieldType == typeof(Vec4F) || info.FieldType == typeof(vec4))
+            {
                 size = 4;
+            }
             else
+            {
                 throw new($"Unsupported attribute type in {nameof(TVertex)}: {info.FieldType.FullName}");
+            }
 
             VertexAttributeAttribute codeAttr = info.GetCustomAttribute<VertexAttributeAttribute>();
             if (codeAttr == null)
@@ -62,7 +79,7 @@ public static class Attributes
             int index = GetNextIndex(codeAttr);
             indexUsed.Add(index);
 
-            VaoAttribute attr = new(name, index, size, offset, codeAttr.Normalized, stride);
+            VaoAttribute attr = new(name, index, size, pointerType, offset, codeAttr.Normalized, stride);
             attributes.Add(attr);
 
             int sizeBytes = size * primitiveSize;
@@ -130,7 +147,7 @@ public static class Attributes
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
-            GL.VertexAttribPointer(attr.Index, attr.Size, VertexAttribPointerType.Float, attr.Normalized, attr.Stride, attr.Offset);
+            GL.VertexAttribPointer(attr.Index, attr.Size, attr.PointerType, attr.Normalized, attr.Stride, attr.Offset);
             GL.EnableVertexAttribArray(attr.Index);
         }
     }

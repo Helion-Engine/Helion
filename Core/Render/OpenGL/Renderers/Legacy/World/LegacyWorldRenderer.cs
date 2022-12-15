@@ -11,6 +11,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Entities.Optimized;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Shader;
@@ -42,7 +43,8 @@ public class LegacyWorldRenderer : WorldRenderer
 {
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
-    private readonly EntityRenderer m_entityRenderer;
+    //private readonly EntityRenderer m_entityRenderer;
+    private readonly OptimizedEntityRenderer m_entityRenderer;
     private readonly PrimitiveWorldRenderer m_primitiveRenderer;
     private readonly LegacyShader m_program = new();
     private readonly RenderWorldDataManager m_worldDataManager;
@@ -59,7 +61,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_config = config;
         m_automapRenderer = new(archiveCollection);
         m_worldDataManager = new(archiveCollection.DataCache);
-        m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);
+        m_entityRenderer = new(textureManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -80,7 +82,6 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void UpdateToNewWorld(IWorld world)
     {
         m_geometryRenderer.UpdateTo(world);
-        m_entityRenderer.UpdateTo(world);
     }
 
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
@@ -137,7 +138,8 @@ public class LegacyWorldRenderer : WorldRenderer
                 return;
             }
 
-            m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
+            //m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
+            m_entityRenderer.Add(entity);
         }
 
         void RenderSector(Sector sector)
@@ -180,6 +182,7 @@ public class LegacyWorldRenderer : WorldRenderer
         // Does shader bindings, which has to come outside of the above shader bindings
         // to avoid clobbering GL state.
         m_geometryRenderer.Render(renderInfo);
+        m_entityRenderer.Render(renderInfo);
 
         if (m_config.Render.TextureTransparency)
         {
@@ -214,7 +217,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Clear();
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);       
+        m_entityRenderer.Clear(renderInfo.TickFraction, renderInfo.ViewerEntity);       
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
@@ -228,7 +231,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Center = position;
         m_renderCount++;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
+
+        // TODO: ENABLE LATER <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        //RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, List<IRenderObject> alphaEntities)
@@ -244,7 +249,8 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
+                // TODO: ENABLE LATER <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                //m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {

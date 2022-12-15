@@ -56,24 +56,26 @@ public class OptimizedEntityProgram : RenderProgram
             vec3 maxPos = pos + (posMoveDir * halfTexWidth) + (vec3(0, 0, 1) * textureDim.y);
 
             // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
+            // We also need to be going counter-clockwise.
+            // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-            uvFrag = vec2(0, 0);
-            lightLevelFrag = lightLevelOut[0];
-            EmitVertex();
-
-            gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
             uvFrag = vec2(0, 1);
             lightLevelFrag = lightLevelOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            uvFrag = vec2(1, 0);
+            uvFrag = vec2(1, 1);
+            lightLevelFrag = lightLevelOut[0];
+            EmitVertex();
+
+            gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
+            uvFrag = vec2(0, 0);
             lightLevelFrag = lightLevelOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            uvFrag = vec2(1, 1);
+            uvFrag = vec2(1, 0);
             lightLevelFrag = lightLevelOut[0];
             EmitVertex();
     
@@ -84,8 +86,10 @@ public class OptimizedEntityProgram : RenderProgram
     protected override string? FragmentShader => @"
         #version 330
 
-        flat in vec2 uvFrag;
+        in vec2 uvFrag;
         flat in float lightLevelFrag;
+
+        out vec4 fragColor;
 
         uniform sampler2D boundTexture;
 

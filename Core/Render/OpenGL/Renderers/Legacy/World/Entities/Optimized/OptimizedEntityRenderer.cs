@@ -2,11 +2,15 @@
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using OpenTK.Graphics.OpenGL;
 using System;
 
@@ -17,13 +21,16 @@ public class OptimizedEntityRenderer : IDisposable
     private readonly StreamVertexBuffer<EntityVertex> m_vbo = new("Entity");
     private readonly VertexArrayObject m_vao = new("Entity");
     private readonly OptimizedEntityProgram m_program = new();
-    private readonly GLTexture2D m_texture;
+    private readonly LegacyGLTextureManager m_textureManager;
+    private GLLegacyTexture m_texture;
+    private Entity m_cameraEntity = null!;
+    private float m_tickFraction;
     private Vec2F m_viewRightNormal;
     private bool m_disposed;
 
-    public OptimizedEntityRenderer(GLTextureManager textureManager)
+    public OptimizedEntityRenderer(LegacyGLTextureManager textureManager)
     {
-        m_texture = textureManager.NullTexture;
+        m_textureManager = textureManager;
 
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
     }
@@ -33,9 +40,14 @@ public class OptimizedEntityRenderer : IDisposable
         Dispose(false);
     }
 
-    public void Clear()
+    public void Clear(float tickFraction, Entity cameraEntity)
     {
+        m_tickFraction = tickFraction;
+        m_cameraEntity = cameraEntity;
+
         m_vbo.Clear();
+
+        m_textureManager.TryGetSprite("POSSA1", out m_texture); // Temporary!
     }
 
     public void SetViewDirection(Vec2D viewDir)
@@ -43,9 +55,38 @@ public class OptimizedEntityRenderer : IDisposable
         m_viewRightNormal = viewDir.RotateRight90().Unit().Float;
     }
 
-    public void Add(Entity entity, RenderInfo renderInfo)
+    public bool ShouldNotDraw(Entity entity)
     {
-        Vec3F position = entity.PrevPosition.Float.Interpolate(entity.Position.Float, renderInfo.TickFraction);
+        //m_EntityDrawnTracker.HasDrawn(entity)
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || ReferenceEquals(m_cameraEntity, entity);
+    }
+
+    public void RenderSubsector(Sector viewSector, Subsector subsector, in Vec3D position)
+    {
+        LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
+        while (node != null)
+        {
+            Entity entity = node.Value;
+            node = node.Next;
+
+            if (ShouldNotDraw(entity))
+                continue;
+
+            //if (entity.Definition.Properties.Alpha < 1)
+            //{
+            //    entity.RenderDistance = entity.Position.XY.Distance(position.XY);
+            //    AlphaEntities.Add(entity);
+            //    continue;
+            //}
+
+            //RenderEntity(viewSector, entity, position);
+            Add(entity);
+        }
+    }
+
+    public void Add(Entity entity)
+    {
+        Vec3F position = entity.PrevPosition.Float.Interpolate(entity.Position.Float, m_tickFraction);
         byte lightLevel = (byte)entity.Sector.LightLevel.Clamp(0, 255);
 
         EntityVertex vertex = new(position, lightLevel);
@@ -78,6 +119,8 @@ public class OptimizedEntityRenderer : IDisposable
         if (m_disposed)
             return;
 
+        m_vbo.Dispose();
+        m_vao.Dispose();
         m_program.Dispose();
 
         m_disposed = true;
