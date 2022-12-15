@@ -13,6 +13,7 @@ public class RenderWorldData : IDisposable
     public readonly GLLegacyTexture Texture;
     public readonly StreamVertexBuffer<LegacyVertex> Vbo;
     public readonly VertexArrayObject Vao;
+    public int RenderCount;
 
     public RenderWorldData(GLLegacyTexture texture, RenderProgram program)
     {

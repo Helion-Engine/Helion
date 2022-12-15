@@ -42,7 +42,6 @@ public class DataCache
     private readonly DynamicArray<EntityBox> m_entityBoxes = new(DefaultLength);
     private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
-    private readonly Dictionary<GLLegacyTexture, DynamicArray<RenderWorldData>> m_alphaRender = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<List<Entity>> m_entityLists = new();
     private readonly DynamicArray<List<RenderableGlyph>> m_glyphs = new();
@@ -198,29 +197,6 @@ public class DataCache
     {
         list.Clear();
         m_blockmapLists.Add(list);
-    }
-
-    public RenderWorldData GetAlphaRenderWorldData(GLLegacyTexture texture, RenderProgram program)
-    {
-        if (m_alphaRender.TryGetValue(texture, out var data))
-        {
-            if (data.Length > 0)
-                return data.RemoveLast();
-
-            return new RenderWorldData(texture, program);
-        }
-        else
-        {
-            RenderWorldData renderWorldData = new(texture, program);
-            m_alphaRender.Add(texture, new DynamicArray<RenderWorldData>());
-            return renderWorldData;
-        }
-    }
-
-    public void FreeAlphaRenderWorldData(RenderWorldData renderWorldData)
-    {
-        renderWorldData.Clear();
-        m_alphaRender[renderWorldData.Texture].Add(renderWorldData);
     }
 
     public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
