@@ -13,7 +13,7 @@ public class LegacyHudShader : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
     public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -39,7 +39,7 @@ public class LegacyHudShader : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         in vec2 uvFrag;

@@ -16,7 +16,7 @@ public class SkySphereShader : RenderProgram
     public void ScaleU(float u) => Uniforms.Set(u, "scaleU");
     public void FlipU(bool flip) => Uniforms.Set(flip, "flipU");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -37,7 +37,7 @@ public class SkySphereShader : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 130
 
         in vec2 uvFrag;

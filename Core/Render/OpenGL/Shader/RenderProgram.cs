@@ -37,30 +37,34 @@ public abstract class RenderProgram : IDisposable
         PerformDispose();
     }
 
-    protected abstract string VertexShader();
-    protected abstract string FragmentShader();
+    protected abstract string VertexShader { get; }
+    protected virtual string? GeometryShader { get => null; }
+    protected virtual string? FragmentShader { get => null; }
 
     private void CreateAndCompileShaderOrThrow()
     {
-        (int vertex, int fragment) = CompileShadersOrThrow();
+        (int vertex, int? geometry, int? fragment) = CompileShadersOrThrow();
 
         GL.LinkProgram(m_program);
         ThrowIfLinkFailure();
 
         DetachAndDelete(m_program, vertex);
+        DetachAndDelete(m_program, geometry);
         DetachAndDelete(m_program, fragment);
     }
 
-    private (int vertex, int fragment) CompileShadersOrThrow()
+    private (int vertex, int? geometry, int? fragment) CompileShadersOrThrow()
     {
         int? vertexShader = null;
+        int? geometryShader = null;
         int? fragmentShader = null;
 
         try
         {
-            vertexShader = CompileShaderOrThrow(VertexShader(), ShaderType.VertexShader);
-            fragmentShader = CompileShaderOrThrow(FragmentShader(), ShaderType.FragmentShader);
-            return (vertexShader.Value, fragmentShader.Value);
+            vertexShader = CompileShaderOrThrow(VertexShader, ShaderType.VertexShader);
+            geometryShader = CompileShaderOrThrow(GeometryShader, ShaderType.GeometryShader);
+            fragmentShader = CompileShaderOrThrow(FragmentShader, ShaderType.FragmentShader);
+            return (vertexShader.Value, geometryShader, fragmentShader);
         }
         catch
         {
@@ -70,6 +74,12 @@ public abstract class RenderProgram : IDisposable
                 GL.DeleteShader(vertexShader.Value);
             }
 
+            if (geometryShader != null)
+            {
+                GL.DetachShader(m_program, geometryShader.Value);
+                GL.DeleteShader(geometryShader.Value);
+
+            }
             if (fragmentShader != null)
             {
                 GL.DetachShader(m_program, fragmentShader.Value);
@@ -80,10 +90,13 @@ public abstract class RenderProgram : IDisposable
         }
     }
 
-    private static void DetachAndDelete(int program, int shader)
+    private static void DetachAndDelete(int program, int? shader)
     {
-        GL.DetachShader(program, shader);
-        GL.DeleteShader(shader);
+        if (shader == null)
+            return;
+
+        GL.DetachShader(program, shader.Value);
+        GL.DeleteShader(shader.Value);
     }
 
     private void ThrowIfLinkFailure()
@@ -96,8 +109,11 @@ public abstract class RenderProgram : IDisposable
         throw new($"Error linking render shader: {errorMsg}");
     }
 
-    private int CompileShaderOrThrow(string source, ShaderType type)
+    private int? CompileShaderOrThrow(string? source, ShaderType type)
     {
+        if (source == null)
+            return null;
+
         int shaderHandle = GL.CreateShader(type);
         GL.ShaderSource(shaderHandle, source);
         GL.CompileShader(shaderHandle);

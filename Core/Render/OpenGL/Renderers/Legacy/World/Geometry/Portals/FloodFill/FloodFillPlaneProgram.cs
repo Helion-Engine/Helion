@@ -41,7 +41,7 @@ public class FloodFillPlaneProgram : RenderProgram
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void LightLevelFrag(float lightLevelFrag) => Uniforms.Set(lightLevelFrag, m_lightLevelFragLocation);
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -62,7 +62,7 @@ public class FloodFillPlaneProgram : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         in vec2 uvFrag;

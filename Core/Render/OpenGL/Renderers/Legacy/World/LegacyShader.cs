@@ -21,7 +21,7 @@ public class LegacyShader : RenderProgram
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -51,7 +51,7 @@ public class LegacyShader : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         in vec2 uvFrag;

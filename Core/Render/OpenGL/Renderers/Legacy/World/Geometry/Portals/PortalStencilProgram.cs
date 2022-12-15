@@ -18,7 +18,7 @@ public class PortalStencilProgram : RenderProgram
 
     public void SetMvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -31,7 +31,7 @@ public class PortalStencilProgram : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         out vec4 fragColor;

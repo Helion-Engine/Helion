@@ -39,7 +39,7 @@ public class FramebufferProgram : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec2 pos;
@@ -57,7 +57,7 @@ public class FramebufferProgram : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         in vec2 uvFrag;

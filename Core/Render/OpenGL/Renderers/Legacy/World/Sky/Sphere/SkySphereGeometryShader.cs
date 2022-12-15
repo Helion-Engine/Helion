@@ -11,7 +11,7 @@ public class SkySphereGeometryShader : RenderProgram
 
     public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
@@ -23,7 +23,7 @@ public class SkySphereGeometryShader : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 130
 
         out vec4 fragColor;

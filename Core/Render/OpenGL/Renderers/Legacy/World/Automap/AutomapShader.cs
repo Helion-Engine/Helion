@@ -15,7 +15,7 @@ public class AutomapShader : RenderProgram
     public void Color(Vec3F color) => Uniforms.Set(color, "color");
     public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
 
-    protected override string VertexShader() => @"
+    protected override string VertexShader => @"
         #version 330
 
         layout(location = 0) in vec2 pos;
@@ -27,7 +27,7 @@ public class AutomapShader : RenderProgram
         }
     ";
 
-    protected override string FragmentShader() => @"
+    protected override string? FragmentShader => @"
         #version 330
 
         out vec4 fragColor;
