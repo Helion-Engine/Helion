@@ -1115,7 +1115,7 @@ public class PhysicsManager
 
         LinkToWorld(entity, tryMove);
 
-        for (int i = tryMove.IntersectSpecialLines.Count - 1; i >= 0; i--)
+        for (int i = tryMove.IntersectSpecialLines.Count - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Count; i--)
         {
             CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
             if (entity.Flags.Teleport)

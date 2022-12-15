@@ -315,6 +315,8 @@ public partial class Entity
         Vec2D nextPos = GetNextEnemyPos();
         bool isMoving = Position.XY != nextPos;
         tryMove = World.TryMoveXY(this, nextPos);
+        if (Flags.Teleport)
+            return true;
 
         if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
         {
