@@ -1,6 +1,8 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
@@ -13,26 +15,44 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities.Optimized;
 
 public class OptimizedEntityRenderer : IDisposable
 {
-    private readonly StreamVertexBuffer<EntityVertex> m_vbo = new("Entity");
-    private readonly VertexArrayObject m_vao = new("Entity");
+    private class EntityData
+    {
+        public EntityData(GLLegacyTexture texture, ProgramAttributes attributes)
+        {
+            Texture = texture;
+            Vao = new(texture.Name);
+            Vbo = new(texture.Name);
+            Attributes.BindAndApply(Vbo, Vao, attributes);
+        }
+
+        public readonly VertexArrayObject Vao;
+        public readonly StreamVertexBuffer<EntityVertex> Vbo;
+        public readonly GLLegacyTexture Texture;
+        public int RenderCount;
+    }
+
     private readonly OptimizedEntityProgram m_program = new();
     private readonly LegacyGLTextureManager m_textureManager;
-    private GLLegacyTexture m_texture;
     private Entity m_cameraEntity = null!;
     private float m_tickFraction;
     private Vec2F m_viewRightNormal;
     private bool m_disposed;
+    private int m_renderCount = 1;
+
+    private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
+
+    private LookupArray<EntityData> m_dataLookup = new();
+    private List<EntityData> m_renderData = new();
 
     public OptimizedEntityRenderer(LegacyGLTextureManager textureManager)
     {
         m_textureManager = textureManager;
-
-        Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
     }
 
     ~OptimizedEntityRenderer()
@@ -45,9 +65,10 @@ public class OptimizedEntityRenderer : IDisposable
         m_tickFraction = tickFraction;
         m_cameraEntity = cameraEntity;
 
-        m_vbo.Clear();
+        foreach (var data in m_renderData)
+            data.Vbo.Clear();
 
-        m_textureManager.TryGetSprite("POSSA1", out m_texture); // Temporary!
+        m_renderData.Clear();
     }
 
     public void SetViewDirection(Vec2D viewDir)
@@ -63,53 +84,110 @@ public class OptimizedEntityRenderer : IDisposable
 
     public void RenderSubsector(Sector viewSector, Subsector subsector, in Vec3D position)
     {
-        LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
-        while (node != null)
-        {
-            Entity entity = node.Value;
-            node = node.Next;
+        //LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
+        //while (node != null)
+        //{
+        //    Entity entity = node.Value;
+        //    node = node.Next;
 
-            if (ShouldNotDraw(entity))
-                continue;
+        //    if (ShouldNotDraw(entity))
+        //        continue;
 
-            //if (entity.Definition.Properties.Alpha < 1)
-            //{
-            //    entity.RenderDistance = entity.Position.XY.Distance(position.XY);
-            //    AlphaEntities.Add(entity);
-            //    continue;
-            //}
+        //    //if (entity.Definition.Properties.Alpha < 1)
+        //    //{
+        //    //    entity.RenderDistance = entity.Position.XY.Distance(position.XY);
+        //    //    AlphaEntities.Add(entity);
+        //    //    continue;
+        //    //}
 
-            //RenderEntity(viewSector, entity, position);
-            Add(entity);
-        }
+        //    //RenderEntity(viewSector, entity, position);
+        //    Add(position.XY, entity);
+        //}
     }
 
-    public void Add(Entity entity)
+    public void Add(Vec2D viewPos, Entity entity)
     {
         Vec3F position = entity.PrevPosition.Float.Interpolate(entity.Position.Float, m_tickFraction);
         byte lightLevel = (byte)entity.Sector.LightLevel.Clamp(0, 255);
 
+        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+        uint rotation;
+
+        if (spriteDef != null && spriteDef.HasRotations)
+        {
+            uint viewAngle = ViewClipper.ToDiamondAngle(viewPos, position.XY.Double);
+            uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
+            rotation = CalculateRotation(viewAngle, entityAngle);
+        }
+        else
+        {
+            rotation = 0;
+        }
+
+        SpriteRotation spriteRotation;
+        if (spriteDef != null)
+            spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
+        else
+            spriteRotation = m_textureManager.NullSpriteRotation;
+        GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
+
+        if (!m_dataLookup.TryGetValue(texture.TextureId, out var entityData))
+        {
+            entityData = new(texture, m_program.Attributes);
+            m_dataLookup.Set(texture.TextureId, entityData);
+        }
+
+        if (entityData.RenderCount != m_renderCount)
+        {
+            entityData.RenderCount = m_renderCount;
+            m_renderData.Add(entityData);
+        }
+
         EntityVertex vertex = new(position, lightLevel);
-        m_vbo.Add(vertex);
+        m_renderData.Add(entityData);
+        entityData.Vbo.Add(vertex);
+    }
+
+    private static uint CalculateRotation(uint viewAngle, uint entityAngle)
+    {
+        // This works as follows:
+        //
+        // First we find the angle that we have to the entity. Since
+        // facing along with the actor (ex: looking at their back) wants to
+        // give us the opposite rotation side, we add 180 degrees to our
+        // angle delta.
+        //
+        // Then we add 22.5 degrees to that as well because we don't want
+        // a transition when we hit 180 degrees... we'd rather have ranges
+        // of [180 - 22.5, 180 + 22.5] be the angle rather than the range
+        // [180 - 45, 180].
+        //
+        // Then we can do a bit shift trick which converts the higher order
+        // three bits into the angle rotation between 0 - 7.
+        return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
     public void Render(RenderInfo renderInfo)
     {
         m_program.Bind();
-
-        m_texture.Bind();
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
 
-        m_vao.Bind();
-        m_vbo.Bind();
-        m_vbo.Upload();
+        for (int i = 0; i < m_renderData.Count; i++)
+        {
+            var data = m_renderData[i];
+            data.Texture.Bind();
 
-        GL.DrawArrays(PrimitiveType.Points, 0, m_vbo.Count);
+            data.Vao.Bind();
+            data.Vbo.Bind();
+            data.Vbo.Upload();
 
-        m_vbo.Unbind();
-        m_vao.Unbind();
+            GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
+
+            data.Vbo.Unbind();
+            data.Vao.Unbind();
+        }
 
         m_program.Unbind();
     }
@@ -118,9 +196,12 @@ public class OptimizedEntityRenderer : IDisposable
     {
         if (m_disposed)
             return;
-
-        m_vbo.Dispose();
-        m_vao.Dispose();
+        for (int i = 0; i < m_renderData.Count; i++)
+        {
+            var data = m_renderData[i];
+            data.Vbo.Dispose();
+            data.Vao.Dispose();
+        }
         m_program.Dispose();
 
         m_disposed = true;

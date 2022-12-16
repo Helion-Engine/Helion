@@ -139,7 +139,7 @@ public class LegacyWorldRenderer : WorldRenderer
             }
 
             //m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
-            m_entityRenderer.Add(entity);
+            m_entityRenderer.Add(viewPos, entity);
         }
 
         void RenderSector(Sector sector)
