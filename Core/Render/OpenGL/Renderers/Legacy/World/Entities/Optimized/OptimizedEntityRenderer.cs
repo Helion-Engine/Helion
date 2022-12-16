@@ -49,13 +49,17 @@ public class OptimizedEntityRenderer : IDisposable
     private int m_renderCount = 1;
 
     private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
-
     private LookupArray<EntityData> m_dataLookup = new();
     private List<EntityData> m_renderData = new();
+
+    public readonly VertexArrayObject Vao = new("Entity (optimized)");
+    public readonly StreamVertexBuffer<EntityVertex> Vbo = new("Entity (optimized)");
 
     public OptimizedEntityRenderer(LegacyGLTextureManager textureManager)
     {
         m_textureManager = textureManager;
+
+        Attributes.BindAndApply(Vbo, Vao, m_program.Attributes);
     }
 
     ~OptimizedEntityRenderer()
@@ -134,21 +138,22 @@ public class OptimizedEntityRenderer : IDisposable
             spriteRotation = m_textureManager.NullSpriteRotation;
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
-        if (!m_dataLookup.TryGetValue(texture.TextureId, out var entityData))
-        {
-            entityData = new(texture, m_program.Attributes);
-            m_dataLookup.Set(texture.TextureId, entityData);
-        }
+        //if (!m_dataLookup.TryGetValue(texture.TextureId, out var entityData))
+        //{
+        //    entityData = new(texture, m_program.Attributes);
+        //    m_dataLookup.Set(texture.TextureId, entityData);
+        //}
 
-        if (entityData.RenderCount != m_renderCount)
-        {
-            entityData.RenderCount = m_renderCount;
-            m_renderData.Add(entityData);
-        }
+        //if (entityData.RenderCount != m_renderCount)
+        //{
+        //    entityData.RenderCount = m_renderCount;
+        //    m_renderData.Add(entityData);
+        //}
 
         EntityVertex vertex = new(position, lightLevel);
-        m_renderData.Add(entityData);
-        entityData.Vbo.Add(vertex);
+        //m_renderData.Add(entityData);
+        //entityData.Vbo.Add(vertex);
+        Vbo.Add(vertex);
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -185,22 +190,30 @@ public class OptimizedEntityRenderer : IDisposable
         //m_textureManager.TryGetSprite("POSSA1", out GLLegacyTexture texture);
         //texture.Bind();
 
-        for (int i = 0; i < m_renderData.Count; i++)
-        {
-            var data = m_renderData[i];
-            //data.Texture.Bind();
+        Vao.Bind();
+        Vbo.Bind();
+        Vbo.Upload();
 
-            data.Vao.Bind();
-            data.Vbo.Bind();
-            data.Vbo.Upload();
+        GL.DrawArrays(PrimitiveType.Points, 0, Vbo.Count);
 
-            GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
+        //for (int i = 0; i < m_renderData.Count; i++)
+        //{
+        //    var data = m_renderData[i];
+        //    data.Texture.Bind();
 
-            data.Vbo.Unbind();
-            data.Vao.Unbind();
-        }
+        //    data.Vao.Bind();
+        //    data.Vbo.Bind();
+        //    data.Vbo.Upload();
+
+        //    GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
+
+        //    data.Vbo.Unbind();
+        //    data.Vao.Unbind();
+        //}
 
         m_program.Unbind();
+
+        Vbo.Clear();
 
         GL.EndQuery(QueryTarget.TimeElapsed);
         bool done = false;
