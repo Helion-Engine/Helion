@@ -13,6 +13,7 @@ using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,8 @@ public class OptimizedEntityRenderer : IDisposable
         public readonly GLLegacyTexture Texture;
         public int RenderCount;
     }
+
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly OptimizedEntityProgram m_program = new();
     private readonly LegacyGLTextureManager m_textureManager;
@@ -169,15 +172,23 @@ public class OptimizedEntityRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
+        int query = GL.GenQuery();
+        GL.BeginQuery(QueryTarget.TimeElapsed, query);
+
         m_program.Bind();
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
 
+        m_textureManager.WhiteTexture.Bind();
+
+        //m_textureManager.TryGetSprite("POSSA1", out GLLegacyTexture texture);
+        //texture.Bind();
+
         for (int i = 0; i < m_renderData.Count; i++)
         {
             var data = m_renderData[i];
-            data.Texture.Bind();
+            //data.Texture.Bind();
 
             data.Vao.Bind();
             data.Vbo.Bind();
@@ -190,6 +201,17 @@ public class OptimizedEntityRenderer : IDisposable
         }
 
         m_program.Unbind();
+
+        GL.EndQuery(QueryTarget.TimeElapsed);
+        bool done = false;
+        while (!done)
+        {
+            GL.GetQueryObject(query, GetQueryObjectParam.QueryResultAvailable, out int result);
+            done = result != 0;
+        }
+
+        GL.GetQueryObject(query, GetQueryObjectParam.QueryResult, out long duration);
+        Log.Info($"TOOK {duration / 1000000.0} ms");
     }
 
     protected virtual void Dispose(bool disposing)

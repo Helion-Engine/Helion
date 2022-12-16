@@ -116,9 +116,10 @@ public class OptimizedEntityProgram : RenderProgram
 
         void main()
         {
-            float lightLevel = calculateLightLevel(lightLevelFrag);
+            float lightLevel = lightLevelFrag;  //calculateLightLevel(lightLevelFrag);
 
-            fragColor = texture(boundTexture, uvFrag.st) * lightLevel;
+            fragColor = texture(boundTexture, uvFrag.st);
+            fragColor.xyz *= lightLevel;
 
             if (fragColor.w <= 0.0)
                 discard;
