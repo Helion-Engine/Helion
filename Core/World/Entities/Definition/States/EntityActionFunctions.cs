@@ -1421,11 +1421,7 @@ public static class EntityActionFunctions
     public static void A_KeenDie(Entity entity)
     {
         var world = entity.World;
-        var def = world.EntityManager.DefinitionComposer.GetByName("CommanderKeen");
-        if (def == null || !def.EditorId.HasValue)
-            return;
-
-        if (world.EntityAliveCount(def.EditorId.Value) == 0)
+        if (world.EntityAliveCount(entity.Definition.EditorId.Value) == 0)
         {
             var sectors = world.FindBySectorTag(666);
             foreach (var sector in sectors)
