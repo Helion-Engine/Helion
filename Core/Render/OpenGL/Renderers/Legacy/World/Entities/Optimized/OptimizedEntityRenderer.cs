@@ -138,21 +138,23 @@ public class OptimizedEntityRenderer : IDisposable
             spriteRotation = m_textureManager.NullSpriteRotation;
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
-        //if (!m_dataLookup.TryGetValue(texture.TextureId, out var entityData))
-        //{
-        //    entityData = new(texture, m_program.Attributes);
-        //    m_dataLookup.Set(texture.TextureId, entityData);
-        //}
+        if (!m_dataLookup.TryGetValue(texture.TextureId, out var entityData))
+        {
+            entityData = new(texture, m_program.Attributes);
+            m_dataLookup.Set(texture.TextureId, entityData);
+        }
 
-        //if (entityData.RenderCount != m_renderCount)
-        //{
-        //    entityData.RenderCount = m_renderCount;
-        //    m_renderData.Add(entityData);
-        //}
+        if (entityData.RenderCount != m_renderCount)
+        {
+            entityData.RenderCount = m_renderCount;
+            m_renderData.Add(entityData);
+        }
 
         EntityVertex vertex = new(position, lightLevel);
-        //m_renderData.Add(entityData);
-        //entityData.Vbo.Add(vertex);
+
+        m_renderData.Add(entityData);
+        entityData.Vbo.Add(vertex);
+
         Vbo.Add(vertex);
     }
 
@@ -177,54 +179,56 @@ public class OptimizedEntityRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        int query = GL.GenQuery();
-        GL.BeginQuery(QueryTarget.TimeElapsed, query);
+        //int query = GL.GenQuery();
+        //GL.BeginQuery(QueryTarget.TimeElapsed, query);
 
         m_program.Bind();
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
 
-        m_textureManager.WhiteTexture.Bind();
+        //m_textureManager.WhiteTexture.Bind();
 
-        //m_textureManager.TryGetSprite("POSSA1", out GLLegacyTexture texture);
-        //texture.Bind();
+        m_textureManager.TryGetSprite("POSSA1", out GLLegacyTexture texture);
+        texture.Bind();
 
-        Vao.Bind();
-        Vbo.Bind();
-        Vbo.Upload();
+        //Vao.Bind();
+        //Vbo.Bind();
+        //Vbo.Upload();
 
-        GL.DrawArrays(PrimitiveType.Points, 0, Vbo.Count);
+        //GL.DrawArrays(PrimitiveType.Points, 0, Vbo.Count);
 
-        //for (int i = 0; i < m_renderData.Count; i++)
-        //{
-        //    var data = m_renderData[i];
-        //    data.Texture.Bind();
+        for (int i = 0; i < m_renderData.Count; i++)
+        {
+            var data = m_renderData[i];
+            data.Texture.Bind();
 
-        //    data.Vao.Bind();
-        //    data.Vbo.Bind();
-        //    data.Vbo.Upload();
+            data.Vao.Bind();
+            data.Vbo.Bind();
+            data.Vbo.Upload();
 
-        //    GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
+            GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
 
-        //    data.Vbo.Unbind();
-        //    data.Vao.Unbind();
-        //}
+            data.Vbo.Unbind();
+            data.Vao.Unbind();
+
+            //data.Vbo.Clear();
+        }
 
         m_program.Unbind();
 
+        //GL.EndQuery(QueryTarget.TimeElapsed);
+        //bool done = false;
+        //while (!done)
+        //{
+        //    GL.GetQueryObject(query, GetQueryObjectParam.QueryResultAvailable, out int result);
+        //    done = result != 0;
+        //}
+
+        //GL.GetQueryObject(query, GetQueryObjectParam.QueryResult, out long duration);
+        //Log.Info($"TOOK {duration / 1000000.0} ms");
+
         Vbo.Clear();
-
-        GL.EndQuery(QueryTarget.TimeElapsed);
-        bool done = false;
-        while (!done)
-        {
-            GL.GetQueryObject(query, GetQueryObjectParam.QueryResultAvailable, out int result);
-            done = result != 0;
-        }
-
-        GL.GetQueryObject(query, GetQueryObjectParam.QueryResult, out long duration);
-        Log.Info($"TOOK {duration / 1000000.0} ms");
     }
 
     protected virtual void Dispose(bool disposing)
