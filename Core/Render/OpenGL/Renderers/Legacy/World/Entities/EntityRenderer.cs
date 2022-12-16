@@ -76,7 +76,7 @@ public class EntityRenderer
             Entity entity = node.Value;
             node = node.Next;
 
-            if (ShouldNotDraw(entity))
+            if (ShouldNotDraw(entity) || m_EntityDrawnTracker.HasDrawn(entity))
                 continue;
 
             if (entity.Definition.Properties.Alpha < 1)
@@ -118,9 +118,7 @@ public class EntityRenderer
 
     public bool ShouldNotDraw(Entity entity)
     {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector ||
-                m_EntityDrawnTracker.HasDrawn(entity) ||
-                ReferenceEquals(m_cameraEntity, entity);
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector;
     }
 
     private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
