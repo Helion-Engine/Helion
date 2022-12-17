@@ -613,7 +613,7 @@ public class DehackedApplier
         {
             if (dehacked.SpriteNames.Contains(text.OldString))
             {
-                UpdateSpriteText(entityFrameTable, text);
+                UpdateSpriteText(dehacked, entityFrameTable, text);
                 continue;
             }
 
@@ -646,8 +646,14 @@ public class DehackedApplier
         }
     }
 
-    private static void UpdateSpriteText(EntityFrameTable entityFrameTable, DehackedString text)
+    private static void UpdateSpriteText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, DehackedString text)
     {
+        if (dehacked.PickupLookup.TryGetValue(text.OldString, out string value))
+        {
+            dehacked.PickupLookup.Remove(text.OldString);
+            dehacked.PickupLookup[text.NewString] = value;
+        }
+
         foreach (var frame in entityFrameTable.Frames)
         {
             if (!frame.Sprite.Equals(text.OldString))
