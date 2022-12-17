@@ -210,26 +210,16 @@ public class GeometryRenderer : IDisposable
     {
         m_buffer = true;
         m_viewSector = viewSector;
-        m_floorChanged = subsector.Sector.Floor.CheckRenderingChanged();
-        m_ceilingChanged = subsector.Sector.Ceiling.CheckRenderingChanged();
         m_position = position;
+        SetSectorRendering(subsector.Sector);
 
         if (subsector.Sector.TransferHeights != null)
         {
-            m_floorChanged = m_floorChanged || subsector.Sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
-            m_ceilingChanged = m_ceilingChanged || subsector.Sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
-            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
-            // Walls can only cache if middle view
-            m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
-
             RenderWalls(subsector, position, position.XY);
             if (!hasRenderedSector && (m_dynamic || !subsector.Sector.AreFlatsStatic))
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
-
-        m_cacheOverride = false;
-        m_transferHeightsView = TransferHeightView.Middle;
 
         RenderWalls(subsector, position, position.XY);
         if (!hasRenderedSector && (m_dynamic || !subsector.Sector.AreFlatsStatic))
@@ -240,23 +230,12 @@ public class GeometryRenderer : IDisposable
     {
         m_buffer = true;
         m_viewSector = viewSector;
-        m_floorChanged = sector.Floor.CheckRenderingChanged();
-        m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
         m_position = position;
 
-        if (sector.Id == 22)
-        {
-            int lol = 1;
-        }
+        SetSectorRendering(sector);
 
         if (sector.TransferHeights != null)
         {
-            m_floorChanged = m_floorChanged || sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
-            m_ceilingChanged = m_ceilingChanged || sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
-            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
-            // Walls can only cache if middle view
-            m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
-
             RenderSectorWalls(sector, position.XY);
             if ((m_dynamic || !sector.AreFlatsStatic))
                 RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
@@ -275,10 +254,27 @@ public class GeometryRenderer : IDisposable
     {
         m_buffer = true;
         m_viewSector = viewSector;
+        m_position = position;
+        SetSectorRendering(sector);
+        RenderSectorWall(sector, line, position.XY);
+    }
+
+    private void SetSectorRendering(Sector sector)
+    {
+        if (sector.TransferHeights != null)
+        {
+            m_floorChanged = m_floorChanged || sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
+            m_ceilingChanged = m_ceilingChanged || sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
+            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
+            // Walls can only cache if middle view
+            m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
+            return;
+        }
+
         m_floorChanged = sector.Floor.CheckRenderingChanged();
         m_ceilingChanged = sector.Ceiling.CheckRenderingChanged();
-        m_position = position;
-        RenderSectorWall(sector, line, position.XY);
+        m_transferHeightsView = TransferHeightView.Middle;
+        m_cacheOverride = false;
     }
 
     public void SetPlaneChanged(bool set)
@@ -420,12 +416,20 @@ public class GeometryRenderer : IDisposable
             AlphaSides.Add(side);
         }
 
+        bool transferHeights = false;
         // Transfer heights has to be drawn by the transfer heights sector
         if (side.Sector.TransferHeights != null && (sector.TransferHeights == null || sector.TransferHeights.ControlSector != side.Sector.TransferHeights.ControlSector))
-            return;
+        {
+            SetSectorRendering(side.Sector);
+            transferHeights = true;
+        }
 
         if (m_dynamic || !side.IsStatic)
             RenderSide(side, onFrontSide);
+
+        // Restore to original sector
+        if (transferHeights)
+            SetSectorRendering(sector);
 
         m_lineDrawnTracker.MarkDrawn(line);
     }

@@ -183,7 +183,7 @@ public partial class DehackedDefinition
         "MusicChanger",             // MT_MUSICSOURCE
     };
 
-    public readonly Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
+    public Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
     {
         { "ARM1", "GreenArmor" },
         { "ARM2", "BlueArmor" },
