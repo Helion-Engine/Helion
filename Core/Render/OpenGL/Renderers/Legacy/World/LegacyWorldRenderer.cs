@@ -53,6 +53,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
+    private bool m_spriteTransparency;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -129,7 +130,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (dx * dx + dy * dy > maxDistance * maxDistance)
                 return;
 
-            if (entity.Definition.Properties.Alpha < 1)
+            if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
             {
                 entity.RenderDistance = entity.Position.XY.Distance(viewPos);
                 m_alphaEntities.Add(entity);
@@ -159,6 +160,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
+        m_spriteTransparency = m_config.Render.SpriteTransparency;
         Clear(world, renderInfo);
 
         SetPosition(renderInfo);
