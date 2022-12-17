@@ -116,7 +116,7 @@ public class OpenALAudioSystem : IAudioSystem
 
     public IAudioSourceManager CreateContext()
     {
-        OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection);
+        OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection, m_config);
         m_sourceManagers.Add(sourceManager);
         return sourceManager;
     }

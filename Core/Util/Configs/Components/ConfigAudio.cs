@@ -26,4 +26,7 @@ public class ConfigAudio
 
     [ConfigInfo("Scale sound pitch.")]
     public readonly ConfigValue<double> Pitch = new(1, Clamp(0.1, 10));
+
+    [ConfigInfo("Log sound errors.")]
+    public readonly ConfigValue<bool> LogErrors = new(false);
 }
