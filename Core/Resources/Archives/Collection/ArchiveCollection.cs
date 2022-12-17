@@ -46,6 +46,7 @@ public class ArchiveCollection : IResources
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
     public Palette Palette => Data.Palette;
+    public Colormap Colormap => Data.Colormap;
     public IWadInfo IWadInfo => GetIWadInfo();
     public Archive? Assets => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
     public Archive? IWad => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);

@@ -19,13 +19,10 @@ public class DataEntries
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction;
     private readonly Dictionary<string, Action<Entry>> m_extensionToAction;
     private Palette? m_latestPalette;
+    private Colormap? m_latestColormap;
 
-    /// <summary>
-    /// The latest available palette. This will always return a valid one,
-    /// and if none exist in the loaded archive then a default one will be
-    /// returned.
-    /// </summary>
     public Palette Palette => m_latestPalette ?? Palette.GetDefaultPalette();
+    public Colormap Colormap => m_latestColormap ?? Colormap.GetDefaultColormap();
 
     /// <summary>
     /// Creates an empty data entry tracker.
@@ -35,6 +32,7 @@ public class DataEntries
         m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase)
         {
             ["PLAYPAL"] = HandlePlaypal,
+            ["COLORMAP"] = HandleColormap,
         };
 
         m_extensionToAction = new(StringComparer.OrdinalIgnoreCase)
@@ -63,6 +61,15 @@ public class DataEntries
             m_latestPalette = palette;
         else
             Log.Warn("Cannot read corrupt palette at {0}", entry);
+    }
+
+    private void HandleColormap(Entry entry)
+    {
+        Colormap? colormap = Colormap.From(entry.ReadData());
+        if (colormap != null)
+            m_latestColormap = colormap;
+        else
+            Log.Warn("Cannot read corrupt colormap at {0}", entry);
     }
 
     private void HandleTrueTypeFont(Entry entry)
