@@ -6,6 +6,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using MoreLinq.Extensions;
@@ -26,11 +27,13 @@ public class OpenALAudioSourceManager : IAudioSourceManager
     private readonly HashSet<OpenALAudioSource> m_sources = new();
     private readonly Dictionary<string, OpenALBuffer> m_nameToBuffer = new(StringComparer.OrdinalIgnoreCase);
     private readonly DynamicArray<int> m_playGroup = new();
+    private readonly IConfig m_config;
 
-    public OpenALAudioSourceManager(OpenALAudioSystem owner, ArchiveCollection archiveCollection)
+    public OpenALAudioSourceManager(OpenALAudioSystem owner, ArchiveCollection archiveCollection, IConfig config)
     {
         m_owner = owner;
         m_archiveCollection = archiveCollection;
+        m_config = config;
         OpenALDebug.Start("Setting distance model");
         AL.DistanceModel(ALDistanceModel.ExponentDistance);
         OpenALDebug.End("Setting distance model");
@@ -115,7 +118,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         OpenALBuffer? buffer = OpenALBuffer.Create(entry.ReadData(), out string? error);
         if (buffer == null)
         {
-            if (error != null)
+            if (error != null && m_config.Audio.LogErrors)
                 Log.Warn($"Error playing sound {sound}: {error}");
             return null;
         }

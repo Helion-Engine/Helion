@@ -1116,7 +1116,7 @@ public abstract partial class WorldBase : IWorld
         if (player.IsVooDooDoll)
             return GiveVooDooItem(player, item, flags, pickupFlash);
 
-        return player.GiveItem(item.Definition, flags, pickupFlash);
+        return player.GiveItem(definition, flags, pickupFlash);
     }
 
     private bool GetDehackedPickup(DehackedDefinition dehacked, Entity item, [NotNullWhen(true)] out EntityDefinition? definition)
