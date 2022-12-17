@@ -30,6 +30,7 @@ public interface IResources : IDisposable
 {
     IWadBaseType IWadType { get; }
     Palette Palette { get; }
+    Colormap Colormap { get; }
     IWadInfo IWadInfo { get; }
     Archive? Assets { get; }
     Archive? IWad { get; }
