@@ -861,17 +861,14 @@ public class SpecialManager : ITickable, IDisposable
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.Teleport:
-                new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)).Teleport();
-                return true;
+                return new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg1, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial)).Teleport();
 
             case ZDoomLineSpecialType.TeleportNoFog:
-                new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
+                return new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
                     (TeleportType)line.Args.Arg1).Teleport();
-                return true;
 
             case ZDoomLineSpecialType.TeleportLine:
-                new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();
-                return true;
+                return new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();
 
             case ZDoomLineSpecialType.ExitNormal:
                 m_world.ExitLevel(LevelChangeType.Next);

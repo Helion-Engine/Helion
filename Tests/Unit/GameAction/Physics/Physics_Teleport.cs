@@ -70,6 +70,28 @@ namespace Helion.Tests.Unit.GameAction
             monster.IsDead.Should().BeFalse();
         }
 
+        [Fact(DisplayName = "Teleport failure doesn't activate single activation line")]
+        public void SingleActivateTeleportFailure()
+        {
+            const int SingleTeleportLine = 341;
+            World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags).Should().BeFalse();
+            var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
+            monster.IsDead.Should().BeFalse();
+            var teleportMonster = GameActions.CreateEntity(World, "Zombieman", Vec3D.Zero);
+            GameActions.EntityCrossLine(World, teleportMonster, SingleTeleportLine, moveOutofBounds: false).Should().BeTrue();
+            GameActions.CheckNoTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
+            monster.IsDead.Should().BeFalse();
+
+            var teleportLine = GameActions.GetLine(World, SingleTeleportLine);
+            teleportLine.Activated.Should().BeFalse();
+
+            monster.Kill(null);
+            GameActions.TickWorld(World, 35);
+            GameActions.EntityCrossLine(World, teleportMonster, SingleTeleportLine, moveOutofBounds: false).Should().BeTrue();
+            GameActions.RunTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
+            teleportLine.Activated.Should().BeTrue();
+        }
+
         [Fact(DisplayName = "Monster teleport not blocked by non-solid")]
         public void MonsterTeleportNonSolid()
         {
