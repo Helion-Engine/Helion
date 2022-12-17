@@ -18,6 +18,7 @@ public class EntityDefinition
     public readonly EntityStates States;
     public readonly List<string> ParentClassNames;
     public readonly bool IsBulletPuff;
+    public readonly bool IsInventory;
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -34,6 +35,7 @@ public class EntityDefinition
         ParentClassNames = parentClassNames;
         parentClassNames.ForEach(x => ParentClassLookup.Add(x));
         IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
+        IsInventory = IsType(EntityDefinitionType.Inventory);
     }
 
     /// <summary>

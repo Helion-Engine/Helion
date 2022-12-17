@@ -177,7 +177,7 @@ public class EntityRenderer
         if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)
             return false;
 
-        if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsType(EntityDefinitionType.Inventory))
+        if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsInventory)
             return false;
 
         if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < texture.Offset.Y)
