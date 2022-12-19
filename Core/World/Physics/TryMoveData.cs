@@ -46,18 +46,6 @@ public class TryMoveData
             LowestCeilingZ = opening.CeilingZ;
     }
 
-    public void AddIntersectSpecialLine(Line line)
-    {
-        if (!FindLine(IntersectSpecialLines, line.Id))
-            IntersectSpecialLines.Add(line);
-    }
-
-    public void AddImpactSpecialLine(Line line)
-    {
-        if (!FindLine(ImpactSpecialLines, line.Id))
-            ImpactSpecialLines.Add(line);
-    }
-
     private static bool FindLine(List<Line> lines, int id)
     {
         for (int i = 0; i < lines.Count; i++)
