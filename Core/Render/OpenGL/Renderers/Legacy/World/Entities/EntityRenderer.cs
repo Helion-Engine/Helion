@@ -19,7 +19,7 @@ public class EntityRenderer
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly RenderWorldDataManager m_worldDataManager;
-    private readonly LegacyShader m_program;
+    private readonly EntityProgram m_program = new();
     private readonly EntityDrawnTracker m_entityDrawnTracker = new();
     private readonly Dictionary<Vec2D, int> m_renderPositions = new();
     private double m_tickFraction;
@@ -27,19 +27,13 @@ public class EntityRenderer
 
     public readonly List<IRenderObject> AlphaEntities = new();
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager, LegacyShader program)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
-        m_program = program;
         m_textureManager = textureManager;
         m_worldDataManager = worldDataManager;
     }
-
-    public void UpdateTo(IWorld world)
-    {
-        // Unused currently.
-    }
-
+    
     public void Clear(IWorld world, double tickFraction)
     {
         m_tickFraction = tickFraction;

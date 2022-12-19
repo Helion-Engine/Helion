@@ -47,7 +47,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_automapRenderer = new(archiveCollection);
-        m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);
+        m_entityRenderer = new(config, textureManager, m_worldDataManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -68,7 +68,6 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void UpdateToNewWorld(IWorld world)
     {
         m_geometryRenderer.UpdateTo(world);
-        m_entityRenderer.UpdateTo(world);
     }
 
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
