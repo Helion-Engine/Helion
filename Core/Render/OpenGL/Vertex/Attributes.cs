@@ -1,18 +1,12 @@
 ﻿using GlmSharp;
-using Helion;
 using Helion.Geometry.Vectors;
-using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -46,6 +40,24 @@ public static class Attributes
             if (info.FieldType == typeof(byte))
             {
                 primitiveSize = 1;
+                size = 1;
+                pointerType = VertexAttribPointerType.UnsignedByte;
+            }
+            else if (info.FieldType == typeof(sbyte))
+            {
+                primitiveSize = 1;
+                size = 1;
+                pointerType = VertexAttribPointerType.Byte;
+            }
+            else if (info.FieldType == typeof(int))
+            {
+                primitiveSize = 4;
+                size = 1;
+                pointerType = VertexAttribPointerType.Int;
+            }
+            else if (info.FieldType == typeof(uint))
+            {
+                primitiveSize = 4;
                 size = 1;
                 pointerType = VertexAttribPointerType.UnsignedByte;
             }
