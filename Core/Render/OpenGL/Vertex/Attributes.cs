@@ -36,30 +36,49 @@ public static class Attributes
             int size = 0;
             int primitiveSize = sizeof(float);
             VertexAttribPointerType pointerType = VertexAttribPointerType.Float;
+            VertexAttribIntegerType integerType = VertexAttribIntegerType.Int;
 
             if (info.FieldType == typeof(byte))
             {
                 primitiveSize = 1;
                 size = 1;
                 pointerType = VertexAttribPointerType.UnsignedByte;
+                integerType = VertexAttribIntegerType.UnsignedByte;
             }
             else if (info.FieldType == typeof(sbyte))
             {
                 primitiveSize = 1;
                 size = 1;
                 pointerType = VertexAttribPointerType.Byte;
+                integerType = VertexAttribIntegerType.Byte;
             }
             else if (info.FieldType == typeof(int))
             {
                 primitiveSize = 4;
                 size = 1;
                 pointerType = VertexAttribPointerType.Int;
+                integerType = VertexAttribIntegerType.Int;
+            }
+            else if (info.FieldType == typeof(short))
+            {
+                primitiveSize = 2;
+                size = 1;
+                pointerType = VertexAttribPointerType.Short;
+                integerType = VertexAttribIntegerType.Short;
+            }
+            else if (info.FieldType == typeof(ushort))
+            {
+                primitiveSize = 2;
+                size = 1;
+                pointerType = VertexAttribPointerType.UnsignedShort;
+                integerType = VertexAttribIntegerType.UnsignedShort;
             }
             else if (info.FieldType == typeof(uint))
             {
                 primitiveSize = 4;
                 size = 1;
                 pointerType = VertexAttribPointerType.UnsignedByte;
+                integerType = VertexAttribIntegerType.UnsignedInt;
             }
             else if (info.FieldType == typeof(float))
             {
@@ -91,7 +110,10 @@ public static class Attributes
             int index = GetNextIndex(codeAttr);
             indexUsed.Add(index);
 
-            VaoAttribute attr = new(name, index, size, pointerType, offset, codeAttr.Normalized, stride);
+            VaoAttribute attr = codeAttr.IsIntegral ?
+                new(name, index, size, integerType, offset, stride) :
+                new(name, index, size, pointerType, offset, codeAttr.Normalized, stride);
+            
             attributes.Add(attr);
 
             int sizeBytes = size * primitiveSize;
@@ -160,7 +182,9 @@ public static class Attributes
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
-            GL.VertexAttribPointer(attr.Index, attr.Size, attr.PointerType, attr.Normalized, attr.Stride, attr.Offset);
+            attr.PointerType.Switch(
+                attrF => GL.VertexAttribPointer(attr.Index, attr.Size, attrF, attr.Normalized, attr.Stride, attr.Offset),
+                attrI => GL.VertexAttribIPointer(attr.Index, attr.Size, attrI, attr.Stride, new(attr.Offset)));
             GL.EnableVertexAttribArray(attr.Index);
         }
     }
