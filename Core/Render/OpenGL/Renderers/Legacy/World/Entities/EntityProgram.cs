@@ -12,15 +12,15 @@ public class EntityProgram : RenderProgram
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
+    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
     public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, "lightDropoff");
+    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
-    public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, "viewRightNormal");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
-    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
-    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
-    
+    public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, "viewRightNormal");
+
     protected override string? VertexShader() => @"
         #version 330
 
