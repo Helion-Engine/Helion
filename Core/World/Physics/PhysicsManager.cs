@@ -1056,7 +1056,7 @@ public class PhysicsManager
                         entity.BlockingLine = line;
                         tryMove.Success = false;
                         if (!entity.Flags.NoClip && line.HasSpecial)
-                            tryMove.AddImpactSpecialLine(line);
+                            tryMove.ImpactSpecialLines.Add(line);
                         if (blockType == LineBlock.BlockStopChecking)
                             return GridIterationStatus.Stop;
                     }
@@ -1064,9 +1064,9 @@ public class PhysicsManager
                     if (!entity.Flags.NoClip && line.HasSpecial)
                     {
                         if (blockType == LineBlock.NoBlock)
-                            tryMove.AddIntersectSpecialLine(line);
+                            tryMove.IntersectSpecialLines.Add(line);
                         else
-                            tryMove.AddImpactSpecialLine(line);
+                            tryMove.ImpactSpecialLines.Add(line);
                     }
                 }
             }
