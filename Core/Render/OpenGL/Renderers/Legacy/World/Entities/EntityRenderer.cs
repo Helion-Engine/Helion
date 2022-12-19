@@ -1,19 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
-using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
@@ -21,22 +16,13 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer
 {
-    /// <summary>
-    /// The rotation angle in diamond angle format. This is equal to 180
-    /// degrees + 22.5 degrees. See <see cref="CalculateRotation"/> docs
-    /// for more information.
-    /// </summary>
-    private const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
-    private static readonly Color ShadowColor = Color.FromArgb(32, 32, 32);
-
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacyShader m_program;
-    private readonly EntityDrawnTracker m_EntityDrawnTracker = new();
+    private readonly EntityDrawnTracker m_entityDrawnTracker = new();
     private readonly Dictionary<Vec2D, int> m_renderPositions = new();
     private double m_tickFraction;
-    private Entity? m_cameraEntity;
     private Vec2F m_viewRightNormal;
 
     public readonly List<IRenderObject> AlphaEntities = new();
@@ -54,11 +40,10 @@ public class EntityRenderer
         // Unused currently.
     }
 
-    public void Clear(IWorld world, double tickFraction, Entity cameraEntity)
+    public void Clear(IWorld world, double tickFraction)
     {
         m_tickFraction = tickFraction;
-        m_cameraEntity = cameraEntity;
-        m_EntityDrawnTracker.Reset(world);
+        m_entityDrawnTracker.Reset(world);
         AlphaEntities.Clear();
         m_renderPositions.Clear();
     }
@@ -76,7 +61,7 @@ public class EntityRenderer
             Entity entity = node.Value;
             node = node.Next;
 
-            if (ShouldNotDraw(entity) || m_EntityDrawnTracker.HasDrawn(entity))
+            if (ShouldNotDraw(entity) || m_entityDrawnTracker.HasDrawn(entity))
                 continue;
 
             if (entity.Definition.Properties.Alpha < 1)
@@ -92,6 +77,11 @@ public class EntityRenderer
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
     {
+        // The rotation angle in diamond angle format. This is equal to 180
+        // degrees + 22.5 degrees. See <see cref="CalculateRotation"/> docs
+        // for more information.
+        const uint SpriteFrameRotationAngle = 9 * (uint.MaxValue / 16);
+        
         // This works as follows:
         //
         // First we find the angle that we have to the entity. Since
@@ -188,7 +178,8 @@ public class EntityRenderer
                     offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipCorpseFactorMax;
                 return true;
             }
-            else if (m_config.Render.SpriteClip)
+
+            if (m_config.Render.SpriteClip)
             {
                 if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
                     offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
@@ -302,16 +293,15 @@ public class EntityRenderer
             }
         }
 
-        SpriteRotation spriteRotation;
+        SpriteRotation spriteRotation = m_textureManager.NullSpriteRotation;
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
-        else
-            spriteRotation = m_textureManager.NullSpriteRotation;
+        
         GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
 
         short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
         AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
 
-        m_EntityDrawnTracker.MarkDrawn(entity);
+        m_entityDrawnTracker.MarkDrawn(entity);
     }
 }

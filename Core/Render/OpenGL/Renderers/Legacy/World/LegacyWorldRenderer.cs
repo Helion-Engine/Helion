@@ -1,40 +1,28 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Models;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
-using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Container;
 using Helion.World;
-using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using Helion.World.Physics.Blockmap;
-using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
@@ -215,7 +203,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Clear();
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.Clear(world, renderInfo.TickFraction, renderInfo.ViewerEntity);       
+        m_entityRenderer.Clear(world, renderInfo.TickFraction);       
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
@@ -346,9 +334,10 @@ public class LegacyWorldRenderer : WorldRenderer
         // be rendered if the person stares at an unmoving body long enough.
         // Then we add 1 because if the value is 0, then the noise formula
         // outputs zero uniformly which makes it look invisible.
-        const int ticksPerFrame = 4;
-        const int differentFrames = 8;
-        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / ticksPerFrame) % differentFrames) + 1;
+        const int TicksPerFrame = 4;
+        const int DifferentFrames = 8;
+        
+        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
