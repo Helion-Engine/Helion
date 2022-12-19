@@ -1,9 +1,4 @@
-﻿using Helion;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Vertex;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 using System;
 
 namespace Helion.Render.OpenGL.Vertex;

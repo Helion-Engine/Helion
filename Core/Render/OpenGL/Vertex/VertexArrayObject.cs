@@ -1,12 +1,6 @@
 using System;
-using Helion;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
-using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Vertex;
 
