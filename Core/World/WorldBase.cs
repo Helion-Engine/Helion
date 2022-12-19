@@ -113,6 +113,7 @@ public abstract partial class WorldBase : IWorld
     public DataCache DataCache => ArchiveCollection.DataCache;
     public abstract Player Player { get; protected set; }
     public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
+    public bool IsFastMonsters { get; private set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -158,6 +159,7 @@ public abstract partial class WorldBase : IWorld
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
+        IsFastMonsters = skillDef.IsFastMonsters(config);
 
         if (worldModel != null)
         {
@@ -1975,7 +1977,7 @@ public abstract partial class WorldBase : IWorld
         {
             BlockmapIntersect bi = intersections[i];
 
-            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
+            if (bi.Entity == null || !bi.Entity.Definition.HasRaiseState || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
                 continue;
 
             if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))

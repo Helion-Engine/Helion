@@ -171,7 +171,7 @@ public class FrameState : ITickable
             m_frameIndex = index;
             m_tics = Frame.Ticks;
 
-            if (m_entity.World.SkillDefinition.IsFastMonsters(m_entity.World.Config) && Frame.Properties.Fast)
+            if (m_entity.World.IsFastMonsters && Frame.Properties.Fast)
                 m_tics /= 2;
 
             if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)

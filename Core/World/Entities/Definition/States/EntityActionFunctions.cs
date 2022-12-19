@@ -744,12 +744,12 @@ public static class EntityActionFunctions
         if (entity.Flags.JustAttacked)
         {
             entity.Flags.JustAttacked = false;
-            if (!entity.World.SkillDefinition.IsFastMonsters(entity.World.Config))
+            if (!entity.World.IsFastMonsters)
                 entity.SetNewChaseDirection();
             return;
         }
 
-        if (entity.Target.Entity != null && entity.HasMeleeState() && entity.InMeleeRange(entity.Target.Entity))
+        if (entity.Target.Entity != null && entity.Definition.HasMeleeState && entity.InMeleeRange(entity.Target.Entity))
         {
             entity.PlayAttackSound();
             entity.SetMeleeState();
@@ -758,8 +758,8 @@ public static class EntityActionFunctions
         if (entity.IsDisposed)
             return;
 
-        if ((entity.MoveCount == 0 || entity.World.SkillDefinition.IsFastMonsters(entity.World.Config)) &&
-            entity.HasMissileState() && entity.CheckMissileRange())
+        if ((entity.MoveCount == 0 || entity.World.IsFastMonsters) &&
+            entity.Definition.HasMissileState && entity.CheckMissileRange())
         {
             entity.Flags.JustAttacked = true;
             entity.SetMissileState();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
@@ -104,6 +105,12 @@ public class DefinitionStateApplier
     private static void ApplyAllLabels(EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
     {
         masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
+        definition.HasMissileState = definition.States.Labels.ContainsKey(Constants.FrameStates.Missile);
+        definition.HasMeleeState = definition.States.Labels.ContainsKey(Constants.FrameStates.Melee);
+        definition.HasXDeathState = definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath);
+        definition.HasRaiseState = definition.States.Labels.ContainsKey(Constants.FrameStates.Raise);
+        definition.HasSeeState = definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+        definition.HasPainState = definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
     }
 
     // Note: this frame index is the LOCAL index to the definition

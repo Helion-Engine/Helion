@@ -450,7 +450,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         bool gib = Health < -Properties.Health;
         SetHeight(Definition.Properties.Height / 4.0);
 
-        if (gib && HasXDeathState())
+        if (gib && Definition.HasXDeathState)
             SetXDeathState(source);
         else
             SetDeathState(source);
@@ -624,7 +624,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                     Threshold = Properties.DefThreshold;
                 if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
                     SetTarget(damageSource);
-                if (HasSeeState() && FrameState.IsState(Constants.FrameStates.Spawn))
+                if (Definition.HasSeeState && FrameState.IsState(Constants.FrameStates.Spawn))
                     SetSeeState();
             }
         }
@@ -649,7 +649,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             KillInternal(source);
         }
-        else if (setPainState && !Flags.Skullfly && HasPainState())
+        else if (setPainState && !Flags.Skullfly && Definition.HasPainState)
         {
             Flags.JustHit = true;
             FrameState.SetState(Constants.FrameStates.Pain);
@@ -688,12 +688,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
     protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
 
-    public bool HasMissileState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Missile);
-    public bool HasMeleeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Melee);
-    public bool HasXDeathState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath);
-    public bool HasRaiseState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Raise);
-    public bool HasSeeState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
-    public bool HasPainState() => Definition.States.Labels.ContainsKey(Constants.FrameStates.Pain);
     public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
     public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;

@@ -411,10 +411,10 @@ public partial class Entity
 
         double distance = Position.ApproximateDistance2D(Target.Entity.Position);
 
-        if (!HasMeleeState())
+        if (!Definition.HasMeleeState)
             distance -= 128;
 
-        if (HasMeleeState() && distance < Definition.Properties.MeleeThreshold)
+        if (Definition.HasMeleeState && distance < Definition.Properties.MeleeThreshold)
             return false;
 
         if (Definition.Flags.MissileMore)

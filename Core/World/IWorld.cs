@@ -80,6 +80,7 @@ public interface IWorld : IDisposable
     CheatManager CheatManager { get; }
     DataCache DataCache { get; }
     Player Player { get; }
+    bool IsFastMonsters { get; }
 
 
     void Link(Entity entity);
