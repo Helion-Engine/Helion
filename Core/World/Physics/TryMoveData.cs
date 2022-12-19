@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Subsectors;
 
 namespace Helion.World.Physics;
 
@@ -15,6 +16,7 @@ public class TryMoveData
     public double DropOffZ;
 
     public Entity? DropOffEntity;
+    public Subsector? Subsector;
 
     public List<Entity> IntersectEntities2D = new();
     public List<Line> IntersectSpecialLines = new();
@@ -30,6 +32,7 @@ public class TryMoveData
         HighestFloorZ = int.MinValue;
         LowestCeilingZ = int.MinValue;
         DropOffEntity = null;
+        Subsector = null;
     }
 
     public void SetIntersectionData(LineOpening opening)

@@ -88,7 +88,7 @@ public class PhysicsManager
 
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.
-        LinkToSectors(entity, !entity.Flags.NoSector);
+        LinkToSectors(entity, !entity.Flags.NoSector, tryMove);
 
         ClampBetweenFloorAndCeiling(entity, smoothZ: true, clampToLinkedSectors);
     }
@@ -744,12 +744,17 @@ public class PhysicsManager
         }
     }
 
-    private void LinkToSectors(Entity entity, bool linkSubsector)
+    private void LinkToSectors(Entity entity, bool linkSubsector, TryMoveData? tryMove)
     {
         Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
         m_checkCount++;
-        Subsector centerSubsector = m_bspTree.ToSubsector(entity.Position);
+        Subsector centerSubsector;
+        if (tryMove != null && tryMove.Subsector != null && tryMove.Success)
+            centerSubsector = tryMove.Subsector;
+        else
+            centerSubsector = m_bspTree.ToSubsector(entity.Position);
+
         Sector centerSector = centerSubsector.Sector;
         centerSector.PhysicsCount = m_checkCount;
 
@@ -953,6 +958,7 @@ public class PhysicsManager
 
         tryMove.Success = true;
         tryMove.LowestCeilingZ = entity.LowestCeilingZ;
+        tryMove.Subsector = null;
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
             tryMove.HighestFloorZ = highFloorEntity.Box.Top;
@@ -960,8 +966,8 @@ public class PhysicsManager
         }
         else
         {
-            Sector sector = m_bspTree.ToSector(position.To3D(0));
-            tryMove.HighestFloorZ = tryMove.DropOffZ = sector.ToFloorZ(position);
+            tryMove.Subsector = m_bspTree.ToSubsector(position.To3D(0));
+            tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.ToFloorZ(position);
         }
 
         Box2D nextBox = new(position, entity.Radius);
@@ -973,12 +979,14 @@ public class PhysicsManager
 
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
         {
+            tryMove.Subsector = null;
             tryMove.Success = false;
             return false;
         }
 
         if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
         {
+            tryMove.Subsector = null;
             tryMove.Success = false;
             return false;
         }
@@ -986,7 +994,10 @@ public class PhysicsManager
         tryMove.CanFloat = true;
 
         if (!entity.CheckDropOff(tryMove))
+        {
+            tryMove.Subsector = null;
             tryMove.Success = false;
+        }
 
         return tryMove.Success;
 
