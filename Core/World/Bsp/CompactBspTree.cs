@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Helion.Bsp;
 using Helion.Bsp.Node;
 using Helion.Geometry.Boxes;
@@ -135,33 +136,37 @@ public class CompactBspTree
 
     public unsafe int ToSubsectorIndex(in Vec3D point)
     {
-        BspNodeCompact node = Root;
+        uint nodeIndex = (uint)Nodes.Length - 1;
 
         while (true)
         {
-            int next = Convert.ToInt32(node.Splitter.OnRight(point));
-            uint nodeIndex = node.Children[next];
+            fixed (BspNodeCompact* node = &Nodes[nodeIndex])
+            {
+                int next = Convert.ToInt32(node->Splitter.OnRight(point));
+                nodeIndex = node->Children[next];
 
-            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                return (int)(nodeIndex & BspNodeCompact.SubsectorMask);
+                if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
+                    return (int)(nodeIndex & BspNodeCompact.SubsectorMask);
 
-            node = Nodes[nodeIndex];
+            }
         }
     }
 
     public unsafe Sector ToSector(in Vec3D point)
     {
-        BspNodeCompact node = Root;
+        uint nodeIndex = (uint)Nodes.Length - 1;
 
         while (true)
         {
-            int next = Convert.ToInt32(node.Splitter.OnRight(point));
-            uint nodeIndex = node.Children[next];
+            fixed (BspNodeCompact* node = &Nodes[nodeIndex])
+            {
+                int next = Convert.ToInt32(node->Splitter.OnRight(point));
+                nodeIndex = node->Children[next];
 
-            if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                return Subsectors[nodeIndex & BspNodeCompact.SubsectorMask].Sector;
+                if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
+                    return Subsectors[(int)(nodeIndex & BspNodeCompact.SubsectorMask)].Sector;
 
-            node = Nodes[nodeIndex];
+            }
         }
     }
 
