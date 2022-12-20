@@ -239,20 +239,20 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, source, sourcePos);
             if (sourceData.HasMissile)
             {
-                source.Definition.HasMissileState.Should().BeTrue();
+                source.Definition.MissileState.Should().NotBeNull();
                 RunMissileState(source, dest, sourceData, false);
             }
 
             if (sourceData.HasMissileLikeMelee)
             {
-                source.Definition.HasMissileState.Should().BeTrue();
+                source.Definition.MissileState.Should().NotBeNull();
                 GameActions.SetEntityPosition(World, source, dest.Position.XY);
                 RunMissileState(source, dest, sourceData, true);
             }
 
             if (sourceData.HasMelee)
             {
-                source.Definition.HasMissileState.Should().BeTrue();
+                source.Definition.MeleeState.Should().NotBeNull();
                 GameActions.SetEntityPosition(World, source, dest.Position.XY);
                 RunMeleeState(source, dest, sourceData);
             }

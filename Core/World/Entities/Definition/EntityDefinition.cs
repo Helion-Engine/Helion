@@ -20,12 +20,15 @@ public class EntityDefinition
     public readonly List<string> ParentClassNames;
     public readonly bool IsBulletPuff;
     public bool IsInventory;
-    public bool HasMissileState;
-    public bool HasMeleeState;
-    public bool HasXDeathState;
-    public bool HasRaiseState;
-    public bool HasSeeState;
-    public bool HasPainState;
+    public int? SpawnState;
+    public int? MissileState;
+    public int? MeleeState;
+    public int? DeathState;
+    public int? XDeathState;
+    public int? RaiseState;
+    public int? SeeState;
+    public int? PainState;
+
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

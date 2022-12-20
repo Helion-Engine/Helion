@@ -1639,8 +1639,8 @@ public abstract partial class WorldBase : IWorld
 
         if (offset == 0)
             blood.SetRandomizeTicks();
-        else
-            blood.FrameState.SetState(Constants.FrameStates.Spawn, offset);
+        else if (blood.Definition.SpawnState != null)
+            blood.FrameState.SetFrameIndex(blood.Definition.SpawnState.Value + offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
@@ -1977,7 +1977,7 @@ public abstract partial class WorldBase : IWorld
         {
             BlockmapIntersect bi = intersections[i];
 
-            if (bi.Entity == null || !bi.Entity.Definition.HasRaiseState || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
+            if (bi.Entity == null || bi.Entity.Definition.RaiseState == null || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
                 continue;
 
             if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))

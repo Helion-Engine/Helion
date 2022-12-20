@@ -110,7 +110,7 @@ public partial class Entity
 
     public void SetClosetLook()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex, execute: true);
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex);
         AddFrameTicks(ClosetLookCount);
         ClosetLookCount++;
     }
@@ -122,7 +122,7 @@ public partial class Entity
 
     public void SetClosetChase()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex, execute: true);
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex);
         AddFrameTicks(ClosetChaseCount);
         ClosetChaseCount++;
     }
@@ -411,10 +411,10 @@ public partial class Entity
 
         double distance = Position.ApproximateDistance2D(Target.Entity.Position);
 
-        if (!Definition.HasMeleeState)
+        if (Definition.MissileState == null)
             distance -= 128;
 
-        if (Definition.HasMeleeState && distance < Definition.Properties.MeleeThreshold)
+        if (Definition.MeleeState != null && distance < Definition.Properties.MeleeThreshold)
             return false;
 
         if (Definition.Flags.MissileMore)

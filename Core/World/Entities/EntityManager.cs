@@ -411,7 +411,8 @@ public class EntityManager : IDisposable
         entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
-        entity.FrameState.SetState(Constants.FrameStates.Spawn, executeStateFunctions: executeStateFunctions);
+        if (entity.Definition.SpawnState != null)
+            entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
     }
 
     private void PostProcessEntity(Entity entity)

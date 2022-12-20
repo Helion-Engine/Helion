@@ -749,20 +749,20 @@ public static class EntityActionFunctions
             return;
         }
 
-        if (entity.Target.Entity != null && entity.Definition.HasMeleeState && entity.InMeleeRange(entity.Target.Entity))
+        if (entity.Target.Entity != null && entity.Definition.MeleeState != null && entity.InMeleeRange(entity.Target.Entity))
         {
             entity.PlayAttackSound();
-            entity.SetMeleeState();
+            entity.FrameState.SetFrameIndex(entity.Definition.MeleeState.Value);
         }
 
         if (entity.IsDisposed)
             return;
 
         if ((entity.MoveCount == 0 || entity.World.IsFastMonsters) &&
-            entity.Definition.HasMissileState && entity.CheckMissileRange())
+            entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
             entity.Flags.JustAttacked = true;
-            entity.SetMissileState();
+            entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
         }
         else if (entity.EntityManager.World.Random.NextByte() < 3)
         {
@@ -1309,7 +1309,8 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.SetMissileState();
+            if (entity.Definition.MissileState != null)
+                entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
             entity.PlayerObj.Weapon?.SetFlashState();
         }
     }

@@ -450,30 +450,43 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         bool gib = Health < -Properties.Health;
         SetHeight(Definition.Properties.Height / 4.0);
 
-        if (gib && Definition.HasXDeathState)
+        if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
         else
             SetDeathState(source);
     }
 
-    public void SetSpawnState() =>
-        FrameState.SetState(Constants.FrameStates.Spawn);
+    public void SetSpawnState()
+    {
+        if (Definition.SpawnState != null)
+            FrameState.SetFrameIndex(Definition.SpawnState.Value);
+    }
 
-    public void SetSeeState() =>
-        FrameState.SetState(Constants.FrameStates.See);
+    public void SetSeeState()
+    {
+        if (Definition.SeeState != null)
+            FrameState.SetFrameIndex(Definition.SeeState.Value);
+    }
 
-    public void SetMissileState() =>
-        FrameState.SetState(Constants.FrameStates.Missile);
+    public void SetMissileState()
+    {
+        if (Definition.MissileState != null)
+            FrameState.SetFrameIndex(Definition.MissileState.Value);
+    }
 
-    public void SetMeleeState() =>
-        FrameState.SetState(Constants.FrameStates.Melee);
+    public void SetMeleeState()
+    {
+        if (Definition.MeleeState != null)
+            FrameState.SetFrameIndex(Definition.MeleeState.Value);
+    }
 
     public void SetDeathState(Entity? source)
     {
         if (Definition.States.Labels.ContainsKey(Constants.FrameStates.Death))
         {
             SetDeath(source, false);
-            FrameState.SetState(Constants.FrameStates.Death);
+            if (Definition.DeathState != null)
+                FrameState.SetFrameIndex(Definition.DeathState.Value);
 
             // Vanilla would set the ticks to 1 if less than 1 always because it didn't care if it was actually randomized.
             // Not doing this can break dehacked frames...
@@ -487,7 +500,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath))
         {
             SetDeath(source, true);
-            FrameState.SetState(Constants.FrameStates.XDeath);
+            if (Definition.XDeathState != null)
+                FrameState.SetFrameIndex(Definition.XDeathState.Value);
         }
     }
 
@@ -507,9 +521,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public virtual void SetRaiseState()
-    {
-        if (FrameState.SetState(Constants.FrameStates.Raise))
+    {        
+        if (Definition.RaiseState != null)
         {
+            FrameState.SetFrameIndex(Definition.RaiseState.Value);
             Health = Definition.Properties.Health;
             SetHeight(Definition.Properties.Height);
             Flags = Definition.Flags;
@@ -624,7 +639,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                     Threshold = Properties.DefThreshold;
                 if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
                     SetTarget(damageSource);
-                if (Definition.HasSeeState && FrameState.IsState(Constants.FrameStates.Spawn))
+                if (Definition.SeeState != null && FrameState.IsState(Constants.FrameStates.Spawn))
                     SetSeeState();
             }
         }
@@ -649,10 +664,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             KillInternal(source);
         }
-        else if (setPainState && !Flags.Skullfly && Definition.HasPainState)
+        else if (setPainState && !Flags.Skullfly && Definition.PainState != null)
         {
             Flags.JustHit = true;
-            FrameState.SetState(Constants.FrameStates.Pain);
+            FrameState.SetFrameIndex(Definition.PainState.Value);
         }
 
         // Skullfly is not turned off here as the original game did not do this

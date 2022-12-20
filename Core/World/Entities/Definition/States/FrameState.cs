@@ -95,12 +95,22 @@ public class FrameState : ITickable
             m_frameIndex = index;
     }
 
-    // Only for end game cast - really shouldn't be used.
-    public void SetFrameIndex(int index, bool execute = false)
+    public void SetFrameIndex(int index)
     {
+        if (index < 0 || index >= m_frameTable.Frames.Count)
+            return;
+
         m_frameIndex = index;
-        if (execute)
-            SetFrameIndexInternal(index, null);
+        SetFrameIndexInternal(index, null);
+    }
+
+    public void SetFrameIndexNoAction(int index)
+    {
+        if (index < 0 || index >= m_frameTable.Frames.Count)
+            return;
+
+        m_frameIndex = index;
+        m_tics = Frame.Ticks;
     }
 
     public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
