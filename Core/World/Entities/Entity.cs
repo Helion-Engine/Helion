@@ -147,7 +147,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = world.SoundManager;
 
         AngleRadians = angleRadians;
-        Box = world.DataCache.GetEntityBox(position, Radius, definition.Properties.Height);
+        Box = new(position, Radius, definition.Properties.Height);
         PrevPosition = Position;
         Sector = sector;
         LowestCeilingZ = sector.Ceiling.Z;
@@ -185,7 +185,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = world.SoundManager;
 
         AngleRadians = entityModel.AngleRadians;
-        Box = world.DataCache.GetEntityBox(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
+        Box = new(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
         PrevPosition = entityModel.Box.GetCenter();
         Velocity = entityModel.GetVelocity();
         SpawnPoint = entityModel.GetSpawnPoint();
@@ -931,7 +931,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         UnlinkFromWorld();
         EntityListNode?.Unlink();
         World.DataCache.FreeEntityAudioSources(SoundChannels);
-        World.DataCache.FreeEntityBox(Box);
         World.DataCache.FreeFrameState(FrameState);
         World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
         World.DataCache.FreeLinkableNodeEntityList(SectorNodes);

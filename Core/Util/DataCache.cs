@@ -39,7 +39,6 @@ public class DataCache
     private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
     private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
     private readonly DynamicArray<FrameState> m_frameStates = new(DefaultLength);
-    private readonly DynamicArray<EntityBox> m_entityBoxes = new(DefaultLength);
     private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
@@ -151,23 +150,6 @@ public class DataCache
     {
         frameState.Clear();
         m_frameStates.Add(frameState);
-    }
-
-    public EntityBox GetEntityBox(Vec3D centerBottom, double radius, double height)
-    {
-        if (m_entityBoxes.Length > 0)
-        {
-            EntityBox box = m_entityBoxes.RemoveLast();
-            box.Set(centerBottom, radius, height);
-            return box;
-        }
-
-        return new EntityBox(centerBottom, radius, height);
-    }
-
-    public void FreeEntityBox(EntityBox box)
-    {
-        m_entityBoxes.Add(box);
     }
 
     public IAudioSource?[] GetEntityAudioSources()

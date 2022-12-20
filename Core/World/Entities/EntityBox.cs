@@ -5,23 +5,26 @@ using Helion.Util.Extensions;
 
 namespace Helion.World.Entities;
 
-public class EntityBox : BoundingBox3D
+public struct EntityBox
 {
     private Vec3D m_centerBottom;
     public double Radius;
     public double Height;
+    public Vec3D Min;
+    public Vec3D Max;
 
     public double Top => Max.Z;
     public double Bottom => Min.Z;
     public Vec3D Position => m_centerBottom;
     public Box2D To2D() => new(Min.XY, Max.XY);
 
-    public EntityBox(Vec3D centerBottom, double radius, double height) :
-        base(CalculateMin(centerBottom, radius), CalculateMax(centerBottom, radius, height))
+    public EntityBox(Vec3D centerBottom, double radius, double height)
     {
         m_centerBottom = centerBottom;
         Radius = radius;
         Height = height;
+        Min = CalculateMin(centerBottom, radius);
+        Max = CalculateMax(centerBottom, radius, height);
     }
 
     public void Set(Vec3D centerBottom, double radius, double height)
@@ -29,8 +32,8 @@ public class EntityBox : BoundingBox3D
         Radius = radius;
         Height = height;
         m_centerBottom = centerBottom;
-        m_Min = CalculateMin(centerBottom, radius);
-        m_Max = CalculateMax(centerBottom, radius, height);
+        Min = CalculateMin(centerBottom, radius);
+        Max = CalculateMax(centerBottom, radius, height);
     }
 
     private static Vec3D CalculateMin(Vec3D centerBottom, double radius)
@@ -48,15 +51,15 @@ public class EntityBox : BoundingBox3D
         Vec3D delta = centerBottomPosition - m_centerBottom;
 
         m_centerBottom = centerBottomPosition;
-        m_Min += delta;
-        m_Max += delta;
+        Min += delta;
+        Max += delta;
     }
 
     public void SetZ(double bottomZ)
     {
         m_centerBottom.Z = bottomZ;
-        m_Min.Z = bottomZ;
-        m_Max.Z = bottomZ + Height;
+        Min.Z = bottomZ;
+        Max.Z = bottomZ + Height;
     }
 
     public void SetXY(Vec2D position)
@@ -64,20 +67,23 @@ public class EntityBox : BoundingBox3D
         m_centerBottom.X = position.X;
         m_centerBottom.Y = position.Y;
 
-        m_Min.X = position.X - Radius;
-        m_Max.X = position.X + Radius;
-        m_Min.Y = position.Y - Radius;
-        m_Max.Y = position.Y + Radius;
+        Min.X = position.X - Radius;
+        Max.X = position.X + Radius;
+        Min.Y = position.Y - Radius;
+        Max.Y = position.Y + Radius;
     }
 
     public void SetHeight(double height)
     {
         Height = height;
-        m_Max.Z = Min.Z + height;
+        Max.Z = Min.Z + height;
     }
 
-    public bool OverlapsZ(Box3D box) => Top > box.Min.Z && Bottom < box.Max.Z;
-    public bool OverlapsZ(BoundingBox3D box) => Top > box.Min.Z && Bottom < box.Max.Z;
+    public bool Overlaps(in EntityBox box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y || Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
+    public bool Overlaps2D(in EntityBox other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+    public bool Overlaps2D(in Box2D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
+    public bool OverlapsZ(in EntityBox box) => Top > box.Min.Z && Bottom < box.Max.Z;
+    public bool OverlapsZ(in Box3D box) => Top > box.Min.Z && Bottom < box.Max.Z;
 
     public bool Intersects(Vec2D p1, Vec2D p2, ref Vec2D intersect)
     {
@@ -176,8 +182,8 @@ public class EntityBox : BoundingBox3D
             return false;
 
         return entityBox.m_centerBottom == m_centerBottom &&
-            entityBox.m_Min == m_Min &&
-            entityBox.m_Max == m_Max &&
+            entityBox.Min == Min &&
+            entityBox.Max == Max &&
             entityBox.Radius == Radius &&
             entityBox.Height == Height;
     }
