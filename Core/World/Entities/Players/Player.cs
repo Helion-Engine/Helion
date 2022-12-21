@@ -65,10 +65,8 @@ public class Player : Entity
     private int m_jumpTics;
     private int m_deathTics;
     private double m_prevPitch;
-    private double m_viewHeight;
     private double m_viewZ;
     private double m_prevViewZ;
-    private double m_deltaViewHeight;
     private double m_bob;
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
@@ -94,7 +92,8 @@ public class Player : Entity
     public PlayerTracers Tracers = new();
     public bool IsVooDooDoll { get; set; }
     public bool IsSyncVooDoo { get; set; }
-    public double DeltaViewHeight => m_deltaViewHeight;
+    public double DeltaViewHeight;
+    public double ViewHeight;
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
@@ -135,7 +134,7 @@ public class Player : Entity
         Inventory = new Inventory(this, world.EntityManager.DefinitionComposer);
 
         PrevAngle = AngleRadians;
-        m_viewHeight = definition.Properties.Player.ViewHeight;
+        ViewHeight = definition.Properties.Player.ViewHeight;
         m_viewZ = m_prevViewZ = Definition.Properties.Player.ViewHeight;
 
         WeaponOffset.Y = Constants.WeaponBottom;
@@ -160,9 +159,9 @@ public class Player : Entity
         m_isJumping = playerModel.IsJumping;
         m_jumpTics = playerModel.JumpTics;
         m_deathTics = playerModel.DeathTics;
-        m_viewHeight = playerModel.ViewHeight;
+        ViewHeight = playerModel.ViewHeight;
         m_viewZ = playerModel.ViewZ;
-        m_deltaViewHeight = playerModel.DeltaViewHeight;
+        DeltaViewHeight = playerModel.DeltaViewHeight;
         m_bob = playerModel.Bob;
         WeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
         PrevWeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
@@ -251,9 +250,9 @@ public class Player : Entity
             IsJumping = m_isJumping,
             JumpTics = m_jumpTics,
             DeathTics = m_deathTics,
-            ViewHeight = m_viewHeight,
+            ViewHeight = ViewHeight,
             ViewZ = ViewZ,
-            DeltaViewHeight = m_deltaViewHeight,
+            DeltaViewHeight = DeltaViewHeight,
             Bob = m_bob,
             Killer = m_killer.Entity?.Id,
             Attacker = Attacker.Entity?.Id,
@@ -377,12 +376,12 @@ public class Player : Entity
         return position;
     }
 
-    public void SetSmoothZ(double z)
+    public void SetAndSmoothZ(double z)
     {
         if (Position.Z < z)
         {
-            m_viewHeight -= z - Position.Z;
-            m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
+            ViewHeight -= z - Position.Z;
+            DeltaViewHeight = (Definition.Properties.Player.ViewHeight - ViewHeight) / PlayerViewDivider;
             SetViewHeight();
         }
 
@@ -403,7 +402,7 @@ public class Player : Entity
             if (hardHit && !Flags.NoGravity && !IsDead)
             {
                 PlayLandSound();
-                m_deltaViewHeight = velocity.Z / PlayerViewDivider;
+                DeltaViewHeight = velocity.Z / PlayerViewDivider;
             }
 
             m_isJumping = false;
@@ -415,11 +414,11 @@ public class Player : Entity
 
     public override void ResetInterpolation()
     {
-        m_viewHeight = Definition.Properties.Player.ViewHeight;
+        ViewHeight = Definition.Properties.Player.ViewHeight;
         m_prevViewZ = m_viewZ;
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
-        m_deltaViewHeight = 0;
+        DeltaViewHeight = 0;
         PrevWeaponOffset = WeaponOffset;
         PrevBobOffset = BobOffset;
 
@@ -531,7 +530,7 @@ public class Player : Entity
         if (m_jumpTics > 0)
             m_jumpTics--;
 
-        m_viewHeight += m_deltaViewHeight;
+        ViewHeight += DeltaViewHeight;
 
         if (DamageCount > 0)
             DamageCount--;
@@ -542,8 +541,8 @@ public class Player : Entity
         if (m_deathTics > 0)
         {
             m_deathTics--;
-            if (m_viewHeight > DeathHeight)
-                m_viewHeight -= 1.0;
+            if (ViewHeight > DeathHeight)
+                ViewHeight -= 1.0;
             else
                 m_deathTics = 0;
         }
@@ -1261,26 +1260,26 @@ public class Player : Entity
         double playerViewHeight = IsDead && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
         double halfPlayerViewHeight = playerViewHeight / 2;
 
-        if (m_viewHeight > playerViewHeight)
+        if (ViewHeight > playerViewHeight)
         {
-            m_deltaViewHeight = 0;
-            m_viewHeight = playerViewHeight;
+            DeltaViewHeight = 0;
+            ViewHeight = playerViewHeight;
         }
 
         if (m_deathTics == 0)
         {
-            if (m_viewHeight < halfPlayerViewHeight)
+            if (ViewHeight < halfPlayerViewHeight)
             {
-                m_viewHeight = halfPlayerViewHeight;
-                if (m_deltaViewHeight < 0)
-                    m_deltaViewHeight = 0;
+                ViewHeight = halfPlayerViewHeight;
+                if (DeltaViewHeight < 0)
+                    DeltaViewHeight = 0;
             }
 
-            if (m_viewHeight < playerViewHeight)
-                m_deltaViewHeight += 0.25;
+            if (ViewHeight < playerViewHeight)
+                DeltaViewHeight += 0.25;
         }
 
-        m_viewZ = MathHelper.Clamp(m_viewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
+        m_viewZ = MathHelper.Clamp(ViewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
     }
 
     private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
@@ -1301,9 +1300,9 @@ public class Player : Entity
             player.m_isJumping == m_isJumping &&
             player.m_jumpTics == m_jumpTics &&
             player.m_deathTics == m_deathTics &&
-            player.m_viewHeight == m_viewHeight &&
+            player.ViewHeight == ViewHeight &&
             player.m_viewZ == m_viewZ &&
-            player.m_deltaViewHeight == m_deltaViewHeight &&
+            player.DeltaViewHeight == DeltaViewHeight &&
             player.m_bob == m_bob &&
             player.m_killer.Entity?.Id == m_killer.Entity?.Id;
     }

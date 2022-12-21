@@ -548,8 +548,8 @@ public class PhysicsManager
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
     {
         // Additionally check to smooth camera when stepping up to an entity
-        if (entity.PlayerObj != null)
-            entity.PlayerObj.SetSmoothZ(floorZ);
+        if (entity.PlayerObj != null && smoothZ)
+            entity.PlayerObj.SetAndSmoothZ(floorZ);
         else
             entity.Position.Z = floorZ;
 
