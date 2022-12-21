@@ -44,7 +44,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public EntityFlags Flags;
     public EntityProperties Properties;
     public readonly EntityManager EntityManager;
-    public readonly FrameState FrameState;
+    public FrameState FrameState;
     public readonly IWorld World;
     public readonly WorldSoundManager SoundManager;
     public double AngleRadians;
@@ -167,8 +167,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Properties.Threshold = 0;
 
+        FrameState = new(this, definition, world.EntityManager);
         SoundChannels = world.DataCache.GetEntityAudioSources();
-        FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
         IntersectSectors = world.DataCache.GetSectorList();
@@ -221,8 +221,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
+        FrameState = new(this, definition, world.EntityManager, entityModel.Frame);
         SoundChannels = world.DataCache.GetEntityAudioSources();
-        FrameState = world.DataCache.GetFrameState(this, definition, world.EntityManager, entityModel.Frame);
         BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
         SectorNodes = world.DataCache.GetLinkableNodeEntityList();
         IntersectSectors = world.DataCache.GetSectorList();
@@ -951,7 +951,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         UnlinkFromWorld();
         EntityListNode?.Unlink();
         World.DataCache.FreeEntityAudioSources(SoundChannels);
-        World.DataCache.FreeFrameState(FrameState);
         World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
         World.DataCache.FreeLinkableNodeEntityList(SectorNodes);
         World.DataCache.FreeSectorList(IntersectSectors);

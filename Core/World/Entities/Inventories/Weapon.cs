@@ -13,8 +13,8 @@ public class Weapon : InventoryItem, ITickable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly Player Owner;
-    public readonly FrameState FrameState;
-    public readonly FrameState FlashState;
+    public FrameState FrameState;
+    public FrameState FlashState;
 
     public readonly EntityDefinition? AmmoDefinition;
     public readonly string AmmoSprite;

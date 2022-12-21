@@ -38,7 +38,6 @@ public class DataCache
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
     private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
     private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
-    private readonly DynamicArray<FrameState> m_frameStates = new(DefaultLength);
     private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
@@ -118,38 +117,6 @@ public class DataCache
     {
         list.Clear();
         m_sectorLists.Add(list);
-    }
-
-    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, bool destroyOnStop = true)
-    {
-        if (m_frameStates.Length > 0)
-        {
-            FrameState frameState = m_frameStates.RemoveLast();
-            frameState.Set(entity, definition, entityManager, destroyOnStop);
-            return frameState;
-        }
-
-        return new FrameState(entity, definition, entityManager, destroyOnStop);
-    }
-
-    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, FrameStateModel frameStateModel)
-    {
-        if (m_frameStates.Length > 0)
-        {
-            FrameState frameState = m_frameStates.RemoveLast();
-            frameState.Set(entity, definition, entityManager, frameStateModel);
-            return frameState;
-        }
-
-        return new FrameState(entity, definition, entityManager, frameStateModel);
-    }
-
-    public void FreeFrameState(FrameState frameState)
-    {
-        frameState.Clear();
-        m_frameStates.Add(frameState);
     }
 
     public IAudioSource?[] GetEntityAudioSources()
