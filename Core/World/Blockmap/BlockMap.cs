@@ -106,17 +106,14 @@ public class BlockMap
     public void NoBlockmapLink(Entity entity)
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
+        Block? block = m_blocks.GetBlock(entity.Position.XY);
+        if (block == null)
+            return;
 
-        m_blocks.Iterate(entity.GetBox2D(), BlockLinkFunc);
+        LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
+        block.NoBlockmapEntities.Add(blockEntityNode);
 
-        GridIterationStatus BlockLinkFunc(Block block)
-        {
-            LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
-            block.NoBlockmapEntities.Add(blockEntityNode);
-
-            entity.BlockmapNodes.Add(blockEntityNode);
-            return GridIterationStatus.Continue;
-        }
+        entity.BlockmapNodes.Add(blockEntityNode);
     }
 
     public void Link(IWorld world, Sector sector)
