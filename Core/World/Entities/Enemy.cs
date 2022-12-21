@@ -433,9 +433,9 @@ public partial class Entity
     {
         if (!MoveEnemy(out TryMoveData? tryMove))
         {
-            if (tryMove != null && tryMove.ImpactSpecialLines.Count > 0)
+            if (tryMove != null && tryMove.ImpactSpecialLines.Length > 0)
             {
-                for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+                for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
                     World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
             }
 

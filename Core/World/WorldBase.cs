@@ -1192,7 +1192,7 @@ public abstract partial class WorldBase : IWorld
 
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
-            for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+            for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
                 ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall);
 
             if (entity.IsPlayer && Config.Game.BumpUse)
@@ -1243,10 +1243,10 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
     {
-        if (tryMove == null || tryMove.IntersectEntities2D.Count == 0)
+        if (tryMove == null || tryMove.IntersectEntities2D.Length == 0)
             return;
 
-        for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
+        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
             if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)

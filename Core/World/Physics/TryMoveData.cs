@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Subsectors;
@@ -18,9 +19,9 @@ public class TryMoveData
     public Entity? DropOffEntity;
     public Subsector? Subsector;
 
-    public List<Entity> IntersectEntities2D = new();
-    public List<Line> IntersectSpecialLines = new();
-    public List<Line> ImpactSpecialLines = new();
+    public DynamicArray<Entity> IntersectEntities2D = new();
+    public DynamicArray<Line> IntersectSpecialLines = new();
+    public DynamicArray<Line> ImpactSpecialLines = new();
 
     public void SetPosition(in Vec2D position)
     {
@@ -47,16 +48,5 @@ public class TryMoveData
             HighestFloorZ = opening.FloorZ;
         if (opening.CeilingZ < LowestCeilingZ)
             LowestCeilingZ = opening.CeilingZ;
-    }
-
-    private static bool FindLine(List<Line> lines, int id)
-    {
-        for (int i = 0; i < lines.Count; i++)
-        {
-            if (lines[i].Id == id)
-                return true;
-        }
-
-        return false;
     }
 }

@@ -71,7 +71,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public List<Sector> IntersectSectors;
+    public DynamicArray<Sector> IntersectSectors;
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -105,8 +105,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    public List<LinkableNode<Entity>> BlockmapNodes;
-    public List<LinkableNode<Entity>> SectorNodes;
+    public DynamicArray<LinkableNode<Entity>> BlockmapNodes;
+    public DynamicArray<LinkableNode<Entity>> SectorNodes;
     public LinkableNode<Entity>? SubsectorNode;
     public LinkableNode<Entity>? EntityListNode;
     public bool IsDisposed { get; private set; }
@@ -388,10 +388,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         // Also maybe doing Clear() is overkill, but then again not doing
         // clearing may cause garbage collection to not be run for any
         // lingering elements in the list.
-        for (int i = 0; i < SectorNodes.Count; i++)
+        for (int i = 0; i < SectorNodes.Length; i++)
         {
-            SectorNodes[i].Unlink();
-            World.DataCache.FreeLinkableNodeEntity(SectorNodes[i]);
+            var node = SectorNodes[i];
+            node.Unlink();
+            World.DataCache.FreeLinkableNodeEntity(node);
+            SectorNodes.Data[i] = null;
         }
 
         if (SubsectorNode != null)
@@ -402,10 +404,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SectorNodes.Clear();
         SubsectorNode = null;
 
-        for (int i = 0; i < BlockmapNodes.Count; i++)
+        for (int i = 0; i < BlockmapNodes.Length; i++)
         {
-            BlockmapNodes[i].Unlink();
-            World.DataCache.FreeLinkableNodeEntity(BlockmapNodes[i]);
+            var node = BlockmapNodes[i];
+            node.Unlink();
+            World.DataCache.FreeLinkableNodeEntity(node);
+            BlockmapNodes.Data[i] = null;
         }
         BlockmapNodes.Clear();
 
@@ -865,7 +869,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return false;
 
         // Walking on things test
-        for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
+        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
             Entity entity = tryMove.IntersectEntities2D[i];
             if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
@@ -874,7 +878,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                 tryMove.DropOffZ = entity.BoxMax.Z;
         }
 
-        if (tryMove.IntersectEntities2D.Count == 0 && tryMove.DropOffEntity != null)
+        if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
         return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();

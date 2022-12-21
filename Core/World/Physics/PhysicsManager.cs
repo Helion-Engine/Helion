@@ -725,7 +725,7 @@ public class PhysicsManager
         if (!clampToLinkedSectors)
             return;
 
-        for (int i = 0; i < entity.IntersectSectors.Count; i++)
+        for (int i = 0; i < entity.IntersectSectors.Length; i++)
         {
             Sector sector = entity.IntersectSectors[i];
             double floorZ = sector.ToFloorZ(entity.Position);
@@ -1126,7 +1126,7 @@ public class PhysicsManager
 
         LinkToWorld(entity, tryMove);
 
-        for (int i = tryMove.IntersectSpecialLines.Count - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Count; i--)
+        for (int i = tryMove.IntersectSpecialLines.Length - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Length; i--)
         {
             CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
             if (entity.Flags.Teleport)
@@ -1382,7 +1382,7 @@ public class PhysicsManager
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;
-        for (int i = 0; i < entity.IntersectSectors.Count; i++)
+        for (int i = 0; i < entity.IntersectSectors.Length; i++)
         {
             Sector sector = entity.IntersectSectors[i];
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))

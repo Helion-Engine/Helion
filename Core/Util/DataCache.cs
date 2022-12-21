@@ -36,8 +36,8 @@ public class DataCache
 
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
-    private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
-    private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
+    private readonly DynamicArray<DynamicArray<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
+    private readonly DynamicArray<DynamicArray<Sector>> m_sectorLists = new(DefaultLength);
     private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
@@ -91,29 +91,29 @@ public class DataCache
         m_sectorNodes.Add(node);
     }
 
-    public List<LinkableNode<Entity>> GetLinkableNodeEntityList()
+    public DynamicArray<LinkableNode<Entity>> GetLinkableNodeEntityList()
     {
         if (m_entityListNodes.Length > 0)
             return m_entityListNodes.RemoveLast();
 
-        return new List<LinkableNode<Entity>>();
+        return new DynamicArray<LinkableNode<Entity>>();
     }
 
-    public void FreeLinkableNodeEntityList(List<LinkableNode<Entity>> list)
+    public void FreeLinkableNodeEntityList(DynamicArray<LinkableNode<Entity>> list)
     {
         list.Clear();
         m_entityListNodes.Add(list);
     }
 
-    public List<Sector> GetSectorList()
+    public DynamicArray<Sector> GetSectorList()
     {
         if (m_sectorLists.Length > 0)
             return m_sectorLists.RemoveLast();
 
-        return new List<Sector>();
+        return new DynamicArray<Sector>();
     }
 
-    public void FreeSectorList(List<Sector> list)
+    public void FreeSectorList(DynamicArray<Sector> list)
     {
         list.Clear();
         m_sectorLists.Add(list);
