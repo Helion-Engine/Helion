@@ -36,10 +36,8 @@ public class DataCache
 
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
-    private readonly DynamicArray<List<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
-    private readonly DynamicArray<List<Sector>> m_sectorLists = new(DefaultLength);
-    private readonly DynamicArray<FrameState> m_frameStates = new(DefaultLength);
-    private readonly DynamicArray<EntityBox> m_entityBoxes = new(DefaultLength);
+    private readonly DynamicArray<DynamicArray<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
+    private readonly DynamicArray<DynamicArray<Sector>> m_sectorLists = new(DefaultLength);
     private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
@@ -93,81 +91,32 @@ public class DataCache
         m_sectorNodes.Add(node);
     }
 
-    public List<LinkableNode<Entity>> GetLinkableNodeEntityList()
+    public DynamicArray<LinkableNode<Entity>> GetLinkableNodeEntityList()
     {
         if (m_entityListNodes.Length > 0)
             return m_entityListNodes.RemoveLast();
 
-        return new List<LinkableNode<Entity>>();
+        return new DynamicArray<LinkableNode<Entity>>();
     }
 
-    public void FreeLinkableNodeEntityList(List<LinkableNode<Entity>> list)
+    public void FreeLinkableNodeEntityList(DynamicArray<LinkableNode<Entity>> list)
     {
         list.Clear();
         m_entityListNodes.Add(list);
     }
 
-    public List<Sector> GetSectorList()
+    public DynamicArray<Sector> GetSectorList()
     {
         if (m_sectorLists.Length > 0)
             return m_sectorLists.RemoveLast();
 
-        return new List<Sector>();
+        return new DynamicArray<Sector>();
     }
 
-    public void FreeSectorList(List<Sector> list)
+    public void FreeSectorList(DynamicArray<Sector> list)
     {
         list.Clear();
         m_sectorLists.Add(list);
-    }
-
-    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, bool destroyOnStop = true)
-    {
-        if (m_frameStates.Length > 0)
-        {
-            FrameState frameState = m_frameStates.RemoveLast();
-            frameState.Set(entity, definition, entityManager, destroyOnStop);
-            return frameState;
-        }
-
-        return new FrameState(entity, definition, entityManager, destroyOnStop);
-    }
-
-    public FrameState GetFrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, FrameStateModel frameStateModel)
-    {
-        if (m_frameStates.Length > 0)
-        {
-            FrameState frameState = m_frameStates.RemoveLast();
-            frameState.Set(entity, definition, entityManager, frameStateModel);
-            return frameState;
-        }
-
-        return new FrameState(entity, definition, entityManager, frameStateModel);
-    }
-
-    public void FreeFrameState(FrameState frameState)
-    {
-        frameState.Clear();
-        m_frameStates.Add(frameState);
-    }
-
-    public EntityBox GetEntityBox(Vec3D centerBottom, double radius, double height)
-    {
-        if (m_entityBoxes.Length > 0)
-        {
-            EntityBox box = m_entityBoxes.RemoveLast();
-            box.Set(centerBottom, radius, height);
-            return box;
-        }
-
-        return new EntityBox(centerBottom, radius, height);
-    }
-
-    public void FreeEntityBox(EntityBox box)
-    {
-        m_entityBoxes.Add(box);
     }
 
     public IAudioSource?[] GetEntityAudioSources()

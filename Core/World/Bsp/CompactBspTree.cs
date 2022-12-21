@@ -147,7 +147,6 @@ public class CompactBspTree
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
                     return (int)(nodeIndex & BspNodeCompact.SubsectorMask);
-
             }
         }
     }
@@ -165,7 +164,6 @@ public class CompactBspTree
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
                     return Subsectors[(int)(nodeIndex & BspNodeCompact.SubsectorMask)].Sector;
-
             }
         }
     }

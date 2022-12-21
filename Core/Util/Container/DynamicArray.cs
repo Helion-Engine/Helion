@@ -35,6 +35,8 @@ public class DynamicArray<T>
 
     public int Version { get; private set; }
 
+    public bool Empty() => Length == 0;
+
     /// <summary>
     /// Creates a new dynamic array.
     /// </summary>

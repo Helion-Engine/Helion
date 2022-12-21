@@ -59,7 +59,7 @@ public class BlockmapTraverser
                     continue;
 
                 entity.BlockmapCount = m_blockmapCount;
-                if (entity.Box.Overlaps2D(box))
+                if (entity.Overlaps2D(box))
                 {
                     Vec2D pos = entity.Position.XY;
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
@@ -94,7 +94,7 @@ public class BlockmapTraverser
                     continue;
 
                 entity.BlockmapCount = m_blockmapCount;
-                if (entity.Box.Overlaps2D(box))
+                if (entity.Overlaps2D(box))
                 {
                     Vec2D pos = entity.Position.XY;
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
@@ -173,7 +173,7 @@ public class BlockmapTraverser
                     continue;
 
                 entity.BlockmapCount = m_blockmapCount;
-                if (entity.Box.Overlaps2D(box))
+                if (entity.Overlaps2D(box))
                 {
                     Vec2D pos = entity.Position.XY;
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
@@ -221,7 +221,7 @@ public class BlockmapTraverser
                     continue;
 
                 entity.BlockmapCount = m_blockmapCount;
-                if (entity.Box.Intersects(seg.Start, seg.End, ref intersect))
+                if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
                     intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
             }
 
@@ -308,11 +308,11 @@ public class BlockmapTraverser
 
                     entity.BlockmapCount = m_blockmapCount;
 
-                    if (seg != null && entity.Box.Intersects(seg.Value.Start, seg.Value.End, ref intersect))
+                    if (seg != null && entity.BoxIntersects(seg.Value.Start, seg.Value.End, ref intersect))
                     {
                         intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
                     }
-                    else if (box != null && entity.Box.Overlaps2D(box.Value))
+                    else if (box != null && entity.Overlaps2D(box.Value))
                     {                        
                         Vec2D pos = entity.Position.XY;
                         intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));

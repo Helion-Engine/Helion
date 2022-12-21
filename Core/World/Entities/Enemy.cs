@@ -110,7 +110,7 @@ public partial class Entity
 
     public void SetClosetLook()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex, execute: true);
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex);
         AddFrameTicks(ClosetLookCount);
         ClosetLookCount++;
     }
@@ -122,7 +122,7 @@ public partial class Entity
 
     public void SetClosetChase()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex, execute: true);
+        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex);
         AddFrameTicks(ClosetChaseCount);
         ClosetChaseCount++;
     }
@@ -331,7 +331,7 @@ public partial class Entity
         }
 
         if (tryMove.Success && !Flags.Float && isMoving)
-            Box.SetZ(tryMove.HighestFloorZ);
+            Position.Z = tryMove.HighestFloorZ;
 
         return tryMove.Success;
     }
@@ -411,10 +411,10 @@ public partial class Entity
 
         double distance = Position.ApproximateDistance2D(Target.Entity.Position);
 
-        if (!HasMeleeState())
+        if (Definition.MissileState == null)
             distance -= 128;
 
-        if (HasMeleeState() && distance < Definition.Properties.MeleeThreshold)
+        if (Definition.MeleeState != null && distance < Definition.Properties.MeleeThreshold)
             return false;
 
         if (Definition.Flags.MissileMore)
@@ -433,9 +433,9 @@ public partial class Entity
     {
         if (!MoveEnemy(out TryMoveData? tryMove))
         {
-            if (tryMove != null && tryMove.ImpactSpecialLines.Count > 0)
+            if (tryMove != null && tryMove.ImpactSpecialLines.Length > 0)
             {
-                for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+                for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
                     World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
             }
 

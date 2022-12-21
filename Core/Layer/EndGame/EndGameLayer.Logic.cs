@@ -131,7 +131,7 @@ public partial class EndGameLayer
                 return;
             }
 
-            m_castEntity.FrameState.SetFrameIndex(m_castEntity.Frame.NextFrameIndex);
+            m_castEntity.FrameState.SetFrameIndexNoAction(m_castEntity.Frame.NextFrameIndex);
         }
 
         m_castEntityFrameTicks = m_castEntity.Frame.Ticks;
@@ -288,9 +288,9 @@ public partial class EndGameLayer
     private static bool ShouldUseMeleeState(Entity entity, bool melee)
     {
         if (melee && entity.Definition.Name.Equals("Revenant"))
-            return entity.HasMeleeState();
+            return entity.Definition.MeleeState != null;
 
-        if (!entity.HasMissileState())
+        if (entity.Definition.MissileState == null)
             return true;
 
         return false;

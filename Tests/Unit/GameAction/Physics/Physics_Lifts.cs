@@ -36,6 +36,22 @@ namespace Helion.Tests.Unit.GameAction
             });
         }
 
+        [Fact(DisplayName = "Lift movement doesn't affect player view height")]
+        public void LiftMovementPlayerViewHeight()
+        {
+            var sector = GameActions.GetSectorByTag(World, 2);
+            GameActions.SetEntityPosition(World, Player, LiftCenter2);
+            GameActions.ActivateLine(World, Player, LiftLine2, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, () => { return sector.ActiveFloorMove != null; }, () =>
+            {
+                Player.Position.Z.Should().Be(sector.Floor.Z);
+                Player.DeltaViewHeight.Should().Be(0);
+                Player.ViewHeight.Should().Be(Player.Definition.Properties.Player.ViewHeight);
+            });
+        }
+
         [Fact(DisplayName = "Lift movement turbo")]
         public void LiftMovementTurbo()
         {

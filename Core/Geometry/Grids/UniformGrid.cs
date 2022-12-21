@@ -279,6 +279,16 @@ public class UniformGrid<T> where T : new()
         return false;
     }
 
+    public T? GetBlock(Vec2D position)
+    {
+        Vec2I blockUnit = ((position - Origin) / Dimension).Int;
+        int index = blockUnit.Y * Width + blockUnit.X;
+        if (index < 0 || index >= Blocks.Length)
+            return default(T);
+
+        return Blocks[index];
+    }
+
     private static Box2D ToBounds(Box2D bounds)
     {
         // Note that we are subtracting 1 from the bottom left even after

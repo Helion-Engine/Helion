@@ -113,6 +113,7 @@ public abstract partial class WorldBase : IWorld
     public DataCache DataCache => ArchiveCollection.DataCache;
     public abstract Player Player { get; protected set; }
     public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
+    public bool IsFastMonsters { get; private set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -158,6 +159,7 @@ public abstract partial class WorldBase : IWorld
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
+        IsFastMonsters = skillDef.IsFastMonsters(config);
 
         if (worldModel != null)
         {
@@ -1009,7 +1011,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
             }
-            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.Box.Intersects(start, end, ref intersect))
+            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
                 break;
@@ -1190,7 +1192,7 @@ public abstract partial class WorldBase : IWorld
 
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
-            for (int i = 0; i < tryMove.ImpactSpecialLines.Count; i++)
+            for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
                 ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall);
 
             if (entity.IsPlayer && Config.Game.BumpUse)
@@ -1241,13 +1243,13 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
     {
-        if (tryMove == null || tryMove.IntersectEntities2D.Count == 0)
+        if (tryMove == null || tryMove.IntersectEntities2D.Length == 0)
             return;
 
-        for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
+        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
-            if (!entity.Box.OverlapsZ(intersectEntity.Box) || entity.Id == intersectEntity.Id)
+            if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)
                 continue;
 
             if (entity.Flags.Ripper && entity.Owner.Entity.Id != intersectEntity.Id)
@@ -1512,7 +1514,7 @@ public abstract partial class WorldBase : IWorld
     {
         double distance;
 
-        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top))
+        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.TopZ))
         {
             Vec3D sourcePos = source.Position;
             Vec3D targetPos = entity.Position;
@@ -1637,8 +1639,8 @@ public abstract partial class WorldBase : IWorld
 
         if (offset == 0)
             blood.SetRandomizeTicks();
-        else
-            blood.FrameState.SetState(Constants.FrameStates.Spawn, offset);
+        else if (blood.Definition.SpawnState != null)
+            blood.FrameState.SetFrameIndex(blood.Definition.SpawnState.Value + offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
@@ -1746,11 +1748,11 @@ public abstract partial class WorldBase : IWorld
             }
             else if (bi.Entity != null && startEntity.Id != bi.Entity.Id)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                double thingTopPitch = start.Pitch(bi.Entity.TopZ, bi.Distance2D);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
-                double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+                double thingBottomPitch = start.Pitch(bi.Entity.Position.Z, bi.Distance2D);
                 if (thingBottomPitch > topPitch)
                     continue;
 
@@ -1836,7 +1838,7 @@ public abstract partial class WorldBase : IWorld
             var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
             if (teleport != null)
             {
-                teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
+                teleport.Position.Z = teleport.Sector.ToFloorZ(pos);
                 SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
             }
         }
@@ -1975,7 +1977,7 @@ public abstract partial class WorldBase : IWorld
         {
             BlockmapIntersect bi = intersections[i];
 
-            if (bi.Entity == null || !bi.Entity.HasRaiseState() || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
+            if (bi.Entity == null || bi.Entity.Definition.RaiseState == null || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
                 continue;
 
             if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))

@@ -113,13 +113,13 @@ public class EntityManager : IDisposable
         position.Z = GetPositionZ(sector, in position, zHeight);
         Entity entity = new(id, tid, definition, position, angle, sector, World);
 
-        if (entity.Definition.Properties.FastSpeed > 0 && World.SkillDefinition.IsFastMonsters(entity.World.Config))
+        if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
 
         // This only needs to happen on map population
         if (init && !ZHeightSet(zHeight))
         {
-            entity.SetZ(entity.Sector.ToFloorZ(position), false);
+            entity.Position.Z = entity.Sector.ToFloorZ(position);
             entity.PrevPosition = entity.Position;
         }
 
@@ -393,7 +393,7 @@ public class EntityManager : IDisposable
         if (entity.Flags.SpawnCeiling)
         {
             double offset = ZHeightSet(zHeight) ? -zHeight : 0;
-            entity.SetZ(entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset, false);
+            entity.Position.Z = entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset;
         }
 
         entity.CheckOnGround();
@@ -411,7 +411,8 @@ public class EntityManager : IDisposable
         entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
-        entity.FrameState.SetState(Constants.FrameStates.Spawn, executeStateFunctions: executeStateFunctions);
+        if (entity.Definition.SpawnState != null)
+            entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
     }
 
     private void PostProcessEntity(Entity entity)

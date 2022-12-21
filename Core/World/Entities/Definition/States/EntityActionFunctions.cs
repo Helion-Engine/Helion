@@ -744,25 +744,25 @@ public static class EntityActionFunctions
         if (entity.Flags.JustAttacked)
         {
             entity.Flags.JustAttacked = false;
-            if (!entity.World.SkillDefinition.IsFastMonsters(entity.World.Config))
+            if (!entity.World.IsFastMonsters)
                 entity.SetNewChaseDirection();
             return;
         }
 
-        if (entity.Target.Entity != null && entity.HasMeleeState() && entity.InMeleeRange(entity.Target.Entity))
+        if (entity.Target.Entity != null && entity.Definition.MeleeState != null && entity.InMeleeRange(entity.Target.Entity))
         {
             entity.PlayAttackSound();
-            entity.SetMeleeState();
+            entity.FrameState.SetFrameIndex(entity.Definition.MeleeState.Value);
         }
 
         if (entity.IsDisposed)
             return;
 
-        if ((entity.MoveCount == 0 || entity.World.SkillDefinition.IsFastMonsters(entity.World.Config)) &&
-            entity.HasMissileState() && entity.CheckMissileRange())
+        if ((entity.MoveCount == 0 || entity.World.IsFastMonsters) &&
+            entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
             entity.Flags.JustAttacked = true;
-            entity.SetMissileState();
+            entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
         }
         else if (entity.EntityManager.World.Random.NextByte() < 3)
         {
@@ -1309,7 +1309,8 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.SetMissileState();
+            if (entity.Definition.MissileState != null)
+                entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
             entity.PlayerObj.Weapon?.SetFlashState();
         }
     }
@@ -2445,7 +2446,7 @@ public static class EntityActionFunctions
         Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
         if (puff != null)
         {
-            puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ), false);
+            puff.Position.Z = entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ);
             puff.SetRandomizeTicks();
             puff.Velocity.Z = 1;
         }

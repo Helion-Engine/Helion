@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -18,7 +19,16 @@ public class EntityDefinition
     public readonly EntityStates States;
     public readonly List<string> ParentClassNames;
     public readonly bool IsBulletPuff;
-    public readonly bool IsInventory;
+    public bool IsInventory;
+    public int? SpawnState;
+    public int? MissileState;
+    public int? MeleeState;
+    public int? DeathState;
+    public int? XDeathState;
+    public int? RaiseState;
+    public int? SeeState;
+    public int? PainState;
+
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

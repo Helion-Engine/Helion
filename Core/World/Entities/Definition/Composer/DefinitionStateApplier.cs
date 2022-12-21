@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
 using MoreLinq.Extensions;
@@ -86,7 +87,7 @@ public class DefinitionStateApplier
 
         // Now that all the labels have been handled/added/pruned/linked,
         // we can add them in safely at the end.
-        ApplyAllLabels(definition, masterLabelTable);
+        ApplyAllLabels(entityFrameTable, definition, masterLabelTable);
     }
 
     private static string GetVanillaActorName(IList<ActorDefinition> actorDefinitions)
@@ -101,9 +102,26 @@ public class DefinitionStateApplier
         return actorDefinitions.Last().Name;
     }
 
-    private static void ApplyAllLabels(EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
+    private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
     {
         masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
+
+        definition.SpawnState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Spawn);
+        definition.MissileState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Missile);
+        definition.MeleeState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Melee);
+        definition.DeathState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Death);
+        definition.XDeathState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.XDeath);
+        definition.RaiseState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Raise);
+        definition.SeeState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.See);
+        definition.PainState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Pain);
+    }
+
+    private static int? GetEntityFrame(EntityFrameTable entityFrameTable, EntityDefinition definition, string label)
+    {
+        if (definition.States.Labels.TryGetValue(label, out int index))
+            return index;
+
+        return null;
     }
 
     // Note: this frame index is the LOCAL index to the definition

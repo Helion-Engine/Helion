@@ -10,12 +10,12 @@ namespace Helion.World.Entities.Definition.States;
 /// <summary>
 /// A simple state wrapper that allows us to advance the state.
 /// </summary>
-public class FrameState : ITickable
+public struct FrameState
 {
     private const int InfiniteLoopLimit = 10000;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public EntityFrame Frame => m_frameTable.Frames[m_frameIndex];
+    public EntityFrame Frame;
     private Entity m_entity;
     private EntityDefinition m_definition;
     private EntityManager m_entityManager;
@@ -34,6 +34,7 @@ public class FrameState : ITickable
         m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
         m_entityManager = entityManager;
         m_destroyOnStop = destroyOnStop;
+        Frame = m_frameTable.Frames[m_frameIndex];
     }
 
     public FrameState(Entity entity, EntityDefinition definition,
@@ -46,38 +47,7 @@ public class FrameState : ITickable
         m_frameIndex = frameStateModel.FrameIndex;
         m_tics = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
-    }
-
-    public void Set(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, bool destroyOnStop = true)
-    {
-        m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
-        m_entityManager = entityManager;
-        m_destroyOnStop = destroyOnStop;
-    }
-
-    public void Set(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, FrameStateModel frameStateModel)
-    {
-        m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
-        m_entityManager = entityManager;
-        m_frameIndex = frameStateModel.FrameIndex;
-        m_tics = frameStateModel.Tics;
-        m_destroyOnStop = frameStateModel.Destroy;
-    }
-
-    public void Clear()
-    {
-        m_entity = null!;
-        m_definition = null!;
-        m_frameTable = null!;
-        m_entityManager = null!;
-        m_frameIndex = -1;
-        m_tics = -1;
+        Frame = m_frameTable.Frames[m_frameIndex];
     }
 
     public EntityFrame? GetStateFrame(string label)
@@ -92,15 +62,25 @@ public class FrameState : ITickable
     public void SetFrameIndexByLabel(string label)
     {
         if (m_definition.States.Labels.TryGetValue(label, out int index))
-            m_frameIndex = index;
+            SetFrameIndexMember(index);
     }
 
-    // Only for end game cast - really shouldn't be used.
-    public void SetFrameIndex(int index, bool execute = false)
+    public void SetFrameIndex(int index)
     {
-        m_frameIndex = index;
-        if (execute)
-            SetFrameIndexInternal(index, null);
+        if (index < 0 || index >= m_frameTable.Frames.Count)
+            return;
+
+        SetFrameIndexMember(index);
+        SetFrameIndexInternal(index, null);
+    }
+
+    public void SetFrameIndexNoAction(int index)
+    {
+        if (index < 0 || index >= m_frameTable.Frames.Count)
+            return;
+
+        SetFrameIndexMember(index);
+        m_tics = Frame.Ticks;
     }
 
     public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
@@ -129,9 +109,9 @@ public class FrameState : ITickable
         if (m_definition.States.Labels.TryGetValue(label, out int index))
         {
             if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
-                m_frameIndex = index + offset;
+                SetFrameIndexMember(index + offset);
             else
-                m_frameIndex = index;
+                SetFrameIndexMember(m_frameIndex = index);
 
             m_tics = Frame.Ticks;
             return true;
@@ -161,26 +141,30 @@ public class FrameState : ITickable
         m_tics = tics;
     }
 
+    private void SetFrameIndexMember(int index)
+    {
+        m_frameIndex = index;
+        Frame = m_frameTable.Frames[m_frameIndex];
+    }
+
     private void SetFrameIndexInternal(int index, Action<EntityFrame>? onSet)
     {
         int loopCount = 0;
-        EntityFrame frame;
 
         while (true)
         {
-            m_frameIndex = index;
+            SetFrameIndexMember(index);
             m_tics = Frame.Ticks;
 
-            if (m_entity.World.SkillDefinition.IsFastMonsters(m_entity.World.Config) && Frame.Properties.Fast)
+            if (m_entity.World.IsFastMonsters && Frame.Properties.Fast)
                 m_tics /= 2;
 
             if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
                 m_tics *= 2;
 
-            frame = Frame;
-            onSet?.Invoke(frame);
+            onSet?.Invoke(Frame);
 
-            if (m_destroyOnStop && frame.IsNullFrame)
+            if (m_destroyOnStop && Frame.IsNullFrame)
             {
                 m_entityManager.Destroy(m_entity);
                 return;
@@ -193,13 +177,11 @@ public class FrameState : ITickable
                 return;
             }
 
-            frame.ActionFunction?.Invoke(m_entity);
+            Frame.ActionFunction?.Invoke(m_entity);
             if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
                 return;
 
-            frame = Frame;
-
-            if (frame.BranchType == ActorStateBranch.Stop && frame.Ticks >= 0)
+            if (Frame.BranchType == ActorStateBranch.Stop && Frame.Ticks >= 0)
             {
                 if (m_destroyOnStop)
                 {
@@ -209,10 +191,10 @@ public class FrameState : ITickable
                 break;
             }
 
-            if (frame.Ticks != 0)
+            if (Frame.Ticks != 0)
                 break;
 
-            index = frame.NextFrameIndex;
+            index = Frame.NextFrameIndex;
         }
     }
 

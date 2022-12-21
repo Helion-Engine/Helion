@@ -124,17 +124,17 @@ public class LineOpening
 
     public bool CanStepUpInto(Entity entity)
     {
-        return entity.Box.Bottom < FloorZ && entity.Box.Bottom >= FloorZ - entity.GetMaxStepHeight();
+        return entity.Position.Z < FloorZ && entity.Position.Z >= FloorZ - entity.GetMaxStepHeight();
     }
 
     public bool Fits(Entity entity) => entity.Height <= OpeningHeight;
 
     public bool CanPassOrStepThrough(Entity entity)
     {
-        if (!Fits(entity) || entity.Box.Top > CeilingZ)
+        if (!Fits(entity) || entity.TopZ > CeilingZ)
             return false;
 
-        if (entity.Box.Bottom < FloorZ)
+        if (entity.Position.Z < FloorZ)
             return CanStepUpInto(entity);
 
         return true;

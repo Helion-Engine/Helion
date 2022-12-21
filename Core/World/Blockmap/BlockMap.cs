@@ -66,7 +66,7 @@ public class BlockMap
     {
         // TODO: Why not store the blocks with the entity in the internal
         //       list and just iterate over that? May be faster...
-        return Iterate(entity.Box.To2D(), func);
+        return Iterate(entity.GetBox2D(), func);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class BlockMap
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+        m_blocks.Iterate(entity.GetBox2D(), BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)
         {
@@ -106,17 +106,14 @@ public class BlockMap
     public void NoBlockmapLink(Entity entity)
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
+        Block? block = m_blocks.GetBlock(entity.Position.XY);
+        if (block == null)
+            return;
 
-        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+        LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
+        block.NoBlockmapEntities.Add(blockEntityNode);
 
-        GridIterationStatus BlockLinkFunc(Block block)
-        {
-            LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
-            block.NoBlockmapEntities.Add(blockEntityNode);
-
-            entity.BlockmapNodes.Add(blockEntityNode);
-            return GridIterationStatus.Continue;
-        }
+        entity.BlockmapNodes.Add(blockEntityNode);
     }
 
     public void Link(IWorld world, Sector sector)

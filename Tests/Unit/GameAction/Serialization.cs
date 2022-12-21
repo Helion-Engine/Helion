@@ -305,7 +305,6 @@ public class Serialization : IDisposable
             // TODO properties
             entity.FrameState.Should().Be(newEntity.FrameState);
             entity.AngleRadians.Should().Be(newEntity.AngleRadians);
-            entity.Box.Should().Be(newEntity.Box);
             // Prev position is loaded as Postion when loading a serialized world.
             entity.Position.Should().Be(newEntity.PrevPosition);
             entity.SpawnPoint.Should().Be(newEntity.SpawnPoint);
@@ -319,8 +318,8 @@ public class Serialization : IDisposable
             entity.LowestCeilingZ.Should().Be(newEntity.LowestCeilingZ);
             entity.HighestFloorZ.Should().Be(newEntity.HighestFloorZ);
 
-            entity.IntersectSectors.Count.Should().Be(newEntity.IntersectSectors.Count);
-            for (int i = 0; i < entity.IntersectSectors.Count; i++)
+            entity.IntersectSectors.Length.Should().Be(newEntity.IntersectSectors.Length);
+            for (int i = 0; i < entity.IntersectSectors.Length; i++)
                 entity.IntersectSectors[i].Id.Should().Be(newEntity.IntersectSectors[i].Id);
 
             entity.Target.Entity?.Id.Should().Be(newEntity.Target.Entity?.Id);
