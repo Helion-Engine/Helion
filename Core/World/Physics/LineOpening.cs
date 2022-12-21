@@ -131,7 +131,7 @@ public class LineOpening
 
     public bool CanPassOrStepThrough(Entity entity)
     {
-        if (!Fits(entity) || entity.BoxMax.Z > CeilingZ)
+        if (!Fits(entity) || entity.TopZ > CeilingZ)
             return false;
 
         if (entity.Position.Z < FloorZ)

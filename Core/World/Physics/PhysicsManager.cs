@@ -143,7 +143,10 @@ public class PhysicsManager
             if (moveType == SectorPlaneFace.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
                 entity.OnGround && entity.HighestFloorSector == sector)
             {
-                entity.SetZ(entity.OnEntity.Entity?.BoxMax.Z ?? destZ, false);
+                double top = destZ;
+                if (entity.OnEntity.Entity != null)
+                    top = entity.OnEntity.Entity.TopZ;
+                entity.Position.Z = top;
                 // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
@@ -248,7 +251,7 @@ public class PhysicsManager
                 if (relinkEntity.IsDisposed)
                     continue;
                 relinkEntity.UnlinkFromWorld();
-                relinkEntity.SetZ(relinkEntity.SaveZ + diff, false);
+                relinkEntity.Position.Z = relinkEntity.SaveZ + diff;
                 LinkToWorld(relinkEntity);
             }
         }
@@ -440,7 +443,7 @@ public class PhysicsManager
             return;
 
         Entity entity = (Entity)pusher.LowestCeilingObject;
-        entity.SetZ(pusher.BoxMax.Z, false);
+        entity.Position.Z = pusher.TopZ;
     }
 
     private static void PushDownBlockingEntities(Entity pusher)
@@ -449,7 +452,7 @@ public class PhysicsManager
         if (pusher.HighestFloorObject is Sector && pusher.HighestFloorZ > pusher.LowestCeilingZ - pusher.Height)
             return;
 
-        pusher.SetZ(pusher.LowestCeilingZ - pusher.Height, false);
+        pusher.Position.Z = pusher.LowestCeilingZ - pusher.Height;
 
         if (pusher.OnEntity.Entity != null)
         {
@@ -459,7 +462,7 @@ public class PhysicsManager
                 if (current.HighestFloorObject is Sector && current.HighestFloorZ > pusher.Position.Z - current.Height)
                     return;
 
-                current.SetZ(pusher.Position.Z - current.Height, false);
+                current.Position.Z = pusher.Position.Z - current.Height;
                 pusher = current;
                 current = pusher.OnEntity.Entity;
             }
@@ -545,7 +548,10 @@ public class PhysicsManager
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
     {
         // Additionally check to smooth camera when stepping up to an entity
-        entity.SetZ(floorZ, smoothZ);
+        if (entity.PlayerObj != null)
+            entity.PlayerObj.SetSmoothZ(floorZ);
+        else
+            entity.Position.Z = floorZ;
 
         // For now we remove any negative velocity. If upward velocity is
         // reset to zero then the jump we apply to players is lost and they
@@ -568,11 +574,12 @@ public class PhysicsManager
 
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
+        double entityTopZ = entity.TopZ;
 
-        if (entity.BoxMax.Z > lowestCeil)
+        if (entity.TopZ > lowestCeil)
         {
             entity.Velocity.Z = 0;
-            entity.SetZ(lowestCeil - entity.Height, false);
+            entity.Position.Z = lowestCeil - entity.Height;
 
             if (entity.LowestCeilingObject is Entity blockEntity)
                 entity.BlockingEntity = blockEntity;
@@ -584,7 +591,7 @@ public class PhysicsManager
         if (entity.Position.Z <= highestFloor)
         {
             if (entity.HighestFloorObject is Entity highestEntity &&
-                highestEntity.BoxMax.Z <= entity.Position.Z + entity.GetMaxStepHeight())
+                highestEntity.TopZ <= entity.Position.Z + entity.GetMaxStepHeight())
             {
                 entity.SetOnEntity(highestEntity);
             }
@@ -635,6 +642,7 @@ public class PhysicsManager
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
+            double entityTopZ = entity.TopZ;
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
             List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
 
@@ -644,13 +652,14 @@ public class PhysicsManager
                 if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
                     continue;
 
-                bool above = entity.PrevPosition.Z >= intersectEntity.BoxMax.Z;
+                double intersectTopZ = intersectEntity.TopZ;
+                bool above = entity.PrevPosition.Z >= intersectTopZ;
                 bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
                 bool clipped = false;
                 bool addedOnEntity = false;
-                if (above && entity.Position.Z < intersectEntity.BoxMax.Z)
+                if (above && entity.Position.Z < intersectTopZ)
                     clipped = true;
-                else if (below && entity.BoxMax.Z > intersectEntity.Position.Z)
+                else if (below && entityTopZ > intersectEntity.Position.Z)
                     clipped = true;
 
                 if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
@@ -663,21 +672,21 @@ public class PhysicsManager
                 {
                     // Need to check clipping coming from above, if we're above
                     // or clipped through then this is our floor.
-                    if ((clipped || entity.Position.Z >= intersectEntity.BoxMax.Z) && intersectEntity.BoxMax.Z >= highestFloorZ)
+                    if ((clipped || entity.Position.Z >= intersectTopZ) && intersectTopZ >= highestFloorZ)
                     {
                         addedOnEntity = true;
-                        if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z < highestFloorZ)
+                        if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
                             onEntities.Clear();
 
                         highestFloorEntity = intersectEntity;
-                        highestFloorZ = intersectEntity.BoxMax.Z;
+                        highestFloorZ = intersectTopZ;
                         onEntities.Add(highestFloorEntity);
                     }
                 }
                 else if (below)
                 {
                     // Same check as above but checking clipping the ceiling.
-                    if ((clipped || entity.BoxMax.Z <= intersectEntity.Position.Z) && intersectEntity.Position.Z < lowestCeilZ)
+                    if ((clipped || entityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < lowestCeilZ)
                     {
                         lowestCeilingEntity = intersectEntity;
                         lowestCeilZ = intersectEntity.Position.Z;
@@ -685,13 +694,13 @@ public class PhysicsManager
                 }
 
                 // Need to check if we can step up to this floor.
-                if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectEntity.BoxMax.Z && intersectEntity.BoxMax.Z >= highestFloorZ && !addedOnEntity)
+                if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectTopZ && intersectTopZ >= highestFloorZ && !addedOnEntity)
                 {
-                    if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z < highestFloorZ)
+                    if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
                         onEntities.Clear();
 
                     highestFloorEntity = intersectEntity;
-                    highestFloorZ = intersectEntity.BoxMax.Z;
+                    highestFloorZ = intersectTopZ;
                     onEntities.Add(highestFloorEntity);
                 }
             }
@@ -704,12 +713,12 @@ public class PhysicsManager
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
 
-        if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z > highestFloor.ToFloorZ(entity.Position))
+        if (highestFloorEntity != null && highestFloorEntity.TopZ > highestFloor.ToFloorZ(entity.Position))
             entity.HighestFloorObject = highestFloorEntity;
         else
             entity.HighestFloorObject = highestFloor;
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.BoxMax.Z < lowestCeiling.ToCeilingZ(entity.Position))
+        if (lowestCeilingEntity != null && lowestCeilingEntity.TopZ < lowestCeiling.ToCeilingZ(entity.Position))
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
@@ -916,7 +925,7 @@ public class PhysicsManager
     {
         Entity? currentOverEntity = entity.OverEntity.Entity;
 
-        if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Position.Z > entity.BoxMax.Z)
+        if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Position.Z > entity.TopZ)
             entity.SetOverEntity(null);      
 
         if (entity.OnEntity.Entity != null)
@@ -961,7 +970,7 @@ public class PhysicsManager
         tryMove.Subsector = null;
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
-            tryMove.HighestFloorZ = highFloorEntity.BoxMax.Z;
+            tryMove.HighestFloorZ = highFloorEntity.TopZ;
             tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
         }
         else
@@ -1425,7 +1434,7 @@ public class PhysicsManager
 
         Vec3D previousVelocity = entity.Velocity;
         double newZ = entity.Position.Z + entity.Velocity.Z + floatZ;
-        entity.SetZ(newZ, false);
+        entity.Position.Z = newZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
         ClampBetweenFloorAndCeiling(entity, smoothZ: true, entity.MoveLinked);

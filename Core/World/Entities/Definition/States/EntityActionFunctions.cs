@@ -2446,7 +2446,7 @@ public static class EntityActionFunctions
         Entity? puff = entity.EntityManager.Create("BulletPuff", entity.Position);
         if (puff != null)
         {
-            puff.SetZ(entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ), false);
+            puff.Position.Z = entity.Position.Z + (entity.World.Random.NextDiff() * Constants.PuffRandZ);
             puff.SetRandomizeTicks();
             puff.Velocity.Z = 1;
         }

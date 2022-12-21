@@ -50,8 +50,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double AngleRadians;
     public Vec3D PrevPosition;
     public Vec3D Position;
-    public Vec3D BoxMin;
-    public Vec3D BoxMax;
     public Vec3D SpawnPoint;
     public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
@@ -129,6 +127,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
+    public double TopZ => Position.Z + Height;
 
     public readonly IAudioSource?[] SoundChannels;
 
@@ -153,8 +152,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Height = definition.Properties.Height;
         Radius = definition.Properties.Radius;
         Position = position;
-        BoxMin = CalculateMin(Position, Radius);
-        BoxMax = CalculateMax(Position, Radius, Height);
         PrevPosition = Position;
         Sector = sector;
         LowestCeilingZ = sector.Ceiling.Z;
@@ -196,8 +193,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Position = entityModel.Box.GetCenter();
         Height = entityModel.Box.Height;
         Radius = entityModel.Box.Radius;
-        BoxMin = CalculateMin(Position, Radius);
-        BoxMax = CalculateMax(Position, Radius, Height);
 
         PrevPosition = entityModel.Box.GetCenter();
         Velocity = entityModel.GetVelocity();
@@ -308,26 +303,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     /// <summary>
-    /// Sets the bottom of the entity's center to be at the Z coordinate
-    /// provided.
-    /// </summary>
-    /// <param name="z">The Z coordinate.</param>
-    /// <param name="smooth">If the entity should smooth the player's view
-    /// height. This smooths the camera when stepping up to a higher sector.
-    /// </param>
-    public virtual void SetZ(double z, bool smooth)
-    {
-        SetZ(z);
-    }
-
-    /// <summary>
     /// Sets the height of the entity's box.
     /// </summary>
     /// <param name="height">The height to set.</param>
     public void SetHeight(double height)
     {
         Height = height;
-        BoxMax.Z = BoxMin.Z + height;
     }
 
     /// <summary>
@@ -338,11 +319,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         Position.X = position.X;
         Position.Y = position.Y;
-
-        BoxMin.X = position.X - Radius;
-        BoxMax.X = position.X + Radius;
-        BoxMin.Y = position.Y - Radius;
-        BoxMax.Y = position.Y + Radius;
     }
 
     /// <summary>
@@ -351,8 +327,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <param name="position">The new position.</param>
     public void SetPosition(Vec3D position)
     {
-        SetXY(position.XY);
-        SetZ(position.Z);
+        Position = position;
     }
 
     /// <summary>
@@ -874,8 +849,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             Entity entity = tryMove.IntersectEntities2D[i];
             if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
                 continue;
-            if (entity.BoxMax.Z > tryMove.DropOffZ)
-                tryMove.DropOffZ = entity.BoxMax.Z;
+            if (entity.TopZ > tryMove.DropOffZ)
+                tryMove.DropOffZ = entity.TopZ;
         }
 
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)

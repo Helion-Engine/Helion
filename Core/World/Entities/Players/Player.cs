@@ -377,16 +377,16 @@ public class Player : Entity
         return position;
     }
 
-    public override void SetZ(double z, bool smooth)
+    public void SetSmoothZ(double z)
     {
-        if (smooth && Position.Z < z)
+        if (Position.Z < z)
         {
             m_viewHeight -= z - Position.Z;
             m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
             SetViewHeight();
         }
 
-        base.SetZ(z, smooth);
+        Position.Z = z;
     }
 
     public override void Hit(in Vec3D velocity)

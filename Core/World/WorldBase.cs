@@ -1514,7 +1514,7 @@ public abstract partial class WorldBase : IWorld
     {
         double distance;
 
-        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.BoxMax.Z))
+        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.TopZ))
         {
             Vec3D sourcePos = source.Position;
             Vec3D targetPos = entity.Position;
@@ -1748,7 +1748,7 @@ public abstract partial class WorldBase : IWorld
             }
             else if (bi.Entity != null && startEntity.Id != bi.Entity.Id)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.BoxMax.Z, bi.Distance2D);
+                double thingTopPitch = start.Pitch(bi.Entity.TopZ, bi.Distance2D);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
@@ -1838,7 +1838,7 @@ public abstract partial class WorldBase : IWorld
             var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
             if (teleport != null)
             {
-                teleport.SetZ(teleport.Sector.ToFloorZ(pos), false);
+                teleport.Position.Z = teleport.Sector.ToFloorZ(pos);
                 SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
             }
         }

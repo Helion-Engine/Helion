@@ -119,7 +119,7 @@ public class EntityManager : IDisposable
         // This only needs to happen on map population
         if (init && !ZHeightSet(zHeight))
         {
-            entity.SetZ(entity.Sector.ToFloorZ(position), false);
+            entity.Position.Z = entity.Sector.ToFloorZ(position);
             entity.PrevPosition = entity.Position;
         }
 
@@ -393,7 +393,7 @@ public class EntityManager : IDisposable
         if (entity.Flags.SpawnCeiling)
         {
             double offset = ZHeightSet(zHeight) ? -zHeight : 0;
-            entity.SetZ(entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset, false);
+            entity.Position.Z = entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset;
         }
 
         entity.CheckOnGround();
