@@ -10,7 +10,7 @@ namespace Helion.World.Physics
             if (x == null || y == null)
                 return 1;
 
-            int compare = x.Box.Bottom.CompareTo(y.Box.Bottom);
+            int compare = x.Position.Z.CompareTo(y.Position.Z);
 
             if (compare == 0)
                 compare = x.Id.CompareTo(y.Id);

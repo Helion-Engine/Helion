@@ -331,7 +331,7 @@ public partial class Entity
         }
 
         if (tryMove.Success && !Flags.Float && isMoving)
-            Box.SetZ(tryMove.HighestFloorZ);
+            SetZ(tryMove.HighestFloorZ);
 
         return tryMove.Success;
     }

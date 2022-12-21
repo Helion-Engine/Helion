@@ -1,4 +1,5 @@
 using Helion.Audio;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -22,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
+using static Microsoft.FSharp.Core.ByRefKinds;
 
 namespace Helion.World.Entities;
 
@@ -46,11 +48,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public readonly IWorld World;
     public readonly WorldSoundManager SoundManager;
     public double AngleRadians;
-    public EntityBox Box;
     public Vec3D PrevPosition;
+    public Vec3D Position;
+    public Vec3D BoxMin;
+    public Vec3D BoxMax;
     public Vec3D SpawnPoint;
-    public Vec3D Position => Box.Position;
-    public Vec3D CenterPoint => new(Box.Position.X, Box.Position.Y, Box.Position.Z + (Height / 2));
+    public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
     public Vec3D HitscanAttackPos => new(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
     public Vec3D Velocity = Vec3D.Zero;
@@ -115,8 +118,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool InMonsterCloset;
     public Island? Island;
 
-    public double Height => Box.Height;
-    public double Radius => Definition.Properties.Radius;
+    public double Height;
+    public double Radius;
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
     public EntityFrame Frame => FrameState.Frame;
@@ -147,7 +150,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = world.SoundManager;
 
         AngleRadians = angleRadians;
-        Box = new(position, Radius, definition.Properties.Height);
+        Height = definition.Properties.Height;
+        Radius = definition.Properties.Radius;
+        Position = position;
+        BoxMin = CalculateMin(Position, Radius);
+        BoxMax = CalculateMax(Position, Radius, Height);
         PrevPosition = Position;
         Sector = sector;
         LowestCeilingZ = sector.Ceiling.Z;
@@ -185,7 +192,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundManager = world.SoundManager;
 
         AngleRadians = entityModel.AngleRadians;
-        Box = new(entityModel.Box.GetCenter(), entityModel.Box.Radius, entityModel.Box.Height);
+
+        Position = entityModel.Box.GetCenter();
+        Height = entityModel.Box.Height;
+        Radius = entityModel.Box.Radius;
+        BoxMin = CalculateMin(Position, Radius);
+        BoxMax = CalculateMax(Position, Radius, Height);
+
         PrevPosition = entityModel.Box.GetCenter();
         Velocity = entityModel.GetVelocity();
         SpawnPoint = entityModel.GetSpawnPoint();
@@ -224,7 +237,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.SpawnPointX = SpawnPoint.X;
         entityModel.SpawnPointY = SpawnPoint.Y;
         entityModel.SpawnPointZ = SpawnPoint.Z;
-        entityModel.Box = Box.ToEntityBoxModel();
+        entityModel.Box = ToEntityBoxModel();
         entityModel.VelocityX = Velocity.X;
         entityModel.VelocityY = Velocity.Y;
         entityModel.VelocityZ = Velocity.Z;
@@ -304,7 +317,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// </param>
     public virtual void SetZ(double z, bool smooth)
     {
-        Box.SetZ(z);
+        SetZ(z);
     }
 
     /// <summary>
@@ -313,7 +326,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <param name="height">The height to set.</param>
     public void SetHeight(double height)
     {
-        Box.SetHeight(height);
+        Height = height;
+        BoxMax.Z = BoxMin.Z + height;
     }
 
     /// <summary>
@@ -322,7 +336,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <param name="position">The new position.</param>
     public void SetXY(Vec2D position)
     {
-        Box.SetXY(position);
+        Position.X = position.X;
+        Position.Y = position.Y;
+
+        BoxMin.X = position.X - Radius;
+        BoxMax.X = position.X + Radius;
+        BoxMin.Y = position.Y - Radius;
+        BoxMax.Y = position.Y + Radius;
     }
 
     /// <summary>
@@ -331,8 +351,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <param name="position">The new position.</param>
     public void SetPosition(Vec3D position)
     {
-        Box.SetXY(position.XY);
-        Box.SetZ(position.Z);
+        SetXY(position.XY);
+        SetZ(position.Z);
     }
 
     /// <summary>
@@ -713,7 +733,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public List<Entity> GetIntersectingEntities2D()
     {
         List<Entity> entities = World.DataCache.GetEntityList();
-        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(Box.To2D());
+        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D());
 
         for (int i = 0; i < intersections.Count; i++)
         {
@@ -721,7 +741,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (entity == null)
                 continue;
 
-            if (CanBlockEntity(entity) && entity.Box.Overlaps2D(Box))
+            if (CanBlockEntity(entity) && entity.Overlaps2D(this))
                 entities.Add(entity);
         }
 
@@ -737,8 +757,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public List<Entity> GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags)
     {
         List<Entity> entities = new();
-        EntityBox box = new(position, Radius, Height);
-        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box.To2D(), BlockmapTraverseFlags.Entities, entityTraverseFlags);
+        Box3D box = new(position, Radius, Height);
+        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(new Box2D(position.XY, Radius), BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
         for (int i = 0; i < intersections.Count; i++)
         {
@@ -746,7 +766,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (entity == null)
                 continue;
 
-            if (CanBlockEntity(entity) && box.Overlaps(entity.Box))
+            if (CanBlockEntity(entity) && entity.Overlaps(box))
                 entities.Add(entity);
         }
 
@@ -812,7 +832,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         List<Entity> entities = GetIntersectingEntities2D();
         for (int i = 0; i < entities.Count; i++)
         {
-            if (entities[i].Box.OverlapsZ(Box))
+            if (entities[i].OverlapsZ(this))
             {
                 World.DataCache.FreeEntityList(entities);
                 return true;
@@ -850,8 +870,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             Entity entity = tryMove.IntersectEntities2D[i];
             if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
                 continue;
-            if (entity.Box.Top > tryMove.DropOffZ)
-                tryMove.DropOffZ = entity.Box.Top;
+            if (entity.BoxMax.Z > tryMove.DropOffZ)
+                tryMove.DropOffZ = entity.BoxMax.Z;
         }
 
         if (tryMove.IntersectEntities2D.Count == 0 && tryMove.DropOffEntity != null)

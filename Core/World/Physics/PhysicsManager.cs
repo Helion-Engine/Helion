@@ -143,7 +143,7 @@ public class PhysicsManager
             if (moveType == SectorPlaneFace.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
                 entity.OnGround && entity.HighestFloorSector == sector)
             {
-                entity.SetZ(entity.OnEntity.Entity?.Box.Top ?? destZ, false);
+                entity.SetZ(entity.OnEntity.Entity?.BoxMax.Z ?? destZ, false);
                 // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
@@ -279,7 +279,7 @@ public class PhysicsManager
             return true;
 
         double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.Box.To2D());
+        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
 
         for (int i = 0; i < intersections.Count; i++)
         {
@@ -440,7 +440,7 @@ public class PhysicsManager
             return;
 
         Entity entity = (Entity)pusher.LowestCeilingObject;
-        entity.SetZ(pusher.Box.Top, false);
+        entity.SetZ(pusher.BoxMax.Z, false);
     }
 
     private static void PushDownBlockingEntities(Entity pusher)
@@ -456,10 +456,10 @@ public class PhysicsManager
             Entity? current = pusher.OnEntity.Entity;
             while (current != null)
             {
-                if (current.HighestFloorObject is Sector && current.HighestFloorZ > pusher.Box.Bottom - current.Height)
+                if (current.HighestFloorObject is Sector && current.HighestFloorZ > pusher.Position.Z - current.Height)
                     return;
 
-                current.SetZ(pusher.Box.Bottom - current.Height, false);
+                current.SetZ(pusher.Position.Z - current.Height, false);
                 pusher = current;
                 current = pusher.OnEntity.Entity;
             }
@@ -569,7 +569,7 @@ public class PhysicsManager
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
 
-        if (entity.Box.Top > lowestCeil)
+        if (entity.BoxMax.Z > lowestCeil)
         {
             entity.Velocity.Z = 0;
             entity.SetZ(lowestCeil - entity.Height, false);
@@ -580,11 +580,11 @@ public class PhysicsManager
                 entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
         }
 
-        bool clippedFloor = entity.Box.Bottom <= highestFloor;
-        if (entity.Box.Bottom <= highestFloor)
+        bool clippedFloor = entity.Position.Z <= highestFloor;
+        if (entity.Position.Z <= highestFloor)
         {
             if (entity.HighestFloorObject is Entity highestEntity &&
-                highestEntity.Box.Top <= entity.Box.Bottom + entity.GetMaxStepHeight())
+                highestEntity.BoxMax.Z <= entity.Position.Z + entity.GetMaxStepHeight())
             {
                 entity.SetOnEntity(highestEntity);
             }
@@ -636,7 +636,7 @@ public class PhysicsManager
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.Box.To2D());
+            List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
 
             for (int i = 0; i < intersections.Count; i++)
             {
@@ -644,13 +644,13 @@ public class PhysicsManager
                 if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
                     continue;
 
-                bool above = entity.PrevPosition.Z >= intersectEntity.Box.Top;
-                bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Box.Bottom;
+                bool above = entity.PrevPosition.Z >= intersectEntity.BoxMax.Z;
+                bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
                 bool clipped = false;
                 bool addedOnEntity = false;
-                if (above && entity.Box.Bottom < intersectEntity.Box.Top)
+                if (above && entity.Position.Z < intersectEntity.BoxMax.Z)
                     clipped = true;
-                else if (below && entity.Box.Top > intersectEntity.Box.Bottom)
+                else if (below && entity.BoxMax.Z > intersectEntity.Position.Z)
                     clipped = true;
 
                 if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
@@ -663,35 +663,35 @@ public class PhysicsManager
                 {
                     // Need to check clipping coming from above, if we're above
                     // or clipped through then this is our floor.
-                    if ((clipped || entity.Box.Bottom >= intersectEntity.Box.Top) && intersectEntity.Box.Top >= highestFloorZ)
+                    if ((clipped || entity.Position.Z >= intersectEntity.BoxMax.Z) && intersectEntity.BoxMax.Z >= highestFloorZ)
                     {
                         addedOnEntity = true;
-                        if (highestFloorEntity != null && highestFloorEntity.Box.Top < highestFloorZ)
+                        if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z < highestFloorZ)
                             onEntities.Clear();
 
                         highestFloorEntity = intersectEntity;
-                        highestFloorZ = intersectEntity.Box.Top;
+                        highestFloorZ = intersectEntity.BoxMax.Z;
                         onEntities.Add(highestFloorEntity);
                     }
                 }
                 else if (below)
                 {
                     // Same check as above but checking clipping the ceiling.
-                    if ((clipped || entity.Box.Top <= intersectEntity.Box.Bottom) && intersectEntity.Box.Bottom < lowestCeilZ)
+                    if ((clipped || entity.BoxMax.Z <= intersectEntity.Position.Z) && intersectEntity.Position.Z < lowestCeilZ)
                     {
                         lowestCeilingEntity = intersectEntity;
-                        lowestCeilZ = intersectEntity.Box.Bottom;
+                        lowestCeilZ = intersectEntity.Position.Z;
                     }
                 }
 
                 // Need to check if we can step up to this floor.
-                if (entity.Box.Bottom + entity.GetMaxStepHeight() >= intersectEntity.Box.Top && intersectEntity.Box.Top >= highestFloorZ && !addedOnEntity)
+                if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectEntity.BoxMax.Z && intersectEntity.BoxMax.Z >= highestFloorZ && !addedOnEntity)
                 {
-                    if (highestFloorEntity != null && highestFloorEntity.Box.Top < highestFloorZ)
+                    if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z < highestFloorZ)
                         onEntities.Clear();
 
                     highestFloorEntity = intersectEntity;
-                    highestFloorZ = intersectEntity.Box.Top;
+                    highestFloorZ = intersectEntity.BoxMax.Z;
                     onEntities.Add(highestFloorEntity);
                 }
             }
@@ -704,12 +704,12 @@ public class PhysicsManager
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
 
-        if (highestFloorEntity != null && highestFloorEntity.Box.Top > highestFloor.ToFloorZ(entity.Position))
+        if (highestFloorEntity != null && highestFloorEntity.BoxMax.Z > highestFloor.ToFloorZ(entity.Position))
             entity.HighestFloorObject = highestFloorEntity;
         else
             entity.HighestFloorObject = highestFloor;
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.Box.Top < lowestCeiling.ToCeilingZ(entity.Position))
+        if (lowestCeilingEntity != null && lowestCeilingEntity.BoxMax.Z < lowestCeiling.ToCeilingZ(entity.Position))
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
@@ -758,7 +758,7 @@ public class PhysicsManager
         Sector centerSector = centerSubsector.Sector;
         centerSector.PhysicsCount = m_checkCount;
 
-        Box2D box = entity.Box.To2D();
+        Box2D box = entity.GetBox2D();
         m_blockmap.Iterate(box, SectorOverlapFinder);
 
         entity.Sector = centerSector;
@@ -916,7 +916,7 @@ public class PhysicsManager
     {
         Entity? currentOverEntity = entity.OverEntity.Entity;
 
-        if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Box.Bottom > entity.Box.Top)
+        if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Position.Z > entity.BoxMax.Z)
             entity.SetOverEntity(null);      
 
         if (entity.OnEntity.Entity != null)
@@ -961,7 +961,7 @@ public class PhysicsManager
         tryMove.Subsector = null;
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
-            tryMove.HighestFloorZ = highFloorEntity.Box.Top;
+            tryMove.HighestFloorZ = highFloorEntity.BoxMax.Z;
             tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
         }
         else
@@ -1021,10 +1021,10 @@ public class PhysicsManager
                         continue;
                     }
 
-                    if (nextEntity.Box.Overlaps2D(nextBox))
+                    if (nextEntity.Overlaps2D(nextBox))
                     {
                         tryMove.IntersectEntities2D.Add(nextEntity);
-                        bool overlapsZ = entity.Box.OverlapsZ(nextEntity.Box);
+                        bool overlapsZ = entity.OverlapsZ(nextEntity);
 
                         // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
                         // This flag can be modified by dehacked
@@ -1257,7 +1257,7 @@ public class PhysicsManager
         //
         // This obviously can miss things, but this is how vanilla does it
         // and we want to have compatibility with the mods that use.
-        Box2D currentBox = entity.Box.To2D();
+        Box2D currentBox = entity.GetBox2D();
         BoxCornerTracers tracers = CalculateCornerTracers(currentBox, stepDelta);
         CheckCornerTracerIntersection(tracers.First, entity, ref moveInfo);
         CheckCornerTracerIntersection(tracers.Second, entity, ref moveInfo);

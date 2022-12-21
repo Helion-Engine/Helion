@@ -267,7 +267,7 @@ public partial class Client
         var node = world.EntityManager.Entities.Head;
         while (node != null)
         {
-            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker && node.Value.Box.Overlaps2D(box))
+            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker && node.Value.Overlaps2D(box))
                 world.EntityManager.Destroy(node.Value);
             node = node.Next;
         }

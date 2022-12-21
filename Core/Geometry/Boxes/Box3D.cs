@@ -61,6 +61,14 @@ namespace Helion.Geometry.Boxes
             Max = max.Struct;
         }
 
+        public Box3D(Vec3D center, double radius, double height)
+        {
+            Precondition(radius >= 0, "Bounding box radius yields min X > max X");
+
+            Min = new(center.X - radius, center.Y - radius, center.Z);
+            Max = new(center.X + radius, center.Y + radius, center.Z + height);
+        }
+
         public static implicit operator Box3D(ValueTuple<Vec3D, Vec3D> tuple)
         {
             return new(tuple.Item1, tuple.Item2);

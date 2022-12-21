@@ -305,7 +305,8 @@ public class Serialization : IDisposable
             // TODO properties
             entity.FrameState.Should().Be(newEntity.FrameState);
             entity.AngleRadians.Should().Be(newEntity.AngleRadians);
-            entity.Box.Should().Be(newEntity.Box);
+            entity.BoxMin.Should().Be(newEntity.BoxMin);
+            entity.BoxMax.Should().Be(newEntity.BoxMax);
             // Prev position is loaded as Postion when loading a serialized world.
             entity.Position.Should().Be(newEntity.PrevPosition);
             entity.SpawnPoint.Should().Be(newEntity.SpawnPoint);

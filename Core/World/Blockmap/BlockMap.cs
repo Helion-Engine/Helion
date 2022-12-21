@@ -66,7 +66,7 @@ public class BlockMap
     {
         // TODO: Why not store the blocks with the entity in the internal
         //       list and just iterate over that? May be faster...
-        return Iterate(entity.Box.To2D(), func);
+        return Iterate(entity.GetBox2D(), func);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class BlockMap
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+        m_blocks.Iterate(entity.GetBox2D(), BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)
         {
@@ -107,7 +107,7 @@ public class BlockMap
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-        m_blocks.Iterate(entity.Box.To2D(), BlockLinkFunc);
+        m_blocks.Iterate(entity.GetBox2D(), BlockLinkFunc);
 
         GridIterationStatus BlockLinkFunc(Block block)
         {

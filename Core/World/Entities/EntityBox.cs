@@ -2,39 +2,13 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Util.Extensions;
+using static Microsoft.FSharp.Core.ByRefKinds;
 
 namespace Helion.World.Entities;
 
-public struct EntityBox
+public partial class Entity
 {
-    private Vec3D m_centerBottom;
-    public double Radius;
-    public double Height;
-    public Vec3D Min;
-    public Vec3D Max;
-
-    public double Top => Max.Z;
-    public double Bottom => Min.Z;
-    public Vec3D Position => m_centerBottom;
-    public Box2D To2D() => new(Min.XY, Max.XY);
-
-    public EntityBox(Vec3D centerBottom, double radius, double height)
-    {
-        m_centerBottom = centerBottom;
-        Radius = radius;
-        Height = height;
-        Min = CalculateMin(centerBottom, radius);
-        Max = CalculateMax(centerBottom, radius, height);
-    }
-
-    public void Set(Vec3D centerBottom, double radius, double height)
-    {
-        Radius = radius;
-        Height = height;
-        m_centerBottom = centerBottom;
-        Min = CalculateMin(centerBottom, radius);
-        Max = CalculateMax(centerBottom, radius, height);
-    }
+    public Box2D GetBox2D() => new(BoxMin.XY, BoxMax.XY);
 
     private static Vec3D CalculateMin(Vec3D centerBottom, double radius)
     {
@@ -48,97 +22,80 @@ public struct EntityBox
 
     public void MoveTo(Vec3D centerBottomPosition)
     {
-        Vec3D delta = centerBottomPosition - m_centerBottom;
+        Vec3D delta = centerBottomPosition - Position;
 
-        m_centerBottom = centerBottomPosition;
-        Min += delta;
-        Max += delta;
+        Position = centerBottomPosition;
+        BoxMin += delta;
+        BoxMax += delta;
     }
 
     public void SetZ(double bottomZ)
     {
-        m_centerBottom.Z = bottomZ;
-        Min.Z = bottomZ;
-        Max.Z = bottomZ + Height;
+        Position.Z = bottomZ;
+        BoxMin.Z = bottomZ;
+        BoxMax.Z = bottomZ + Height;
     }
 
-    public void SetXY(Vec2D position)
+    public bool Overlaps(in Box3D box) => !(BoxMin.X >= box.Max.X || BoxMax.X <= box.Min.X || BoxMin.Y >= box.Max.Y || BoxMax.Y <= box.Min.Y || BoxMin.Z >= box.Max.Z || BoxMax.Z <= box.Min.Z);
+    public bool Overlaps2D(Entity other) => !(BoxMin.X >= other.BoxMax.X || BoxMax.X <= other.BoxMin.X || BoxMin.Y >= other.BoxMax.Y || BoxMax.Y <= other.BoxMin.Y);
+    public bool Overlaps2D(in Box2D other) => !(BoxMin.X >= other.Max.X || BoxMax.X <= other.Min.X || BoxMin.Y >= other.Max.Y || BoxMax.Y <= other.Min.Y);
+    public bool OverlapsZ(Entity other) => BoxMax.Z > other.BoxMin.Z && BoxMin.Z < other.BoxMax.Z;
+    public bool OverlapsZ(in Box3D box) => BoxMax.Z > box.Min.Z && BoxMin.Z < box.Max.Z;
+
+    public bool BoxIntersects(Vec2D p1, Vec2D p2, ref Vec2D intersect)
     {
-        m_centerBottom.X = position.X;
-        m_centerBottom.Y = position.Y;
-
-        Min.X = position.X - Radius;
-        Max.X = position.X + Radius;
-        Min.Y = position.Y - Radius;
-        Max.Y = position.Y + Radius;
-    }
-
-    public void SetHeight(double height)
-    {
-        Height = height;
-        Max.Z = Min.Z + height;
-    }
-
-    public bool Overlaps(in EntityBox box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y || Min.Z >= box.Max.Z || Max.Z <= box.Min.Z);
-    public bool Overlaps2D(in EntityBox other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
-    public bool Overlaps2D(in Box2D other) => !(Min.X >= other.Max.X || Max.X <= other.Min.X || Min.Y >= other.Max.Y || Max.Y <= other.Min.Y);
-    public bool OverlapsZ(in EntityBox box) => Top > box.Min.Z && Bottom < box.Max.Z;
-    public bool OverlapsZ(in Box3D box) => Top > box.Min.Z && Bottom < box.Max.Z;
-
-    public bool Intersects(Vec2D p1, Vec2D p2, ref Vec2D intersect)
-    {
-        if (p2.X < Min.X && p1.X < Min.X)
+        if (p2.X < BoxMin.X && p1.X < BoxMin.X)
             return false;
-        if (p2.X > Max.X && p1.X > Max.X)
+        if (p2.X > BoxMax.X && p1.X > BoxMax.X)
             return false;
-        if (p2.Y < Min.Y && p1.Y < Min.Y)
+        if (p2.Y < BoxMin.Y && p1.Y < BoxMin.Y)
             return false;
-        if (p2.Y > Max.Y && p1.Y > Max.Y)
+        if (p2.Y > BoxMax.Y && p1.Y > BoxMax.Y)
             return false;
-        if (p1.X > Min.X && p1.X < Max.X &&
-            p1.Y > Min.Y && p1.Y < Max.Y)
+        if (p1.X > BoxMin.X && p1.X < BoxMax.X &&
+            p1.Y > BoxMin.Y && p1.Y < BoxMax.Y)
         {
             intersect = p1;
             return true;
         }
 
-        if ((p1.X < Min.X && Intersects(p1.X - Min.X, p2.X - Min.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y)
-              || (p1.Y < Min.Y && Intersects(p1.Y - Min.Y, p2.Y - Min.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X)
-              || (p1.X > Max.X && Intersects(p1.X - Max.X, p2.X - Max.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y)
-              || (p1.Y > Max.Y && Intersects(p1.Y - Max.Y, p2.Y - Max.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X))
+        if ((p1.X < BoxMin.X && Intersects(p1.X - BoxMin.X, p2.X - BoxMin.X, p1, p2, ref intersect) && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y)
+              || (p1.Y < BoxMin.Y && Intersects(p1.Y - BoxMin.Y, p2.Y - BoxMin.Y, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X)
+              || (p1.X > BoxMax.X && Intersects(p1.X - BoxMax.X, p2.X - BoxMax.X, p1, p2, ref intersect) && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y)
+              || (p1.Y > BoxMax.Y && Intersects(p1.Y - BoxMax.Y, p2.Y - BoxMax.Y, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X))
             return true;
 
         return false;
     }
 
-    public bool Intersects(Vec3D p1, Vec3D p2, ref Vec3D intersect)
+    public bool BoxIntersects(Vec3D p1, Vec3D p2, ref Vec3D intersect)
     {
-        if (p2.X < Min.X && p1.X < Min.X)
+        if (p2.X < BoxMin.X && p1.X < BoxMin.X)
             return false;
-        if (p2.X > Max.X && p1.X > Max.X)
+        if (p2.X > BoxMax.X && p1.X > BoxMax.X)
             return false;
-        if (p2.Y < Min.Y && p1.Y < Min.Y)
+        if (p2.Y < BoxMin.Y && p1.Y < BoxMin.Y)
             return false;
-        if (p2.Y > Max.Y && p1.Y > Max.Y)
+        if (p2.Y > BoxMax.Y && p1.Y > BoxMax.Y)
             return false;
-        if (p2.Z < Min.Z && p1.Z < Min.Z)
+        if (p2.Z < BoxMin.Z && p1.Z < BoxMin.Z)
             return false;
-        if (p2.Z > Max.Z && p1.Z > Max.Z)
+        if (p2.Z > BoxMax.Z && p1.Z > BoxMax.Z)
             return false;
-        if (p1.X > Min.X && p1.X < Max.X &&
-            p1.Y > Min.Y && p1.Y < Max.Y &&
-            p1.Z > Min.Z && p1.Z < Max.Z)
+        if (p1.X > BoxMin.X && p1.X < BoxMax.X &&
+            p1.Y > BoxMin.Y && p1.Y < BoxMax.Y &&
+            p1.Z > BoxMin.Z && p1.Z < BoxMax.Z)
         {
             intersect = p1;
             return true;
         }
 
-        if ((p1.X < Min.X && Intersects(p1.X - Min.X, p2.X - Min.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y && intersect.Z > Min.Z && intersect.Z < Max.Z)
-              || (p1.Y < Min.Y && Intersects(p1.Y - Min.Y, p2.Y - Min.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Z > Min.Z && intersect.Z < Max.Z)
-              || (p1.Z < Min.Z && Intersects(p1.Z - Min.Z, p2.Z - Min.Z, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Y > Min.Y && intersect.Y < Max.Y)
-              || (p1.X > Max.X && Intersects(p1.X - Max.X, p2.X - Max.X, p1, p2, ref intersect) && intersect.Y > Min.Y && intersect.Y < Max.Y && intersect.Z > Min.Z && intersect.Z < Max.Z)
-              || (p1.Y > Max.Y && Intersects(p1.Y - Max.Y, p2.Y - Max.Y, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Z > Min.Z && intersect.Z < Max.Z)
-              || (p1.Z > Max.Z && Intersects(p1.Z - Max.Z, p2.Z - Max.Z, p1, p2, ref intersect) && intersect.X > Min.X && intersect.X < Max.X && intersect.Y > Min.Y && intersect.Y < Max.Y))
+        if ((p1.X < BoxMin.X && Intersects(p1.X - BoxMin.X, p2.X - BoxMin.X, p1, p2, ref intersect) && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y && intersect.Z > BoxMin.Z && intersect.Z < BoxMax.Z)
+              || (p1.Y < BoxMin.Y && Intersects(p1.Y - BoxMin.Y, p2.Y - BoxMin.Y, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X && intersect.Z > BoxMin.Z && intersect.Z < BoxMax.Z)
+              || (p1.Z < BoxMin.Z && Intersects(p1.Z - BoxMin.Z, p2.Z - BoxMin.Z, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y)
+              || (p1.X > BoxMax.X && Intersects(p1.X - BoxMax.X, p2.X - BoxMax.X, p1, p2, ref intersect) && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y && intersect.Z > BoxMin.Z && intersect.Z < BoxMax.Z)
+              || (p1.Y > BoxMax.Y && Intersects(p1.Y - BoxMax.Y, p2.Y - BoxMax.Y, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X && intersect.Z > BoxMin.Z && intersect.Z < BoxMax.Z)
+              || (p1.Z > BoxMax.Z && Intersects(p1.Z - BoxMax.Z, p2.Z - BoxMax.Z, p1, p2, ref intersect) && intersect.X > BoxMin.X && intersect.X < BoxMax.X && intersect.Y > BoxMin.Y && intersect.Y < BoxMax.Y))
             return true;
 
         return false;
@@ -166,29 +123,11 @@ public struct EntityBox
     {
         return new()
         {
-            CenterX = m_centerBottom.X,
-            CenterY = m_centerBottom.Y,
-            CenterZ = m_centerBottom.Z,
+            CenterX = Position.X,
+            CenterY = Position.Y,
+            CenterZ = Position.Z,
             Radius = Radius,
             Height = Height
         };
-    }
-
-    public override string ToString() => $"{base.ToString()} (center: {m_centerBottom}, radius: {Radius}, height: {Height})";
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is not EntityBox entityBox)
-            return false;
-
-        return entityBox.m_centerBottom == m_centerBottom &&
-            entityBox.Min == Min &&
-            entityBox.Max == Max &&
-            entityBox.Radius == Radius &&
-            entityBox.Height == Height;
-    }
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
     }
 }

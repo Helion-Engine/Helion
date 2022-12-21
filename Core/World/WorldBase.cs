@@ -1011,7 +1011,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
             }
-            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.Box.Intersects(start, end, ref intersect))
+            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
                 break;
@@ -1249,7 +1249,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < tryMove.IntersectEntities2D.Count; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
-            if (!entity.Box.OverlapsZ(intersectEntity.Box) || entity.Id == intersectEntity.Id)
+            if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)
                 continue;
 
             if (entity.Flags.Ripper && entity.Owner.Entity.Id != intersectEntity.Id)
@@ -1514,7 +1514,7 @@ public abstract partial class WorldBase : IWorld
     {
         double distance;
 
-        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Box.Top))
+        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.BoxMax.Z))
         {
             Vec3D sourcePos = source.Position;
             Vec3D targetPos = entity.Position;
@@ -1748,11 +1748,11 @@ public abstract partial class WorldBase : IWorld
             }
             else if (bi.Entity != null && startEntity.Id != bi.Entity.Id)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.Box.Max.Z, bi.Distance2D);
+                double thingTopPitch = start.Pitch(bi.Entity.BoxMax.Z, bi.Distance2D);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
-                double thingBottomPitch = start.Pitch(bi.Entity.Box.Min.Z, bi.Distance2D);
+                double thingBottomPitch = start.Pitch(bi.Entity.Position.Z, bi.Distance2D);
                 if (thingBottomPitch > topPitch)
                     continue;
 

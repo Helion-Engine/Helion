@@ -294,7 +294,7 @@ public class LegacyAutomapRenderer : IDisposable
         // We start with the arrow facing along the positive X axis direction.
         // This way, our rotation can be easily done.
         var center = entity.PrevPosition.Interpolate(entity.Position, interpolateFrac);
-        var (width, height) = entity.Box.To2D().Sides.Float;
+        var (width, height) = entity.GetBox2D().Sides.Float;
         var (centerX, centerY) = center.XY.Float;
         float halfWidth = width / 2;
         float halfHeight = height / 2;

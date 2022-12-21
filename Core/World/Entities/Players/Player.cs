@@ -379,9 +379,9 @@ public class Player : Entity
 
     public override void SetZ(double z, bool smooth)
     {
-        if (smooth && Box.Bottom < z)
+        if (smooth && Position.Z < z)
         {
-            m_viewHeight -= z - Box.Bottom;
+            m_viewHeight -= z - Position.Z;
             m_deltaViewHeight = (Definition.Properties.Player.ViewHeight - m_viewHeight) / PlayerViewDivider;
             SetViewHeight();
         }
