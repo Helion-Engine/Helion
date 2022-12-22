@@ -15,21 +15,17 @@ public readonly struct EntityVertex
 
     [VertexAttribute(normalized: true)]
     public readonly byte LightLevel;
-    
-    // [VertexAttribute(isIntegral: true)]
-    // public readonly short Offset;
-    
+
     [VertexAttribute]
     public readonly byte Alpha;
     
     [VertexAttribute(isIntegral: true)]
     public readonly byte Flags;
 
-    public EntityVertex(Vec3F pos, byte lightLevel, /*float offset,*/ byte alpha, bool isFuzz, bool flipU)
+    public EntityVertex(Vec3F pos, byte lightLevel, byte alpha, bool isFuzz, bool flipU)
     {
         Pos = pos;
         LightLevel = lightLevel;
-        // Offset = (short)offset;
         Alpha = alpha;
         Flags = (byte)((flipU ? FlipUBit : 0) | (isFuzz ? FuzzBit : 0));
     }

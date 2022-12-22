@@ -27,15 +27,15 @@ public class EntityProgram : RenderProgram
         layout(location = 0) in vec3 pos;
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float alpha;
-        layout(location = 3) in byte flags;
+        layout(location = 3) in int flags;
 
         out float lightLevelOut;
         out float alphaOut; 
-        out byte flagsOut;
+        out int flagsOut;
 
         void main()
         {
-            lightLevelOut = lightLevel;
+            lightLevelOut = lightLevel * 256;
             alphaOut = alpha;
             flagsOut = flags;
 
@@ -54,7 +54,7 @@ public class EntityProgram : RenderProgram
 
         in float lightLevelOut[];
         in float alphaOut[]; 
-        in byte flagsOut[];
+        in int flagsOut[];
 
         out vec2 uvFrag;
         out float distFrag;
@@ -69,11 +69,19 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            int isFuzzValue = flagsOut & FuzzBit;
+            int isFuzzValue = 0;
+            int isFuzzValueResult = flagsOut[0] & FuzzBit;
+            if (isFuzzValueResult > 0)
+                isFuzzValue = 1;
 
-            bool flipU = (flagsOut & FuzzBit) > 0;
-            float leftU = flipU ? 1 : 0;
-            float rightU = flipU ? 0 : 1;
+            float leftU = 0.0;
+            float rightU = 1.0;
+            int isFlipUBitResult = flagsOut[0] & FlipUBit;
+            if (isFlipUBitResult > 0)
+            {
+                leftU = 1.0;
+                rightU = 0.0;
+            }
 
             vec3 pos = gl_in[0].gl_Position.xyz;
             ivec2 textureDim = textureSize(boundTexture, 0);
@@ -87,7 +95,7 @@ public class EntityProgram : RenderProgram
             // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-            distFrag = mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1);
+            distFrag = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -95,7 +103,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            distFrag = mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1);
+            distFrag = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).z;
             uvFrag = vec2(rightU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -103,7 +111,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
-            distFrag = mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1);
+            distFrag = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).z;
             uvFrag = vec2(leftU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -111,11 +119,11 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            distFrag = mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
+            distFrag = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
-            fuzzFrag = isFuzzValue
+            fuzzFrag = isFuzzValue;
             EmitVertex();
     
             EndPrimitive();

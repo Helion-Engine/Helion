@@ -26,7 +26,10 @@ public class RenderDataManager<TVertex> : IDisposable where TVertex : struct
 
     public void Clear()
     {
+        for (int i = 0; i < m_dataToRender.Length; i++)
+            m_dataToRender[i].Clear();
         m_dataToRender.Clear();
+        
         m_renderCount++;
     }
 
