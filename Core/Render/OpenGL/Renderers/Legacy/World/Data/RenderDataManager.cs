@@ -66,16 +66,7 @@ public class RenderDataManager<TVertex> : IDisposable where TVertex : struct
     public void Render()
     {
         for (int i = 0; i < m_dataToRender.Length; i++)
-        {
-            RenderData<TVertex> data = m_dataToRender[i];
-            
-            data.Texture.Bind();
-            data.Vao.Bind();
-            data.Vbo.Bind();
-            data.Vbo.Upload();
-            
-            GL.DrawArrays(PrimitiveType.Points, 0, data.Vbo.Count);
-        }
+            m_dataToRender[i].Draw(PrimitiveType.Points);
     }
 
     protected virtual void Dispose(bool disposing)

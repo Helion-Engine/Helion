@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
@@ -33,7 +34,7 @@ public class RenderData<TVertex> : IDisposable where TVertex : struct
         Vbo.Clear();
     }
     
-    public void Draw()
+    public void Draw(PrimitiveType primitive)
     {
         if (Vbo.Empty)
             return;
@@ -43,7 +44,7 @@ public class RenderData<TVertex> : IDisposable where TVertex : struct
         Vbo.Bind();
 
         Vbo.Upload();
-        Vbo.DrawArrays();
+        Vbo.DrawArrays(primitive);
 
         Vbo.Unbind();
         Vao.Unbind();
