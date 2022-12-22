@@ -68,10 +68,10 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            int isFuzzValue = (flagsOut[0] & FuzzBit) > 0 ? 1 : 0;
+            int isFuzzValue = clamp((flagsOut[0] & FuzzBit), 0, 1);
 
-            float leftU = (flagsOut[0] & FlipUBit) > 0 ? 1.0 : 0.0;
-            float rightU = (flagsOut[0] & FlipUBit) > 0 ? 0.0 : 1.0;
+            float leftU = clamp((flagsOut[0] & FlipUBit), 0, 1);
+            float rightU = 1 - clamp((flagsOut[0] & FlipUBit), 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
             ivec2 textureDim = textureSize(boundTexture, 0);
