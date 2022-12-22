@@ -24,19 +24,19 @@ public class Line : IBspUsableLine
     public const int NoLineId = 0;
 
     public int Id { get; }
-    public readonly int MapId;
-    public readonly Seg2D Segment;
-    public readonly Side Front;
-    public readonly Side? Back;
-    public readonly List<BspSubsectorSeg> SubsectorSegs = new();
+    public int MapId;
+    public Seg2D Segment;
+    public Side Front;
+    public Side? Back;
+    public List<BspSubsectorSeg> SubsectorSegs = new();
     public Island Island = null!;
-    public int LineId { get; set; }
+    public int LineId;
     public SpecialArgs Args;
-    public LineFlags Flags { get; set; }
-    public LineSpecial Special { get; private set; }
-    public bool Activated { get; private set; }
-    public LineDataTypes DataChanges { get; set; }
-    public float Alpha { get; private set; }
+    public LineFlags Flags;
+    public LineSpecial Special;
+    public bool Activated;
+    public LineDataTypes DataChanges;
+    public float Alpha;
     public bool DataChanged => DataChanges > 0;
     // Rendering hax...
     public bool Sky;
