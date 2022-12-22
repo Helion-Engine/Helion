@@ -212,7 +212,6 @@ public class EntityRenderer
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ExtraLight(extraLight);
         m_program.HasInvulnerability(drawInvulnerability);
-        m_program.LightDropoff(m_config.Render.LightDropoff);
         m_program.LightLevelMix(mix);
         m_program.Mvp(mvp);
         m_program.MvpNoPitch(mvpNoPitch);
