@@ -11,7 +11,6 @@ public class FloodFillPlaneProgram : RenderProgram
     private readonly int m_zLocation;
     private readonly int m_boundTextureLocation;
     private readonly int m_hasInvulnerabilityLocation;
-    private readonly int m_lightDropoffLocation;
     private readonly int m_mvpLocation;
     private readonly int m_mvpNoPitchLocation;
     private readonly int m_lightLevelMixLocation;
@@ -23,7 +22,6 @@ public class FloodFillPlaneProgram : RenderProgram
         m_zLocation = Uniforms.GetLocation("z");
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
-        m_lightDropoffLocation = Uniforms.GetLocation("lightDropoff");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
@@ -34,7 +32,6 @@ public class FloodFillPlaneProgram : RenderProgram
     public void SetZ(float z) => Uniforms.Set(z, m_zLocation);
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, m_lightDropoffLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -71,7 +68,6 @@ public class FloodFillPlaneProgram : RenderProgram
         out vec4 fragColor;
 
         uniform int hasInvulnerability;
-        uniform int lightDropoff;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -86,37 +82,14 @@ public class FloodFillPlaneProgram : RenderProgram
         const int maxLightScale = 23;
         const int lightFadeStart = 56;
 
-        float calculateLightLevel(float lightLevel) {
-            if (lightLevel <= 0.75) {
-                if (lightLevel > 0.4) {
-	                lightLevel = -0.6375 + (1.85 * lightLevel);
-	                if (lightLevel < 0.08) {
-		                lightLevel = 0.08 + (lightLevel * 0.2);
-	                }
-                } else {
-	                lightLevel /= 5.0;
-                }
-            }
-            return lightLevel;
-        }
-
         void main() {
             float lightLevel = clamp(lightLevelFrag, 0.0, 256.0);
-
-            if (lightDropoff > 0)
-            {
-                float d = clamp(dist - lightFadeStart, 0, dist);
-                int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
-                int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
-                sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-                index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
-                lightLevel = float(colorMaps - index) / colorMaps;
-            }
-            else
-            {
-                lightLevel += extraLight * 8;
-                lightLevel = calculateLightLevel(lightLevel / 256.0);
-            }
+            float d = clamp(dist - lightFadeStart, 0, dist);
+            int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
+            int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
+            sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
+            index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
+            lightLevel = float(colorMaps - index) / colorMaps;
 
             lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
             fragColor = texture(boundTexture, uvFrag.st);

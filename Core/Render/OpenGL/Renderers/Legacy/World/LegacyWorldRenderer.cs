@@ -354,7 +354,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.HasInvulnerability(drawInvulnerability);
-        m_program.LightDropoff(m_config.Render.LightDropoff);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
         m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
         m_program.TimeFrac(timeFrac);

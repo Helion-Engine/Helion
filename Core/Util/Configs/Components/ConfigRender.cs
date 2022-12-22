@@ -34,9 +34,6 @@ public class ConfigRender
     [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
     public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
 
-    [ConfigInfo("Emulate light dropoff like vanilla Doom.")]
-    public readonly ConfigValue<bool> LightDropoff = new(true);
-
     [ConfigInfo("A cap on the maximum amount of frames per second. Zero is equivalent to no cap.")]
     public readonly ConfigValue<int> MaxFPS = new(250, fps =>
     {

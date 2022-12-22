@@ -14,7 +14,6 @@ public class LegacyShader : RenderProgram
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
-    public void LightDropoff(bool dropoff) => Uniforms.Set(dropoff, "lightDropoff");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
@@ -63,7 +62,6 @@ public class LegacyShader : RenderProgram
         out vec4 fragColor;
 
         uniform int hasInvulnerability;
-        uniform int lightDropoff;
         uniform float timeFrac;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
@@ -110,21 +108,12 @@ public class LegacyShader : RenderProgram
 
         void main() {
             float lightLevel = lightLevelFrag;
-
-            if (lightDropoff > 0)
-            {
-                float d = clamp(dist - lightFadeStart, 0, dist);
-                int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
-                int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
-                sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-                index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
-                lightLevel = float(colorMaps - index) / colorMaps;
-            }
-            else
-            {
-                lightLevel += extraLight * 8;
-                lightLevel = calculateLightLevel(lightLevel / 256.0);
-            }
+            float d = clamp(dist - lightFadeStart, 0, dist);
+            int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
+            int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
+            sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
+            index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
+            lightLevel = float(colorMaps - index) / colorMaps;
 
             lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
             fragColor = texture(boundTexture, uvFrag.st);

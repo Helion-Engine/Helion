@@ -33,7 +33,7 @@ public readonly record struct FloodFillInfo(SectorPlane SectorPlane, double MinV
 
 public readonly record struct StaticFloodGeometry(RenderableVertices<PortalStencilVertex> VertexData, int Index, int Length);
 
-readonly record struct SharedProgramUniforms(bool Invul, bool Dropoff, mat4 Mvp, mat4 MvpNoPitch, float LightLevelMix, int ExtraLight);
+readonly record struct SharedProgramUniforms(bool Invul, mat4 Mvp, mat4 MvpNoPitch, float LightLevelMix, int ExtraLight);
 
 public class FloodFillRenderer : IDisposable
 {
@@ -209,7 +209,6 @@ public class FloodFillRenderer : IDisposable
     {
         return new(
             Invul: renderInfo.ViewerEntity.PlayerObj?.DrawInvulnerableColorMap() ?? false,
-            Dropoff: m_config.Render.LightDropoff,
             Mvp: Renderer.CalculateMvpMatrix(renderInfo),
             MvpNoPitch: Renderer.CalculateMvpMatrix(renderInfo, true),
             LightLevelMix: (renderInfo.ViewerEntity.PlayerObj?.DrawFullBright() ?? false) ? 1.0f : 0.0f,
@@ -240,7 +239,6 @@ public class FloodFillRenderer : IDisposable
         m_planeProgram.SetZ((float)z);
         m_planeProgram.BoundTexture(TextureUnit.Texture0);
         m_planeProgram.HasInvulnerability(uniforms.Invul);
-        m_planeProgram.LightDropoff(uniforms.Dropoff);
         m_planeProgram.Mvp(uniforms.Mvp);
         m_planeProgram.MvpNoPitch(uniforms.MvpNoPitch);
         m_planeProgram.LightLevelMix(uniforms.LightLevelMix);
