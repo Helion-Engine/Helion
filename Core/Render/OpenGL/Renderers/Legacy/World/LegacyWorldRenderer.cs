@@ -47,7 +47,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_automapRenderer = new(archiveCollection);
-        m_entityRenderer = new(config, textureManager, m_worldDataManager);
+        m_entityRenderer = new(config, textureManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -168,17 +168,17 @@ public class LegacyWorldRenderer : WorldRenderer
         // Does shader bindings, which has to come outside of the above shader bindings
         // to avoid clobbering GL state.
         m_geometryRenderer.Render(renderInfo);
-
-        if (m_config.Render.TextureTransparency)
-        {
-            m_program.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetUniforms(renderInfo);
-            m_worldDataManager.DrawAlpha();
-            m_program.Unbind();
-        }
-
+        m_entityRenderer.Render(renderInfo);
         m_primitiveRenderer.Render(renderInfo);
+
+        // if (m_config.Render.TextureTransparency)
+        // {
+        //     m_program.Bind();
+        //     GL.ActiveTexture(TextureUnit.Texture0);
+        //     SetUniforms(renderInfo);
+        //     m_worldDataManager.DrawAlpha();
+        //     m_program.Unbind();
+        // }
     }
 
     private void SetPosition(RenderInfo renderInfo)
@@ -216,7 +216,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Center = position;
         m_renderCount++;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
+        // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, List<IRenderObject> alphaEntities)

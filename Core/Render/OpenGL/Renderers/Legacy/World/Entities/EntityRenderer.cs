@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
+using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -11,35 +11,38 @@ using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
+using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer
 {
+    private const byte MaxAlpha = 255;
+    
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly RenderWorldDataManager m_worldDataManager;
     private readonly EntityProgram m_program = new();
-    private readonly EntityDrawnTracker m_entityDrawnTracker = new();
+    private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new();
+    private int m_renderCounter;
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
 
-    public readonly List<IRenderObject> AlphaEntities = new();
-
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
     {
         m_config = config;
         m_textureManager = textureManager;
-        m_worldDataManager = worldDataManager;
+        m_dataManager = new(m_program);
     }
     
     public void Clear(IWorld world, double tickFraction)
     {
         m_tickFraction = tickFraction;
-        m_entityDrawnTracker.Reset(world);
-        AlphaEntities.Clear();
+        m_dataManager.Clear();
         m_renderPositions.Clear();
+        m_renderCounter++;
     }
 
     public void SetViewDirection(Vec2D viewDirection)
@@ -55,15 +58,15 @@ public class EntityRenderer
             Entity entity = node.Value;
             node = node.Next;
 
-            if (ShouldNotDraw(entity) || m_entityDrawnTracker.HasDrawn(entity))
+            if (ShouldNotDraw(entity))
                 continue;
 
-            if (entity.Definition.Properties.Alpha < 1)
-            {
-                entity.RenderDistance = entity.Position.XY.Distance(position.XY);
-                AlphaEntities.Add(entity);
-                continue;
-            }
+            // if (entity.Definition.Properties.Alpha < 1)
+            // {
+            //     entity.RenderDistance = entity.Position.XY.Distance(position.XY);
+            //     AlphaEntities.Add(entity);
+            //     continue;
+            // }
 
             RenderEntity(viewSector, entity, position);
         }
@@ -102,54 +105,20 @@ public class EntityRenderer
 
     public bool ShouldNotDraw(Entity entity)
     {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector;
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.RenderedCounter == m_renderCounter;
     }
 
     private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
     {
-        // We need to find the perpendicular vector from the entity so we
-        // know where to place the quad vertices.
-        Vec2F rightNormal = m_viewRightNormal;
-        Vec2F entityCenterXY = entityCenterBottom.XY.Float;
-        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        // Doom graphics are drawn left to right and not centered. Have to translate the offset.
-        entityCenterXY += rightNormal * ((texture.Width / 2) - texture.Offset.X);
-
-        Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
-        Vec2F left = entityCenterXY - halfWidth;
-        Vec2F right = entityCenterXY + halfWidth;
-
         float bottomZ = (float)entityCenterBottom.Z;
-
         if (ShouldApplyOffsetZ(entity, texture, out float offsetAmount))
             bottomZ += offsetAmount;
+        
+        Vec3F pos = entityCenterBottom.Float.WithZ(bottomZ);
+        EntityVertex vertex = new(pos, (byte)lightLevel, MaxAlpha, entity.Flags.Shadow, mirror);
 
-        float topZ = bottomZ + texture.Height;
-        float alpha = m_config.Render.SpriteTransparency ? (float)entity.Definition.Properties.Alpha : 1.0f;
-        float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
-        float leftU = 0.0f;
-        float rightU = 1.0f;
-        if (mirror)
-        {
-            leftU = 1.0f;
-            rightU = 0.0f;
-        }
-
-        LegacyVertex topLeft = new(left.X, left.Y, topZ, leftU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex topRight = new(right.X, right.Y, topZ, rightU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomLeft = new(left.X, left.Y, bottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomRight = new(right.X, right.Y, bottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
-
-        RenderWorldData renderWorldData = alpha < 1 ? 
-            m_worldDataManager.GetAlphaRenderData(texture, m_program) : 
-            m_worldDataManager.GetRenderData(texture, m_program);
-
-        renderWorldData.Vbo.Add(topLeft);
-        renderWorldData.Vbo.Add(bottomLeft);
-        renderWorldData.Vbo.Add(topRight);
-        renderWorldData.Vbo.Add(topRight);
-        renderWorldData.Vbo.Add(bottomLeft);
-        renderWorldData.Vbo.Add(bottomRight);
+        RenderData<EntityVertex> renderData = m_dataManager.Get(texture);
+        renderData.Vbo.Add(vertex);
     }
 
     private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
@@ -184,90 +153,21 @@ public class EntityRenderer
         return false;
     }
 
-    // Commenting this out because all of the faces and edges will be reused when
-    // we allow for debugging via 3D line rendering.
-    //
-    //private void AddSpriteDebugBox(Entity entity)
-    //{
-    //    Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
-    //    Vec3F min = new Vec3D(centerBottom.X - entity.Radius, centerBottom.Y - entity.Radius, centerBottom.Z).Float;
-    //    Vec3F max = new Vec3D(centerBottom.X + entity.Radius, centerBottom.Y + entity.Radius, centerBottom.Z + entity.Height).Float;
-
-    //    // These are the indices for the corners on the ASCII art further
-    //    // down in the image.
-    //    AddCubeFaces(2, 0, 3, 1);
-    //    AddCubeFaces(3, 1, 7, 5);
-    //    AddCubeFaces(7, 5, 6, 4);
-    //    AddCubeFaces(6, 4, 2, 0);
-    //    AddCubeFaces(0, 4, 1, 5);
-    //    AddCubeFaces(6, 2, 7, 3);
-
-    //    void AddCubeFaces(int topLeft, int bottomLeft, int topRight, int bottomRight)
-    //    {
-    //        // We want to draw it to both sides, not just the front.
-    //        AddCubeFace(topLeft, bottomLeft, topRight, bottomRight);
-    //        AddCubeFace(topRight, bottomRight, topLeft, bottomLeft);
-    //    }
-
-    //    void AddCubeFace(int topLeft, int bottomLeft, int topRight, int bottomRight)
-    //    {
-    //        LegacyVertex topLeftVertex = MakeVertex(topLeft, 0.0f, 0.0f);
-    //        LegacyVertex bottomLeftVertex = MakeVertex(bottomLeft, 0.0f, 1.0f);
-    //        LegacyVertex topRightVertex = MakeVertex(topRight, 1.0f, 0.0f);
-    //        LegacyVertex bottomRightVertex = MakeVertex(bottomRight, 1.0f, 1.0f);
-
-    //        m_debugBoxRenderWorldData.Vbo.Add(topLeftVertex);
-    //        m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
-    //        m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
-    //        m_debugBoxRenderWorldData.Vbo.Add(topRightVertex);
-    //        m_debugBoxRenderWorldData.Vbo.Add(bottomLeftVertex);
-    //        m_debugBoxRenderWorldData.Vbo.Add(bottomRightVertex);
-    //    }
-
-    //    LegacyVertex MakeVertex(int cornerIndex, float u, float v)
-    //    {
-    //        // The vertices look like this:
-    //        //
-    //        //          6----7 (max)
-    //        //         /.   /|
-    //        //        2----3 |
-    //        //        | 4..|.5          Z Y
-    //        //        |.   |/           |/
-    //        //  (min) 0----1            o--> X
-    //        return cornerIndex switch
-    //        {
-    //            0 => new LegacyVertex(min.X, min.Y, min.Z, u, v),
-    //            1 => new LegacyVertex(max.X, min.Y, min.Z, u, v),
-    //            2 => new LegacyVertex(min.X, min.Y, max.Z, u, v),
-    //            3 => new LegacyVertex(max.X, min.Y, max.Z, u, v),
-    //            4 => new LegacyVertex(min.X, max.Y, min.Z, u, v),
-    //            5 => new LegacyVertex(max.X, max.Y, min.Z, u, v),
-    //            6 => new LegacyVertex(min.X, max.Y, max.Z, u, v),
-    //            7 => new LegacyVertex(max.X, max.Y, max.Z, u, v),
-    //            _ => throw new Exception("Out of bounds cube index when debugging entity bounding box")
-    //        };
-    //    }
-    //}
-
     public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
     {
         const double NudgeFactor = 0.0001;
+        
         Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
         Vec2D entityPos = centerBottom.XY;
         Vec2D position2D = position.XY;
 
-        var spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
-        uint rotation;
-
+        SpriteDefinition? spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+        uint rotation = 0;
         if (spriteDef != null && spriteDef.HasRotations)
         {
             uint viewAngle = ViewClipper.ToDiamondAngle(position2D, entityPos);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             rotation = CalculateRotation(viewAngle, entityAngle);
-        }
-        else
-        {
-            rotation = 0;
         }
 
         if (m_config.Render.SpriteZCheck)
@@ -290,12 +190,53 @@ public class EntityRenderer
         SpriteRotation spriteRotation = m_textureManager.NullSpriteRotation;
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
-        
-        GLLegacyTexture texture = spriteRotation.Texture.RenderStore == null ? m_textureManager.NullTexture : (GLLegacyTexture)spriteRotation.Texture.RenderStore;
+        GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture; 
 
         short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
         AddSpriteQuad(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
+        entity.RenderedCounter = m_renderCounter;
+    }
 
-        m_entityDrawnTracker.MarkDrawn(entity);
+    private void SetUniforms(RenderInfo renderInfo)
+    {
+        const int TicksPerFrame = 4;
+        const int DifferentFrames = 8;
+        
+        mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
+        mat4 mvpNoPitch = Renderer.CalculateMvpMatrix(renderInfo, true);
+        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
+        bool drawInvulnerability = false;
+        int extraLight = 0;
+        float mix = 0.0f;
+
+        if (renderInfo.ViewerEntity.PlayerObj != null)
+        {
+            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
+                mix = 1.0f;
+            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
+                drawInvulnerability = true;
+
+            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
+        }
+        
+        m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.ExtraLight(extraLight);
+        m_program.HasInvulnerability(drawInvulnerability);
+        m_program.LightDropoff(m_config.Render.LightDropoff);
+        m_program.LightLevelMix(mix);
+        m_program.Mvp(mvp);
+        m_program.MvpNoPitch(mvpNoPitch);
+        m_program.TimeFrac(timeFrac);
+        m_program.ViewRightNormal(m_viewRightNormal);
+    }
+    
+    public void Render(RenderInfo renderInfo)
+    {
+        m_program.Bind();
+        SetUniforms(renderInfo);
+
+        m_dataManager.Render();
+        
+        m_program.Unbind();
     }
 }

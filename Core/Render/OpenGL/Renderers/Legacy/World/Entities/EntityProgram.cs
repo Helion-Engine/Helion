@@ -26,19 +26,16 @@ public class EntityProgram : RenderProgram
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in float lightLevel;
-        layout(location = 2) in short clipOffset;
-        layout(location = 3) in float alpha;
-        layout(location = 4) in byte flags;
+        layout(location = 2) in float alpha;
+        layout(location = 3) in byte flags;
 
         out float lightLevelOut;
-        out short clipOffsetOut;
         out float alphaOut; 
         out byte flagsOut;
 
         void main()
         {
             lightLevelOut = lightLevel;
-            clipOffsetOut = clipOffset;
             alphaOut = alpha;
             flagsOut = flags;
 
@@ -56,7 +53,6 @@ public class EntityProgram : RenderProgram
         const int FlipUBit = 2;
 
         in float lightLevelOut[];
-        in short clipOffsetOut[];
         in float alphaOut[]; 
         in byte flagsOut[];
 
@@ -83,9 +79,8 @@ public class EntityProgram : RenderProgram
             ivec2 textureDim = textureSize(boundTexture, 0);
             float halfTexWidth = textureDim.x * 0.5;
             vec3 posMoveDir = vec3(viewRightNormal, 0);
-            vec3 clipZAdjust = vec3(0, 0, clipOffsetOut);
-            vec3 minPos = pos - (posMoveDir * halfTexWidth) + clipZAdjust;
-            vec3 maxPos = pos + (posMoveDir * halfTexWidth) + (vec3(0, 0, 1) * textureDim.y) + clipZAdjust;
+            vec3 minPos = pos - (posMoveDir * halfTexWidth);
+            vec3 maxPos = pos + (posMoveDir * halfTexWidth) + (vec3(0, 0, 1) * textureDim.y);
 
             // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
             // We also need to be going counter-clockwise.

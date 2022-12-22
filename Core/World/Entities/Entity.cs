@@ -97,6 +97,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int PhysicsCount;
 
     public double RenderDistance { get; set; }
+    public int RenderedCounter; // Used by the renderer only.
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
