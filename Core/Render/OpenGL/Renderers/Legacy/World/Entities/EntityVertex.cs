@@ -13,8 +13,8 @@ public readonly struct EntityVertex
     [VertexAttribute]
     public readonly Vec3F Pos;
 
-    [VertexAttribute(normalized: true)]
-    public readonly byte LightLevel;
+    [VertexAttribute(isIntegral: true)]
+    public readonly short LightLevel;
 
     [VertexAttribute]
     public readonly byte Alpha;
@@ -22,7 +22,7 @@ public readonly struct EntityVertex
     [VertexAttribute(isIntegral: true)]
     public readonly byte Flags;
 
-    public EntityVertex(Vec3F pos, byte lightLevel, byte alpha, bool isFuzz, bool flipU)
+    public EntityVertex(Vec3F pos, short lightLevel, byte alpha, bool isFuzz, bool flipU)
     {
         Pos = pos;
         LightLevel = lightLevel;

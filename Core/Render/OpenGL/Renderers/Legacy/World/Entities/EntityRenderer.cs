@@ -115,7 +115,7 @@ public class EntityRenderer
             bottomZ += offsetAmount;
         
         Vec3F pos = entityCenterBottom.Float.WithZ(bottomZ);
-        EntityVertex vertex = new(pos, (byte)lightLevel, MaxAlpha, entity.Flags.Shadow, mirror);
+        EntityVertex vertex = new(pos, lightLevel, MaxAlpha, entity.Flags.Shadow, mirror);
 
         RenderData<EntityVertex> renderData = m_dataManager.Get(texture);
         renderData.Vbo.Add(vertex);

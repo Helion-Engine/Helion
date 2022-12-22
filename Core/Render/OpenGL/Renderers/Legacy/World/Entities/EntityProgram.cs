@@ -24,7 +24,7 @@ public class EntityProgram : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in float lightLevel;
+        layout(location = 1) in int lightLevel;
         layout(location = 2) in float alpha;
         layout(location = 3) in int flags;
 
@@ -34,7 +34,7 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            lightLevelOut = lightLevel * 256;
+            lightLevelOut = lightLevel;
             alphaOut = alpha;
             flagsOut = flags;
 
