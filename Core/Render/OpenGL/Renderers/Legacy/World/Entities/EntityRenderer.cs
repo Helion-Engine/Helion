@@ -124,30 +124,20 @@ public class EntityRenderer
     private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
     {
         offsetAmount = texture.Offset.Y - texture.Height;
-        if (entity.Definition.Flags.Missile || offsetAmount >= 0)
+        if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
             return true;
 
-        if (!m_config.Render.SpriteClip && !m_config.Render.SpriteClipCorpse)
+        if (!m_config.Render.SpriteClip)
             return false;
 
         if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsInventory)
             return false;
 
-        if (entity.Position.Z - entity.HighestFloorSector.ToFloorZ(entity.Position) < texture.Offset.Y)
+        if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            if (m_config.Render.SpriteClipCorpse && entity.Flags.Corpse)
-            {
-                if (-offsetAmount > texture.Height * m_config.Render.SpriteClipCorpseFactorMax)
-                    offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipCorpseFactorMax;
-                return true;
-            }
-
-            if (m_config.Render.SpriteClip)
-            {
-                if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
-                    offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
-                return true;
-            }
+            if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
+                offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
+            return true;
         }
 
         return false;
