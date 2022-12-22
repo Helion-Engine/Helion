@@ -226,10 +226,7 @@ public partial class WorldLayer
         {
             int extraLight = Player.GetExtraLightRender();
             lightLevel = GetLightLevel(Player);
-            if (m_config.Render.LightDropoff)
-                lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
-            else
-                lightLevel = (int)(GLHelper.DoomLightLevelToColorStatic(lightLevel, extraLight) * 255);
+            lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
         Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
