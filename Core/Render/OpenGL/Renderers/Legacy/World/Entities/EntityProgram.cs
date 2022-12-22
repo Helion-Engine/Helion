@@ -30,7 +30,7 @@ public class EntityProgram : RenderProgram
         layout(location = 3) in int flags;
 
         out float lightLevelOut;
-        out float alphaOut; 
+        out float alphaOut;
         out int flagsOut;
 
         void main()
@@ -69,19 +69,10 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            int isFuzzValue = 0;
-            int isFuzzValueResult = flagsOut[0] & FuzzBit;
-            if (isFuzzValueResult > 0)
-                isFuzzValue = 1;
+            int isFuzzValue = (flagsOut[0] & FuzzBit) > 0 ? 1 : 0;
 
-            float leftU = 0.0;
-            float rightU = 1.0;
-            int isFlipUBitResult = flagsOut[0] & FlipUBit;
-            if (isFlipUBitResult > 0)
-            {
-                leftU = 1.0;
-                rightU = 0.0;
-            }
+            float leftU = (flagsOut[0] & FlipUBit) > 0 ? 1.0 : 0.0;
+            float rightU = (flagsOut[0] & FlipUBit) > 0 ? 0.0 : 1.0;
 
             vec3 pos = gl_in[0].gl_Position.xyz;
             ivec2 textureDim = textureSize(boundTexture, 0);
