@@ -164,26 +164,6 @@ public class EntityProgram : RenderProgram
         const int maxLightScale = 23;
         const int lightFadeStart = 56;
 
-        float calculateLightLevel(float lightLevel)
-        {
-            if (lightLevel <= 0.75)
-            {
-                if (lightLevel > 0.4)
-                {
-	                lightLevel = -0.6375 + (1.85 * lightLevel);
-	                if (lightLevel < 0.08)
-                    {
-		                lightLevel = 0.08 + (lightLevel * 0.2);
-	                }
-                } 
-                else
-                {
-	                lightLevel /= 5.0;
-                }
-            }
-            return lightLevel;
-        }
-
         void main()
         {
             float lightLevel = lightLevelFrag;
