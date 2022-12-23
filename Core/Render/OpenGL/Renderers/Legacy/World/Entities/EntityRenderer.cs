@@ -59,13 +59,6 @@ public class EntityRenderer
             if (ShouldNotDraw(entity))
                 continue;
 
-            // if (entity.Definition.Properties.Alpha < 1)
-            // {
-            //     entity.RenderDistance = entity.Position.XY.Distance(position.XY);
-            //     AlphaEntities.Add(entity);
-            //     continue;
-            // }
-
             RenderEntity(viewSector, entity, position);
         }
     }
@@ -224,6 +217,7 @@ public class EntityRenderer
     public void Render(RenderInfo renderInfo)
     {
         m_program.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
 
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
