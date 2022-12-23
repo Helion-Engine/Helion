@@ -173,7 +173,7 @@ public class LegacyWorldRenderer : WorldRenderer
             TraverseBsp(world, renderInfo);
 
         PopulatePrimitives(world);
-
+        
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
@@ -181,11 +181,10 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderStaticGeometry();
         m_program.Unbind();
 
-        // Does shader bindings, which has to come outside of the above shader bindings
-        // to avoid clobbering GL state.
-        m_geometryRenderer.Render(renderInfo);
-        
-        // TODO: Move this into the geometry render eventually.
+        m_geometryRenderer.Render(renderInfo); 
+        m_entityRenderer.RenderNonAlpha(renderInfo);
+        m_entityRenderer.RenderAlpha(renderInfo);
+
         if (m_config.Render.TextureTransparency)
         {
             m_program.Bind();
@@ -195,7 +194,6 @@ public class LegacyWorldRenderer : WorldRenderer
             m_program.Unbind();
         }
         
-        m_entityRenderer.Render(renderInfo);
         m_primitiveRenderer.Render(renderInfo);
     }
 

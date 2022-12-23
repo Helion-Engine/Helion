@@ -217,17 +217,29 @@ public class EntityRenderer
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
     }
+
+    public void RenderAlpha(RenderInfo renderInfo)
+    {
+        Render(renderInfo, true);
+    }
+
+    public void RenderNonAlpha(RenderInfo renderInfo)
+    {
+        Render(renderInfo, false);
+    }
     
-    public void Render(RenderInfo renderInfo)
+    private void Render(RenderInfo renderInfo, bool alpha)
     {
         m_tickFraction = renderInfo.TickFraction;
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
 
-        m_dataManager.RenderNonAlpha(PrimitiveType.Points);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        
+        if (alpha)
+            m_dataManager.RenderAlpha(PrimitiveType.Points);
+        else
+            m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+
         m_program.Unbind();
     }
 
