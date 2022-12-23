@@ -1,13 +1,8 @@
-﻿using Helion;
-using Helion.Geometry.Boxes;
+﻿using Helion.Geometry.Boxes;
 using Helion.Graphics.Fonts;
-using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
-using System;
 using System.Collections.Generic;
-using zdbspSharp;
 
 namespace Helion.Render.OpenGL.Textures;
 

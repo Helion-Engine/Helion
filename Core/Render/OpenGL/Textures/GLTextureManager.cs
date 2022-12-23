@@ -35,7 +35,8 @@ public class GLTextureManager : IDisposable
         Dispose(false);
     }
 
-    // A convenience method for uploading every handle.
+    // A convenience method for uploading every handle. Invoking this with textures that
+    // are already uploaded is okay, since it will not cause duplicate uploading.
     public void UploadAll(HashSet<int> textureIndices)
     {
         foreach (int textureIndex in textureIndices)

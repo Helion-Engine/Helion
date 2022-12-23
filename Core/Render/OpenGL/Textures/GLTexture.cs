@@ -1,7 +1,4 @@
-﻿using Helion;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 using System;
 
 namespace Helion.Render.OpenGL.Textures;

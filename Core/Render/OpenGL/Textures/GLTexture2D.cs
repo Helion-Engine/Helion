@@ -1,16 +1,10 @@
-﻿using Helion;
-using Helion.Geometry;
+﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
-using Helion.Resources;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
-using System;
 
 namespace Helion.Render.OpenGL.Textures;
 
