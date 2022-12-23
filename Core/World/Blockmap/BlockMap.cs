@@ -33,12 +33,19 @@ public class BlockMap
     /// Creates a blockmap grid for the map provided.
     /// </summary>
     /// <param name="lines">The lines to make the grid for.</param>
-    public BlockMap(IList<Line> lines)
+    public BlockMap(IList<Line> lines, int blockDimension)
     {
         Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
-        m_blocks = new UniformGrid<Block>(Bounds);
+        m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
         SetBlockCoordinates();
         AddLinesToBlocks(lines);
+    }
+
+    public BlockMap(Box2D bounds, int blockDimension)
+    {
+        Bounds = bounds;
+        m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
+        SetBlockCoordinates();
     }
 
     /// <summary>
@@ -103,15 +110,14 @@ public class BlockMap
         }
     }
 
-    public void NoBlockmapLink(Entity entity)
+    public void LinkSimple(Entity entity)
     {
-        Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
         Block? block = m_blocks.GetBlock(entity.Position.XY);
         if (block == null)
             return;
 
         LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
-        block.NoBlockmapEntities.Add(blockEntityNode);
+        block.Entities.Add(blockEntityNode);
 
         entity.BlockmapNodes.Add(blockEntityNode);
     }
@@ -162,7 +168,7 @@ public class BlockMap
         int index = 0;
         for (int y = 0; y < m_blocks.Height; y++)
             for (int x = 0; x < m_blocks.Width; x++)
-                m_blocks[index++].SetCoordinate(x, y);
+                m_blocks[index++].SetCoordinate(x, y, m_blocks.Dimension, m_blocks.Origin);
     }
 
     private void AddLinesToBlocks(IList<Line> lines)
