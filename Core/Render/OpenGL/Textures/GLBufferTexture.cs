@@ -1,29 +1,34 @@
-﻿using Helion.Render.OpenGL.Util;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
+using Helion.Render.OpenGL.Util;
+using Helion.Util.Container;
 using System;
+using System.Diagnostics;
 
 namespace Helion.Render.OpenGL.Textures;
 
+// See: https://gist.github.com/roxlu/5090067
 public class GLBufferTexture : IDisposable
 {
     public readonly string Label;
-    private int m_vboName;
-    private int m_textureName;
+    private readonly DynamicArray<float> m_data;
+    private readonly int m_name;
+    private readonly int m_textureName;
     private bool m_disposed;
 
-    public GLBufferTexture(string label)
+    public GLBufferTexture(string label, int size)
     {
+        Debug.Assert(size > 0, "Cannot have a buffer texture with no size");
+        
         Label = label;
+        m_name = GL.GenBuffer();
         m_textureName = GL.GenTexture();
-        m_vboName = GL.GenBuffer();
+        
+        m_data.Resize(size);
 
         BindBuffer();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_vboName, $"TBO (VBO): {label}");
+        GL.BufferData(BufferTarget.TextureBuffer, size, m_data.Data, BufferUsageHint.StaticDraw);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
-
-        BindTexture();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_vboName, $"TBO (Texture): {label}");
-        UnbindTexture();
     }
 
     ~GLBufferTexture()
@@ -31,24 +36,32 @@ public class GLBufferTexture : IDisposable
         Dispose(false);
     }
 
-    public void BindTexture()
+    public void Map(Action<IntPtr> action)
     {
-        GL.BindTexture(TextureTarget.TextureBuffer, m_textureName);
-    }
-
-    public void UnbindTexture()
-    {
-        GL.BindTexture(TextureTarget.TextureBuffer, 0);
+        Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
+        
+        BindBuffer();
+        
+        GLMappedBuffer<float> buffer = new(m_data.Data);
+        action(buffer.Pointer);
+        buffer.Dispose();
+        
+        UnbindBuffer();
     }
 
     public void BindBuffer()
     {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, m_vboName);
+        GL.BindBuffer(BufferTarget.TextureBuffer, m_name);
     }
-
+    
     public void UnbindBuffer()
     {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindBuffer(BufferTarget.TextureBuffer, 0);
+    }
+
+    public void BindTexBuffer()
+    {
+        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -56,10 +69,8 @@ public class GLBufferTexture : IDisposable
         if (m_disposed)
             return;
 
-        GL.DeleteBuffer(m_vboName);
+        GL.DeleteBuffer(m_name);
         GL.DeleteTexture(m_textureName);
-        m_vboName = 0;
-        m_textureName = 0;
 
         m_disposed = true;
     }

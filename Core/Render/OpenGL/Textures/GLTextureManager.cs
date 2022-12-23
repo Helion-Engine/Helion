@@ -11,8 +11,12 @@ namespace Helion.Render.OpenGL.Textures;
 
 public class GLTextureManager : IDisposable
 {
+    public const int MaxSupportedTextures = 65536;
+    
     public readonly GLImageHandle NullHandle;
     public readonly GLImageHandle WhiteHandle;
+    public readonly GLBufferTexture TranslationTableBuffer = new("Translation table", MaxSupportedTextures);
+    public readonly GLBufferTexture TextureHandleBuffer = new("Texture handle", MaxSupportedTextures);
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly GLTexture2DArrayAtlas m_textures;
@@ -47,7 +51,7 @@ public class GLTextureManager : IDisposable
     public GLImageHandle Get(int index)
     {
         Debug.Assert(index >= 0, "Accessing a negative texture handle index");
-        Debug.Assert(index < short.MaxValue, "Likely accessing an incorrect texture index due to the large size");
+        Debug.Assert(index < MaxSupportedTextures, "Likely accessing an incorrect texture index due to the large size");
         
         // TODO: Shouldn't this be done in increments? See what we did in entity-render-dev
         if (index >= m_textureIdxToPosition.Length)
@@ -59,20 +63,28 @@ public class GLTextureManager : IDisposable
         
         Resources.Texture texture = m_archiveCollection.TextureManager.GetTexture(index);
 
-        if (texture.Index == Helion.Util.Constants.NoTextureIndex)
-        {
-            m_textureIdxToPosition[index] = NullHandle;
-            return NullHandle;
-        }
+        if (texture.Index != Helion.Util.Constants.NoTextureIndex) 
+            return UploadTexture(texture);
         
+        m_textureIdxToPosition[index] = NullHandle;
+        return NullHandle;
+
+    }
+
+    private GLImageHandle UploadTexture(Resources.Texture texture)
+    {
         Debug.Assert(texture.Image != null, $"Did not read texture {texture.Name} ({texture.Namespace}) image data yet, cannot upload");
+
         m_textures.Bind();
         GLImageHandle handle = m_textures.UploadImage(texture.Image);
         m_textures.Unbind();
-        m_textureIdxToPosition[index] = handle;
-        return handle;
+        m_textureIdxToPosition[texture.Index] = handle;
+        
+        // TODO: Update texture buffer #1
+        // TODO: Update texture buffer #2
+        throw new("TODO: Did not update texture buffer");
     }
-    
+
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)

@@ -148,4 +148,6 @@ public static class GLHelper
         int smallerAxis = Math.Min(dimension.Width, dimension.Height);
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
+    
+    public static int ToInt(this TextureUnit unit) => unit - TextureUnit.Texture0;
 }
