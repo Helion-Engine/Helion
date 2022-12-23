@@ -1,13 +1,8 @@
-﻿using Helion;
-using Helion.Geometry;
+﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
-using Helion.Resources;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -20,8 +15,8 @@ namespace Helion.Render.OpenGL.Textures;
 public class GLTexture2DArray : GLTexture
 {
     public readonly string Label;
-    public Dimension Dimension = (1, 1);
-    public int Depth = 1;
+    public Dimension Dimension { get; protected set; } = (1, 1);
+    public int Depth { get; protected set; } = 1;
     public Vec2F UVInverse { get; protected set; } = Vec2F.One;
 
     public int Name => base.Name;
@@ -35,15 +30,32 @@ public class GLTexture2DArray : GLTexture
         Unbind();
     }
 
-    public GLTexture2DArray(string label, Dimension dimension, int depth) : this(label)
+    public GLTexture2DArray(string label, Dimension dimension, int depth, TextureWrapMode wrapMode, float? anisotropy = 1.0f) : 
+        this(label)
     {
+        Debug.Assert(dimension.Area > 0, "Should not have a zero or negative 2D texture array area");
+        Debug.Assert(depth > 0, "Should not have a zero or negative 2D texture array depth");
+        
         Dimension = dimension;
         Depth = depth;
+        UVInverse = (1.0f / dimension.Width, 1.0f / dimension.Height);
+        
+        Bind();
+        
+        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, dimension.Width, dimension.Height, depth, 0,
+            PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
+        
+        SetParameters(wrapMode);
+        SetAnisotropy(anisotropy);
+        GenerateMipmaps();
+
+        Unbind();
     }
 
-    public GLTexture2DArray(string label, IEnumerable<Image> images, TextureWrapMode wrapMode, float? anisotropy = 1.0f) : this(label)
+    public GLTexture2DArray(string label, IEnumerable<Image> images, TextureWrapMode wrapMode, float? anisotropy = 1.0f) : 
+        this(label)
     {
-        Debug.Assert(images.Count() > 0, "Require at least one image for a texture 2D array");
+        Debug.Assert(images.Any(), "Require at least one image for a texture 2D array");
         Debug.Assert(images.FirstOrDefault().Dimension.Area > 0, "Image must have a non-zero area");
         Debug.Assert(images.Select(i => i.Dimension.Area).Distinct().Count() == 1, "All 2D array textures must be the same dimension");
 
@@ -62,16 +74,13 @@ public class GLTexture2DArray : GLTexture
     {
         int numImages = images.Count();
         Image firstImage = images.FirstOrDefault();
-
-        GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba8, firstImage.Width, firstImage.Height, numImages, 0,
-            PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
-
-        foreach ((int i, Image image) in images.Enumerate())
-            UploadLayer(image, i);
-
+        
         Depth = numImages;
         Dimension = firstImage.Dimension;
         UVInverse = (1.0f / firstImage.Width, 1.0f / firstImage.Height);
+
+        foreach ((int i, Image image) in images.Enumerate())
+            UploadLayer(image, i);
     }
 
     // Assumes the user binds first.

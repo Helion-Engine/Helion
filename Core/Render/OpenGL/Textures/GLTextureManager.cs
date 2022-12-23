@@ -1,34 +1,33 @@
-﻿using Helion;
-using Helion.Graphics;
-using Helion.Render;
-using Helion.Resources;
-using Helion.Resources.Archives.Collection;
+﻿using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
+using Helion.Graphics;
 
 namespace Helion.Render.OpenGL.Textures;
 
 public class GLTextureManager : IDisposable
 {
-    public readonly GLTexture2D NullTexture;
-    public readonly GLTexture2D WhiteTexture;
+    public readonly GLImageHandle NullHandle;
+    public readonly GLImageHandle WhiteHandle;
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly Dictionary<int, GLTexture2D> m_textureidxToGLTexture = new();
-    private readonly Dictionary<string, GLTexture2DFont> m_fonts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly GLTexture2DArrayAtlas m_textures;
+    private readonly DynamicArray<GLImageHandle?> m_textureIdxToPosition = new();
     private bool m_disposed;
 
-    private float? Anisotropy => m_config.Render.Anisotropy.Value >= 1 ? m_config.Render.Anisotropy.Value : null;
+    private float? Anisotropy => m_config.Render.Anisotropy.Value > 1 ? m_config.Render.Anisotropy.Value : null;
 
     public GLTextureManager(IConfig config, ArchiveCollection archiveCollection)
     {
         m_config = config;
         m_archiveCollection = archiveCollection;
-        NullTexture = new("Null image", Image.NullImage, TextureWrapMode.Repeat);
-        WhiteTexture = new("White image", Image.WhiteImage, TextureWrapMode.Repeat);
+        m_textures = new("Texture Atlas", (2048, 2048), 8, TextureWrapMode.Clamp, Anisotropy, true);
+        NullHandle = m_textures.UploadImage(Image.NullImage);
+        WhiteHandle = m_textures.UploadImage(Image.WhiteImage);
     }
 
     ~GLTextureManager()
@@ -36,57 +35,49 @@ public class GLTextureManager : IDisposable
         Dispose(false);
     }
 
-    private static TextureWrapMode GetWrapMode(Resources.Texture tex)
+    // A convenience method for uploading every handle.
+    public void UploadAll(HashSet<int> textureIndices)
     {
-        return tex.Namespace == ResourceNamespace.Sprites ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+        foreach (int textureIndex in textureIndices)
+            Get(textureIndex);
     }
 
-    public bool TryGet(int index, out GLTexture2D glTexture)
+    // Gets an image handle from the resource texture manager texture index. 
+    public GLImageHandle Get(int index)
     {
-        if (m_textureidxToGLTexture.TryGetValue(index, out glTexture))
-            return !ReferenceEquals(glTexture, NullTexture);
+        Debug.Assert(index >= 0, "Accessing a negative texture handle index");
+        Debug.Assert(index < short.MaxValue, "Likely accessing an incorrect texture index due to the large size");
+        
+        // TODO: Shouldn't this be done in increments? See what we did in entity-render-dev
+        if (index >= m_textureIdxToPosition.Length)
+            m_textureIdxToPosition.Resize(index);
 
-        // Try and find it, and track/return if found.
+        GLImageHandle? existingHandle = m_textureIdxToPosition[index];
+        if (existingHandle != null)
+            return existingHandle.Value;
+        
         Resources.Texture texture = m_archiveCollection.TextureManager.GetTexture(index);
-        if (texture.Image != null)
+
+        if (texture.Index == Helion.Util.Constants.NoTextureIndex)
         {
-            glTexture = new($"{texture.Name} ({texture.Namespace})", texture.Image, GetWrapMode(texture), Anisotropy);
-            m_textureidxToGLTexture[index] = NullTexture;
-            return true;
+            m_textureIdxToPosition[index] = NullHandle;
+            return NullHandle;
         }
         
-        // If we can't find it, store that it wasn't found.
-        glTexture = NullTexture;
-        m_textureidxToGLTexture[index] = NullTexture;
-        return false;
+        Debug.Assert(texture.Image != null, $"Did not read texture {texture.Name} ({texture.Namespace}) image data yet, cannot upload");
+        m_textures.Bind();
+        GLImageHandle handle = m_textures.UploadImage(texture.Image);
+        m_textures.Unbind();
+        m_textureIdxToPosition[index] = handle;
+        return handle;
     }
-
-    public bool TryGetFont(string name, [NotNullWhen(true)] out GLTexture2DFont? glFont)
-    {
-        if (m_fonts.TryGetValue(name, out glFont))
-            return true;
-
-        // TODO: Find and make font if it exists.
-
-        glFont = null;
-        return false;
-    }
-
+    
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
 
-        foreach (GLTexture2D texture in m_textureidxToGLTexture.Values)
-            texture.Dispose();
-        m_textureidxToGLTexture.Clear();
-
-        foreach (GLTexture2DFont font in m_fonts.Values)
-            font.Dispose();
-        m_fonts.Clear();
-
-        WhiteTexture.Dispose();
-        NullTexture.Dispose();
+        m_textures.Dispose();
 
         m_disposed = true;
     }
