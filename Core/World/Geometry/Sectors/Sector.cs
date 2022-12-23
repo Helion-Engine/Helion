@@ -62,8 +62,7 @@ public class Sector
     public int LastRenderGametick;
     public int SoundValidationCount;
     public int SoundBlock;
-    public int RenderCount;
-    public int PhysicsCount;
+    public int CheckCount;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public readonly InstantKillEffect InstantKillEffect;
     public readonly SectorEffect SectorEffect;

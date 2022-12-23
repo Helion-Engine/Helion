@@ -17,7 +17,7 @@ namespace Helion.Geometry.Segments
         public Vec2D Start;
         public Vec2D End;
 
-        public Vec2D Delta => End - Start;
+        public Vec2D Delta;
         public Box2D Box;
         public double Length => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
@@ -27,24 +27,28 @@ namespace Helion.Geometry.Segments
         {
             Start = start;
             End = end;
+            Delta = End - Start;
             Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         }
         public Seg2D(Vec2D start, Vector2D end)
         {
             Start = start;
             End = end.Struct;
+            Delta = End - Start;
             Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         }
         public Seg2D(Vector2D start, Vec2D end)
         {
             Start = start.Struct;
             End = end;
+            Delta = End - Start;
             Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         }
         public Seg2D(Vector2D start, Vector2D end)
         {
             Start = start.Struct;
             End = end.Struct;
+            Delta = End - Start;
             Box = new((Start.X.Min(End.X), Start.Y.Min(End.Y)), (Start.X.Max(End.X), Start.Y.Max(End.Y)));
         }
 
@@ -80,18 +84,15 @@ namespace Helion.Geometry.Segments
         public bool SameDirection<T>(SegmentT2D<T> seg) where T : Vector2D => SameDirection(seg.Delta);
         public bool SameDirection(Vec2D delta)
         {
-            Vec2D thisDelta = Delta;
-            return !thisDelta.X.DifferentSign(delta.X) && !thisDelta.Y.DifferentSign(delta.Y);
+            return !Delta.X.DifferentSign(delta.X) && !Delta.Y.DifferentSign(delta.Y);
         }
         public bool SameDirection(Vector2D delta)
         {
-            Vec2D thisDelta = Delta;
-            return !thisDelta.X.DifferentSign(delta.X) && !thisDelta.Y.DifferentSign(delta.Y);
+            return !Delta.X.DifferentSign(delta.X) && !Delta.Y.DifferentSign(delta.Y);
         }
         public double PerpDot(in Vec2D point)
         {
-            Vec2D delta = Delta;
-            return (delta.X * (point.Y - Start.Y)) - (delta.Y * (point.X - Start.X));
+            return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
         }
         public double PerpDot(Vector2D point)
         {

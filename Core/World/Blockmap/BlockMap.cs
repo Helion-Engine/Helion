@@ -177,7 +177,7 @@ public class BlockMap
         {
             m_blocks.Iterate(line.Segment, block =>
             {
-                block.Lines.Add(line);
+                block.BlockLines.Add(new BlockLine(line.Segment, line, line.OneSided, line.Front.Sector, line.Back?.Sector));
                 return GridIterationStatus.Continue;
             });
         }

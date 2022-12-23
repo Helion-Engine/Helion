@@ -37,12 +37,12 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
     private readonly List<IRenderObject> m_alphaEntities = new();
-    private int m_renderCount;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_spriteTransparency;
     private int m_lastTicker = -1;
+    private int m_renderCount;
     private IWorld? m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
@@ -102,7 +102,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.SetViewDirection(viewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
-        m_renderCount++;
+        int checkCount = ++world.CheckCounter;
 
         int maxDistance = world.Config.Render.MaxDistance;
         if (maxDistance <= 0)
@@ -145,11 +145,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         void RenderSector(Sector sector)
         {
-            if (sector.RenderCount == m_renderCount)
+            if (sector.CheckCount == checkCount)
                 return;
 
             m_geometryRenderer.RenderSector(m_viewSector, sector, position3D);
-            sector.RenderCount = m_renderCount;
+            sector.CheckCount = checkCount;
         }
 
         void RenderSide(Side side)
@@ -237,7 +237,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.SetViewDirection(viewDirection);
         m_viewClipper.Center = position;
-        m_renderCount++;
+        m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
         // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
@@ -308,13 +308,13 @@ public class LegacyWorldRenderer : WorldRenderer
         if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
             return;
 
-        bool hasRenderedSector = subsector.Sector.RenderCount == m_renderCount;
+        bool hasRenderedSector = subsector.Sector.CheckCount == m_renderCount;
         m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position, hasRenderedSector);
 
         // Entities are rendered by the sector
         if (hasRenderedSector)
             return;
-        subsector.Sector.RenderCount = m_renderCount;
+        subsector.Sector.CheckCount = m_renderCount;
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position);
     }
 

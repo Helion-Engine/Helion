@@ -118,6 +118,7 @@ public abstract partial class WorldBase : IWorld
     public abstract Player Player { get; protected set; }
     public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
+    public int CheckCounter { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -161,7 +162,7 @@ public abstract partial class WorldBase : IWorld
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
-        RenderBlockmapTraverser = new BlockmapTraverser(RenderBlockmap, DataCache);
+        RenderBlockmapTraverser = new BlockmapTraverser(this, RenderBlockmap, DataCache);
 
         SoundManager = new WorldSoundManager(this, audioSystem);
         EntityManager = new EntityManager(this);

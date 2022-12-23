@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
@@ -14,12 +15,32 @@ namespace Helion.World.Blockmap;
 /// <summary>
 /// Represents a cell in the blockmap.
 /// </summary>
+/// 
+public struct BlockLine
+{
+    public int BlockmapCount;
+    public Seg2D Segment;
+    public bool OneSided;
+    public Line Line;
+    public Sector FrontSector;
+    public Sector? BackSector;
+
+    public BlockLine(Seg2D segment, Line line, bool oneSided, Sector frontSector, Sector? backSector)
+    {
+        Segment = segment;
+        Line = line;
+        OneSided = oneSided;
+        FrontSector = frontSector;
+        BackSector = backSector;
+    }
+}
+
 public class Block
 {
     /// <summary>
     /// All the lines for this block.
-    /// </summary>
-    public readonly List<Line> Lines = new();
+    /// </summary>  
+    public readonly DynamicArray<BlockLine> BlockLines = new();
 
     /// <summary>
     /// All the entities in this block.

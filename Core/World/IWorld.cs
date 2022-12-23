@@ -88,6 +88,7 @@ public interface IWorld : IDisposable
     DataCache DataCache { get; }
     Player Player { get; }
     bool IsFastMonsters { get; }
+    int CheckCounter { get; set; }
 
 
     void Link(Entity entity);
