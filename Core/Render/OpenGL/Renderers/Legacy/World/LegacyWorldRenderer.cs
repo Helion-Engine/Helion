@@ -111,7 +111,7 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
 
-        world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
+        world.RenderBlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
             RenderEntity, RenderSector, RenderSide, m_lastTicker != world.GameTicker);
         m_lastTicker = world.GameTicker;
 

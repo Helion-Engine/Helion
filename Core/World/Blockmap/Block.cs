@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
@@ -23,9 +25,10 @@ public class Block
     /// All the entities in this block.
     /// </summary>
     public readonly LinkableList<Entity> Entities = new();
-    public readonly LinkableList<Entity> NoBlockmapEntities = new();
     public readonly LinkableList<Sector> DynamicSectors = new();
     public readonly LinkableList<Side> DynamicSides = new();
+
+    public Box2D Box;
 
     /// <summary>
     /// Gets the block X coordinate, assuming the coordinate was set.
@@ -53,11 +56,14 @@ public class Block
     /// </param>
     /// <param name="y">The Y coordinate, which should not be negative.
     /// </param>
-    internal void SetCoordinate(int x, int y)
+    internal void SetCoordinate(int x, int y, int dimension, Vec2D origin)
     {
         Precondition(x >= 0, "Cannot have a negative blockmap X index");
         Precondition(y >= 0, "Cannot have a negative blockmap Y index");
 
         m_coordinate = new Vec2I(x, y);
+
+        Vec2D point = new Vec2D(x * dimension, y * dimension) + origin;
+        Box = new(point, point + (dimension, dimension));
     }
 }

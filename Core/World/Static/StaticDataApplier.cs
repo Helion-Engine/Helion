@@ -72,22 +72,22 @@ public class StaticDataApplier
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
             line.Back.SetAllWallsDynamic(SectorDynamic.Alpha);
-            world.Blockmap.LinkDynamicSide(world, line.Front);
+            world.RenderBlockmap.LinkDynamicSide(world, line.Front);
             if (line.Front.Sector != line.Back.Sector)
-                world.Blockmap.LinkDynamicSide(world, line.Back);
+                world.RenderBlockmap.LinkDynamicSide(world, line.Back);
             return;
         }
 
         if (line.Front.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkDynamicSide(world, line.Front);
+            world.RenderBlockmap.LinkDynamicSide(world, line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
-            world.Blockmap.LinkDynamicSide(world, line.Back);
+            world.RenderBlockmap.LinkDynamicSide(world, line.Back);
         }
     }
 
@@ -131,7 +131,7 @@ public class StaticDataApplier
             sector.Ceiling.Dynamic |= sectorDynamic;
 
         if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement))
-            world.Blockmap.Link(world, sector);
+            world.RenderBlockmap.Link(world, sector);
 
         if (sectorDynamic == SectorDynamic.Light)
         {

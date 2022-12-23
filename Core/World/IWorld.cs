@@ -27,6 +27,7 @@ using Helion.Util;
 using Helion.World.Special.Specials;
 using Helion.Resources;
 using Helion.World.Static;
+using Helion.World.Blockmap;
 
 namespace Helion.World;
 
@@ -69,6 +70,8 @@ public interface IWorld : IDisposable
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
+    BlockmapTraverser RenderBlockmapTraverser { get; }
+    BlockMap RenderBlockmap { get; }
     SpecialManager SpecialManager { get; }
     TextureManager TextureManager { get; }
     IConfig Config { get; }

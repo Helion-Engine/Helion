@@ -104,6 +104,8 @@ public abstract partial class WorldBase : IWorld
     public abstract double ListenerPitch { get; }
     public abstract Entity ListenerEntity { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
+    public BlockmapTraverser RenderBlockmapTraverser { get; private set; }
+    public BlockMap RenderBlockmap { get; private set; }
     public SpecialManager SpecialManager { get; private set; }
     public IConfig Config { get; private set; }
     public MapInfoDef MapInfo { get; private set; }
@@ -156,7 +158,11 @@ public abstract partial class WorldBase : IWorld
         Profiler = profiler;
         Geometry = geometry;
         Map = map;
-        Blockmap = new BlockMap(Lines);
+
+        Blockmap = new BlockMap(Lines, 128);
+        RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
+        RenderBlockmapTraverser = new BlockmapTraverser(RenderBlockmap, DataCache);
+
         SoundManager = new WorldSoundManager(this, audioSystem);
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);

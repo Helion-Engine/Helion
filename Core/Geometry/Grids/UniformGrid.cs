@@ -27,7 +27,7 @@ public enum GridIterationStatus
 public class UniformGrid<T> where T : new()
 {
     // TODO: This should not be hardcoded.
-    public const int Dimension = 128;
+    public readonly int Dimension;
 
     /// <summary>
     /// How many blocks wide the grid is.
@@ -58,8 +58,9 @@ public class UniformGrid<T> where T : new()
     /// bounds provided will be expanded for optimization reasons.
     /// </summary>
     /// <param name="bounds">The desired bounds.</param>
-    public UniformGrid(Box2D bounds)
+    public UniformGrid(Box2D bounds, int blockDimension)
     {
+        Dimension = blockDimension;
         Bounds = ToBounds(bounds);
 
         Vec2D sides = Bounds.Sides;
@@ -289,7 +290,7 @@ public class UniformGrid<T> where T : new()
         return Blocks[index];
     }
 
-    private static Box2D ToBounds(Box2D bounds)
+    private Box2D ToBounds(Box2D bounds)
     {
         // Note that we are subtracting 1 from the bottom left even after
         // clamping it to the left. The reason for this is because any

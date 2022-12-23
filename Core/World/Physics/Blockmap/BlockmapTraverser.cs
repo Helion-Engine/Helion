@@ -331,19 +331,16 @@ public class BlockmapTraverser
         Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide, bool renderEntities)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
-        Vec2D origin = m_blockmap.Blocks.Origin;
-        int dimension = UniformGrid<Block>.Dimension;
         double maxDistSquared = maxViewDistance * maxViewDistance;
+        Vec2D occluder = occludeViewPos.HasValue ? occludeViewPos.Value : Vec2D.Zero;
+        bool occlude = occludeViewPos.HasValue;
 
         m_blockmapCount++;
         m_blockmap.Iterate(box, IterateBlock);
 
         GridIterationStatus IterateBlock(Block block)
         {
-            var point = new Vec2D(block.X * dimension, block.Y * dimension) + origin;
-            Box2D box = new(point, point + (dimension, dimension));
-
-            if (occludeViewPos.HasValue && !box.InView(occludeViewPos.Value, viewDirection))
+            if (occlude && !block.Box.InView(occluder, viewDirection))
                 return GridIterationStatus.Continue;
 
             for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
@@ -375,14 +372,6 @@ public class BlockmapTraverser
                 return GridIterationStatus.Continue;
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                if (entityNode.Value.BlockmapCount == m_blockmapCount)
-                    continue;
-                entityNode.Value.BlockmapCount = m_blockmapCount;
-                renderEntity(entityNode.Value);
-            }
-
-            for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 if (entityNode.Value.BlockmapCount == m_blockmapCount)
                     continue;
