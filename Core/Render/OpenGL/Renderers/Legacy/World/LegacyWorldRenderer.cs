@@ -168,17 +168,19 @@ public class LegacyWorldRenderer : WorldRenderer
         // Does shader bindings, which has to come outside of the above shader bindings
         // to avoid clobbering GL state.
         m_geometryRenderer.Render(renderInfo);
+        
+        // TODO: Move this into the geometry render eventually.
+        if (m_config.Render.TextureTransparency)
+        {
+            m_program.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetUniforms(renderInfo);
+            m_worldDataManager.DrawAlpha();
+            m_program.Unbind();
+        }
+        
         m_entityRenderer.Render(renderInfo);
         m_primitiveRenderer.Render(renderInfo);
-
-        // if (m_config.Render.TextureTransparency)
-        // {
-        //     m_program.Bind();
-        //     GL.ActiveTexture(TextureUnit.Texture0);
-        //     SetUniforms(renderInfo);
-        //     m_worldDataManager.DrawAlpha();
-        //     m_program.Unbind();
-        // }
     }
 
     private void SetPosition(RenderInfo renderInfo)

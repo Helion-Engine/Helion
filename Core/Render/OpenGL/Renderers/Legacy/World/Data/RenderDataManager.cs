@@ -1,6 +1,5 @@
 ﻿using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 using System;
 
@@ -8,15 +7,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderDataManager<TVertex> : IDisposable where TVertex : struct
 {
-    private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new();
-    private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new();
-    private readonly RenderProgram m_program;
-    private int m_renderCount;
+    private readonly RenderDataCollection<TVertex> m_nonAlphaData;
+    private readonly RenderDataCollection<TVertex> m_alphaData;
     private bool m_disposed;
 
     public RenderDataManager(RenderProgram program)
     {
-        m_program = program;
+        m_nonAlphaData = new(program);
+        m_alphaData = new(program);
     }
 
     ~RenderDataManager()
@@ -26,57 +24,37 @@ public class RenderDataManager<TVertex> : IDisposable where TVertex : struct
 
     public void Clear()
     {
-        for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Clear();
-        m_dataToRender.Clear();
-        
-        m_renderCount++;
+        m_nonAlphaData.Clear();
+        m_alphaData.Clear();
     }
 
-    public RenderData<TVertex> Get(GLLegacyTexture texture)
+    public RenderData<TVertex> GetNonAlpha(GLLegacyTexture texture)
     {
-        if (texture.TextureId >= m_allRenderData.Length)
-            ResizeToSupportIndex(texture.TextureId);
-
-        RenderData<TVertex>? data = m_allRenderData[texture.TextureId];
-        
-        if (data == null)
-        {
-            data = new(texture, m_program) { RenderCount = m_renderCount - 1 };
-            m_allRenderData[texture.TextureId] = data;
-        }
-
-        if (data.RenderCount != m_renderCount)
-        {
-            m_dataToRender.Add(data);
-            data.RenderCount = m_renderCount;
-        }
-
-        return data;
+        return m_nonAlphaData.Get(texture);
+    }
+    
+    public RenderData<TVertex> GetAlpha(GLLegacyTexture texture)
+    {
+        return m_alphaData.Get(texture);
     }
 
-    private void ResizeToSupportIndex(int index)
+    public void RenderNonAlpha(PrimitiveType primitive)
     {
-        const int GrowthSize = 1024;
-
-        int nextLargestSize = ((index / GrowthSize) + 1) * GrowthSize;
-        m_allRenderData.Resize(nextLargestSize);
+        m_nonAlphaData.Render(primitive);
     }
-
-    public void Render()
+    
+    public void RenderAlpha(PrimitiveType primitive)
     {
-        for (int i = 0; i < m_dataToRender.Length; i++)
-            m_dataToRender[i].Draw(PrimitiveType.Points);
+        m_alphaData.Render(primitive);
     }
 
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
-
-        for (int i = 0; i < m_allRenderData.Length; i++)
-            m_allRenderData[i].Dispose();
-        m_allRenderData.Clear();
+        
+        m_nonAlphaData.Dispose();
+        m_alphaData.Dispose();
 
         m_disposed = true;
     }

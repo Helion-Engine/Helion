@@ -35,7 +35,7 @@ public class EntityProgram : RenderProgram
         void main()
         {
             lightLevelOut = lightLevel;
-            alphaOut = alpha;
+            alphaOut = alpha / 255;
             flagsOut = flags;
 
             gl_Position = vec4(pos, 1);

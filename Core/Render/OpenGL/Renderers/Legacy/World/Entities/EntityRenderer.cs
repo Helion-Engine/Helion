@@ -19,8 +19,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer
 {
-    private const byte MaxAlpha = 255;
-    
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new();
@@ -110,14 +108,18 @@ public class EntityRenderer
 
     private void AddSpriteQuad(in Vec3D entityCenterBottom, Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
     {
+        const byte MaxAlpha = 255;
+
+        bool useAlpha = m_config.Render.SpriteTransparency;
+        RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
+        
         float bottomZ = (float)entityCenterBottom.Z;
         if (ShouldApplyOffsetZ(entity, texture, out float offsetAmount))
             bottomZ += offsetAmount;
         
         Vec3F pos = entityCenterBottom.Float.WithZ(bottomZ);
-        EntityVertex vertex = new(pos, lightLevel, MaxAlpha, entity.Flags.Shadow, mirror);
-
-        RenderData<EntityVertex> renderData = m_dataManager.Get(texture);
+        byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
+        EntityVertex vertex = new(pos, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
     }
 
@@ -224,7 +226,8 @@ public class EntityRenderer
         m_program.Bind();
         SetUniforms(renderInfo);
 
-        m_dataManager.Render();
+        m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+        m_dataManager.RenderAlpha(PrimitiveType.Points);
         
         m_program.Unbind();
     }
