@@ -328,7 +328,7 @@ public class BlockmapTraverser
     }
 
     public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance,
-        Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide)
+        Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide, bool renderEntities)
     {
         Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         Vec2D origin = m_blockmap.Blocks.Origin;
@@ -345,22 +345,6 @@ public class BlockmapTraverser
 
             if (occludeViewPos.HasValue && !box.InView(occludeViewPos.Value, viewDirection))
                 return GridIterationStatus.Continue;
-
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                if (entityNode.Value.BlockmapCount == m_blockmapCount)
-                    continue;
-                entityNode.Value.BlockmapCount = m_blockmapCount;
-                renderEntity(entityNode.Value);
-            }
-
-            for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                if (entityNode.Value.BlockmapCount == m_blockmapCount)
-                    continue;
-                entityNode.Value.BlockmapCount = m_blockmapCount;
-                renderEntity(entityNode.Value);
-            }
 
             for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
             {
@@ -385,6 +369,25 @@ public class BlockmapTraverser
 
                 sideNode.Value.BlockmapCount = m_blockmapCount;
                 renderSide(sideNode.Value);
+            }
+
+            if (!renderEntities)
+                return GridIterationStatus.Continue;
+
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
+                renderEntity(entityNode.Value);
+            }
+
+            for (LinkableNode<Entity>? entityNode = block.NoBlockmapEntities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_blockmapCount)
+                    continue;
+                entityNode.Value.BlockmapCount = m_blockmapCount;
+                renderEntity(entityNode.Value);
             }
 
             return GridIterationStatus.Continue;

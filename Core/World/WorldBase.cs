@@ -68,6 +68,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
+    public event EventHandler? OnResetInterpolation;
     public event EventHandler<SectorPlane>? SectorMoveStart;
     public event EventHandler<SectorPlane>? SectorMoveComplete;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
@@ -81,6 +82,7 @@ public abstract partial class WorldBase : IWorld
     public readonly BlockMap Blockmap;
     public WorldState WorldState { get; protected set; } = WorldState.Normal;
     public int Gametick { get; private set; }
+    public int GameTicker { get; private set; }
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
@@ -328,6 +330,7 @@ public abstract partial class WorldBase : IWorld
         if (Paused)
         {
             TickPlayerStatusBars();
+            GameTicker++;
             return;
         }
 
@@ -371,6 +374,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         Gametick++;
+        GameTicker++;
 
         Profiler.World.Total.Stop();
     }
@@ -522,6 +526,7 @@ public abstract partial class WorldBase : IWorld
             node = node.Next;
         }
         SpecialManager.ResetInterpolation();
+        OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
 
     public void Resume()

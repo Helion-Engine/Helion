@@ -31,6 +31,8 @@ public abstract class WorldRenderer : IDisposable
             PerformRender(world, renderInfo);
     }
 
+    public abstract void ResetInterpolation(IWorld world);
+
     public abstract void Dispose();
 
     /// <summary>

@@ -17,6 +17,7 @@ public class EntityProgram : RenderProgram
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
+    public void FuzzFrac(float frac) => Uniforms.Set(frac, "fuzzFrac");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, "viewRightNormal");
 
@@ -27,18 +28,20 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in int lightLevel;
         layout(location = 2) in float alpha;
         layout(location = 3) in int flags;
+        layout(location = 4) in vec3 prevPos;
 
         out float lightLevelOut;
         out float alphaOut;
         out int flagsOut;
+
+        uniform float timeFrac;
 
         void main()
         {
             lightLevelOut = lightLevel;
             alphaOut = alpha / 255;
             flagsOut = flags;
-
-            gl_Position = vec4(pos, 1);
+            gl_Position = vec4(prevPos + (timeFrac * (pos - prevPos)), 1);
         }
     ";
 
@@ -65,11 +68,11 @@ public class EntityProgram : RenderProgram
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform sampler2D boundTexture;
+        uniform float fuzzFrac;
 
         void main()
         {
             int isFuzzValue = clamp((flagsOut[0] & FuzzBit), 0, 1);
-
             float leftU = clamp((flagsOut[0] & FlipUBit), 0, 1);
             float rightU = 1 - clamp((flagsOut[0] & FlipUBit), 0, 1);
 
@@ -132,7 +135,7 @@ public class EntityProgram : RenderProgram
         out vec4 fragColor;
 
         uniform int hasInvulnerability;
-        uniform float timeFrac;
+        uniform float fuzzFrac;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -183,7 +186,7 @@ public class EntityProgram : RenderProgram
                 // The division/floor is to chunk pixels together to make
                 // blocks. A larger denominator makes it more blocky.
                 vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= step(0.25, noise(blockCoordinate * timeFrac));
+                fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
             }
 
             fragColor.xyz *= lightLevel;

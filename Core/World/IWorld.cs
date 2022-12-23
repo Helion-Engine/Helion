@@ -36,6 +36,7 @@ public interface IWorld : IDisposable
 {
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
+    event EventHandler? OnResetInterpolation;
     event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
@@ -45,7 +46,10 @@ public interface IWorld : IDisposable
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
 
     string MapName { get; }
+    // Increments every tick unless the game is paused.
     int Gametick { get; }
+    // Increments every tick, even if the game is paused;
+    int GameTicker { get; }
     int LevelTime { get; }
     double Gravity { get; }
     WorldState WorldState { get; }

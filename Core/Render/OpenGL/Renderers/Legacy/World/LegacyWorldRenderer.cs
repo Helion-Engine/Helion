@@ -42,6 +42,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_spriteTransparency;
+    private int m_lastTicker = -1;
+    private IWorld? m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -67,7 +69,19 @@ public class LegacyWorldRenderer : WorldRenderer
 
     protected override void UpdateToNewWorld(IWorld world)
     {
+        if (m_previousWorld != null)
+            m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+
         m_geometryRenderer.UpdateTo(world);
+        world.OnResetInterpolation += World_OnResetInterpolation;
+        m_previousWorld = world;
+        m_lastTicker = -1;
+    }
+
+    private void World_OnResetInterpolation(object? sender, EventArgs e)
+    {
+        m_lastTicker = -1;
+        ResetInterpolation((IWorld)sender);
     }
 
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
@@ -87,6 +101,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.SetViewDirection(viewDirection);
+        m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderCount++;
 
         int maxDistance = world.Config.Render.MaxDistance;
@@ -97,7 +112,8 @@ public class LegacyWorldRenderer : WorldRenderer
         Box2D box = new(viewPos, maxDistance);
 
         world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
-            RenderEntity, RenderSector, RenderSide);
+            RenderEntity, RenderSector, RenderSide, m_lastTicker != world.GameTicker);
+        m_lastTicker = world.GameTicker;
 
         void RenderEntity(Entity entity)
         {
@@ -183,6 +199,11 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer.Render(renderInfo);
     }
 
+    public override void ResetInterpolation(IWorld world)
+    {
+        m_entityRenderer.ResetInterpolation(world);
+    }
+
     private void SetPosition(RenderInfo renderInfo)
     {
         // This is a hack until frustum culling exists.
@@ -204,7 +225,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Clear();
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.Clear(world, renderInfo.TickFraction);       
+
+        if (world.GameTicker != m_lastTicker)
+            m_entityRenderer.Clear(world);
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)

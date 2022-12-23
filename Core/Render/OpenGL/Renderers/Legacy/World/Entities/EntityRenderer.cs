@@ -35,13 +35,15 @@ public class EntityRenderer
         m_dataManager = new(m_program);
     }
     
-    public void Clear(IWorld world, double tickFraction)
+    public void Clear(IWorld world)
     {
-        m_tickFraction = tickFraction;
         m_dataManager.Clear();
         m_renderPositions.Clear();
         m_renderCounter++;
     }
+
+    public void SetTickFraction(double tickFraction) =>
+        m_tickFraction = tickFraction;
 
     public void SetViewDirection(Vec2D viewDirection)
     {
@@ -103,7 +105,7 @@ public class EntityRenderer
     {
         const byte MaxAlpha = 255;
 
-        bool useAlpha = m_config.Render.SpriteTransparency;
+        bool useAlpha = m_config.Render.SpriteTransparency && entity.Definition.Properties.Alpha < 1;
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
         
         float bottomZ = (float)entityCenterBottom.Z;
@@ -111,8 +113,9 @@ public class EntityRenderer
             bottomZ += offsetAmount;
         
         Vec3F pos = entityCenterBottom.Float.WithZ(bottomZ);
+        Vec3F prevPos = entity.PrevPosition.Float.WithZ(bottomZ);
         byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
-        EntityVertex vertex = new(pos, lightLevel, alpha, entity.Flags.Shadow, mirror);
+        EntityVertex vertex = new(pos, prevPos, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
     }
 
@@ -142,7 +145,7 @@ public class EntityRenderer
     {
         const double NudgeFactor = 0.0001;
         
-        Vec3D centerBottom = entity.PrevPosition.Interpolate(entity.Position, m_tickFraction);
+        Vec3D centerBottom = entity.Position;
         Vec2D entityPos = centerBottom.XY;
         Vec2D position2D = position.XY;
 
@@ -189,7 +192,7 @@ public class EntityRenderer
         
         mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
         mat4 mvpNoPitch = Renderer.CalculateMvpMatrix(renderInfo, true);
-        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
+        float fuzzFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
@@ -210,12 +213,14 @@ public class EntityRenderer
         m_program.LightLevelMix(mix);
         m_program.Mvp(mvp);
         m_program.MvpNoPitch(mvpNoPitch);
-        m_program.TimeFrac(timeFrac);
+        m_program.FuzzFrac(fuzzFrac);
+        m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
     }
     
     public void Render(RenderInfo renderInfo)
     {
+        m_tickFraction = renderInfo.TickFraction;
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
@@ -224,5 +229,10 @@ public class EntityRenderer
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         
         m_program.Unbind();
+    }
+
+    public void ResetInterpolation(IWorld world)
+    {
+        Clear(world);
     }
 }
