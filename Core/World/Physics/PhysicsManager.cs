@@ -515,7 +515,7 @@ public class PhysicsManager
         LineOpening opening;
         if (tryMove != null)
         {
-            opening = GetLineOpeningWithDropoff(position, line->Line);
+            opening = GetLineOpeningWithDropoff(position, line);
             tryMove.SetIntersectionData(opening);
         }
         else
@@ -535,9 +535,27 @@ public class PhysicsManager
         return m_lineOpening;
     }
 
-    public LineOpening GetLineOpeningWithDropoff(in Vec2D position, Line line)
+    public unsafe LineOpening GetLineOpening(BlockLine* line)
     {
-        m_lineOpening.SetWithDropoff(position, line);
+        m_lineOpening.CeilingZ = Math.Min(line->FrontSector.Ceiling.Z, line->BackSector!.Ceiling.Z);
+        m_lineOpening.FloorZ = Math.Max(line->FrontSector.Floor.Z, line->BackSector!.Floor.Z);
+        m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
+        return m_lineOpening;
+    }
+
+    public unsafe LineOpening GetLineOpeningWithDropoff(in Vec2D position, BlockLine* line)
+    {
+        Sector front = line->FrontSector;
+        Sector back = line->BackSector!;
+        m_lineOpening.CeilingZ = Math.Min(front.Ceiling.Z, back.Ceiling.Z);
+        m_lineOpening.FloorZ = Math.Max(front.Floor.Z, back.Floor.Z);
+        m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
+
+        if (line->Segment.OnRight(position))
+            m_lineOpening.DropOffZ = back.Floor.Z;
+        else
+            m_lineOpening.DropOffZ = front.Floor.Z;
+
         return m_lineOpening;
     }
 

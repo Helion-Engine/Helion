@@ -225,10 +225,10 @@ public class Line : IBspUsableLine
             return true;
 
         if (!entity.IsPlayer && !entity.Flags.Missile && 
-            line->Line.Flags.Blocking.Monsters || (line->Line.Flags.Blocking.LandMonsters && !entity.Flags.Float))
+            line->Flags.Blocking.Monsters || (line->Flags.Blocking.LandMonsters && !entity.Flags.Float))
             return true;
 
-        if (entity.IsPlayer && line->Line.Flags.Blocking.Players)
+        if (entity.IsPlayer && line->Flags.Blocking.Players)
             return true;
 
         return false;

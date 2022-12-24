@@ -21,6 +21,7 @@ public struct BlockLine
     public int BlockmapCount;
     public Seg2D Segment;
     public bool OneSided;
+    public LineFlags Flags;
     public Line Line;
     public Sector FrontSector;
     public Sector? BackSector;
@@ -28,6 +29,7 @@ public struct BlockLine
     public BlockLine(Seg2D segment, Line line, bool oneSided, Sector frontSector, Sector? backSector)
     {
         Segment = segment;
+        Flags = line.Flags;
         Line = line;
         OneSided = oneSided;
         FrontSector = frontSector;
