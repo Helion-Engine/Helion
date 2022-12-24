@@ -12,7 +12,7 @@ public static class VanillaLineSpecTranslator
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, int tag,
+    public static ZDoomLineSpecialType Translate(ref LineFlags lineFlags, VanillaLineSpecialType type, int tag,
         ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility compatibility)
     {
         compatibility = LineSpecialCompatibility.DefaultVanilla;

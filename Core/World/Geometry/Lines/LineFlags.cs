@@ -3,7 +3,7 @@ using Helion.Maps.Specials;
 
 namespace Helion.World.Geometry.Lines;
 
-public class LineFlags
+public struct LineFlags
 {
     public LineAutomapFlags Automap;
     public LineBlockFlags Blocking;
