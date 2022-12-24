@@ -12,7 +12,7 @@ public static class VanillaLineSpecTranslator
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static ZDoomLineSpecialType Translate(LineFlags lineFlags, VanillaLineSpecialType type, int tag,
+    public static ZDoomLineSpecialType Translate(ref LineFlags lineFlags, VanillaLineSpecialType type, int tag,
         ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility compatibility)
     {
         compatibility = LineSpecialCompatibility.DefaultVanilla;
@@ -24,7 +24,7 @@ public static class VanillaLineSpecTranslator
         }
 
         if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
-            return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
+            return BoomLineSpecTranslator.Translate(ref lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
 
         lineFlags.Activations = GetSpecialActivations(type);
         lineFlags.Repeat = GetRepeat(type);

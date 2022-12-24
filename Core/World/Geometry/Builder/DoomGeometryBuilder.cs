@@ -160,7 +160,7 @@ public static class DoomGeometryBuilder
             Seg2D seg = new(doomLine.Start.Position, doomLine.End.Position);
             LineFlags flags = new(doomLine.Flags);
             SpecialArgs specialArgs = default;
-            ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(flags, doomLine.LineType, doomLine.SectorTag,
+            ZDoomLineSpecialType zdoomType = VanillaLineSpecTranslator.Translate(ref flags, doomLine.LineType, doomLine.SectorTag,
                 ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compatibility);
 
             LineSpecial special;

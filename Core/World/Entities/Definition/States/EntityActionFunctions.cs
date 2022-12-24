@@ -2769,7 +2769,7 @@ public static class EntityActionFunctions
     {
         lineSpecial = null;
         flags = new LineFlags(MapLineFlags.Doom(0));
-        var specialType = VanillaLineSpecTranslator.Translate(flags, (VanillaLineSpecialType)frame.DehackedMisc1,
+        var specialType = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)frame.DehackedMisc1,
             frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
 
         if (specialType == ZDoomLineSpecialType.None)

@@ -182,7 +182,7 @@ public static class HexenGeometryBuilder
                 special = new LineSpecial(hexenLine.LineType, LineActivationType.Any, LineSpecial.GetCompatibility(hexenLine));
 
             SpecialArgs specialArgs = new(hexenLine.Args);
-            LineSpecial.ValidateActivationFlags(special.LineSpecialType, flags);
+            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags);
 
             Line line = new(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
             builder.Lines.Add(line);

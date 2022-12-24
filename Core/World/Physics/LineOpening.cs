@@ -79,22 +79,6 @@ public class LineOpening
         OpeningHeight = 0;
     }
 
-    public void SetWithDropoff(in Vec2D position, Line line)
-    {
-        Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
-
-        Sector front = line.Front.Sector;
-        Sector back = line.Back!.Sector;
-        CeilingZ = Math.Min(front.Ceiling.Z, back.Ceiling.Z);
-        FloorZ = Math.Max(front.Floor.Z, back.Floor.Z);
-        OpeningHeight = CeilingZ - FloorZ;
-
-        if (line.Segment.OnRight(position))
-            DropOffZ = back.Floor.Z;
-        else
-            DropOffZ = front.Floor.Z;
-    }
-
     public void Set(Line line)
     {
         Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");

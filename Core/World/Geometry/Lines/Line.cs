@@ -16,6 +16,7 @@ using Helion.World.Bsp;
 using System.Linq;
 using Helion.World.Geometry.Islands;
 using Helion.Maps.Components.GL;
+using Helion.World.Blockmap;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -213,6 +214,21 @@ public class Line : IBspUsableLine
             return true;
 
         if (entity.IsPlayer && Flags.Blocking.Players)
+            return true;
+
+        return false;
+    }
+
+    public static unsafe bool BlocksEntity(BlockLine* line, Entity entity)
+    {
+        if (line->OneSided)
+            return true;
+
+        if (!entity.IsPlayer && !entity.Flags.Missile && 
+            line->Flags.Blocking.Monsters || (line->Flags.Blocking.LandMonsters && !entity.Flags.Float))
+            return true;
+
+        if (entity.IsPlayer && line->Flags.Blocking.Players)
             return true;
 
         return false;

@@ -62,7 +62,6 @@ public class ConfigTest
             ["render.forcepipelineflush"] = m_config.Render.ForcePipelineFlush,
             ["render.filter.font"] = m_config.Render.Filter.Font,
             ["render.filter.texture"] = m_config.Render.Filter.Texture,
-            ["render.lightdropoff"] = m_config.Render.LightDropoff,
             ["render.maxfps"] = m_config.Render.MaxFPS,
             ["render.multisample"] = m_config.Render.Multisample,
             ["render.showfps"] = m_config.Render.ShowFPS,

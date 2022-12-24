@@ -48,7 +48,7 @@ public class LineSpecial
         m_ceilingMove = SetCeilingMove();
     }
 
-    public static void ValidateActivationFlags(ZDoomLineSpecialType type, LineFlags flags)
+    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags)
     {
         switch (type)
         {

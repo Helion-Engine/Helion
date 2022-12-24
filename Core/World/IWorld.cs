@@ -27,6 +27,7 @@ using Helion.Util;
 using Helion.World.Special.Specials;
 using Helion.Resources;
 using Helion.World.Static;
+using Helion.World.Blockmap;
 
 namespace Helion.World;
 
@@ -36,6 +37,7 @@ public interface IWorld : IDisposable
 {
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
+    event EventHandler? OnResetInterpolation;
     event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
@@ -45,7 +47,10 @@ public interface IWorld : IDisposable
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
 
     string MapName { get; }
+    // Increments every tick unless the game is paused.
     int Gametick { get; }
+    // Increments every tick, even if the game is paused;
+    int GameTicker { get; }
     int LevelTime { get; }
     double Gravity { get; }
     WorldState WorldState { get; }
@@ -65,6 +70,8 @@ public interface IWorld : IDisposable
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
+    BlockmapTraverser RenderBlockmapTraverser { get; }
+    BlockMap RenderBlockmap { get; }
     SpecialManager SpecialManager { get; }
     TextureManager TextureManager { get; }
     IConfig Config { get; }
@@ -81,6 +88,7 @@ public interface IWorld : IDisposable
     DataCache DataCache { get; }
     Player Player { get; }
     bool IsFastMonsters { get; }
+    int CheckCounter { get; set; }
 
 
     void Link(Entity entity);

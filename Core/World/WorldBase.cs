@@ -68,6 +68,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
+    public event EventHandler? OnResetInterpolation;
     public event EventHandler<SectorPlane>? SectorMoveStart;
     public event EventHandler<SectorPlane>? SectorMoveComplete;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
@@ -81,6 +82,7 @@ public abstract partial class WorldBase : IWorld
     public readonly BlockMap Blockmap;
     public WorldState WorldState { get; protected set; } = WorldState.Normal;
     public int Gametick { get; private set; }
+    public int GameTicker { get; private set; }
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
     public bool Paused { get; private set; }
@@ -102,6 +104,8 @@ public abstract partial class WorldBase : IWorld
     public abstract double ListenerPitch { get; }
     public abstract Entity ListenerEntity { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
+    public BlockmapTraverser RenderBlockmapTraverser { get; private set; }
+    public BlockMap RenderBlockmap { get; private set; }
     public SpecialManager SpecialManager { get; private set; }
     public IConfig Config { get; private set; }
     public MapInfoDef MapInfo { get; private set; }
@@ -114,6 +118,7 @@ public abstract partial class WorldBase : IWorld
     public abstract Player Player { get; protected set; }
     public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
+    public int CheckCounter { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -154,7 +159,11 @@ public abstract partial class WorldBase : IWorld
         Profiler = profiler;
         Geometry = geometry;
         Map = map;
-        Blockmap = new BlockMap(Lines);
+
+        Blockmap = new BlockMap(Lines, 128);
+        RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
+        RenderBlockmapTraverser = new BlockmapTraverser(this, RenderBlockmap, DataCache);
+
         SoundManager = new WorldSoundManager(this, audioSystem);
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
@@ -328,6 +337,7 @@ public abstract partial class WorldBase : IWorld
         if (Paused)
         {
             TickPlayerStatusBars();
+            GameTicker++;
             return;
         }
 
@@ -371,6 +381,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         Gametick++;
+        GameTicker++;
 
         Profiler.World.Total.Stop();
     }
@@ -522,6 +533,7 @@ public abstract partial class WorldBase : IWorld
             node = node.Next;
         }
         SpecialManager.ResetInterpolation();
+        OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
 
     public void Resume()

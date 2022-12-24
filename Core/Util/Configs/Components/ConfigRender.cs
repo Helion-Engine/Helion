@@ -51,14 +51,8 @@ public class ConfigRender
     [ConfigInfo("If any sprite should clip the floor.")]
     public readonly ConfigValue<bool> SpriteClip = new(true);
 
-    [ConfigInfo("If corpse sprites should clip the floor.")]
-    public readonly ConfigValue<bool> SpriteClipCorpse = new(true);
-
     [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
-    public readonly ConfigValue<double> SpriteClipCorpseFactorMax = new(0.01, ClampNormalized);
-
-    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
-    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.05, ClampNormalized);
+    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
 
     [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
     public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));

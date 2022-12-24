@@ -79,7 +79,7 @@ public static class BoomLineSpecTranslator
 
     public static bool IsBoomLineSpecial(ushort special) => special >= (int)VanillaLineSpecialType.Max;
 
-    public static ZDoomLineSpecialType Translate(LineFlags lineFlags, ushort special, int tag,
+    public static ZDoomLineSpecialType Translate(ref LineFlags lineFlags, ushort special, int tag,
         ref SpecialArgs argsToMutate, out LineSpecialCompatibility compatibility, out LineActivationType lineActivationType)
     {
         compatibility = LineSpecialCompatibility.DefaultVanilla;
@@ -109,7 +109,7 @@ public static class BoomLineSpecTranslator
         else if (special >= DoorBase)
         {
             type = ZDoomLineSpecialType.DoorGeneric;
-            SetGenericDoor(special, ref argsToMutate, lineFlags);
+            SetGenericDoor(special, ref argsToMutate, ref lineFlags);
         }
         else if (special >= LockedBase)
         {
@@ -119,23 +119,23 @@ public static class BoomLineSpecTranslator
         else if (special >= LiftBase)
         {
             type = ZDoomLineSpecialType.GenericLift;
-            SetGenericLift(special, ref argsToMutate, lineFlags);
+            SetGenericLift(special, ref argsToMutate, ref lineFlags);
         }
         else if (special >= StairsBase)
         {
             type = ZDoomLineSpecialType.StairsGeneric;
-            SetGenericStairs(special, ref argsToMutate, lineFlags);
+            SetGenericStairs(special, ref argsToMutate, ref lineFlags);
         }
         else if (special >= CrusherBase)
         {
             type = ZDoomLineSpecialType.GenericCrusher;
-            SetGenericCrusher(special, ref argsToMutate, lineFlags);
+            SetGenericCrusher(special, ref argsToMutate, ref lineFlags);
         }
 
         return type;
     }
 
-    private static void SetGenericCrusher(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
+    private static void SetGenericCrusher(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         if ((special & CrusherMonsterMask) != 0)
             lineFlags.Activations |= LineActivations.Monster;
@@ -146,7 +146,7 @@ public static class BoomLineSpecTranslator
         argsToMutate.Arg4 = 10;
     }
 
-    private static void SetGenericStairs(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
+    private static void SetGenericStairs(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         if ((special & StairMonsterMask) != 0)
             lineFlags.Activations |= LineActivations.Monster;
@@ -188,7 +188,7 @@ public static class BoomLineSpecTranslator
             argsToMutate.Arg4 |= (int)ZDoomGenericFlags.Crush;
     }
 
-    private static void SetGenericLift(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
+    private static void SetGenericLift(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         if ((special & LiftMonsterMask) != 0)
             lineFlags.Activations |= LineActivations.Monster;
@@ -200,7 +200,7 @@ public static class BoomLineSpecTranslator
         argsToMutate.Arg3 = ((special & LiftTargetMask) >> LiftTargetShift) + 1;
     }
 
-    private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate, LineFlags lineFlags)
+    private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         if ((special & DoorMonsterMask) != 0)
             lineFlags.Activations |= LineActivations.Monster;

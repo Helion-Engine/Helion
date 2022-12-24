@@ -37,17 +37,19 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
     private readonly List<IRenderObject> m_alphaEntities = new();
-    private int m_renderCount;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_spriteTransparency;
+    private int m_lastTicker = -1;
+    private int m_renderCount;
+    private IWorld? m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
         m_automapRenderer = new(archiveCollection);
-        m_entityRenderer = new(config, textureManager, m_worldDataManager, m_program);
+        m_entityRenderer = new(config, textureManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -67,8 +69,19 @@ public class LegacyWorldRenderer : WorldRenderer
 
     protected override void UpdateToNewWorld(IWorld world)
     {
+        if (m_previousWorld != null)
+            m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+
         m_geometryRenderer.UpdateTo(world);
-        m_entityRenderer.UpdateTo(world);
+        world.OnResetInterpolation += World_OnResetInterpolation;
+        m_previousWorld = world;
+        m_lastTicker = -1;
+    }
+
+    private void World_OnResetInterpolation(object? sender, EventArgs e)
+    {
+        m_lastTicker = -1;
+        ResetInterpolation((IWorld)sender);
     }
 
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
@@ -88,7 +101,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.SetViewDirection(viewDirection);
-        m_renderCount++;
+        m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
+        int checkCount = ++world.CheckCounter;
 
         int maxDistance = world.Config.Render.MaxDistance;
         if (maxDistance <= 0)
@@ -97,8 +111,9 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(viewPos, maxDistance);
 
-        world.BlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
-            RenderEntity, RenderSector, RenderSide);
+        world.RenderBlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
+            RenderEntity, RenderSector, RenderSide, m_lastTicker != world.GameTicker);
+        m_lastTicker = world.GameTicker;
 
         void RenderEntity(Entity entity)
         {
@@ -130,11 +145,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         void RenderSector(Sector sector)
         {
-            if (sector.RenderCount == m_renderCount)
+            if (sector.CheckCount == checkCount)
                 return;
 
             m_geometryRenderer.RenderSector(m_viewSector, sector, position3D);
-            sector.RenderCount = m_renderCount;
+            sector.CheckCount = checkCount;
         }
 
         void RenderSide(Side side)
@@ -158,7 +173,7 @@ public class LegacyWorldRenderer : WorldRenderer
             TraverseBsp(world, renderInfo);
 
         PopulatePrimitives(world);
-
+        
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
@@ -166,9 +181,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderStaticGeometry();
         m_program.Unbind();
 
-        // Does shader bindings, which has to come outside of the above shader bindings
-        // to avoid clobbering GL state.
-        m_geometryRenderer.Render(renderInfo);
+        m_geometryRenderer.Render(renderInfo); 
+        m_entityRenderer.RenderNonAlpha(renderInfo);
+        m_entityRenderer.RenderAlpha(renderInfo);
 
         if (m_config.Render.TextureTransparency)
         {
@@ -178,8 +193,13 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.DrawAlpha();
             m_program.Unbind();
         }
-
+        
         m_primitiveRenderer.Render(renderInfo);
+    }
+
+    public override void ResetInterpolation(IWorld world)
+    {
+        m_entityRenderer.ResetInterpolation(world);
     }
 
     private void SetPosition(RenderInfo renderInfo)
@@ -203,7 +223,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Clear();
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.Clear(world, renderInfo.TickFraction);       
+
+        if (world.GameTicker != m_lastTicker)
+            m_entityRenderer.Clear(world);
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
@@ -215,9 +237,9 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.SetViewDirection(viewDirection);
         m_viewClipper.Center = position;
-        m_renderCount++;
+        m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
+        // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, List<IRenderObject> alphaEntities)
@@ -286,13 +308,13 @@ public class LegacyWorldRenderer : WorldRenderer
         if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
             return;
 
-        bool hasRenderedSector = subsector.Sector.RenderCount == m_renderCount;
+        bool hasRenderedSector = subsector.Sector.CheckCount == m_renderCount;
         m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position, hasRenderedSector);
 
         // Entities are rendered by the sector
         if (hasRenderedSector)
             return;
-        subsector.Sector.RenderCount = m_renderCount;
+        subsector.Sector.CheckCount = m_renderCount;
         m_entityRenderer.RenderSubsector(m_viewSector, subsector, position);
     }
 

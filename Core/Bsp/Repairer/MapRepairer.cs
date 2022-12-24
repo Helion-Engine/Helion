@@ -23,7 +23,7 @@ public class MapRepairer
         m_segmentAllocator = segmentAllocator;
 
         Box2D bounds = vertexAllocator.Bounds();
-        m_blocks = new UniformGrid<MapBlock>(bounds);
+        m_blocks = new UniformGrid<MapBlock>(bounds, 128);
         AddSegmentsToBlocks();
     }
 
