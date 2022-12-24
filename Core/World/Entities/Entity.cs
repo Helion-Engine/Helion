@@ -778,15 +778,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Flags.NoGravity)
             return false;
 
-        // If still clipped with another entity then do not apply gravity
-        if (ClippedWithEntity)
-        {
-            if (IsClippedWithEntity())
-                return false;
-
-            ClippedWithEntity = false;
-        }
-
         return !OnGround;
     }
 

@@ -1447,6 +1447,10 @@ public class PhysicsManager
         if (noVelocity && floatZ == 0 && entity.OnEntity.Entity == null)
             return;
 
+        // If still clipped with another entity then do not apply gravity
+        if (entity.ClippedWithEntity && !entity.IsClippedWithEntity())
+            entity.ClippedWithEntity = false;
+
         Vec3D previousVelocity = entity.Velocity;
         double newZ = entity.Position.Z + entity.Velocity.Z + floatZ;
         entity.Position.Z = newZ;
