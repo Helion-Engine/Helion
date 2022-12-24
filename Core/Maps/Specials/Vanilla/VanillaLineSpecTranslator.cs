@@ -24,7 +24,7 @@ public static class VanillaLineSpecTranslator
         }
 
         if (BoomLineSpecTranslator.IsBoomLineSpecial((ushort)type))
-            return BoomLineSpecTranslator.Translate(lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
+            return BoomLineSpecTranslator.Translate(ref lineFlags, (ushort)type, tag, ref argsToMutate, out compatibility, out lineActivationType);
 
         lineFlags.Activations = GetSpecialActivations(type);
         lineFlags.Repeat = GetRepeat(type);
