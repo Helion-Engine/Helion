@@ -25,12 +25,16 @@ public struct EntityVertex
     [VertexAttribute]
     public Vec3F PrevPos;
 
-    public EntityVertex(Vec3F pos, Vec3F prevPos, short lightLevel, byte alpha, bool isFuzz, bool flipU)
+    [VertexAttribute]
+    public float OffsetZ;
+
+    public EntityVertex(Vec3F pos, Vec3F prevPos, float offsetZ, short lightLevel, byte alpha, bool isFuzz, bool flipU)
     {
         Pos = pos;
         LightLevel = lightLevel;
         Alpha = alpha;
         Flags = (byte)((flipU ? FlipUBit : 0) | (isFuzz ? FuzzBit : 0));
         PrevPos = prevPos;
+        OffsetZ = offsetZ;
     }
 }

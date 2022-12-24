@@ -29,6 +29,7 @@ public class EntityProgram : RenderProgram
         layout(location = 2) in float alpha;
         layout(location = 3) in int flags;
         layout(location = 4) in vec3 prevPos;
+        layout(location = 5) in float offsetZ;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -42,6 +43,7 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha / 255;
             flagsOut = flags;
             gl_Position = vec4(prevPos + (timeFrac * (pos - prevPos)), 1);
+            gl_Position.z += offsetZ;
         }
     ";
 

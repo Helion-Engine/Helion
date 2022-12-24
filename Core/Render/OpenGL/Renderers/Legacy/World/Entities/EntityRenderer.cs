@@ -109,36 +109,35 @@ public class EntityRenderer
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
         
         float bottomZ = (float)entityCenterBottom.Z;
-        if (ShouldApplyOffsetZ(entity, texture, out float offsetAmount))
-            bottomZ += offsetAmount;
-        
-        Vec3F pos = entityCenterBottom.Float.WithZ(bottomZ);
-        Vec3F prevPos = entity.PrevPosition.Float.WithZ(bottomZ);
+        float offsetZ = GetOffsetZ(entity, texture);
+
+        Vec3F pos = entityCenterBottom.Float;
+        Vec3F prevPos = entity.PrevPosition.Float;
         byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
-        EntityVertex vertex = new(pos, prevPos, lightLevel, alpha, entity.Flags.Shadow, mirror);
+        EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
     }
 
-    private bool ShouldApplyOffsetZ(Entity entity, GLLegacyTexture texture, out float offsetAmount)
+    private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
-        offsetAmount = texture.Offset.Y - texture.Height;
+        float offsetAmount = texture.Offset.Y - texture.Height;
         if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
-            return true;
+            return offsetAmount;
 
         if (!m_config.Render.SpriteClip)
-            return false;
+            return 0;
 
         if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsInventory)
-            return false;
+            return 0;
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
             if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
                 offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
-            return true;
+            return offsetAmount;
         }
 
-        return false;
+        return 0;
     }
 
     public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
