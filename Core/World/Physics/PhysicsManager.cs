@@ -507,22 +507,20 @@ public class PhysicsManager
         BlockContinue,
     }
 
-    private LineBlock LineBlocksEntity(Entity entity, in Vec2D position, Line line, TryMoveData? tryMove)
+    private unsafe LineBlock LineBlocksEntity(Entity entity, in Vec2D position, BlockLine* line, TryMoveData? tryMove)
     {
-        if (line.BlocksEntity(entity))
+        if (Line.BlocksEntity(line, entity))
             return LineBlock.BlockStopChecking;
-        if (line.Back == null)
-            return LineBlock.NoBlock;
 
         LineOpening opening;
         if (tryMove != null)
         {
-            opening = GetLineOpeningWithDropoff(position, line);
+            opening = GetLineOpeningWithDropoff(position, line->Line);
             tryMove.SetIntersectionData(opening);
         }
         else
         {
-            opening = GetLineOpening(line);
+            opening = GetLineOpening(line->Line);
         }
 
         if (opening.CanPassOrStepThrough(entity))
@@ -1061,9 +1059,9 @@ public class PhysicsManager
                     blockLine->BlockmapCount = checkCounter;
                     if (blockLine->Segment.Intersects(nextBox))
                     {
-                        Line line = blockLine->Line;
-                        LineBlock blockType = LineBlocksEntity(entity, position, line, tryMove);
+                        LineBlock blockType = LineBlocksEntity(entity, position, blockLine, tryMove);
 
+                        Line line = blockLine->Line;
                         if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer && (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
                             (line != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
                             entity.ViewLineClip = true;
@@ -1236,7 +1234,7 @@ public class PhysicsManager
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
                     if (cornerTracer.Intersection(line->Segment, out double time) &&
-                        LineBlocksEntity(entity, position, line->Line, null) != LineBlock.NoBlock &&
+                        LineBlocksEntity(entity, position, line, null) != LineBlock.NoBlock &&
                         time < hitTime)
                     {
                         hit = true;
