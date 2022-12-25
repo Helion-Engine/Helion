@@ -321,6 +321,8 @@ public class UniformGrid<T> where T : new()
     private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
 
     public BlockmapBoxIterator Iterate(Box2D box) => new(this, box);
+    
+    public BlockmapSegIterator Iterate(Seg2D seg) => new(this, seg);
 
     public ref struct BlockmapBoxIterator
     {
@@ -356,7 +358,7 @@ public class UniformGrid<T> where T : new()
 
         public bool HasNext()
         {
-            return m_iterationCounter < m_maxIterationCounter && m_currentIndex < m_totalBlocks;
+            return m_iterationCounter < m_maxIterationCounter && m_currentIndex >= 0 && m_currentIndex < m_totalBlocks;
         }
 
         public T Next()
@@ -374,6 +376,92 @@ public class UniformGrid<T> where T : new()
             }
 
             return m_grid.Blocks[indexToReturn];
+        }
+    }
+
+    public ref struct BlockmapSegIterator
+    {
+        private readonly UniformGrid<T> m_grid;
+        private readonly int m_totalBlocks;
+        private readonly int m_numBlocks = 1;
+        private readonly int m_verticalStep;
+        private readonly int m_horizontalStep;
+        private int m_blockIndex;
+        private int m_blocksVisited;
+        private double m_error;
+        private Vec2D m_absDelta;
+
+        internal BlockmapSegIterator(UniformGrid<T> grid, Seg2D seg)
+        {
+            m_grid = grid;
+            m_totalBlocks = grid.TotalBlocks;
+            
+            Vec2D blockUnitStart = (seg.Start - grid.Origin) / grid.Dimension;
+            Vec2D blockUnitEnd = (seg.End - grid.Origin) / grid.Dimension;
+            Vec2I startingBlock = blockUnitStart.Int;
+            m_absDelta = (blockUnitEnd - blockUnitStart).Abs();
+            m_blockIndex = grid.IndexFromBlockCoordinate(startingBlock);
+
+            if (MathHelper.IsZero(m_absDelta.X))
+            {
+                m_error = double.MaxValue;
+            }
+            else if (blockUnitEnd.X > blockUnitStart.X)
+            {
+                m_horizontalStep = 1;
+                m_numBlocks += (int)Math.Floor(blockUnitEnd.X) - startingBlock.X;
+                m_error = (Math.Floor(blockUnitStart.X) + 1 - blockUnitStart.X) * m_absDelta.Y;
+            }
+            else
+            {
+                m_horizontalStep = -1;
+                m_numBlocks += startingBlock.X - (int)Math.Floor(blockUnitEnd.X);
+                m_error = (blockUnitStart.X - Math.Floor(blockUnitStart.X)) * m_absDelta.Y;
+            }
+
+            if (MathHelper.IsZero(m_absDelta.Y))
+            {
+                m_error = double.MinValue;
+            }
+            else if (blockUnitEnd.Y > blockUnitStart.Y)
+            {
+                m_verticalStep = grid.Width;
+                m_numBlocks += (int)Math.Floor(blockUnitEnd.Y) - startingBlock.Y;
+                m_error -= (Math.Floor(blockUnitStart.Y) + 1 - blockUnitStart.Y) * m_absDelta.X;
+            }
+            else
+            {
+                m_verticalStep = -grid.Width;
+                m_numBlocks += startingBlock.Y - (int)Math.Floor(blockUnitEnd.Y);
+                m_error -= (blockUnitStart.Y - Math.Floor(blockUnitStart.Y)) * m_absDelta.X;
+            }
+
+            if (m_numBlocks > grid.Blocks.Length)
+                m_numBlocks = grid.Blocks.Length;
+        }
+
+        public bool HasNext()
+        {
+            return m_blocksVisited < m_numBlocks && m_blockIndex >= 0 && m_blockIndex < m_totalBlocks;
+        }
+
+        public T Next()
+        {
+            int currentBlockIndex = m_blockIndex;
+            m_blocksVisited++;
+            
+            if (m_error > 0)
+            {
+                m_blockIndex += m_verticalStep;
+                m_error -= m_absDelta.X;
+            }
+            else
+            {
+                m_blockIndex += m_horizontalStep;
+                m_error += m_absDelta.Y;
+            }
+
+            return m_grid.Blocks[currentBlockIndex];
         }
     }
 }
