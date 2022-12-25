@@ -19,6 +19,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using NLog;
 using Helion.World.Stats;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.World.Entities;
 
@@ -240,8 +241,8 @@ public class EntityManager : IDisposable
             }
 
             var entity = new Entity(entityModel, definition, World);
-            var node = Entities.Add(entity);
-            entity.EntityListNode = node;
+            entity.EntityListNode = World.DataCache.GetLinkableNodeEntity(entity);
+            Entities.Add(entity.EntityListNode);
 
             entities.Add(entityModel.Id, new(entityModel, entity));
         }
@@ -344,8 +345,8 @@ public class EntityManager : IDisposable
             Player player = new(playerModel, entities, playerDefinition, World);
             player.IsVooDooDoll = isVoodooDoll;
 
-            var node = Entities.Add(player);
-            player.EntityListNode = node;
+            player.EntityListNode = World.DataCache.GetLinkableNodeEntity(player);
+            Entities.Add(player.EntityListNode);
             entities.Add(player.Id, new(playerModel, player));
 
             if (isVoodooDoll)
@@ -402,8 +403,8 @@ public class EntityManager : IDisposable
 
     private void FinishCreatingEntity(Entity entity, double zHeight, bool executeStateFunctions)
     {
-        LinkableNode<Entity> node = Entities.Add(entity);
-        entity.EntityListNode = node;
+        entity.EntityListNode = World.DataCache.GetLinkableNodeEntity(entity);
+        Entities.Add(entity.EntityListNode);
 
         World.Link(entity);
         FinalizeEntity(entity, zHeight);

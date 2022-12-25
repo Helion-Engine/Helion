@@ -36,20 +36,6 @@ public class LinkableList<T>
     }
 
     /// <summary>
-    /// Adds a new element to the list. It is placed at the front.
-    /// </summary>
-    /// <remarks>
-    /// It's placement in the list could be anywhere. You are only
-    /// guaranteed that it is inserted into the list somewhere.
-    /// </remarks>
-    /// <param name="value">The value to add to the list.</param>
-    /// <returns>The node created that contains the value.</returns>
-    public LinkableNode<T> Add(T value)
-    {
-        return new(value, m_dummyHead);
-    }
-
-    /// <summary>
     /// Adds a node to the front of the list.
     /// </summary>
     /// <param name="node">The node to add.</param>
@@ -136,6 +122,13 @@ public class LinkableNode<T>
     /// detail.
     /// </summary>
     public LinkableNode<T> Previous;
+
+    public LinkableNode(T value)
+    {
+        Previous = null!;
+        Next = null;
+        Value = value;
+    }
 
     /// <summary>
     /// Creates a dummy node which should only ever be used for the head of

@@ -920,7 +920,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-        EntityListNode?.Unlink();
+
+        if (EntityListNode != null)
+        {
+            EntityListNode.Unlink();
+            World.DataCache.FreeLinkableNodeEntity(EntityListNode);
+            EntityListNode = null;
+        }
+
         World.DataCache.FreeEntityAudioSources(SoundChannels);
         World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
         World.DataCache.FreeLinkableNodeEntityList(SectorNodes);

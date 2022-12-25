@@ -408,10 +408,12 @@ public abstract partial class WorldBase : IWorld
     private void TickEntities()
     {
         Profiler.World.TickEntity.Start();
-
         LinkableNode<Entity>? node = EntityManager.Entities.Head;
+        LinkableNode<Entity>? nextNode = node;
         while (node != null)
         {
+            nextNode = node.Next;
+
             Entity entity = node.Value;
             entity.Tick();
 
@@ -430,7 +432,7 @@ public abstract partial class WorldBase : IWorld
                     InstantKillSector(entity);
             }
 
-            node = node.Next;
+            node = nextNode;
         }
 
         Profiler.World.TickEntity.Stop();

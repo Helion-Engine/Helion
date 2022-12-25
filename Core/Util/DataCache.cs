@@ -51,10 +51,9 @@ public class DataCache
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {
-        LinkableNode<Entity> node;
         if (m_entityNodes.Length > 0)
         {
-            node = m_entityNodes.RemoveLast();
+            var node = m_entityNodes.RemoveLast();
             node.Value = entity;
             return node;
         }
