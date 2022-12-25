@@ -5,8 +5,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -26,13 +24,8 @@ public class BlockMap
 {
     public readonly Box2D Bounds;
     private readonly UniformGrid<Block> m_blocks;
-
     public UniformGrid<Block> Blocks => m_blocks;
-
-    /// <summary>
-    /// Creates a blockmap grid for the map provided.
-    /// </summary>
-    /// <param name="lines">The lines to make the grid for.</param>
+    
     public BlockMap(IList<Line> lines, int blockDimension)
     {
         Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
@@ -71,8 +64,6 @@ public class BlockMap
     /// the provided function, false if not.</returns>
     public bool Iterate(Entity entity, Func<Block, GridIterationStatus> func)
     {
-        // TODO: Why not store the blocks with the entity in the internal
-        //       list and just iterate over that? May be faster...
         return Iterate(entity.GetBox2D(), func);
     }
 
@@ -108,15 +99,13 @@ public class BlockMap
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-        m_blocks.Iterate(entity.GetBox2D(), BlockLinkFunc);
-
-        GridIterationStatus BlockLinkFunc(Block block)
+        BlockmapBoxIterator<Block> it = m_blocks.Iterate(entity.GetBox2D());
+        while (it.HasNext())
         {
+            Block block = it.Next();
             LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
             block.Entities.Add(blockEntityNode);
-
             entity.BlockmapNodes.Add(blockEntityNode);
-            return GridIterationStatus.Continue;
         }
     }
 
@@ -137,15 +126,13 @@ public class BlockMap
         Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
 
         Box2D box = sector.GetBoundingBox();
-        m_blocks.Iterate(box, BlockLinkFunc);
-
-        GridIterationStatus BlockLinkFunc(Block block)
+        BlockmapBoxIterator<Block> it = m_blocks.Iterate(box);
+        while (it.HasNext())
         {
+            Block block = it.Next();
             LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
             block.DynamicSectors.Add(sectorNode);
-
             sector.BlockmapNodes.Add(sectorNode);
-            return GridIterationStatus.Continue;
         }
     }
 
@@ -155,12 +142,12 @@ public class BlockMap
             return;
 
         side.BlockmapLinked = true;
-        m_blocks.Iterate(side.Line.Segment, BlockLinkFunc);
-
-        GridIterationStatus BlockLinkFunc(Block block)
+        
+        BlockmapSegIterator<Block> it = m_blocks.Iterate(side.Line.Segment);
+        while (it.HasNext())
         {
+            Block block = it.Next();
             block.DynamicSides.Add(new LinkableNode<Side>() { Value = side });
-            return GridIterationStatus.Continue;
         }
     }
 
