@@ -34,11 +34,9 @@ public class DataCache
     private const int DefaultLength = 1024;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    private readonly DynamicArray<Entity> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
-    private readonly DynamicArray<DynamicArray<LinkableNode<Entity>>> m_entityListNodes = new(DefaultLength);
-    private readonly DynamicArray<DynamicArray<Sector>> m_sectorLists = new(DefaultLength);
-    private readonly DynamicArray<IAudioSource?[]> m_entityAudioSources = new(DefaultLength);
     private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<List<Entity>> m_entityLists = new();
@@ -48,6 +46,43 @@ public class DataCache
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
+
+    public Entity GetEntity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
+        Sector sector, IWorld world)
+    {
+        if (m_entities.Length > 0)
+        {
+            var entity = m_entities.RemoveLast();
+            entity.Set(id, thingId, definition, position, angleRadians, sector, world);
+            return entity;
+        }
+
+        Entity newEnity = new();
+        newEnity.Set(id, thingId, definition, position, angleRadians, sector, world);
+        return newEnity;
+    }
+
+    public Entity GetEntity(EntityModel entityModel, EntityDefinition definition, IWorld world)
+    {
+        if (m_entities.Length > 0)
+        {
+            var entity = m_entities.RemoveLast();
+            entity.Set(entityModel, definition, world);
+            return entity;
+        }
+
+        Entity newEnity = new();
+        newEnity.Set(entityModel, definition, world);
+        return newEnity;
+    }
+
+    public void FreeEntity(Entity entity)
+    {
+        if (entity.IsPlayer)
+            return;
+
+        m_entities.Add(entity);
+    }
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
     {
@@ -88,49 +123,6 @@ public class DataCache
         node.Next = null;
         node.Value = null!;
         m_sectorNodes.Add(node);
-    }
-
-    public DynamicArray<LinkableNode<Entity>> GetLinkableNodeEntityList()
-    {
-        if (m_entityListNodes.Length > 0)
-            return m_entityListNodes.RemoveLast();
-
-        return new DynamicArray<LinkableNode<Entity>>();
-    }
-
-    public void FreeLinkableNodeEntityList(DynamicArray<LinkableNode<Entity>> list)
-    {
-        list.Clear();
-        m_entityListNodes.Add(list);
-    }
-
-    public DynamicArray<Sector> GetSectorList()
-    {
-        if (m_sectorLists.Length > 0)
-            return m_sectorLists.RemoveLast();
-
-        return new DynamicArray<Sector>();
-    }
-
-    public void FreeSectorList(DynamicArray<Sector> list)
-    {
-        list.Clear();
-        m_sectorLists.Add(list);
-    }
-
-    public IAudioSource?[] GetEntityAudioSources()
-    {
-        if (m_entityAudioSources.Length > 0)
-            return m_entityAudioSources.RemoveLast();
-
-        return new IAudioSource[Entity.MaxSoundChannels];
-    }
-
-    public void FreeEntityAudioSources(IAudioSource?[] sources)
-    {
-        for (int i = 0; i < sources.Length; i++)
-            sources[i] = null;
-        m_entityAudioSources.Add(sources);
     }
 
     public List<BlockmapIntersect> GetBlockmapIntersectList()

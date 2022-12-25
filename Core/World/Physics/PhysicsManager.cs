@@ -1391,7 +1391,7 @@ public class PhysicsManager
 
     private void MoveXY(Entity entity)
     {
-        if (entity.Velocity.XY == Vec2D.Zero)
+        if (entity.IsDisposed || entity.Velocity.XY == Vec2D.Zero)
             return;
 
         TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
@@ -1424,7 +1424,7 @@ public class PhysicsManager
 
     private void MoveZ(Entity entity)
     {
-        if (m_world.WorldState == WorldState.Exit)
+        if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
             return;
 
         entity.BlockingEntity = null;

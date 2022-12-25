@@ -112,7 +112,7 @@ public class EntityManager : IDisposable
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = new(id, tid, definition, position, angle, sector, World);
+        Entity entity = World.DataCache.GetEntity(id, tid, definition, position, angle, sector, World);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
@@ -240,7 +240,7 @@ public class EntityManager : IDisposable
                 continue;
             }
 
-            var entity = new Entity(entityModel, definition, World);
+            var entity = World.DataCache.GetEntity(entityModel, definition, World);
             entity.EntityListNode = World.DataCache.GetLinkableNodeEntity(entity);
             Entities.Add(entity.EntityListNode);
 

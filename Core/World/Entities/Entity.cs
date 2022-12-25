@@ -38,15 +38,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public const double FloatSpeed = 4.0;
     public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
-    public readonly int Id;
-    public readonly int ThingId;
-    public readonly EntityDefinition Definition;
+    public int Id;
+    public int ThingId;
+    public EntityDefinition Definition;
     public EntityFlags Flags;
     public EntityProperties Properties;
-    public readonly EntityManager EntityManager;
+    public EntityManager EntityManager;
     public FrameState FrameState;
-    public readonly IWorld World;
-    public readonly WorldSoundManager SoundManager;
+    public IWorld World;
+    public WorldSoundManager SoundManager;
     public double AngleRadians;
     public Vec3D PrevPosition;
     public Vec3D Position;
@@ -69,7 +69,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors;
+    public DynamicArray<Sector> IntersectSectors = new();
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -104,8 +104,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    public DynamicArray<LinkableNode<Entity>> BlockmapNodes;
-    public DynamicArray<LinkableNode<Entity>> SectorNodes;
+    public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
+    public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
     public LinkableNode<Entity>? EntityListNode;
     public bool IsDisposed { get; private set; }
@@ -130,11 +130,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public readonly IAudioSource?[] SoundChannels;
+    public IAudioSource[] SoundChannels = new IAudioSource[Entity.MaxSoundChannels];
 
-    public Entity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
+    public Entity() { }
+
+    public void Set(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
     {
+        IsDisposed = false;
         Health = definition.Properties.Health;
 
         Id = id;
@@ -166,14 +169,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Properties.Threshold = 0;
 
         FrameState = new(this, definition, world.EntityManager);
-        SoundChannels = world.DataCache.GetEntityAudioSources();
-        BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
-        SectorNodes = world.DataCache.GetLinkableNodeEntityList();
-        IntersectSectors = world.DataCache.GetSectorList();
     }
 
-    public Entity(EntityModel entityModel, EntityDefinition definition, IWorld world)
+    public void Set(EntityModel entityModel, EntityDefinition definition, IWorld world)
     {
+        IsDisposed = false;
         Id = entityModel.Id;
         ThingId = entityModel.ThingId;
         Definition = definition;
@@ -218,10 +218,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
         FrameState = new(this, definition, world.EntityManager, entityModel.Frame);
-        SoundChannels = world.DataCache.GetEntityAudioSources();
-        BlockmapNodes = world.DataCache.GetLinkableNodeEntityList();
-        SectorNodes = world.DataCache.GetLinkableNodeEntityList();
-        IntersectSectors = world.DataCache.GetSectorList();
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -920,7 +916,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-
+        
         if (EntityListNode != null)
         {
             EntityListNode.Unlink();
@@ -928,13 +924,26 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             EntityListNode = null;
         }
 
-        World.DataCache.FreeEntityAudioSources(SoundChannels);
-        World.DataCache.FreeLinkableNodeEntityList(BlockmapNodes);
-        World.DataCache.FreeLinkableNodeEntityList(SectorNodes);
-        World.DataCache.FreeSectorList(IntersectSectors);
+        FrameState.SetFrameIndex(Constants.NullFrameIndex);
+
+        BlockmapNodes.Clear();
+        SectorNodes.Clear();
+        IntersectSectors.Clear();
+
+        for (int i = 0; i < SoundChannels.Length; i++)
+            SoundChannels[i] = null;
+
+        SetTarget(null);
+        SetTracer(null);
+        SetOnEntity(null);
+        SetOverEntity(null);
+
+        World.DataCache.FreeEntity(this);
 
         WeakEntity.DisposeEntity(this);
-        GC.SuppressFinalize(this);
+        World = null!;
+        EntityManager = null!;
+        Definition = null!;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)
