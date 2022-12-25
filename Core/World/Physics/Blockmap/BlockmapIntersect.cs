@@ -1,11 +1,11 @@
+using System;
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Physics.Blockmap;
 
-public struct BlockmapIntersect
+public struct BlockmapIntersect : IComparable<BlockmapIntersect>
 {
     public Entity? Entity;
     public Line? Line;
@@ -26,5 +26,10 @@ public struct BlockmapIntersect
         Line = line;
         Intersection = intersection;
         Distance2D = distance2D;
+    }
+
+    public int CompareTo(BlockmapIntersect other)
+    {
+        return Distance2D.CompareTo(other.Distance2D);
     }
 }

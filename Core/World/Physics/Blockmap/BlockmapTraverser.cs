@@ -5,12 +5,10 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 
@@ -39,19 +37,17 @@ public class BlockmapTraverser
         return Traverse(null, seg, flags, entityFlags,  out _);
     }
 
-    // Gets all entity intersections reguardless of flags
+    // Gets all entity intersections regardless of flags
     public List<BlockmapIntersect> GetEntityIntersections(Box2D box)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
-        Vec2D intersect = Vec2D.Zero;
-
         int checkCounter = ++m_world.CheckCounter;
-
-        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
-        m_blockmap.Iterate(box, IterateBlock);
-
-        GridIterationStatus IterateBlock(Block block)
+        
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+            
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 Entity entity = entityNode.Value;
@@ -65,8 +61,6 @@ public class BlockmapTraverser
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
 
         return intersections;
@@ -76,21 +70,17 @@ public class BlockmapTraverser
     public List<BlockmapIntersect> GetSolidEntityIntersections(Box2D box)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
-        Vec2D intersect = Vec2D.Zero;
-
         int m_checkCounter = ++m_world.CheckCounter;
 
-        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
-        m_blockmap.Iterate(box, IterateBlock);
-
-        GridIterationStatus IterateBlock(Block block)
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+            
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == m_checkCounter)
-                    continue;
-                if (!entity.Flags.Solid)
+                if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)
                     continue;
 
                 entity.BlockmapCount = m_checkCounter;
@@ -100,8 +90,6 @@ public class BlockmapTraverser
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
 
         return intersections;
@@ -110,17 +98,14 @@ public class BlockmapTraverser
     public unsafe List<BlockmapIntersect> SightTraverse(Seg2D seg, out bool hitOneSidedLine)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
-        Vec2D intersect = Vec2D.Zero;
-
         bool hitOneSidedIterate = false;
         int checkCounter = ++m_world.CheckCounter;
 
-        m_blockmap.Iterate(seg, IterateBlock);
-
-        hitOneSidedLine = hitOneSidedIterate;
-
-        GridIterationStatus IterateBlock(Block block)
+        BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+            
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -135,19 +120,21 @@ public class BlockmapTraverser
                         if (line->OneSided)
                         {
                             hitOneSidedIterate = true;
-                            return GridIterationStatus.Stop;
+                            goto sightTraverseEndOfLoop;
                         }
 
-                        intersect = line->Segment.FromTime(t);
+                        Vec2D intersect = line->Segment.FromTime(t);
                         intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(seg.Start)));
                     }
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
 
-        intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+sightTraverseEndOfLoop:
+        // TODO: Isn't this temporary variable useless now? Can't we just write into the `out`?
+        hitOneSidedLine = hitOneSidedIterate;
+        
+        intersections.Sort();
         return intersections;
     }
 
@@ -155,23 +142,17 @@ public class BlockmapTraverser
     public List<BlockmapIntersect> GetSolidNonCorpseEntityIntersections(Box2D box)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
-        Vec2D intersect = Vec2D.Zero;
-
         int checkCounter = ++m_world.CheckCounter;
-
-        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
-        m_blockmap.Iterate(box, IterateBlock);
-
-        GridIterationStatus IterateBlock(Block block)
-        {          
+        
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
+        while (it.HasNext())
+        {
+            Block block = it.Next();
+            
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Solid)
-                    continue;
-                if (entity.Flags.Corpse)
+                if (entity.BlockmapCount == checkCounter || !entity.Flags.Solid || entity.Flags.Corpse)
                     continue;
 
                 entity.BlockmapCount = checkCounter;
@@ -181,8 +162,6 @@ public class BlockmapTraverser
                     intersections.Add(new BlockmapIntersect(entity, pos, 0));
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
 
         return intersections;
@@ -194,7 +173,6 @@ public class BlockmapTraverser
         Vec2D intersect = Vec2D.Zero;
         int checkCounter = ++m_world.CheckCounter;
         
-        //m_blockmap.Iterate(seg, IterateBlock);
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
         while (it.HasNext())
         {
@@ -233,7 +211,7 @@ public class BlockmapTraverser
             }
         }
 
-        intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+        intersections.Sort();
         return intersections;
     }
 
@@ -330,25 +308,25 @@ public class BlockmapTraverser
             return GridIterationStatus.Continue;
         }
 
-        intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
+        intersections.Sort();
         return intersections;
     }
 
     public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance,
         Action<Entity> renderEntity, Action<Sector> renderSector, Action<Side> renderSide, bool renderEntities)
     {
-        Vec2D center = new(box.Max.X - (box.Width / 2.0), box.Max.Y - (box.Height / 2.0));
         double maxDistSquared = maxViewDistance * maxViewDistance;
-        Vec2D occluder = occludeViewPos.HasValue ? occludeViewPos.Value : Vec2D.Zero;
+        Vec2D occluder = occludeViewPos ?? Vec2D.Zero;
         bool occlude = occludeViewPos.HasValue;
-
         int checkCounter = ++m_world.CheckCounter;
-        m_blockmap.Iterate(box, IterateBlock);
-
-        GridIterationStatus IterateBlock(Block block)
+        
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+
             if (occlude && !block.Box.InView(occluder, viewDirection))
-                return GridIterationStatus.Continue;
+                continue;
 
             for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
             {
@@ -367,7 +345,6 @@ public class BlockmapTraverser
             {
                 if (sideNode.Value.BlockmapCount == checkCounter)
                     continue;
-
                 if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
                     continue;
 
@@ -376,17 +353,16 @@ public class BlockmapTraverser
             }
 
             if (!renderEntities)
-                return GridIterationStatus.Continue;
+                continue;
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 if (entityNode.Value.BlockmapCount == checkCounter)
                     continue;
+                
                 entityNode.Value.BlockmapCount = checkCounter;
                 renderEntity(entityNode.Value);
             }
-
-            return GridIterationStatus.Continue;
         }
     }
 }
