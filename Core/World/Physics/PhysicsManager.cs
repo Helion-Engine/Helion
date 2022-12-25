@@ -997,7 +997,7 @@ public class PhysicsManager
         int checkCounter = ++m_world.CheckCounter;
         
         //m_blockmap.Iterate(nextBox, CheckForBlockers);
-        var it = m_blockmap.Iterate(nextBox);
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(nextBox);
         while (it.HasNext())
         {
             Block block = it.Next();

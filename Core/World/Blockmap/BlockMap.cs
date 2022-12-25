@@ -89,9 +89,14 @@ public class BlockMap
         return m_blocks.Iterate(box, func);
     }
     
-    public UniformGrid<Block>.BlockmapBoxIterator Iterate(Box2D box)
+    public BlockmapBoxIterator<Block> Iterate(in Box2D box)
     {
         return m_blocks.Iterate(box);
+    }
+    
+    public BlockmapSegIterator<Block> Iterate(in Seg2D seg)
+    {
+        return m_blocks.Iterate(seg);
     }
 
     /// <summary>

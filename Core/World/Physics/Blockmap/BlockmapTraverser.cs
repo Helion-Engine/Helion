@@ -193,10 +193,13 @@ public class BlockmapTraverser
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         int checkCounter = ++m_world.CheckCounter;
-        m_blockmap.Iterate(seg, IterateBlock);
-
-        GridIterationStatus IterateBlock(Block block)
+        
+        //m_blockmap.Iterate(seg, IterateBlock);
+        BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+            
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -228,8 +231,6 @@ public class BlockmapTraverser
                 if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
                     intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
             }
-
-            return GridIterationStatus.Continue;
         }
 
         intersections.Sort((i1, i2) => i1.Distance2D.CompareTo(i2.Distance2D));
