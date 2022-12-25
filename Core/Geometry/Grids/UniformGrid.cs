@@ -3,7 +3,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.World.Blockmap;
 
 namespace Helion.Geometry.Grids;
 
@@ -326,12 +325,13 @@ public class UniformGrid<T> where T : new()
     public ref struct BlockmapBoxIterator
     {
         private readonly UniformGrid<T> m_grid;
-        private readonly int m_lastIndex;
         private readonly int m_totalBlocks;
         private readonly int m_gridWidth;
+        private readonly int m_maxIterationCounter;
         private int m_rowBaseIndex;
         private int m_currentIndex;
         private int m_currentX;
+        private int m_iterationCounter;
         private Vec2I m_blockUnitStart;
         private Vec2I m_blockUnitEnd;
 
@@ -350,20 +350,22 @@ public class UniformGrid<T> where T : new()
                 m_rowBaseIndex += grid.Width;
 
             m_currentIndex = m_rowBaseIndex;
-            m_lastIndex = (m_blockUnitEnd.Y * grid.Width) + m_blockUnitEnd.X;
             m_currentX = m_blockUnitStart.X;
+            m_maxIterationCounter = new Box2I(m_blockUnitStart, m_blockUnitEnd).Dimension.Area;
         }
 
         public bool HasNext()
         {
-            return m_currentIndex < m_lastIndex && m_currentIndex < m_totalBlocks;
+            return m_iterationCounter < m_maxIterationCounter && m_currentIndex < m_totalBlocks;
         }
 
         public T Next()
         {
             int indexToReturn = m_currentIndex;
             m_currentIndex++;
-
+            m_iterationCounter++;
+            
+            // Start at the next row if we walked off the end of this row.
             if (m_currentX >= m_blockUnitEnd.X)
             {
                 m_rowBaseIndex += m_gridWidth;
