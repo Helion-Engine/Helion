@@ -321,6 +321,8 @@ public class UniformGrid<T> where T : new()
 
     private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
 
+    public BlockmapBoxIterator Iterate(Box2D box) => new(this, box);
+
     public ref struct BlockmapBoxIterator
     {
         private readonly UniformGrid<T> m_grid;
@@ -359,7 +361,7 @@ public class UniformGrid<T> where T : new()
 
         public T Next()
         {
-            T block = m_grid.Blocks[m_currentIndex];
+            int indexToReturn = m_currentIndex;
             m_currentIndex++;
 
             if (m_currentX >= m_blockUnitEnd.X)
@@ -369,7 +371,7 @@ public class UniformGrid<T> where T : new()
                 m_currentX = m_blockUnitStart.X;
             }
 
-            return block;
+            return m_grid.Blocks[indexToReturn];
         }
     }
 }

@@ -995,34 +995,13 @@ public class PhysicsManager
         entity.BlockingEntity = null;
         entity.ViewLineClip = false;
         int checkCounter = ++m_world.CheckCounter;
-        m_blockmap.Iterate(nextBox, CheckForBlockers);
-
-        if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
+        
+        //m_blockmap.Iterate(nextBox, CheckForBlockers);
+        var it = m_blockmap.Iterate(nextBox);
+        while (it.HasNext())
         {
-            tryMove.Subsector = null;
-            tryMove.Success = false;
-            return false;
-        }
-
-        if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
-        {
-            tryMove.Subsector = null;
-            tryMove.Success = false;
-            return false;
-        }
-
-        tryMove.CanFloat = true;
-
-        if (!entity.CheckDropOff(tryMove))
-        {
-            tryMove.Subsector = null;
-            tryMove.Success = false;
-        }
-
-        return tryMove.Success;
-
-        GridIterationStatus CheckForBlockers(Block block)
-        {
+            Block block = it.Next();
+            
             if (entity.Flags.Solid || entity.Flags.Missile)
             {
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
@@ -1055,11 +1034,12 @@ public class PhysicsManager
                             m_world.PerformItemPickup(entity, nextEntity);
                             continue;
                         }
-                        else if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
+
+                        if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
                         {
                             tryMove.Success = false;
                             entity.BlockingEntity = nextEntity;
-                            return GridIterationStatus.Stop;
+                            goto exitIteration;
                         }
                     }
 
@@ -1080,9 +1060,13 @@ public class PhysicsManager
                         LineBlock blockType = LineBlocksEntity(entity, position, blockLine, tryMove);
 
                         Line line = blockLine->Line;
-                        if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer && (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
+                        if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer &&
+                            (line.Front.Middle.TextureHandle != Constants.NoTextureIndex || 
                             (line != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
+                        {
                             entity.ViewLineClip = true;
+                            
+                        }
 
                         if (blockType != LineBlock.NoBlock)
                         {
@@ -1091,7 +1075,7 @@ public class PhysicsManager
                             if (!entity.Flags.NoClip && line.HasSpecial)
                                 tryMove.ImpactSpecialLines.Add(line);
                             if (blockType == LineBlock.BlockStopChecking)
-                                return GridIterationStatus.Stop;
+                                goto exitIteration;
                         }
 
                         if (!entity.Flags.NoClip && line.HasSpecial)
@@ -1104,9 +1088,32 @@ public class PhysicsManager
                     }
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
+
+exitIteration:
+        if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
+        {
+            tryMove.Subsector = null;
+            tryMove.Success = false;
+            return false;
+        }
+
+        if (tryMove.LowestCeilingZ - tryMove.HighestFloorZ < entity.Height || entity.BlockingEntity != null)
+        {
+            tryMove.Subsector = null;
+            tryMove.Success = false;
+            return false;
+        }
+
+        tryMove.CanFloat = true;
+
+        if (!entity.CheckDropOff(tryMove))
+        {
+            tryMove.Subsector = null;
+            tryMove.Success = false;
+        }
+
+        return tryMove.Success;
     }
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)

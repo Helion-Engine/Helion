@@ -88,6 +88,11 @@ public class BlockMap
     {
         return m_blocks.Iterate(box, func);
     }
+    
+    public UniformGrid<Block>.BlockmapBoxIterator Iterate(Box2D box)
+    {
+        return m_blocks.Iterate(box);
+    }
 
     /// <summary>
     /// Links an entity to the grid.
