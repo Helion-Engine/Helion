@@ -8,7 +8,6 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -20,7 +19,6 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
@@ -40,7 +38,6 @@ public class PhysicsManager
     private const double MudMoveFactorLow = 15000 / 65536.0;
     private const double MudMoveFactorMed = MudMoveFactorLow * 2;
     private const double MudMoveFactorHigh = MudMoveFactorLow * 4;
-
 
     public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
@@ -782,18 +779,10 @@ public class PhysicsManager
         centerSector.CheckCount = checkCounter;
 
         Box2D box = entity.GetBox2D();
-        m_blockmap.Iterate(box, SectorOverlapFinder);
-
-        entity.Sector = centerSector;
-        entity.IntersectSectors.Add(centerSector);
-        entity.SectorNodes.Add(centerSector.Link(entity));
-
-        if (linkSubsector)
-            entity.SubsectorNode = centerSubsector.Link(entity);
-
-        GridIterationStatus SectorOverlapFinder(Block block)
+        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
+        while (it.HasNext())
         {
-            // Doing iteration over enumeration for performance reasons.
+            Block block = it.Next();
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -822,9 +811,14 @@ public class PhysicsManager
                     }
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
+
+        entity.Sector = centerSector;
+        entity.IntersectSectors.Add(centerSector);
+        entity.SectorNodes.Add(centerSector.Link(entity));
+
+        if (linkSubsector)
+            entity.SubsectorNode = centerSubsector.Link(entity);
     }
 
     private static void ClearVelocityXY(Entity entity)
@@ -996,7 +990,6 @@ public class PhysicsManager
         entity.ViewLineClip = false;
         int checkCounter = ++m_world.CheckCounter;
         
-        //m_blockmap.Iterate(nextBox, CheckForBlockers);
         BlockmapBoxIterator<Block> it = m_blockmap.Iterate(nextBox);
         while (it.HasNext())
         {
@@ -1039,7 +1032,7 @@ public class PhysicsManager
                         {
                             tryMove.Success = false;
                             entity.BlockingEntity = nextEntity;
-                            goto exitIteration;
+                            goto doneIsPositionValid;
                         }
                     }
 
@@ -1075,7 +1068,7 @@ public class PhysicsManager
                             if (!entity.Flags.NoClip && line.HasSpecial)
                                 tryMove.ImpactSpecialLines.Add(line);
                             if (blockType == LineBlock.BlockStopChecking)
-                                goto exitIteration;
+                                goto doneIsPositionValid;
                         }
 
                         if (!entity.Flags.NoClip && line.HasSpecial)
@@ -1090,7 +1083,7 @@ public class PhysicsManager
             }
         }
 
-exitIteration:
+doneIsPositionValid:
         if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
         {
             tryMove.Subsector = null;
@@ -1247,13 +1240,12 @@ exitIteration:
         double hitTime = double.MaxValue;
         Line? blockingLine = null;
         Vec2D position = entity.Position.XY;
-        m_blockmap.Iterate(cornerTracer, CheckForTracerHit);
-
-        if (hit && hitTime < moveInfo.LineIntersectionTime)
-            moveInfo = MoveInfo.From(blockingLine!, hitTime);
-
-        GridIterationStatus CheckForTracerHit(Block block)
+        
+        BlockmapSegIterator<Block> it = m_blockmap.Iterate(cornerTracer);
+        while (it.HasNext())
         {
+            Block block = it.Next();
+            
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -1268,9 +1260,10 @@ exitIteration:
                     }
                 }
             }
-
-            return GridIterationStatus.Continue;
         }
+
+        if (hit && hitTime < moveInfo.LineIntersectionTime)
+            moveInfo = MoveInfo.From(blockingLine!, hitTime);
     }
 
     private bool FindClosestBlockingLine(Entity entity, Vec2D stepDelta, out MoveInfo moveInfo)
