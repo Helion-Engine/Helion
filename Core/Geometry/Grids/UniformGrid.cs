@@ -1,10 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util;
+using Helion.World.Blockmap;
 
 namespace Helion.Geometry.Grids;
 
@@ -321,4 +320,56 @@ public class UniformGrid<T> where T : new()
     }
 
     private int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
+
+    public ref struct BlockmapBoxIterator
+    {
+        private readonly UniformGrid<T> m_grid;
+        private readonly int m_lastIndex;
+        private readonly int m_totalBlocks;
+        private readonly int m_gridWidth;
+        private int m_rowBaseIndex;
+        private int m_currentIndex;
+        private int m_currentX;
+        private Vec2I m_blockUnitStart;
+        private Vec2I m_blockUnitEnd;
+
+        internal BlockmapBoxIterator(UniformGrid<T> grid, Box2D box)
+        {
+            m_grid = grid;
+            m_gridWidth = grid.Width;
+            m_totalBlocks = grid.Blocks.Length;
+            m_blockUnitStart = ((box.Min - grid.Origin) / grid.Dimension).Int;
+            m_blockUnitEnd = ((box.Max - grid.Origin) / grid.Dimension).Ceiling().Int;
+            
+            m_rowBaseIndex = m_blockUnitStart.Y * grid.Width + m_blockUnitStart.X;
+            if (m_rowBaseIndex < 0)
+                m_rowBaseIndex += Math.Abs(m_rowBaseIndex) / grid.Width * grid.Width;
+            if (m_rowBaseIndex < 0)
+                m_rowBaseIndex += grid.Width;
+
+            m_currentIndex = m_rowBaseIndex;
+            m_lastIndex = (m_blockUnitEnd.Y * grid.Width) + m_blockUnitEnd.X;
+            m_currentX = m_blockUnitStart.X;
+        }
+
+        public bool HasNext()
+        {
+            return m_currentIndex < m_lastIndex && m_currentIndex < m_totalBlocks;
+        }
+
+        public T Next()
+        {
+            T block = m_grid.Blocks[m_currentIndex];
+            m_currentIndex++;
+
+            if (m_currentX >= m_blockUnitEnd.X)
+            {
+                m_rowBaseIndex += m_gridWidth;
+                m_currentIndex = m_rowBaseIndex;
+                m_currentX = m_blockUnitStart.X;
+            }
+
+            return block;
+        }
+    }
 }
