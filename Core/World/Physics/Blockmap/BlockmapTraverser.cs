@@ -98,8 +98,8 @@ public class BlockmapTraverser
     public unsafe List<BlockmapIntersect> SightTraverse(Seg2D seg, out bool hitOneSidedLine)
     {
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
-        bool hitOneSidedIterate = false;
         int checkCounter = ++m_world.CheckCounter;
+        hitOneSidedLine = false;
 
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
         while (it.HasNext())
@@ -119,7 +119,7 @@ public class BlockmapTraverser
                     {
                         if (line->OneSided)
                         {
-                            hitOneSidedIterate = true;
+                            hitOneSidedLine = true;
                             goto sightTraverseEndOfLoop;
                         }
 
@@ -131,8 +131,6 @@ public class BlockmapTraverser
         }
 
 sightTraverseEndOfLoop:
-        // TODO: Isn't this temporary variable useless now? Can't we just write into the `out`?
-        hitOneSidedLine = hitOneSidedIterate;
         
         intersections.Sort();
         return intersections;
@@ -220,96 +218,111 @@ sightTraverseEndOfLoop:
         List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         Vec2D center = default;
+        TraverseData data = default;
 
         bool stopOnOneSidedLine = (flags & BlockmapTraverseFlags.StopOnOneSidedLine) != 0;
-        bool hitOneSidedIterate = false;
         int checkCounter = ++m_world.CheckCounter;
 
         if (box != null)
         {
             center = new Vec2D(box.Value.Max.X - (box.Value.Width / 2.0), box.Value.Max.Y - (box.Value.Height / 2.0));
-            m_blockmap.Iterate(box.Value, IterateBlock);
+            data = new(checkCounter, box, seg, flags, entityFlags, stopOnOneSidedLine, intersections, center);
+            Box2D iterateBox = box.Value;
+            var it = m_blockmap.Iterate(iterateBox);
+            while (it.HasNext())
+            {
+                if (TraverseBlock(it.Next(), ref data) == GridIterationStatus.Stop)
+                    break;
+            }
         }
         else if (seg != null)
         {
-            m_blockmap.Iterate(seg.Value, IterateBlock);
+            data = new(checkCounter, box, seg, flags, entityFlags, stopOnOneSidedLine, intersections, Vec2D.Zero);
+            Seg2D iterateSeg = seg.Value;
+            var it = m_blockmap.Iterate(iterateSeg);
+            while (it.HasNext())
+            {
+                if (TraverseBlock(it.Next(), ref data) == GridIterationStatus.Stop)
+                    break;
+            }
         }
 
-        hitOneSidedLine = hitOneSidedIterate;
-
-        GridIterationStatus IterateBlock(Block block)
-        {
-            if ((flags & BlockmapTraverseFlags.Lines) != 0)
-            {
-                for (int i = 0; i < block.BlockLines.Length; i++)
-                {
-                    fixed (BlockLine* line = &block.BlockLines.Data[i])
-                    {
-                        if (line->BlockmapCount == checkCounter)
-                            continue;
-
-                        if (seg != null && line->Segment.Intersection(seg.Value, out double t))
-                        {
-                            line->BlockmapCount = checkCounter;
-                            intersect = line->Segment.FromTime(t);
-
-                            if (stopOnOneSidedLine && (line->OneSided || LineOpening.GetOpeningHeight(line->Line) <= 0))
-                            {
-                                hitOneSidedIterate = true;
-                                return GridIterationStatus.Stop;
-                            }
-
-                            intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(seg.Value.Start)));
-                        }
-                        else if (box != null && line->Segment.Intersects(box.Value))
-                        {
-                            // TODO there currently isn't a way to calculate the intersection/distance... right now the only function that uses it doesn't need it (RadiusExplosion in PhysicsManager)
-                            line->BlockmapCount = checkCounter;
-                            intersections.Add(new BlockmapIntersect(line->Line, default, 0.0));
-                        }
-                    }
-                }
-            }
-
-            if ((flags & BlockmapTraverseFlags.Entities) != 0)
-            {
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-                {
-                    Entity entity = entityNode.Value;
-                    if (entityFlags != BlockmapTraverseEntityFlags.None)
-                    {
-                        if ((entityFlags & BlockmapTraverseEntityFlags.Shootable) != 0 && !entity.Flags.Shootable)
-                            continue;
-                        if ((entityFlags & BlockmapTraverseEntityFlags.Solid) != 0 && !entity.Flags.Solid)
-                            continue;
-                        if ((entityFlags & BlockmapTraverseEntityFlags.Corpse) != 0 && !entity.Flags.Corpse)
-                            continue;
-                        if ((entityFlags & BlockmapTraverseEntityFlags.NotCorpse) != 0 && entity.Flags.Corpse)
-                            continue;
-                    }
-
-                    if (entity.BlockmapCount == checkCounter)
-                        continue;
-
-                    entity.BlockmapCount = checkCounter;
-
-                    if (seg != null && entity.BoxIntersects(seg.Value.Start, seg.Value.End, ref intersect))
-                    {
-                        intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Value.Start)));
-                    }
-                    else if (box != null && entity.Overlaps2D(box.Value))
-                    {                        
-                        Vec2D pos = entity.Position.XY;
-                        intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(center)));
-                    }
-                }
-            }
-
-            return GridIterationStatus.Continue;
-        }
+        hitOneSidedLine = data.HitOneSidedLine;
 
         intersections.Sort();
         return intersections;
+    }
+
+    private unsafe GridIterationStatus TraverseBlock(Block block, ref TraverseData data)
+    {
+        Vec2D intersect = Vec2D.Zero;
+        if ((data.Flags & BlockmapTraverseFlags.Lines) != 0)
+        {
+            for (int i = 0; i < block.BlockLines.Length; i++)
+            {
+                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                {
+                    if (line->BlockmapCount == data.CheckCount)
+                        continue;
+
+                    if (data.Seg != null && line->Segment.Intersection(data.Seg.Value, out double t))
+                    {
+                        line->BlockmapCount = data.CheckCount;
+                        intersect = line->Segment.FromTime(t);
+
+                        if (data.StopOnOneSidedLine && (line->OneSided || LineOpening.GetOpeningHeight(line->Line) <= 0))
+                        {
+                            data.HitOneSidedLine = true;
+                            return GridIterationStatus.Stop;
+                        }
+
+                        data.Intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(data.Seg.Value.Start)));
+                    }
+                    else if (data.Box != null && line->Segment.Intersects(data.Box.Value))
+                    {
+                        // TODO there currently isn't a way to calculate the intersection/distance... right now the only function that uses it doesn't need it (RadiusExplosion in PhysicsManager)
+                        line->BlockmapCount = data.CheckCount;
+                        data.Intersections.Add(new BlockmapIntersect(line->Line, default, 0.0));
+                    }
+                }
+            }
+        }
+
+        if ((data.Flags & BlockmapTraverseFlags.Entities) != 0)
+        {
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (data.EntityFlags != BlockmapTraverseEntityFlags.None)
+                {
+                    if ((data.EntityFlags & BlockmapTraverseEntityFlags.Shootable) != 0 && !entity.Flags.Shootable)
+                        continue;
+                    if ((data.EntityFlags & BlockmapTraverseEntityFlags.Solid) != 0 && !entity.Flags.Solid)
+                        continue;
+                    if ((data.EntityFlags & BlockmapTraverseEntityFlags.Corpse) != 0 && !entity.Flags.Corpse)
+                        continue;
+                    if ((data.EntityFlags & BlockmapTraverseEntityFlags.NotCorpse) != 0 && entity.Flags.Corpse)
+                        continue;
+                }
+
+                if (entity.BlockmapCount == data.CheckCount)
+                    continue;
+
+                entity.BlockmapCount = data.CheckCount;
+
+                if (data.Seg != null && entity.BoxIntersects(data.Seg.Value.Start, data.Seg.Value.End, ref intersect))
+                {
+                    data.Intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(data.Seg.Value.Start)));
+                }
+                else if (data.Box != null && entity.Overlaps2D(data.Box.Value))
+                {
+                    Vec2D pos = entity.Position.XY;
+                    data.Intersections.Add(new BlockmapIntersect(entity, pos, pos.Distance(data.Center)));
+                }
+            }
+        }
+
+        return GridIterationStatus.Continue;
     }
 
     public void RenderTraverse(Box2D box, Vec2D viewPos, Vec2D? occludeViewPos, Vec2D viewDirection, int maxViewDistance,

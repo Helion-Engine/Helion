@@ -40,45 +40,6 @@ public class BlockMap
         m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
         SetBlockCoordinates();
     }
-
-    /// <summary>
-    /// Performs iteration over the blocks for some line.
-    /// </summary>
-    /// <param name="seg">The line segment to check.</param>
-    /// <param name="func">The callback for whether iteration should be
-    /// continued or not.</param>
-    /// <returns>True if iteration was halted due to the return value of
-    /// the provided function, false if not.</returns>
-    public bool Iterate(Seg2D seg, Func<Block, GridIterationStatus> func)
-    {
-        return m_blocks.Iterate(seg, func);
-    }
-
-    /// <summary>
-    /// Performs iteration over the blocks at the entity position.
-    /// </summary>
-    /// <param name="entity">The entity to iterate from.</param>
-    /// <param name="func">The callback for whether iteration should be
-    /// continued or not.</param>
-    /// <returns>True if iteration was halted due to the return value of
-    /// the provided function, false if not.</returns>
-    public bool Iterate(Entity entity, Func<Block, GridIterationStatus> func)
-    {
-        return Iterate(entity.GetBox2D(), func);
-    }
-
-    /// <summary>
-    /// Performs iteration over the blocks at the box position.
-    /// </summary>
-    /// <param name="box">The box area to iterate with.</param>
-    /// <param name="func">The callback for whether iteration should be
-    /// continued or not.</param>
-    /// <returns>True if iteration was halted due to the return value of
-    /// the provided function, false if not.</returns>
-    public bool Iterate(Box2D box, Func<Block, GridIterationStatus> func)
-    {
-        return m_blocks.Iterate(box, func);
-    }
     
     public BlockmapBoxIterator<Block> Iterate(in Box2D box)
     {
