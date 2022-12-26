@@ -933,10 +933,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         for (int i = 0; i < SoundChannels.Length; i++)
             SoundChannels[i] = null;
 
-        SetTarget(null);
-        SetTracer(null);
-        SetOnEntity(null);
-        SetOverEntity(null);
+        Target = WeakEntity.Default;
+        Tracer = WeakEntity.Default;
+        OnEntity = WeakEntity.Default;
+        OverEntity = WeakEntity.Default;
+        Owner = WeakEntity.Default;
+        PickupPlayer = null;
 
         World.DataCache.FreeEntity(this);
 
