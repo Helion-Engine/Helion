@@ -14,7 +14,7 @@ public class CommandParser
         m_argStart = argStart;
     }
 
-    public List<CommandArg> Parse(string[] stringArgs)
+    public List<CommandArg> Parse(string[] stringArgs, string[] options)
     {
         List<CommandArg> args = new();
         CommandArg? current = null;
@@ -23,7 +23,7 @@ public class CommandParser
         {
             string? argKey = m_argStart.FirstOrDefault(x => ArgEquals(x, stringArg));
 
-            if (argKey != null)
+            if (argKey != null && options.Any(x => x.Equals(stringArg, StringComparison.OrdinalIgnoreCase)))
             {
                 current = FindOrCreate(stringArg, args);
                 continue;

@@ -33,6 +33,29 @@ public class CommandLineArgs
     public double? SetPitch { get; set; }
     public IList<string> Cheats { get; set; } = Array.Empty<string>();
 
+    private static readonly string[] Options = new string[]
+    {
+        "-iwad",
+        "-file",
+        "-log",
+        "-loglevel",
+        "-logprofiler",
+        "-warp",
+        "-skill",
+        "+map",
+        "-nomonsters",
+        "-levelstat",
+        "-loadgame",
+        "+sv_fastmonsters",
+        "-deh",
+        "-record",
+        "-playdemo",
+        "+setpos",
+        "+cheats",
+        "+setangle",
+        "+setpitch"
+    };
+
     /// <summary>
     /// Parses the command line arguments and returns an object with the
     /// parsed results.
@@ -54,7 +77,7 @@ public class CommandLineArgs
         }
 
         CommandParser parser = new(argStart);
-        List<CommandArg> parsedArgs = parser.Parse(args);
+        List<CommandArg> parsedArgs = parser.Parse(args, Options);
 
         foreach (var parsedArg in parsedArgs)
         {
@@ -119,8 +142,11 @@ public class CommandLineArgs
         return str.Split(new char[] { ' ' });
     }
 
-    private static Vec3D? GetPosition(string value)
+    private static Vec3D? GetPosition(string? value)
     {
+        if (value == null)
+            return null;
+
         string[] items = value.Split(new char[] { ',' });
         if (items.Length < 3)
             return null;
