@@ -945,6 +945,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         EntityManager = null!;
         Definition = null!;
 
+        Velocity = Vec3D.Zero;
+
         OnGround = false;
         Refire = false;
         AttackDown = false;
