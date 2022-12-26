@@ -573,7 +573,7 @@ public class PhysicsManager
 
     private void ClampBetweenFloorAndCeiling(Entity entity, bool smoothZ, bool clampToLinkedSectors = true)
     {
-        if (entity.Definition.IsBulletPuff)
+        if (entity.IsDisposed || entity.Definition.IsBulletPuff)
             return;
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
