@@ -1,3 +1,4 @@
+using Helion.Util.Container;
 using System.Collections.Generic;
 
 namespace Helion.World.Entities.Players;
@@ -5,7 +6,7 @@ namespace Helion.World.Entities.Players;
 public class TickCommand
 {
     // These commands are only processed once even if held down.
-    private static readonly HashSet<TickCommands> SinglePressCommands = new()
+    private static readonly TickCommands[] SinglePressCommands = new[]
     {
         TickCommands.Use,
         TickCommands.NextWeapon,
@@ -20,8 +21,9 @@ public class TickCommand
         TickCommands.CenterView
     };
 
-    private readonly HashSet<TickCommands> m_commands = new();
-    private readonly HashSet<TickCommands> m_previousCommands = new();
+    private readonly DynamicArray<TickCommands> m_commands = new();
+    private readonly DynamicArray<TickCommands> m_previousCommands = new();
+    private readonly List<TickCommands> m_returnCommands = new();
 
     public double AngleTurn { get; set; }
     public double PitchTurn { get; set; }
@@ -30,7 +32,7 @@ public class TickCommand
     public double ForwardMoveSpeed { get; set; }
     public double SideMoveSpeed { get; set; }
 
-    public IEnumerable<TickCommands> Commands => m_commands;
+    public DynamicArray<TickCommands> GetCommands() => m_commands;
 
     public void Clear()
     {
@@ -48,18 +50,26 @@ public class TickCommand
     public virtual void TickHandled()
     {
         m_previousCommands.Clear();
-        foreach (var command in m_commands)
-            m_previousCommands.Add(command);
+        for (int i = 0; i < m_commands.Length; i++)
+            m_previousCommands.Add(m_commands[i]);
     }
 
-    public bool Add(TickCommands command) => m_commands.Add(command);
+    public bool Add(TickCommands command)
+    {
+        if (SearchCommand(m_commands.Data, m_commands.Length, command))
+            return false;
+
+        m_commands.Add(command);
+        return true;
+    }
 
     public bool Has(TickCommands command)
     {
-        if (!m_commands.Contains(command))
+        if (!SearchCommand(m_commands.Data, m_commands.Length, command))
             return false;
 
-        if (m_previousCommands.Contains(command) && SinglePressCommands.Contains(command))
+        if (SearchCommand(m_previousCommands.Data, m_previousCommands.Length, command) && 
+            SearchCommand(SinglePressCommands, SinglePressCommands.Length, command))
             return false;
 
         return true;
@@ -73,4 +83,15 @@ public class TickCommand
 
     public bool IsFastSpeed(bool alwaysRun) =>
         (alwaysRun && !Has(TickCommands.Speed)) || (!alwaysRun && Has(TickCommands.Speed));
+
+    private static bool SearchCommand(TickCommands[] commands, int length, TickCommands command)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            if (commands[i] == command)
+                return true;
+        }
+
+        return false;
+    }
 }
