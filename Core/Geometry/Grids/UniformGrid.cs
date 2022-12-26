@@ -24,7 +24,6 @@ public enum GridIterationStatus
 /// </typeparam>
 public class UniformGrid<T> where T : new()
 {
-    // TODO: This should not be hardcoded.
     public readonly int Dimension;
 
     /// <summary>
@@ -327,56 +326,54 @@ public class UniformGrid<T> where T : new()
 
 public ref struct BlockmapBoxIterator<T>  where T : new()
 {
-    private readonly UniformGrid<T> m_grid;
-    private readonly int m_totalBlocks;
-    private readonly int m_gridWidth;
-    private readonly int m_maxIterationCounter;
-    private int m_rowBaseIndex;
-    private int m_currentIndex;
-    private int m_currentX;
-    private int m_iterationCounter;
+    private T[] m_blocks;
     private Vec2I m_blockUnitStart;
     private Vec2I m_blockUnitEnd;
+    private int m_width;
+    private int m_baseIndex;
+    private int m_currentIndex;
+    private int m_x;
+    private int m_y;
+    private bool m_hasNext;
 
     internal BlockmapBoxIterator(UniformGrid<T> grid, in Box2D box)
     {
-        m_grid = grid;
-        m_gridWidth = grid.Width;
-        m_totalBlocks = grid.Blocks.Length;
+        m_blocks = grid.Blocks;
         m_blockUnitStart = ((box.Min - grid.Origin) / grid.Dimension).Int;
         m_blockUnitEnd = ((box.Max - grid.Origin) / grid.Dimension).Ceiling().Int;
-        
-        m_rowBaseIndex = m_blockUnitStart.Y * grid.Width + m_blockUnitStart.X;
-        if (m_rowBaseIndex < 0)
-            m_rowBaseIndex += Math.Abs(m_rowBaseIndex) / grid.Width * grid.Width;
-        if (m_rowBaseIndex < 0)
-            m_rowBaseIndex += grid.Width;
+        m_width = grid.Width;
 
-        m_currentIndex = m_rowBaseIndex;
-        m_currentX = m_blockUnitStart.X;
-        m_maxIterationCounter = new Box2I(m_blockUnitStart, m_blockUnitEnd).Dimension.Area;
+        m_baseIndex = m_blockUnitStart.Y * m_width + m_blockUnitStart.X;
+        if (m_baseIndex < 0)
+            m_baseIndex += Math.Abs(m_baseIndex) / m_width * m_width;
+        if (m_baseIndex < 0)
+            m_baseIndex += m_width;
+
+        m_y = m_blockUnitStart.Y;
+        m_x = m_blockUnitStart.X;
+        m_currentIndex = m_baseIndex - 1;
+        m_hasNext = true;
     }
 
-    public bool HasNext()
-    {
-        return m_iterationCounter < m_maxIterationCounter && m_currentIndex >= 0 && m_currentIndex < m_totalBlocks;
-    }
+    public bool HasNext() => m_hasNext && m_currentIndex + 1 < m_blocks.Length;
 
     public T Next()
     {
-        int indexToReturn = m_currentIndex;
         m_currentIndex++;
-        m_iterationCounter++;
-        
-        // Start at the next row if we walked off the end of this row.
-        if (m_currentX >= m_blockUnitEnd.X)
+
+        if (m_x >= m_blockUnitEnd.X)
         {
-            m_rowBaseIndex += m_gridWidth;
-            m_currentIndex = m_rowBaseIndex;
-            m_currentX = m_blockUnitStart.X;
+            m_y++;
+            m_x = m_blockUnitStart.X;
+            m_baseIndex += m_width;
+            m_currentIndex = m_baseIndex;
         }
 
-        return m_grid.Blocks[indexToReturn];
+        m_x++;
+        if (m_x >= m_blockUnitEnd.X)
+            m_hasNext = m_y + 1 < m_blockUnitEnd.Y && m_baseIndex + m_width < m_blocks.Length;
+
+        return m_blocks[m_currentIndex];
     }
 }
 
