@@ -296,6 +296,7 @@ namespace Helion.Tests.Unit.GameAction
         public void DisposeRef()
         {
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            world.DataCache.CacheEntities = false;
             var lostSoul1 = GameActions.CreateEntity(world, "LostSoul", new Vec3D(-256, -64, 0));
             var caco1 = GameActions.CreateEntity(world, "Cacodemon", new Vec3D(-256, -64, 0));
 
@@ -306,14 +307,13 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(world, 200);
 
             caco1.Target.Entity.Should().BeNull();
-            // The lost soul can still have a reference back to the caco's weak reference
-            lostSoul1.Target.Entity.Should().Be(caco1);
         }
 
         [Fact(DisplayName = "Dispose ref")]
         public void DisposeTest()
         {
             var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            world.DataCache.CacheEntities = false;
             TestDisposeEntities(world, out var lostSoul, out var caco);
 
             GC.Collect();

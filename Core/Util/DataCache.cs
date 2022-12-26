@@ -47,6 +47,8 @@ public class DataCache
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
+    public bool CacheEntities = true;
+
     public Entity GetEntity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
     {
@@ -78,7 +80,7 @@ public class DataCache
 
     public void FreeEntity(Entity entity)
     {
-        if (entity.IsPlayer)
+        if (!CacheEntities || entity.IsPlayer)
             return;
 
         m_entities.Add(entity);
