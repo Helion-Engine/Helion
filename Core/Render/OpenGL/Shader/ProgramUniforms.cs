@@ -10,6 +10,7 @@ using OpenTK.Windowing.Common.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Helion.Render.OpenGL.Util;
 
 namespace Helion.Render.OpenGL.Shader;
 
@@ -44,7 +45,7 @@ public class ProgramUniforms
     public void Set(Vec3F value, string name) => Set(value, GetLocation(name));
     public void Set(Vec4F value, int location) => GL.Uniform4(location, value.X, value.Y, value.Z, value.W);
     public void Set(Vec4F value, string name) => Set(value, GetLocation(name));
-    public void Set(mat4 value, int location) => GL.UniformMatrix4(location, 1, false, value.Values1D);
+    public void Set(mat4 value, int location) => GL.UniformMatrix4(location, 1, false, value.ToUniformArray());
     public void Set(mat4 value, string name) => Set(value, GetLocation(name));
     public void Set(TextureUnit value, int location) => GL.Uniform1(location, (int)value - (int)TextureUnit.Texture0);
     public void Set(TextureUnit value, string name) => Set(value, GetLocation(name));

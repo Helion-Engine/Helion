@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using GlmSharp;
 using Helion.Geometry;
 using Helion.Render.OpenGL.Context;
-using Helion.Util.Extensions;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -27,6 +27,11 @@ public static class GLHelper
     /// </remarks>
     private static Action<LogLevel, string>? LastCallbackReference;
     private static DebugProc? LastCallbackProcReference;
+
+    // GLM's 1D value accessor creates a whole new array for each invocation, which shows up
+    // as a significant generator of garbage due to us running at very high FPS now. This is
+    // a way of getting around allocations, by reusing it.
+    private static float[] MvpBuffer = new float[16];
 
     // Defined in LegacyShader as well
     const int ColorMaps = 32;
@@ -124,7 +129,7 @@ public static class GLHelper
         // below won't) and then we end up with a SystemAccessViolation.
         // See the docs of this variable for more information.
         LastCallbackReference = callback;
-        LastCallbackProcReference = (source, type, id, severity, length, message, userParam) =>
+        LastCallbackProcReference = (_, _, _, severity, length, message, _) =>
         {
             switch (severity)
             {
@@ -150,4 +155,28 @@ public static class GLHelper
     }
     
     public static int ToInt(this TextureUnit unit) => unit - TextureUnit.Texture0;
+
+    // This is not thread safe because we write into a static buffer to avoid allocations.
+    public static float[] ToUniformArray(this mat4 mat)
+    {
+        // This is the same as the result from mat4.Values1D.
+        MvpBuffer[0] = mat.m00;
+        MvpBuffer[1] = mat.m01;
+        MvpBuffer[2] = mat.m02;
+        MvpBuffer[3] = mat.m03;
+        MvpBuffer[4] = mat.m10;
+        MvpBuffer[5] = mat.m11;
+        MvpBuffer[6] = mat.m12;
+        MvpBuffer[7] = mat.m13;
+        MvpBuffer[8] = mat.m20;
+        MvpBuffer[9] = mat.m21;
+        MvpBuffer[10] = mat.m22;
+        MvpBuffer[11] = mat.m23;
+        MvpBuffer[12] = mat.m30;
+        MvpBuffer[13] = mat.m31;
+        MvpBuffer[14] = mat.m32;
+        MvpBuffer[15] = mat.m33;
+
+        return MvpBuffer;
+    }
 }
