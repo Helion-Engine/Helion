@@ -975,7 +975,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public override string ToString()
     {
-        return $"[{Definition}] [{Position}]";
+        return $"Id:{Id} [{Definition}] [{Position}]";
     }
 
     public void SoundCreated(IAudioSource audioSource, SoundChannel channel)

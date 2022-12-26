@@ -448,10 +448,12 @@ public class EntityManager : IDisposable
     public void Dispose()
     {
         LinkableNode<Entity>? node = Entities.Head;
+        LinkableNode<Entity>? nextNode;
         while (node != null)
         {
+            nextNode = node.Next;
             node.Value.Dispose();
-            node = node.Next;
+            node = nextNode;
         }
 
         GC.SuppressFinalize(this);
