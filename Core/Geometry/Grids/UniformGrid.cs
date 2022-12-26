@@ -352,7 +352,7 @@ public ref struct BlockmapBoxIterator<T>  where T : new()
         m_y = m_blockUnitStart.Y;
         m_x = m_blockUnitStart.X;
         m_currentIndex = m_baseIndex - 1;
-        m_hasNext = true;
+        m_hasNext = m_baseIndex < m_blocks.Length;
     }
 
     public bool HasNext() => m_hasNext && m_currentIndex + 1 < m_blocks.Length;
