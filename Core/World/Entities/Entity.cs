@@ -944,6 +944,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         World = null!;
         EntityManager = null!;
         Definition = null!;
+
+        OnGround = false;
+        Refire = false;
+        AttackDown = false;
+        ClippedWithEntity = false;
+        SaveZ = 0;
+        PrevSaveZ = 0;
+        MoveCount = 0;
+        FrozenTics = 0;
+        MoveLinked = false;
+        Respawn = false;
+        WasCrushing = false;
+        InMonsterCloset = false;
+        Island = null;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)
