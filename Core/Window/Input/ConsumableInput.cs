@@ -12,6 +12,7 @@ public class ConsumableInput : IConsumableInput
 {
     private readonly InputManager m_inputManager;
     private readonly DynamicArray<Key> m_inputConsumed = new();
+    private readonly DynamicArray<Key> m_pressedKeys = new();
     private bool m_typedCharsConsumed;
     private Vec2I m_mouseMove = (0, 0);
     private int m_mouseScroll;
@@ -129,9 +130,12 @@ public class ConsumableInput : IConsumableInput
 
     public bool HasAnyKeyPressed()
     {
-        foreach (var key in m_inputManager.GetPressedKeys())
+        m_pressedKeys.Clear();
+        m_inputManager.GetPressedKeys(m_pressedKeys);
+
+        for (int i = 0; i < m_pressedKeys.Length; i++)
         {
-            if (m_inputConsumed.Contains(key))
+            if (m_inputConsumed.Contains(m_pressedKeys[i]))
                 continue;
 
             return true;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 
@@ -14,9 +13,11 @@ public class InputManager : IInputManager
 {
     public Vec2I MouseMove { get; private set; } = (0, 0);
     private readonly ConsumableInput m_consumableInput;
-    private readonly HashSet<Key> m_inputDown = new();
-    private readonly HashSet<Key> m_inputUp = new();
-    private readonly HashSet<Key> m_inputPrevDown = new();
+    private readonly DynamicArray<Key> m_inputDown = new();
+    private readonly DynamicArray<Key> m_inputUp = new();
+    private readonly DynamicArray<Key> m_inputPrevDown = new();
+    private readonly DynamicArray<Key> m_inputDownRemove = new();
+    private readonly DynamicArray<Key> m_inputDownUpdate = new();
     private readonly DynamicArray<char> m_typedCharacters = new();
     private readonly Stopwatch m_keyHold = new();
     private readonly Stopwatch m_keyDelay = new();
@@ -87,9 +88,27 @@ public class InputManager : IInputManager
     public bool IsKeyPrevUp(Key key) => !m_inputPrevDown.Contains(key);
     public bool IsKeyPressed(Key key) => IsKeyDown(key) && !IsKeyPrevDown(key);
     public bool IsKeyReleased(Key key) => !IsKeyDown(key) && IsKeyPrevDown(key);
-    public bool HasAnyKeyPressed() => m_inputDown.Any(IsKeyPressed);
-    public bool HasAnyKeyDown() => m_inputDown.Any();
-    public IEnumerable<Key> GetPressedKeys() => m_inputDown.Where(IsKeyPressed);
+    public bool HasAnyKeyPressed()
+    {
+        for (int i = 0; i < m_inputDown.Length; i++)
+        {
+            if (IsKeyPressed(m_inputDown[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool HasAnyKeyDown() => m_inputDown.Length > 0;
+    public void GetPressedKeys(DynamicArray<Key> pressedKeys)
+    {
+        for (int i = 0; i < m_inputDown.Length; i++)
+        {
+            Key key = m_inputDown[i];
+            if (IsKeyPressed(key))
+                pressedKeys.Add(key);
+        }
+    }
 
     public bool IsKeyContinuousHold(Key key)
     {
@@ -108,11 +127,24 @@ public class InputManager : IInputManager
     public void Processed()
     {
         m_inputPrevDown.Clear();
-        foreach (Key key in m_inputDown)
-            m_inputPrevDown.Add(key);
+        for (int i = 0; i < m_inputDown.Length; i++)
+            m_inputPrevDown.Add(m_inputDown[i]);
 
-        foreach (var keyUp in m_inputUp)
-            m_inputDown.Remove(keyUp);
+        m_inputDownRemove.Clear();
+        m_inputDownUpdate.Clear();
+        for (int i = 0; i < m_inputUp.Length; i++)
+            m_inputDownRemove.Add(m_inputUp[i]);
+        
+        for (int i = 0; i < m_inputDown.Length; i++)
+        {
+            Key key = m_inputDown[i];
+            if (!m_inputDownRemove.Contains(key))
+                m_inputDownUpdate.Add(key);
+        }
+
+        m_inputDown.Clear();
+        for (int i = 0; i < m_inputDownUpdate.Length; i++)
+            m_inputDown.Add(m_inputDownUpdate[i]);
 
         m_inputUp.Clear();
 
