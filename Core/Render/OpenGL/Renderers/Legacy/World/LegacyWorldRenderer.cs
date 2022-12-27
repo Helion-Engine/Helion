@@ -28,6 +28,16 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class LegacyWorldRenderer : WorldRenderer
 {
+    struct RenderBlockMapData
+    {
+        public Vec2D? OccludePos;
+        public Vec2D ViewPos;
+        public Vec2D ViewDirection;
+        public Vec3D ViewPos3D;
+        public int CheckCount;
+        public int MaxDistance;
+    }
+
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
@@ -44,6 +54,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_lastTicker = -1;
     private int m_renderCount;
     private IWorld? m_previousWorld;
+    private RenderBlockMapData m_renderData;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -94,71 +105,71 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
-        Vec2D viewPos = renderInfo.Camera.Position.XY.Double;
-        Vec3D position3D = renderInfo.Camera.Position.Double;
-        Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_viewSector = world.BspTree.ToSector(position3D);
+        m_renderData.ViewPos = renderInfo.Camera.Position.XY.Double;
+        m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
+        m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_viewSector = world.BspTree.ToSector(m_renderData.ViewPos3D);
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.SetViewDirection(viewDirection);
+        m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
-        int checkCount = ++world.CheckCounter;
+        m_renderData.CheckCount = ++world.CheckCounter;
 
-        int maxDistance = world.Config.Render.MaxDistance;
-        if (maxDistance <= 0)
-            maxDistance = 6000;
+        m_renderData.MaxDistance = world.Config.Render.MaxDistance;
+        if (m_renderData.MaxDistance <= 0)
+            m_renderData.MaxDistance = 6000;
 
-        Vec2D? occludePos = m_occlude ? m_occludeViewPos : null;
-        Box2D box = new(viewPos, maxDistance);
+        m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
+        Box2D box = new(m_renderData.ViewPos, m_renderData.MaxDistance);
 
-        world.RenderBlockmapTraverser.RenderTraverse(box, viewPos, occludePos, viewDirection, maxDistance,
+        world.RenderBlockmapTraverser.RenderTraverse(box, m_renderData.ViewPos, m_renderData.OccludePos, m_renderData.ViewDirection, m_renderData.MaxDistance,
             RenderEntity, RenderSector, RenderSide, m_lastTicker != world.GameTicker);
         m_lastTicker = world.GameTicker;
 
-        void RenderEntity(Entity entity)
-        {
-            if (m_entityRenderer.ShouldNotDraw(entity))
-                return;
-
-            // Not in front 180 FOV
-            if (occludePos.HasValue)
-            {
-                Vec2D entityToTarget = entity.Position.XY - occludePos.Value;
-                if (entityToTarget.Dot(viewDirection) < 0)
-                    return;
-            }
-
-            double dx = Math.Max(entity.Position.X - viewPos.X, Math.Max(0, viewPos.X - entity.Position.X));
-            double dy = Math.Max(entity.Position.Y - viewPos.Y, Math.Max(0, viewPos.Y - entity.Position.Y));
-            if (dx * dx + dy * dy > maxDistance * maxDistance)
-                return;
-
-            if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
-            {
-                entity.RenderDistance = entity.Position.XY.Distance(viewPos);
-                m_alphaEntities.Add(entity);
-                return;
-            }
-
-            m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
-        }
-
-        void RenderSector(Sector sector)
-        {
-            if (sector.CheckCount == checkCount)
-                return;
-
-            m_geometryRenderer.RenderSector(m_viewSector, sector, position3D);
-            sector.CheckCount = checkCount;
-        }
-
-        void RenderSide(Side side)
-        {
-            m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, position3D);
-        }
-
-        RenderAlphaObjects(viewPos, position3D, m_alphaEntities);
+        RenderAlphaObjects(m_renderData.ViewPos, m_renderData.ViewPos3D, m_alphaEntities);
         m_alphaEntities.Clear();
+    }
+
+    void RenderEntity(Entity entity)
+    {
+        if (m_entityRenderer.ShouldNotDraw(entity))
+            return;
+
+        // Not in front 180 FOV
+        if (m_renderData.OccludePos.HasValue)
+        {
+            Vec2D entityToTarget = entity.Position.XY - m_renderData.OccludePos.Value;
+            if (entityToTarget.Dot(m_renderData.ViewDirection) < 0)
+                return;
+        }
+
+        double dx = Math.Max(entity.Position.X - m_renderData.ViewPos.X, Math.Max(0, m_renderData.ViewPos.X - entity.Position.X));
+        double dy = Math.Max(entity.Position.Y - m_renderData.ViewPos.Y, Math.Max(0, m_renderData.ViewPos.Y - entity.Position.Y));
+        if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
+            return;
+
+        if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
+        {
+            entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
+            m_alphaEntities.Add(entity);
+            return;
+        }
+
+        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPos3D);
+    }
+
+    void RenderSector(Sector sector)
+    {
+        if (sector.CheckCount == m_renderData.CheckCount)
+            return;
+
+        m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D);
+        sector.CheckCount = m_renderData.CheckCount;
+    }
+
+    void RenderSide(Side side)
+    {
+        m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, m_renderData.ViewPos3D);
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
