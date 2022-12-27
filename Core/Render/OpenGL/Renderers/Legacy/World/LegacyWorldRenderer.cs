@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
@@ -15,7 +16,9 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -122,8 +125,56 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(m_renderData.ViewPos, m_renderData.MaxDistance);
 
-        world.RenderBlockmapTraverser.RenderTraverse(box, m_renderData.ViewPos, m_renderData.OccludePos, m_renderData.ViewDirection, m_renderData.MaxDistance,
-            RenderEntity, RenderSector, RenderSide, m_lastTicker != world.GameTicker);
+        double maxDistSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
+        Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
+        bool occlude = m_renderData.OccludePos.HasValue;
+        bool renderEntities = m_lastTicker != world.GameTicker;
+
+        BlockmapBoxIterator<Block> it = world.RenderBlockmap.Iterate(box);
+        while (it.HasNext())
+        {
+            Block block = it.Next();
+
+            if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
+                continue;
+
+            for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+            {
+                if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount)
+                    continue;
+
+                sectorNode.Value.BlockmapCount = m_renderData.CheckCount;
+                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
+                double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPos.X, Math.Max(0, m_renderData.ViewPos.X - sectorBox.Max.X));
+                double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPos.Y, Math.Max(0, m_renderData.ViewPos.Y - sectorBox.Max.Y));
+                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
+                    RenderSector(sectorNode.Value);
+            }
+
+            for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
+            {
+                if (sideNode.Value.BlockmapCount == m_renderData.CheckCount)
+                    continue;
+                if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
+                    continue;
+
+                sideNode.Value.BlockmapCount = m_renderData.CheckCount;
+                m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, m_renderData.ViewPos3D);
+            }
+
+            if (!renderEntities)
+                continue;
+
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                if (entityNode.Value.BlockmapCount == m_renderData.CheckCount)
+                    continue;
+
+                entityNode.Value.BlockmapCount = m_renderData.CheckCount;
+                RenderEntity(entityNode.Value);
+            }
+        }
+
         m_lastTicker = world.GameTicker;
 
         RenderAlphaObjects(m_renderData.ViewPos, m_renderData.ViewPos3D, m_alphaEntities);
@@ -165,11 +216,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D);
         sector.CheckCount = m_renderData.CheckCount;
-    }
-
-    void RenderSide(Side side)
-    {
-        m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line, m_renderData.ViewPos3D);
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)

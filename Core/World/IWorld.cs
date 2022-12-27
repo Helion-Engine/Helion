@@ -70,7 +70,6 @@ public interface IWorld : IDisposable
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
-    BlockmapTraverser RenderBlockmapTraverser { get; }
     BlockMap RenderBlockmap { get; }
     SpecialManager SpecialManager { get; }
     TextureManager TextureManager { get; }
