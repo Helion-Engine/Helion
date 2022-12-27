@@ -221,8 +221,7 @@ public class GameLayerManager : IGameLayerParent
 
         bool hasMenuInput = (ReadThisLayer != null && input.ConsumeKeyDown(Key.Escape)) || input.Manager.HasAnyKeyPressed();
 
-        if (TitlepicLayer != null && hasMenuInput &&
-            !MenuIgnoreCommands.Any(x => m_config.Keys.IsCommandKeyDown(x, input)))
+        if (TitlepicLayer != null && hasMenuInput && !CheckIgnoreMenuCommands(input))
         {
             // Have to eat the escape key if it exists, otherwise the menu will immediately close.
             input.ConsumeKeyPressed(Key.Escape);
@@ -230,6 +229,17 @@ public class GameLayerManager : IGameLayerParent
         }
         
         return input.ConsumeKeyPressed(Key.Escape);
+    }
+
+    private bool CheckIgnoreMenuCommands(IConsumableInput input)
+    {
+        for (int i = 0; i < MenuIgnoreCommands.Length; i++)
+        {
+            if (m_config.Keys.IsCommandKeyDown(MenuIgnoreCommands[i], input))
+                return true;
+        }
+
+        return false;
     }
 
     private void ToggleConsoleLayer(IConsumableInput input)
