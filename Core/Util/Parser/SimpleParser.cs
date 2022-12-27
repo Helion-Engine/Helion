@@ -97,16 +97,12 @@ public class SimpleParser
                     break;
                 }
 
-                if (IsStartMultiLineComment(line, i))
-                {
+                if (IsStartMultiLineComment(line, ref i))
                     multiLineComment = true;
-                    i += 2;
-                }
 
-                if (multiLineComment && IsEndMultiLineComment(line, i))
+                if (multiLineComment && IsEndMultiLineComment(line, ref i))
                 {
                     multiLineComment = false;
-                    i += 2;
                     startIndex = i;
                 }
 
@@ -181,11 +177,30 @@ public class SimpleParser
         return tokens;
     }
 
-    private static bool IsEndMultiLineComment(string line, int i)
-        => line[i] == '*' && CheckNext(line, i, '/');
+    private static bool IsEndMultiLineComment(string line, ref int i)
+    {
+        if (line.Length < 2 || i >= line.Length)
+            return false;
 
-    private static bool IsStartMultiLineComment(string line, int i)
-        => line[i] == '/' && CheckNext(line, i, '*');
+        if (line[i] != '*' || !CheckNext(line, i, '/'))
+            return false;
+
+        i += 2;
+        return true;
+    }
+
+
+    private static bool IsStartMultiLineComment(string line, ref int i)
+    {
+        if (line.Length < 2)
+            return false;
+
+        if (line[i] != '/' || !CheckNext(line, i, '*'))
+            return false;
+
+        i+=2;
+        return true;
+    }
 
     private bool IsSingleLineComment(string line, int i)
         => (m_commentCallback != null && m_commentCallback(line, i)) || (line[i] == '/' && CheckNext(line, i, '/'));
