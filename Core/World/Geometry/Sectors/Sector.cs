@@ -26,6 +26,8 @@ namespace Helion.World.Geometry.Sectors;
 
 public class Sector
 {
+    public static readonly Sector Default = CreateDefault();
+
     public const int NoTag = 0;
 
     public readonly int Id;

@@ -966,11 +966,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockingLine = null;
         BlockingEntity = null;
         BlockingSectorPlane = null;
-        Sector = null!;
-        HighestFloorObject = null!;
-        LowestCeilingObject = null!;
-        HighestFloorSector = null!;
-        LowestCeilingSector = null!;
+        Sector = Sector.Default;
+        HighestFloorObject = Sector.Default;
+        LowestCeilingObject = Sector.Default;
+        HighestFloorSector = Sector.Default;
+        LowestCeilingSector = Sector.Default;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

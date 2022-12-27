@@ -446,7 +446,7 @@ public abstract partial class WorldBase : IWorld
                 break;
 
             // Doom did not apply sector damage to voodoo dolls
-            if (player.IsVooDooDoll)
+            if (player.IsVooDooDoll || player.IsDisposed)
                 continue;
 
             player.HandleTickCommand();
