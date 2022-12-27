@@ -49,6 +49,25 @@ public class DataCache
 
     public bool CacheEntities = true;
 
+    // Clear pointers to references that could keep the world around and prevent garbage collection.
+    public void FlushReferences()
+    {
+        for (int i = 0; i < m_entities.Capacity; i++)
+        {
+            Entity? entity = m_entities[i];
+            if (entity == null)
+                continue;
+
+            FlushArray(entity.IntersectSectors);
+        }
+    }
+
+    private static void FlushArray<T>(DynamicArray<T> array) where T : class
+    {
+        for (int i = 0; i < array.Capacity; i++)
+            array[i] = null;
+    }
+
     public Entity GetEntity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
     {

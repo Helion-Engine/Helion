@@ -963,6 +963,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         WasCrushing = false;
         InMonsterCloset = false;
         Island = null;
+        BlockingLine = null;
+        BlockingEntity = null;
+        BlockingSectorPlane = null;
+        Sector = null!;
+        HighestFloorObject = null!;
+        LowestCeilingObject = null!;
+        HighestFloorSector = null!;
+        LowestCeilingSector = null!;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

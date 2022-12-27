@@ -653,6 +653,8 @@ public partial class Client
             return;
         }
 
+        m_archiveCollection.DataCache.FlushReferences();
+
         WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
             players.FirstOrDefault(), worldModel, random);
@@ -689,6 +691,16 @@ public partial class Client
 
         newLayer.World.Start(worldModel);
         CheckLoadMapDemo(newLayer, worldModel);
+        
+        ForceGarbageCollection();
+    }
+
+    private static void ForceGarbageCollection()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)
