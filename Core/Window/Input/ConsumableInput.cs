@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 
 namespace Helion.Window.Input;
 
@@ -10,7 +11,7 @@ namespace Helion.Window.Input;
 public class ConsumableInput : IConsumableInput
 {
     private readonly InputManager m_inputManager;
-    private readonly HashSet<Key> m_inputConsumed = new();
+    private readonly DynamicArray<Key> m_inputConsumed = new();
     private bool m_typedCharsConsumed;
     private Vec2I m_mouseMove = (0, 0);
     private int m_mouseScroll;
