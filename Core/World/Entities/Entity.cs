@@ -706,12 +706,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     /// <summary>
     /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
     /// </summary>
-    public List<Entity> GetIntersectingEntities2D()
+    public DynamicArray<Entity> GetIntersectingEntities2D()
     {
-        List<Entity> entities = World.DataCache.GetEntityList();
-        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D());
+        DynamicArray<Entity> entities = World.DataCache.GetEntityList();
+        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D());
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             Entity? entity = intersections[i].Entity;
             if (entity == null)
@@ -734,9 +734,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         List<Entity> entities = new();
         Box3D box = new(position, Radius, Height);
-        List<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(new Box2D(position.XY, Radius), BlockmapTraverseFlags.Entities, entityTraverseFlags);
+        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(new Box2D(position.XY, Radius), BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             Entity? entity = intersections[i].Entity;
             if (entity == null)
@@ -796,8 +796,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!Flags.Solid)
             return false;
 
-        List<Entity> entities = GetIntersectingEntities2D();
-        for (int i = 0; i < entities.Count; i++)
+        DynamicArray<Entity> entities = GetIntersectingEntities2D();
+        for (int i = 0; i < entities.Length; i++)
         {
             if (entities[i].OverlapsZ(this))
             {

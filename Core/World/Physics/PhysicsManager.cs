@@ -51,11 +51,11 @@ public class PhysicsManager
     private readonly IRandom m_random;
     private readonly LineOpening m_lineOpening = new();
     private readonly TryMoveData m_tryMoveData = new();
-    private readonly List<Entity> m_crushEntities = new();
-    private readonly List<Entity> m_sectorMoveEntities = new();
-    private readonly List<Entity> m_onEntities = new();
+    private readonly DynamicArray<Entity> m_crushEntities = new();
+    private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
+    private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
-    private readonly List<Entity> m_stackCrush = new();
+    private readonly DynamicArray<Entity> m_stackCrush = new();
 
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
@@ -126,7 +126,7 @@ public class PhysicsManager
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
         GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
-        for(int i = 0; i < m_sectorMoveEntities.Count; i++)
+        for(int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
             entity.SaveZ = entity.Position.Z;
@@ -161,7 +161,7 @@ public class PhysicsManager
             }
         }
 
-        for (int i = 0; i < m_sectorMoveEntities.Count; i++)
+        for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
             ClampBetweenFloorAndCeiling(entity, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
@@ -239,7 +239,7 @@ public class PhysicsManager
             }
 
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
-            for (int i = 0; i < m_sectorMoveEntities.Count; i++)
+            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
             {
                 Entity relinkEntity = m_sectorMoveEntities[i];
                 // Check for entities that may be dead from being crushed
@@ -251,7 +251,7 @@ public class PhysicsManager
             }
         }
 
-        if (moveData.Crush != null && m_crushEntities.Count > 0)
+        if (moveData.Crush != null && m_crushEntities.Length > 0)
             CrushEntities(m_crushEntities, sector, moveData.Crush);
 
         m_crushEntities.Clear();
@@ -277,9 +277,9 @@ public class PhysicsManager
             return true;
 
         double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             Entity? intersectEntity = intersections[i].Entity;
             if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
@@ -296,7 +296,7 @@ public class PhysicsManager
         return true;
     }
 
-    private void GetSectorMoveOrderedEntities(List<Entity> entites, Sector sector)
+    private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entites, Sector sector)
     {
         LinkableNode<Entity>? node = sector.Entities.Head;
         while (node != null)
@@ -379,7 +379,7 @@ public class PhysicsManager
         return false;
     }
 
-    private void CrushEntities(List<Entity> crushEntities, Sector sector, CrushData crush)
+    private void CrushEntities(DynamicArray<Entity> crushEntities, Sector sector, CrushData crush)
     {
         if (crush.Damage == 0 || (m_world.Gametick & 3) != 0)
             return;
@@ -394,14 +394,14 @@ public class PhysicsManager
             node = node.Next;
         }
 
-        for (int i = 0; i < crushEntities.Count; i++)
+        for (int i = 0; i < crushEntities.Length; i++)
         {
             if (m_stackCrush.Contains(crushEntities[i]))
                 continue;
             m_stackCrush.Add(crushEntities[i]);
         }
 
-        for (int i = 0; i < m_stackCrush.Count; i++)
+        for (int i = 0; i < m_stackCrush.Length; i++)
         {
             Entity crushEntity = m_stackCrush[i];
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
@@ -607,7 +607,7 @@ public class PhysicsManager
                 entity.SetOnEntity(highestEntity);
             }
 
-            for (int i = 0; i < m_onEntities.Count; i++)
+            for (int i = 0; i < m_onEntities.Length; i++)
                 m_onEntities[i].SetOverEntity(entity);
 
             if (clippedFloor)
@@ -628,7 +628,7 @@ public class PhysicsManager
         m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors, List<Entity> onEntities)
+    private void SetEntityBoundsZ(Entity entity, bool clampToLinkedSectors, DynamicArray<Entity> onEntities)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
@@ -655,9 +655,9 @@ public class PhysicsManager
         {
             double entityTopZ = entity.TopZ;
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
 
-            for (int i = 0; i < intersections.Count; i++)
+            for (int i = 0; i < intersections.Length; i++)
             {
                 Entity? intersectEntity = intersections[i].Entity;
                 if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
@@ -793,6 +793,7 @@ public class PhysicsManager
                     line->BlockmapCount = checkCounter;
                     if (line->Segment.Intersects(box))
                     {
+                        // TODO move checkcounts to struct for better caching
                         if (line->FrontSector.CheckCount != checkCounter)
                         {
                             Sector sector = line->FrontSector;
@@ -920,9 +921,9 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
             ClampBetweenFloorAndCeiling(intersections[i].Entity!, smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
     }
 

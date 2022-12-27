@@ -37,10 +37,10 @@ public class DataCache
     private readonly DynamicArray<Entity> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
-    private readonly DynamicArray<List<BlockmapIntersect>> m_blockmapLists = new();
+    private readonly DynamicArray<DynamicArray<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
-    private readonly DynamicArray<List<Entity>> m_entityLists = new();
-    private readonly DynamicArray<List<RenderableGlyph>> m_glyphs = new();
+    private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
+    private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
     private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
@@ -57,8 +57,25 @@ public class DataCache
             Entity? entity = m_entities[i];
             if (entity == null)
                 continue;
-
             FlushArray(entity.IntersectSectors);
+        }
+
+        for (int i = 0; i < m_blockmapLists.Capacity; i++)
+        {
+            if (m_blockmapLists[i] == null)
+                continue;
+            for (int j = 0; j < m_blockmapLists[i].Capacity; j++)
+            {
+                m_blockmapLists[i].Data[j].Entity = null;
+                m_blockmapLists[i].Data[j].Line = null;
+            }
+        }
+
+        for (int i = 0; i < m_entityLists.Capacity; i++)
+        {
+            if (m_entityLists[i] == null)
+                continue;
+            FlushArray(m_entityLists[i]);
         }
     }
 
@@ -146,15 +163,15 @@ public class DataCache
         m_sectorNodes.Add(node);
     }
 
-    public List<BlockmapIntersect> GetBlockmapIntersectList()
+    public DynamicArray<BlockmapIntersect> GetBlockmapIntersectList()
     {
         if (m_blockmapLists.Length > 0)
             return m_blockmapLists.RemoveLast();
 
-        return new List<BlockmapIntersect>();
+        return new DynamicArray<BlockmapIntersect>();
     }
 
-    public void FreeBlockmapIntersectList(List<BlockmapIntersect> list)
+    public void FreeBlockmapIntersectList(DynamicArray<BlockmapIntersect> list)
     {
         list.Clear();
         m_blockmapLists.Add(list);
@@ -182,15 +199,15 @@ public class DataCache
         m_audioSources.Add(audioSource);
     }
 
-    public List<Entity> GetEntityList()
+    public DynamicArray<Entity> GetEntityList()
     {
         if (m_entityLists.Length > 0)
             return m_entityLists.RemoveLast();
 
-        return new List<Entity>();
+        return new DynamicArray<Entity>();
     }
 
-    public void FreeEntityList(List<Entity> list)
+    public void FreeEntityList(DynamicArray<Entity> list)
     {
         list.Clear();
         m_entityLists.Add(list);
@@ -210,15 +227,15 @@ public class DataCache
         m_sentences.Add(list);
     }
 
-    public List<RenderableGlyph> GetRenderableGlyphs()
+    public DynamicArray<RenderableGlyph> GetRenderableGlyphs()
     {
         if (m_glyphs.Length > 0)
             return m_glyphs.RemoveLast();
 
-        return new List<RenderableGlyph>();
+        return new DynamicArray<RenderableGlyph>();
     }
 
-    private void FreeRenderableGlyphs(List<RenderableGlyph> list)
+    private void FreeRenderableGlyphs(DynamicArray<RenderableGlyph> list)
     {
         list.Clear();
         m_glyphs.Add(list);

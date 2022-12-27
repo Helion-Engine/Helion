@@ -103,12 +103,12 @@ public class PushSpecial : ISpecial
         return SpecialTickStatus.Continue;
     }
 
-    private void PushEntities(List<BlockmapIntersect> intersections)
+    private void PushEntities(DynamicArray<BlockmapIntersect> intersections)
     {
         if (m_pusher == null)
             return;
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Entity == null || ShouldNotPush(bi.Entity) || !m_world.CheckLineOfSight(bi.Entity, m_pusher))

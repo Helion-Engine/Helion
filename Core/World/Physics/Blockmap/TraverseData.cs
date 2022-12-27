@@ -1,6 +1,7 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 using System.Collections.Generic;
 
 namespace Helion.World.Physics.Blockmap;
@@ -15,10 +16,10 @@ internal struct TraverseData
     public BlockmapTraverseEntityFlags EntityFlags;
     public bool StopOnOneSidedLine;
     public bool HitOneSidedLine;
-    public List<BlockmapIntersect> Intersections;
+    public DynamicArray<BlockmapIntersect> Intersections;
 
     public TraverseData(int checkCount, Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, bool stopOnOneSidedLine,
-        List<BlockmapIntersect> intersections, Vec2D center)
+        DynamicArray<BlockmapIntersect> intersections, Vec2D center)
     {
         CheckCount = checkCount;
         Box = box;

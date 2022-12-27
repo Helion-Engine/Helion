@@ -347,7 +347,7 @@ public class Sector
 
     public LinkableNode<Entity> Link(Entity entity)
     {
-        Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
+        //Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
 
         LinkableNode<Entity> node = entity.World.DataCache.GetLinkableNodeEntity(entity);
         Entities.Add(node);

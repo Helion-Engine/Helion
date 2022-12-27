@@ -8,6 +8,7 @@ using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 
 namespace Helion.Render.OpenGL.Texture.Fonts;
@@ -80,7 +81,7 @@ public class RenderableString
         if (string.IsNullOrEmpty(str))
             return sentences;
 
-        List<RenderableGlyph>? currentSentence = null;
+        DynamicArray<RenderableGlyph>? currentSentence = null;
         var colorRanges = GetColorRanges(str);
         //foreach (var colorRange in colorRanges)
         for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
@@ -96,7 +97,7 @@ public class RenderableString
                 int endY = currentHeight + (int)(glyphH * scale);
 
                 // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
-                if (endX > maxWidth && currentSentence != null && currentSentence.Count > 0)
+                if (endX > maxWidth && currentSentence != null && currentSentence.Length > 0)
                 {
                     CreateAndAddSentenceIfPossible();
                     continue;
@@ -120,7 +121,7 @@ public class RenderableString
 
         void CreateAndAddSentenceIfPossible()
         {
-            if (currentSentence == null || currentSentence.Count == 0)
+            if (currentSentence == null || currentSentence.Length == 0)
                 return;
 
             RenderableSentence sentence = new(currentSentence);
@@ -300,7 +301,7 @@ public class RenderableString
         // I am afraid of ending up with copies because this is a
         // struct, so I'll do this to make sure we don't have bugs.
         //foreach (RenderedGlyph glyph in sentence.Glyphs)
-        for (int i = 0; i < sentence.Glyphs.Count; i++)
+        for (int i = 0; i < sentence.Glyphs.Length; i++)
         {
             RenderableGlyph glyph = sentence.Glyphs[i];
 
@@ -321,7 +322,7 @@ public class RenderableString
         for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
         {
             var sentence = Sentences[sentenceIndex];
-            for (int i = 0; i < sentence.Glyphs.Count; i++)
+            for (int i = 0; i < sentence.Glyphs.Length; i++)
             {
                 RenderableGlyph renderGlyph = sentence.Glyphs[i];
 

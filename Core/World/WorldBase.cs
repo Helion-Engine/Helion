@@ -259,9 +259,9 @@ public abstract partial class WorldBase : IWorld
     public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
     {
         Box2D box = new(entity.Position.XY, 1280);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
             BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             Entity? checkEntity = intersections[i].Entity;
             if (checkEntity == null)
@@ -428,7 +428,7 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                if (entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
+                if (!entity.IsDisposed && entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
                     InstantKillSector(entity);
             }
 
@@ -698,9 +698,9 @@ public abstract partial class WorldBase : IWorld
         bool activateSuccess = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Line == null)
@@ -752,9 +752,9 @@ public abstract partial class WorldBase : IWorld
         bool shouldUse = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Line == null)
@@ -968,9 +968,9 @@ public abstract partial class WorldBase : IWorld
         BlockmapIntersect? returnValue = null;
         double floorZ, ceilingZ;
         Seg2D seg = new(start.XY, end.XY);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Line != null)
@@ -1315,7 +1315,7 @@ public abstract partial class WorldBase : IWorld
             return true;
 
         Seg2D seg = new(start, end);
-        List<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
         if (hitOneSidedLine)
         {
             DataCache.FreeBlockmapIntersectList(intersections);
@@ -1361,9 +1361,9 @@ public abstract partial class WorldBase : IWorld
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
             BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
             if (bi.Entity != null && ShouldApplyExplosionDamage(bi.Entity, damageSource))
@@ -1703,7 +1703,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < iterateTracers; i++)
         {
             Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
-            List<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
 
             TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
             DataCache.FreeBlockmapIntersectList(intersections);
@@ -1726,13 +1726,13 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(List<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch,
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch,
         out double pitch, out Entity? entity)
     {
         pitch = 0.0;
         entity = null;
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
 
@@ -1984,10 +1984,10 @@ public abstract partial class WorldBase : IWorld
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)
     {
         Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
-        List<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
+        DynamicArray<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
             BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
 
-        for (int i = 0; i < intersections.Count; i++)
+        for (int i = 0; i < intersections.Length; i++)
         {
             BlockmapIntersect bi = intersections[i];
 
@@ -2037,10 +2037,10 @@ public abstract partial class WorldBase : IWorld
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
         Entity owner = entity.Owner.Entity ?? entity;
-        List<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
+        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
             BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Shootable);
 
-        for (int i= 0; i < intersections.Count; i++)
+        for (int i= 0; i < intersections.Length; i++)
         {
             Entity? checkEntity = intersections[i].Entity;
             if (checkEntity == null || !owner.ValidEnemyTarget(checkEntity))

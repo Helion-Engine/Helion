@@ -80,7 +80,7 @@ public class LegacyHudRenderer : HudRenderer
 
         for (int i = 0; i < text.Sentences.Count; i++)
         {
-            for (int j = 0; j < text.Sentences[i].Glyphs.Count; j++)
+            for (int j = 0; j < text.Sentences[i].Glyphs.Length; j++)
             {
                 RenderableGlyph glyph = text.Sentences[i].Glyphs[j];
                 float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);

@@ -27,20 +27,20 @@ public class BlockmapTraverser
         m_dataCache = dataCache;
     }
 
-    public List<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
+    public DynamicArray<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
     {
         return Traverse(box, null, flags, entityFlags, out _);
     }
 
-    public List<BlockmapIntersect> GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
+    public DynamicArray<BlockmapIntersect> GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
     {
         return Traverse(null, seg, flags, entityFlags,  out _);
     }
 
     // Gets all entity intersections regardless of flags
-    public List<BlockmapIntersect> GetEntityIntersections(Box2D box)
+    public DynamicArray<BlockmapIntersect> GetEntityIntersections(Box2D box)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         int checkCounter = ++m_world.CheckCounter;
         
         BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
@@ -67,9 +67,9 @@ public class BlockmapTraverser
     }
 
     // Gets all intersecting entities that are solid
-    public List<BlockmapIntersect> GetSolidEntityIntersections(Box2D box)
+    public DynamicArray<BlockmapIntersect> GetSolidEntityIntersections(Box2D box)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         int m_checkCounter = ++m_world.CheckCounter;
 
         BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
@@ -95,9 +95,9 @@ public class BlockmapTraverser
         return intersections;
     }
 
-    public unsafe List<BlockmapIntersect> SightTraverse(Seg2D seg, out bool hitOneSidedLine)
+    public unsafe DynamicArray<BlockmapIntersect> SightTraverse(Seg2D seg, out bool hitOneSidedLine)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         int checkCounter = ++m_world.CheckCounter;
         hitOneSidedLine = false;
 
@@ -137,9 +137,9 @@ sightTraverseEndOfLoop:
     }
 
     // Gets all intersecting entities that are solid and not a corpse
-    public List<BlockmapIntersect> GetSolidNonCorpseEntityIntersections(Box2D box)
+    public DynamicArray<BlockmapIntersect> GetSolidNonCorpseEntityIntersections(Box2D box)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         int checkCounter = ++m_world.CheckCounter;
         
         BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
@@ -165,9 +165,9 @@ sightTraverseEndOfLoop:
         return intersections;
     }
 
-    public unsafe List<BlockmapIntersect> ShootTraverse(Seg2D seg)
+    public unsafe DynamicArray<BlockmapIntersect> ShootTraverse(Seg2D seg)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         int checkCounter = ++m_world.CheckCounter;
         
@@ -213,9 +213,9 @@ sightTraverseEndOfLoop:
         return intersections;
     }
 
-    public unsafe List<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
+    public unsafe DynamicArray<BlockmapIntersect> Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, out bool hitOneSidedLine)
     {
-        List<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
+        DynamicArray<BlockmapIntersect> intersections = m_dataCache.GetBlockmapIntersectList();
         Vec2D intersect = Vec2D.Zero;
         Vec2D center = default;
         TraverseData data = default;

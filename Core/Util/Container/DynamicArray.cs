@@ -163,6 +163,21 @@ public class DynamicArray<T>
         return data;
     }
 
+    public void Sort()
+    {
+        Array.Sort<T>(Data, 0, Length, null);
+    }
+
+    public void Sort(int index, int length)
+    {
+        Array.Sort<T>(Data, index, length, null);
+    }
+
+    public void Sort(IComparer<T> comparer)
+    {
+        Array.Sort<T>(Data, 0, Length, comparer);
+    }
+
     private void EnsureCapacity(int desiredCapacity)
     {
         Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");

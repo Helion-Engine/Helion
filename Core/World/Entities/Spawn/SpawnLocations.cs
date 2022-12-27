@@ -109,7 +109,15 @@ public class SpawnLocations
     private static bool PlayerBlock(Entity spawn)
     {
         var entities = spawn.GetIntersectingEntities2D();
-        bool blocked = entities.Any(x => x.IsPlayer);
+        bool blocked = false;
+        for (int i= 0; i < entities.Length; i++)
+        {
+            if (entities[i].IsPlayer)
+            {
+                blocked = true;
+                break;
+            }
+        }
         spawn.World.DataCache.FreeEntityList(entities);
         return blocked;
     }
