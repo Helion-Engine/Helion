@@ -164,6 +164,9 @@ public class PhysicsManager
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
+            if (entity.IsDisposed)
+                continue;
+
             ClampBetweenFloorAndCeiling(entity, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
@@ -407,7 +410,7 @@ public class PhysicsManager
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
 
             if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, DamageType.Normal) &&
-                !crushEntity.Flags.NoBlood)
+                !crushEntity.Flags.NoBlood && !crushEntity.IsDisposed)
             {
                 Vec3D pos = crushEntity.Position;
                 pos.Z += crushEntity.Height / 2;

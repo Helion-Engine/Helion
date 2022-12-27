@@ -39,7 +39,7 @@ public class RGBColoredStringDecoderTest
         }
 
         if (rawString.Length > 0)
-            colorStr.Sentences[0].Glyphs.Count.Should().Be(endIndex);
+            colorStr.Sentences[0].Glyphs.Length.Should().Be(endIndex);
     }
 
     [Fact(DisplayName = "Checks empty string")]

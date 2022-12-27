@@ -301,7 +301,7 @@ namespace Helion.Tests.Unit.GameAction
             monster.SubsectorNode.Should().BeNull();
 
             var intersections = World.BlockmapTraverser.GetEntityIntersections(monster.GetBox2D());
-            intersections.Count.Should().Be(0);
+            intersections.Length.Should().Be(0);
 
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
