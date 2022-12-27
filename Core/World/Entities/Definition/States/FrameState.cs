@@ -184,10 +184,7 @@ public struct FrameState
             if (Frame.BranchType == ActorStateBranch.Stop && Frame.Ticks >= 0)
             {
                 if (m_destroyOnStop)
-                {
-                    m_entityManager.Destroy(m_entity);
                     return;
-                }
                 break;
             }
 
@@ -215,7 +212,15 @@ public struct FrameState
 
         m_tics--;
         if (m_tics <= 0)
+        {
+            if (Frame.BranchType == ActorStateBranch.Stop && m_destroyOnStop)
+            {
+                m_entityManager.Destroy(m_entity);
+                return;
+            }
+
             SetFrameIndexInternal(Frame.NextFrameIndex, null);
+        }
     }
 
     public FrameStateModel ToFrameStateModel()
