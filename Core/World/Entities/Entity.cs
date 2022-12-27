@@ -945,6 +945,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         WeakEntity.DisposeEntity(this);
         World = null!;
         EntityManager = null!;
+        SoundManager = null!;
         Definition = null!;
 
         Velocity = Vec3D.Zero;
