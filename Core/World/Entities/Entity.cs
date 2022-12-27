@@ -107,7 +107,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
     public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
-    public LinkableNode<Entity>? EntityListNode;
+    public readonly LinkableNode<Entity>? EntityListNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -132,7 +132,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public IAudioSource[] SoundChannels = new IAudioSource[Entity.MaxSoundChannels];
 
-    public Entity() { }
+    public Entity()
+    {
+        EntityListNode = new(this);
+    }
 
     public void Set(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)
@@ -916,13 +919,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-        
-        if (EntityListNode != null)
-        {
-            EntityListNode.Unlink();
-            World.DataCache.FreeLinkableNodeEntity(EntityListNode);
-            EntityListNode = null;
-        }
+        EntityListNode.Unlink();
 
         FrameState.SetFrameIndex(Constants.NullFrameIndex);
 

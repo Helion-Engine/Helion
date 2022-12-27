@@ -241,7 +241,6 @@ public class EntityManager : IDisposable
             }
 
             var entity = World.DataCache.GetEntity(entityModel, definition, World);
-            entity.EntityListNode = World.DataCache.GetLinkableNodeEntity(entity);
             Entities.Add(entity.EntityListNode);
 
             entities.Add(entityModel.Id, new(entityModel, entity));
@@ -345,7 +344,6 @@ public class EntityManager : IDisposable
             Player player = new(playerModel, entities, playerDefinition, World);
             player.IsVooDooDoll = isVoodooDoll;
 
-            player.EntityListNode = World.DataCache.GetLinkableNodeEntity(player);
             Entities.Add(player.EntityListNode);
             entities.Add(player.Id, new(playerModel, player));
 
@@ -403,7 +401,6 @@ public class EntityManager : IDisposable
 
     private void FinishCreatingEntity(Entity entity, double zHeight, bool executeStateFunctions)
     {
-        entity.EntityListNode = World.DataCache.GetLinkableNodeEntity(entity);
         Entities.Add(entity.EntityListNode);
 
         World.Link(entity);
