@@ -102,10 +102,8 @@ public class DefinitionStateApplier
         return actorDefinitions.Last().Name;
     }
 
-    private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
+    public static void SetDefinitionStateIndicies(EntityFrameTable entityFrameTable, EntityDefinition definition)
     {
-        masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
-
         definition.SpawnState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Spawn);
         definition.MissileState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Missile);
         definition.MeleeState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Melee);
@@ -114,6 +112,12 @@ public class DefinitionStateApplier
         definition.RaiseState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Raise);
         definition.SeeState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.See);
         definition.PainState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Pain);
+    }
+
+    private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
+    {
+        masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
+        SetDefinitionStateIndicies(entityFrameTable, definition);
     }
 
     private static int? GetEntityFrame(EntityFrameTable entityFrameTable, EntityDefinition definition, string label)

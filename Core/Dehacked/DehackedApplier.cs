@@ -67,6 +67,9 @@ public class DehackedApplier
         ApplyBexText(dehacked, definitionEntries.Language);
         ApplyBexPars(dehacked, definitionEntries.MapInfoDefinition);
 
+        foreach (var definition in composer.GetEntityDefinitions())
+            DefinitionStateApplier.SetDefinitionStateIndicies(definitionEntries.EntityFrameTable, definition);
+
         RemoveLabels.Clear();
         m_dehacked.NewSpriteLookup.Clear();
     }
