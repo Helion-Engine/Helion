@@ -57,7 +57,7 @@ public class DataCache
             Entity? entity = m_entities[i];
             if (entity == null)
                 continue;
-            FlushArray(entity.IntersectSectors);
+            entity.IntersectSectors.FlushReferences();
         }
 
         for (int i = 0; i < m_blockmapLists.Capacity; i++)
@@ -75,14 +75,8 @@ public class DataCache
         {
             if (m_entityLists[i] == null)
                 continue;
-            FlushArray(m_entityLists[i]);
+            m_entityLists[i].FlushReferences();
         }
-    }
-
-    private static void FlushArray<T>(DynamicArray<T> array) where T : class
-    {
-        for (int i = 0; i < array.Capacity; i++)
-            array[i] = null;
     }
 
     public Entity GetEntity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,

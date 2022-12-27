@@ -180,7 +180,6 @@ public class DynamicArray<T>
 
     private void EnsureCapacity(int desiredCapacity)
     {
-        Precondition(desiredCapacity > 0, "Trying to ensure a zero or negative capacity");
         Precondition(Capacity > 0, "Should never have a zero capacity");
 
         if (desiredCapacity <= Capacity)

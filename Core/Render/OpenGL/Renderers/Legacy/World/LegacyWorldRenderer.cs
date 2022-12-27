@@ -49,7 +49,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
-    private readonly List<IRenderObject> m_alphaEntities = new();
+    private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
+    private readonly RenderObjectComparer m_renderObjectComparer = new();
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -90,6 +91,7 @@ public class LegacyWorldRenderer : WorldRenderer
         world.OnResetInterpolation += World_OnResetInterpolation;
         m_previousWorld = world;
         m_lastTicker = -1;
+        m_alphaEntities.FlushReferences();
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
@@ -299,14 +301,14 @@ public class LegacyWorldRenderer : WorldRenderer
         // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
-    private void RenderAlphaObjects(Vec2D position, Vec3D position3D, List<IRenderObject> alphaEntities)
+    private void RenderAlphaObjects(Vec2D position, Vec3D position3D, DynamicArray<IRenderObject> alphaEntities)
     {
         // This will just render based on distance from their center point.
         // Not really correct, but mostly correct enough for now.
-        List<IRenderObject> alphaObjects = alphaEntities;
+        DynamicArray<IRenderObject> alphaObjects = alphaEntities;
         alphaObjects.AddRange(m_geometryRenderer.AlphaSides);
-        alphaObjects.Sort((i1, i2) => i2.RenderDistance.CompareTo(i1.RenderDistance));
-        for (int i = 0; i < alphaObjects.Count; i++)
+        alphaObjects.Sort(m_renderObjectComparer);
+        for (int i = 0; i < alphaObjects.Length; i++)
         {
             IRenderObject renderObject = alphaObjects[i];
             if (renderObject.Type == RenderObjectType.Entity)
