@@ -2644,5 +2644,22 @@ namespace Helion.Tests.Unit.GameAction
             foreach ((int sectorId, double startingFloorZ) in new[] { (0, 0.0), (7, 56.0) })
                 GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
         }
+        
+        [Fact(DisplayName = "Vanilla stairs that are joined together outside of the map like TNT30 (Doom Action 7 (S1) Raise stairs 8)")]
+        public void VanillaStairsJoinedSectorExtraRaiseHeight()
+        {
+            const int StairActivationLine = 34;
+
+            GameActions.EntityUseLine(World, Player, StairActivationLine).Should().BeTrue();
+            GameActions.TickWorld(World, 35 * 5);
+
+            // Check the stairs manually.
+            foreach ((int sectorId, double startingFloorZ) in new[] { (12, 16.0), (14, 40.0) })
+                GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
+            
+            // Make sure the floors elsewhere didn't change accidentally.
+            foreach ((int sectorId, double startingFloorZ) in new[] { (8, 0.0), (10, 48.0) })
+                GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
+        }
     }
 }
