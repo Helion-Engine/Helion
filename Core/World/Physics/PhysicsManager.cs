@@ -781,6 +781,7 @@ public class PhysicsManager
         Sector centerSector = centerSubsector.Sector;
         centerSector.CheckCount = checkCounter;
 
+        Vec2D position = entity.Position.XY;
         Box2D box = entity.GetBox2D();
         BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
         while (it.HasNext())
@@ -794,9 +795,13 @@ public class PhysicsManager
                         continue;
 
                     line->BlockmapCount = checkCounter;
+
+                    // Doomism: Ignore if blocked by flags only.
+                    if (Line.BlocksEntity(line, entity))
+                        continue;
+
                     if (line->Segment.Intersects(box))
                     {
-                        // TODO move checkcounts to struct for better caching
                         if (line->FrontSector.CheckCount != checkCounter)
                         {
                             Sector sector = line->FrontSector;

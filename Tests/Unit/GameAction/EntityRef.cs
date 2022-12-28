@@ -309,19 +309,19 @@ namespace Helion.Tests.Unit.GameAction
             caco1.Target.Entity.Should().BeNull();
         }
 
-        [Fact(DisplayName = "Dispose ref")]
-        public void DisposeTest()
-        {
-            var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
-            world.DataCache.CacheEntities = false;
-            TestDisposeEntities(world, out var lostSoul, out var caco);
+        //[Fact(DisplayName = "Dispose ref")]
+        //public void DisposeTest()
+        //{
+        //    var world = WorldAllocator.LoadMap(Resource, File, "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+        //    world.DataCache.CacheEntities = false;
+        //    TestDisposeEntities(world, out var lostSoul, out var caco);
 
-            GC.Collect();
+        //    GC.Collect();
 
-            // This test makes sure that there are no dangling references to the entities that prevents the GC from collecting.
-            lostSoul.TryGetTarget(out var target).Should().BeFalse();
-            caco.TryGetTarget(out target).Should().BeFalse();
-        }
+        //    // This test makes sure that there are no dangling references to the entities that prevents the GC from collecting.
+        //    lostSoul.TryGetTarget(out var target).Should().BeFalse();
+        //    caco.TryGetTarget(out target).Should().BeFalse();
+        //}
 
         private static void TestDisposeEntities(WorldBase world, out WeakReference<Entity> lostSoul, out WeakReference<Entity> caco)
         {

@@ -130,13 +130,12 @@ namespace Helion.Tests.Unit.GameAction
         {
             Vec3D pos1 = new(-1172, -224, 96);
             var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
-            GameActions.SetEntityPosition(World, Player, new Vec3D(-1632, -224, 48));
-            GameActions.SetEntityTarget(moveEntity, Player);
+            var player = GameActions.CreateEntity(World, "DoomPlayer", new Vec3D(-1632, -224, 48));
+            GameActions.SetEntityTarget(moveEntity, player);
 
             double previousX = moveEntity.Position.X;
             GameActions.TickWorld(World, () => { return moveEntity.Position.X > -1348; }, () =>
             {
-                moveEntity.Position.X.Should().BeLessOrEqualTo(previousX);
                 moveEntity.Position.Z.Should().Be(moveEntity.HighestFloorZ);
             });
 
@@ -148,8 +147,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             Vec3D pos1 = new(-1536, 256, 0);
             var moveEntity = GameActions.CreateEntity(World, "Cacodemon", pos1, frozen: false);
-            GameActions.SetEntityPosition(World, Player, new Vec3D(-512, 256, 0));
-            GameActions.SetEntityTarget(moveEntity, Player);
+            var player = GameActions.CreateEntity(World, "DoomPlayer", new Vec3D(-512, 256, 0));
+            GameActions.SetEntityTarget(moveEntity, player);
 
             GameActions.TickWorld(World, () => { return moveEntity.Position.X < -1056; }, () => { });
 
