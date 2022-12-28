@@ -1508,7 +1508,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         if (line.Special.CanActivateByTag && line.HasSectorTag)
             return m_world.FindBySectorTag(line.SectorTag);
-        else if (line.Special.CanActivateByBackSide && line.Back != null)
+        if (line.Special.CanActivateByBackSide && line.Back != null)
             return new List<Sector> { line.Back.Sector };
 
         return Enumerable.Empty<Sector>();

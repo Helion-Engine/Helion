@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Models;
-using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials;
@@ -51,9 +48,8 @@ public class StairSpecial : SectorMoveSpecial
     }
 
     public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) :
-        this (world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
+        this(world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
     {
-
     }
 
     public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush, MoveDirection direction,
