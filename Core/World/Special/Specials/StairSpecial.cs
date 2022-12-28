@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio;
 using Helion.Models;
-using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 
 namespace Helion.World.Special.Specials;
@@ -51,9 +48,8 @@ public class StairSpecial : SectorMoveSpecial
     }
 
     public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) :
-        this (world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
+        this(world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
     {
-
     }
 
     public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush, MoveDirection direction,
@@ -74,14 +70,15 @@ public class StairSpecial : SectorMoveSpecial
 
         do
         {
-            if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
-                m_stairs.Add(stairMove);
+            if (!stairMove.Sector.IsMoving)
+                stairMove.Sector.ActiveFloorMove = this;
+            m_stairs.Add(stairMove);
             stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height, ignoreTexture);
         }
         while (stairMove != null);
     }
 
-    public StairSpecial(IWorld world, Sector sector, StairSpecialModel model)  :
+    public StairSpecial(IWorld world, Sector sector, StairSpecialModel model) :
         base(world, sector, model.MoveSpecial)
     {
         m_stairDelay = model.Delay;
@@ -212,7 +209,6 @@ public class StairSpecial : SectorMoveSpecial
         {
             if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
             {
-                stairMove.Sector.ActiveFloorMove = this;
                 CreateMovementSound(stairMove.Sector);
 
                 if (m_resetTics > 0)
@@ -223,7 +219,7 @@ public class StairSpecial : SectorMoveSpecial
 
     private void ClearMovementLock()
     {
-        for (int i = 0; i < m_stairs.Count; i ++)
+        for (int i = 0; i < m_stairs.Count; i++)
             m_stairs[i].Sector.DataChanges &= ~SectorDataTypes.MovementLocked;
     }
 
