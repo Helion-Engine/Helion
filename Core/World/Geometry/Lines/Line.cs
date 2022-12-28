@@ -224,8 +224,8 @@ public class Line : IBspUsableLine
         if (line->OneSided)
             return true;
 
-        if (!entity.IsPlayer && !entity.Flags.Missile && 
-            line->Flags.Blocking.Monsters || (line->Flags.Blocking.LandMonsters && !entity.Flags.Float))
+        if (!entity.IsPlayer && !entity.Flags.Missile &&
+            (line->Line.Flags.Blocking.Monsters || (line->Line.Flags.Blocking.LandMonsters && !entity.Flags.Float)))
             return true;
 
         if (entity.IsPlayer && line->Flags.Blocking.Players)
