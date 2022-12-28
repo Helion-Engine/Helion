@@ -221,6 +221,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
         FrameState = new(this, definition, world.EntityManager, entityModel.Frame);
+        InMonsterCloset = IsClosetChase || IsClosetLook;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
