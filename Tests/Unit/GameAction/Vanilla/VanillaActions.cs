@@ -2658,7 +2658,7 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
             
             // Make sure the floors elsewhere didn't change accidentally.
-            foreach ((int sectorId, double startingFloorZ) in new[] { (8, 0.0), (10, 48.0) })
+            foreach ((int sectorId, double startingFloorZ) in new[] { (0, 0.0), (10, 48.0) })
                 GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
         }
     }
