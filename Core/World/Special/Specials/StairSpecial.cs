@@ -70,14 +70,15 @@ public class StairSpecial : SectorMoveSpecial
 
         do
         {
-            if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
-                m_stairs.Add(stairMove);
+            if (!stairMove.Sector.IsMoving)
+                stairMove.Sector.ActiveFloorMove = this;
+            m_stairs.Add(stairMove);
             stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height, ignoreTexture);
         }
         while (stairMove != null);
     }
 
-    public StairSpecial(IWorld world, Sector sector, StairSpecialModel model)  :
+    public StairSpecial(IWorld world, Sector sector, StairSpecialModel model) :
         base(world, sector, model.MoveSpecial)
     {
         m_stairDelay = model.Delay;
@@ -208,7 +209,6 @@ public class StairSpecial : SectorMoveSpecial
         {
             if (stairMove.Sector.ActiveFloorMove == null || OwnsPlane(stairMove.Sector))
             {
-                stairMove.Sector.ActiveFloorMove = this;
                 CreateMovementSound(stairMove.Sector);
 
                 if (m_resetTics > 0)
@@ -219,7 +219,7 @@ public class StairSpecial : SectorMoveSpecial
 
     private void ClearMovementLock()
     {
-        for (int i = 0; i < m_stairs.Count; i ++)
+        for (int i = 0; i < m_stairs.Count; i++)
             m_stairs[i].Sector.DataChanges &= ~SectorDataTypes.MovementLocked;
     }
 
