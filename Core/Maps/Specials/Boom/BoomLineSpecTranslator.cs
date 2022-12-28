@@ -237,6 +237,11 @@ public static class BoomLineSpecTranslator
             else
                 argsToMutate.Arg4 = (int)ZDoomKeyType.AllSixKeys;
         }
+        else
+        {
+            const int KeyStart = ((int)ZDoomKeyType.RedAny - 1);
+            argsToMutate.Arg4 += KeyStart;
+        }
     }
 
     private static LineActivations GetSpecialActivationType(ushort special, out bool repeat, out LineActivationType lineActivationType)
