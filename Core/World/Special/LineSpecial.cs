@@ -97,6 +97,7 @@ public class LineSpecial
         if (entity.Flags.NoTeleport && IsTeleport())
             return false;
 
+        bool contextSuccess = false;
         LineFlags flags = line.Flags;
         if (context == ActivationContext.HitscanCrossLine || context == ActivationContext.HitscanImpactsWall)
         {
@@ -104,9 +105,9 @@ public class LineSpecial
                 return false;
 
             if (context == ActivationContext.HitscanCrossLine)
-                return flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
             else
-                return flags.Activations.HasFlag(LineActivations.ImpactLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
         }
         else if (entity.Flags.Missile)
         {
@@ -114,9 +115,9 @@ public class LineSpecial
                 return false;
 
             if (context == ActivationContext.EntityImpactsWall)
-                return flags.Activations.HasFlag(LineActivations.ImpactLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
             else if (context == ActivationContext.CrossLine)
-                return flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
 
         }
         else if (!entity.IsPlayer)
@@ -125,14 +126,14 @@ public class LineSpecial
                 return false;
 
             if (context == ActivationContext.CrossLine)
-                return flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
             // Based on testing this implementation appears to be goofed. Only works with two-sided lines.
             else if (context == ActivationContext.UseLine && line.Back != null)
-                return flags.Activations.HasFlag(LineActivations.UseLine);
+                contextSuccess = flags.Activations.HasFlag(LineActivations.UseLine);
         }
-        else if (entity.PlayerObj != null)
+
+        if (entity.PlayerObj != null)
         {
-            bool contextSuccess = false;
             if (flags.Activations.HasFlag(LineActivations.Player))
             {
                 if (context == ActivationContext.CrossLine)
@@ -152,11 +153,9 @@ public class LineSpecial
                     return false;
                 }
             }
-
-            return contextSuccess;
         }
 
-        return false;
+        return contextSuccess;
     }
 
     private static bool PlayerCanUnlock(Player player, LockDef lockDef)

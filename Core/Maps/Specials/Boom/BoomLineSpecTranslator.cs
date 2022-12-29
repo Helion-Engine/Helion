@@ -224,6 +224,7 @@ public static class BoomLineSpecTranslator
             argsToMutate.Arg3 = 34;
 
         // All color keys map directly to ZDoom, any and all keys need to changed specifically
+        bool skullOrKeyCard = (special & DoorLockKeyTypeMask) >> DoorLockKeyTypeShift != 0;
         argsToMutate.Arg4 = (special & DoorLockKeyMask) >> DoorLockKeyShift;
         if (argsToMutate.Arg4 == (int)BoomKey.AnyKey)
         {
@@ -231,13 +232,12 @@ public static class BoomLineSpecTranslator
         }
         else if (argsToMutate.Arg4 == (int)BoomKey.AllKeys)
         {
-            bool skullOrKeyCard = (special & DoorLockKeyTypeMask) >> DoorLockKeyTypeShift != 0;
             if (skullOrKeyCard)
                 argsToMutate.Arg4 = (int)ZDoomKeyType.AllThreeColors;
             else
                 argsToMutate.Arg4 = (int)ZDoomKeyType.AllSixKeys;
         }
-        else
+        else if (skullOrKeyCard)
         {
             const int KeyStart = ((int)ZDoomKeyType.RedAny - 1);
             argsToMutate.Arg4 += KeyStart;
