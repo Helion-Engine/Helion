@@ -64,7 +64,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_automapRenderer = new(archiveCollection);
-        m_entityRenderer = new(config, textureManager);
+        m_entityRenderer = new(config, textureManager, m_worldDataManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -278,12 +278,13 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void Clear(IWorld world, RenderInfo renderInfo)
     {
+        bool clearSprites = world.GameTicker != m_lastTicker;
         m_viewClipper.Clear();
-        m_worldDataManager.Clear();
+        m_worldDataManager.Clear(clearSprites);
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
 
-        if (world.GameTicker != m_lastTicker)
+        if (clearSprites)
             m_entityRenderer.Clear(world);
     }
 
@@ -437,7 +438,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_program.HasInvulnerability(drawInvulnerability);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
         m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
-        m_program.TimeFrac(timeFrac);
+        m_program.TimeFrac(renderInfo.TickFraction);
+        m_program.FuzzFrac(timeFrac);
         m_program.LightLevelMix(mix);
         m_program.ExtraLight(extraLight);
     }

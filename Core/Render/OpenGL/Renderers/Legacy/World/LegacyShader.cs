@@ -16,6 +16,7 @@ public class LegacyShader : RenderProgram
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
+    public void FuzzFrac(float frac) => Uniforms.Set(frac, "fuzzFrac");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
@@ -24,10 +25,11 @@ public class LegacyShader : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec2 uv;
-        layout(location = 2) in float lightLevel;
-        layout(location = 3) in float alpha;
-        layout(location = 4) in float fuzz;
+        layout(location = 1) in vec3 prevPos;
+        layout(location = 2) in vec2 uv;
+        layout(location = 3) in float lightLevel;
+        layout(location = 4) in float alpha;
+        layout(location = 5) in float fuzz;
 
         out vec2 uvFrag;
         flat out float lightLevelFrag;
@@ -37,6 +39,7 @@ public class LegacyShader : RenderProgram
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
+        uniform float timeFrac;
 
         void main() {
             uvFrag = uv;
@@ -44,7 +47,7 @@ public class LegacyShader : RenderProgram
             alphaFrag = alpha;
             fuzzFrag = fuzz;
 
-            vec4 pos_ = vec4(pos, 1.0);
+            vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
             dist = (mvpNoPitch * pos_).z;
         }
@@ -62,7 +65,7 @@ public class LegacyShader : RenderProgram
         out vec4 fragColor;
 
         uniform int hasInvulnerability;
-        uniform float timeFrac;
+        uniform float fuzzFrac;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -123,7 +126,7 @@ public class LegacyShader : RenderProgram
                 // The division/floor is to chunk pixels together to make
                 // blocks. A larger denominator makes it more blocky.
                 vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= step(0.25, noise(blockCoordinate * timeFrac));
+                fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
             }
 
             fragColor.xyz *= lightLevel;

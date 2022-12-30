@@ -1241,6 +1241,9 @@ public class GeometryRenderer : IDisposable
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
+        data[0].PrevX = wv.TopLeft.X;
+        data[0].PrevY = wv.TopLeft.Y;
+        data[0].PrevZ = wv.TopLeft.Z;
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
@@ -1249,6 +1252,9 @@ public class GeometryRenderer : IDisposable
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
+        data[1].PrevX = wv.BottomLeft.X;
+        data[1].PrevY = wv.BottomLeft.Y;
+        data[1].PrevZ = wv.BottomLeft.Z;
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
@@ -1257,6 +1263,9 @@ public class GeometryRenderer : IDisposable
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
+        data[2].PrevX = wv.TopRight.X;
+        data[2].PrevY = wv.TopRight.Y;
+        data[2].PrevZ = wv.TopRight.Z;
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
@@ -1265,6 +1274,9 @@ public class GeometryRenderer : IDisposable
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
+        data[3].PrevX = wv.TopRight.X;
+        data[3].PrevY = wv.TopRight.Y;
+        data[3].PrevZ = wv.TopRight.Z;
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
@@ -1273,6 +1285,9 @@ public class GeometryRenderer : IDisposable
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
+        data[4].PrevX = wv.BottomLeft.X;
+        data[4].PrevY = wv.BottomLeft.Y;
+        data[4].PrevZ = wv.BottomLeft.Z;
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
@@ -1281,6 +1296,9 @@ public class GeometryRenderer : IDisposable
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
+        data[5].PrevX = wv.BottomRight.X;
+        data[5].PrevY = wv.BottomRight.Y;
+        data[5].PrevZ = wv.BottomRight.Z;
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
@@ -1299,55 +1317,67 @@ public class GeometryRenderer : IDisposable
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
+        data[0].PrevX = wv.TopLeft.X;
+        data[0].PrevY = wv.TopLeft.Y;
+        data[0].PrevZ = wv.TopLeft.Z;
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
-        data[0].Fuzz = 0;
 
         data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
+        data[1].PrevX = wv.BottomLeft.X;
+        data[1].PrevY = wv.BottomLeft.Y;
+        data[1].PrevZ = wv.BottomLeft.Z;
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
-        data[1].Fuzz = 0;
 
         data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
+        data[2].PrevX = wv.TopRight.X;
+        data[2].PrevY = wv.TopRight.Y;
+        data[2].PrevZ = wv.TopRight.Z;
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
-        data[2].Fuzz = 0;
 
         data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
+        data[3].PrevX = wv.TopRight.X;
+        data[3].PrevY = wv.TopRight.Y;
+        data[3].PrevZ = wv.TopRight.Z;
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
-        data[3].Fuzz = 0;
 
         data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
+        data[4].PrevX = wv.BottomLeft.X;
+        data[4].PrevY = wv.BottomLeft.Y;
+        data[4].PrevZ = wv.BottomLeft.Z;
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
-        data[4].Fuzz = 0;
 
         data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
+        data[5].PrevX = wv.BottomRight.X;
+        data[5].PrevY = wv.BottomRight.Y;
+        data[5].PrevZ = wv.BottomRight.Z;
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
-        data[5].Fuzz = 0;
 
         return data;
     }
@@ -1360,6 +1390,9 @@ public class GeometryRenderer : IDisposable
             X = root.X,
             Y = root.Y,
             Z = root.Z,
+            PrevX = root.X,
+            PrevY = root.Y,
+            PrevZ = root.Z,
             U = root.U,
             V = root.V,
             Alpha = 1.0f,
@@ -1372,6 +1405,9 @@ public class GeometryRenderer : IDisposable
             X = second.X,
             Y = second.Y,
             Z = second.Z,
+            PrevX = second.X,
+            PrevY = second.Y,
+            PrevZ = second.Z,
             U = second.U,
             V = second.V,
             Alpha = 1.0f,
@@ -1384,6 +1420,9 @@ public class GeometryRenderer : IDisposable
             X = third.X,
             Y = third.Y,
             Z = third.Z,
+            PrevX = third.X,
+            PrevY = third.Y,
+            PrevZ = third.Z,
             U = third.U,
             V = third.V,
             Alpha = 1.0f,

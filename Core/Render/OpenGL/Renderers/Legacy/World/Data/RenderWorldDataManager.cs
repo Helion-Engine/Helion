@@ -14,9 +14,6 @@ public class RenderWorldDataManager : IDisposable
     private readonly List<RenderWorldData> m_renderData = new();
     private readonly List<RenderWorldData> m_alphaRenderData = new();
 
-    private readonly DynamicArray<RenderWorldData> m_renderedData = new();
-    private readonly DynamicArray<RenderWorldData> m_renderedAlphaData = new();
-
     private RenderWorldData?[] m_allRenderData;
     private RenderWorldData?[] m_allRenderDataAlpha;
 
@@ -46,17 +43,13 @@ public class RenderWorldDataManager : IDisposable
         if (data != null)
         {
             if (data.RenderCount != m_renderCount)
-            {
                 data.RenderCount = m_renderCount;
-                m_renderedData.Add(data);
-            }
             return data;
         }
 
         RenderWorldData newData = new(texture, program);
         m_allRenderData[texture.TextureId] = newData;       
         m_renderData.Add(newData);
-        m_renderedData.Add(newData);
         return newData;
     }
 
@@ -73,41 +66,46 @@ public class RenderWorldDataManager : IDisposable
         if (data != null)
         {
             if (data.RenderCount != m_renderCount)
-            {
                 data.RenderCount = m_renderCount;
-                m_renderedAlphaData.Add(data);
-            }
             return data;
         }
 
         RenderWorldData newData = new(texture, program);
         m_allRenderDataAlpha[texture.TextureId] = newData;
         m_alphaRenderData.Add(newData);
-        m_renderedAlphaData.Add(newData);
         return newData;
     }
 
-    public void Clear()
+    public void Clear(bool clearSprites)
     {
         m_renderCount++;
-        for (int i = 0; i < m_renderedData.Length; i++)
-            m_renderedData[i].Clear();
-        for (int i = 0; i < m_renderedAlphaData.Length; i++)
-            m_renderedAlphaData[i].Clear();
-        m_renderedData.Clear();
-        m_renderedAlphaData.Clear();
+        for (int i = 0; i < m_renderData.Count; i++)
+        {
+            RenderWorldData data = m_renderData[i];
+            if (data.Sprite && !clearSprites)
+                continue;
+            data.Clear();
+        }
+
+        for (int i = 0; i < m_alphaRenderData.Count; i++)
+        {
+            RenderWorldData data = m_alphaRenderData[i];
+            if (data.Sprite && !clearSprites)
+                continue;
+            data.Clear();
+        }
     }
 
     public void DrawNonAlpha()
     {
-        for (int i = 0; i < m_renderedData.Length; i++)
-            m_renderedData[i].Draw();
+        for (int i = 0; i < m_renderData.Count; i++)
+            m_renderData[i].Draw();
     }
 
     public void DrawAlpha()
     {
-        for (int i = 0; i < m_renderedAlphaData.Length; i++)
-            m_renderedAlphaData[i].Draw();
+        for (int i = 0; i < m_alphaRenderData.Count; i++)
+            m_alphaRenderData[i].Draw();
     }
 
     public void Dispose()

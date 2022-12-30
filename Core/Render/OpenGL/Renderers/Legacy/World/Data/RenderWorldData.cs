@@ -14,6 +14,7 @@ public class RenderWorldData : IDisposable
     public readonly StreamVertexBuffer<LegacyVertex> Vbo;
     public readonly VertexArrayObject Vao;
     public int RenderCount;
+    public bool Sprite;
 
     public RenderWorldData(GLLegacyTexture texture, RenderProgram program)
     {
