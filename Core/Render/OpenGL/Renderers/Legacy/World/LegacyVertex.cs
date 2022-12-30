@@ -40,6 +40,8 @@ public struct LegacyVertex
         PrevZ = z;
         U = u;
         V = v;
+        //PrevU = u;
+        //PrevV = v;
         LightLevel = lightLevel;
         Alpha = alpha;
         Fuzz = fuzz;        
@@ -55,6 +57,8 @@ public struct LegacyVertex
         PrevZ = prevZ;
         U = u;
         V = v;
+        //PrevU = u;
+        //PrevV = v;
         LightLevel = lightLevel;
         Alpha = alpha;
         Fuzz = fuzz;

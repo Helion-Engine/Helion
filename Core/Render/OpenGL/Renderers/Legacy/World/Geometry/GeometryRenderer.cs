@@ -310,7 +310,7 @@ public class GeometryRenderer : IDisposable
     {
         double length = side.Line.GetLength();
         if (side.Line.OneSided)
-            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z);
 
         Side otherSide = side.PartnerSide!;
         Sector facingSector = side.Sector;
@@ -321,14 +321,14 @@ public class GeometryRenderer : IDisposable
         {
             case SideTexture.Upper:
                 uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, glTexture.UVInverse,
-                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, 0);
+                    otherSector.Ceiling.Z - facingSector.Ceiling.Z);
                 break;
             case SideTexture.Lower:
                 uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, glTexture.UVInverse,
-                    otherSector.Floor.Z, facingSector.Floor.Z, 0);
+                    otherSector.Floor.Z, facingSector.Floor.Z);
                 break;
             default:
-                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z, 0);
+                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z);
                 break;
         }
 
@@ -528,7 +528,7 @@ public class GeometryRenderer : IDisposable
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, m_tickFraction);
+            WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse);
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
@@ -696,8 +696,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
-                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
-                    isFrontSide, m_tickFraction);
+                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide);
                 if (data == null)
                     data = CreateSkyWallVertices(wall);
                 else
@@ -719,8 +718,7 @@ public class GeometryRenderer : IDisposable
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;                    
 
-                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse,
-                    isFrontSide, m_tickFraction);
+                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide);
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
@@ -789,7 +787,7 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
-                    isFrontSide, m_tickFraction, MaxSky);
+                    isFrontSide, MaxSky);
                 if (data == null)
                     data = CreateSkyWallVertices(wall);
                 else
@@ -814,8 +812,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
-                WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
-                    isFrontSide, m_tickFraction);
+                WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide);
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
@@ -865,12 +862,12 @@ public class GeometryRenderer : IDisposable
         if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, m_tickFraction,
+            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse,
                 overrideFloor: facingSide.PartnerSide!.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
         }
         else
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, m_tickFraction,
+            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse,
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
         }
 
@@ -906,11 +903,13 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector, m_tickFraction);
+            // TODO fix
+            (double bottomZ, double topZ) = FindOpeningFlats(facingSector, otherSector);
+            (double prevBottomZ, double prevTopZ) = FindOpeningFlatsPrev(facingSector, otherSector);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out _, m_tickFraction, offset);
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, out _, offset);
 
             if (m_cacheOverride)
             {
@@ -969,17 +968,39 @@ public class GeometryRenderer : IDisposable
         return offset;
     }
 
-    public static (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector, double tickFraction)
+    public static (double bottomZ, double topZ) FindOpeningFlats(Sector facingSector, Sector otherSector)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.GetInterpolatedZ(tickFraction);
-        double facingCeilingZ = facingCeiling.GetInterpolatedZ(tickFraction);
-        double otherFloorZ = otherFloor.GetInterpolatedZ(tickFraction);
-        double otherCeilingZ = otherCeiling.GetInterpolatedZ(tickFraction);
+        double facingFloorZ = facingFloor.Z;
+        double facingCeilingZ = facingCeiling.Z;
+        double otherFloorZ = otherFloor.Z;
+        double otherCeilingZ = otherCeiling.Z;
+
+        double bottomZ = facingFloorZ;
+        double topZ = facingCeilingZ;
+        if (otherFloorZ > facingFloorZ)
+            bottomZ = otherFloorZ;
+        if (otherCeilingZ < facingCeilingZ)
+            topZ = otherCeilingZ;
+
+        return (bottomZ, topZ);
+    }
+
+    public static (double bottomZ, double topZ) FindOpeningFlatsPrev(Sector facingSector, Sector otherSector)
+    {
+        SectorPlane facingFloor = facingSector.Floor;
+        SectorPlane facingCeiling = facingSector.Ceiling;
+        SectorPlane otherFloor = otherSector.Floor;
+        SectorPlane otherCeiling = otherSector.Ceiling;
+
+        double facingFloorZ = facingFloor.PrevZ;
+        double facingCeilingZ = facingCeiling.PrevZ;
+        double otherFloorZ = otherFloor.PrevZ;
+        double otherCeilingZ = otherCeiling.PrevZ;
 
         double bottomZ = facingFloorZ;
         double topZ = facingCeilingZ;
@@ -1024,7 +1045,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices,
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_skyVertices.Clear();
@@ -1055,7 +1076,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_tickFraction, m_subsectorVertices);
+                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_vertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
@@ -1243,7 +1264,7 @@ public class GeometryRenderer : IDisposable
         data[0].Z = wv.TopLeft.Z;
         data[0].PrevX = wv.TopLeft.X;
         data[0].PrevY = wv.TopLeft.Y;
-        data[0].PrevZ = wv.TopLeft.Z;
+        data[0].PrevZ = wv.PrevTopZ;
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
@@ -1254,7 +1275,7 @@ public class GeometryRenderer : IDisposable
         data[1].Z = wv.BottomLeft.Z;
         data[1].PrevX = wv.BottomLeft.X;
         data[1].PrevY = wv.BottomLeft.Y;
-        data[1].PrevZ = wv.BottomLeft.Z;
+        data[1].PrevZ = wv.PrevBottomZ;
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
@@ -1265,7 +1286,7 @@ public class GeometryRenderer : IDisposable
         data[2].Z = wv.TopRight.Z;
         data[2].PrevX = wv.TopRight.X;
         data[2].PrevY = wv.TopRight.Y;
-        data[2].PrevZ = wv.TopRight.Z;
+        data[2].PrevZ = wv.PrevTopZ;
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
@@ -1276,7 +1297,7 @@ public class GeometryRenderer : IDisposable
         data[3].Z = wv.TopRight.Z;
         data[3].PrevX = wv.TopRight.X;
         data[3].PrevY = wv.TopRight.Y;
-        data[3].PrevZ = wv.TopRight.Z;
+        data[3].PrevZ = wv.PrevTopZ;
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
@@ -1287,7 +1308,7 @@ public class GeometryRenderer : IDisposable
         data[4].Z = wv.BottomLeft.Z;
         data[4].PrevX = wv.BottomLeft.X;
         data[4].PrevY = wv.BottomLeft.Y;
-        data[4].PrevZ = wv.BottomLeft.Z;
+        data[4].PrevZ = wv.PrevBottomZ;
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
@@ -1298,7 +1319,7 @@ public class GeometryRenderer : IDisposable
         data[5].Z = wv.BottomRight.Z;
         data[5].PrevX = wv.BottomRight.X;
         data[5].PrevY = wv.BottomRight.Y;
-        data[5].PrevZ = wv.BottomRight.Z;
+        data[5].PrevZ = wv.PrevBottomZ;
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
@@ -1319,7 +1340,7 @@ public class GeometryRenderer : IDisposable
         data[0].Z = wv.TopLeft.Z;
         data[0].PrevX = wv.TopLeft.X;
         data[0].PrevY = wv.TopLeft.Y;
-        data[0].PrevZ = wv.TopLeft.Z;
+        data[0].PrevZ = wv.PrevTopZ;
         data[0].U = wv.TopLeft.U;
         data[0].V = wv.TopLeft.V;
         data[0].Alpha = alpha;
@@ -1330,7 +1351,7 @@ public class GeometryRenderer : IDisposable
         data[1].Z = wv.BottomLeft.Z;
         data[1].PrevX = wv.BottomLeft.X;
         data[1].PrevY = wv.BottomLeft.Y;
-        data[1].PrevZ = wv.BottomLeft.Z;
+        data[1].PrevZ = wv.PrevBottomZ;
         data[1].U = wv.BottomLeft.U;
         data[1].V = wv.BottomLeft.V;
         data[1].Alpha = alpha;
@@ -1341,7 +1362,7 @@ public class GeometryRenderer : IDisposable
         data[2].Z = wv.TopRight.Z;
         data[2].PrevX = wv.TopRight.X;
         data[2].PrevY = wv.TopRight.Y;
-        data[2].PrevZ = wv.TopRight.Z;
+        data[2].PrevZ = wv.PrevTopZ;
         data[2].U = wv.TopRight.U;
         data[2].V = wv.TopRight.V;
         data[2].Alpha = alpha;
@@ -1352,7 +1373,7 @@ public class GeometryRenderer : IDisposable
         data[3].Z = wv.TopRight.Z;
         data[3].PrevX = wv.TopRight.X;
         data[3].PrevY = wv.TopRight.Y;
-        data[3].PrevZ = wv.TopRight.Z;
+        data[3].PrevZ = wv.PrevTopZ;
         data[3].U = wv.TopRight.U;
         data[3].V = wv.TopRight.V;
         data[3].Alpha = alpha;
@@ -1363,7 +1384,7 @@ public class GeometryRenderer : IDisposable
         data[4].Z = wv.BottomLeft.Z;
         data[4].PrevX = wv.BottomLeft.X;
         data[4].PrevY = wv.BottomLeft.Y;
-        data[4].PrevZ = wv.BottomLeft.Z;
+        data[4].PrevZ = wv.PrevBottomZ;
         data[4].U = wv.BottomLeft.U;
         data[4].V = wv.BottomLeft.V;
         data[4].Alpha = alpha;
@@ -1374,7 +1395,7 @@ public class GeometryRenderer : IDisposable
         data[5].Z = wv.BottomRight.Z;
         data[5].PrevX = wv.BottomRight.X;
         data[5].PrevY = wv.BottomRight.Y;
-        data[5].PrevZ = wv.BottomRight.Z;
+        data[5].PrevZ = wv.PrevBottomZ;
         data[5].U = wv.BottomRight.U;
         data[5].V = wv.BottomRight.V;
         data[5].Alpha = alpha;
@@ -1392,7 +1413,7 @@ public class GeometryRenderer : IDisposable
             Z = root.Z,
             PrevX = root.X,
             PrevY = root.Y,
-            PrevZ = root.Z,
+            PrevZ = root.PrevZ,
             U = root.U,
             V = root.V,
             Alpha = 1.0f,
@@ -1407,7 +1428,7 @@ public class GeometryRenderer : IDisposable
             Z = second.Z,
             PrevX = second.X,
             PrevY = second.Y,
-            PrevZ = second.Z,
+            PrevZ = second.PrevZ,
             U = second.U,
             V = second.V,
             Alpha = 1.0f,
@@ -1422,7 +1443,7 @@ public class GeometryRenderer : IDisposable
             Z = third.Z,
             PrevX = third.X,
             PrevY = third.Y,
-            PrevZ = third.Z,
+            PrevZ = third.PrevZ,
             U = third.U,
             V = third.V,
             Alpha = 1.0f,

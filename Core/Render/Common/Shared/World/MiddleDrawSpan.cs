@@ -6,36 +6,28 @@ namespace Helion.Render.OpenGL.Shared.World;
 /// </summary>
 public struct MiddleDrawSpan
 {
-    /// <summary>
-    /// The top Z location of the middle texture. This is where it would be
-    /// drawn if there were enough space. This is for UV calculations.
-    /// </summary>
     public readonly double TopZ;
-
-    /// <summary>
-    /// The bottom Z location of the middle texture. This is where it would
-    /// be drawn if there were enough space. This is for UV calculations.
-    /// </summary>
     public readonly double BottomZ;
-
-    /// <summary>
-    /// The top Z which is visible and safe to draw from. This should be
-    /// used when triangulating.
-    /// </summary>
     public readonly double VisibleTopZ;
-
-    /// <summary>
-    /// The bottom Z which is visible and safe to draw from. This should be
-    /// used when triangulating.
-    /// </summary>
     public readonly double VisibleBottomZ;
 
-    public MiddleDrawSpan(double bottomZ, double topZ, double visibleBottomZ, double visibleTopZ)
+    public readonly double PrevTopZ;
+    public readonly double PrevBottomZ;
+    public readonly double PrevVisibleTopZ;
+    public readonly double PrevVisibleBottomZ;
+
+    public MiddleDrawSpan(double bottomZ, double topZ, double visibleBottomZ, double visibleTopZ,
+        double prevBottomZ, double prevTopZ, double prevVisibleBottomZ, double prevVisibleTopZ)
     {
         BottomZ = bottomZ;
         TopZ = topZ;
         VisibleBottomZ = visibleBottomZ;
         VisibleTopZ = visibleTopZ;
+
+        PrevBottomZ = prevBottomZ;
+        PrevTopZ = prevTopZ;
+        PrevVisibleBottomZ = prevVisibleBottomZ;
+        PrevVisibleTopZ = prevVisibleTopZ;
     }
 
     /// <summary>

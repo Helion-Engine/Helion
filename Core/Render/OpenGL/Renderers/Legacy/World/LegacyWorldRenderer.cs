@@ -110,6 +110,10 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
+        bool renderEntities = m_lastTicker != world.GameTicker;
+        if (!renderEntities)
+            return;
+
         m_renderData.ViewPos = renderInfo.Camera.Position.XY.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
@@ -130,7 +134,6 @@ public class LegacyWorldRenderer : WorldRenderer
         double maxDistSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
         bool occlude = m_renderData.OccludePos.HasValue;
-        bool renderEntities = m_lastTicker != world.GameTicker;
 
         BlockmapBoxIterator<Block> it = world.RenderBlockmap.Iterate(box);
         while (it.HasNext())
@@ -280,12 +283,14 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         bool clearSprites = world.GameTicker != m_lastTicker;
         m_viewClipper.Clear();
-        m_worldDataManager.Clear(clearSprites);
 
         m_geometryRenderer.Clear(renderInfo.TickFraction);
 
         if (clearSprites)
+        {
             m_entityRenderer.Clear(world);
+            m_worldDataManager.Clear(clearSprites);
+        }
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
