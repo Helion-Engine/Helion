@@ -25,6 +25,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -115,6 +116,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(m_renderData.ViewPos3D);
 
+        TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.Position.Z);
+
         m_geometryRenderer.Clear(renderInfo.TickFraction);
         m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
@@ -145,12 +148,23 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount)
                     continue;
 
-                sectorNode.Value.BlockmapCount = m_renderData.CheckCount;
-                Box2D sectorBox = sectorNode.Value.GetBoundingBox();
+                Sector sector = sectorNode.Value;
+                TransferHeights? transfer = sector.TransferHeights;
+                sector.BlockmapCount = m_renderData.CheckCount;
+
+                // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
+                if (transfer != null && transferHeightsView == TransferHeightView.Middle &&
+                    (sector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
+                    (sector.Ceiling.Dynamic & SectorDynamic.Movement) == 0 &&
+                    (transfer.ControlSector.Floor.Dynamic & SectorDynamic.Movement) == 0 && 
+                    (transfer.ControlSector.Ceiling.Dynamic & SectorDynamic.Movement) == 0)
+                    continue;
+
+                Box2D sectorBox = sector.GetBoundingBox();
                 double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPos.X, Math.Max(0, m_renderData.ViewPos.X - sectorBox.Max.X));
                 double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPos.Y, Math.Max(0, m_renderData.ViewPos.Y - sectorBox.Max.Y));
                 if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
-                    RenderSector(sectorNode.Value);
+                    RenderSector(sector);
             }
 
             for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
