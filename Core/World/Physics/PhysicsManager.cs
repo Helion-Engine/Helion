@@ -1184,7 +1184,8 @@ doneIsPositionValid:
     private void HandleSlide(Entity entity, ref Vec2D stepDelta, ref int movesLeft, TryMoveData tryMove)
     {
         if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo) &&
-            MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove))
+            MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove) &&
+            !entity.Flags.Teleport)
         {
             ReorientToSlideAlong(entity, moveInfo.BlockingLine!, residualStep, ref stepDelta, ref movesLeft);
             return;
