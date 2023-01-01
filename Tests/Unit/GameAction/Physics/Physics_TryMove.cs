@@ -24,4 +24,13 @@ public partial class Physics
         monster.MoveEnemy(out _).Should().Be(true);
         monster.Position.Z.Should().Be(0);
     }
+
+    [Fact(DisplayName = "Moving to a position where the bounding box lands exactly on a blocking line is successful")]
+    public void TryMoveBoundingBoxOnLine()
+    {
+        var monster = GameActions.CreateEntity(World, "ChaingunGuy", new Vec3D(560, 1648, int.MinValue), frozen: false, init: true);
+        // Places the box corner exacly on lines 377 and 379
+        World.IsPositionValid(monster, new Vec2D(560, 1648)).Should().BeTrue();
+        World.IsPositionValid(monster, new Vec2D(560, 1664)).Should().BeTrue();
+    }
 }

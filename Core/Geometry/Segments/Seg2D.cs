@@ -353,13 +353,13 @@ namespace Helion.Geometry.Segments
             Vec2D delta = Delta;
             if ((startX < endX) ^ (startY < endY))
             {
-                return ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Min.X - startX))) <= 0 !=
-                    ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Max.X - startX))) <= 0;
+                return ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Min.X - startX))) < 0 !=
+                    ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Max.X - startX))) < 0;
             }
             else
             {
-                return ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Min.X - startX))) <= 0 !=
-                    ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Max.X - startX))) <= 0;
+                return ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Min.X - startX))) < 0 !=
+                    ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Max.X - startX))) < 0;
             }
         }
         public bool Intersects(BoundingBox2D box)

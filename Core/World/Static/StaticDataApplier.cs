@@ -49,16 +49,13 @@ public class StaticDataApplier
 
     private static void DetermineStaticSector(WorldBase world, Sector sector, TextureManager textureManager)
     {
-        var heights = sector.TransferHeights;
-        if (heights != null &&
-            (heights.ControlSector.Ceiling.Z < sector.Ceiling.Z || heights.ControlSector.Floor.Z > sector.Floor.Z))
-        {
-            bool save = IsLoading;
-            IsLoading = false;
-            SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
-            IsLoading = save;
+        if (sector.TransferHeights == null)
             return;
-        }
+
+        bool save = IsLoading;
+        IsLoading = false;
+        SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
+        IsLoading = save;
     }
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)

@@ -109,28 +109,41 @@ public class EntityRenderer
         return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.RenderedCounter == m_renderCounter;
     }
 
-    private void AddSpriteQuadSingleVertex(in Vec3D entityCenterBottom, Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
+    private void AddSpriteQuadSingleVertex(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
     {
         const byte MaxAlpha = 255;
 
         bool useAlpha = m_spriteAlpha && entity.Definition.Properties.Alpha < 1;
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
-        
-        float bottomZ = (float)entityCenterBottom.Z;
+
+        Vec3D position = entity.Position;
+        Vec3D prevPosition = entity.PrevPosition; position.X -= nudgeAmount.X;
+        position.Y -= nudgeAmount.Y;
+        prevPosition.X -= nudgeAmount.X;
+        prevPosition.Y -= nudgeAmount.Y;
+
+        float bottomZ = (float)position.Z;
         float offsetZ = GetOffsetZ(entity, texture);
 
-        Vec3F pos = entityCenterBottom.Float;
-        Vec3F prevPos = entity.PrevPosition.Float;
+        Vec3F pos = position.Float;
+        Vec3F prevPos = prevPosition.Float;
         byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
         EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
     }
 
-    private void AddSpriteQuad(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror)
+    private void AddSpriteQuad(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
     {
         float offsetZ = GetOffsetZ(entity, texture);
-        SpriteQuad pos = CalculateQuad(entity.Position, offsetZ, entity, texture);
-        SpriteQuad prevPos = CalculateQuad(entity.PrevPosition, offsetZ, entity, texture);
+        Vec3D position = entity.Position;
+        Vec3D prevPosition = entity.PrevPosition;
+        position.X -= nudgeAmount.X;
+        position.Y -= nudgeAmount.Y;
+        prevPosition.X -= nudgeAmount.X;
+        prevPosition.Y -= nudgeAmount.Y;
+
+        SpriteQuad pos = CalculateQuad(position, offsetZ, entity, texture);
+        SpriteQuad prevPos = CalculateQuad(prevPosition, offsetZ, entity, texture);
         float alpha = m_spriteAlpha ? (float)entity.Definition.Properties.Alpha : 1.0f;
         float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
         float leftU = 0.0f;
@@ -209,6 +222,7 @@ public class EntityRenderer
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = centerBottom.XY;
         Vec2D position2D = position.XY;
+        Vec2D nudgeAmount = Vec2D.Zero;
 
         SpriteDefinition? spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
         uint rotation = 0;
@@ -225,9 +239,7 @@ public class EntityRenderer
             if (m_renderPositions.TryGetValue(positionLookup, out int count))
             {
                 double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
-                Vec2D nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
-                centerBottom.X -= nudgeAmount.X;
-                centerBottom.Y -= nudgeAmount.Y;
+                nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
                 m_renderPositions[positionLookup] = count + 1;
             }
             else
@@ -243,9 +255,9 @@ public class EntityRenderer
 
         short lightLevel = CalculateLightLevel(entity, entity.Sector.GetRenderSector(viewSector, position.Z).LightLevel);
         if (m_singleVertex)
-            AddSpriteQuadSingleVertex(centerBottom, entity, texture, lightLevel, spriteRotation.Mirror);
+            AddSpriteQuadSingleVertex(entity, texture, lightLevel, spriteRotation.Mirror, nudgeAmount);
         else
-            AddSpriteQuad(entity, texture, lightLevel, spriteRotation.Mirror);
+            AddSpriteQuad(entity, texture, lightLevel, spriteRotation.Mirror, nudgeAmount);
         entity.RenderedCounter = m_renderCounter;
     }
 
