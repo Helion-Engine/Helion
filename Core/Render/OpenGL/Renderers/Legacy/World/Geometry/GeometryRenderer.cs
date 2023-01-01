@@ -454,7 +454,6 @@ public class GeometryRenderer : IDisposable
         {
             side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
             AlphaSides.Add(side);
-            return;
         }
 
         bool transferHeights = false;
