@@ -827,7 +827,7 @@ public partial class Client
         ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
         bool isChangingClusters = nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
 
-        if (isChangingClusters || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
+        if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
             HandleZDoomTransition(world, cluster, nextMapInfo);
         else if (nextMapInfo != null)
             LoadMap(nextMapInfo, null, world);

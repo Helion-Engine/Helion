@@ -2,6 +2,7 @@ using Helion.Util.Parser;
 using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -94,12 +95,32 @@ public class LanguageDefinition
 
     private static readonly string[] NewLineSplit = new string[] { "\n", "\r\n" };
 
+    public static string[] SplitMessageByNewLines(string text) => text.Split(NewLineSplit, StringSplitOptions.None);
+
+    public bool TryGetMessages(string message, [NotNullWhen(true)] out string[]? messages)
+    {
+        if (message.Length == 0 || message[0] != '$')
+        {
+            messages = null;
+            return false;
+        }
+
+        if (!m_lookup.TryGetValue(message[1..], out string? translatedMessage))
+        {
+            messages = null;
+            return false;
+        }
+
+        messages = SplitMessageByNewLines(translatedMessage);
+        return true;
+    }
+
     public string[] GetMessages(string message)
     {
         if (message.Length > 0 && message[0] == '$')
-            return LookupMessage(message[1..]).Split(NewLineSplit, StringSplitOptions.None);
+            return SplitMessageByNewLines(LookupMessage(message[1..]));
 
-        return message.Split(NewLineSplit, StringSplitOptions.None);
+        return SplitMessageByNewLines(message);
     }
 
     public string GetMessage(string message)

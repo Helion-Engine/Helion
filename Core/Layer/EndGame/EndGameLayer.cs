@@ -88,7 +88,7 @@ public partial class EndGameLayer : IGameLayer
         m_musicPlayer = musicPlayer;
         m_soundManager = soundManager;
         m_flatImage = language.GetMessage(cluster.Flat);
-        m_displayText = LookUpDisplayText(language, cluster);
+        m_displayText = LookUpDisplayText(archiveCollection, language, cluster);
         m_timespan = GetPageTime();
 
         m_ticker.Start();
@@ -98,12 +98,20 @@ public partial class EndGameLayer : IGameLayer
         PlayMusic(music);
     }
 
-    private static IList<string> LookUpDisplayText(LanguageDefinition language, ClusterDef cluster)
+    private static IList<string> LookUpDisplayText(ArchiveCollection archiveCollection, LanguageDefinition language, ClusterDef cluster)
     {
         if (cluster.ExitText.Count != 1)
             return cluster.ExitText;
 
-        return language.GetMessages(cluster.ExitText[0]);
+        string text = cluster.ExitText[0];
+        if (language.TryGetMessages(text, out var messages))
+            return messages;
+
+        var entry = archiveCollection.FindEntry(text);
+        if (entry != null)
+            return LanguageDefinition.SplitMessageByNewLines(entry.ReadDataAsString());
+
+        return LanguageDefinition.SplitMessageByNewLines(text);
     }
 
     private TimeSpan GetPageTime() =>
