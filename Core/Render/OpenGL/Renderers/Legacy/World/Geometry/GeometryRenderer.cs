@@ -285,54 +285,76 @@ public class GeometryRenderer : IDisposable
 
     public static void UpdateOffsetVertices(LegacyVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
     {
-        WallUV uv = GetSideUV(glTexture, side, texture);
+        GetSideUV(glTexture, side, texture, out WallUV uv, out WallUV prevUV);
         //TopLeft
         vertices[index].U = uv.TopLeft.X;
         vertices[index].V = uv.TopLeft.Y;
+        vertices[index].PrevU = prevUV.TopLeft.X;
+        vertices[index].PrevV = prevUV.TopLeft.Y;
         //BottomLeft
         vertices[index + 1].U = uv.TopLeft.X;
         vertices[index + 1].V = uv.BottomRight.Y;
+        vertices[index + 1].U = prevUV.TopLeft.X;
+        vertices[index + 1].V = prevUV.BottomRight.Y;
         //TopRight
         vertices[index + 2].U = uv.BottomRight.X;
         vertices[index + 2].V = uv.TopLeft.Y;
+        vertices[index + 2].U = prevUV.BottomRight.X;
+        vertices[index + 2].V = prevUV.TopLeft.Y;
         //TopRight
         vertices[index + 3].U = uv.BottomRight.X;
         vertices[index + 3].V = uv.TopLeft.Y;
+        vertices[index + 2].U = prevUV.BottomRight.X;
+        vertices[index + 2].V = prevUV.TopLeft.Y;
         //BottomLeft
         vertices[index + 4].U = uv.TopLeft.X;
         vertices[index + 4].V = uv.BottomRight.Y;
+        vertices[index + 4].U = prevUV.TopLeft.X;
+        vertices[index + 4].V = prevUV.BottomRight.Y;
         //BottomRight
         vertices[index + 5].U = uv.BottomRight.X;
         vertices[index + 5].V = uv.BottomRight.Y;
+        vertices[index + 5].U = prevUV.BottomRight.X;
+        vertices[index + 5].V = prevUV.BottomRight.Y;
     }
 
-    private static WallUV GetSideUV(GLLegacyTexture glTexture, Side side, SideTexture texture)
+    private static void GetSideUV(GLLegacyTexture glTexture, Side side, SideTexture texture, out WallUV uv, out WallUV prevUV)
     {
         double length = side.Line.GetLength();
         if (side.Line.OneSided)
-            return WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z);
+        {
+            uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, 
+                side.Sector.Ceiling.Z - side.Sector.Floor.Z, previous: false);
+            prevUV = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, 
+                side.Sector.Ceiling.PrevZ - side.Sector.Floor.PrevZ, previous: true);
+            return;
+        }
 
         Side otherSide = side.PartnerSide!;
         Sector facingSector = side.Sector;
         Sector otherSector = otherSide.Sector;
 
-        WallUV uv;
         switch (texture)
         {
             case SideTexture.Upper:
                 uv = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, glTexture.UVInverse,
-                    otherSector.Ceiling.Z - facingSector.Ceiling.Z);
+                    otherSector.Ceiling.Z - facingSector.Ceiling.Z, previous: false);
+                prevUV = WorldTriangulator.CalculateTwoSidedUpperWallUV(side.Line, side, length, glTexture.UVInverse,
+                    otherSector.Ceiling.PrevZ - facingSector.Ceiling.PrevZ, previous: true);
                 break;
             case SideTexture.Lower:
                 uv = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, glTexture.UVInverse,
-                    otherSector.Floor.Z, facingSector.Floor.Z);
+                    otherSector.Floor.Z, facingSector.Floor.Z, previous: false);
+                prevUV = WorldTriangulator.CalculateTwoSidedLowerWallUV(side.Line, side, length, glTexture.UVInverse,
+                    otherSector.Floor.PrevZ, facingSector.Floor.PrevZ, previous: true);
                 break;
             default:
-                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, side.Sector.Ceiling.Z - side.Sector.Floor.Z);
+                uv = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse, 
+                    side.Sector.Ceiling.Z - side.Sector.Floor.Z, previous: false);
+                prevUV = WorldTriangulator.CalculateOneSidedWallUV(side.Line, side, length, glTexture.UVInverse,
+                    side.Sector.Ceiling.PrevZ - side.Sector.Floor.PrevZ, previous: true);
                 break;
         }
-
-        return uv;
     }
 
     // The set sector is optional for the transfer heights control sector.
@@ -516,7 +538,6 @@ public class GeometryRenderer : IDisposable
         m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
 
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
         LegacyVertex[]? data = m_vertexLookup[side.Id];
 
@@ -672,7 +693,6 @@ public class GeometryRenderer : IDisposable
     public void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide, 
         out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall lowerWall = facingSide.Lower;
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
@@ -748,7 +768,6 @@ public class GeometryRenderer : IDisposable
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies, out SkyGeometryVertex[]? skyVerticies2)
     {
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         SectorPlane plane = otherSector.Ceiling;
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
@@ -891,7 +910,6 @@ public class GeometryRenderer : IDisposable
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out LegacyVertex[]? verticies)
     {
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
 
