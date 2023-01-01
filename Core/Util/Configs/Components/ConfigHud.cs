@@ -23,8 +23,11 @@ public class ConfigHud
     [ConfigInfo("The size of the status bar.")]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
-    [ConfigInfo("If the frames per second should be rendered.")]
+    [ConfigInfo("If average frames per second should be rendered.")]
     public readonly ConfigValue<bool> ShowFPS = new(false);
+
+    [ConfigInfo("If min/max frames per second should be rendered.")]
+    public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
 
     [ConfigInfo("If the world stats should be rendered.")]
     public readonly ConfigValue<bool> ShowStats = new(false);
