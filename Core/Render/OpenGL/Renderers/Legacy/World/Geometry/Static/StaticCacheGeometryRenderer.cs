@@ -52,15 +52,19 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
+
     private readonly List<Sector> m_updateLightSectors = new();
     private readonly DynamicArray<int> m_updatelightSectorsLookup = new();
     private readonly List<SideScrollEvent> m_updateScrollSides = new();
     private readonly DynamicArray<int> m_updateScrollSidesLookup = new();
+
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
+    private readonly GeometryIndexComparer m_geometryIndexComparer = new();
+
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
@@ -477,7 +481,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (geometryData == null)
                 continue;
 
-            list.Sort((i1, i2) => i1.GeometryDataStartIndex.CompareTo(i2.GeometryDataStartIndex));
+            list.Sort(m_geometryIndexComparer);
 
             int startIndex = list[0].GeometryDataStartIndex;
             int lastIndex = startIndex + list[0].GeometryDataLength;
