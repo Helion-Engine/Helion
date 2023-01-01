@@ -111,8 +111,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
-        bool renderEntities = m_lastTicker != world.GameTicker;
-        if (!renderEntities)
+        bool shouldRender = m_lastTicker != world.GameTicker;
+        if (!shouldRender)
             return;
 
         m_renderData.ViewPos = renderInfo.Camera.Position.XY.Double;
@@ -180,9 +180,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 sideNode.Value.BlockmapCount = m_renderData.CheckCount;
                 m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, m_renderData.ViewPos3D);
             }
-
-            if (!renderEntities)
-                continue;
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
