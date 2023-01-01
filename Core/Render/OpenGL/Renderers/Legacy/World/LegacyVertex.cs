@@ -30,6 +30,10 @@ public struct LegacyVertex
     [VertexAttribute]
     public float Fuzz;
 
+    [VertexAttribute("prevUV", size: 2)]
+    public float PrevU;
+    public float PrevV;
+
     public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256, float alpha = 1.0f, float fuzz = 0.0f)
     {
         X = x;
@@ -40,8 +44,8 @@ public struct LegacyVertex
         PrevZ = z;
         U = u;
         V = v;
-        //PrevU = u;
-        //PrevV = v;
+        PrevU = u;
+        PrevV = v;
         LightLevel = lightLevel;
         Alpha = alpha;
         Fuzz = fuzz;        
@@ -57,8 +61,8 @@ public struct LegacyVertex
         PrevZ = prevZ;
         U = u;
         V = v;
-        //PrevU = u;
-        //PrevV = v;
+        PrevU = u;
+        PrevV = v;
         LightLevel = lightLevel;
         Alpha = alpha;
         Fuzz = fuzz;

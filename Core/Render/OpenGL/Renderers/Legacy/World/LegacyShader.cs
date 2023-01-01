@@ -30,8 +30,10 @@ public class LegacyShader : RenderProgram
         layout(location = 3) in float lightLevel;
         layout(location = 4) in float alpha;
         layout(location = 5) in float fuzz;
+        layout(location = 6) in vec2 prevUV;
 
         out vec2 uvFrag;
+        out vec2 prevUVFrag;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
@@ -43,6 +45,7 @@ public class LegacyShader : RenderProgram
 
         void main() {
             uvFrag = uv;
+            prevUVFrag = prevUV;
             lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
@@ -57,6 +60,7 @@ public class LegacyShader : RenderProgram
         #version 330
 
         in vec2 uvFrag;
+        in vec2 prevUVFrag;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
@@ -66,6 +70,7 @@ public class LegacyShader : RenderProgram
 
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
+        uniform float timeFrac;
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -119,7 +124,8 @@ public class LegacyShader : RenderProgram
             lightLevel = float(colorMaps - index) / colorMaps;
 
             lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-            fragColor = texture(boundTexture, uvFrag.st);
+            //vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
+            fragColor = texture(boundTexture, prevUVFrag.st + (timeFrac * (uvFrag.st - prevUVFrag.st)));
 
             if (fuzzFrag > 0) {
                 lightLevel = 0;
