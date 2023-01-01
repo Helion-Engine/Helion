@@ -44,6 +44,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<SideScrollEvent>? SideScrollChanged;
+    event EventHandler<SectorPlane> SectorPlaneScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
 
     string MapName { get; }
@@ -144,6 +145,7 @@ public interface IWorld : IDisposable
     void SetPlaneTexture(SectorPlane plane, int textureHandle);
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSideScroll(Side side, SideTexture textures);
+    void SetSectorPlaneScroll(SectorPlane plane);
     void SetEntityPosition(Entity entity, Vec3D pos);
 
     WorldModel ToWorldModel();

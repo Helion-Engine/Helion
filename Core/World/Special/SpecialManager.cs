@@ -765,11 +765,11 @@ public class SpecialManager : ITickable, IDisposable
             {
                 Vec2D scrollSpeed = speeds.ScrollSpeed.Value;
                 scrollSpeed.X = -scrollSpeed.X;
-                AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(m_world, ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
             }
 
             if (speeds.CarrySpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(m_world, ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
         }
     }
 

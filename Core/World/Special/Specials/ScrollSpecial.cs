@@ -71,9 +71,10 @@ public class ScrollSpecial : ISpecial
             m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
     }
 
-    public ScrollSpecial(ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null,
+    public ScrollSpecial(IWorld world, ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
+        m_world = world;
         m_type = type;
         SectorPlane = sectorPlane;
         m_speed = speed;
@@ -91,8 +92,8 @@ public class ScrollSpecial : ISpecial
 
     }
 
-    public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
-        : this ((ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
+    public ScrollSpecial(IWorld world, SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
+        : this (world, (ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
     {
         if (m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
         {
@@ -225,6 +226,7 @@ public class ScrollSpecial : ISpecial
             sectorPlane.SectorScrollData!.LastOffset = sectorPlane.SectorScrollData!.Offset;
             sectorPlane.SectorScrollData!.Offset += speed;
             sectorPlane.Sector.DataChanges |= SectorDataTypes.Offset;
+            m_world.SetSectorPlaneScroll(sectorPlane);
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {

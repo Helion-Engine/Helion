@@ -36,7 +36,7 @@ public class StaticDataApplier
             {
                 SetSectorDynamic(world, sectorSpecial.Sector, true, true, SectorDynamic.Light);
             }
-            else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
+            else if (!StaticScroll && special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
             {
                 bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
                 SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
@@ -77,7 +77,7 @@ public class StaticDataApplier
             return;
         }
 
-        if (!StaticScroll)
+        if (StaticScroll)
             return;
 
         if (line.Front.ScrollData != null)
@@ -132,7 +132,7 @@ public class StaticDataApplier
         if (ceiling)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement))
+        if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.Light || sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
             world.RenderBlockmap.Link(world, sector);
 
         if (sectorDynamic == SectorDynamic.Light)

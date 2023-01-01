@@ -360,14 +360,12 @@ public static class WorldTriangulator
         return scrollData.Offset[position].Float * textureUVInverse;
     }
 
-    private static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Dimension textureDimension, bool previous)
+    public static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Dimension textureDimension, bool previous)
     {
         Vec2F uv = vertex.Float / textureDimension.Vector.Float;
         if (scrollData != null)
         {
-            Vec2F scrollAmount = scrollData.Offset.Float;
-            if (previous)
-                scrollAmount = scrollData.LastOffset.Float;
+            Vec2F scrollAmount = previous ? scrollData.LastOffset.Float : scrollData.Offset.Float;
             uv.X += scrollAmount.X;
             uv.Y -= scrollAmount.Y;
         }
