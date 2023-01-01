@@ -97,6 +97,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.FlushReferences();
         m_updateScrollSides.FlushStruct();
         m_updateScrollPlanes.FlushReferences();
+        for (int i = 0; i < m_bufferData.Length; i++)
+        {
+            var list = m_bufferData.Data[i];
+            if (list != null)
+                list.FlushStruct();
+        }
 
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
@@ -376,6 +382,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world.SideScrollChanged -= World_SideScrollChanged;
+            m_world.SectorPlaneScrollChanged -= World_SectorPlaneScrollChanged;
             m_world = null;
         }
 
