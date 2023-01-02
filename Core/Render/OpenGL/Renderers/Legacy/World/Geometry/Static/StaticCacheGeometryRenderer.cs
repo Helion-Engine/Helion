@@ -71,6 +71,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_disposed;
     private bool m_staticScroll;
     private IWorld? m_world;
+    private int m_counter;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -455,9 +456,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
+
+        m_counter++;
     }
 
-    public void UpdateRunTimeBuffers()
+    private void UpdateRunTimeBuffers()
     {
         // These are textures added at run time. Need to be uploaded then cleared.
         if (m_runtimeGeometry.Count > 0)
@@ -750,10 +753,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
-        if (m_updatelightSectorsLookup.Data[e.Id] == m_world.Gametick)
+        if (m_updatelightSectorsLookup.Data[e.Id] == m_counter)
             return;
 
-        m_updatelightSectorsLookup.Data[e.Id] = m_world.Gametick;
+        m_updatelightSectorsLookup.Data[e.Id] = m_counter;
         m_updateLightSectors.Add(e);
     }
 
@@ -762,10 +765,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticScroll)
             return;
 
-        if (m_updateScrollSidesLookup[e.Side.Id] == m_world.Gametick)
+        if (m_updateScrollSidesLookup[e.Side.Id] == m_counter)
             return;
 
-        m_updateScrollSidesLookup[e.Side.Id] = m_world.Gametick;
+        m_updateScrollSidesLookup[e.Side.Id] = m_counter;
         m_updateScrollSides.Add(e);
     }
 

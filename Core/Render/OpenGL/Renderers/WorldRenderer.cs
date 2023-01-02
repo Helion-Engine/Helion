@@ -26,14 +26,9 @@ public abstract class WorldRenderer : IDisposable
         }
 
         if (renderInfo.DrawAutomap)
-        {
-            Update();
             PerformAutomapRender(world, renderInfo);
-        }
         else
-        {
             PerformRender(world, renderInfo);
-        }
     }
 
     public abstract void ResetInterpolation(IWorld world);
@@ -60,8 +55,6 @@ public abstract class WorldRenderer : IDisposable
     /// <param name="world">The world.</param>
     /// <param name="renderInfo">The rendering metadata.</param>
     protected abstract void PerformRender(IWorld world, RenderInfo renderInfo);
-
-    protected abstract void Update();
 
     private bool IsWorldNotSeenBefore(IWorld world)
     {
