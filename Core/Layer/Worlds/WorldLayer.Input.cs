@@ -128,9 +128,14 @@ public partial class WorldLayer
     }
 
     private void ChangeAutoMapSize(bool increase)
-    {
-        m_autoMapScale += increase ? 0.1 : -0.1;
-        m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0, double.MaxValue);
+    {       
+        if (m_autoMapScale > 0.5)
+            m_autoMapScale += (increase ? 0.2 : -0.2);
+        else
+            m_autoMapScale += (increase ? 0.04 : -0.04);
+
+        m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0.04, 25);
+        m_config.Hud.AutoMap.Scale.Set(m_autoMapScale);
     }
 
     private void HandleCommandInput(IConsumableInput input)
