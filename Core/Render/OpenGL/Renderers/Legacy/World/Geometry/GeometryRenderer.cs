@@ -199,6 +199,11 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
 
+    // The static rendering gets updates for light light level changes etc during runtime and keeps them buffered until it needs to render.
+    // These need to be flushed out when rendering the automap to prevent from infinitely growing.
+    public void Update() =>
+        m_staticCacheGeometryRenderer.UpdateRunTimeBuffers();
+
     public void RenderPortalsAndSkies(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);

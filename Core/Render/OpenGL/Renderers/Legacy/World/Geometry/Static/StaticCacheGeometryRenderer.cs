@@ -444,6 +444,21 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticMode)
             return;
 
+        UpdateRunTimeBuffers();
+
+        for (int i = 0; i < m_geometry.Count; i++)
+        {
+            var data = m_geometry[i];
+            var texture = m_textureManager.GetTexture(data.TextureHandle);
+            texture.Bind();
+            data.Vao.Bind();
+            data.Vbo.Bind();
+            data.Vbo.DrawArrays();
+        }
+    }
+
+    public void UpdateRunTimeBuffers()
+    {
         // These are textures added at run time. Need to be uploaded then cleared.
         if (m_runtimeGeometry.Count > 0)
         {
@@ -461,16 +476,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLights();
         UpdateScroll();
         UpdateBufferData();
-
-        for (int i = 0; i < m_geometry.Count; i++)
-        {
-            var data = m_geometry[i];
-            var texture = m_textureManager.GetTexture(data.TextureHandle);
-            texture.Bind();
-            data.Vao.Bind();
-            data.Vbo.Bind();
-            data.Vbo.DrawArrays();
-        }
     }
 
     private void UpdateBufferData()

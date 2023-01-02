@@ -276,6 +276,11 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.ResetInterpolation(world);
     }
 
+    protected override void Update()
+    {
+        m_geometryRenderer.Update();
+    }
+
     private void SetPosition(RenderInfo renderInfo)
     {
         // This is a hack until frustum culling exists.
