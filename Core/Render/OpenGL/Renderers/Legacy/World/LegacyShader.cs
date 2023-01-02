@@ -30,11 +30,13 @@ public class LegacyShader : RenderProgram
         layout(location = 3) in float lightLevel;
         layout(location = 4) in float alpha;
         layout(location = 5) in float fuzz;
+        layout(location = 6) in float clearAlpha;
 
         out vec2 uvFrag;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
+        flat out float clearAlphaFrag;
         out float dist;
 
         uniform mat4 mvp;
@@ -46,6 +48,7 @@ public class LegacyShader : RenderProgram
             lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
+            clearAlphaFrag = clearAlpha;
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
@@ -60,6 +63,7 @@ public class LegacyShader : RenderProgram
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
+        flat in float clearAlphaFrag;
         in float dist;
 
         out vec4 fragColor;
@@ -117,6 +121,9 @@ public class LegacyShader : RenderProgram
 
             fragColor.xyz *= lightLevel;
             fragColor.w *= alphaFrag;
+
+            if (clearAlphaFrag > 0)
+                fragColor.w = 1;
 
             if (fragColor.w <= 0.0)
                 discard;
