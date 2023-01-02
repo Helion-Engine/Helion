@@ -64,6 +64,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
+    private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
 
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
@@ -351,6 +352,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);
         m_geometry.Add(data);
+        // Sorts textures that do not have transparent pixels first.
+        // This is to get around the issue of middle textures with transparent pixels being drawn first and discarding stuff behind that should not be.
+        m_geometry.Sort(m_transparentGeometryDataComparer);
         m_textureToGeometryLookup.Add(textureHandle, data);
     }
 
