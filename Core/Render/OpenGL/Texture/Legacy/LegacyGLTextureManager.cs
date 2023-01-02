@@ -68,8 +68,13 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     protected override GLLegacyTexture GenerateTexture(Image image, string name,
         ResourceNamespace resourceNamespace)
     {
+        if (name == "XXX")
+        {
+            int lol = 1;
+        }
+
         int textureId = GL.GenTexture();
-        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.HasTransparentPixels());
+        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
         UploadAndSetParameters(texture, image, name, resourceNamespace);
 
         return texture;

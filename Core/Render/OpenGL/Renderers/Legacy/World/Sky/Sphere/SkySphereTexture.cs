@@ -240,7 +240,7 @@ public class SkySphereTexture : IDisposable
         int textureId = GL.GenTexture();
         Dimension dim = new(fadedSkyImage.Width, fadedSkyImage.Height);
         Image image = new(fadedSkyImage, ImageType.Argb);
-        GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, TextureTarget.Texture2D, image.HasTransparentPixels());
+        GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
 
         m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global);
 

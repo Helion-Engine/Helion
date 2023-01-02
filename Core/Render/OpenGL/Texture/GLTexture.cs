@@ -22,12 +22,12 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly Vec2F UVInverse;
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
-    public readonly bool HasTransparentPixels;
+    public readonly int TransparentPixelCount;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
 
-    protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, bool hasTransparentPixels)
+    protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, int transparentPixelCount)
     {
         TextureId = textureId;
         Name = name;
@@ -36,7 +36,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         Namespace = ns;
         UVInverse = Vec2F.One / dimension.Vector.Float;
         Target = target;
-        HasTransparentPixels = hasTransparentPixels;
+        TransparentPixelCount = transparentPixelCount;
     }
 
     ~GLTexture()

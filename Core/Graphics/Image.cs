@@ -74,11 +74,12 @@ public class Image
         Fill(fillColor ?? Color.Transparent);
     }
 
-    public unsafe bool HasTransparentPixels()
+    public unsafe int TransparentPixelCount()
     {
         if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
-            return false;
+            return 0;
 
+        int count = 0;
         Rectangle rect = new(0, 0, Bitmap.Width, Bitmap.Height);
         BitmapData bmpData = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
 
@@ -94,15 +95,12 @@ public class Image
                 // Check if the alpha byte is set
                 int index = x * bytesPerPixel;
                 if (row[index + 3] == 0)
-                {
-                    Bitmap.UnlockBits(bmpData);
-                    return true;
-                }
+                    count++;
             }
         }
 
         Bitmap.UnlockBits(bmpData);
-        return false;
+        return count;
     }
 
     private static Bitmap EnsureExpectedFormat(Bitmap bitmap)
