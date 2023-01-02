@@ -104,7 +104,7 @@ public partial class EndGameLayer : IGameLayer
 
     private static IList<string> LookUpDisplayText(ArchiveCollection archiveCollection, LanguageDefinition language, IList<string> clusterText)
     {
-        if (clusterText.Count == 0 || !clusterText[0].StartsWith('$'))
+        if (clusterText.Count == 0)
             return clusterText;
 
         string lookupText = clusterText[0];
