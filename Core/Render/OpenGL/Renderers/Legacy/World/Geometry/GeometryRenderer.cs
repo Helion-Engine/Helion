@@ -199,7 +199,7 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
 
-    public void Render(RenderInfo renderInfo)
+    public void RenderPortalsAndSkies(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);
         Portals.Render(renderInfo);
@@ -950,12 +950,12 @@ public class GeometryRenderer : IDisposable
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
-                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha);
+                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha, clearAlpha: 0);
             }
             else if (data == null)
-                data = GetWallVertices(wall, GetRenderLightLevel(facingSide), alpha);
+                data = GetWallVertices(wall, GetRenderLightLevel(facingSide), alpha, clearAlpha: 0);
             else
-                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha);
+                SetWallVertices(data, wall, GetRenderLightLevel(facingSide), alpha, clearAlpha: 0);
 
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
@@ -1292,7 +1292,7 @@ public class GeometryRenderer : IDisposable
         });
     }
 
-    private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevel, float alpha = 1.0f)
+    private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevel, float alpha = 1.0f, float clearAlpha = 1.0f)
     {
         data[0].LightLevel = lightLevel;
         data[0].X = wv.TopLeft.X;
@@ -1306,6 +1306,7 @@ public class GeometryRenderer : IDisposable
         data[0].PrevU = wv.TopLeft.PrevU;
         data[0].PrevV = wv.TopLeft.PrevV;
         data[0].Alpha = alpha;
+        data[0].ClearAlpha = clearAlpha;
 
         data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
@@ -1319,6 +1320,7 @@ public class GeometryRenderer : IDisposable
         data[1].PrevU = wv.BottomLeft.PrevU;
         data[1].PrevV = wv.BottomLeft.PrevV;
         data[1].Alpha = alpha;
+        data[1].ClearAlpha = clearAlpha;
 
         data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
@@ -1332,6 +1334,7 @@ public class GeometryRenderer : IDisposable
         data[2].PrevU = wv.TopRight.PrevU;
         data[2].PrevV = wv.TopRight.PrevV;
         data[2].Alpha = alpha;
+        data[2].ClearAlpha = clearAlpha;
 
         data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
@@ -1345,6 +1348,7 @@ public class GeometryRenderer : IDisposable
         data[3].PrevU = wv.TopRight.PrevU;
         data[3].PrevV = wv.TopRight.PrevV;
         data[3].Alpha = alpha;
+        data[3].ClearAlpha = clearAlpha;
 
         data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
@@ -1358,6 +1362,7 @@ public class GeometryRenderer : IDisposable
         data[4].PrevU = wv.BottomLeft.PrevU;
         data[4].PrevV = wv.BottomLeft.PrevV;
         data[4].Alpha = alpha;
+        data[4].ClearAlpha = clearAlpha;
 
         data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
@@ -1371,9 +1376,10 @@ public class GeometryRenderer : IDisposable
         data[5].PrevU = wv.BottomRight.PrevU;
         data[5].PrevV = wv.BottomRight.PrevV;
         data[5].Alpha = alpha;
+        data[5].ClearAlpha = clearAlpha;
     }
 
-    private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel, float alpha = 1)
+    private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevel, float alpha = 1.0f, float clearAlpha = 1.0f)
     {
         LegacyVertex[] data = new LegacyVertex[6];
         // Our triangle is added like:
@@ -1394,6 +1400,7 @@ public class GeometryRenderer : IDisposable
         data[0].PrevU = wv.TopLeft.PrevU;
         data[0].PrevV = wv.TopLeft.PrevV;
         data[0].Alpha = alpha;
+        data[0].ClearAlpha = clearAlpha;
 
         data[1].LightLevel = lightLevel;
         data[1].X = wv.BottomLeft.X;
@@ -1407,6 +1414,7 @@ public class GeometryRenderer : IDisposable
         data[1].PrevU = wv.BottomLeft.PrevU;
         data[1].PrevV = wv.BottomLeft.PrevV;
         data[1].Alpha = alpha;
+        data[1].ClearAlpha = clearAlpha;
 
         data[2].LightLevel = lightLevel;
         data[2].X = wv.TopRight.X;
@@ -1420,6 +1428,7 @@ public class GeometryRenderer : IDisposable
         data[2].PrevU = wv.TopRight.PrevU;
         data[2].PrevV = wv.TopRight.PrevV;
         data[2].Alpha = alpha;
+        data[2].ClearAlpha = clearAlpha;
 
         data[3].LightLevel = lightLevel;
         data[3].X = wv.TopRight.X;
@@ -1433,6 +1442,7 @@ public class GeometryRenderer : IDisposable
         data[3].PrevU = wv.TopRight.PrevU;
         data[3].PrevV = wv.TopRight.PrevV;
         data[3].Alpha = alpha;
+        data[3].ClearAlpha = clearAlpha;
 
         data[4].LightLevel = lightLevel;
         data[4].X = wv.BottomLeft.X;
@@ -1446,6 +1456,7 @@ public class GeometryRenderer : IDisposable
         data[4].PrevU = wv.BottomLeft.PrevU;
         data[4].PrevV = wv.BottomLeft.PrevV;
         data[4].Alpha = alpha;
+        data[4].ClearAlpha = clearAlpha;
 
         data[5].LightLevel = lightLevel;
         data[5].X = wv.BottomRight.X;
@@ -1459,6 +1470,7 @@ public class GeometryRenderer : IDisposable
         data[5].PrevU = wv.BottomRight.PrevU;
         data[5].PrevV = wv.BottomRight.PrevV;
         data[5].Alpha = alpha;
+        data[5].ClearAlpha = clearAlpha;
 
         return data;
     }

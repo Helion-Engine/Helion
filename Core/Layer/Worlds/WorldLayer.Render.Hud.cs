@@ -142,12 +142,17 @@ public partial class WorldLayer
     {
         topRightY = 0;
 
-        if (!m_config.Hud.ShowFPS)
+        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)
             return;
 
-        DrawFpsValue("", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
-        DrawFpsValue("Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY);
-        DrawFpsValue("Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY);
+        if (m_config.Hud.ShowFPS)
+            DrawFpsValue("", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
+
+        if (m_config.Hud.ShowMinMaxFPS)
+        {
+            DrawFpsValue("Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY);
+            DrawFpsValue("Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY);
+        }
 
         void DrawFpsValue(string prefix, double fps, ref int y)
         {

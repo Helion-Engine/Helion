@@ -31,12 +31,14 @@ public class LegacyShader : RenderProgram
         layout(location = 4) in float alpha;
         layout(location = 5) in float fuzz;
         layout(location = 6) in vec2 prevUV;
+        layout(location = 7) in float clearAlpha;
 
         out vec2 uvFrag;
         out vec2 prevUVFrag;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
+        flat out float clearAlphaFrag;
         out float dist;
 
         uniform mat4 mvp;
@@ -49,6 +51,7 @@ public class LegacyShader : RenderProgram
             lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
+            clearAlphaFrag = clearAlpha;
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
@@ -64,6 +67,7 @@ public class LegacyShader : RenderProgram
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
+        flat in float clearAlphaFrag;
         in float dist;
 
         out vec4 fragColor;
@@ -100,20 +104,6 @@ public class LegacyShader : RenderProgram
         const int maxLightScale = 23;
         const int lightFadeStart = 56;
 
-        float calculateLightLevel(float lightLevel) {
-            if (lightLevel <= 0.75) {
-                if (lightLevel > 0.4) {
-	                lightLevel = -0.6375 + (1.85 * lightLevel);
-	                if (lightLevel < 0.08) {
-		                lightLevel = 0.08 + (lightLevel * 0.2);
-	                }
-                } else {
-	                lightLevel /= 5.0;
-                }
-            }
-            return lightLevel;
-        }
-
         void main() {
             float lightLevel = lightLevelFrag;
             float d = clamp(dist - lightFadeStart, 0, dist);
@@ -137,6 +127,9 @@ public class LegacyShader : RenderProgram
 
             fragColor.xyz *= lightLevel;
             fragColor.w *= alphaFrag;
+
+            if (clearAlphaFrag > 0)
+                fragColor.w = 1;
 
             if (fragColor.w <= 0.0)
                 discard;

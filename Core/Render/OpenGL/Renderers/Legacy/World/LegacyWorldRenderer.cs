@@ -246,7 +246,10 @@ public class LegacyWorldRenderer : WorldRenderer
             TraverseBsp(world, renderInfo);
 
         PopulatePrimitives(world);
-        
+
+        m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
+        m_entityRenderer.RenderNonAlpha(renderInfo);
+
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);
@@ -254,8 +257,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderStaticGeometry();
         m_program.Unbind();
 
-        m_geometryRenderer.Render(renderInfo); 
-        m_entityRenderer.RenderNonAlpha(renderInfo);
         m_entityRenderer.RenderAlpha(renderInfo);
 
         if (m_config.Render.TextureTransparency)

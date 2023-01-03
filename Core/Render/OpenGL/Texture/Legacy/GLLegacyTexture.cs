@@ -9,8 +9,8 @@ namespace Helion.Render.OpenGL.Texture.Legacy;
 
 public class GLLegacyTexture : GLTexture
 {
-    public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target)
-        : base(textureId, name, dimension, offset, ns, target)
+    public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, int transparentPixelCount)
+        : base(textureId, name, dimension, offset, ns, target, transparentPixelCount)
     {
     }
 

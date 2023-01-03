@@ -34,24 +34,10 @@ public struct LegacyVertex
     public float PrevU;
     public float PrevV;
 
-    public LegacyVertex(float x, float y, float z, float u, float v, short lightLevel = 256, float alpha = 1.0f, float fuzz = 0.0f)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-        PrevX = x;
-        PrevY = y;
-        PrevZ = z;
-        U = u;
-        V = v;
-        PrevU = u;
-        PrevV = v;
-        LightLevel = lightLevel;
-        Alpha = alpha;
-        Fuzz = fuzz;        
-    }
+    [VertexAttribute]
+    public float ClearAlpha;
 
-    public LegacyVertex(float x, float y, float z, float prevX, float prevY, float prevZ, float u, float v, short lightLevel = 256, float alpha = 1.0f, float fuzz = 0.0f)
+    public LegacyVertex(float x, float y, float z, float prevX, float prevY, float prevZ, float u, float v, short lightLevel = 256, float alpha = 1.0f, float fuzz = 0.0f, float clearAlpha = 0.0f)
     {
         X = x;
         Y = y;
@@ -66,5 +52,6 @@ public struct LegacyVertex
         LightLevel = lightLevel;
         Alpha = alpha;
         Fuzz = fuzz;
+        ClearAlpha = clearAlpha;
     }
 }
