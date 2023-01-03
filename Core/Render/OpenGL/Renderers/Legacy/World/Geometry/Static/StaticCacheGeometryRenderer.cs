@@ -886,17 +886,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         return list;
     }
 
-    private static void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
+    private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
         for (int i = 0; i < length; i++)
         {
             int index = startIndex + i;
-            geometryData.Vbo.Data.Data[index].Alpha = 0;
-            geometryData.Vbo.Data.Data[index].X = 0;
-            geometryData.Vbo.Data.Data[index].Y = 0;
-            geometryData.Vbo.Data.Data[index].Z = 0;
-            geometryData.Vbo.Data.Data[index].U = 0;
-            geometryData.Vbo.Data.Data[index].V = 0;
+            fixed (LegacyVertex* vertex = &geometryData.Vbo.Data.Data[index])
+            {
+                vertex->Alpha = 0;
+                vertex->ClearAlpha = 0;
+                vertex->X = 0;
+                vertex->Y = 0;
+                vertex->Z = 0;
+                vertex->PrevX = 0;
+                vertex->PrevY = 0;
+                vertex->PrevZ = 0;
+                vertex->U = 0;
+                vertex->V = 0;
+            }
         }
 
         geometryData.Vbo.Bind();
