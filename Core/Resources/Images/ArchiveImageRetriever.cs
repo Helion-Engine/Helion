@@ -116,7 +116,6 @@ public class ArchiveImageRetriever : IImageRetriever
         if (definition.Namespace == ResourceNamespace.Sprites)
             SetSpriteOffset(image);
 
-        m_compiledImages.Insert(definition.Name, definition.Namespace, image);
         return image;
     }
 
