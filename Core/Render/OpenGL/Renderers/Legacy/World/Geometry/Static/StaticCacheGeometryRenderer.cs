@@ -957,6 +957,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 vertex->PrevZ = 0;
                 vertex->U = 0;
                 vertex->V = 0;
+                vertex->PrevU = 0;
+                vertex->PrevV = 0;
             }
         }
 
