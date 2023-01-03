@@ -74,6 +74,37 @@ public class Image
         Fill(fillColor ?? Color.Transparent);
     }
 
+    public unsafe bool HasTransparentPixels()
+    {
+        if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
+            return false;
+
+        Rectangle rect = new(0, 0, Bitmap.Width, Bitmap.Height);
+        BitmapData bmpData = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
+
+        byte* scanData = (byte*)bmpData.Scan0.ToPointer();
+        int stride = bmpData.Stride;
+        int bytesPerPixel = System.Drawing.Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
+
+        for (int y = 0; y < Height; y++)
+        {
+            byte* row = scanData + (y * stride);
+            for (int x = 0; x < Bitmap.Width; x++)
+            {
+                // Check if the alpha byte is set
+                int index = x * bytesPerPixel;
+                if (row[index + 3] == 0)
+                {
+                    Bitmap.UnlockBits(bmpData);
+                    return true;
+                }
+            }
+        }
+
+        Bitmap.UnlockBits(bmpData);
+        return false;
+    }
+
     private static Bitmap EnsureExpectedFormat(Bitmap bitmap)
     {
         if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)

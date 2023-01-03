@@ -825,20 +825,33 @@ public partial class Client
     private void EndGame(IWorld world, MapInfoDef? nextMapInfo)
     {
         ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
+        ClusterDef? nextCluster = null;
+        if (nextMapInfo != null)
+            nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
+
         bool isChangingClusters = nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
 
+        if (cluster != null && isChangingClusters)
+        {
+            bool hasExitText = cluster.ExitText.Count > 0;
+            if (!hasExitText && nextCluster == null)
+                isChangingClusters = false;
+            if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
+                isChangingClusters = false;
+        }
+
         if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
-            HandleZDoomTransition(world, cluster, nextMapInfo);
+            HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
         else if (nextMapInfo != null)
             LoadMap(nextMapInfo, null, world);
     }
 
-    private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, MapInfoDef? nextMapInfo)
+    private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
     {
         if (cluster == null)
             return;
 
-        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextMapInfo);
+        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextCluster, nextMapInfo);
         endGameLayer.Exited += EndGameLayer_Exited;
 
         m_layerManager.Add(endGameLayer);

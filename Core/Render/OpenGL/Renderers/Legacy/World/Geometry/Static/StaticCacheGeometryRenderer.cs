@@ -64,12 +64,14 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
+    private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
 
     private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticScroll;
     private IWorld? m_world;
+    private int m_counter;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -351,6 +353,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var texture = m_textureManager.GetTexture(textureHandle);
         data = new GeometryData(textureHandle, texture, vbo, vao);
         m_geometry.Add(data);
+        // Sorts textures that do not have transparent pixels first.
+        // This is to get around the issue of middle textures with transparent pixels being drawn first and discarding stuff behind that should not be.
+        m_geometry.Sort(m_transparentGeometryDataComparer);
         m_textureToGeometryLookup.Add(textureHandle, data);
     }
 
@@ -440,6 +445,23 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticMode)
             return;
 
+        UpdateRunTimeBuffers();
+
+        for (int i = 0; i < m_geometry.Count; i++)
+        {
+            var data = m_geometry[i];
+            var texture = m_textureManager.GetTexture(data.TextureHandle);
+            texture.Bind();
+            data.Vao.Bind();
+            data.Vbo.Bind();
+            data.Vbo.DrawArrays();
+        }
+
+        m_counter++;
+    }
+
+    private void UpdateRunTimeBuffers()
+    {
         // These are textures added at run time. Need to be uploaded then cleared.
         if (m_runtimeGeometry.Count > 0)
         {
@@ -457,16 +479,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLights();
         UpdateScroll();
         UpdateBufferData();
-
-        for (int i = 0; i < m_geometry.Count; i++)
-        {
-            var data = m_geometry[i];
-            var texture = m_textureManager.GetTexture(data.TextureHandle);
-            texture.Bind();
-            data.Vao.Bind();
-            data.Vbo.Bind();
-            data.Vbo.DrawArrays();
-        }
     }
 
     private void UpdateBufferData()
@@ -741,10 +753,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
-        if (m_updatelightSectorsLookup.Data[e.Id] == m_world.Gametick)
+        if (m_updatelightSectorsLookup.Data[e.Id] == m_counter)
             return;
 
-        m_updatelightSectorsLookup.Data[e.Id] = m_world.Gametick;
+        m_updatelightSectorsLookup.Data[e.Id] = m_counter;
         m_updateLightSectors.Add(e);
     }
 
@@ -753,10 +765,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_staticScroll)
             return;
 
-        if (m_updateScrollSidesLookup[e.Side.Id] == m_world.Gametick)
+        if (m_updateScrollSidesLookup[e.Side.Id] == m_counter)
             return;
 
-        m_updateScrollSidesLookup[e.Side.Id] = m_world.Gametick;
+        m_updateScrollSidesLookup[e.Side.Id] = m_counter;
         m_updateScrollSides.Add(e);
     }
 

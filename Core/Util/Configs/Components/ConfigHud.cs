@@ -7,7 +7,7 @@ namespace Helion.Util.Configs.Components;
 public class ConfigHudAutoMap
 {
     [ConfigInfo("Amount to scale automap.", save: false)]
-    public readonly ConfigValue<double> Scale = new(1.0, Clamp(0.1, 10.0));
+    public readonly ConfigValue<double> Scale = new(1.0);
 }
 
 public class ConfigHud

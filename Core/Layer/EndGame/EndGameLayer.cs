@@ -78,40 +78,44 @@ public partial class EndGameLayer : IGameLayer
     private int m_castFrameCount;
 
     public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, SoundManager soundManager, IWorld world,
-        ClusterDef cluster, MapInfoDef? nextMapInfo)
+        ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
     {
         World = world;
         NextMapInfo = nextMapInfo;
         var language = archiveCollection.Definitions.Language;
 
+        IList<string> clusterText = currentCluster.ExitText.Count > 0 ? currentCluster.ExitText : Array.Empty<string>();
+        if (nextCluster != null && nextCluster.EnterText.Count > 0)
+            clusterText = nextCluster.EnterText;
+
         m_archiveCollection = archiveCollection;
         m_musicPlayer = musicPlayer;
         m_soundManager = soundManager;
-        m_flatImage = language.GetMessage(cluster.Flat);
-        m_displayText = LookUpDisplayText(archiveCollection, language, cluster);
+        m_flatImage = language.GetMessage(currentCluster.Flat);
+        m_displayText = LookUpDisplayText(archiveCollection, language, clusterText);
         m_timespan = GetPageTime();
 
         m_ticker.Start();
-        string music = cluster.Music;
+        string music = currentCluster.Music;
         if (music == "")
             music = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleMusic;
         PlayMusic(music);
     }
 
-    private static IList<string> LookUpDisplayText(ArchiveCollection archiveCollection, LanguageDefinition language, ClusterDef cluster)
+    private static IList<string> LookUpDisplayText(ArchiveCollection archiveCollection, LanguageDefinition language, IList<string> clusterText)
     {
-        if (cluster.ExitText.Count != 1)
-            return cluster.ExitText;
+        if (clusterText.Count == 0 || !clusterText[0].StartsWith('$'))
+            return clusterText;
 
-        string text = cluster.ExitText[0];
-        if (language.TryGetMessages(text, out var messages))
+        string lookupText = clusterText[0];
+        if (language.TryGetMessages(lookupText, out var messages))
             return messages;
 
-        var entry = archiveCollection.FindEntry(text);
+        var entry = archiveCollection.FindEntry(lookupText);
         if (entry != null)
             return LanguageDefinition.SplitMessageByNewLines(entry.ReadDataAsString());
 
-        return LanguageDefinition.SplitMessageByNewLines(text);
+        return LanguageDefinition.SplitMessageByNewLines(lookupText);
     }
 
     private TimeSpan GetPageTime() =>

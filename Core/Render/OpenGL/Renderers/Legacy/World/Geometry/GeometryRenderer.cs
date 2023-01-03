@@ -199,7 +199,7 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
 
-    public void Render(RenderInfo renderInfo)
+    public void RenderPortalsAndSkies(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);
         Portals.Render(renderInfo);
