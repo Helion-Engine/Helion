@@ -39,9 +39,9 @@ public class Player : Entity
     private const double FastTurnSpeed = 7.03125 / 180 * Math.PI;
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
+    private const double NotQuiteVertical = MathHelper.HalfPi - 0.005;
     private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    const double NotQuiteVertical = MathHelper.HalfPi - 0.001;
 
     // These are set instantly from mouse movement.
     // They are added when rendering so the view does not need to be interpolated.
