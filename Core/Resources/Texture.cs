@@ -12,6 +12,14 @@ public class Texture
         Index = index;
     }
 
+    public void SetGLTexture(object glTexture, bool repeat)
+    {
+        if (repeat)
+            RenderStore = glTexture;
+        else
+            RenderStoreClamp = glTexture;
+    }
+
     /// <summary>
     /// Name of the texture.
     /// </summary>
@@ -36,4 +44,5 @@ public class Texture
     /// Cached rendering object of the texture.
     /// </summary>
     public object? RenderStore;
+    public object? RenderStoreClamp;
 }

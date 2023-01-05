@@ -896,7 +896,12 @@ public class GeometryRenderer : IDisposable
     {
         // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
-        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeat: false);
+
+        if (texture.Name.Equals("ETX093"))
+        {
+            int lol = 1;
+        }
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
