@@ -1159,11 +1159,7 @@ doneIsPositionValid:
         LinkToWorld(entity, tryMove);
 
         for (int i = tryMove.IntersectSpecialLines.Length - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Length; i--)
-        {
             CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
-            if (entity.Flags.Teleport)
-                break;
-        }
     }
 
     private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)

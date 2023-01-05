@@ -169,6 +169,9 @@ public struct TeleportSpecial
 
     private static bool CanTeleport(Entity teleportEntity, in Vec3D pos)
     {
+        if (teleportEntity.Flags.Teleport)
+            return false;
+
         if (teleportEntity.IsPlayer)
             return true;
 
