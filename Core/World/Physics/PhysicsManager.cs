@@ -222,7 +222,7 @@ public class PhysicsManager
             double diff = 0;
             // Set the sector Z to the difference of the blocked height (only works if not being crushed)
             // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-            if (moveData.Flags.HasFlag(SectorMoveFlags.EntityBlockMovement) || highestBlockEntity.WasCrushing || isCompleted)
+            if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntity.WasCrushing || isCompleted)
             {
                 sectorPlane.SetZ(startZ);
             }

@@ -414,10 +414,9 @@ public class SpecialManager : ITickable, IDisposable
         SectorDamageSpecial? damageSpecial = null;
         CrushData? crush = null;
 
-        // Can't use HasFlag, not really a flag
         if ((flags & ZDoomGenericFlags.CopyTxAndSpecial) != 0)
         {
-            if (flags.HasFlag(ZDoomGenericFlags.TriggerNumericModel))
+            if ((flags & ZDoomGenericFlags.TriggerNumericModel) != 0)
             {
                 if (TriggerSpecials.GetNumericModelChange(m_world, sector, planeType, destZ,
                     out int numericChangeTexture, out SectorDamageSpecial? changeSpecial))
@@ -439,7 +438,7 @@ public class SpecialManager : ITickable, IDisposable
                 damageSpecial = null;
         }
 
-        if (flags.HasFlag(ZDoomGenericFlags.Crush))
+        if ((flags & ZDoomGenericFlags.Crush) != 0)
             crush = CrushData.Default;
 
         int? floorChangeTexture = null;
@@ -550,7 +549,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         foreach (var line in m_world.Lines)
         {
-            if (line.Special != null && line.Flags.Activations.HasFlag(LineActivations.LevelStart))
+            if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
                 HandleLineInitSpecial(line);
         }
 
@@ -713,7 +712,7 @@ public class SpecialManager : ITickable, IDisposable
             return;
 
         Sector? changeScroll = null;
-        if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
+        if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = setLine.Front.Sector;
 
         Vec2D speed = speeds.ScrollSpeed.Value;
@@ -738,7 +737,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         if (flags == ZDoomScroll.None)
             return new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
-        else if (flags.HasFlag(ZDoomScroll.OffsetSpeed))
+        else if ((flags & ZDoomScroll.OffsetSpeed) != 0)
             return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
         
         return ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
@@ -755,7 +754,7 @@ public class SpecialManager : ITickable, IDisposable
         ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, VisualScrollFactor);
         Sector? changeScroll = null;
 
-        if (flags.HasFlag(ZDoomScroll.Accelerative) || flags.HasFlag(ZDoomScroll.Displacement))
+        if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = line.Front.Sector;
 
         foreach (Sector sector in sectors)
@@ -915,7 +914,7 @@ public class SpecialManager : ITickable, IDisposable
                 if (!CanActivateSectorSpecial(special, sector))
                     continue;
 
-                if (!sector.DataChanges.HasFlag(SectorDataTypes.MovementLocked) && CreateSectorSpecial(args, special, sector))
+                if ((sector.DataChanges & SectorDataTypes.MovementLocked) == 0 && CreateSectorSpecial(args, special, sector))
                     success = true;
             }
             else

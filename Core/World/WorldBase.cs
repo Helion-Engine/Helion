@@ -386,7 +386,7 @@ public abstract partial class WorldBase : IWorld
 
     private void HandleExitFlags()
     {
-        if (m_levelChangeFlags.HasFlag(LevelChangeFlags.KillAllPlayers))
+        if ((m_levelChangeFlags & LevelChangeFlags.KillAllPlayers) != 0)
             KillAllPlayers();
     }
 
@@ -477,7 +477,7 @@ public abstract partial class WorldBase : IWorld
             return;
 
         InstantKillEffect effect = entity.Sector.InstantKillEffect;
-        if (!entity.IsPlayer && effect.HasFlag(InstantKillEffect.KillMonsters))
+        if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
             return;
@@ -487,17 +487,17 @@ public abstract partial class WorldBase : IWorld
             return;
 
         Player player = entity.PlayerObj;
-        if (effect.HasFlag(InstantKillEffect.KillAllPlayersExit))
+        if ((effect & InstantKillEffect.KillAllPlayersExit) != 0)
             ExitLevel(LevelChangeType.Next, LevelChangeFlags.KillAllPlayers);
 
-        if (effect.HasFlag(InstantKillEffect.KillAllPlayersSecretExit))
+        if ((effect & InstantKillEffect.KillAllPlayersSecretExit) != 0)
             ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.KillAllPlayers);
 
-        if (effect.HasFlag(InstantKillEffect.KillUnprotectedPlayer) && !player.Flags.Invulnerable &&
+        if ((effect & InstantKillEffect.KillUnprotectedPlayer) != 0 && !player.Flags.Invulnerable &&
             !player.Inventory.IsPowerupActive(PowerupType.IronFeet))
             player.ForceGib();
 
-        if (effect.HasFlag(InstantKillEffect.KillPlayer))
+        if ((effect & InstantKillEffect.KillPlayer) != 0)
             player.ForceGib();
     }
 

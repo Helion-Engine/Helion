@@ -26,7 +26,7 @@ public class AccelScrollSpeed
         double currentZ = GetZ();
         if (LastChangeZ == currentZ)
         {
-            if (ScrollFlags.HasFlag(ZDoomScroll.Displacement))
+            if ((ScrollFlags & ZDoomScroll.Displacement) != 0)
                 AccelSpeed = Vec2D.Zero;
             return;
         }
@@ -36,7 +36,7 @@ public class AccelScrollSpeed
         Vec2D speed = m_speed;
         speed *= diff;
 
-        if (ScrollFlags.HasFlag(ZDoomScroll.Accelerative))
+        if ((ScrollFlags & ZDoomScroll.Accelerative) != 0)
             AccelSpeed += speed;
         else
             AccelSpeed = speed;

@@ -653,7 +653,7 @@ public class GeometryRenderer : IDisposable
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
-            if (facingSide.FloodTextures.HasFlag(SideTexture.Upper))
+            if ((facingSide.FloodTextures & SideTexture.Upper) != 0)
                 return true;
 
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
