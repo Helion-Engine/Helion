@@ -738,7 +738,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         List<Entity> entities = new();
         Box3D box = new(position, Radius, Height);
-        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(new Box2D(position.XY, Radius), BlockmapTraverseFlags.Entities, entityTraverseFlags);
+        Box2D box2D = GetBox2D();
+        bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
+        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -746,8 +748,16 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (entity == null)
                 continue;
 
-            if (CanBlockEntity(entity) && entity.Overlaps(box))
-                entities.Add(entity);
+            if (!CanBlockEntity(entity))
+                continue;
+
+            if (checkZ && !entity.Overlaps(box))
+                continue;
+
+            if (!checkZ && !entity.Overlaps2D(box2D))
+                continue;
+
+            entities.Add(entity);
         }
 
         World.DataCache.FreeBlockmapIntersectList(intersections);
