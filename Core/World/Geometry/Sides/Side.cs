@@ -36,6 +36,7 @@ public class Side : IRenderObject
     public double RenderDistance { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
+    public int LastRenderGametickAlpha;
     public int BlockmapCount;
     public int UpperFloodGeometryKey;
     public int LowerFloodGeometryKey;
@@ -76,21 +77,21 @@ public class Side : IRenderObject
 
     public void SetWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
     {
-        if (types.HasFlag(SideTexture.Upper))
+        if ((types & SideTexture.Upper) != 0)
             Upper.Dynamic |= sectorDynamic;
-        if (types.HasFlag(SideTexture.Lower))
+        if ((types & SideTexture.Lower) != 0)
             Lower.Dynamic |= sectorDynamic;
-        if (types.HasFlag(SideTexture.Middle))
+        if ((types & SideTexture.Middle) != 0)
             Middle.Dynamic |= sectorDynamic;
     }
 
     public void ClearWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
     {
-        if (types.HasFlag(SideTexture.Upper))
+        if ((types & SideTexture.Upper) != 0)
             Upper.Dynamic &= ~sectorDynamic;
-        if (types.HasFlag(SideTexture.Lower))
+        if ((types & SideTexture.Lower) != 0)
             Lower.Dynamic &= ~sectorDynamic;
-        if (types.HasFlag(SideTexture.Middle))
+        if ((types & SideTexture.Middle) != 0)
             Middle.Dynamic &= ~sectorDynamic;
     }
 }

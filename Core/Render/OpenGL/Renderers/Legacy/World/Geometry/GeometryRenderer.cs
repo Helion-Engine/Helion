@@ -493,11 +493,12 @@ public class GeometryRenderer : IDisposable
         if (side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             Side otherSide = side.PartnerSide!;
-            m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametick) || side.Sector.CheckRenderingChanged(side.LastRenderGametick);
-            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
+            m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha) || side.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha);
+            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametickAlpha);
             Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
             Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
             RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out _);
+            side.LastRenderGametickAlpha = m_world.Gametick;
         }
     }
 
