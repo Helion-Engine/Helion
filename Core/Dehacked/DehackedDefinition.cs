@@ -216,6 +216,8 @@ public partial class DehackedDefinition
                 thing.ActionSound = GetIntProperty(parser, ActionSound);
             else if (line.StartsWith(RespawnFrame, StringComparison.OrdinalIgnoreCase))
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
+            else if (line.StartsWith(DroppedItem, StringComparison.OrdinalIgnoreCase))
+                thing.DroppedItem = GetIntProperty(parser, DroppedItem);
             else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
                 thing.Bits = GetBits(parser, Bits, ThingPropertyStrings);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))

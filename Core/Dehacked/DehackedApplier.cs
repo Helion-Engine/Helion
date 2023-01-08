@@ -473,6 +473,8 @@ public class DehackedApplier
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.FirstMovingFrame.Value, Constants.FrameStates.See);
             if (thing.RespawnFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.RespawnFrame.Value, Constants.FrameStates.Raise);
+            if (thing.DroppedItem.HasValue)
+                SetDroppedItem(thing.DroppedItem.Value, dehacked, definition);
 
             if (IsGroupValid(properties.InfightingGroup))
                 properties.InfightingGroup = thing.InfightingGroup;
@@ -481,6 +483,12 @@ public class DehackedApplier
             if (IsGroupValid(properties.SplashGroup))
                 properties.SplashGroup = thing.SplashGroup;
         }
+    }
+
+    private void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
+    {
+        if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))
+            definition.Properties.DropItem = new(droppedName);
     }
 
     // DSDA Doom doesn't count zero
@@ -514,10 +522,10 @@ public class DehackedApplier
             isNull = frameLookup.Label.Equals("Actor::null", StringComparison.OrdinalIgnoreCase);
         }
 
-        if (actionLabel.Equals(Constants.FrameStates.Spawn, StringComparison.OrdinalIgnoreCase))
-            Log.Warn($"Dehacked removed spawn state for: {definition.Name}");
-
         RemoveActionLabels(definition, actionLabel);
+
+        if (isNull && actionLabel.Equals(Constants.FrameStates.Spawn, StringComparison.OrdinalIgnoreCase))
+            Log.Warn($"Dehacked removed spawn state for: {definition.Name}");
 
         if (!isNull)
         {
