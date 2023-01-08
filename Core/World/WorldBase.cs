@@ -668,9 +668,11 @@ public abstract partial class WorldBase : IWorld
 
     public void TelefragBlockingEntities(Entity entity)
     {
-        List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
-        for (int i = 0; i < blockingEntities.Count; i++)
+        DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable, blockingEntities);
+        for (int i = 0; i < blockingEntities.Length; i++)
             blockingEntities[i].ForceGib();
+        DataCache.FreeEntityList(blockingEntities);
     }
 
     /// <summary>
@@ -1501,10 +1503,13 @@ public abstract partial class WorldBase : IWorld
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
-        bool blocked = entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count > 0;
+        DynamicArray<Entity> entities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
         entity.Flags.Solid = false;
         entity.SetHeight(oldHeight);
 
+        bool blocked = entities.Length > 0;
+        DataCache.FreeEntityList(entities);
         return blocked;
     }
 
@@ -1512,7 +1517,12 @@ public abstract partial class WorldBase : IWorld
 
     public bool IsPositionBlocked(Entity entity)
     {
-        if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
+        DynamicArray<Entity> entities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid, entities);
+        bool blocked = entities.Length > 0;
+        DataCache.FreeEntityList(entities);
+
+        if (blocked)
             return true;
 
         if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmtpyTryMove))

@@ -729,16 +729,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return entities;
     }
 
-    /// <summary>
-    /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 3D space traversing the block map.
-    /// </summary>
-    /// <param name="position">The position to check this entity against.</param>
-    /// <param name="entityTraverseFlags">Flags to check against for traversal of the block map.</param>
-    public List<Entity> GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags)
+    public void GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags, DynamicArray<Entity> entities)
     {
-        List<Entity> entities = new();
         Box3D box = new(position, Radius, Height);
-        Box2D box2D = GetBox2D();
+        Box2D box2D = new Box2D(position.XY, Radius);
         bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
         DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
@@ -761,12 +755,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
 
         World.DataCache.FreeBlockmapIntersectList(intersections);
-        return entities;
     }
 
     public bool CanBlockEntity(Entity other)
     {
-        if (ReferenceEquals(this, other) || Owner.Entity == other || !other.Flags.Solid || other.Flags.NoClip)
+        if (Id == other.Id || Owner.Entity == other || !other.Flags.Solid || other.Flags.NoClip)
             return false;
 
         if (Flags.Ripper)

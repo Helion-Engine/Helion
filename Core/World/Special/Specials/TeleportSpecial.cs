@@ -178,7 +178,12 @@ public struct TeleportSpecial
         if (teleportEntity.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
             return true;
 
-        return teleportEntity.GetIntersectingEntities3D(pos, BlockmapTraverseEntityFlags.Solid).Count == 0;
+        DynamicArray<Entity> entities = teleportEntity.World.DataCache.GetEntityList();
+        teleportEntity.GetIntersectingEntities3D(pos, BlockmapTraverseEntityFlags.Solid, entities);
+
+        bool canTeleport = entities.Length == 0;
+        teleportEntity.World.DataCache.FreeEntityList(entities);
+        return canTeleport;
     }
 
     public bool Use(Entity entity)
