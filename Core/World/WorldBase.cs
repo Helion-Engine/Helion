@@ -829,11 +829,11 @@ public abstract partial class WorldBase : IWorld
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
     public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
-        double addAngle = 0, double addPitch = 0, double zOffset = 0)
+        double addAngle = 0, double addPitch = 0, double zOffset = 0, bool decreaseAmmo = true)
     {
         autoAimEntity = null;
         Player? player = shooter.PlayerObj;
-        if (player != null)
+        if (decreaseAmmo && player != null)
             player.DescreaseAmmo();
 
         Vec3D start = shooter.ProjectileAttackPos;
