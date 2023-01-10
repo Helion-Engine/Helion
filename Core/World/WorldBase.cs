@@ -138,6 +138,7 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
+    private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -158,6 +159,9 @@ public abstract partial class WorldBase : IWorld
         Profiler = profiler;
         Geometry = geometry;
         Map = map;
+
+        if (Map.Reject != null)
+            m_lineOfSightReject = map.Reject;
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
@@ -1308,6 +1312,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool CheckLineOfSight(Entity from, Entity to)
     {
+        if (IsLineOfSightRejected(from, to))
+            return false;
+
         Vec2D start = from.Position.XY;
         Vec2D end = to.Position.XY;
 
@@ -1330,6 +1337,20 @@ public abstract partial class WorldBase : IWorld
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
         DataCache.FreeBlockmapIntersectList(intersections);
         return status != TraversalPitchStatus.Blocked;
+    }
+
+    private bool IsLineOfSightRejected(Entity from, Entity to)
+    {
+        int pnum = from.Sector.Id * Sectors.Count + to.Sector.Id;
+        int bytenum = pnum >> 3;
+
+        if (m_lineOfSightReject.Length < bytenum)
+            return false;
+
+        if ((m_lineOfSightReject[bytenum] & (1 << (pnum & 7))) != 0)
+            return true;
+
+        return false;
     }
 
     public virtual bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians)

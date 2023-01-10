@@ -45,11 +45,12 @@ public class DoomMap : IMap
     public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
+    public byte[]? Reject { get; set; }
 
     private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
         ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
         ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
-        IReadOnlyList<DoomNode> nodes, GLComponents? gl)
+        IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
     {
         Archive = archive;
         Name = name;
@@ -60,6 +61,7 @@ public class DoomMap : IMap
         Things = things;
         Nodes = nodes;
         GL = gl;
+        Reject = reject;
     }
 
     /// <summary>
@@ -96,7 +98,7 @@ public class DoomMap : IMap
         IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes?.ReadData());
 
         GLComponents? gl = GLComponents.Read(map);
-        return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);
+        return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
     }
 
     public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
