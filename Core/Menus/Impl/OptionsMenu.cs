@@ -13,8 +13,7 @@ public class OptionsMenu : Menu
     {
         Components = Components.AddRange(new[]
         {
-            new MenuSmallTextComponent("Please use the console."),
-            new MenuSmallTextComponent("I do not want to implement this yet.")
+            new MenuSmallTextComponent("Please use the console or config.ini file")
         });
     }
 }
