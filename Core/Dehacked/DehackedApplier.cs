@@ -202,6 +202,11 @@ public class DehackedApplier
         return null;
     }
 
+    private readonly Dictionary<string, string> CodePointerNameRemap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "A_SPosAttack", "A_SPosAttackUseAtkSound" }
+    };
+
     private void ApplyPointers(DehackedDefinition dehacked, EntityFrameTable entityFrameTable)
     {
         foreach (var pointer in dehacked.Pointers)
@@ -222,6 +227,9 @@ public class DehackedApplier
                 else
                 {
                     string functionName = "A_" + pointer.CodePointerMnemonic;
+                    if (CodePointerNameRemap.TryGetValue(functionName, out var remap))
+                        functionName = remap;
+
                     var function = EntityActionFunctions.Find(functionName);
                     if (function != null)
                         entityFrame.ActionFunction = function;
