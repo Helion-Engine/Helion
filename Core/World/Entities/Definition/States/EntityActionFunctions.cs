@@ -830,7 +830,10 @@ public static class EntityActionFunctions
 
     private static void A_CheckReload(Entity entity)
     {
-         // TODO
+        if (entity.PlayerObj == null || entity.PlayerObj.CheckAmmo())
+            return;
+
+        entity.PlayerObj.ForceLowerWeapon(true);
     }
 
     private static void A_CheckSight(Entity entity)
