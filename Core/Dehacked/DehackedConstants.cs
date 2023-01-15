@@ -1611,7 +1611,7 @@ public partial class DehackedDefinition
         { ThingState.SHOT2,         new("SuperShotgun::spawn",          0) },
 
         { ThingState.COLU,          new("Column::spawn",                0) },
-        { ThingState.STALAG,        new("Stalagtite::spawn",            0) },
+        { ThingState.STALAG,        new("Stalagmite::spawn",            0) },
 
         { ThingState.BLOODYTWITCH,  new("BloodyTwitch::spawn",          0) },
         { ThingState.BLOODYTWITCH2, new("BloodyTwitch::spawn",          1) },

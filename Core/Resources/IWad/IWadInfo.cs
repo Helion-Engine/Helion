@@ -1,5 +1,7 @@
 using Helion.Util.Bytes;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Helion.Resources.IWad;
 
@@ -10,11 +12,13 @@ public class IWadInfo
         public readonly string Title;
         public readonly string MapInfo;
         public readonly string Decorate;
-        public IWadData(string title, string mapinfo, string decorate)
+        public readonly string DefaultFileName;
+        public IWadData(string title, string mapinfo, string decorate, string defaultFileName)
         {
             Title = title;
             MapInfo = mapinfo;
             Decorate = decorate;
+            DefaultFileName = defaultFileName;
         }
     }
 
@@ -22,15 +26,15 @@ public class IWadInfo
 
     private static readonly Dictionary<IWadType, IWadData> IWadDataLookup = new()
     {
-        { IWadType.None, new(string.Empty, string.Empty, string.Empty) },
-        { IWadType.Doom2, new("Doom II: Hell on Earth", "MapInfo/Doom2.txt", DoomDecorate) },
-        { IWadType.Plutonia, new("Final Doom: The Plutonia Experiment", "MapInfo/Plutonia.txt", DoomDecorate) },
-        { IWadType.TNT, new("Final Doom: TNT: Evilution", "MapInfo/Tnt.txt", DoomDecorate) },
-        { IWadType.UltimateDoom, new("The Ultimate Doom", "MapInfo/DoomRegistered.txt", DoomDecorate) },
-        { IWadType.ChexQuest, new("Chex Quest", "MapInfo/Chex.txt", "Decorate/ChexDecorate.txt") },
-        { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt", DoomDecorate) },
-        { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt", DoomDecorate) },
-        { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate) },
+        { IWadType.None, new(string.Empty, string.Empty, string.Empty, string.Empty) },
+        { IWadType.Doom2, new("Doom II: Hell on Earth", "MapInfo/Doom2.txt", DoomDecorate, "DOOM2.WAD") },
+        { IWadType.Plutonia, new("Final Doom: The Plutonia Experiment", "MapInfo/Plutonia.txt", DoomDecorate, "PLUTONIA.WAD") },
+        { IWadType.TNT, new("Final Doom: TNT: Evilution", "MapInfo/Tnt.txt", DoomDecorate, "TNT.WAD") },
+        { IWadType.UltimateDoom, new("The Ultimate Doom", "MapInfo/DoomRegistered.txt", DoomDecorate, "DOOM.WAD") },
+        { IWadType.ChexQuest, new("Chex Quest", "MapInfo/Chex.txt", "Decorate/ChexDecorate.txt", "CHEX.WAD") },
+        { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt", DoomDecorate, "DOOM1.WAD") },
+        { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt", DoomDecorate, string.Empty) },
+        { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate, string.Empty) },
     };
 
     private readonly static Dictionary<string, IWadType> MD5Lookup = new()
@@ -99,9 +103,29 @@ public class IWadInfo
 
     public static IWadInfo GetIWadInfo(IWadType type) => InfoFromType(type);
 
-    public static IWadInfo GetIWadInfo(string fileName)
+    public static IWadInfo GetIWadInfo(string path)
     {
-        string? md5 = Files.CalculateMD5(fileName);
+        IWadInfo info = GetIWadInforFromMd5(path);
+        if (info != DefaultIWadInfo)
+            return info;
+
+        // If failed to lookup by MD5 then assume the type by the filename
+        string fileName = Path.GetFileName(path);
+        foreach (var (type, data) in IWadDataLookup)
+        {
+            if (string.IsNullOrEmpty(data.DefaultFileName))
+                continue;
+
+            if (data.DefaultFileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                return InfoFromType(type);
+        }
+
+        return DefaultIWadInfo;
+    }
+
+    private static IWadInfo GetIWadInforFromMd5(string path)
+    {
+        string? md5 = Files.CalculateMD5(path);
         if (md5 == null)
             return DefaultIWadInfo;
 
