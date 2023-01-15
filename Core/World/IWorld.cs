@@ -107,7 +107,7 @@ public interface IWorld : IDisposable
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
     Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
-        double addAngle = 0, double addPitch = 0, double zOffset = 0);
+        double addAngle = 0, double addPitch = 0, double zOffset = 0, bool decreaseAmmo = true);
     void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<int>? damageFunc = null);
     Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);

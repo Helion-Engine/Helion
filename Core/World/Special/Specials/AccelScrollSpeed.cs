@@ -42,6 +42,6 @@ public class AccelScrollSpeed
             AccelSpeed = speed;
     }
 
-    private double GetZ() => Sector.Ceiling.Z - Sector.Floor.Z;
+    private double GetZ() => Sector.Floor.Z - Sector.Ceiling.Z;
 
 }

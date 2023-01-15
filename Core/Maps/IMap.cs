@@ -66,4 +66,6 @@ public interface IMap
     /// The GL components of the map. If there are none, this is null.
     /// </summary>
     GLComponents? GL { get; }
+
+    byte[]? Reject { get; set; }
 }

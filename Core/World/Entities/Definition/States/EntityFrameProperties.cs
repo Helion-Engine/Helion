@@ -3,7 +3,7 @@ using Helion.Resources.Definitions.Decorate.States;
 
 namespace Helion.World.Entities.Definition.States;
 
-public class EntityFrameProperties
+public struct EntityFrameProperties
 {
     public static readonly EntityFrameProperties Default = new EntityFrameProperties(new ActorFrameProperties());
 

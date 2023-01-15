@@ -89,6 +89,7 @@ public class EntityDefinitionComposer
         m_definitions[definition.Name] = definition;
         if (definition.EditorId != null)
             m_editorNumToDefinition[definition.EditorId.Value] = definition;
+        m_listDefinitions.Add(definition);
     }
 
     public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions.AsReadOnly();

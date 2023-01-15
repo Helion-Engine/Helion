@@ -31,6 +31,7 @@ public class DehackedThing
     public uint? Bits { get; set; }
     public uint? Mbf21Bits { get; set; }
     public int? RespawnFrame { get; set; }
+    public int? DroppedItem { get; set; }
     public int? InfightingGroup { get; set; }
     public int? ProjectileGroup { get; set; }
     public int? SplashGroup { get; set; }
