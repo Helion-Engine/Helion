@@ -57,12 +57,12 @@ public static class MonsterClosets
 
         foreach (Line line in island.Lines)
         {
-            // We only allow teleport lines in monster closets.
-            if (line.HasSpecial && !line.Special.IsTeleport())
+            if (line.HasSpecial && !line.Special.IsTeleport() && !line.Special.IsPlaneScroller())
                 return false;
         }
 
         HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
+        int monsterCount = 0;
 
         foreach (Entity entity in world.Entities.Enumerate())
         {
@@ -74,9 +74,11 @@ public static class MonsterClosets
             bool isMonster = entity.Flags.CountKill;
             if (!isMonster)
                 return false;
+
+            monsterCount++;
         }
 
-        return true;
+        return monsterCount > 0;
     }
 
     // A "bridge" is a sector that connects two sections of the map, whereby

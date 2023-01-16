@@ -1344,7 +1344,7 @@ public abstract partial class WorldBase : IWorld
         int pnum = from.Sector.Id * Sectors.Count + to.Sector.Id;
         int bytenum = pnum >> 3;
 
-        if (m_lineOfSightReject.Length < bytenum)
+        if (m_lineOfSightReject.Length <= bytenum)
             return false;
 
         if ((m_lineOfSightReject[bytenum] & (1 << (pnum & 7))) != 0)
