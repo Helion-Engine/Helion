@@ -1,4 +1,5 @@
 using Helion.Geometry.Vectors;
+using Helion.Resources.IWad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,7 +74,10 @@ public class CommandLineArgs
             if (argStart.Any(x => arg.StartsWith(x)))
                 break;
 
-            commandLineArgs.Files.Add(arg);
+            if (IWadInfo.GetIWadInfo(arg) == IWadInfo.DefaultIWadInfo)
+                commandLineArgs.Files.Add(arg);
+            else
+                commandLineArgs.Iwad = arg;
         }
 
         CommandParser parser = new(argStart);

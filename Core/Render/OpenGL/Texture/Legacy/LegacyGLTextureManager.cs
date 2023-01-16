@@ -68,11 +68,6 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     protected override GLLegacyTexture GenerateTexture(Image image, string name,
         ResourceNamespace resourceNamespace)
     {
-        if (name == "XXX")
-        {
-            int lol = 1;
-        }
-
         int textureId = GL.GenTexture();
         GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
         UploadAndSetParameters(texture, image, name, resourceNamespace);
@@ -95,27 +90,36 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace)
     {
+        if (resourceNamespace != ResourceNamespace.Sprites && resourceNamespace != ResourceNamespace.Graphics)
+        {
+            SetTextureFilter(targetType);
+            GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            SetAnisotropicFiltering(targetType);
+            return;
+        }
+
         // Sprites are a special case where we want to clamp to the edge.
         // This stops artifacts from forming.
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+
         if (resourceNamespace == ResourceNamespace.Sprites)
         {
-            HandleSpriteTextureParameters(targetType);
-            return;
+            GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         }
-
-        if (resourceNamespace == ResourceNamespace.Fonts)
+        else
         {
-            HandleFontTextureParameters(targetType);
-            return;
+            SetTextureFilter(targetType);
         }
+    }
 
+    private void SetTextureFilter(TextureTarget targetType)
+    {
         (int minFilter, int maxFilter) = FindFilterValues(Config.Render.Filter.Texture.Value);
-
         GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, minFilter);
         GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, maxFilter);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-        SetAnisotropicFiltering(targetType);
     }
 
     private void HandleSpriteTextureParameters(TextureTarget targetType)

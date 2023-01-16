@@ -13,6 +13,7 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
+using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Container;
 using NLog;
@@ -45,11 +46,12 @@ public class DoomMap : IMap
     public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
+    public byte[]? Reject { get; set; }
 
     private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
         ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
         ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
-        IReadOnlyList<DoomNode> nodes, GLComponents? gl)
+        IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
     {
         Archive = archive;
         Name = name;
@@ -60,6 +62,7 @@ public class DoomMap : IMap
         Things = things;
         Nodes = nodes;
         GL = gl;
+        Reject = reject;
     }
 
     /// <summary>
@@ -96,7 +99,7 @@ public class DoomMap : IMap
         IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes?.ReadData());
 
         GLComponents? gl = GLComponents.Read(map);
-        return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);
+        return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
     }
 
     public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
@@ -227,6 +230,8 @@ public class DoomMap : IMap
         int numLines = lineData.Length / BytesPerLine;
         ByteReader lineReader = new ByteReader(lineData);
         Dictionary<int, DoomLine> lines = new Dictionary<int, DoomLine>();
+        DoomSide emptySide = new(0, Vec2I.Zero, Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, 
+            new DoomSector(0, 0, 0, string.Empty, string.Empty, 0, 0, 0));
 
         for (int id = 0; id < numLines; id++)
         {
@@ -240,23 +245,17 @@ public class DoomMap : IMap
 
             if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
                 continue;
-            if (rightSidedef >= sides.Count)
+            if (rightSidedef >= sides.Count && rightSidedef != NoSidedef)
                 continue;
             if (leftSidedef >= sides.Count && leftSidedef != NoSidedef)
                 continue;
 
             DoomVertex startVertex = vertices[startVertexId];
             DoomVertex endVertex = vertices[endVertexId];
-            DoomSide front = sides[rightSidedef];
+            DoomSide front = rightSidedef == NoSidedef ?  emptySide : sides[rightSidedef];
             DoomSide? back = null;
             MapLineFlags lineFlags = MapLineFlags.Doom(flags);
             VanillaLineSpecialType lineType = (VanillaLineSpecialType)type;
-
-            if (startVertexId == endVertexId || startVertex.PositionFixed == endVertex.PositionFixed)
-            {
-                Log.Warn("Zero length line segment (id = {0}) detected, skipping malformed line", id);
-                continue;
-            }
 
             if (leftSidedef != NoSidedef)
                 back = sides[leftSidedef];

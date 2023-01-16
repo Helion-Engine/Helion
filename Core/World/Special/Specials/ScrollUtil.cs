@@ -20,7 +20,7 @@ public static class ScrollUtil
     {
         ScrollSpeeds scrollSpeeds = new();
         Vec2D diff;
-        if (flags.HasFlag(ZDoomScroll.Line))
+        if ((flags & ZDoomScroll.Line) != 0)
         {
             diff = line.EndPosition - line.StartPosition;
             diff /= 32;

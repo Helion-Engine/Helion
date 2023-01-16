@@ -830,7 +830,10 @@ public static class EntityActionFunctions
 
     private static void A_CheckReload(Entity entity)
     {
-         // TODO
+        if (entity.PlayerObj == null || entity.PlayerObj.CheckAmmo())
+            return;
+
+        entity.PlayerObj.ForceLowerWeapon(true);
     }
 
     private static void A_CheckSight(Entity entity)
@@ -1651,6 +1654,7 @@ public static class EntityActionFunctions
         startPos += Vec3D.UnitSphere(angle, 0.0) * (entity.Radius + skull.Radius - 2);
         skull.SetPosition(startPos);
         skull.Flags.CountKill = false;
+        skull.Flags.IsMonster = true;
 
         // Ignore parent for clip checking
         bool wasSolid = entity.Flags.Solid;
@@ -2799,7 +2803,7 @@ public static class EntityActionFunctions
         double pitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs3));
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset);
+        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset, false);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)
@@ -2974,7 +2978,7 @@ public static class EntityActionFunctions
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        FireProjectile(entity, entity.Target.Entity, name, angle, pitchOffset, offsetXY, zOffset);
+        FireProjectile(entity, entity.Target.Entity, name, angle, pitchOffset, offsetXY, zOffset, false);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
@@ -3207,7 +3211,7 @@ public static class EntityActionFunctions
         return dehacked.GetEntityDefinitionName(index, out name);
     }
 
-    private static void FireProjectile(Entity entity, Entity? target, string name, double addAngle, double addPitch, double offsetXY, double zOffset)
+    private static void FireProjectile(Entity entity, Entity? target, string name, double addAngle, double addPitch, double offsetXY, double zOffset, bool decreaseAmmo)
     {
         double firePitch = 0;
         if (entity.PlayerObj != null)
@@ -3217,7 +3221,7 @@ public static class EntityActionFunctions
             firePitch = entity.PitchTo(entity.ProjectileAttackPos, target);
 
         Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, true, name, 
-            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
+            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset, decreaseAmmo);
         if (createdEntity == null)
             return;
 

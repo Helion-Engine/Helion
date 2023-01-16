@@ -101,47 +101,47 @@ public class LineSpecial
         LineFlags flags = line.Flags;
         if (context == ActivationContext.HitscanCrossLine || context == ActivationContext.HitscanImpactsWall)
         {
-            if (!flags.Activations.HasFlag(LineActivations.Hitscan))
+            if ((flags.Activations & LineActivations.Hitscan) == 0)
                 return false;
 
             if (context == ActivationContext.HitscanCrossLine)
-                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = (flags.Activations & LineActivations.CrossLine) != 0;
             else
-                contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
+                contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
         }
         else if (entity.Flags.Missile)
         {
-            if (!flags.Activations.HasFlag(LineActivations.Projectile))
+            if ((flags.Activations & LineActivations.Projectile) == 0)
                 return false;
 
             if (context == ActivationContext.EntityImpactsWall)
-                contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
+                contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
             else if (context == ActivationContext.CrossLine)
-                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = (flags.Activations & LineActivations.CrossLine) != 0;
 
         }
         else if (!entity.IsPlayer)
         {
-            if (line.Flags.Secret || !flags.Activations.HasFlag(LineActivations.Monster))
+            if (line.Flags.Secret || (flags.Activations & LineActivations.Monster) == 0)
                 return false;
 
             if (context == ActivationContext.CrossLine)
-                contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
+                contextSuccess = (flags.Activations & LineActivations.CrossLine) != 0;
             // Based on testing this implementation appears to be goofed. Only works with two-sided lines.
             else if (context == ActivationContext.UseLine && line.Back != null)
-                contextSuccess = flags.Activations.HasFlag(LineActivations.UseLine);
+                contextSuccess = (flags.Activations & LineActivations.UseLine) != 0;
         }
 
         if (entity.PlayerObj != null)
         {
-            if (flags.Activations.HasFlag(LineActivations.Player))
+            if ((flags.Activations & LineActivations.Player) != 0)
             {
                 if (context == ActivationContext.CrossLine)
-                    contextSuccess = flags.Activations.HasFlag(LineActivations.CrossLine);
+                    contextSuccess = (flags.Activations & LineActivations.CrossLine) != 0;
                 else if (context == ActivationContext.UseLine)
-                    contextSuccess = flags.Activations.HasFlag(LineActivations.UseLine);
+                    contextSuccess = (flags.Activations & LineActivations.UseLine) != 0;
                 else if (context == ActivationContext.EntityImpactsWall)
-                    contextSuccess = flags.Activations.HasFlag(LineActivations.ImpactLine);
+                    contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
             }
 
             if (contextSuccess && IsLockType(line, out int keyNumber))
@@ -271,6 +271,19 @@ public class LineSpecial
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
             case ZDoomLineSpecialType.TeleportLine:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    public bool IsPlaneScroller()
+    {
+        switch (LineSpecialType)
+        {
+            case ZDoomLineSpecialType.ScrollFloor:
+            case ZDoomLineSpecialType.ScrollCeiling:
                 return true;
 
             default:
