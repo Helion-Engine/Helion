@@ -138,6 +138,7 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
+    private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -158,6 +159,9 @@ public abstract partial class WorldBase : IWorld
         Profiler = profiler;
         Geometry = geometry;
         Map = map;
+
+        if (Map.Reject != null)
+            m_lineOfSightReject = map.Reject;
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
@@ -386,7 +390,7 @@ public abstract partial class WorldBase : IWorld
 
     private void HandleExitFlags()
     {
-        if (m_levelChangeFlags.HasFlag(LevelChangeFlags.KillAllPlayers))
+        if ((m_levelChangeFlags & LevelChangeFlags.KillAllPlayers) != 0)
             KillAllPlayers();
     }
 
@@ -477,7 +481,7 @@ public abstract partial class WorldBase : IWorld
             return;
 
         InstantKillEffect effect = entity.Sector.InstantKillEffect;
-        if (!entity.IsPlayer && effect.HasFlag(InstantKillEffect.KillMonsters))
+        if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
             return;
@@ -487,17 +491,17 @@ public abstract partial class WorldBase : IWorld
             return;
 
         Player player = entity.PlayerObj;
-        if (effect.HasFlag(InstantKillEffect.KillAllPlayersExit))
+        if ((effect & InstantKillEffect.KillAllPlayersExit) != 0)
             ExitLevel(LevelChangeType.Next, LevelChangeFlags.KillAllPlayers);
 
-        if (effect.HasFlag(InstantKillEffect.KillAllPlayersSecretExit))
+        if ((effect & InstantKillEffect.KillAllPlayersSecretExit) != 0)
             ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.KillAllPlayers);
 
-        if (effect.HasFlag(InstantKillEffect.KillUnprotectedPlayer) && !player.Flags.Invulnerable &&
+        if ((effect & InstantKillEffect.KillUnprotectedPlayer) != 0 && !player.Flags.Invulnerable &&
             !player.Inventory.IsPowerupActive(PowerupType.IronFeet))
             player.ForceGib();
 
-        if (effect.HasFlag(InstantKillEffect.KillPlayer))
+        if ((effect & InstantKillEffect.KillPlayer) != 0)
             player.ForceGib();
     }
 
@@ -668,9 +672,11 @@ public abstract partial class WorldBase : IWorld
 
     public void TelefragBlockingEntities(Entity entity)
     {
-        List<Entity> blockingEntities = entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
-        for (int i = 0; i < blockingEntities.Count; i++)
+        DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable, blockingEntities);
+        for (int i = 0; i < blockingEntities.Length; i++)
             blockingEntities[i].ForceGib();
+        DataCache.FreeEntityList(blockingEntities);
     }
 
     /// <summary>
@@ -827,11 +833,11 @@ public abstract partial class WorldBase : IWorld
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
     public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
-        double addAngle = 0, double addPitch = 0, double zOffset = 0)
+        double addAngle = 0, double addPitch = 0, double zOffset = 0, bool decreaseAmmo = true)
     {
         autoAimEntity = null;
         Player? player = shooter.PlayerObj;
-        if (player != null)
+        if (decreaseAmmo && player != null)
             player.DescreaseAmmo();
 
         Vec3D start = shooter.ProjectileAttackPos;
@@ -1306,6 +1312,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool CheckLineOfSight(Entity from, Entity to)
     {
+        if (IsLineOfSightRejected(from, to))
+            return false;
+
         Vec2D start = from.Position.XY;
         Vec2D end = to.Position.XY;
 
@@ -1328,6 +1337,20 @@ public abstract partial class WorldBase : IWorld
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
         DataCache.FreeBlockmapIntersectList(intersections);
         return status != TraversalPitchStatus.Blocked;
+    }
+
+    private bool IsLineOfSightRejected(Entity from, Entity to)
+    {
+        int pnum = from.Sector.Id * Sectors.Count + to.Sector.Id;
+        int bytenum = pnum >> 3;
+
+        if (m_lineOfSightReject.Length < bytenum)
+            return false;
+
+        if ((m_lineOfSightReject[bytenum] & (1 << (pnum & 7))) != 0)
+            return true;
+
+        return false;
     }
 
     public virtual bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians)
@@ -1501,10 +1524,13 @@ public abstract partial class WorldBase : IWorld
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
-        bool blocked = entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid).Count > 0;
+        DynamicArray<Entity> entities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
         entity.Flags.Solid = false;
         entity.SetHeight(oldHeight);
 
+        bool blocked = entities.Length > 0;
+        DataCache.FreeEntityList(entities);
         return blocked;
     }
 
@@ -1512,7 +1538,12 @@ public abstract partial class WorldBase : IWorld
 
     public bool IsPositionBlocked(Entity entity)
     {
-        if (entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid).Count > 0)
+        DynamicArray<Entity> entities = DataCache.GetEntityList();
+        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid, entities);
+        bool blocked = entities.Length > 0;
+        DataCache.FreeEntityList(entities);
+
+        if (blocked)
             return true;
 
         if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmtpyTryMove))
@@ -1940,7 +1971,7 @@ public abstract partial class WorldBase : IWorld
         while (node != null)
         {
             var entity = node.Value;
-            if (!entity.IsDead && (entity.Flags.CountKill || !entity.IsPlayer))
+            if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
                 node.Value.ForceGib();
                 killCount++;

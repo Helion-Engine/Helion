@@ -239,7 +239,7 @@ public class SectorMoveSpecial : ISectorSpecial
             if (MoveData.DamageSpecial != null)
                 Sector.SectorDamageSpecial = MoveData.DamageSpecial.Copy(Sector);
 
-            if (MoveData.Flags.HasFlag(SectorMoveFlags.ClearDamage))
+            if ((MoveData.Flags & SectorMoveFlags.ClearDamage) != 0)
                 Sector.SectorDamageSpecial = null;
 
             StopMovementSound();
@@ -363,7 +363,7 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         double destZ = SectorPlane.Z + m_speed;
 
-        if (MoveData.Flags.HasFlag(SectorMoveFlags.Door) && Sector.Floor.Z != m_minZ)
+        if ((MoveData.Flags & SectorMoveFlags.Door) != 0 && Sector.Floor.Z != m_minZ)
             UpdateFloorDest();
 
         if (m_direction == MoveDirection.Down && destZ < DestZ)

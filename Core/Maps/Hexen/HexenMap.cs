@@ -37,11 +37,12 @@ public class HexenMap : IMap
     public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
+    public byte[]? Reject { get; set; }
 
     private HexenMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
         ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
         ReadOnlyDictionary<int, HexenLine> lines, ReadOnlyDictionary<int, HexenThing> things,
-        IReadOnlyList<DoomNode> nodes, GLComponents? gl)
+        IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
     {
         Archive = archive;
         Name = name;
@@ -52,6 +53,7 @@ public class HexenMap : IMap
         Things = things;
         Nodes = nodes;
         GL = gl;
+        Reject = reject;
     }
 
     /// <summary>
@@ -88,7 +90,7 @@ public class HexenMap : IMap
         IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes?.ReadData());
 
         GLComponents? gl = GLComponents.Read(map);
-        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl);
+        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
     }
 
     public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;

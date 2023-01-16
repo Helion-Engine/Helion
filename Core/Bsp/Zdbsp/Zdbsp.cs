@@ -6,6 +6,7 @@ using Helion.Util;
 using NLog;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using zdbspSharp;
 
@@ -20,7 +21,7 @@ namespace Helion.Bsp.Zdbsp
         private ArchiveCollection? m_lastBspCollection;
         private readonly Stopwatch m_stopwatch = new();
 
-        public bool RunZdbsp(IMap map, string mapName, MapInfoDef mapInfoDef, out IMap? outputMap)
+        public bool RunZdbsp(IMap map, string mapName, MapInfoDef mapInfoDef, [NotNullWhen(true)] out IMap? outputMap)
         {
             string outputFile = TempFileManager.GetFile();
             outputMap = null;
@@ -57,6 +58,9 @@ namespace Helion.Bsp.Zdbsp
                     return false;
 
                 outputMap = m_lastBspCollection.FindMap(mapName);
+                if (outputMap != null)
+                    outputMap.Reject = map.Reject;
+
                 m_stopwatch.Stop();
                 Log.Info($"Completed map load {m_stopwatch.Elapsed}");
                 return outputMap != null;

@@ -183,7 +183,7 @@ public class StaticDataApplier
         plane.Dynamic &= ~SectorDynamic.Movement;
 
         // Floor and ceiling can move independently so don't clear it yet.
-        if (plane.Sector.IsMoving || plane.Dynamic.HasFlag(SectorDynamic.TransferHeights))
+        if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0)
             return;
 
         plane.Sector.UnlinkFromWorld(world);

@@ -53,11 +53,11 @@ public class ScrollSpecial : ISpecial
         }
         else
         {
-            if (m_lineScroll.HasFlag(ZDoomLineScroll.UpperTexture))
+            if ((m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
                 m_sideTextures |= SideTexture.Upper;
-            if (m_lineScroll.HasFlag(ZDoomLineScroll.LowerTexture))
+            if ((m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
                 m_sideTextures |= SideTexture.Lower;
-            if (m_lineScroll.HasFlag(ZDoomLineScroll.MiddleTexture))
+            if ((m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
                 m_sideTextures |= SideTexture.Middle;
         }
 

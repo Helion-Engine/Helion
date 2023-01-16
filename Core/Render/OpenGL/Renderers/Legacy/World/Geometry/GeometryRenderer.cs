@@ -493,11 +493,12 @@ public class GeometryRenderer : IDisposable
         if (side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             Side otherSide = side.PartnerSide!;
-            m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametick) || side.Sector.CheckRenderingChanged(side.LastRenderGametick);
-            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
+            m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha) || side.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha);
+            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametickAlpha);
             Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
             Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
             RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out _);
+            side.LastRenderGametickAlpha = m_world.Gametick;
         }
     }
 
@@ -652,7 +653,7 @@ public class GeometryRenderer : IDisposable
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
-            if (facingSide.FloodTextures.HasFlag(SideTexture.Upper))
+            if ((facingSide.FloodTextures & SideTexture.Upper) != 0)
                 return true;
 
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
@@ -894,14 +895,8 @@ public class GeometryRenderer : IDisposable
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out LegacyVertex[]? verticies)
     {
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeat: false);
-
-        if (texture.Name.Equals("ETX093"))
-        {
-            int lol = 1;
-        }
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
@@ -912,7 +907,7 @@ public class GeometryRenderer : IDisposable
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             (double bottomZ, double topZ) = FindOpeningFlatsInterpolated(facingSector, otherSector, m_tickFraction);
-            double offset = GetTransferHeightHackOffset(facingSide, otherSide, facingSector, otherSector);
+            double offset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ);
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, isFrontSide, out _, m_tickFraction, offset);
@@ -944,34 +939,16 @@ public class GeometryRenderer : IDisposable
     // There is some issue with how the original code renders middle textures with transfer heights.
     // It appears to incorrectly draw from the floor of the original sector instead of the transfer heights sector.
     // Alternatively, I could be dumb and this is dumb but it appears to work.
-    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, double bottomZ, double topZ)
     {
         if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
             return 0;
 
-        double offset = 0;
+        (double originalBottomZ, double originalTopZ) = FindOpeningFlatsInterpolated(facingSide.Sector, otherSide.Sector, m_tickFraction);
         if (facingSide.Line.Flags.Unpegged.Lower)
-        {
-            if (otherSide.Sector.TransferHeights != null)
-                offset = otherSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
-                    Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction));
+            return originalBottomZ - bottomZ;
 
-            if (facingSide.Sector.TransferHeights != null)
-                offset = Math.Max(offset, facingSide.Sector.Floor.GetInterpolatedZ(m_tickFraction) -
-                    Math.Max(otherSector.Floor.GetInterpolatedZ(m_tickFraction), facingSector.Floor.GetInterpolatedZ(m_tickFraction)));
-
-            return offset;
-        }
-
-        if (otherSide.Sector.TransferHeights != null)
-            offset = otherSide.Sector.Ceiling.GetInterpolatedZ(m_tickFraction) -
-                Math.Max(otherSector.Ceiling.GetInterpolatedZ(m_tickFraction), facingSector.Ceiling.GetInterpolatedZ(m_tickFraction));
-
-        if (facingSide.Sector.TransferHeights != null)
-            offset = Math.Min(offset, facingSide.Sector.Ceiling.GetInterpolatedZ(m_tickFraction) -
-                Math.Min(otherSector.Ceiling.GetInterpolatedZ(m_tickFraction), facingSector.Ceiling.GetInterpolatedZ(m_tickFraction)));
-
-        return offset;
+        return originalTopZ - topZ;
     }
 
     public static (double bottomZ, double topZ) FindOpeningFlatsInterpolated(Sector facingSector, Sector otherSector, double tickFraction)

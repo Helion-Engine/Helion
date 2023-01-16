@@ -1611,7 +1611,7 @@ public partial class DehackedDefinition
         { ThingState.SHOT2,         new("SuperShotgun::spawn",          0) },
 
         { ThingState.COLU,          new("Column::spawn",                0) },
-        { ThingState.STALAG,        new("Stalagtite::spawn",            0) },
+        { ThingState.STALAG,        new("Stalagmite::spawn",            0) },
 
         { ThingState.BLOODYTWITCH,  new("BloodyTwitch::spawn",          0) },
         { ThingState.BLOODYTWITCH2, new("BloodyTwitch::spawn",          1) },
@@ -2508,8 +2508,8 @@ public partial class DehackedDefinition
         new ThingStateLookup("BFE2", 2),                 // BFGEXP3,
         new ThingStateLookup("BFE2", 3),                 // BFGEXP4,
         new ThingStateLookup("MISL", 0, "Rocket", 1),    // EXPLODE1,
-        new ThingStateLookup("MISL", 1, "Rocket", 2),    // EXPLODE2,
-        new ThingStateLookup("MISL", 2, "Rocket", 3),    // EXPLODE3,
+        new ThingStateLookup("MISL", 0, "Rocket", 2),    // EXPLODE2,
+        new ThingStateLookup("MISL", 0, "Rocket", 3),    // EXPLODE3,
         new ThingStateLookup("TFOG", 0),                 // TFOG,
         new ThingStateLookup("TFOG", 1),                 // TFOG01,
         new ThingStateLookup("TFOG", 2),                 // TFOG02,
@@ -4772,6 +4772,7 @@ public partial class DehackedDefinition
     private static readonly string ActionSound = "Action sound";
     private static readonly string Bits = "Bits";
     private static readonly string RespawnFrame = "Respawn frame";
+    private static readonly string DroppedItem = "Dropped item";
     private static readonly string InfightingGroup = "Infighting group";
     private static readonly string ProjectileGroup = "Projectile group";
     private static readonly string SplashGroup = "Splash group";

@@ -32,7 +32,6 @@ public class DataEntries
         m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase)
         {
             ["PLAYPAL"] = HandlePlaypal,
-            ["COLORMAP"] = HandleColormap,
         };
 
         m_extensionToAction = new(StringComparer.OrdinalIgnoreCase)

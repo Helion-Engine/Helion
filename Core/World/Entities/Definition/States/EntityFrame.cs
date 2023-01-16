@@ -16,7 +16,7 @@ public class EntityFrame
     public int Frame { get; set; }
     public int Ticks { get; set; }
     public bool IsInvisible { get; private set; }
-    public readonly EntityFrameProperties Properties;
+    public EntityFrameProperties Properties;
     public ActionFunction? ActionFunction { get; set; }
     public int NextFrameIndex { get; set; }
     public ActorStateBranch BranchType { get; set; }
@@ -39,7 +39,7 @@ public class EntityFrame
 
     private readonly EntityFrameTable m_table;
 
-    public EntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, EntityFrameProperties properties,
+    public EntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, in EntityFrameProperties properties,
         ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName, IList<object>? frameArgs = null)
     {
         Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");

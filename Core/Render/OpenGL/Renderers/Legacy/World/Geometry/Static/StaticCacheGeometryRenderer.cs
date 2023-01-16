@@ -72,6 +72,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_staticScroll;
     private IWorld? m_world;
     private int m_counter;
+    // These are the flags to ignore when setting a side back to static.
+    private SectorDynamic m_sideDynamicIgnore;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -95,6 +97,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
+
+        SetSideDynamicIgnore();
 
         if (!m_staticMode)
             return;
@@ -148,6 +152,13 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updateScrollSidesLookup, world.Sides.Count);
     }
 
+    private void SetSideDynamicIgnore()
+    {
+        m_sideDynamicIgnore = SectorDynamic.Alpha;
+        if (!m_staticScroll)
+            m_sideDynamicIgnore |= SectorDynamic.Scroll;
+    }
+
     private static void UpdateLookup(DynamicArray<int> array, int count)
     {
         if (array.Capacity < count)
@@ -184,6 +195,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
+            if ((line.Front.Middle.Dynamic & m_sideDynamicIgnore) != 0)
+                return;
+
             bool dynamic = line.Front.IsDynamic || line.Front.Sector.IsMoving;
             var sector = line.Front.Sector;
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
@@ -217,11 +231,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
 
-        bool floorDynamic = side.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Floor.Dynamic.HasFlag(SectorDynamic.Movement);
-        bool ceilingDynamic = side.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement) || otherSide.Sector.Ceiling.Dynamic.HasFlag(SectorDynamic.Movement);
-        bool upper = !(ceilingDynamic && side.Upper.IsDynamic);
-        bool lower = !(floorDynamic && side.Lower.IsDynamic);
-        bool middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic);
+        bool floorDynamic = (side.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0;
+        bool ceilingDynamic = (side.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0;
+        bool upper = !(ceilingDynamic && side.Upper.IsDynamic) && (side.Upper.Dynamic & m_sideDynamicIgnore) == 0;
+        bool lower = !(floorDynamic && side.Lower.IsDynamic) && (side.Lower.Dynamic & m_sideDynamicIgnore) == 0;
+        bool middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic) && (side.Middle.Dynamic & m_sideDynamicIgnore) == 0;
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
@@ -241,7 +255,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
-            if (!skyHack && side.FloodTextures.HasFlag(SideTexture.Upper))
+            if (!skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
                 AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper, update);
         }
 
@@ -252,12 +266,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
-            if (skyVertices == null && side.FloodTextures.HasFlag(SideTexture.Lower))
+            if (skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
                 AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower, update);
         }
 
-        // Alpha needs to be rendered last, currently can't be handled statically
-        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex && !side.Middle.Dynamic.HasFlag(SectorDynamic.Alpha))
+        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true, repeat: false);
@@ -530,11 +543,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
                 continue;
 
-            if (scroll.Textures.HasFlag(SideTexture.Upper));
+            if ((scroll.Textures & SideTexture.Upper) != 0);
                 UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
-            if (scroll.Textures.HasFlag(SideTexture.Lower))
+            if ((scroll.Textures & SideTexture.Lower) != 0)
                 UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);
-            if (scroll.Textures.HasFlag(SideTexture.Middle))
+            if ((scroll.Textures & SideTexture.Middle) != 0)
                 UpdateOffsetVertices(side.Middle.Static, side, SideTexture.Middle);
         }
 
@@ -641,7 +654,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void HandleSectorMoveStart(WorldBase world, SectorPlane plane)
     {
-        if (plane.Dynamic.HasFlag(SectorDynamic.Movement))
+        if ((plane.Dynamic & SectorDynamic.Movement) != 0)
             return;
 
         bool floor = plane.Facing == SectorPlaneFace.Floor;

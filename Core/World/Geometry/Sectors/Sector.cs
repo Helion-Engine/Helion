@@ -162,7 +162,7 @@ public class Sector
             return true;
 
         if (TransferHeights != null)
-            return TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.FloorZ) || TransferHeights.ControlSector.DataChanges.HasFlag(SectorDataTypes.CeilingZ);
+            return (TransferHeights.ControlSector.DataChanges & SectorDataTypes.FloorZ) != 0 || (TransferHeights.ControlSector.DataChanges & SectorDataTypes.CeilingZ) != 0;
 
         return false;
     }
@@ -245,17 +245,17 @@ public class Sector
 
         if (DataChanged)
         {
-            if (DataChanges.HasFlag(SectorDataTypes.FloorZ))
+            if ((DataChanges & SectorDataTypes.FloorZ) != 0)
                 sectorModel.FloorZ = Floor.Z;
-            if (DataChanges.HasFlag(SectorDataTypes.CeilingZ))
+            if ((DataChanges & SectorDataTypes.CeilingZ) != 0)
                 sectorModel.CeilingZ = Ceiling.Z;
-            if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
+            if ((DataChanges & SectorDataTypes.FloorTexture) != 0)
                 sectorModel.FloorTex = world.TextureManager.GetTexture(Floor.TextureHandle).Name;
-            if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
+            if ((DataChanges & SectorDataTypes.CeilingTexture) != 0)
                 sectorModel.CeilingTex = world.TextureManager.GetTexture(Ceiling.TextureHandle).Name;
-            if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType))
+            if ((DataChanges & SectorDataTypes.SectorSpecialType) != 0)
                 sectorModel.SectorSpecialType = (int)SectorSpecialType;
-            if (DataChanges.HasFlag(SectorDataTypes.Light))
+            if ((DataChanges & SectorDataTypes.Light) != 0)
             {
                 sectorModel.LightLevel = LightLevel;
                 if (Floor.LightLevel != LightLevel)
@@ -283,7 +283,7 @@ public class Sector
         {
             DataChanges = (SectorDataTypes)sectorModel.SectorDataChanges;
 
-            if (DataChanges.HasFlag(SectorDataTypes.FloorZ) && sectorModel.FloorZ.HasValue)
+            if ((DataChanges & SectorDataTypes.FloorZ) != 0 && sectorModel.FloorZ.HasValue)
             {
                 double amount =  sectorModel.FloorZ.Value - Floor.Z;
                 Floor.Z = sectorModel.FloorZ.Value;
@@ -291,7 +291,7 @@ public class Sector
                 Floor.Plane.MoveZ(amount);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.CeilingZ) && sectorModel.CeilingZ.HasValue)
+            if ((DataChanges & SectorDataTypes.CeilingZ) != 0 && sectorModel.CeilingZ.HasValue)
             {
                 double amount = sectorModel.CeilingZ.Value - Ceiling.Z;
                 Ceiling.Z = sectorModel.CeilingZ.Value;
@@ -299,7 +299,7 @@ public class Sector
                 Ceiling.Plane.MoveZ(amount);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.Light))
+            if ((DataChanges & SectorDataTypes.Light) != 0)
             {
                 if (sectorModel.LightLevel.HasValue)
                     SetLightLevel(sectorModel.LightLevel.Value, 0);
@@ -309,7 +309,7 @@ public class Sector
                     SetCeilingLightLevel(sectorModel.CeilingLightLevel.Value, 0);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.FloorTexture))
+            if ((DataChanges & SectorDataTypes.FloorTexture) != 0)
             {
                 if (sectorModel.FloorTex != null)
                     Floor.SetTexture(world.TextureManager.GetTexture(sectorModel.FloorTex, ResourceNamespace.Global).Index, 0);
@@ -317,7 +317,7 @@ public class Sector
                     Floor.SetTexture(sectorModel.FloorTexture.Value, 0);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.CeilingTexture))
+            if ((DataChanges & SectorDataTypes.CeilingTexture) != 0)
             {
                 if (sectorModel.CeilingTex != null)
                     Ceiling.SetTexture(world.TextureManager.GetTexture(sectorModel.CeilingTex, ResourceNamespace.Global).Index, 0);
@@ -325,10 +325,10 @@ public class Sector
                     Ceiling.SetTexture(sectorModel.CeilingTexture.Value, 0);
             }
 
-            if (DataChanges.HasFlag(SectorDataTypes.SectorSpecialType) && sectorModel.SectorSpecialType.HasValue)
+            if ((DataChanges & SectorDataTypes.SectorSpecialType) != 0 && sectorModel.SectorSpecialType.HasValue)
                 SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
 
-            if (DataChanges.HasFlag(SectorDataTypes.SkyTexture) && sectorModel.SkyTexture.HasValue)
+            if ((DataChanges & SectorDataTypes.SkyTexture) != 0 && sectorModel.SkyTexture.HasValue)
                 SkyTextureHandle = sectorModel.SkyTexture;
 
             Secret = sectorModel.Secret;

@@ -56,7 +56,7 @@ public class Line : IBspUsableLine
     public int SpeedArg => Args.Arg1;
     public int DelayArg => Args.Arg2;
     public int AmountArg => Args.Arg2;
-    public bool SeenForAutomap => DataChanges.HasFlag(LineDataTypes.Automap);
+    public bool SeenForAutomap => (DataChanges & LineDataTypes.Automap) != 0;
     public IEnumerable<Sector> Sectors => Sides.Select(s => s.Sector);
     public IEnumerable<Side> Sides => GetSides();
     public IEnumerable<Vec2D> Vertices => GetVertices();
@@ -102,10 +102,10 @@ public class Line : IBspUsableLine
             DataChanges = (int)DataChanges,
         };
 
-        if (DataChanges.HasFlag(LineDataTypes.Activated))
+        if ((DataChanges & LineDataTypes.Activated) != 0)
             lineModel.Activated = Activated;
 
-        if (DataChanges.HasFlag(LineDataTypes.Texture))
+        if ((DataChanges & LineDataTypes.Texture) != 0)
         {
             if (Front.DataChanged)
                 lineModel.Front = ToSideModel(world, Front);
@@ -113,10 +113,10 @@ public class Line : IBspUsableLine
                 lineModel.Back = ToSideModel(world, Back);
         }
 
-        if (DataChanges.HasFlag(LineDataTypes.Args))
+        if ((DataChanges & LineDataTypes.Args) != 0)
             lineModel.Args = Args;
 
-        if (DataChanges.HasFlag(LineDataTypes.Alpha))
+        if ((DataChanges & LineDataTypes.Alpha) != 0)
             lineModel.Alpha = Alpha;
 
         return lineModel;
@@ -125,10 +125,10 @@ public class Line : IBspUsableLine
     public void ApplyLineModel(IWorld world, LineModel lineModel)
     {
         DataChanges = (LineDataTypes)lineModel.DataChanges;
-        if (DataChanges.HasFlag(LineDataTypes.Activated) && lineModel.Activated.HasValue)
+        if ((DataChanges & LineDataTypes.Activated) != 0 && lineModel.Activated.HasValue)
             Activated = lineModel.Activated.Value;
 
-        if (DataChanges.HasFlag(LineDataTypes.Texture))
+        if ((DataChanges & LineDataTypes.Texture) != 0)
         {
             if (lineModel.Front != null && lineModel.Front.DataChanges > 0)
                 ApplySideModel(world, Front, lineModel.Front);
@@ -136,10 +136,10 @@ public class Line : IBspUsableLine
                 ApplySideModel(world, Back, lineModel.Back);
         }
 
-        if (DataChanges.HasFlag(LineDataTypes.Args) && lineModel.Args.HasValue)
+        if ((DataChanges & LineDataTypes.Args) != 0 && lineModel.Args.HasValue)
             Args = lineModel.Args.Value;
 
-        if (DataChanges.HasFlag(LineDataTypes.Alpha) && lineModel.Alpha.HasValue)
+        if ((DataChanges & LineDataTypes.Alpha) != 0 && lineModel.Alpha.HasValue)
             Alpha = lineModel.Alpha.Value;
     }
 
@@ -147,7 +147,7 @@ public class Line : IBspUsableLine
     {
         var tx = world.TextureManager;
         side.DataChanges = (SideDataTypes)sideModel.DataChanges;
-        if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
+        if ((side.DataChanges & SideDataTypes.UpperTexture) != 0)
         {
             if (sideModel.UpperTex != null)
                 side.Upper.SetTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global).Index, SideDataTypes.UpperTexture);
@@ -155,7 +155,7 @@ public class Line : IBspUsableLine
                 side.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
         }
 
-        if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
+        if ((side.DataChanges & SideDataTypes.MiddleTexture) != 0)
         {
             if(sideModel.MiddelTex != null)
                 side.Middle.SetTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global).Index, SideDataTypes.MiddleTexture);
@@ -163,7 +163,7 @@ public class Line : IBspUsableLine
                 side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
         }
 
-        if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
+        if ((side.DataChanges & SideDataTypes.LowerTexture) != 0)
         {
             if(sideModel.LowerTex != null)
                 side.Lower.SetTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global).Index, SideDataTypes.LowerTexture);
@@ -175,11 +175,11 @@ public class Line : IBspUsableLine
     private static SideModel ToSideModel(IWorld world, Side side)
     {
         SideModel sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
-        if (side.DataChanges.HasFlag(SideDataTypes.UpperTexture))
+        if ((side.DataChanges & SideDataTypes.UpperTexture) != 0)
             sideModel.UpperTex = world.TextureManager.GetTexture(side.Upper.TextureHandle).Name;
-        if (side.DataChanges.HasFlag(SideDataTypes.MiddleTexture))
+        if ((side.DataChanges & SideDataTypes.MiddleTexture) != 0)
             sideModel.MiddelTex = world.TextureManager.GetTexture(side.Middle.TextureHandle).Name;
-        if (side.DataChanges.HasFlag(SideDataTypes.LowerTexture))
+        if ((side.DataChanges & SideDataTypes.LowerTexture) != 0)
             sideModel.LowerTex = world.TextureManager.GetTexture(side.Lower.TextureHandle).Name;
 
         return sideModel;
