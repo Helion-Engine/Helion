@@ -278,6 +278,19 @@ public class LineSpecial
         }
     }
 
+    public bool IsPlaneScroller()
+    {
+        switch (LineSpecialType)
+        {
+            case ZDoomLineSpecialType.ScrollFloor:
+            case ZDoomLineSpecialType.ScrollCeiling:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
     private bool SetMoveSpecial()
     {
         switch (LineSpecialType)
