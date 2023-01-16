@@ -12,9 +12,9 @@ public class Texture
         Index = index;
     }
 
-    public void SetGLTexture(object glTexture, bool repeat)
+    public void SetGLTexture(object glTexture, bool repeatY)
     {
-        if (repeat)
+        if (repeatY)
             RenderStore = glTexture;
         else
             RenderStoreClamp = glTexture;

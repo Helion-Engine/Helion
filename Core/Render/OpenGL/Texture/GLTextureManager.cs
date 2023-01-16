@@ -165,23 +165,23 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return true;
     }
 
-    public GLTextureType GetTexture(int index, bool repeat = true)
+    public GLTextureType GetTexture(int index, bool repeatY = true)
     {
         var texture = TextureManager.GetTexture(index);
-        var renderTexture = repeat ? texture.RenderStore : texture.RenderStoreClamp;
+        var renderTexture = repeatY ? texture.RenderStore : texture.RenderStoreClamp;
 
         if (renderTexture != null)
             return (GLTextureType)renderTexture;
 
         if (texture.Image == null)
         {
-            renderTexture = CreateTexture(texture.Image, repeat);
-            texture.SetGLTexture(renderTexture, repeat);
+            renderTexture = CreateTexture(texture.Image, repeatY);
+            texture.SetGLTexture(renderTexture, repeatY);
             return (GLTextureType)renderTexture;
         }
 
-        renderTexture = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeat);
-        texture.SetGLTexture(renderTexture, repeat);
+        renderTexture = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY);
+        texture.SetGLTexture(renderTexture, repeatY);
         return (GLTextureType)renderTexture;
     }
 
@@ -256,11 +256,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
 
-    protected GLTextureType CreateTexture(Image? image, bool repeat) => CreateTexture(image, null, ResourceNamespace.Global, repeat);
+    protected GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
 
-    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeat = true)
+    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
-        var textureTracker = GetTextureTracker(repeat);
+        var textureTracker = GetTextureTracker(repeatY);
         GLTextureType? texture;
         if (name != null)
         {
@@ -275,7 +275,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             return texture;
         }
 
-        TextureFlags flags = repeat ? TextureFlags.Default : TextureFlags.ClampY;
+        TextureFlags flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
         texture = GenerateTexture(image, name ?? string.Empty, resourceNamespace, flags);
         if (name != null)
             textureTracker.Insert(name, resourceNamespace, texture);
@@ -283,8 +283,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return texture;
     }
 
-    private ResourceTracker<GLTextureType> GetTextureTracker(bool repeat) =>
-        repeat ? m_textureTracker : m_textureTrackerClamp;
+    private ResourceTracker<GLTextureType> GetTextureTracker(bool repeatY) =>
+        repeatY ? m_textureTracker : m_textureTrackerClamp;
 
     protected void DeleteTexture(GLTextureType texture, string name, ResourceNamespace resourceNamespace)
     {

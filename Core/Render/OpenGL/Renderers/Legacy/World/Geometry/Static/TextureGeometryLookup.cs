@@ -15,14 +15,14 @@ internal class TextureGeometryLookup
         m_textureToGeometryLookupClamp.Clear();
     }
 
-    public void Add(int textureHandle, bool repeat, GeometryData data)
+    public void Add(int textureHandle, bool repeatY, GeometryData data)
     {
-        GetLookup(repeat).Add(textureHandle, data);
+        GetLookup(repeatY).Add(textureHandle, data);
     }
 
-    public bool TryGetValue(int textureHanldle, bool repeat, [NotNullWhen(true)] out GeometryData? value) =>
-        GetLookup(repeat).TryGetValue(textureHanldle, out value);
+    public bool TryGetValue(int textureHanldle, bool repeatY, [NotNullWhen(true)] out GeometryData? value) =>
+        GetLookup(repeatY).TryGetValue(textureHanldle, out value);
 
-    private Dictionary<int, GeometryData> GetLookup(bool repeat) =>
-        repeat ? m_textureToGeometryLookup : m_textureToGeometryLookupClamp;
+    private Dictionary<int, GeometryData> GetLookup(bool repeatY) =>
+        repeatY ? m_textureToGeometryLookup : m_textureToGeometryLookupClamp;
 }
