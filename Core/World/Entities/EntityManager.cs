@@ -53,6 +53,7 @@ public class EntityManager : IDisposable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly LinkableList<Entity> Entities = new();
+    public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
 
@@ -142,6 +143,9 @@ public class EntityManager : IDisposable
         // of code that removes empty sets here as well.
         if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
             entities.Remove(entity);
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.Remove(entity);
 
         entity.Dispose();
     }
@@ -411,6 +415,9 @@ public class EntityManager : IDisposable
         // Action functions will not execute until Tick() is called
         if (entity.Definition.SpawnState != null)
             entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.AddLast(entity);
     }
 
     private void PostProcessEntity(Entity entity)
