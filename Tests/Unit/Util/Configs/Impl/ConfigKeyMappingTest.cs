@@ -56,6 +56,7 @@ public class ConfigKeyMappingTest
         (Key.F2, Constants.Input.Save),
         (Key.F3, Constants.Input.Load),
         (Key.Tab, Constants.Input.Automap),
+        (Key.F6, Constants.Input.QuickSave)
     };
 
     [Fact(DisplayName = "Can add defaults")]
@@ -70,7 +71,7 @@ public class ConfigKeyMappingTest
             keys[command].Should().BeEmpty();
         }
 
-        keys.AddDefaults();
+        keys.AddDefaultsIfMissing();
 
         // Now with the defaults applied, let's make sure they are in fact added.
         foreach ((Key key, string command) in ExpectedMappings)

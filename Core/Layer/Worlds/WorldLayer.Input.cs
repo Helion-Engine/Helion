@@ -67,10 +67,7 @@ public partial class WorldLayer
             World.HandleFrameInput(input);
         }
 
-        if (IsCommandPressed(Constants.Input.Save, input))
-            m_parent.GoToSaveOrLoadMenu(true);
-        else if (IsCommandPressed(Constants.Input.Load, input))
-            m_parent.GoToSaveOrLoadMenu(false);
+        CheckSaveOrLoadGame(input);
 
         if (IsCommandPressed(Constants.Input.HudDecrease, input))
             ChangeHudSize(false);
@@ -84,6 +81,21 @@ public partial class WorldLayer
         }
 
         input.ConsumeScroll();
+    }
+
+    private void CheckSaveOrLoadGame(IConsumableInput input)
+    {
+        if (IsCommandPressed(Constants.Input.Save, input))
+        {
+            m_parent.GoToSaveOrLoadMenu(true);
+            return;
+        }
+
+        if (IsCommandPressed(Constants.Input.QuickSave, input))
+            m_parent.QuickSave();
+
+        if (IsCommandPressed(Constants.Input.Load, input))
+            m_parent.GoToSaveOrLoadMenu(false);
     }
 
     private void HandlePausePress()

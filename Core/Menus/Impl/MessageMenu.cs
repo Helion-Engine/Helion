@@ -21,7 +21,7 @@ public class MessageMenu  : Menu
 
     public MessageMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
         IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
-        : base(config, console, soundManager, archiveCollection, 90)
+        : base(config, console, soundManager, archiveCollection, 90, clearOnClose: clearMenus)
     {
         IsYesNoConfirm = isYesNoConfirm;
         ClearMenus = clearMenus;
