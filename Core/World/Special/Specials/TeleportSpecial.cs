@@ -56,7 +56,9 @@ public struct TeleportSpecial
         m_args = args;
         m_world = world;
         m_tid = tid;
-        m_tag = tag == Sector.NoTag ? -1 : tag;
+        m_tag = tag;
+        if (m_tid != EntityManager.NoTid && m_tag == Sector.NoTag)
+            m_tag = -1;
         m_fogFlags = flags;
         m_type = type;
     }

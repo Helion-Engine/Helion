@@ -415,9 +415,6 @@ public class EntityManager : IDisposable
         // Action functions will not execute until Tick() is called
         if (entity.Definition.SpawnState != null)
             entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
-
-        if (entity.Flags.IsTeleportSpot)
-            TeleportSpots.AddLast(entity);
     }
 
     private void PostProcessEntity(Entity entity)
@@ -431,6 +428,9 @@ public class EntityManager : IDisposable
             else
                 TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
         }
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.AddLast(entity);
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)

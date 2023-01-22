@@ -154,7 +154,7 @@ namespace Helion.Tests.Unit.GameAction
 
             moveEntity.Position.X.Should().Be(-1056);
             moveEntity.Position.Y.Should().Be(256);
-            moveEntity.Position.Z.Should().Be(192);
+            moveEntity.Position.Z.Should().Be(188);
         }
 
         [Fact(DisplayName = "Monster can walk on bridge")]

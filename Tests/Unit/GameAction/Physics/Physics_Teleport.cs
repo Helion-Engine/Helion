@@ -190,5 +190,16 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.RunTeleport(World, monster, TeleportDestSectorMove, TeleportLandingIdMove);
             monster.Position.Z.Should().Be(-128);
         }
+
+        [Fact(DisplayName = "Teleport to teleport dest with sector tag 0")]
+        public void TeleportTagZero()
+        {
+            int telportLandingId = 64;
+            int telportLine = 398;
+            Sector sector = GameActions.GetSector(World, 86);
+
+            GameActions.EntityCrossLine(World, Player, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            GameActions.RunTeleport(World, Player, sector, telportLandingId);
+        }
     }
 }
