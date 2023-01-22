@@ -463,7 +463,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < m_geometry.Count; i++)
         {
             var data = m_geometry[i];
-            var texture = m_textureManager.GetTexture(data.TextureHandle);
+            var texture = data.Texture;
             texture.Bind();
             data.Vao.Bind();
             data.Vbo.Bind();

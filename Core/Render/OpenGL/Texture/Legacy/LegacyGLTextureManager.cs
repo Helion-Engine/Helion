@@ -1,3 +1,4 @@
+using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -37,7 +38,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         GL.BindTexture(texture.Target, texture.TextureId);
 
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, "Texture: " + name);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
         var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
         var lockMode = ImageLockMode.ReadOnly;
