@@ -133,9 +133,7 @@ public class FileConfig : Config
             Log.Info($"Config file not found, will generate new config file at {path}");
             m_noFileExistedWhenRead = true;
 
-            if (addDefaultsIfNew)
-                KeyMapping.AddDefaults();
-
+            KeyMapping.AddDefaultsIfMissing();
             return;
         }
 
@@ -146,6 +144,7 @@ public class FileConfig : Config
 
             ReadEngineValues(iniData);
             ReadKeyValues(iniData);
+            KeyMapping.AddDefaultsIfMissing();
         }
         catch (Exception e)
         {

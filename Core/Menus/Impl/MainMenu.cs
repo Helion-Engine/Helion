@@ -38,7 +38,7 @@ public class MainMenu : Menu
         components.Add(new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false));
         components.Add(CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()));
         components.Add(CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)));
-        components.Add(CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false)));
+        components.Add(CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false, false)));
         components.Add(CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager)));
 
         if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
@@ -62,7 +62,7 @@ public class MainMenu : Menu
         {
             bool hasWorld = m_parent.Manager.WorldLayer != null && m_parent.Manager.EndGameLayer == null;
             return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager,
-                hasWorld, true);
+                hasWorld, true, false);
         };
     }
 

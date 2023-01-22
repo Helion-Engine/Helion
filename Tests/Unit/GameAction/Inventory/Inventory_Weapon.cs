@@ -248,7 +248,7 @@ namespace Helion.Tests.Unit.GameAction
 
                 Player.GiveItem(ammoDef, null);
                 // Add one to prevent switching to next
-                Player.Inventory.SetAmount(ammoDef, weaponData.AmmoUseAmount + 1);
+                Player.Inventory.SetAmount(ammoDef, weaponData.AmmoUseAmount * 2);
 
                 int startAmount = Player.Inventory.Amount(weaponData.Ammo);
                 Player.FireWeapon().Should().BeTrue();

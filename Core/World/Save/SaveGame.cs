@@ -27,6 +27,12 @@ public class SaveGame
 
     public readonly string FileName;
 
+    public SaveGame(string filename, SaveGameModel model)
+    {
+        FileName = filename;
+        Model = model;
+    }
+
     public SaveGame(string filename)
     {
         FileName = filename;
@@ -66,7 +72,7 @@ public class SaveGame
         }
     }
 
-    public static WorldModel WriteSaveGame(IWorld world, string title, string filename)
+    public static SaveGameEvent WriteSaveGame(IWorld world, string title, string filename)
     {
         SaveGameModel saveGameModel = new()
         {
@@ -89,6 +95,6 @@ public class SaveGame
         entry = zipArchive.CreateEntry(WorldDataFile);
         using (Stream stream = entry.Open())
             stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings)));
-        return worldModel;
+        return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel);
     }
 }

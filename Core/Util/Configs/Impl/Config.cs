@@ -115,8 +115,6 @@ public class Config : IConfig
     {
         foreach (ConfigComponent configComponent in Components.Values)
             configComponent.Value.Changed = false;
-
-        KeyMapping.ClearChanged();
     }
 
     [Conditional("DEBUG")]

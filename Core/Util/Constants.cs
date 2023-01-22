@@ -142,6 +142,7 @@ public static class Constants
         public const string Automap = "Automap";
         public const string CenterView = "CenterView";
         public const string Pause = "Pause";
+        public const string QuickSave = "QuickSave";
     }
 
     public static class ConsoleCommands

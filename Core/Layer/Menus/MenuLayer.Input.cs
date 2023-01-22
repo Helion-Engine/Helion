@@ -31,7 +31,7 @@ public partial class MenuLayer
         {
             if (messageMenu.ClearMenus)
                 ClearMenu(false);
-            else
+            else if (m_menus.Count > 0)
                 m_menus.Pop();
         }
 
@@ -79,10 +79,14 @@ public partial class MenuLayer
 
         if (input.ConsumeKeyPressed(Key.Escape))
         {
+            bool clear = false;
             if (m_menus.Count >= 1)
-                m_menus.Pop();
+            {
+                var poppedMenu = m_menus.Pop();
+                clear = poppedMenu.ClearOnClose;
+            }
 
-            if (m_menus.Empty())
+            if (m_menus.Empty() || clear)
                 ClearMenu(true);
             else
                 m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
