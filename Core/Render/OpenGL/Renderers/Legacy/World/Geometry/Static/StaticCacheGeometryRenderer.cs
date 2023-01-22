@@ -358,8 +358,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AllocateGeometryData(int textureHandle, bool repeat, out GeometryData data)
     {
-        VertexArrayObject vao = new($"Geometry (handle {textureHandle})");
-        StaticVertexBuffer<LegacyVertex> vbo = new($"Geometry (handle {textureHandle})");
+        VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
+        StaticVertexBuffer<LegacyVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})");
 
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
