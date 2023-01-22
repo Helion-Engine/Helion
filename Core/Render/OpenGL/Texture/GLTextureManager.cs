@@ -21,6 +21,13 @@ using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.OpenGL.Texture;
 
+public enum TextureFlags
+{
+    Default,
+    ClampX = 1,
+    ClampY = 2,
+}
+
 public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IDisposable
     where GLTextureType : GLTexture
 {
@@ -28,6 +35,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     protected readonly ArchiveCollection ArchiveCollection;
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
+    private readonly ResourceTracker<GLTextureType> m_textureTrackerClamp = new();
 
     private TextureManager TextureManager => ArchiveCollection.TextureManager;
 
@@ -157,21 +165,24 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return true;
     }
 
-    public GLTextureType GetTexture(int index)
+    public GLTextureType GetTexture(int index, bool repeatY = true)
     {
         var texture = TextureManager.GetTexture(index);
+        var renderTexture = repeatY ? texture.RenderStore : texture.RenderStoreClamp;
 
-        if (texture.RenderStore != null)
-            return (GLTextureType)texture.RenderStore;
+        if (renderTexture != null)
+            return (GLTextureType)renderTexture;
 
         if (texture.Image == null)
         {
-            texture.RenderStore = CreateTexture(texture.Image);
-            return (GLTextureType)texture.RenderStore;
+            renderTexture = CreateTexture(texture.Image, repeatY);
+            texture.SetGLTexture(renderTexture, repeatY);
+            return (GLTextureType)renderTexture;
         }
 
-        texture.RenderStore = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace);
-        return (GLTextureType)texture.RenderStore;
+        renderTexture = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY);
+        texture.SetGLTexture(renderTexture, repeatY);
+        return (GLTextureType)renderTexture;
     }
 
     /// <summary>
@@ -245,14 +256,15 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return (int)Math.Floor(Math.Log(smallerAxis, 2));
     }
 
-    protected GLTextureType CreateTexture(Image? image) => CreateTexture(image, null, ResourceNamespace.Global);
+    protected GLTextureType CreateTexture(Image? image, bool repeatY) => CreateTexture(image, null, ResourceNamespace.Global, repeatY);
 
-    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace)
+    protected GLTextureType CreateTexture(Image? image, string? name, ResourceNamespace resourceNamespace, bool repeatY = true)
     {
+        var textureTracker = GetTextureTracker(repeatY);
         GLTextureType? texture;
         if (name != null)
         {
-            texture = m_textureTracker.GetOnly(name, resourceNamespace);
+            texture = textureTracker.GetOnly(name, resourceNamespace);
             if (texture != null)
                 return texture;
         }
@@ -263,16 +275,21 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             return texture;
         }
 
-        texture = GenerateTexture(image, name ?? string.Empty, resourceNamespace);
+        TextureFlags flags = repeatY ? TextureFlags.Default : TextureFlags.ClampY;
+        texture = GenerateTexture(image, name ?? string.Empty, resourceNamespace, flags);
         if (name != null)
-            m_textureTracker.Insert(name, resourceNamespace, texture);
+            textureTracker.Insert(name, resourceNamespace, texture);
 
         return texture;
     }
 
+    private ResourceTracker<GLTextureType> GetTextureTracker(bool repeatY) =>
+        repeatY ? m_textureTracker : m_textureTrackerClamp;
+
     protected void DeleteTexture(GLTextureType texture, string name, ResourceNamespace resourceNamespace)
     {
         m_textureTracker.Remove(name, resourceNamespace);
+        m_textureTrackerClamp.Remove(name, resourceNamespace);
         texture.Dispose();
     }
 
@@ -280,12 +297,13 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     {
         NullTexture.Dispose();
         m_textureTracker.GetValues().ForEach(texture => texture?.Dispose());
+        m_textureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
 
         NullFont.Dispose();
         m_fonts.ForEach(pair => pair.Value.Dispose());
     }
 
-    protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace);
+    protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
 
     protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, string name);
 
