@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
@@ -242,7 +243,7 @@ public class SkySphereTexture : IDisposable
         Image image = new(fadedSkyImage, ImageType.Argb);
         GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
 
-        m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global);
+        m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global, TextureFlags.Default);
 
         return texture;
     }

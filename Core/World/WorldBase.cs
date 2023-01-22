@@ -1971,7 +1971,7 @@ public abstract partial class WorldBase : IWorld
         while (node != null)
         {
             var entity = node.Value;
-            if (!entity.IsDead && (entity.Flags.CountKill || !entity.IsPlayer))
+            if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
                 node.Value.ForceGib();
                 killCount++;

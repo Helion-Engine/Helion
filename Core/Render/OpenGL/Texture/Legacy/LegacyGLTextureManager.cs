@@ -1,3 +1,4 @@
+using System;
 using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -30,14 +31,14 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         ReleaseUnmanagedResources();
     }
 
-    public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace)
+    public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         Precondition(image.Dimension.Width > 0 && image.Dimension.Height > 0, $"Image {name} ({resourceNamespace}) has at least one dimension that is zero");
         Precondition(image.Bitmap.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
 
         GL.BindTexture(texture.Target, texture.TextureId);
 
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, "Texture: " + name);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
         var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
         var lockMode = ImageLockMode.ReadOnly;
@@ -52,9 +53,10 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         image.Bitmap.UnlockBits(bitmapData);
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        SetTextureParameters(TextureTarget.Texture2D, resourceNamespace);
+        SetTextureParameters(TextureTarget.Texture2D, resourceNamespace, flags);
 
         GL.BindTexture(texture.Target, 0);
+        texture.Flags = flags;
     }
 
     /// <summary>
@@ -66,11 +68,11 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     /// </param>
     /// <returns>A new texture.</returns>
     protected override GLLegacyTexture GenerateTexture(Image image, string name,
-        ResourceNamespace resourceNamespace)
+        ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         int textureId = GL.GenTexture();
         GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
-        UploadAndSetParameters(texture, image, name, resourceNamespace);
+        UploadAndSetParameters(texture, image, name, resourceNamespace, flags);
 
         return texture;
     }
@@ -83,18 +85,21 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     /// <returns>A newly allocated font texture.</returns>
     protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, string name)
     {
-        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts);
+        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts, TextureFlags.Default);
         GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);
         return fontTexture;
     }
 
-    private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace)
+    private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         if (resourceNamespace != ResourceNamespace.Sprites && resourceNamespace != ResourceNamespace.Graphics)
         {
+            TextureWrapMode textureWrapS = flags.HasFlag(TextureFlags.ClampX) ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
+            TextureWrapMode textureWrapT = flags.HasFlag(TextureFlags.ClampY) ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
+            GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)textureWrapS);
+            GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)textureWrapT);
+
             SetTextureFilter(targetType);
-            GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
             SetAnisotropicFiltering(targetType);
             return;
         }

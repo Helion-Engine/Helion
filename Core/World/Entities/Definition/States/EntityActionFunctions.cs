@@ -1654,6 +1654,7 @@ public static class EntityActionFunctions
         startPos += Vec3D.UnitSphere(angle, 0.0) * (entity.Radius + skull.Radius - 2);
         skull.SetPosition(startPos);
         skull.Flags.CountKill = false;
+        skull.Flags.IsMonster = true;
 
         // Ignore parent for clip checking
         bool wasSolid = entity.Flags.Solid;

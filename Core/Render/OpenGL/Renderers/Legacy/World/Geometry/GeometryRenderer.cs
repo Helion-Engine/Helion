@@ -895,9 +895,8 @@ public class GeometryRenderer : IDisposable
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out LegacyVertex[]? verticies)
     {
-        // TODO: If we can't see it (dot product and looking generally horizontally), don't draw it.
         Wall middleWall = facingSide.Middle;
-        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: false);
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
