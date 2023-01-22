@@ -25,7 +25,7 @@ public class SaveMenu : Menu
     private const int MaxRows = 9;
     private const string SaveHeaderImage = "M_SGTTL";
     private const string LoadHeaderImage = "M_LGTTL";
-    private const string SaveMessage = "Game saved.";
+    public const string SaveMessage = "Game saved.";
 
     public bool IsTypingName { get; private set; }
 
@@ -33,11 +33,13 @@ public class SaveMenu : Menu
     private readonly SaveGameManager m_saveGameManager;
     private readonly bool m_isSave;
     private readonly bool m_canSave;
+    private readonly bool m_clearOnExit;
+
     private SaveGame? m_deleteSave;
 
     public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave)
-        : base(config, console, soundManager, archiveCollection, 8, true)
+        ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave, bool clearOnClose)
+        : base(config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
     {
         m_parent = parent;
         m_saveGameManager = saveManager;

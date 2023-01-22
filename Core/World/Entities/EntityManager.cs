@@ -53,6 +53,7 @@ public class EntityManager : IDisposable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly LinkableList<Entity> Entities = new();
+    public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
 
@@ -142,6 +143,9 @@ public class EntityManager : IDisposable
         // of code that removes empty sets here as well.
         if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
             entities.Remove(entity);
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.Remove(entity);
 
         entity.Dispose();
     }
@@ -424,6 +428,9 @@ public class EntityManager : IDisposable
             else
                 TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
         }
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.AddLast(entity);
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)

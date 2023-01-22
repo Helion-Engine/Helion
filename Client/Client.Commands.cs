@@ -376,6 +376,7 @@ public partial class Client
             return;
         }
 
+        m_layerManager.LastSave = new(saveGame, worldModel);
         LoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 

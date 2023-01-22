@@ -27,6 +27,7 @@ public abstract class Menu : IEnumerable<IMenuComponent>
     /// aligned to the leftmost largest one.
     /// </summary>
     public readonly bool LeftAlign;
+    public readonly bool ClearOnClose;
 
     protected readonly ArchiveCollection ArchiveCollection;
     protected readonly IConfig Config;
@@ -38,7 +39,7 @@ public abstract class Menu : IEnumerable<IMenuComponent>
     public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
     protected Menu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
-        int topPixelPadding = 0, bool leftAlign = false)
+        int topPixelPadding = 0, bool leftAlign = false, bool clearOnClose = false)
     {
         Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
 
@@ -48,6 +49,7 @@ public abstract class Menu : IEnumerable<IMenuComponent>
         ArchiveCollection = archiveCollection;
         TopPixelPadding = topPixelPadding;
         LeftAlign = leftAlign;
+        ClearOnClose = clearOnClose;
     }
 
     public void RemoveComponent(IMenuComponent component)

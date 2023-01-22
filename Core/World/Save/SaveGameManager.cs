@@ -10,11 +10,23 @@ using Helion.Models;
 
 namespace Helion.World.Save;
 
+public readonly struct SaveGameEvent
+{
+    public readonly SaveGame SaveGame;
+    public readonly WorldModel WorldModel;
+
+    public SaveGameEvent(SaveGame saveGame, WorldModel worldModel)
+    {
+        SaveGame = saveGame;
+        WorldModel = worldModel;
+    }
+}
+
 public class SaveGameManager
 {
     private readonly IConfig m_config;
 
-    public event EventHandler<WorldModel>? GameSaved;
+    public event EventHandler<SaveGameEvent>? GameSaved;
 
     public SaveGameManager(IConfig config)
     {
