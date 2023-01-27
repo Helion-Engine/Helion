@@ -20,7 +20,19 @@ public class MapInfo
 
     public void ClearEpisodes() => m_episodes.Clear();
 
-    public void AddEpisode(EpisodeDef episode) => m_episodes.Add(episode);
+    public void AddEpisode(EpisodeDef episode)
+    {
+        for (int i = 0; i < m_episodes.Count; i++)
+        {
+            if (!m_episodes[i].StartMap.Equals(episode.StartMap, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            m_episodes[i] = episode;
+            return;
+        }
+
+        m_episodes.Add(episode);
+    }
 
     public void AddMap(MapInfoDef newMap)
         => AddOrReplace(m_maps, newMap);
