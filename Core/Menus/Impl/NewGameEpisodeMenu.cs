@@ -28,7 +28,7 @@ public class NewGameEpisodeMenu : Menu
             return;
         }
 
-        Components = Components.Add(new MenuImageComponent("M_EPISOD", 54, 8, imageAlign: Align.TopLeft, paddingBottomY: 8));
+        Components = Components.Add(new MenuImageComponent("M_EPISOD", 54, 8, imageAlign: Align.TopLeft, overrideY: 24));
 
         foreach (EpisodeDef episode in episodes)
         {

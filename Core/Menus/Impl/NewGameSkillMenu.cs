@@ -32,7 +32,7 @@ public class NewGameSkillMenu : Menu
         Components = Components.AddRange(new[]
         {
             CreateMenuOption("M_NEWG", 96, 8),
-            CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8),
+            CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8, overrideY: 16),
         });
 
         var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
@@ -48,11 +48,11 @@ public class NewGameSkillMenu : Menu
             if (skill.MustConfirm)
             {
                 m_confirmSkillLevel = skillLevel;
-                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm());
+                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm(), overrideY: 16);
             }
             else
             {
-                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel));
+                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel), overrideY: 16);
             }
 
             Components = Components.Add(component);
@@ -63,10 +63,10 @@ public class NewGameSkillMenu : Menu
         SetToFirstActiveComponent();
         ComponentIndex += indexOffset;
 
-        IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0)
+        IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0, int? overrideY = null, bool addToOffsetY = true)
         {
             return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action,
-                imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY);
+                imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY, overrideY: overrideY, addToOffsetY: addToOffsetY);
         }
 
         Func<Menu?> Confirm()
