@@ -1,4 +1,5 @@
 using Helion.Maps.Shared;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
@@ -38,4 +39,6 @@ public class ConfigGame
 
     [ConfigInfo("Confirm overwriting when quick saving.")]
     public readonly ConfigValue<bool> QuickSaveConfirm = new(true);
+
+    public SkillDef? SelectedSkillDefinition { get; set; }
 }

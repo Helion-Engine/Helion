@@ -39,6 +39,7 @@ public class SkillDef
     public bool NoMenu { get; set; }
     public bool PlayerRespawn { get; set; }
     public bool MustConfirm { get; set; }
+    public string? MustConfirmMessage { get; set; }
     public bool Default { get; set; }
 
     public int GetAmmoAmount(int amount, EntityFlags? flags)

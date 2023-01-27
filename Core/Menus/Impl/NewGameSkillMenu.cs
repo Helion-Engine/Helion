@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
 using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
@@ -13,10 +16,11 @@ namespace Helion.Menus.Impl;
 
 public class NewGameSkillMenu : Menu
 {
-    private SkillLevel m_confirmSkillLevel = SkillLevel.None;
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly string? m_episode;
+    private readonly List<SkillDef> m_confirmSkills = new();
+    private SkillDef? m_confirmSkillLevel;
 
     private const int OffsetX = 48;
     private const int PaddingY = 1;
@@ -38,21 +42,21 @@ public class NewGameSkillMenu : Menu
         var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
         int indexOffset = 0;
 
-        archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skill, index) =>
+        archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skillDef, index) =>
         {
             SkillLevel skillLevel = (SkillLevel)(index + 1);
-            if (skill == defaultSkillDef)
+            if (skillDef == defaultSkillDef)
                 indexOffset = index;
 
             IMenuComponent component;
-            if (skill.MustConfirm)
+            if (skillDef.MustConfirm)
             {
-                m_confirmSkillLevel = skillLevel;
-                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, Confirm(), overrideY: 16);
+                m_confirmSkills.Add(skillDef);
+                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, Confirm(skillDef), overrideY: 16);
             }
             else
             {
-                component = CreateMenuOption(skill.PicName, OffsetX, PaddingY, CreateWorld(skillLevel), overrideY: 16);
+                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, CreateWorld(skillDef), overrideY: 16);
             }
 
             Components = Components.Add(component);
@@ -69,22 +73,26 @@ public class NewGameSkillMenu : Menu
                 imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY, overrideY: overrideY, addToOffsetY: addToOffsetY);
         }
 
-        Func<Menu?> Confirm()
+        Func<Menu?> Confirm(SkillDef skillDef)
         {
             return () =>
             {
-                string[] confirm = ArchiveCollection.Definitions.Language.GetMessages("$NIGHTMARE");
+                m_confirmSkillLevel = skillDef;
+                string mustConfirmMessage = skillDef.MustConfirmMessage ?? "$NIGHTMARE";
+                string[] confirm = ArchiveCollection.Definitions.Language.GetMessages(mustConfirmMessage)
+                    .Union(ArchiveCollection.Definitions.Language.GetMessages("$CONFIRM_YN")).ToArray();
+
                 var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
                 messageMenu.Cleared += MessageMenu_Cleared;
                 return messageMenu;
             };
         }
 
-        Func<Menu?> CreateWorld(SkillLevel skillLevel)
+        Func<Menu?> CreateWorld(SkillDef skillDef)
         {
             return () =>
             {
-                DoNewGame(skillLevel);
+                DoNewGame(skillDef);
                 return null;
             };
         }
@@ -92,13 +100,13 @@ public class NewGameSkillMenu : Menu
 
     private void MessageMenu_Cleared(object? sender, bool confirmed)
     {
-        if (confirmed)
+        if (confirmed && m_confirmSkillLevel != null)
             DoNewGame(m_confirmSkillLevel);
     }
 
-    private void DoNewGame(SkillLevel skillLevel)
+    private void DoNewGame(SkillDef skillDef)
     {
-        m_config.Game.Skill.Set(skillLevel);
+        m_config.Game.SelectedSkillDefinition = skillDef;
         m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         m_console.SubmitInputText($"map {m_episode ?? "MAP01"}");
     }

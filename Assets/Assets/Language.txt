@@ -53,6 +53,9 @@ NIGHTMARE = "Are you sure? This skill level
 isn't even remotely fair.
 
 Press Y or N.";
+CONFIRM_YN = "
+
+Press Y or N.";
 SECRETMESSAGE = "A secret is revealed!";
 SAVEDEAD = "You can't save if you aren't playing!
 

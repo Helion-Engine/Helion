@@ -604,7 +604,10 @@ public partial class MapInfoDefinition
                 else if (item.Equals(Skill_PlayerRespawnName, StringComparison.OrdinalIgnoreCase))
                     skillDef.PlayerRespawn = true;
                 else if (item.Equals(Skill_MustConfirmName, StringComparison.OrdinalIgnoreCase))
+                {
                     skillDef.MustConfirm = true;
+                    skillDef.MustConfirmMessage = ConsumeMustConfirmMessage(parser, line);
+                }
             }
             else
             {
@@ -617,6 +620,21 @@ public partial class MapInfoDefinition
         ConsumeBrace(parser, false);
 
         return skillDef;
+    }
+
+    private string? ConsumeMustConfirmMessage(SimpleParser parser, int line)
+    {
+        if (parser.GetCurrentLine() != line)
+            return null;
+
+        ConsumeEquals(parser);
+        if (parser.Peek('"'))
+            parser.Consume('"');
+
+        string text = parser.ConsumeLine();
+        if (text.EndsWith('"'))
+            return text.Substring(0, text.Length - 1);
+        return text;
     }
 
     private static int ParseSpawnFilter(SimpleParser parser)

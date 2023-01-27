@@ -633,11 +633,7 @@ public partial class Client
         }
 
         m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        var skill = m_config.Game.Skill.Value;
-        if (worldModel != null)
-            skill = worldModel.Skill;
-
-        SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        SkillDef? skillDef = GetSkillDefinition(worldModel);
         if (skillDef == null)
         {
             LogError($"Could not find skill definition for {m_config.Game.Skill}");
@@ -692,8 +688,20 @@ public partial class Client
 
         newLayer.World.Start(worldModel);
         CheckLoadMapDemo(newLayer, worldModel);
-        
+
         ForceGarbageCollection();
+    }
+
+    private SkillDef? GetSkillDefinition(WorldModel? worldModel)
+    {
+        if (m_config.Game.SelectedSkillDefinition != null)
+            return m_config.Game.SelectedSkillDefinition;
+
+        var skill = m_config.Game.Skill.Value;
+        if (worldModel != null)
+            skill = worldModel.Skill;
+
+        return m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
     }
 
     private static void ForceGarbageCollection()
