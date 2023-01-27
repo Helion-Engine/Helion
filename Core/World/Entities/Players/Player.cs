@@ -1071,6 +1071,11 @@ public class Player : Entity
     /// </summary>
     public bool CheckAmmo(Weapon weapon, int ammoCount = -1)
     {
+        // Inifinite if no ammo type (fist, chainsaw)
+        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
+        if (ammoType.Length == 0)
+            return true;
+
         if (ammoCount == -1)
             ammoCount = Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
 
