@@ -806,9 +806,9 @@ public abstract partial class WorldBase : IWorld
     {
         if (line.Special.LineSpecialCompatibility != null &&
             line.Special.LineSpecialCompatibility.CompatibilityType == LineSpecialCompatibilityType.KeyObject)
-            return $"{lockDef.Message} to activate this object.";
+            return ArchiveCollection.Language.GetMessage(lockDef.ObjectMessage);
         else
-            return $"{lockDef.Message} to open this door.";
+            return ArchiveCollection.Language.GetMessage(lockDef.DoorMessage);
     }
 
     /// <summary>

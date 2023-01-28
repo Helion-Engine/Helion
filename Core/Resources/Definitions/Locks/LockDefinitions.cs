@@ -8,13 +8,12 @@ public class LockDefinitions
 {
     public readonly List<LockDef> LockDefs = new List<LockDef>();
 
-    private static string NeedKeyMessage(string name) => $"You need {name}";
-
     public LockDefinitions()
     {
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a red card"),
+            DoorMessage = "$PD_REDC",
+            ObjectMessage = "$PD_REDO",
             KeyNumber = 1,
             MapColor = Color.Red,
             KeyDefinitionNames = new List<string>() { "RedCard" }
@@ -22,7 +21,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a blue card"),
+            DoorMessage = "$PD_BLUEC",
+            ObjectMessage = "$PD_BLUEO",
             KeyNumber = 2,
             MapColor = Color.Blue,
             KeyDefinitionNames = new List<string>() { "BlueCard" }
@@ -30,7 +30,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a yellow card"),
+            DoorMessage = "$PD_YELLOWC",
+            ObjectMessage = "$PD_YELLOWO",
             KeyNumber = 3,
             MapColor = Color.Yellow,
             KeyDefinitionNames = new List<string>() { "YellowCard" }
@@ -38,7 +39,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a red skull"),
+            DoorMessage = "$PD_REDS",
+            ObjectMessage = "$PD_REDO",
             KeyNumber = 4,
             MapColor = Color.Red,
             KeyDefinitionNames = new List<string>() { "RedSkull" }
@@ -46,7 +48,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a blue skull"),
+            DoorMessage = "$PD_BLUES",
+            ObjectMessage = "$PD_BLUEO",
             KeyNumber = 5,
             MapColor = Color.Blue,
             KeyDefinitionNames = new List<string>() { "BlueSkull" }
@@ -54,7 +57,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("a yellow skull"),
+            DoorMessage = "$PD_YELLOWS",
+            ObjectMessage = "$PD_REDO",
             KeyNumber = 6,
             MapColor = Color.Yellow,
             KeyDefinitionNames = new List<string>() { "YellowSkull" }
@@ -62,7 +66,8 @@ public class LockDefinitions
 
         LockDefs.Add(new LockDef()
         {
-            Message = NeedKeyMessage("all six keys"),
+            DoorMessage = "$PD_ALL6",
+            ObjectMessage = "$PD_ALL6",
             KeyNumber = 101,
             MapColor = Color.Purple,
             KeyDefinitionNames = new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" }
@@ -70,7 +75,8 @@ public class LockDefinitions
 
         var anyRed = new LockDef()
         {
-            Message = NeedKeyMessage("a red key"),
+            DoorMessage = "$PD_REDK",
+            ObjectMessage = "$PD_REDO",
             KeyNumber = 129,
             MapColor = Color.Red
         };
@@ -79,7 +85,8 @@ public class LockDefinitions
 
         var anyBlue = new LockDef()
         {
-            Message = NeedKeyMessage("a blue key"),
+            DoorMessage = "$PD_BLUEK",
+            ObjectMessage = "$PD_BLUEO",
             KeyNumber = 130,
             MapColor = Color.Blue
         };
@@ -88,7 +95,8 @@ public class LockDefinitions
 
         var anyYellow = new LockDef()
         {
-            Message = NeedKeyMessage("a yellow key"),
+            DoorMessage = "$PD_YELLOWK",
+            ObjectMessage = "$PD_YELLOWO",
             KeyNumber = 131,
             MapColor = Color.Yellow,
         };
@@ -97,7 +105,8 @@ public class LockDefinitions
 
         var any = new LockDef()
         {
-            Message = NeedKeyMessage("any key"),
+            DoorMessage = "$PD_ANY",
+            ObjectMessage = "$PD_ANY",
             KeyNumber = 100,
             MapColor = Color.LightBlue,
         };
@@ -106,7 +115,8 @@ public class LockDefinitions
 
         var allThreeColors = new LockDef()
         {
-            Message = NeedKeyMessage("all three key colors"),
+            DoorMessage = "$PD_ALL3",
+            ObjectMessage = "$PD_ALL3",
             KeyNumber = 229,
             MapColor = Color.Purple,
         };
