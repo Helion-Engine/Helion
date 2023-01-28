@@ -234,7 +234,8 @@ public class EntityManager : IDisposable
     {
         List<Player> players = new();
         Dictionary<int, EntityModelPair> entities = new();
-        for (int i = 0; i < worldModel.Entities.Count; i++)
+        // Entities are serialized backwards because of the linked list implementation
+        for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {
             var entityModel = worldModel.Entities[i];
             var definition = DefinitionComposer.GetByName(entityModel.Name);
