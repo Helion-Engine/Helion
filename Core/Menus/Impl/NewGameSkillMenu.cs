@@ -23,7 +23,7 @@ public class NewGameSkillMenu : Menu
     private SkillDef? m_confirmSkillLevel;
 
     private const int OffsetX = 48;
-    private const int PaddingY = 1;
+    private const int PaddingY = 0;
 
     public NewGameSkillMenu(IConfig config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, string? episode) :
@@ -35,8 +35,8 @@ public class NewGameSkillMenu : Menu
 
         Components = Components.AddRange(new[]
         {
-            CreateMenuOption("M_NEWG", 96, 8),
-            CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8, overrideY: 16),
+            CreateMenuOption("M_NEWG", 96, 8, overrideY: 16),
+            CreateMenuOption("M_SKILL", 54, 8, paddingBottomY: 8, overrideY: 24),
         });
 
         var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
@@ -60,7 +60,6 @@ public class NewGameSkillMenu : Menu
             }
 
             Components = Components.Add(component);
-
         });
 
         // Menu title etc are menu components so offset by the index of the default difficulty
