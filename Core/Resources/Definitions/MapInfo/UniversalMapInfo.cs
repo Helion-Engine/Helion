@@ -86,10 +86,10 @@ public partial class MapInfoDefinition
 
     private void ParseBossAction(SimpleParser parser, MapInfoDef mapDef)
     {
+        mapDef.MapSpecialAction = MapSpecialAction.None;
         if (parser.ConsumeIf("clear"))
         {
             mapDef.BossActions.Clear();
-            mapDef.MapSpecialAction = MapSpecialAction.None;
             return;
         }
 
