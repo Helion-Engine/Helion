@@ -16,6 +16,7 @@ using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
@@ -318,9 +319,10 @@ public class GameLayerManager : IGameLayerParent
 
     private void WriteQuickSave()
     {
+        var world = WorldLayer.World;
         var save = LastSave.Value;
-        m_saveGameManager.WriteSaveGame(WorldLayer.World, save.SaveGame.Model.Text, save.SaveGame);
-        WorldLayer.World.DisplayMessage(WorldLayer.World.Player, null, SaveMenu.SaveMessage);
+        m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);
+        world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
     }
 
     public void RunLogic()
