@@ -579,12 +579,15 @@ public class DehackedApplier
         if (m_dehacked.NewThingLookup.TryGetValue(index, out EntityDefinition? def))
             return def.Name;
 
-        string newName = $"*deh/entity{index}";
+        string newName = GetDehackedActorName(index);
         EntityDefinition definition = new(0, newName, 0, new List<string>());
         composer.Add(definition);
         m_dehacked.NewThingLookup[index] = definition;
         return newName;
     }
+
+    public static string GetDehackedActorName(int index) =>
+        $"*deh/entity{index}";
 
     private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
     {

@@ -115,7 +115,7 @@ public abstract partial class WorldBase : IWorld
     public CheatManager CheatManager { get; } = new();
     public DataCache DataCache => ArchiveCollection.DataCache;
     public abstract Player Player { get; protected set; }
-    public List<MonsterCountSpecial> BossDeathSpecials => m_bossDeathSpecials;
+    public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
     public int CheckCounter { get; set; }
 
@@ -137,7 +137,7 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
-    private readonly List<MonsterCountSpecial> m_bossDeathSpecials = new();
+    private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
@@ -553,15 +553,12 @@ public abstract partial class WorldBase : IWorld
 
     public void BossDeath(Entity entity)
     {
-        if (!entity.Definition.EditorId.HasValue)
-            return;
-
         if (EntityManager.Players.All(x => x.IsDead))
             return;
 
         foreach (var special in m_bossDeathSpecials)
         {
-            if (special.EntityEditorId == entity.Definition.EditorId)
+            if (special.EntityDefinitionId == entity.Definition.Id)
                 special.Tick();
         }
     }
@@ -584,6 +581,34 @@ public abstract partial class WorldBase : IWorld
                 AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss2, 667, MapSpecialAction.FloorRaiseByLowestTexture);
                 break;
         }
+
+        foreach (var bossAction in MapInfo.BossActions)
+        {
+            string translatedName = GetTranslatedDehackedName(bossAction.ActorName);
+            var entityDef = EntityManager.DefinitionComposer.GetByName(translatedName);
+            if (entityDef == null)
+            {                
+                Log.Warn($"Invalid actor name for boss action: {bossAction.ActorName}");
+                continue;
+            }
+
+            m_bossDeathSpecials.Add(new BossActionMonsterCount(this, bossAction, entityDef.Id));
+        }
+    }
+
+    private string GetTranslatedDehackedName(string actorName)
+    {
+        const string DehActor = "Deh_Actor_";
+        if (actorName.StartsWith(DehActor, StringComparison.OrdinalIgnoreCase))
+        {
+            string stringIndex = actorName[DehActor.Length..];
+            if (!int.TryParse(stringIndex, out int index))
+                return actorName;
+
+            return DehackedApplier.GetDehackedActorName(index - 1);
+        }
+
+        return actorName;
     }
 
     private IEnumerable<EntityDefinition> GetEntityDefinitionsByFlag(Func<EntityFlags, bool> isMatch)
@@ -593,23 +618,23 @@ public abstract partial class WorldBase : IWorld
                 yield return def;
     }
 
-    private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag, 
+    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag, 
         MapSpecialAction mapSpecialAction)
     {
         foreach (var def in GetEntityDefinitionsByFlag(isMatch))
             AddMonsterCountSpecial(monsterCountSpecials, def.Name, sectorTag, mapSpecialAction);
     }
 
-    private void AddMonsterCountSpecial(List<MonsterCountSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
+    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
     {
         EntityDefinition? definition = EntityManager.DefinitionComposer.GetByName(monsterName);
-        if (definition == null || !definition.EditorId.HasValue)
+        if (definition == null)
         {
             Log.Error($"Failed to find {monsterName} for {mapSpecialAction}");
             return;
         }
 
-        monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.EditorId.Value, sectorTag, mapSpecialAction));
+        monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.Id, sectorTag, mapSpecialAction));
     }
 
     private void InitBossBrainTargets()
@@ -1996,14 +2021,14 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public int EntityAliveCount(int editorId)
+    public int EntityAliveCount(int entityDefinitionId)
     {
         int count = 0;
         LinkableNode<Entity>? node = Entities.Head;
         while (node != null)
         {
             Entity entity = node.Value;
-            if (entity.Definition.EditorId.HasValue && entity.Definition.EditorId.Value == editorId && !entity.IsDead)
+            if (entity.Definition.Id == entityDefinitionId && !entity.IsDead)
                 count++;
             node = node.Next;
         }

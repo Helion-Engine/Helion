@@ -1,6 +1,8 @@
 using Helion.Maps.Shared;
+using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo;
@@ -20,18 +22,14 @@ public class MapInfo
 
     public void ClearEpisodes() => m_episodes.Clear();
 
-    public void AddEpisode(EpisodeDef episode)
+    public void AddEpisode(EpisodeDef episode) =>
+        AddOrReplace(m_episodes, episode);
+
+    public void RemoveEpisodeByMapName(string mapName)
     {
-        for (int i = 0; i < m_episodes.Count; i++)
-        {
-            if (!m_episodes[i].StartMap.Equals(episode.StartMap, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            m_episodes[i] = episode;
-            return;
-        }
-
-        m_episodes.Add(episode);
+        var episode = m_episodes.FirstOrDefault(x => x.StartMap.EqualsIgnoreCase(mapName));
+        if (episode != null)
+            m_episodes.Remove(episode);
     }
 
     public void AddMap(MapInfoDef newMap)
@@ -39,6 +37,12 @@ public class MapInfo
 
     public void AddCluster(ClusterDef newCluster)
         => AddOrReplace(m_clusters, newCluster);
+
+    public void RemoveCluster(int clusterNum)
+    {
+        if (TryGetCluster(clusterNum, out ClusterDef? clusterDef))
+            m_clusters.Remove(clusterDef);
+    }
 
     public void AddSkill(SkillDef skill) => m_skills.Add(skill);
 
@@ -60,12 +64,40 @@ public class MapInfo
     {
         for (int i = 0; i < m_skills.Count; i++)
         {
-            if (m_skills[i].Name.Equals(skillDef.Name, StringComparison.OrdinalIgnoreCase))
+            if (m_skills[i].Name.EqualsIgnoreCase(skillDef.Name))
                 return (SkillLevel)(i + (int)SkillLevel.VeryEasy);
         }
 
         return SkillLevel.None;
     }
+
+    public int GetNewClusterNumber()
+    {
+        return m_clusters.Max(x => x.ClusterNum) + 1;
+    }
+
+    public bool TryGetCluster(int clusterNum, [NotNullWhen(true)] out ClusterDef? clusterDef)
+    {
+        clusterDef = m_clusters.FirstOrDefault(x => x.ClusterNum == clusterNum);
+        return clusterDef != null;
+    }
+
+    public MapInfoDef GetMapInfoOrDefault(string mapName)
+    {
+        MapInfoDef? mapInfoDef = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(mapName));
+        if (mapInfoDef != null)
+            return mapInfoDef;
+
+        mapInfoDef =  (MapInfoDef)DefaultMap.Clone();
+        mapInfoDef.MapName = mapName.ToUpperInvariant();
+        return mapInfoDef;
+    }
+
+    public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
+    public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
+    public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
+    public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
+    public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
 
     private static void AddOrReplace<T>(List<T> items, T newItem)
     {
@@ -84,27 +116,4 @@ public class MapInfo
 
         items.Add(newItem);
     }
-
-    public List<MapInfoDef> GetMaps(EpisodeDef episode)
-    {
-        int index = m_episodes.FindIndex(x => x == episode);
-        return m_maps.Where(x => x.Cluster == index).ToList();
-    }
-
-    public MapInfoDef GetMapInfoOrDefault(string mapName)
-    {
-        MapInfoDef? mapInfoDef = m_maps.FirstOrDefault(x => x.MapName.Equals(mapName, StringComparison.InvariantCultureIgnoreCase));
-        if (mapInfoDef != null)
-            return mapInfoDef;
-
-        mapInfoDef =  (MapInfoDef)DefaultMap.Clone();
-        mapInfoDef.MapName = mapName.ToUpperInvariant();
-        return mapInfoDef;
-    }
-
-    public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
-    public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
-    public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
-    public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-    public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
 }

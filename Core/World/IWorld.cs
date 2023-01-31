@@ -131,7 +131,7 @@ public interface IWorld : IDisposable
     void ActivateCheat(Player player, ICheat cheat);
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
-    int EntityAliveCount(int editorId);
+    int EntityAliveCount(int entityDefinitionId);
     void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);

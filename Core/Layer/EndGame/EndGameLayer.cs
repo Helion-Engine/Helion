@@ -22,7 +22,7 @@ public partial class EndGameLayer : IGameLayer
     public static readonly IEnumerable<string> EndGameMaps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
-        "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny"
+        "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny", "EndGame"
     };
     private static readonly IList<string> TheEndImages = new[]
     {
@@ -78,14 +78,16 @@ public partial class EndGameLayer : IGameLayer
     private int m_castFrameCount;
 
     public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, SoundManager soundManager, IWorld world,
-        ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
+        ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo, bool isNextMapSecret)
     {
         World = world;
         NextMapInfo = nextMapInfo;
         var language = archiveCollection.Definitions.Language;
 
         IList<string> clusterText = currentCluster.ExitText.Count > 0 ? currentCluster.ExitText : Array.Empty<string>();
-        if (nextCluster != null && nextCluster.EnterText.Count > 0)
+        if (isNextMapSecret)
+            clusterText = currentCluster.SecretExitText.Count > 0 ? currentCluster.SecretExitText : Array.Empty<string>();
+        if (clusterText.Count == 0 && nextCluster != null && nextCluster.EnterText.Count > 0)
             clusterText = nextCluster.EnterText;
 
         m_archiveCollection = archiveCollection;
@@ -115,7 +117,7 @@ public partial class EndGameLayer : IGameLayer
         if (entry != null)
             return LanguageDefinition.SplitMessageByNewLines(entry.ReadDataAsString());
 
-        return LanguageDefinition.SplitMessageByNewLines(lookupText);
+        return clusterText;
     }
 
     private TimeSpan GetPageTime() =>

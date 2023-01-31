@@ -8,28 +8,28 @@ using System.Linq;
 
 namespace Helion.World.Special;
 
-public class MonsterCountSpecial : ISpecial
+public class MonsterCountSpecial : IMonsterCounterSpecial
 {
+    public int EntityDefinitionId { get; set; }
     public readonly int SectorTag;
-    public readonly int EntityEditorId;
     public readonly MapSpecialAction MapSpecialAction;
 
     private readonly IWorld m_world;
     private readonly SpecialManager m_specailManager;
 
-    public MonsterCountSpecial(IWorld world, SpecialManager specialManager, int entityEditorId, int sectorTag,
+    public MonsterCountSpecial(IWorld world, SpecialManager specialManager, int entityDefinitionId, int sectorTag,
         MapSpecialAction mapSpecialAction)
     {
         MapSpecialAction = mapSpecialAction;
         SectorTag = sectorTag;
         m_world = world;
         m_specailManager = specialManager;
-        EntityEditorId = entityEditorId;
+        EntityDefinitionId = entityDefinitionId;
     }
 
     public SpecialTickStatus Tick()
     {
-        if (m_world.EntityAliveCount(EntityEditorId) == 0)
+        if (m_world.EntityAliveCount(EntityDefinitionId) == 0)
         {
             ExecuteSpecial();
             return SpecialTickStatus.Destroy;
