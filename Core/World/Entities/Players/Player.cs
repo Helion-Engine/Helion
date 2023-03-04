@@ -355,7 +355,7 @@ public class Player : Entity
             return;
 
         if (IsWeapon(definition))
-            GiveWeapon(definition, false, false);
+            GiveWeapon(definition, null, giveDefaultAmmo: false, autoSwitch: false);
         else
             GiveItemBase(definition, null, false, amount);
     }
@@ -782,7 +782,7 @@ public class Player : Entity
         if (IsDead)
             return false;
 
-        bool success = GiveWeapon(definition);
+        bool success = GiveWeapon(definition, flags);
         if (!success)
             success = GiveItemBase(definition, flags);
 
@@ -991,13 +991,13 @@ public class Player : Entity
 
     private IEnumerable<Weapon> GetSelectionOrderedWeapons() => Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
 
-    public bool GiveWeapon(EntityDefinition definition, bool giveDefaultAmmo = true, bool autoSwitch = true)
+    public bool GiveWeapon(EntityDefinition definition, EntityFlags? flags = null, bool giveDefaultAmmo = true, bool autoSwitch = true)
     {
         if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
         {
             Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
             if (giveDefaultAmmo)
-                GiveItemBase(definition, null, autoSwitch);
+                GiveItemBase(definition, flags, autoSwitch);
 
             if (addedWeapon != null)
             {
