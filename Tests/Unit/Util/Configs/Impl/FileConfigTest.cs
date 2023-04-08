@@ -26,9 +26,8 @@ public class FileConfigTest
     {
         FileConfig fileConfig = new("this path does not exist", false);
 
-        // We assume for now there will always be MouseLeft set (like clicking fire),
-        // so it not being set means the defaults were not set.
-        fileConfig.Keys[Key.MouseLeft].Should().BeEmpty();
+        // Defaults are always set
+        fileConfig.Keys[Key.MouseLeft].Should().NotBeEmpty();
     }
 
     [Fact(DisplayName = "Can read config file with default values set")]

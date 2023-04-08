@@ -55,6 +55,7 @@ public class DefinitionEntries
     private PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
+    private bool m_parseUniversalMapInfo;
 
     /// <summary>
     /// Creates a definition entries data structure which has no tracked
@@ -81,6 +82,7 @@ public class DefinitionEntries
         m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLangaugeCompatibility, entry);
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
+        m_entryNameToAction["UMAPINFO"] = entry => ParseEntry(ParseUniversalMapInfo, entry);
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
     }
@@ -132,6 +134,13 @@ public class DefinitionEntries
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+    private void ParseUniversalMapInfo(string text)
+    {
+        if (!m_parseUniversalMapInfo)
+            return;
+
+        MapInfoDefinition.ParseUniversalMapInfo(MapInfoDefinition.MapInfo, text);
+    }
 
     private void ParseTextures(string text)
     {
@@ -183,12 +192,16 @@ public class DefinitionEntries
     {
         m_parseDecorate = true;
         m_parseDehacked = true;
+        m_parseUniversalMapInfo = true;
 
         bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
         if (ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDecorate = false;
         else if (!ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDehacked = false;
+
+        if (archive.AnyEntryByName("ZMAPINFO") || archive.AnyEntryByName("MAPINFO"))
+            m_parseUniversalMapInfo = false;
 
         m_pnamesTextureXCollection = new PnamesTextureXCollection();
 

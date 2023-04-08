@@ -9,6 +9,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Util;
+using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Consoles;
@@ -237,7 +238,7 @@ public partial class WorldLayer
         Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
         string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 
-        if (!hud.Textures.TryGet(sprite, out var handle))
+        if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
             return;
 
         hud.DoomVirtualResolution(() =>

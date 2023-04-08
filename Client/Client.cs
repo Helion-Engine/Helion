@@ -376,8 +376,8 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private void SaveGameManager_GameSaved(object? sender, WorldModel worldModel)
+    private void SaveGameManager_GameSaved(object? sender, SaveGameEvent e)
     {
-        m_lastWorldModel = worldModel;
+        m_lastWorldModel = e.WorldModel;
     }
 }

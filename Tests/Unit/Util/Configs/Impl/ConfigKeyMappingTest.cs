@@ -35,8 +35,8 @@ public class ConfigKeyMappingTest
         (Key.MouseLeft, Constants.Input.Attack),
         (Key.ControlLeft, Constants.Input.Attack),
         (Key.ControlRight, Constants.Input.Attack),
-        (Key.Up, Constants.Input.NextWeapon),
-        (Key.Down, Constants.Input.PreviousWeapon),
+        (Key.MouseWheelUp, Constants.Input.NextWeapon),
+        (Key.MouseWheelDown, Constants.Input.PreviousWeapon),
         (Key.One, Constants.Input.WeaponSlot1),
         (Key.Two, Constants.Input.WeaponSlot2),
         (Key.Three, Constants.Input.WeaponSlot3),
@@ -56,6 +56,7 @@ public class ConfigKeyMappingTest
         (Key.F2, Constants.Input.Save),
         (Key.F3, Constants.Input.Load),
         (Key.Tab, Constants.Input.Automap),
+        (Key.F6, Constants.Input.QuickSave)
     };
 
     [Fact(DisplayName = "Can add defaults")]
@@ -70,7 +71,7 @@ public class ConfigKeyMappingTest
             keys[command].Should().BeEmpty();
         }
 
-        keys.AddDefaults();
+        keys.AddDefaultsIfMissing();
 
         // Now with the defaults applied, let's make sure they are in fact added.
         foreach ((Key key, string command) in ExpectedMappings)

@@ -1,7 +1,9 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Tests.Unit.GameAction.Util;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using System;
 using Xunit;
@@ -248,7 +250,7 @@ namespace Helion.Tests.Unit.GameAction
 
                 Player.GiveItem(ammoDef, null);
                 // Add one to prevent switching to next
-                Player.Inventory.SetAmount(ammoDef, weaponData.AmmoUseAmount + 1);
+                Player.Inventory.SetAmount(ammoDef, weaponData.AmmoUseAmount * 2);
 
                 int startAmount = Player.Inventory.Amount(weaponData.Ammo);
                 Player.FireWeapon().Should().BeTrue();
@@ -464,6 +466,44 @@ namespace Helion.Tests.Unit.GameAction
 
             Player.Inventory.Amount("Clip").Should().Be(0);
             InventoryUtil.AssertWeapon(Player.PendingWeapon, "Fist");
+        }
+
+        [Fact(DisplayName = "Picking up dropped weapon gives half ammo")]
+        public void DroppedWeaponAmmo()
+        {
+            Player.Inventory.Weapons.OwnsWeapon("Shotgun").Should().BeFalse();
+            var shotgun = CreateEntity("Shotgun", Vec3D.Zero);
+            World.PerformItemPickup(Player, shotgun);
+            Player.Inventory.Weapons.OwnsWeapon("Shotgun").Should().BeTrue();
+            Player.Inventory.Amount("Shell").Should().Be(8);
+
+            Player.Inventory.SetAmount(World.EntityManager.DefinitionComposer.GetByName("Shell")!, 0);
+            shotgun = CreateEntity("Shotgun", Vec3D.Zero);
+            shotgun.Flags.Dropped = true;
+            World.PerformItemPickup(Player, shotgun);
+            Player.Inventory.Weapons.OwnsWeapon("Shotgun").Should().BeTrue();
+            Player.Inventory.Amount("Shell").Should().Be(4);
+        }
+
+        [Fact(DisplayName = "Picking up dropped ammo gives half")]
+        public void DroppedAmmo()
+        {
+            Player.Inventory.Amount("Clip").Should().Be(50);
+            var clip = CreateEntity("Clip", Vec3D.Zero);
+            World.PerformItemPickup(Player, clip);
+            Player.Inventory.Amount("Clip").Should().Be(60);
+
+            clip = CreateEntity("Clip", Vec3D.Zero);
+            clip.Flags.Dropped = true;
+            World.PerformItemPickup(Player, clip);
+            Player.Inventory.Amount("Clip").Should().Be(65);
+        }
+
+        private Entity CreateEntity(string name, Vec3D pos)
+        {
+            var entity = World.EntityManager.Create(name, pos);
+            entity.Should().NotBeNull();
+            return entity!;
         }
 
         private void RunWeaponUntilRefire(Player player, Action onTick)

@@ -121,42 +121,7 @@ public partial class MapInfoDefinition
             string item = parser.ConsumeString();
             if (MapNames.Contains(item))
             {
-                ConsumeEquals(parser);
-
-                if (item.Equals(MapLevelNumName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.LevelNumber = parser.ConsumeInteger();
-                else if (item.Equals(MapTitlePatchName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.TitlePatch = parser.ConsumeString();
-                else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
-                {
-                    mapDef.Next = parser.ConsumeString();
-                    if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
-                        mapDef.EndGame = ParseEndGame(parser);
-                    else if (mapDef.Next.Equals(MapEndPicName, StringComparison.OrdinalIgnoreCase))
-                        mapDef.EndPic = ParseEndPic(parser);
-                }
-                else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
-                {
-                    mapDef.SecretNext = parser.ConsumeString();
-                    if (mapDef.SecretNext.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
-                        mapDef.EndGameSecret = ParseEndGame(parser);
-                }
-                else if (item.Equals(MapSky1Name, StringComparison.OrdinalIgnoreCase))
-                    mapDef.Sky1 = ParseMapSky(parser);
-                else if (item.Equals(MapSky2Name, StringComparison.OrdinalIgnoreCase))
-                    mapDef.Sky2 = ParseMapSky(parser);
-                else if (item.Equals(MapClusterName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.Cluster = parser.ConsumeInteger();
-                else if (item.Equals(MapParName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.ParTime = parser.ConsumeInteger();
-                else if (item.Equals(MapSuckName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.SuckTime = parser.ConsumeInteger();
-                else if (item.Equals(MapMusicName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.Music = parser.ConsumeString();
-                else if (item.Equals(MapEnterPicName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.EnterPic = parser.ConsumeString();
-                else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
-                    mapDef.ExitPic = parser.ConsumeString();
+                ParseMapDefFields(parser, mapDef, item);
             }
             else if (item.Equals("nosoundclipping", StringComparison.OrdinalIgnoreCase))
                 continue; // Deprecated, no longer used
@@ -209,6 +174,46 @@ public partial class MapInfoDefinition
         return mapDef;
     }
 
+    private void ParseMapDefFields(SimpleParser parser, MapInfoDef? mapDef, string item)
+    {
+        ConsumeEquals(parser);
+
+        if (item.Equals(MapLevelNumName, StringComparison.OrdinalIgnoreCase))
+            mapDef.LevelNumber = parser.ConsumeInteger();
+        else if (item.Equals(MapTitlePatchName, StringComparison.OrdinalIgnoreCase))
+            mapDef.TitlePatch = parser.ConsumeString();
+        else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
+        {
+            mapDef.Next = parser.ConsumeString();
+            if (mapDef.Next.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
+                mapDef.EndGame = ParseEndGame(parser);
+            else if (mapDef.Next.Equals(MapEndPicName, StringComparison.OrdinalIgnoreCase))
+                mapDef.EndPic = ParseEndPic(parser);
+        }
+        else if (item.Equals(MapSecretName, StringComparison.OrdinalIgnoreCase))
+        {
+            mapDef.SecretNext = parser.ConsumeString();
+            if (mapDef.SecretNext.Equals(MapEndGame, StringComparison.OrdinalIgnoreCase))
+                mapDef.EndGameSecret = ParseEndGame(parser);
+        }
+        else if (item.Equals(MapSky1Name, StringComparison.OrdinalIgnoreCase))
+            mapDef.Sky1 = ParseMapSky(parser);
+        else if (item.Equals(MapSky2Name, StringComparison.OrdinalIgnoreCase))
+            mapDef.Sky2 = ParseMapSky(parser);
+        else if (item.Equals(MapClusterName, StringComparison.OrdinalIgnoreCase))
+            mapDef.Cluster = parser.ConsumeInteger();
+        else if (item.Equals(MapParName, StringComparison.OrdinalIgnoreCase))
+            mapDef.ParTime = parser.ConsumeInteger();
+        else if (item.Equals(MapSuckName, StringComparison.OrdinalIgnoreCase))
+            mapDef.SuckTime = parser.ConsumeInteger();
+        else if (item.Equals(MapMusicName, StringComparison.OrdinalIgnoreCase))
+            mapDef.Music = parser.ConsumeString();
+        else if (item.Equals(MapEnterPicName, StringComparison.OrdinalIgnoreCase))
+            mapDef.EnterPic = parser.ConsumeString();
+        else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
+            mapDef.ExitPic = parser.ConsumeString();
+    }
+
     private static void WarnMissing(string def, string item, int line) =>
         Log.Warn($"MapInfo: Unknown {def} item: {item} line:{line}");
 
@@ -218,8 +223,11 @@ public partial class MapInfoDefinition
         return parser.ConsumeString();
     }
 
-    private EndGameDef ParseEndGame(SimpleParser parser)
+    private EndGameDef? ParseEndGame(SimpleParser parser)
     {
+        if (!parser.ConsumeIf("{"))
+            return null;
+
         EndGameDef endGameDef = new();
         ConsumeBrace(parser, true);
 
@@ -604,7 +612,10 @@ public partial class MapInfoDefinition
                 else if (item.Equals(Skill_PlayerRespawnName, StringComparison.OrdinalIgnoreCase))
                     skillDef.PlayerRespawn = true;
                 else if (item.Equals(Skill_MustConfirmName, StringComparison.OrdinalIgnoreCase))
+                {
                     skillDef.MustConfirm = true;
+                    skillDef.MustConfirmMessage = ConsumeMustConfirmMessage(parser, line);
+                }
             }
             else
             {
@@ -617,6 +628,21 @@ public partial class MapInfoDefinition
         ConsumeBrace(parser, false);
 
         return skillDef;
+    }
+
+    private string? ConsumeMustConfirmMessage(SimpleParser parser, int line)
+    {
+        if (parser.GetCurrentLine() != line)
+            return null;
+
+        ConsumeEquals(parser);
+        if (parser.Peek('"'))
+            parser.Consume('"');
+
+        string text = parser.ConsumeLine();
+        if (text.EndsWith('"'))
+            return text.Substring(0, text.Length - 1);
+        return text;
     }
 
     private static int ParseSpawnFilter(SimpleParser parser)

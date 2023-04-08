@@ -53,6 +53,9 @@ NIGHTMARE = "Are you sure? This skill level
 isn't even remotely fair.
 
 Press Y or N.";
+CONFIRM_YN = "
+
+Press Y or N.";
 SECRETMESSAGE = "A secret is revealed!";
 SAVEDEAD = "You can't save if you aren't playing!
 
@@ -444,6 +447,9 @@ PD_YELLOWC = "You need a yellow card to open this door";
 PD_BLUES = "You need a blue skull to open this door";
 PD_REDS = "You need a red skull to open this door";
 PD_YELLOWS = "You need a yellow skull to open this door";
+PD_ANY = "Any key will open this door";
+PD_ALL3 = "You need all three keys to open this door";
+PD_ALL6 = "You need all six keys to open this door";
 
 // Cast call names
 CC_ZOMBIE = "Zombieman";

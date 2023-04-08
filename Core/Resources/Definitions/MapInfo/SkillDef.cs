@@ -8,7 +8,7 @@ namespace Helion.Resources.Definitions.MapInfo;
 public class SkillDef
 {
     public double AmmoFactor { get; set; } = 1.0;
-    public double DropAmmoFactor { get; set; } = 1.0;
+    public double DropAmmoFactor { get; set; } = -1;
     public double DoubleAmmoFactor { get; set; } = 1.0;
     public double DamageFator { get; set; } = 1.0;
     public double ArmorFactor { get; set; } = 1.0;
@@ -39,12 +39,19 @@ public class SkillDef
     public bool NoMenu { get; set; }
     public bool PlayerRespawn { get; set; }
     public bool MustConfirm { get; set; }
+    public string? MustConfirmMessage { get; set; }
     public bool Default { get; set; }
 
     public int GetAmmoAmount(int amount, EntityFlags? flags)
     {
         if (flags != null && flags.Value.Dropped)
-            return (int)(amount * DropAmmoFactor);
+        {
+            double dropAmmoFactor = DropAmmoFactor;
+            if (dropAmmoFactor == -1)
+                dropAmmoFactor = 0.5;
+
+            return (int)(amount * dropAmmoFactor);
+        }
 
         return (int)(amount * AmmoFactor);
     }

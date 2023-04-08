@@ -37,7 +37,7 @@ public partial class MenuLayer : IGameLayer
         m_menus.Push(mainMenu);
     }
 
-    public void AddSaveOrLoadMenuIfMissing(bool isSave)
+    public void AddSaveOrLoadMenuIfMissing(bool isSave, bool clearOnExit)
     {
         foreach (Menu menu in m_menus)
             if (menu.GetType() == typeof(SaveMenu))
@@ -45,9 +45,14 @@ public partial class MenuLayer : IGameLayer
 
         bool hasWorld = Manager.WorldLayer != null;
         SaveMenu saveMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection,
-            m_saveGameManager, hasWorld, isSave);
+            m_saveGameManager, hasWorld, isSave, clearOnExit);
 
         m_menus.Push(saveMenu);
+    }
+
+    public void ShowMessage(MessageMenu message)
+    {
+        m_menus.Push(message);
     }
 
     public void RunLogic()

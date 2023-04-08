@@ -1425,7 +1425,7 @@ public static class EntityActionFunctions
     public static void A_KeenDie(Entity entity)
     {
         var world = entity.World;
-        if (world.EntityAliveCount(entity.Definition.EditorId.Value) == 0)
+        if (world.EntityAliveCount(entity.Definition.Id) == 0)
         {
             var sectors = world.FindBySectorTag(666);
             foreach (var sector in sectors)

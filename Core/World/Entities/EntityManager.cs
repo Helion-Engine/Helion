@@ -53,6 +53,7 @@ public class EntityManager : IDisposable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly LinkableList<Entity> Entities = new();
+    public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
 
@@ -143,6 +144,9 @@ public class EntityManager : IDisposable
         if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
             entities.Remove(entity);
 
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.Remove(entity);
+
         entity.Dispose();
     }
 
@@ -230,7 +234,8 @@ public class EntityManager : IDisposable
     {
         List<Player> players = new();
         Dictionary<int, EntityModelPair> entities = new();
-        for (int i = 0; i < worldModel.Entities.Count; i++)
+        // Entities are serialized backwards because of the linked list implementation
+        for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {
             var entityModel = worldModel.Entities[i];
             var definition = DefinitionComposer.GetByName(entityModel.Name);
@@ -411,6 +416,9 @@ public class EntityManager : IDisposable
         // Action functions will not execute until Tick() is called
         if (entity.Definition.SpawnState != null)
             entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
+
+        if (entity.Definition.Flags.CountKill || entity.Definition.Flags.IsMonster)
+            entity.Health = Math.Max((int)(entity.Health * World.SkillDefinition.MonsterHealthFactor), 1);
     }
 
     private void PostProcessEntity(Entity entity)
@@ -424,6 +432,9 @@ public class EntityManager : IDisposable
             else
                 TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
         }
+
+        if (entity.Flags.IsTeleportSpot)
+            TeleportSpots.AddLast(entity);
     }
 
     private Player CreatePlayerEntity(int playerNumber, EntityDefinition definition, Vec3D position, double zHeight, double angle)

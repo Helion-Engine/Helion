@@ -658,8 +658,14 @@ public partial class DehackedDefinition
             return true;
 
         string peek = parser.PeekString();
-        if (isBex && string.IsNullOrEmpty(peek))
-            return true;
+        while (string.IsNullOrEmpty(peek))
+        {
+            parser.ConsumeString();
+            if (parser.IsDone())
+                return true;
+
+            peek = parser.PeekString();
+        }
 
         if (BexBaseTypes.Contains(peek))
             return true;

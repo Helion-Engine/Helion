@@ -33,7 +33,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
             keys :
             EmptyKeySet;
 
-    public void AddDefaults()
+    public void AddDefaultsIfMissing()
     {
         Log.Trace("Adding default key commands to config keys");
 
@@ -80,6 +80,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Add(Key.MouseWheelUp, Constants.Input.NextWeapon);
         Add(Key.MouseWheelDown, Constants.Input.PreviousWeapon);
         Add(Key.Pause, Constants.Input.Pause);
+        Add(Key.F6, Constants.Input.QuickSave);
     }
 
     public void ClearChanged()

@@ -10,18 +10,23 @@ using Helion.Layer.EndGame;
 using Helion.Layer.Images;
 using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
+using Helion.Menus.Impl;
+using Helion.Models;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.World;
 using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 
@@ -43,6 +48,7 @@ public class GameLayerManager : IGameLayerParent
     private static readonly string[] MenuIgnoreCommands = new[] { Constants.Input.Screenshot, Constants.Input.Console };
 
     public WorldLayer? WorldLayer { get; private set; }
+    public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
     private readonly IWindow m_window;
     private readonly HelionConsole m_console;
@@ -73,12 +79,19 @@ public class GameLayerManager : IGameLayerParent
         m_saveGameManager = saveGameManager;
         m_profiler = profiler;
         m_stopwatch.Start();
+
+        m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }
 
     ~GameLayerManager()
     {
         FailedToDispose(this);
         PerformDispose();
+    }
+
+    private void SaveGameManager_GameSaved(object? sender, SaveGameEvent e)
+    {
+        LastSave = e;
     }
 
     public bool HasMenuOrConsole() => MenuLayer != null || ConsoleLayer != null;
@@ -134,6 +147,11 @@ public class GameLayerManager : IGameLayerParent
         default:
             throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
         }
+    }
+
+    private void M_saveGameManager_GameSaved(object? sender, Models.WorldModel e)
+    {
+        throw new NotImplementedException();
     }
 
     public void ClearAllExcept(params IGameLayer[] layers)
@@ -265,7 +283,46 @@ public class GameLayerManager : IGameLayerParent
         if (MenuLayer == null)
             CreateMenuLayer();
 
-        MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave);
+        MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave, true);
+    }
+
+    public void QuickSave()
+    {
+        if (WorldLayer == null  || !LastSave.HasValue)
+        {
+            GoToSaveOrLoadMenu(true);
+            return;
+        }
+
+        if (m_config.Game.QuickSaveConfirm)
+        {
+            MessageMenu confirm = new MessageMenu(m_config, m_console, m_soundManager, m_archiveCollection,
+                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model.Text,  "Press Y to confirm." },
+                isYesNoConfirm: true, clearMenus: true);
+            confirm.Cleared += Confirm_Cleared;
+
+            CreateMenuLayer();
+            MenuLayer?.ShowMessage(confirm);
+            return;
+        }
+
+        WriteQuickSave();
+    }
+
+    private void Confirm_Cleared(object? sender, bool e)
+    {
+        if (!e || !LastSave.HasValue)
+            return;
+
+        WriteQuickSave();
+    }
+
+    private void WriteQuickSave()
+    {
+        var world = WorldLayer.World;
+        var save = LastSave.Value;
+        m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);
+        world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
     }
 
     public void RunLogic()

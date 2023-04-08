@@ -7,6 +7,7 @@ public class ClusterDef
     public int ClusterNum { get; set; }
     public List<string> EnterText { get; set; } = new List<string>();
     public List<string> ExitText { get; set; } = new List<string>();
+    public List<string> SecretExitText { get; set; } = new List<string>();
     public string Music { get; set; } = string.Empty;
     public string Flat { get; set; } = string.Empty;
     public string Pic { get; set; } = string.Empty;

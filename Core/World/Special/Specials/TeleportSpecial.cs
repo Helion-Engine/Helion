@@ -11,6 +11,7 @@ using Helion.Util.Container;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities.Definition;
 using System;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.World.Special.Specials;
 
@@ -56,6 +57,8 @@ public struct TeleportSpecial
         m_world = world;
         m_tid = tid;
         m_tag = tag;
+        if (m_tid != EntityManager.NoTid && m_tag == Sector.NoTag)
+            m_tag = -1;
         m_fogFlags = flags;
         m_type = type;
     }
@@ -65,6 +68,7 @@ public struct TeleportSpecial
     {
         m_args = args;
         m_world = world;
+        m_tag = -1;
         m_lineId = lineId;
         m_teleportLineReverse = reverseLine;
         m_fogFlags = flags;
@@ -197,7 +201,7 @@ public struct TeleportSpecial
         angle = 0;
         offsetZ = 0;
 
-        if (m_tid == EntityManager.NoTid && m_tag == Sector.NoTag && m_lineId == Line.NoLineId)
+        if (m_tid == EntityManager.NoTid && m_tag == -1 && m_lineId == Line.NoLineId)
             return false;
 
         if (m_lineId != Line.NoLineId)
@@ -232,23 +236,20 @@ public struct TeleportSpecial
         }
         if (m_tid == EntityManager.NoTid)
         {
-            foreach (Sector sector in m_world.FindBySectorTag(m_tag))
+            var teleportNode = m_world.EntityManager.TeleportSpots.First;
+            while (teleportNode != null)
             {
-                LinkableNode<Entity>? node = sector.Entities.Head;
-                while (node != null)
+                if (teleportNode.Value.Sector.Tag == m_tag)
                 {
-                    Entity entity = node.Value;
-                    node = node.Next;
-                    if (entity.Flags.IsTeleportSpot)
-                    {
-                        pos = GetTeleportPosition(entity);
-                        angle = entity.AngleRadians;
-                        return true;
-                    }
+                    Entity entity = teleportNode.Value;
+                    pos = GetTeleportPosition(entity);
+                    angle = entity.AngleRadians;
+                    return true;
                 }
+                teleportNode = teleportNode.Next;
             }
         }
-        else if (m_tag == Sector.NoTag)
+        else if (m_tag == -1)
         {
             foreach (Entity entity in m_world.FindByTid(m_tid))
                 if (entity.Flags.IsTeleportSpot)
@@ -260,20 +261,17 @@ public struct TeleportSpecial
         }
         else
         {
-            foreach (Sector sector in m_world.FindBySectorTag(m_tag))
+            var teleportNode = m_world.EntityManager.TeleportSpots.First;
+            while (teleportNode != null)
             {
-                LinkableNode<Entity>? node = sector.Entities.Head;
-                while (node != null)
+                if (teleportNode.Value.Sector.Tag == m_tag && teleportNode.Value.ThingId == m_tid)
                 {
-                    Entity entity = node.Value;
-                    node = node.Next;
-                    if (entity.ThingId == m_tid && entity.Flags.IsTeleportSpot)
-                    {
-                        pos = entity.Position;
-                        angle = entity.AngleRadians;
-                        return true;
-                    }
+                    Entity entity = teleportNode.Value;
+                    pos = GetTeleportPosition(entity);
+                    angle = entity.AngleRadians;
+                    return true;
                 }
+                teleportNode = teleportNode.Next;
             }
         }
 

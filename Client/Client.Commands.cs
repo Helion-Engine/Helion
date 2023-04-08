@@ -30,7 +30,6 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Save;
 using Helion.World.Util;
 
@@ -43,6 +42,7 @@ public partial class Client
     private GlobalData m_globalData = new();
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
+    private bool m_isSecretExit;
 
     struct MonsterClosetInfo
     {
@@ -376,6 +376,7 @@ public partial class Client
             return;
         }
 
+        m_layerManager.LastSave = new(saveGame, worldModel);
         LoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 
@@ -632,11 +633,7 @@ public partial class Client
         }
 
         m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        var skill = m_config.Game.Skill.Value;
-        if (worldModel != null)
-            skill = worldModel.Skill;
-
-        SkillDef? skillDef = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        SkillDef? skillDef = GetSkillDefinition(worldModel);
         if (skillDef == null)
         {
             LogError($"Could not find skill definition for {m_config.Game.Skill}");
@@ -691,8 +688,20 @@ public partial class Client
 
         newLayer.World.Start(worldModel);
         CheckLoadMapDemo(newLayer, worldModel);
-        
+
         ForceGarbageCollection();
+    }
+
+    private SkillDef? GetSkillDefinition(WorldModel? worldModel)
+    {
+        if (m_config.Game.SelectedSkillDefinition != null)
+            return m_config.Game.SelectedSkillDefinition;
+
+        var skill = m_config.Game.Skill.Value;
+        if (worldModel != null)
+            skill = worldModel.Skill;
+
+        return m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
     }
 
     private static void ForceGarbageCollection()
@@ -741,6 +750,7 @@ public partial class Client
         if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
             WriteStatsFile(world);
 
+        m_isSecretExit = false;
         switch (e.ChangeType)
         {
             case LevelChangeType.Next:
@@ -748,6 +758,7 @@ public partial class Client
                 break;
 
             case LevelChangeType.SecretNext:
+                m_isSecretExit = true;
                 Intermission(world, GetNextSecretLevel(world.MapInfo));
                 break;
 
@@ -829,11 +840,10 @@ public partial class Client
         if (nextMapInfo != null)
             nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
 
-        bool isChangingClusters = nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
-
+        bool isChangingClusters = cluster != null && nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
         if (cluster != null && isChangingClusters)
         {
-            bool hasExitText = cluster.ExitText.Count > 0;
+            bool hasExitText = m_isSecretExit ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
             if (!hasExitText && nextCluster == null)
                 isChangingClusters = false;
             if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
@@ -851,7 +861,7 @@ public partial class Client
         if (cluster == null)
             return;
 
-        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextCluster, nextMapInfo);
+        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextCluster, nextMapInfo, m_isSecretExit);
         endGameLayer.Exited += EndGameLayer_Exited;
 
         m_layerManager.Add(endGameLayer);
