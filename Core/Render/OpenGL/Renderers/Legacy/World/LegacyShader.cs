@@ -116,7 +116,7 @@ public class LegacyShader : RenderProgram
                 // The division/floor is to chunk pixels together to make
                 // blocks. A larger denominator makes it more blocky.
                 vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
+                fragColor.w *= step(0.03, noise(blockCoordinate * fuzzFrac));
             }
 
             fragColor.xyz *= lightLevel;
