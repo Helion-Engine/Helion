@@ -964,10 +964,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private static bool CheckUseActiveMoveSpecial(in EntityActivateSpecial args, LineSpecial lineSpecial, Sector sector)
     {
-        if (args.ActivationContext != ActivationContext.UseLine || args.ActivateLineSpecial.SectorTag != 0)
-            return false;
-
-        if (!lineSpecial.CanActivateDuringSectorMovement())
+        if (!lineSpecial.CanActivateDuringSectorMovement(args, sector))
             return false;
 
         bool success = false;
