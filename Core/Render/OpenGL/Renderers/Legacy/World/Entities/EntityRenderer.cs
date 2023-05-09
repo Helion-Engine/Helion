@@ -154,6 +154,9 @@ public class EntityRenderer
             rightU = 0.0f;
         }
 
+        if (entity.Flags.Shadow)
+            alpha = 0.99f;
+
         LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz);
         LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz);
         LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
@@ -268,7 +271,7 @@ public class EntityRenderer
         
         mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
         mat4 mvpNoPitch = Renderer.CalculateMvpMatrix(renderInfo, true);
-        float fuzzFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
+        float fuzzFrac = (((renderInfo.ViewerEntity.World.GameTicker / TicksPerFrame) % DifferentFrames)) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
