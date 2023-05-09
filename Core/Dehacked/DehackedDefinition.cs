@@ -144,6 +144,8 @@ public partial class DehackedDefinition
 
     private void ParseHeader(SimpleParser parser)
     {
+        DoomVersion = 0;
+        PatchFormat = 0;
         while (!parser.IsDone() && (DoomVersion == 0 || PatchFormat == 0))
         {
             string item = parser.PeekLine();
@@ -218,6 +220,8 @@ public partial class DehackedDefinition
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
             else if (line.StartsWith(DroppedItem, StringComparison.OrdinalIgnoreCase))
                 thing.DroppedItem = GetIntProperty(parser, DroppedItem);
+            else if (line.StartsWith(GibHealth, StringComparison.OrdinalIgnoreCase))
+                thing.GibHealth = GetIntProperty(parser, GibHealth);
             else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
                 thing.Bits = GetBits(parser, Bits, ThingPropertyStrings);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
