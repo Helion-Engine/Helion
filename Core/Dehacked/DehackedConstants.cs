@@ -81,7 +81,7 @@ public partial class DehackedDefinition
 		"BFGExtra",					// MT_EXTRABFG
 		"GreenArmor",				// MT_MISC0
 		"BlueArmor",				// MT_MISC1
-		"",							// MT_MISC2
+		"HealthBonus",			    // MT_MISC2
 		"ArmorBonus",				// MT_MISC3
 		"BlueCard",					// MT_MISC4
 		"RedCard",					// MT_MISC5
