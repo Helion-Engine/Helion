@@ -45,7 +45,7 @@ public class SpriteDefinition
 
     private void CreateRotations(Entry entry, IImageRetriever imageRetriever, int frame, int rotation, bool mirror)
     {
-        if (frame >= MaxFrames)
+        if (frame < 0 || frame >= MaxFrames)
             return;
 
         Texture texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
