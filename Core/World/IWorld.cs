@@ -35,6 +35,7 @@ public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
 
 public interface IWorld : IDisposable
 {
+    event EventHandler<LevelChangeEvent>? LevelExit;
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
     event EventHandler? OnResetInterpolation;
@@ -45,6 +46,7 @@ public interface IWorld : IDisposable
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<SideScrollEvent>? SideScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    event EventHandler? OnTick;
 
     string MapName { get; }
     // Increments every tick unless the game is paused.

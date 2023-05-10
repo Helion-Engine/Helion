@@ -76,6 +76,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<SideScrollEvent>? SideScrollChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    public event EventHandler? OnTick;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -334,6 +335,7 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void Tick()
     {
+        OnTick?.Invoke(this, EventArgs.Empty);
         DebugCheck();
 
         if (Paused)

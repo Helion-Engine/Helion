@@ -95,18 +95,47 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void UpdateToNewWorld(IWorld world)
     {
         if (m_previousWorld != null)
+        {
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+            m_previousWorld.OnTick -= World_OnTick;
+            m_previousWorld.LevelExit -= World_LevelExit;
+        }
 
         m_automapMarker?.Stop();
 
         m_geometryRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
+        world.OnTick += World_OnTick;
+        world.LevelExit += World_LevelExit;
         m_previousWorld = world;
         m_lastTicker = -1;
         m_alphaEntities.FlushReferences();
 
-        m_automapMarker = new AutomapMarker(m_archiveCollection, this);
-        m_automapMarker.Start();
+        if (m_config.Render.AutomapBspThread)
+            SetupAutomapMarker(world);
+    }
+
+    private void SetupAutomapMarker(IWorld world)
+    {
+        if (m_automapMarker == null)
+            m_automapMarker = new AutomapMarker(m_archiveCollection, this);
+
+        m_automapMarker.Start(world);
+    }
+
+    private void World_LevelExit(object? sender, LevelChangeEvent e)
+    {
+        m_automapMarker?.Stop();
+    }
+
+    private void World_OnTick(object? sender, EventArgs e)
+    {
+        if (m_config.Render.Blockmap && m_automapMarker != null)
+        {
+            IWorld world = (IWorld)sender;
+            var camera = world.Player.GetCamera(0);
+            m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, world.Player.AngleRadians, world.Player.PitchRadians);
+        }
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
@@ -118,7 +147,8 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
-        TraverseBsp(world, renderInfo);
+        if (!m_config.Render.Blockmap)
+            TraverseBsp(world, renderInfo);
 
         m_automapRenderer.Render(world, renderInfo);
     }
@@ -253,7 +283,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_spriteTransparency = m_config.Render.SpriteTransparency;
         Clear(world, renderInfo);
 
-        SetPosition(renderInfo);
+        SetOccludePosition(renderInfo.Camera.Position.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
+            ref m_occlude, ref m_occludeViewPos);
         if (m_config.Render.Blockmap)
             IterateBlockmap(world, renderInfo);
         else
@@ -290,19 +321,20 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.ResetInterpolation(world);
     }
 
-    private void SetPosition(RenderInfo renderInfo)
+    public static void SetOccludePosition(in Vec3D position, double angleRadians, double pitchRadians, 
+        ref bool occlude, ref Vec2D occludeViewPos)
     {
         // This is a hack until frustum culling exists.
         // Push the position back to stop occluding things that are straight up/down
-        if (Math.Abs(renderInfo.Camera.PitchRadians) > MathHelper.QuarterPi)
+        if (Math.Abs(pitchRadians) > MathHelper.QuarterPi)
         {
-            m_occlude = false;
+            occlude = false;
             return;
         }
 
-        m_occlude = true;
-        Vec2D unit = Vec2D.UnitCircle(renderInfo.ViewerEntity.AngleRadians + MathHelper.Pi);
-        m_occludeViewPos = renderInfo.Camera.Position.XY.Double + (unit * 32);
+        occlude = true;
+        Vec2D unit = Vec2D.UnitCircle(angleRadians + MathHelper.Pi);
+        occludeViewPos = position.XY + (unit * 32);
     }
 
     private void Clear(IWorld world, RenderInfo renderInfo)

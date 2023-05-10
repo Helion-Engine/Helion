@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using System;
 using System.Collections.Generic;
@@ -18,5 +19,12 @@ public static class BoxExtensions
         Vec2D p3 = (box.Min.X, box.Max.Y) - viewPos;
         Vec2D p4 = (box.Max.X, box.Min.Y) - viewPos;
         return p1.Dot(viewDirection) >= 0 || p2.Dot(viewDirection) >= 0 || p3.Dot(viewDirection) >= 0 || p4.Dot(viewDirection) >= 0;
+    }
+
+    public static bool InView(this Seg2D seg, Vec2D viewPos, Vec2D viewDirection)
+    {
+        Vec2D p1 = seg.Start - viewPos;
+        Vec2D p2 = seg.End - viewPos;
+        return p1.Dot(viewDirection) >= 0 || p2.Dot(viewDirection) >= 0;
     }
 }
