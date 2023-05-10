@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
@@ -25,6 +27,8 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Impl.SinglePlayer;
+using Helion.World.Physics;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 
@@ -52,6 +56,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
     private readonly RenderObjectComparer m_renderObjectComparer = new();
+    private readonly ArchiveCollection m_archiveCollection;
+    private AutomapMarker? m_automapMarker;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -60,6 +66,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_renderCount;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
+
+    public IWorld? World => m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -70,6 +78,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
+        m_archiveCollection = archiveCollection;
     }
 
     ~LegacyWorldRenderer()
@@ -88,11 +97,16 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
 
+        m_automapMarker?.Stop();
+
         m_geometryRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
         m_previousWorld = world;
         m_lastTicker = -1;
         m_alphaEntities.FlushReferences();
+
+        m_automapMarker = new AutomapMarker(m_archiveCollection, this);
+        m_automapMarker.Start();
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)

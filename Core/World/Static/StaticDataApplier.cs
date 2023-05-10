@@ -61,7 +61,7 @@ public class StaticDataApplier
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
     {
         // Hack for now until we have a better solution.
-        line.MarkSeenOnAutomap();
+        //line.MarkSeenOnAutomap();
 
         CheckFloodFill(world, line);
 
