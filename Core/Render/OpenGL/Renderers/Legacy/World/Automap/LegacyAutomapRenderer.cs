@@ -209,10 +209,12 @@ public class LegacyAutomapRenderer : IDisposable
                 player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings);
         }
 
+        bool forceDraw = !world.Config.Render.AutomapBspThread;
+
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            if (!line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
+            if (!forceDraw && !line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
             Vec2D start = line.StartPosition;
@@ -232,7 +234,7 @@ public class LegacyAutomapRenderer : IDisposable
 
             if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
             {
-                AddLine(line.SeenForAutomap ? AutomapColor.White : AutomapColor.LightBlue, start, end);
+                AddLine(line.SeenForAutomap || forceDraw ? AutomapColor.White : AutomapColor.LightBlue, start, end);
                 continue;
             }
 

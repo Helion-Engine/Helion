@@ -60,9 +60,6 @@ public class StaticDataApplier
 
     private static void DetermineStaticSectorLine(WorldBase world, Line line)
     {
-        if (!world.Config.Render.AutomapBspThread)
-            line.MarkSeenOnAutomap();
-
         CheckFloodFill(world, line);
 
         if (line.Back != null && line.Alpha < 1)

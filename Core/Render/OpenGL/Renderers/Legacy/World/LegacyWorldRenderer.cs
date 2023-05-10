@@ -79,6 +79,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
+        m_config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
     }
 
     ~LegacyWorldRenderer()
@@ -123,6 +124,20 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapMarker.Start(world);
     }
 
+    private void AutomapBspThread_OnChanged(object? sender, bool set)
+    {
+        if (!set)
+        {
+            m_automapMarker.Stop();
+            return;
+        }
+
+        if (m_previousWorld == null)
+            return;
+
+        SetupAutomapMarker(m_previousWorld);
+    }
+
     private void World_LevelExit(object? sender, LevelChangeEvent e)
     {
         m_automapMarker?.Stop();
@@ -130,7 +145,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void World_OnTick(object? sender, EventArgs e)
     {
-        if (m_config.Render.Blockmap && m_automapMarker != null)
+        if (m_config.Render.Blockmap && m_config.Render.AutomapBspThread && m_automapMarker != null)
         {
             IWorld world = (IWorld)sender;
             var camera = world.Player.GetCamera(0);
