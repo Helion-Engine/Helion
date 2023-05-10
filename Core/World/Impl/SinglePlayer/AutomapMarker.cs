@@ -11,13 +11,11 @@ using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
-using OpenTK.Mathematics;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,6 +41,7 @@ public class AutomapMarker
 
     private readonly LegacyWorldRenderer m_worldRenderer;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
+    private readonly Stopwatch m_stopwatch = new();
     private BitArray m_seenSubsectors = new(0);
     private Task? m_task;
     private CancellationTokenSource _cancelTasks = new();
@@ -78,8 +77,9 @@ public class AutomapMarker
 
         _cancelTasks.Cancel();
         _cancelTasks.Dispose();
-        _cancelTasks = new CancellationTokenSource();
         m_task.Wait();
+
+        _cancelTasks = new CancellationTokenSource();
         m_task = null;
     }
 
@@ -90,10 +90,13 @@ public class AutomapMarker
 
     private async void AutomapTask(CancellationToken token)
     {
+        int ticks = (int)(1000 / Constants.TicksPerSecond);
         while (true)
         {
             if (token.IsCancellationRequested)
                 return;
+
+            m_stopwatch.Restart();
 
             while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
             {
@@ -106,7 +109,11 @@ public class AutomapMarker
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position, pos.ViewDirection.XY, m_world);
             }
 
-            await Task.Delay(((int)Constants.TicksPerSecond), token)
+            m_stopwatch.Stop();
+            if (m_stopwatch.ElapsedMilliseconds >= ticks)
+                continue;
+
+            await Task.Delay(ticks - (int)m_stopwatch.ElapsedMilliseconds, token)
                 .ContinueWith(t => t.Exception == default);
         }
     }
