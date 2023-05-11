@@ -12,15 +12,23 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    [ConsoleCommand("bind", "Bind a key")]
+    [ConsoleCommand("bind", "Binds a key to a command. Replaces any existing binding to the specified key")]
     private void BindCommand(ConsoleCommandEventArgs args)
+    {
+        ExecuteBind(args, true);
+    }
+
+    [ConsoleCommand("bindadd", "Binds a command to a key")]
+    private void BindAddCommand(ConsoleCommandEventArgs args)
+    {
+        ExecuteBind(args, false);
+    }
+
+    private void ExecuteBind(ConsoleCommandEventArgs args, bool removeExisting)
     {
         if (args.Args.Count == 0)
         {
-            Log.Info("Key bindings");
-            foreach (var item in m_config.Keys.GetKeyMapping())
-                foreach (var value in item.Value)
-                    Log.Info($"{item.Key}: {value}");
+            LogKeyBindings();
             return;
         }
 
@@ -34,26 +42,43 @@ public partial class Client
             return;
 
         var inputCommands = GetAvailableInputCommands();
-        if (!inputCommands.Any(x => x.EqualsIgnoreCase(command)))
-        {
-            Log.Error($"Invalid command: {command}");
-            Log.Info("Use inputcommands to view all available commands");
+        if (!CheckAvailableInputCommands(inputCommands, command))
             return;
-        }
 
+        m_config.Keys.Remove(inputKey.Value);
         m_config.Keys.Add(inputKey.Value, command);
     }
 
-    [ConsoleCommand("unbind", "Unbinds a key")]
+    [ConsoleCommand("unbind", "Unbinds a key with an optional specific command")]
     private void UnbindCommand(ConsoleCommandEventArgs args)
     {
+        if (args.Args.Count == 0)
+        {
+            LogKeyBindings();
+            return;
+        }
+
         if (args.Args.Count < 1)
             Log.Error("Bind requries one argument");
 
         if (!GetInputKey(args.Args[0], out var inputKey))
             return;
 
-        m_config.Keys.Remove(inputKey.Value);
+        if (args.Args.Count == 1)
+        {
+            if (!m_config.Keys.Remove(inputKey.Value))
+                Log.Error($"{inputKey} has no commands");
+            return;
+        }
+
+        string command = args.Args[1];
+
+        var inputCommands = GetAvailableInputCommands();
+        if (!CheckAvailableInputCommands(inputCommands, command))
+            return;
+
+        if (!m_config.Keys.Remove(inputKey.Value, command))
+            Log.Error($"{inputKey} does not have ${command}");
     }
 
     [ConsoleCommand("inputkeys", "List all input keys")]
@@ -91,5 +116,25 @@ public partial class Client
     {
         var properties = typeof(Constants.Input).GetFields();
         return properties.Select(x => x.Name).OrderBy(x => x).ToArray();
+    }
+
+    private static bool CheckAvailableInputCommands(IList<string> inputCommands, string command)
+    {
+        if (!inputCommands.Any(x => x.EqualsIgnoreCase(command)))
+        {
+            Log.Error($"Invalid command: {command}");
+            Log.Info("Use inputcommands to view all available commands");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void LogKeyBindings()
+    {
+        Log.Info("Key bindings");
+        foreach (var item in m_config.Keys.GetKeyMapping())
+            foreach (var value in item.Value)
+                Log.Info($"{item.Key}: {value}");
     }
 }
