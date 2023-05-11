@@ -23,6 +23,7 @@ public partial class Client
     {
         m_config.Audio.MusicVolume.OnChanged -= MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged -= SoundVolume_OnChanged;
+        m_config.Mouse.Look.OnChanged -= Look_OnChanged;
     }
 
     private void SoundVolume_OnChanged(object? sender, double volume) =>
