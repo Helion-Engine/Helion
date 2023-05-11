@@ -24,6 +24,7 @@ public interface IConfigKeyMapping
     /// <param name="key">The key to add.</param>
     /// <param name="command">The command for the key.</param>
     void Add(Key key, string command);
+    void Remove(Key key);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently pressed.

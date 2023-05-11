@@ -116,6 +116,18 @@ public class ConfigKeyMapping : IConfigKeyMapping
         }
     }
 
+    public void Remove(Key key)
+    {
+        if (!m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
+            return;
+
+        foreach (var command in commands)
+            m_commandsToKey.Remove(command);
+
+        m_keyToCommands.Remove(key);
+        Changed = true;
+    }
+
     public bool ConsumeCommandKeyPress(string command, IConsumableInput input)
     {
         foreach (Key key in this[command])
