@@ -479,7 +479,8 @@ public abstract partial class WorldBase : IWorld
 
     private void InstantKillSector(Entity entity)
     {
-        if (entity.IsDead)
+        // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
+        if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
         InstantKillEffect effect = entity.Sector.InstantKillEffect;
