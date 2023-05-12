@@ -5,6 +5,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using MoreLinq;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -200,6 +201,23 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.EntityCrossLine(World, Player, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, sector, telportLandingId);
+        }
+
+        [Fact(DisplayName = "Teleport fog with z")]
+        public void TeleportWithZ()
+        {
+            int telportLine = 405;
+            Sector sector = GameActions.GetSector(World, 89);
+            Entity caco = GameActions.GetEntity(World, 68);
+            Entity teleportDest = GameActions.GetEntity(World, 67);
+            Vec3D pos = caco.Position;
+
+            GameActions.EntityCrossLine(World, caco, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            var fogEntities = GameActions.GetEntities(World, "TeleportFog");
+            var fog = fogEntities.FirstOrDefault(x => x.Position.Z == pos.Z);
+            fog.Should().NotBeNull();
+            bool check = caco.Position == teleportDest.Position;
+            check.Should().BeTrue();
         }
     }
 }

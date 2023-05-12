@@ -154,7 +154,7 @@ namespace Helion.Tests.Unit.GameAction
 
             center += distanceBeforeLine * Vec2D.UnitCircle(angle);
 
-            entity.SetPosition(center.To3D(0));
+            entity.SetPosition(center.To3D(entity.Position.Z));
             entity.UnlinkFromWorld();
             world.Link(entity);
             entity.CheckOnGround();

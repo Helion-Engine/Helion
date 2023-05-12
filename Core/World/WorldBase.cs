@@ -1908,10 +1908,7 @@ public abstract partial class WorldBase : IWorld
         {
             var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
             if (teleport != null)
-            {
-                teleport.Position.Z = teleport.Sector.ToFloorZ(pos);
                 SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
-            }
         }
     }
 
