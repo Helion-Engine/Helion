@@ -36,7 +36,6 @@ public class Window : GameWindow, IWindow
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
     private bool m_disposed;
-    private Vec2F m_prevScroll = Vec2F.Zero;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title))
@@ -202,9 +201,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseWheel(MouseWheelEventArgs args)
     {
-        m_inputManager.AddMouseScroll(args.OffsetY - m_prevScroll.Y);
-        m_prevScroll.X = args.OffsetX;
-        m_prevScroll.Y = args.OffsetY;
+        m_inputManager.AddMouseScroll(args.OffsetY);
     }
 
     private void Window_TextInput(TextInputEventArgs args)
