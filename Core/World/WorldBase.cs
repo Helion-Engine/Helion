@@ -77,6 +77,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SideScrollEvent>? SideScrollChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler? OnTick;
+    public event EventHandler? OnDestroying;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -670,6 +671,7 @@ public abstract partial class WorldBase : IWorld
 
     public void Dispose()
     {
+        OnDestroying?.Invoke(this, EventArgs.Empty);
         SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
         PerformDispose();
         GC.SuppressFinalize(this);

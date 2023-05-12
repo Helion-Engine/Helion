@@ -47,6 +47,7 @@ public interface IWorld : IDisposable
     event EventHandler<SideScrollEvent>? SideScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler? OnTick;
+    event EventHandler? OnDestroying;
 
     string MapName { get; }
     // Increments every tick unless the game is paused.
