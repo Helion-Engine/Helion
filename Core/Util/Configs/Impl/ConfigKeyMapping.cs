@@ -70,6 +70,8 @@ public class ConfigKeyMapping : IConfigKeyMapping
         AddIfMissing(Key.Minus, Constants.Input.HudDecrease);
         AddIfMissing(Key.Equals, Constants.Input.AutoMapIncrease);
         AddIfMissing(Key.Minus, Constants.Input.AutoMapDecrease);
+        AddIfMissing(Key.MouseWheelUp, Constants.Input.AutoMapIncrease);
+        AddIfMissing(Key.MouseWheelDown, Constants.Input.AutoMapDecrease);
         AddIfMissing(Key.Up, Constants.Input.AutoMapUp);
         AddIfMissing(Key.Down, Constants.Input.AutoMapDown);
         AddIfMissing(Key.Left, Constants.Input.AutoMapLeft);
