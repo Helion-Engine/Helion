@@ -55,6 +55,8 @@ using System.Diagnostics.CodeAnalysis;
 using Helion.Demo;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
+using Helion.Resources.Archives.Entries;
+using static Helion.World.IWorld;
 
 namespace Helion.World;
 
@@ -86,8 +88,8 @@ public abstract partial class WorldBase : IWorld
     public int GameTicker { get; private set; }
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
-    public bool Paused { get; private set; }
-    public bool DrawPause { get; private set; }
+    public bool Paused { get; protected set; }
+    public bool DrawPause { get; protected set; }
     public bool PlayingDemo { get; set; }
     public bool DemoEnded { get; set; }
     public IRandom Random => m_random;
@@ -119,6 +121,9 @@ public abstract partial class WorldBase : IWorld
     public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
     public int CheckCounter { get; set; }
+    public virtual bool IsThirdPersonCamera => false;
+    public bool DrawHud { get; protected set; } = true;
+    public bool AnyLayerObscuring { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -419,6 +424,12 @@ public abstract partial class WorldBase : IWorld
             nextNode = node.Next;
 
             Entity entity = node.Value;
+            if (entity.PlayerObj != null && entity.PlayerObj.PlayerNumber == short.MaxValue)
+            {
+                node = nextNode;
+                continue;
+            }
+
             entity.Tick();
 
             if (WorldState == WorldState.Exit)
@@ -519,12 +530,12 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public void Pause(bool draw = false)
+    public virtual void Pause(PauseOptions options = PauseOptions.None)
     {
-        DrawPause = draw;
         if (Paused)
             return;
 
+        DrawPause = options.HasFlag(PauseOptions.DrawPause);
         ResetInterpolation();
         SoundManager.Pause();
 
@@ -543,14 +554,14 @@ public abstract partial class WorldBase : IWorld
         OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
 
-    public void Resume()
+    public virtual void Resume()
     {
+        DrawPause = false;
         if (!Paused || DemoEnded)
             return;
 
         SoundManager.Resume();
         Paused = false;
-        DrawPause = false;
         WorldResumed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -1924,6 +1935,7 @@ public abstract partial class WorldBase : IWorld
                 msg = player.Cheats.IsCheatActive(cheat.CheatType) ? cheat.CheatOn : cheat.CheatOff;
             else
                 msg = cheat.CheatOn;
+
             DisplayMessage(player, null, msg);
         }
 
@@ -2474,6 +2486,10 @@ public abstract partial class WorldBase : IWorld
         };
     }
 
+    public virtual void ToggleThirdPersonCameraMode()
+    {
+    }
+
     private IList<PlayerModel> GetPlayerModels()
     {
         List<PlayerModel> playerModels = new(EntityManager.Players.Count);
@@ -2545,4 +2561,6 @@ public abstract partial class WorldBase : IWorld
 
         return lineModels;
     }
+
+    public virtual Player GetCameraPlayer() => Player;
 }

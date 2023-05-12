@@ -31,12 +31,21 @@ namespace Helion.World.Impl.SinglePlayer;
 public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private bool m_thirdPersonCameraMode;
 
     public override Vec3D ListenerPosition => Player.Position;
     public override double ListenerAngle => Player.AngleRadians;
     public override double ListenerPitch => Player.PitchRadians;
     public override Entity ListenerEntity => Player;
     public override Player Player { get; protected set; }
+    public readonly Player ThirdPersonCameraPlayer;
+    public override bool IsThirdPersonCamera => m_thirdPersonCameraMode;
+    public override Player GetCameraPlayer()
+    { 
+        if (m_thirdPersonCameraMode)
+            return ThirdPersonCameraPlayer;
+        return Player;
+    }
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
@@ -113,6 +122,12 @@ public class SinglePlayerWorld : WorldBase
 
         // Right now lazy loading from zip causes a noticeable delay. Preload to prevent stutter.
         SoundManager.CacheSound("misc/secret");
+        ThirdPersonCameraPlayer = EntityManager.CreateCameraPlayer(Player);
+        ThirdPersonCameraPlayer.Flags.Invisible = true;
+        ThirdPersonCameraPlayer.Flags.NoClip = true;
+        ThirdPersonCameraPlayer.Flags.NoGravity = true;
+        ThirdPersonCameraPlayer.Flags.NoBlockmap = true;
+        ThirdPersonCameraPlayer.Flags.NoSector = true;
     }
 
     public override void Tick()
@@ -122,7 +137,25 @@ public class SinglePlayerWorld : WorldBase
         else
             Player.SetCrosshairTarget(null);
 
+        if (m_thirdPersonCameraMode)
+            TickThirdPersonCameraPlayer();
+
         base.Tick();
+    }
+
+    private void TickThirdPersonCameraPlayer()
+    {
+        bool ignore = AnyLayerObscuring || DrawPause;
+        if (ignore && ThirdPersonCameraPlayer != null)
+            ThirdPersonCameraPlayer.ResetInterpolation();
+
+        if (ThirdPersonCameraPlayer == null || ignore)
+            return;
+
+        ThirdPersonCameraPlayer.HandleTickCommand();
+        ThirdPersonCameraPlayer.TickCommand.TickHandled();
+        ThirdPersonCameraPlayer.Tick();
+        PhysicsManager.Move(ThirdPersonCameraPlayer);
     }
 
     private bool GetCrosshairTarget(out Entity? entity)
@@ -233,53 +266,54 @@ public class SinglePlayerWorld : WorldBase
 
     public void HandleFrameInput(IConsumableInput input)
     {
-        CheatManager.HandleInput(Player, input);
+        if (!Paused)
+            CheatManager.HandleInput(Player, input);
         HandleMouseLook(input);
     }
 
-    public void SetTickCommand(TickCommand tickCommand)
+    public void SetTickCommand(Player player, TickCommand tickCommand)
     {
-        Player.TickCommand = tickCommand;
+        player.TickCommand = tickCommand;
 
-        if (PlayingDemo)
+        if (PlayingDemo && player.PlayerNumber != short.MaxValue)
             return;
 
-        tickCommand.MouseAngle += Player.ViewAngleRadians;
-        tickCommand.MousePitch += Player.ViewPitchRadians;
+        tickCommand.MouseAngle += player.ViewAngleRadians;
+        tickCommand.MousePitch += player.ViewPitchRadians;
 
-        Player.ViewAngleRadians = 0;
-        Player.ViewPitchRadians = 0;
+        player.ViewAngleRadians = 0;
+        player.ViewPitchRadians = 0;
 
         if (tickCommand.HasTurnKey() || tickCommand.HasLookKey())
-            Player.TurnTics++;
+            player.TurnTics++;
         else
-            Player.TurnTics = 0;
+            player.TurnTics = 0;
 
         if (tickCommand.Has(TickCommands.TurnLeft))
-            tickCommand.AngleTurn += Player.GetTurnAngle();
+            tickCommand.AngleTurn += player.GetTurnAngle();
         if (tickCommand.Has(TickCommands.TurnRight))
-            tickCommand.AngleTurn -= Player.GetTurnAngle();
+            tickCommand.AngleTurn -= player.GetTurnAngle();
 
         if (tickCommand.Has(TickCommands.LookUp))
-            tickCommand.PitchTurn += Player.GetTurnAngle();
+            tickCommand.PitchTurn += player.GetTurnAngle();
         if (tickCommand.Has(TickCommands.LookDown))
-            tickCommand.PitchTurn -= Player.GetTurnAngle();
+            tickCommand.PitchTurn -= player.GetTurnAngle();
 
         if (tickCommand.Has(TickCommands.Forward))
-            tickCommand.ForwardMoveSpeed += Player.GetForwardMovementSpeed();
+            tickCommand.ForwardMoveSpeed += player.GetForwardMovementSpeed();
         if (tickCommand.Has(TickCommands.Backward))
-            tickCommand.ForwardMoveSpeed -= Player.GetForwardMovementSpeed();
+            tickCommand.ForwardMoveSpeed -= player.GetForwardMovementSpeed();
         if (tickCommand.Has(TickCommands.Right))
-            tickCommand.SideMoveSpeed += Player.GetSideMovementSpeed();
+            tickCommand.SideMoveSpeed += player.GetSideMovementSpeed();
         if (tickCommand.Has(TickCommands.Left))
-            tickCommand.SideMoveSpeed -= Player.GetSideMovementSpeed();
+            tickCommand.SideMoveSpeed -= player.GetSideMovementSpeed();
 
         if (tickCommand.Has(TickCommands.Strafe))
         {
             if (tickCommand.Has(TickCommands.TurnRight))
-                tickCommand.SideMoveSpeed += Player.GetSideMovementSpeed();
+                tickCommand.SideMoveSpeed += player.GetSideMovementSpeed();
             if (tickCommand.Has(TickCommands.TurnLeft))
-                tickCommand.SideMoveSpeed -= Player.GetSideMovementSpeed();
+                tickCommand.SideMoveSpeed -= player.GetSideMovementSpeed();
 
             tickCommand.SideMoveSpeed -= tickCommand.MouseAngle * 16;
         }
@@ -295,6 +329,48 @@ public class SinglePlayerWorld : WorldBase
             ResetLevel(Config.Game.LoadLatestOnDeath);
 
         return base.EntityUse(entity);
+    }
+
+    public override void ToggleThirdPersonCameraMode()
+    {
+        m_thirdPersonCameraMode = !m_thirdPersonCameraMode;
+        string enabled = m_thirdPersonCameraMode ? "enabled" : "disabled";
+        Log.Info($"Third person camera mode {enabled}");
+
+        DrawHud = !m_thirdPersonCameraMode;
+
+        if (m_thirdPersonCameraMode)
+        {
+            ThirdPersonCameraPlayer.SetPosition(Player.Position);
+            ThirdPersonCameraPlayer.AngleRadians = Player.AngleRadians;
+            ThirdPersonCameraPlayer.PitchRadians = Player.PitchRadians;
+            ThirdPersonCameraPlayer.ResetInterpolation();
+
+            if (PlayingDemo)
+                base.Resume();
+            else
+                base.Pause();
+        }
+        else
+        {
+            base.Resume();
+        }
+    }
+
+    public override void Pause(PauseOptions options = PauseOptions.None)
+    {
+        base.Pause(options);
+    }
+
+    public override void Resume()
+    {
+        if (m_thirdPersonCameraMode && !PlayingDemo)
+            return;
+
+        if (!m_thirdPersonCameraMode)
+            DrawHud = true;
+
+        base.Resume();
     }
 
     protected override void PerformDispose()
@@ -314,7 +390,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void HandleMouseLook(IConsumableInput input)
     {
-        if (Player.IsFrozen || Player.IsDead || WorldState == WorldState.Exit)
+        Player player = GetCameraPlayer();
+
+        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (player.World.PlayingDemo && !player.IsThirdPersonCamera))
             return;
 
         Vec2I pixelsMoved = input.ConsumeMouseMove();
@@ -324,10 +402,10 @@ public class SinglePlayerWorld : WorldBase
             moveDelta.X *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Yaw);
             moveDelta.Y *= (float)(Config.Mouse.Sensitivity * Config.Mouse.Pitch);
 
-            Player.AddToYaw(moveDelta.X, true);
+            player.AddToYaw(moveDelta.X, true);
 
-            if (Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook))
-                Player.AddToPitch(moveDelta.Y, true);
+            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsThirdPersonCamera)
+                player.AddToPitch(moveDelta.Y, true);
         }
     }
 }

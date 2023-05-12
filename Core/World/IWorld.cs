@@ -90,11 +90,14 @@ public interface IWorld : IDisposable
     Player Player { get; }
     bool IsFastMonsters { get; }
     int CheckCounter { get; set; }
+    bool IsThirdPersonCamera { get; }
+    bool DrawHud { get; }
+    bool AnyLayerObscuring { get; set; }
 
 
     void Link(Entity entity);
     void Tick();
-    void Pause(bool draw = false);
+    void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IEnumerable<Sector> FindBySectorTag(int tag);
     IEnumerable<Entity> FindByTid(int tid);
@@ -147,7 +150,9 @@ public interface IWorld : IDisposable
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSideScroll(Side side, SideTexture textures);
     void SetEntityPosition(Entity entity, Vec3D pos);
+    void ToggleThirdPersonCameraMode();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
+    Player GetCameraPlayer();
 }
