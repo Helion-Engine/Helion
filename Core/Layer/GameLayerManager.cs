@@ -149,6 +149,13 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
+    public void SubmitConsoleText(string text)
+    {
+        m_console.ClearInputText();
+        m_console.AddInput(text);
+        m_console.SubmitInputText();
+    }
+
     private void M_saveGameManager_GameSaved(object? sender, Models.WorldModel e)
     {
         throw new NotImplementedException();

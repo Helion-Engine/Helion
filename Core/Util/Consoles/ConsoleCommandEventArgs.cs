@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Helion.Util.CommandLine;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -31,13 +33,59 @@ public class ConsoleCommandEventArgs : EventArgs
     /// </param>
     public ConsoleCommandEventArgs(string text)
     {
-        string[] tokens = text.Split(' ');
-        if (tokens.Length == 0)
+        var tokens = text.Contains('"') ? GetCommandLineArgs(text) : text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Count == 0)
             return;
 
         Command = tokens[0];
-        for (int i = 1; i < tokens.Length; i++)
+        for (int i = 1; i < tokens.Count; i++)
             Args.Add(tokens[i]);
+    }
+
+    private static IList<string> GetCommandLineArgs(string commandLine)
+    {
+        List<string> args = new();
+        int start = 0;
+        int lastAddedIndex = -1;
+        bool quote = false;
+        for (int i = 0; i < commandLine.Length; i++)
+        {
+            if (!quote && commandLine[i] == ' ')
+            {
+                lastAddedIndex = i;
+                if (i != start)
+                    AddArg(args, commandLine.Substring(start, i - start));
+                start = i + 1;
+            }
+
+            if (commandLine[i] == '"')
+            {
+                if (quote)
+                {
+                    lastAddedIndex = i;
+                    if (i != start)
+                        AddArg(args, commandLine.Substring(start, i - start));
+                    quote = false;
+                }
+                else
+                {
+                    start = i + 1;
+                    quote = true;
+                }
+            }
+        }
+
+        if (lastAddedIndex != commandLine.Length)
+            AddArg(args, commandLine.Substring(start, commandLine.Length - start));
+
+        return args;
+    }
+
+    private static void AddArg(List<string> args, string text)
+    {
+        text = text.Trim();
+        if (text.Length > 0)
+            args.Add(text);
     }
 
     public override string ToString() => $"{Command} [{string.Join(", ", Args)}]";

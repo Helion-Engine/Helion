@@ -398,6 +398,15 @@ public partial class Client
 
     private void AddWorldResumeCommand(Action<ConsoleCommandEventArgs> action, ConsoleCommandEventArgs args)
     {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        if (!m_layerManager.WorldLayer.World.Paused)
+        {
+            action(args);
+            return;
+        }
+
         if (m_layerManager.WorldLayer != null)
             m_resumeCommands.Add(new Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>(action, args));
     }

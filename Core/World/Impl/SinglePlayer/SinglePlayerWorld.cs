@@ -340,7 +340,7 @@ public class SinglePlayerWorld : WorldBase
     {
         m_chaseCamMode = !m_chaseCamMode;
         string activated = m_chaseCamMode ? "activated" : "deactivated";
-        Log.Info($"Third person camera mode {activated}");
+        Log.Info($"Chase camera {activated}");
 
         DrawHud = !m_chaseCamMode;
 

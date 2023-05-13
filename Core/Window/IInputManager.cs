@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 using Helion.Window.Input;
 
 namespace Helion.Window;
@@ -24,5 +25,6 @@ public interface IInputManager
     bool HasAnyKeyDown();
     void Processed();
     bool IsKeyContinuousHold(Key key);
+    void GetPressedKeys(DynamicArray<Key> pressedKeys);
     IConsumableInput Poll();
 }
