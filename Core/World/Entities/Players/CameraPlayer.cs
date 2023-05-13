@@ -11,7 +11,7 @@ namespace Helion.World.Entities.Players;
 
 public class CameraPlayer : Player
 {
-    public override bool IsThirdPersonCamera => true;
+    public override bool IsCamera => true;
 
     public CameraPlayer(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
         Sector sector, IWorld world)

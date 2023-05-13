@@ -118,7 +118,7 @@ public abstract partial class WorldBase : IWorld
     public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
     public int CheckCounter { get; set; }
-    public virtual bool IsThirdPersonCamera => false;
+    public virtual bool IsChaseCamMode => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }
     public abstract ListenerParams GetListener();
@@ -2483,7 +2483,7 @@ public abstract partial class WorldBase : IWorld
         };
     }
 
-    public virtual void ToggleThirdPersonCameraMode()
+    public virtual void ToggleChaseCameraMode()
     {
     }
 

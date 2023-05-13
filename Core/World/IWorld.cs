@@ -87,7 +87,7 @@ public interface IWorld : IDisposable
     Player Player { get; }
     bool IsFastMonsters { get; }
     int CheckCounter { get; set; }
-    bool IsThirdPersonCamera { get; }
+    bool IsChaseCamMode { get; }
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
 
@@ -147,7 +147,7 @@ public interface IWorld : IDisposable
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSideScroll(Side side, SideTexture textures);
     void SetEntityPosition(Entity entity, Vec3D pos);
-    void ToggleThirdPersonCameraMode();
+    void ToggleChaseCameraMode();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

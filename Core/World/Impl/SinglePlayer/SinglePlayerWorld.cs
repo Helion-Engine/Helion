@@ -31,15 +31,15 @@ namespace Helion.World.Impl.SinglePlayer;
 public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private bool m_thirdPersonCameraMode;
+    private bool m_chaseCamMode;
 
     public override Player Player { get; protected set; }
-    public readonly Player ThirdPersonCameraPlayer;
-    public override bool IsThirdPersonCamera => m_thirdPersonCameraMode;
+    public readonly Player ChaseCamPlayer;
+    public override bool IsChaseCamMode => m_chaseCamMode;
     public override Player GetCameraPlayer()
     { 
-        if (m_thirdPersonCameraMode)
-            return ThirdPersonCameraPlayer;
+        if (m_chaseCamMode)
+            return ChaseCamPlayer;
         return Player;
     }
 
@@ -118,12 +118,12 @@ public class SinglePlayerWorld : WorldBase
 
         // Right now lazy loading from zip causes a noticeable delay. Preload to prevent stutter.
         SoundManager.CacheSound("misc/secret");
-        ThirdPersonCameraPlayer = EntityManager.CreateCameraPlayer(Player);
-        ThirdPersonCameraPlayer.Flags.Invisible = true;
-        ThirdPersonCameraPlayer.Flags.NoClip = true;
-        ThirdPersonCameraPlayer.Flags.NoGravity = true;
-        ThirdPersonCameraPlayer.Flags.NoBlockmap = true;
-        ThirdPersonCameraPlayer.Flags.NoSector = true;
+        ChaseCamPlayer = EntityManager.CreateCameraPlayer(Player);
+        ChaseCamPlayer.Flags.Invisible = true;
+        ChaseCamPlayer.Flags.NoClip = true;
+        ChaseCamPlayer.Flags.NoGravity = true;
+        ChaseCamPlayer.Flags.NoBlockmap = true;
+        ChaseCamPlayer.Flags.NoSector = true;
     }
 
     public override ListenerParams GetListener()
@@ -139,25 +139,28 @@ public class SinglePlayerWorld : WorldBase
         else
             Player.SetCrosshairTarget(null);
 
-        if (m_thirdPersonCameraMode)
-            TickThirdPersonCameraPlayer();
+        if (m_chaseCamMode)
+            TickChaseCamPlayer();
 
         base.Tick();
     }
 
-    private void TickThirdPersonCameraPlayer()
+    private void TickChaseCamPlayer()
     {
         bool ignore = AnyLayerObscuring || DrawPause;
-        if (ignore && ThirdPersonCameraPlayer != null)
-            ThirdPersonCameraPlayer.ResetInterpolation();
+        if (ignore)
+        {
+            ChaseCamPlayer.ResetInterpolation();
+            return;
+        }
 
-        if (ThirdPersonCameraPlayer == null || ignore)
+        if (ChaseCamPlayer == null || ignore)
             return;
 
-        ThirdPersonCameraPlayer.HandleTickCommand();
-        ThirdPersonCameraPlayer.TickCommand.TickHandled();
-        ThirdPersonCameraPlayer.Tick();
-        PhysicsManager.Move(ThirdPersonCameraPlayer);
+        ChaseCamPlayer.HandleTickCommand();
+        ChaseCamPlayer.TickCommand.TickHandled();
+        ChaseCamPlayer.Tick();
+        PhysicsManager.Move(ChaseCamPlayer);
     }
 
     private bool GetCrosshairTarget(out Entity? entity)
@@ -333,20 +336,21 @@ public class SinglePlayerWorld : WorldBase
         return base.EntityUse(entity);
     }
 
-    public override void ToggleThirdPersonCameraMode()
+    public override void ToggleChaseCameraMode()
     {
-        m_thirdPersonCameraMode = !m_thirdPersonCameraMode;
-        string enabled = m_thirdPersonCameraMode ? "enabled" : "disabled";
-        Log.Info($"Third person camera mode {enabled}");
+        m_chaseCamMode = !m_chaseCamMode;
+        string activated = m_chaseCamMode ? "activated" : "deactivated";
+        Log.Info($"Third person camera mode {activated}");
 
-        DrawHud = !m_thirdPersonCameraMode;
+        DrawHud = !m_chaseCamMode;
 
-        if (m_thirdPersonCameraMode)
+        if (m_chaseCamMode)
         {
-            ThirdPersonCameraPlayer.SetPosition(Player.Position);
-            ThirdPersonCameraPlayer.AngleRadians = Player.AngleRadians;
-            ThirdPersonCameraPlayer.PitchRadians = Player.PitchRadians;
-            ThirdPersonCameraPlayer.ResetInterpolation();
+            ChaseCamPlayer.SetPosition(Player.Position);
+            ChaseCamPlayer.AngleRadians = Player.AngleRadians;
+            ChaseCamPlayer.PitchRadians = Player.PitchRadians;
+            ChaseCamPlayer.Velocity = Vec3D.Zero;
+            ChaseCamPlayer.ResetInterpolation();
 
             if (PlayingDemo)
                 base.Resume();
@@ -366,10 +370,10 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Resume()
     {
-        if (m_thirdPersonCameraMode && !PlayingDemo)
+        if (m_chaseCamMode && !PlayingDemo)
             return;
 
-        if (!m_thirdPersonCameraMode)
+        if (!m_chaseCamMode)
             DrawHud = true;
 
         base.Resume();
@@ -394,7 +398,7 @@ public class SinglePlayerWorld : WorldBase
     {
         Player player = GetCameraPlayer();
 
-        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (player.World.PlayingDemo && !player.IsThirdPersonCamera))
+        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (player.World.PlayingDemo && !player.IsCamera))
             return;
 
         Vec2I pixelsMoved = input.ConsumeMouseMove();
@@ -406,7 +410,7 @@ public class SinglePlayerWorld : WorldBase
 
             player.AddToYaw(moveDelta.X, true);
 
-            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsThirdPersonCamera)
+            if ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
                 player.AddToPitch(moveDelta.Y, true);
         }
     }

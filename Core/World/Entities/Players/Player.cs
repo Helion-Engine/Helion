@@ -98,7 +98,7 @@ public class Player : Entity
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
-    public virtual bool IsThirdPersonCamera => false;
+    public virtual bool IsCamera => false;
 
     public virtual bool DrawFullBright()
     {

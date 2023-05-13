@@ -38,7 +38,7 @@ public partial class WorldLayer : IGameLayerParent
     private readonly FpsTracker m_fpsTracker;
     private readonly Profiler m_profiler;
     private readonly TickCommand m_tickCommand = new();
-    private readonly TickCommand m_thirdPersonTickCommand = new();
+    private readonly TickCommand m_chaseCamTickCommand = new();
     private readonly TickCommand m_demoTickCommand = new();
     private TickerInfo m_lastTickInfo = new(0, 0);
     private bool m_drawAutomap;
@@ -48,7 +48,7 @@ public partial class WorldLayer : IGameLayerParent
     private bool m_paused;
 
     private Player Player => World.Player;
-    public bool ShouldFocus => !World.Paused || (World.IsThirdPersonCamera && !AnyLayerObscuring);
+    public bool ShouldFocus => !World.Paused || (World.IsChaseCamMode && !AnyLayerObscuring);
 
     public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker, 
         SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)

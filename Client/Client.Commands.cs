@@ -39,13 +39,13 @@ public partial class Client
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
 
-    [ConsoleCommand("thirdperson", "Toggles third person camera mode")]
-    private void ToggleThirdPersonCameraMode(ConsoleCommandEventArgs args)
+    [ConsoleCommand("chasecam", "Toggles chase camera mode")]
+    private void ToggleChaseCam(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.ToggleThirdPersonCameraMode();
+        m_layerManager.WorldLayer.World.ToggleChaseCameraMode();
     }
 
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
