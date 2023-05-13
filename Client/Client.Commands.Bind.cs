@@ -33,7 +33,10 @@ public partial class Client
         }
 
         if (args.Args.Count < 2)
+        {
             Log.Error("Bind requries two arguments");
+            return;
+        }
 
         string key = args.Args[0];
         string command = args.Args[1];
@@ -59,7 +62,10 @@ public partial class Client
         }
 
         if (args.Args.Count < 1)
+        {
             Log.Error("Bind requries one argument");
+            return;
+        }
 
         if (!GetInputKey(args.Args[0], out var inputKey))
             return;
