@@ -42,7 +42,6 @@ public class AutomapMarker
     private readonly LegacyWorldRenderer m_worldRenderer;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly Stopwatch m_stopwatch = new();
-    private BitArray m_seenSubsectors = new(0);
     private Task? m_task;
     private CancellationTokenSource _cancelTasks = new();
     private ViewClipper m_viewClipper;
@@ -63,9 +62,10 @@ public class AutomapMarker
         if (m_task != null)
             return;
 
+        ClearData();
+
         world.OnDestroying += World_OnDestroying;
         m_world = world;
-        m_seenSubsectors = new(world.BspTree.Subsectors.Length);
         m_lineDrawnTracker.UpdateToWorld(world);
         m_task = Task.Factory.StartNew(() => AutomapTask(_cancelTasks.Token), _cancelTasks.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -86,8 +86,17 @@ public class AutomapMarker
         _cancelTasks.Dispose();
         m_task.Wait();
 
+        ClearData();
+
         _cancelTasks = new CancellationTokenSource();
         m_task = null;
+    }
+
+    private void ClearData()
+    {
+        m_lineDrawnTracker.ClearDrawnLines();
+        m_positions.Clear();
+        m_viewClipper.Clear();
     }
 
     public void AddPosition(Vec3D pos, Vec3D viewDirection, double angleRadians, double pitchRadians)
