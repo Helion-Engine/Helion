@@ -37,6 +37,8 @@ public class ConfigKeyMappingTest
         (Key.ControlRight, Constants.Input.Attack),
         (Key.MouseWheelUp, Constants.Input.NextWeapon),
         (Key.MouseWheelDown, Constants.Input.PreviousWeapon),
+        (Key.MouseWheelUp, Constants.Input.AutoMapIncrease),
+        (Key.MouseWheelDown, Constants.Input.AutoMapDecrease),
         (Key.One, Constants.Input.WeaponSlot1),
         (Key.Two, Constants.Input.WeaponSlot2),
         (Key.Three, Constants.Input.WeaponSlot3),

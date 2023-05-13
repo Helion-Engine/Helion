@@ -46,18 +46,16 @@ public class ConfigKeyMapping : IConfigKeyMapping
         AddIfMissing(Key.ShiftRight, Constants.Input.Run);
         AddIfMissing(Key.AltLeft, Constants.Input.Strafe);
         AddIfMissing(Key.AltRight, Constants.Input.Strafe);
-        AddIfMissing(Key.Left, Constants.Input.TurnLeft);
-        AddIfMissing(Key.Right, Constants.Input.TurnRight);
-        AddIfMissing(Key.Up, Constants.Input.LookUp);
-        AddIfMissing(Key.Down, Constants.Input.LookDown);
+        AddIfMissing(Key.Left, Constants.Input.TurnLeft, Constants.Input.AutoMapLeft);
+        AddIfMissing(Key.Right, Constants.Input.TurnRight, Constants.Input.AutoMapRight);
+        AddIfMissing(Key.Up, Constants.Input.LookUp, Constants.Input.AutoMapUp);
+        AddIfMissing(Key.Down, Constants.Input.LookDown, Constants.Input.AutoMapDown);
         AddIfMissing(Key.Space, Constants.Input.Jump);
         AddIfMissing(Key.C, Constants.Input.Crouch);
         AddIfMissing(Key.Backtick, Constants.Input.Console);
         AddIfMissing(Key.MouseLeft, Constants.Input.Attack);
         AddIfMissing(Key.ControlLeft, Constants.Input.Attack);
         AddIfMissing(Key.ControlRight, Constants.Input.Attack);
-        AddIfMissing(Key.Up, Constants.Input.NextWeapon);
-        AddIfMissing(Key.Down, Constants.Input.PreviousWeapon);
         AddIfMissing(Key.One, Constants.Input.WeaponSlot1);
         AddIfMissing(Key.Two, Constants.Input.WeaponSlot2);
         AddIfMissing(Key.Three, Constants.Input.WeaponSlot3);
@@ -66,19 +64,13 @@ public class ConfigKeyMapping : IConfigKeyMapping
         AddIfMissing(Key.Six, Constants.Input.WeaponSlot6);
         AddIfMissing(Key.Seven, Constants.Input.WeaponSlot7);
         AddIfMissing(Key.PrintScreen, Constants.Input.Screenshot);
-        AddIfMissing(Key.Equals, Constants.Input.HudIncrease);
-        AddIfMissing(Key.Minus, Constants.Input.HudDecrease);
-        AddIfMissing(Key.Equals, Constants.Input.AutoMapIncrease);
-        AddIfMissing(Key.Minus, Constants.Input.AutoMapDecrease);
-        AddIfMissing(Key.Up, Constants.Input.AutoMapUp);
-        AddIfMissing(Key.Down, Constants.Input.AutoMapDown);
-        AddIfMissing(Key.Left, Constants.Input.AutoMapLeft);
-        AddIfMissing(Key.Right, Constants.Input.AutoMapRight);
+        AddIfMissing(Key.Equals, Constants.Input.HudIncrease, Constants.Input.AutoMapIncrease);
+        AddIfMissing(Key.Minus, Constants.Input.HudDecrease, Constants.Input.AutoMapDecrease);
+        AddIfMissing(Key.MouseWheelUp, Constants.Input.AutoMapIncrease, Constants.Input.NextWeapon);
+        AddIfMissing(Key.MouseWheelDown, Constants.Input.AutoMapDecrease, Constants.Input.PreviousWeapon);
         AddIfMissing(Key.F2, Constants.Input.Save);
         AddIfMissing(Key.F3, Constants.Input.Load);
         AddIfMissing(Key.Tab, Constants.Input.Automap);
-        AddIfMissing(Key.MouseWheelUp, Constants.Input.NextWeapon);
-        AddIfMissing(Key.MouseWheelDown, Constants.Input.PreviousWeapon);
         AddIfMissing(Key.Pause, Constants.Input.Pause);
         AddIfMissing(Key.F6, Constants.Input.QuickSave);
     }
@@ -88,12 +80,13 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Changed = false;
     }
 
-    private void AddIfMissing(Key key, string command)
+    private void AddIfMissing(Key key, params string[] commands)
     {
         if (m_keyToCommands.ContainsKey(key))
             return;
 
-        Add(key, command);
+        foreach (var command in commands)
+            Add(key, command);
     }
 
     public void Add(Key key, string command)

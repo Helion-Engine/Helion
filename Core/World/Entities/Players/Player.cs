@@ -774,7 +774,8 @@ public class Player : Entity
         m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
         if (Weapon != null && Weapon.ReadyToFire)
         {
-            double value = 0.1 * World.LevelTime;
+            const double WeaponSwayMultiplier = Math.PI / 32;
+            double value = WeaponSwayMultiplier * World.LevelTime;
             BobOffset = (m_bob * Math.Cos(value % MathHelper.TwoPi), m_bob * Math.Sin(value % MathHelper.Pi));
         }
 

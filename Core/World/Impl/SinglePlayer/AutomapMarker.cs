@@ -63,11 +63,18 @@ public class AutomapMarker
         if (m_task != null)
             return;
 
+        world.OnDestroying += World_OnDestroying;
         m_world = world;
         m_seenSubsectors = new(world.BspTree.Subsectors.Length);
         m_lineDrawnTracker.UpdateToWorld(world);
         m_task = Task.Factory.StartNew(() => AutomapTask(_cancelTasks.Token), _cancelTasks.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    }
+
+    private void World_OnDestroying(object? sender, EventArgs e)
+    {
+        m_world.OnDestroying -= World_OnDestroying;
+        Stop();
     }
 
     public void Stop()
@@ -104,7 +111,7 @@ public class AutomapMarker
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
 
-                LegacyWorldRenderer.SetOccludePosition(pos.Position, pos.AngleRadians, pos.PitchRadians, 
+                LegacyWorldRenderer.SetOccludePosition(pos.Position, pos.AngleRadians, pos.PitchRadians,
                     ref m_occlude, ref m_occludeViewPos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position, pos.ViewDirection.XY, m_world);
             }

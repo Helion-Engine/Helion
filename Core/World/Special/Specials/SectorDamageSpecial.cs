@@ -48,7 +48,7 @@ public class SectorDamageSpecial
 
     public virtual void Tick(Player player)
     {
-        if (!player.OnSectorFloorZ(m_sector) || (m_world.Gametick & 31) != 0 || m_damage == 0)
+        if (!player.OnSectorFloorZ(m_sector) || (m_world.LevelTime & 31) != 0 || m_damage == 0)
             return;
 
         if (m_alwaysDamage || !player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
