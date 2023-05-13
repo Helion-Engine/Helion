@@ -1,6 +1,7 @@
 ﻿using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Shader;
@@ -11,7 +12,6 @@ using Helion.Window;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Drawing;
 
 namespace Helion.Render.OpenGL.Renderers;
 
@@ -142,8 +142,10 @@ public class FramebufferRenderer : IDisposable
     {
         mat4 mvp = CalculateMvp();
 
+        (byte clearR, byte clearG, byte clearB, byte clearA) = Color.Black;
+
         GL.Viewport(0, 0, m_window.Dimension.Width, m_window.Dimension.Height);
-        GL.ClearColor(Color.Black);
+        GL.ClearColor(clearR, clearG, clearB, clearA);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
         m_program.Bind();

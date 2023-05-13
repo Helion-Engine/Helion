@@ -1,8 +1,8 @@
 using System;
-using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Resources;

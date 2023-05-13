@@ -59,8 +59,8 @@ public static class TrueTypeFont
                 {
                     rgbaImage.Mutate(ctx =>
                     {
-                        ctx.Fill(Color.Transparent);
-                        ctx.DrawText(text, imageSharpFont, Color.White, offset);
+                        ctx.Fill(Color.Transparent.ToImageSharp);
+                        ctx.DrawText(text, imageSharpFont, Color.White.ToImageSharp, offset);
                     });
 
                     Dictionary<char, Image> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);

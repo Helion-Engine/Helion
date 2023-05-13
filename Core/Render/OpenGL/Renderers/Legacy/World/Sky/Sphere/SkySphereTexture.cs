@@ -1,6 +1,4 @@
 using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
@@ -175,7 +173,8 @@ public class SkySphereTexture : IDisposable
             int y = startY;
             while (iteration < blendRange)
             {
-                Pen pen = new Pen(Color.FromArgb(alpha, fadeColor));
+                Color color = Color.FromInts(fadeColor.R, fadeColor.G, fadeColor.B, alpha);
+                Pen pen = new Pen(color);
                 g.DrawLine(pen, 0, y, bitmap.Width - 1, y);
 
                 alpha += alphaStepDelta;

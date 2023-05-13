@@ -1,5 +1,4 @@
 using Helion.Render.OpenGL.Vertex;
-using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;

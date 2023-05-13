@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;

@@ -1,4 +1,4 @@
-using System.Drawing;
+using Helion.Graphics;
 
 namespace Helion.World.Entities.Definition.Properties.Components;
 

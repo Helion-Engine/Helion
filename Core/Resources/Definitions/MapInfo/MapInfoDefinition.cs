@@ -1,3 +1,4 @@
+using Helion.Graphics;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -5,7 +6,6 @@ using Helion.Util.Parser;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace Helion.Resources.Definitions.MapInfo;
 

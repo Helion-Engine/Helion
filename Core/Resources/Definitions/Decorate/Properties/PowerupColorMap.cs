@@ -1,4 +1,4 @@
-using System.Drawing;
+using Helion.Graphics;
 
 namespace Helion.Resources.Definitions.Decorate.Properties;
 

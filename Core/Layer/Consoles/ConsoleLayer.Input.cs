@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+using Helion.Graphics;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Consoles.Commands;
@@ -9,6 +6,9 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Cheats;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TextCopy;
 
 namespace Helion.Layer.Consoles;

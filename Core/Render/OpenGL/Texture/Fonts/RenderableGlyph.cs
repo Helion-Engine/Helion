@@ -1,4 +1,4 @@
-using System.Drawing;
+using Helion.Graphics;
 using Helion.Graphics.Geometry;
 
 namespace Helion.Render.OpenGL.Texture.Fonts;
@@ -41,8 +41,7 @@ public readonly struct RenderableGlyph
     /// </summary>
     public readonly Color Color;
 
-    public RenderableGlyph(char character, ImageBox2I coordinates, ImageBox2D location, ImageBox2D uv,
-        Color color)
+    public RenderableGlyph(char character, ImageBox2I coordinates, ImageBox2D location, ImageBox2D uv, Color color)
     {
         Character = character;
         Coordinates = coordinates;

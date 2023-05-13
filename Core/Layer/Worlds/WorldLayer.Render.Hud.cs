@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -35,8 +35,8 @@ public partial class WorldLayer
     private const int FpsMessageSpacing = 2;
     private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
     private const long FadingNanoSpan = 350L * 1000L * 1000L;
-    private static readonly Color PickupColor = Color.FromArgb(255, 255, 128);
-    private static readonly Color DamageColor = Color.FromArgb(255, 0, 0);
+    private static readonly Color PickupColor = (255, 255, 128);
+    private static readonly Color DamageColor = (255, 0, 0);
     private static readonly string SmallHudFont = "SmallFont";
     private static readonly string LargeHudFont = "LargeHudFont";
     private static readonly string ConsoleFont = "Console";
@@ -235,7 +235,8 @@ public partial class WorldLayer
             lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
-        Color lightLevelColor = Color.FromArgb(lightLevel, lightLevel, lightLevel);
+        byte byteColor = (byte)Math.Clamp(lightLevel, 0, 255);
+        Color lightLevelColor = (byteColor, byteColor, byteColor);
         string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
 
         if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))

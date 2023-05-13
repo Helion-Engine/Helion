@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Graphics;

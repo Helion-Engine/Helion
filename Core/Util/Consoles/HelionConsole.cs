@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
+using Helion.Graphics;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
@@ -26,8 +26,8 @@ public class HelionConsole : Target
 {
     private const string TargetName = "HelionConsole";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static readonly Color DebugColor = Color.FromArgb(255, 128, 255, 255);
-    private static readonly Color TraceColor = Color.FromArgb(255, 200, 255, 255);
+    private static readonly Color DebugColor = (255, 128, 255);
+    private static readonly Color TraceColor = (255, 200, 255);
 
     /// <summary>
     /// All the messages that have been received thus far.

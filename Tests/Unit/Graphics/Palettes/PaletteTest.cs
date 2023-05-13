@@ -1,4 +1,3 @@
-using System.Drawing;
 using FluentAssertions;
 using Helion.Graphics.Palettes;
 using Xunit;

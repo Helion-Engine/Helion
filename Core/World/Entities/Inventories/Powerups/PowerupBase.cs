@@ -1,9 +1,9 @@
+using Helion.Graphics;
 using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
-using System.Drawing;
 using System;
 using System.Globalization;
 
@@ -112,7 +112,7 @@ public class PowerupBase : IPowerup
         if (!int.TryParse(color.Color.AsSpan(6, 2), NumberStyles.HexNumber, null, out int b))
             return null;
 
-        return Color.FromArgb(0, r, g, b);
+        return Color.FromInts(r, g, b, 0);
     }
 
     public virtual InventoryTickStatus Tick(Player player)
@@ -163,7 +163,7 @@ public class PowerupBase : IPowerup
         else if (PowerupType == PowerupType.Invulnerable)
         {
             EntityDefinition.Properties.Powerup.Color = new PowerupColor("00 00 00");
-            EntityDefinition.Properties.Powerup.Colormap = new PowerupColorMap(Color.FromArgb(0, 0, 0, 0));
+            EntityDefinition.Properties.Powerup.Colormap = new PowerupColorMap((0, 0, 0, 0));
         }
     }
 

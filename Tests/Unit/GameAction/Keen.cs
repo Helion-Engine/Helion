@@ -5,7 +5,6 @@ using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Impl.SinglePlayer;
-using System.Drawing;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction

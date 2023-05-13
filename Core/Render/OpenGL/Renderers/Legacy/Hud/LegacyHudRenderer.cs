@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using GlmSharp;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Context;
@@ -71,7 +72,7 @@ public class LegacyHudRenderer : HudRenderer
     public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
     {
         GLLegacyTexture texture = m_textureManager.WhiteTexture;
-        AddImage(texture, drawArea, Color.FromArgb(255, color.R, color.G, color.B), alpha, false);
+        AddImage(texture, drawArea, (255, color.R, color.G, color.B), alpha, false);
     }
 
     public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha)

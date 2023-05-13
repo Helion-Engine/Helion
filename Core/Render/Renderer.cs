@@ -1,6 +1,7 @@
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL;
@@ -24,14 +25,13 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
 
 public class Renderer : IDisposable
 {
-    public static readonly Color DefaultBackground = Color.FromArgb(16, 16, 16);
+    public static readonly Color DefaultBackground = (16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
 

@@ -1,13 +1,12 @@
-using System.Drawing;
+using Helion.Graphics;
 using System.Runtime.InteropServices;
-using SystemColor = System.Drawing.Color;
 
 namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct ClearRenderCommand
 {
-    public static readonly Color DefaultClearColor = SystemColor.Black;
+    public static readonly Color DefaultClearColor = (0, 0, 0, 0);
 
     public readonly bool Color;
     public readonly bool Depth;
@@ -22,7 +21,7 @@ public struct ClearRenderCommand
         ClearColor = clearColor;
     }
 
-    public static ClearRenderCommand All() => All(SystemColor.FromArgb(16, 16, 16));
+    public static ClearRenderCommand All() => All((16, 16, 16));
 
     public static ClearRenderCommand All(Color clearColor)
     {

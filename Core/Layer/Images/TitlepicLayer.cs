@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
+using Helion.Graphics;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;

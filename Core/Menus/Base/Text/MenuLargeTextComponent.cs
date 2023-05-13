@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace Helion.Menus.Base.Text;
 
 public class MenuLargeTextComponent : MenuTextComponent

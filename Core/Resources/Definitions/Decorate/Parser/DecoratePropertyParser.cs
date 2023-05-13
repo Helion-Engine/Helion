@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using Helion.Graphics;
 using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
@@ -54,7 +54,7 @@ public partial class DecorateParser
         case "GREY":
             return Color.Gray;
         case "GREEN":
-            return Color.FromArgb(0, 255, 0);
+            return (0, 255, 0);
         case "LIGHTBLUE":
             return Color.LightBlue;
         case "OLIVE":
@@ -88,7 +88,7 @@ public partial class DecorateParser
         if (!int.TryParse(blueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int b))
             throw MakeException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
 
-        return Color.FromArgb(r, g, b);
+        return (r, g, b);
     }
 
     private WeaponBob ConsumeBobStyleProperty()
@@ -563,7 +563,7 @@ public partial class DecorateParser
             if (!MathHelper.InNormalRange(r))
                 throw MakeException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
 
-            Color source = Color.FromArgb(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
+            Color source = Color.FromInts((int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255), 255);
             m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
         }
         else

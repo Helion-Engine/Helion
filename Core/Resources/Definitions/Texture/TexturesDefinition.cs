@@ -1,11 +1,11 @@
 ﻿using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace Helion.Resources.Definitions.Texture
 {
@@ -239,7 +239,7 @@ namespace Helion.Resources.Definitions.Texture
         {
             int line = parser.GetCurrentLine();
             if (parser.PeekInteger(out int _))
-                m_componentOptions.BlendColor = Color.FromArgb(255, GetInt(parser), GetInt(parser), GetInt(parser));
+                m_componentOptions.BlendColor = Color.FromInts(GetInt(parser), GetInt(parser), GetInt(parser), 255);
             else
                 m_componentOptions.BlendColor = Color.FromName(parser.ConsumeString());
 

@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Quads;
@@ -7,6 +6,7 @@ using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
+using Helion.Graphics;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
 using Helion.World;

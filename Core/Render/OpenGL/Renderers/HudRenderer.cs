@@ -1,6 +1,7 @@
 using System;
-using System.Drawing;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Texture.Fonts;
 

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Drawing;
+﻿using Helion.Graphics;
+using System;
 
 namespace Helion.Resources.Definitions.Texture
 {

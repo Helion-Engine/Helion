@@ -1,5 +1,5 @@
+using Helion.Graphics;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace Helion.Resources.Definitions.Locks;
 

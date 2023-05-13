@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Palettes;
@@ -61,7 +60,7 @@ public class Palette
 
         int offset = 0;
         for (int i = 0; i < BytesPerLayer; i += ColorComponents)
-            paletteColors[offset++] = Color.FromArgb(255, data[i], data[i + 1], data[i + 2]);
+            paletteColors[offset++] = (data[i], data[i + 1], data[i + 2]);
 
         return paletteColors;
     }

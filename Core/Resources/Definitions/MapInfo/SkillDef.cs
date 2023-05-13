@@ -1,7 +1,7 @@
+using Helion.Graphics;
 using Helion.Util.Configs;
 using Helion.World.Entities.Definition.Flags;
 using System;
-using System.Drawing;
 
 namespace Helion.Resources.Definitions.MapInfo;
 

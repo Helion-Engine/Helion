@@ -1,5 +1,5 @@
+using Helion.Graphics;
 using Helion.Render.OpenGL.Vertex;
-using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
@@ -43,7 +43,7 @@ public readonly struct HudVertex
         DrawInvulnerability = drawInvul ? 1.0f : 0.0f;
     }
 
-    // TODO: Color is bad for perf, remove in the future.
+    // TODO: Updated color to be RGBA, but still need to do step 2 and abandon division for RGBA.
     public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawInvul) : 
         this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawInvul)
     {

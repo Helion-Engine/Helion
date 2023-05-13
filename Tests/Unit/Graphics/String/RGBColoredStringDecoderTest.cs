@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using FluentAssertions;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Util;
@@ -14,9 +14,9 @@ public class RGBColoredStringDecoderTest
     private static void AssertMatches(string rawString, params Tuple<string, Color>[] expectedColors)
     {
         DataCache dataCache = new();
-        var image = new Helion.Graphics.Image(new Bitmap(16, 16), Helion.Graphics.ImageType.Argb);
+        var image = new Image(new Bitmap(16, 16), ImageType.Argb);
         var glyphs = new Dictionary<char, Glyph>() { { 'A', new Glyph() } };
-        var font = new Helion.Graphics.Fonts.Font("test", glyphs, image);
+        var font = new Font("test", glyphs, image);
         RenderableString colorStr = new(dataCache, rawString, font, 12);
 
         int startIndex = 0;
@@ -57,7 +57,7 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Handles a single color")]
     public void SingleColor()
     {
-        AssertMatches(@"a\c[123,45,6]color", Tuple.Create("a", Color.White), Tuple.Create("color", Color.FromArgb(123, 45, 6)));
+        AssertMatches(@"a\c[123,45,6]color", Tuple.Create("a", Color.White), Tuple.Create("color", new Color(123, 45, 6)));
     }
 
     [Fact(DisplayName = "Color at end of the string does nothing")]
@@ -69,7 +69,7 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Decodes multiple colors")]
     public void MultipleColors()
     {
-        AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", Tuple.Create(" ", Color.FromArgb(123, 45, 6)), Tuple.Create("some c", Color.FromArgb(0, 0, 0)), Tuple.Create("olor", Color.FromArgb(255, 0, 255)), Tuple.Create("s", Color.FromArgb(1, 2, 1)));
+        AssertMatches(@"\c[123,45,6] \c[0,0,0]some c\c[255,0,255]olor\c[1,2,1]s", Tuple.Create(" ", new Color(123, 45, 6)), Tuple.Create("some c", new Color(0, 0, 0)), Tuple.Create("olor", new Color(255, 0, 255)), Tuple.Create("s", new Color(1, 2, 1)));
     }
 
     [Fact(DisplayName = "Malformed color codes are ignored")]
@@ -81,7 +81,7 @@ public class RGBColoredStringDecoderTest
     [Fact(DisplayName = "Not allowed to do RGB values larger than 255")]
     public void HigherThan255IsClamped()
     {
-        AssertMatches(@"\c[0,5,982]hi", Tuple.Create("hi", Color.FromArgb(0, 5, 255)));
+        AssertMatches(@"\c[0,5,982]hi", Tuple.Create("hi", new Color(0, 5, 255)));
     }
 
     [Fact(DisplayName = "Negatives for RGB do not work")]

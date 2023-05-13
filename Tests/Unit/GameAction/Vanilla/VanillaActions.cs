@@ -15,7 +15,6 @@ using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using MoreLinq;
-using System.Drawing;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction

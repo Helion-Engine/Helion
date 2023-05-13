@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
@@ -236,10 +236,7 @@ public class RenderableString
             colorIndex++;
         }
 
-        return Color.FromArgb(
-            (byte)MathHelper.Clamp(r, 0, 255),
-            (byte)MathHelper.Clamp(g, 0, 255),
-            (byte)MathHelper.Clamp(b, 0, 255));
+        return ((byte)MathHelper.Clamp(r, 0, 255), (byte)MathHelper.Clamp(g, 0, 255), (byte)MathHelper.Clamp(b, 0, 255));
     }
 
 

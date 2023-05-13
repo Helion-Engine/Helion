@@ -1,12 +1,12 @@
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
 using Helion.Util.Extensions;
+using SixLabors.ImageSharp.ColorSpaces;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -24,14 +24,15 @@ public class Image
     public static readonly Image NullImage = CreateNullImage();
     public static readonly Image WhiteImage = CreateWhiteImage();
 
-    public readonly Bitmap Bitmap;
     public Dimension Dimension;
     public readonly ImageType ImageType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
+    private readonly Color[] m_pixels; //public readonly Bitmap Bitmap;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
+    public Span<Color> Colors => m_pixels;
 
     /// <summary>
     /// Creates a new image that uses the bitmap provided. If it is not in
@@ -326,5 +327,43 @@ public class Image
         Bitmap bitmap = new(1, 1, PixelFormat.Format32bppArgb);
         bitmap.SetPixel(0, 0, Color.White);
         return new(bitmap, ImageType.Argb);
+    }
+
+
+    // From: https://swharden.com/blog/2022-11-04-csharp-create-bitmap/
+    private byte[] GetBytes()
+    {
+        const int imageHeaderSize = 54;
+
+        // TODO: m_rgb = 3 * Area;
+
+        byte[] bmpBytes = new byte[m_rgb.Length + imageHeaderSize];
+
+        bmpBytes[0] = (byte)'B';
+        bmpBytes[1] = (byte)'M';
+        bmpBytes[14] = 40;
+        Array.Copy(BitConverter.GetBytes(bmpBytes.Length), 0, bmpBytes, 2, 4);
+        Array.Copy(BitConverter.GetBytes(imageHeaderSize), 0, bmpBytes, 10, 4);
+        Array.Copy(BitConverter.GetBytes(Width), 0, bmpBytes, 18, 4);
+        Array.Copy(BitConverter.GetBytes(Height), 0, bmpBytes, 22, 4);
+        Array.Copy(BitConverter.GetBytes(32), 0, bmpBytes, 28, 2);
+        Array.Copy(BitConverter.GetBytes(m_rgb.Length), 0, bmpBytes, 34, 4);
+        Array.Copy(m_rgb, 0, bmpBytes, imageHeaderSize, m_rgb.Length);
+
+        return bmpBytes;
+    }
+
+    public bool Save(string path)
+    {
+        try
+        {
+            byte data = GetBytes();
+            File.WriteAllBytes(path, data);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
