@@ -33,10 +33,6 @@ public class SinglePlayerWorld : WorldBase
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private bool m_thirdPersonCameraMode;
 
-    public override Vec3D ListenerPosition => Player.Position;
-    public override double ListenerAngle => Player.AngleRadians;
-    public override double ListenerPitch => Player.PitchRadians;
-    public override Entity ListenerEntity => Player;
     public override Player Player { get; protected set; }
     public readonly Player ThirdPersonCameraPlayer;
     public override bool IsThirdPersonCamera => m_thirdPersonCameraMode;
@@ -128,6 +124,12 @@ public class SinglePlayerWorld : WorldBase
         ThirdPersonCameraPlayer.Flags.NoGravity = true;
         ThirdPersonCameraPlayer.Flags.NoBlockmap = true;
         ThirdPersonCameraPlayer.Flags.NoSector = true;
+    }
+
+    public override ListenerParams GetListener()
+    {
+        var player = GetCameraPlayer();
+        return new ListenerParams(player, player.PitchRadians);
     }
 
     public override void Tick()

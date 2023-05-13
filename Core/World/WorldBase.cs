@@ -103,10 +103,6 @@ public abstract partial class WorldBase : IWorld
     public LinkableList<Entity> Entities => EntityManager.Entities;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
-    public abstract Vec3D ListenerPosition { get; }
-    public abstract double ListenerAngle { get; }
-    public abstract double ListenerPitch { get; }
-    public abstract Entity ListenerEntity { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
     public BlockMap RenderBlockmap { get; private set; }
     public SpecialManager SpecialManager { get; private set; }
@@ -125,6 +121,7 @@ public abstract partial class WorldBase : IWorld
     public virtual bool IsThirdPersonCamera => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }
+    public abstract ListenerParams GetListener();
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -1529,7 +1526,8 @@ public abstract partial class WorldBase : IWorld
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            Log.Info(message);
+            if (player.Id == GetCameraPlayer().Id)
+                Log.Info(message);
             PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }

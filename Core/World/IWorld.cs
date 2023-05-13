@@ -63,10 +63,6 @@ public interface IWorld : IDisposable
     IList<Sector> Sectors { get; }
     CompactBspTree BspTree { get; }
     LinkableList<Entity> Entities { get; }
-    Vec3D ListenerPosition { get; }
-    double ListenerAngle { get; }
-    double ListenerPitch { get; }
-    Entity ListenerEntity { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
@@ -156,4 +152,5 @@ public interface IWorld : IDisposable
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
     Player GetCameraPlayer();
+    ListenerParams GetListener();
 }
