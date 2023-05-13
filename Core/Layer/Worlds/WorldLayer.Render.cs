@@ -25,7 +25,7 @@ public partial class WorldLayer
         ctx.ClearStencil();
 
         // TODO: Workaround until later...
-        var oldCamera = World.Player.GetCamera(m_lastTickInfo.Fraction);
+        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
         m_camera.Set(oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
         m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
 

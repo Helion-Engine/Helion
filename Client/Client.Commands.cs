@@ -39,6 +39,15 @@ public partial class Client
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
 
+    [ConsoleCommand("chasecam", "Toggles chase camera mode")]
+    private void ToggleChaseCam(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.ToggleChaseCameraMode();
+    }
+
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
     private void SetPosition(ConsoleCommandEventArgs args)
     {

@@ -1,6 +1,7 @@
 using Helion.Demo;
 using Helion.World;
 using Helion.World.Cheats;
+using Helion.World.Entities.Players;
 
 namespace Helion.Layer.Worlds;
 
@@ -9,6 +10,7 @@ public partial class WorldLayer
     private IDemoPlayer? m_demoPlayer;
     private IDemoRecorder? m_demoRecorder;
     private bool m_recording;
+    private bool m_demoEnded;
     private int m_demoSkipTicks;
 
     private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
@@ -47,6 +49,7 @@ public partial class WorldLayer
         if (World.PlayingDemo)
             return false;
 
+        m_demoEnded = false;
         World.PlayingDemo = true;
         m_demoPlayer = player;
         return false;
@@ -64,6 +67,8 @@ public partial class WorldLayer
 
     private void TickWorld()
     {
+        World.AnyLayerObscuring = AnyLayerObscuring;
+        TickCommand cmd = GetTickCommand();
         m_lastTickInfo = m_ticker.GetTickerInfo();
         int ticksToRun = m_lastTickInfo.Ticks;
 
@@ -99,7 +104,7 @@ public partial class WorldLayer
 
         // Need to process the same command for each tick that needs be run.
         if (m_demoPlayer == null)
-            World.SetTickCommand(m_tickCommand);
+            World.SetTickCommand(World.GetCameraPlayer(), cmd);
 
         bool nextCommand = false;
         while (ticksToRun > 0)
@@ -111,7 +116,14 @@ public partial class WorldLayer
         }
 
         if (nextCommand)
-            m_tickCommand.Clear();
+            cmd.Clear();
+    }
+
+    private TickCommand GetTickCommand()
+    {
+        if (World.IsChaseCamMode)
+            return m_chaseCamTickCommand;
+        return m_tickCommand;
     }
 
     public void RunTicks(int ticks)
@@ -126,21 +138,32 @@ public partial class WorldLayer
 
     private void RecordTickCommand()
     {
-        if (m_demoRecorder != null)
+        if (m_demoRecorder != null && !World.Paused)
             m_demoRecorder.AddTickCommand(World.Player);
     }
 
     private bool NextTickCommand()
     {
-        if (World.Paused || World.WorldState != WorldState.Normal)
-            return false;
+        if (World.Paused || World.WorldState != WorldState.Normal || World.IsChaseCamMode)
+        {
+            if (AnyLayerObscuring)
+                return false;
+
+            World.SetTickCommand(World.GetCameraPlayer(), GetTickCommand());
+            if (!World.IsChaseCamMode)
+                return false;
+        }
 
         if (m_demoPlayer == null)
             return true;
 
-        DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_tickCommand, out _, out var activatedCheats);
+        if (World.Paused || World.WorldState != WorldState.Normal)
+            return m_demoEnded;
+
+        DemoTickResult result = m_demoPlayer.SetNextTickCommand(m_demoTickCommand, out _, out var activatedCheats);
         if (result == DemoTickResult.DemoEnded)
         {
+            m_demoEnded = true;
             World.DisplayMessage(Player, null, "The demo has ended.");
             World.DemoEnded = true;
             World.Pause();
@@ -155,7 +178,7 @@ public partial class WorldLayer
             World.CheatManager.ActivateCheat(World.Player, (CheatType)cheat.CheatType, cheat.LevelNumber);
         }
 
-        World.SetTickCommand(m_tickCommand);
+        World.SetTickCommand(Player, m_demoTickCommand);
         return true;
     }
 

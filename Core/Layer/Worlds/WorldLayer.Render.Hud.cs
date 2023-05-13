@@ -128,6 +128,9 @@ public partial class WorldLayer
 
     private void DrawHudEffects(IHudRenderContext hud)
     {
+        if (!Player.World.DrawHud)
+            return;
+
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
         if (powerup?.DrawColor != null && powerup.DrawPowerupEffect)
             hud.Clear(powerup.DrawColor.Value, powerup.DrawAlpha);
@@ -185,6 +188,9 @@ public partial class WorldLayer
 
     private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)
     {
+        if (!Player.World.DrawHud)
+            return;
+
         if (Player.AnimationWeapon != null && !m_drawAutomap)
         {
             hudContext.DrawInvul = Player.DrawInvulnerableColorMap();

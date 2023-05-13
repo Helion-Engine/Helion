@@ -60,17 +60,18 @@ public class Player : Entity
     public int ItemCount;
     public int SecretsFound;
 
+    protected double m_prevPitch;
+    protected double m_viewZ;
+    protected double m_prevViewZ;
+    protected bool m_interpolateAngle;
+
     private bool m_isJumping;
     private bool m_hasNewWeapon;
     private int m_jumpTics;
     private int m_deathTics;
-    private double m_prevPitch;
-    private double m_viewZ;
-    private double m_prevViewZ;
     private double m_bob;
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
-    private bool m_interpolateAngle;
 
     private readonly OldCamera m_camera = new (Vec3F.Zero, 0, 0);
 
@@ -97,8 +98,9 @@ public class Player : Entity
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
+    public virtual bool IsCamera => false;
 
-    public bool DrawFullBright()
+    public virtual bool DrawFullBright()
     {
         if (World.Config.Render.Fullbright)
             return true;
@@ -422,6 +424,9 @@ public class Player : Entity
         PrevWeaponOffset = WeaponOffset;
         PrevBobOffset = BobOffset;
 
+        ViewAngleRadians = 0;
+        ViewPitchRadians = 0;
+
         base.ResetInterpolation();
     }
 
@@ -560,7 +565,7 @@ public class Player : Entity
     private bool IsMaxFpsTickRate() =>
         World.Config.Render.MaxFPS != 0 && World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
 
-    private bool ShouldInterpolate()
+    protected bool ShouldInterpolate()
     {
         if (IsMaxFpsTickRate())
             return false;
@@ -1049,11 +1054,28 @@ public class Player : Entity
 
         SetWeaponTop();
         Weapon.RequestFire();
+        SetFireState();
 
-         if (!Weapon.Definition.Flags.WeaponNoAlert)
+        if (!Weapon.Definition.Flags.WeaponNoAlert)
             World.NoiseAlert(this, this);
 
         return true;
+    }
+
+    public void SetFireState()
+    {
+        if (Weapon == null)
+            return;
+
+        if (Weapon.Definition.Flags.WeaponMeleeWeapon)
+        {
+            if (Definition.MissileState.HasValue)
+                FrameState.SetFrameIndex(Definition.MissileState.Value);
+            return;
+        }
+
+        if (Definition.MeleeState.HasValue)
+            FrameState.SetFrameIndex(Definition.MeleeState.Value);
     }
 
     /// <summary>

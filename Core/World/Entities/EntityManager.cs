@@ -147,6 +147,9 @@ public class EntityManager : IDisposable
         if (entity.Flags.IsTeleportSpot)
             TeleportSpots.Remove(entity);
 
+        if (entity.PlayerObj != null)
+            Players.Remove(entity.PlayerObj);
+
         entity.Dispose();
     }
 
@@ -170,6 +173,23 @@ public class EntityManager : IDisposable
         }
 
         AddRealPlayer(player);
+
+        return player;
+    }
+
+    public CameraPlayer CreateCameraPlayer(Entity spawnSpot)
+    {
+        EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
+        if (playerDefinition == null)
+        {
+            Log.Error("Missing player definition class {0}, cannot create player", Constants.PlayerClass);
+            throw new HelionException("Missing the default player class, should never happen");
+        }
+
+        Vec3D position = spawnSpot.Position;
+        Sector sector = World.BspTree.ToSector(position);
+        CameraPlayer player = new(short.MaxValue, 0, playerDefinition, position, spawnSpot.AngleRadians, sector, World);
+        player.EntityListNode.Previous = player.EntityListNode;
         return player;
     }
 
