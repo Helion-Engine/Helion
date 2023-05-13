@@ -108,7 +108,7 @@ public class SkySphereTexture : IDisposable
         g /= totalPixels;
         b /= totalPixels;
 
-        return Color.FromArgb(255, r, g, b);
+        return Color.FromInts(r, g, b, 255);
     }
 
     private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor,
