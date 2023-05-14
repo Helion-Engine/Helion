@@ -271,9 +271,10 @@ public class SinglePlayerWorld : WorldBase
 
     public void HandleFrameInput(IConsumableInput input)
     {
+        HandleMouseLook(input);
+
         if (!Paused)
             CheatManager.HandleInput(Player, input);
-        HandleMouseLook(input);
     }
 
     public void SetTickCommand(Player player, TickCommand tickCommand)
