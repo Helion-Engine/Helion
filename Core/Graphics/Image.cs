@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
+using Helion.Maps;
 using Helion.Resources;
+using Helion.Util.Assertion;
 using Helion.Util.Extensions;
-using SixLabors.ImageSharp.ColorSpaces;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -28,316 +31,166 @@ public class Image
     public readonly ImageType ImageType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
-    private readonly Color[] m_pixels; //public readonly Bitmap Bitmap;
+    private readonly uint[] m_pixels;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
-    public Span<Color> Colors => m_pixels;
 
-    /// <summary>
-    /// Creates a new image that uses the bitmap provided. If it is not in
-    /// 32bpp ARGB, it will be converted.
-    /// </summary>
-    /// <param name="bitmap">The bitmap to use.</param>
-    /// <param name="imageType">The image type.</param>
-    /// <param name="offset">The offset.</param>
-    /// <param name="resourceNamespace">The resource namespace.</param>
-    public Image(Bitmap bitmap, ImageType imageType, Vec2I offset = default, ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+    private Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
+        this(new uint[dimension.Area], dimension, imageType, offset, ns)
     {
-        Bitmap = EnsureExpectedFormat(bitmap);
-        ImageType = imageType;
-        Dimension = (bitmap.Width, bitmap.Height);
-        Offset = offset;
-        Namespace = resourceNamespace;
     }
 
-    /// <summary>
-    /// Creates a new image filled with some color (transparent by default).
-    /// </summary>
-    /// <param name="width">The width (if less than 1, will be set to 1).
-    /// </param>
-    /// <param name="height">The height (if less than 1, will be set to 1).
-    /// </param>
-    /// <param name="imageType">The image type to use.</param>
-    /// <param name="offset">The offset.</param>
-    /// <param name="resourceNamespace">The resource namespace.</param>
-    /// <param name="fillColor">The color to use, or transparent by default.
-    /// </param>
-    public Image(int width, int height, ImageType imageType, Vec2I offset = default,
-        ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? fillColor = null)
+    private Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns)
     {
-        Dimension = (Math.Max(width, 1), Math.Max(height, 1));
-        Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+        Precondition(pixels.Length == dimension.Area, "Image size mismatch");
+
+        Dimension = dimension;
         ImageType = imageType;
         Offset = offset;
-        Namespace = resourceNamespace;
-
-        Fill(fillColor ?? Color.Transparent);
+        Namespace = ns;
+        m_pixels = pixels;
     }
 
-    public unsafe int TransparentPixelCount()
+    public static Image? FromPaletteIndices(Dimension dimension, ushort[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
     {
-        if (Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
-            return 0;
-
-        int count = 0;
-        Rectangle rect = new(0, 0, Bitmap.Width, Bitmap.Height);
-        BitmapData bmpData = Bitmap.LockBits(rect, ImageLockMode.ReadOnly, Bitmap.PixelFormat);
-
-        byte* scanData = (byte*)bmpData.Scan0.ToPointer();
-        int stride = bmpData.Stride;
-        int bytesPerPixel = System.Drawing.Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
-
-        for (int y = 0; y < Height; y++)
-        {
-            byte* row = scanData + (y * stride);
-            for (int x = 0; x < Bitmap.Width; x++)
-            {
-                // Check if the alpha byte is set
-                int index = x * bytesPerPixel;
-                if (row[index + 3] == 0)
-                    count++;
-            }
-        }
-
-        Bitmap.UnlockBits(bmpData);
-        return count;
-    }
-
-    private static Bitmap EnsureExpectedFormat(Bitmap bitmap)
-    {
-        if (bitmap.PixelFormat == PixelFormat.Format32bppArgb)
-            return bitmap;
-
-        Bitmap copy = new(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
-
-        using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(copy);
-        g.DrawImage(bitmap, new Rectangle(0, 0, copy.Width, copy.Height));
-
-        return copy;
-    }
-
-    /// <summary>
-    /// Creates an image from the ARGB data and dimensions provided.
-    /// </summary>
-    /// <remarks>
-    /// If there is a data mismatch (such as 4 * w * h != data length) then
-    /// null is returned.
-    /// </remarks>
-    /// <param name="dimension">The dimension of the image.</param>
-    /// <param name="argb">The raw ARGB data. Due to little endianness, the
-    /// lower byte may have to be blue and the highest order byte alpha.
-    /// </param>
-    /// <param name="offset">The offset (zero by default).</param>
-    /// <param name="resourceNamespace">The resource namespace.</param>
-    /// <returns>The image, or null if the image cannot be made due to data
-    /// being of an incorrect size.</returns>
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argb, Vec2I offset = default,
-        ResourceNamespace resourceNamespace = ResourceNamespace.Global)
-    {
-        (int w, int h) = dimension;
-        int numBytes = w * h * 4;
-
-        if (argb.Length != numBytes || w <= 0 || h <= 0)
+        if (dimension.Area != indices.Length)
             return null;
 
-        Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
-
-        Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
-        BitmapData metadata = bitmap.LockBits(rect, ImageLockMode.ReadWrite, bitmap.PixelFormat);
-        Marshal.Copy(argb, 0, metadata.Scan0, numBytes);
-        bitmap.UnlockBits(metadata);
-
-        return new Image(bitmap, ImageType.Argb, offset, resourceNamespace);
+        uint[] pixels = indices.Select(s => (uint)s).ToArray();
+        return new(pixels, dimension, ImageType.Palette, offset, ns);
     }
 
-    public static Image? FromPaletteIndices(Dimension dimension, ushort[] indices, Vec2I offset = default,
-        ResourceNamespace resourceNamespace = ResourceNamespace.Global)
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argb, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
     {
-        (int w, int h) = dimension;
-
-        if (w <= 0 || h <= 0 || indices.Length != w * h)
+        if (dimension.Area != argb.Length * 4)
             return null;
 
-        int numBytes = w * h * 4;
-        byte[] paletteData = new byte[numBytes];
-
-        // TODO: Perf: Save time and have the user pass in the AxxI format.
-        int argbIndex = 0;
-        for (int i = 0; i < indices.Length; i++)
-        {
-            ushort index = indices[i];
-
-            // To avoid branching: The index is either 0x0000 -> 0x00FF, but
-            // if it's transparent then it's 0xFF00. Since 0 -> 255 needs a
-            // 0xFF for the alpha (but the upper byte is 0x00), and since the
-            // translucent index is 0xFF00 (so the upper byte is 0xFF), then
-            // the alpha is equal to taking the top byte and flipping it.
-            //
-            // This is also stupid and will likely be removed when the to do
-            // comment above has the caller passing in an already allocated ARGB
-            // data buffer.
-            paletteData[argbIndex] = (byte)~(index >> 8);
-            paletteData[argbIndex + 3] = (byte)index;
-
-            argbIndex += 4;
-        }
-
-        Bitmap bitmap = new(w, h, PixelFormat.Format32bppArgb);
-        Rectangle rect = new(0, 0, bitmap.Width, bitmap.Height);
-        BitmapData metadata = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
-        Marshal.Copy(paletteData, 0, metadata.Scan0, numBytes);
-        bitmap.UnlockBits(metadata);
-
-        return new Image(bitmap, ImageType.Palette, offset, resourceNamespace);
+        uint[] pixels = new uint[argb.Length / 4];
+        return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    /// <summary>
-    /// Fills the image with the color provided.
-    /// </summary>
-    /// <param name="color">The color to fill.</param>
-    public void Fill(Color color)
-    {
-        using SolidBrush b = new(color);
-        using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(Bitmap);
-        g.FillRectangle(b, 0, 0, Bitmap.Width, Bitmap.Height);
-    }
-
-    /// <summary>
-    /// Draws the current image on top of the first argument, at the offset
-    /// provided.
-    /// </summary>
-    /// <param name="image">The image on the bottom, meaning it will have
-    /// the current image drawn on top of this.</param>
-    /// <param name="offset">The offset to which the image will be drawn
-    /// at.</param>
-    public void DrawOnTopOf(Image image, Vec2I offset)
-    {
-        using System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(image.Bitmap);
-        g.DrawImage(Bitmap, offset.X, offset.Y);
-    }
-
-    /// <summary>
-    /// Converts the palette image to an ARGB image. If this image is
-    /// already in ARGB, it will return itself and nothing new will be
-    /// allocated.
-    /// </summary>
-    /// <param name="palette">The palette to convert with.</param>
-    /// <returns>The converted image, or itself if it is ARGB.</returns>
     public Image PaletteToArgb(Palette palette)
     {
-        if (ImageType == ImageType.Argb)
-            return this;
+        uint[] pixels = new uint[m_pixels.Length];
+        Color[] layer = palette.DefaultLayer;
 
-        int numBytes = Width * Height * 4;
-        byte[] paletteBytes = new byte[numBytes];
-        byte[] argbBytes = new byte[numBytes];
+        for (int i = 0; i < m_pixels.Length; i++)
+        {
+            uint argb = m_pixels[i];
+            pixels[i] = (argb == Image.TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
+        }
 
-        Rectangle rect = new(0, 0, Bitmap.Width, Bitmap.Height);
-        BitmapData metadata = Bitmap.LockBits(rect, ImageLockMode.ReadWrite, Bitmap.PixelFormat);
-        Marshal.Copy(metadata.Scan0, paletteBytes, 0, numBytes);
-        Bitmap.UnlockBits(metadata);
+        return new(pixels, Dimension, ImageType.Argb, Offset, Namespace);
+    }
 
-        Color[] colors = palette.DefaultLayer;
-        int offset = 0;
+    public void DrawOnTopOf(Image image, Vec2I offset)
+    {
+        int writeXStart = offset.X;
+        int writeXEnd = writeXStart + image.Width;
+        int writeYStart = offset.Y;
+        int writeYEnd = writeYStart + image.Height;
+
+        // Do we write any pixels at all? If we're fully outside, such as too
+        // far to the left/right/up/down, we can't draw anything.
+        if (writeXStart >= Width || writeXEnd <= 0 || writeYStart >= Height || writeYEnd <= 0)
+            return;
+
+        int thisOffset = 0;
         for (int y = 0; y < Height; y++)
         {
+            int targetOffset = (offset.Y * image.Width) + offset.X;
+            int targetX = offset.X;
+
+            // If this row is above the image as we draw downward, continue on
+            // because maybe we will have some rows that intersect the image.
+            if (targetOffset < 0)
+                continue;
+
+            // Since we draw from the top downward, if we've gone past the bottom,
+            // then there's no more rows to draw.
+            if (targetOffset >= image.m_pixels.Length)
+                return;
+            
             for (int x = 0; x < Width; x++)
             {
-                // The first of the four bytes is the alpha, and if we have
-                // alpha, then we have to write the RGB. Otherwise, it is
-                // already set to transparent so our job would be done.
-                if (paletteBytes[offset] != 0)
-                {
-                    int index = paletteBytes[offset + 3];
-                    Color color = colors[index];
+                // If we've written too far to the right and would go out of bounds,
+                // stop blitting this row.
+                if (targetX >= Width)
+                    break;
 
-                    // Apparently since it reads it as a 32-bit word, then
-                    // we need to write it in BGRA format.
-                    argbBytes[offset] = color.B;
-                    argbBytes[offset + 1] = color.G;
-                    argbBytes[offset + 2] = color.R;
-                    argbBytes[offset + 3] = 255;
-                }
+                // If we're inside the image, copy the pixel over. This is gated by
+                // the above conditional so that we know we're writing in the range
+                // of [0, width).
+                if (targetX >= 0)
+                    image.m_pixels[targetOffset] = m_pixels[thisOffset];
 
-                offset += 4;
+                thisOffset++;
+                targetOffset++;
+                targetX++;
             }
         }
-
-        Image? image = FromArgbBytes((Width, Height), argbBytes, Offset, Namespace);
-        if (image != null)
-            return image;
-
-        Fail("Should never fail to convert to ARGB from palette at this point");
-        return new Image(1, 1, ImageType.Argb);
     }
 
-    /// <summary>
-    /// Saves this image to the hard drive at the path provided.
-    /// </summary>
-    /// <remarks>
-    /// Note that palette images will be written based on their "AR" color
-    /// channel, meaning it will be a bunch of black to red pixels, and
-    /// any transparency will be either 255 or 0 for the alpha channel. It
-    /// will not write them as a doom column byte formatted file.
-    /// </remarks>
-    /// <param name="path">The path to save it at.</param>
-    /// <returns>True on success, false on failure.</returns>
-    public bool WriteToDisk(string path)
+    public void Fill(Color color)
     {
-        try
-        {
-            Bitmap.Save(path, ImageFormat.Png);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        m_pixels.Fill(color.Uint);
     }
 
-    /// <summary>
-    /// Creates a checkered red/black null image.
-    /// </summary>
-    /// <returns>The 8x8 image that represents a null or missing image.</returns>
+    public int TransparentPixelCount()
+    {
+        return m_pixels.Sum(p => (p & 0xFF000000) == 0 ? 1 : 0);
+    }
+
+    public void SetPixel(int x, int y, Color color)
+    {
+        int offset = (y * Width) + x;
+        if (offset >= 0 && offset < m_pixels.Length)
+            m_pixels[offset] = color.Uint;
+    }
+
     private static Image CreateNullImage()
     {
-        const int dimension = 8;
-        const int halfDimension = dimension / 2;
+        const int Dimension = 8;
+        const int HalfDimension = Dimension / 2;
 
-        Bitmap bitmap = new(dimension, dimension, PixelFormat.Format32bppArgb);
+        Image image = new((Dimension, Dimension), ImageType.Argb);
+        image.Fill(Color.Black);
 
-        for (int y = 0; y < dimension; y++)
-            for (int x = 0; x < dimension; x++)
-                bitmap.SetPixel(x, y, Color.Black);
+        for (int y = 0; y < HalfDimension; y++)
+            for (int x = 0; x < HalfDimension; x++)
+                image.SetPixel(x, y, Color.Red);
 
-        for (int y = 0; y < halfDimension; y++)
-            for (int x = 0; x < halfDimension; x++)
-                bitmap.SetPixel(x, y, Color.Red);
+        for (int y = HalfDimension; y < Dimension; y++)
+            for (int x = HalfDimension; x < Dimension; x++)
+                image.SetPixel(x, y, Color.Red);
 
-        for (int y = halfDimension; y < dimension; y++)
-            for (int x = halfDimension; x < dimension; x++)
-                bitmap.SetPixel(x, y, Color.Red);
-
-        return new Image(bitmap, ImageType.Argb);
+        return image;
     }
 
     private static Image CreateWhiteImage()
     {
-        Bitmap bitmap = new(1, 1, PixelFormat.Format32bppArgb);
-        bitmap.SetPixel(0, 0, Color.White);
-        return new(bitmap, ImageType.Argb);
+        return new(new[] { Color.White.Uint }, (1, 1), ImageType.Argb, (0, 0), ResourceNamespace.Global);
     }
-
 
     // From: https://swharden.com/blog/2022-11-04-csharp-create-bitmap/
     private byte[] GetBytes()
     {
         const int imageHeaderSize = 54;
 
-        // TODO: m_rgb = 3 * Area;
+        byte[] rgb = new byte[Dimension.Area * 3];
 
-        byte[] bmpBytes = new byte[m_rgb.Length + imageHeaderSize];
+        int offset = 0;
+        for (int i = 0; i < m_pixels.Length; i++)
+        {
+            uint argb = m_pixels[i];
+            rgb[offset] = (byte)((argb & 0x00FF0000) >> 16);
+            rgb[offset + 1] = (byte)((argb & 0x0000FF00) >> 8);
+            rgb[offset + 2] = ((byte)(argb & 0x000000FF));
+            offset += 3;
+        }
+
+        byte[] bmpBytes = new byte[rgb.Length + imageHeaderSize];
 
         bmpBytes[0] = (byte)'B';
         bmpBytes[1] = (byte)'M';
@@ -347,8 +200,8 @@ public class Image
         Array.Copy(BitConverter.GetBytes(Width), 0, bmpBytes, 18, 4);
         Array.Copy(BitConverter.GetBytes(Height), 0, bmpBytes, 22, 4);
         Array.Copy(BitConverter.GetBytes(32), 0, bmpBytes, 28, 2);
-        Array.Copy(BitConverter.GetBytes(m_rgb.Length), 0, bmpBytes, 34, 4);
-        Array.Copy(m_rgb, 0, bmpBytes, imageHeaderSize, m_rgb.Length);
+        Array.Copy(BitConverter.GetBytes(rgb.Length), 0, bmpBytes, 34, 4);
+        Array.Copy(rgb, 0, bmpBytes, imageHeaderSize, rgb.Length);
 
         return bmpBytes;
     }
@@ -357,7 +210,7 @@ public class Image
     {
         try
         {
-            byte data = GetBytes();
+            byte[] data = GetBytes();
             File.WriteAllBytes(path, data);
             return true;
         }
