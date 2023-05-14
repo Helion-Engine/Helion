@@ -147,7 +147,7 @@ public class SkySphereTexture : IDisposable
 
         // Now draw the images on top of them.
         skyImage.DrawOnTopOf(fadedSky, (0, middleY));
-        skyImage.DrawOnTopOf(fadedSky, (0, middleY - fadedSky.Height));
+        skyImage.DrawOnTopOf(fadedSky, (0, middleY - skyImage.Height));
 
         // Now blend the top of the image into the background.
         if (rowsToEvaluate > 0)
@@ -167,7 +167,7 @@ public class SkySphereTexture : IDisposable
             // walk downwards to blend.
             for (int y = 0; y < rowsToEvaluate; y++)
             {
-                int targetY = (middleY + skyImage.Height) - y;
+                int targetY = (middleY + skyImage.Height - 1) - y;
                 float t = (float)y / rowsToEvaluate;
                 FillRow(bottomFadeColor.Normalized, targetY, t);
             }
@@ -177,89 +177,14 @@ public class SkySphereTexture : IDisposable
 
         void FillRow(Vec4F normalized, int targetY, float t)
         {
-            for (int x = 0; x < skyImage.Width; x++)
+            for (int x = 0; x < fadedSky.Width; x++)
             {
-                Color originalColor = skyImage.GetPixel(x, targetY);
+                Color originalColor = fadedSky.GetPixel(x, targetY);
                 Color newArgb = Color.Lerp(normalized, originalColor, t);
                 fadedSky.SetPixel(x, targetY, newArgb);
             }
         }
     }
-
-#if NUKE_IT
-    private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage)
-    {
-        int padding = Math.Max(1, skyImage.Height / DefaultPaddingDivisor);
-        Pen topPen = new Pen(Color.FromArgb(255, topFadeColor));
-        Pen bottomPen = new Pen(Color.FromArgb(255, bottomFadeColor));
-
-        // The sky texture looks like this (p = padding):
-        //
-        //      0  o----------o
-        //         |Fade color|
-        //     1/p o..........o  <- Blending
-        //         |          |
-        //         | Texture  |
-        //     1/2 o----------o
-        //         |          |
-        //         | Texture  |
-        // 1 - 1/p o..........o  <- Blending
-        //         |Fade color|
-        //      1  o----------o
-        //
-        // This is why we multiply by four. Note that there is no blending
-        // at the horizon (middle line).
-        Bitmap bitmap = new Bitmap(skyImage.Width, (skyImage.Height + padding) * 2);
-        System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bitmap);
-
-        int topPaddingSeamY = padding;
-        int middleY = bitmap.Height / 2;
-        int bottomPaddingSeamY = bitmap.Height - padding;
-
-        g.FillRectangle(topPen.Brush, 0, 0, skyImage.Width, middleY);
-        g.FillRectangle(bottomPen.Brush, 0, middleY, skyImage.Width, middleY);
-
-        g.DrawImage(skyImage.Bitmap, 0, middleY - skyImage.Height);
-        g.DrawImage(skyImage.Bitmap, 0, middleY);
-
-        g.CompositingMode = CompositingMode.SourceOver;
-        BlendSeam(topPaddingSeamY + rowsToEvaluate - 1, topPaddingSeamY - 1, topFadeColor);
-        BlendSeam(bottomPaddingSeamY - rowsToEvaluate, bottomPaddingSeamY + 1, bottomFadeColor);
-
-        return bitmap;
-
-        void BlendSeam(int startY, int endExclusiveY, Color fadeColor)
-        {
-            Precondition(startY != endExclusiveY, "Cannot blend an empty range");
-            Precondition(startY >= 0 && endExclusiveY < bitmap.Height, "Start blend index out of range");
-            Precondition(endExclusiveY >= -1 && endExclusiveY <= bitmap.Height, "End blend index out of range");
-
-            int blendRange = Math.Abs(endExclusiveY - startY);
-            int alphaStepDelta = 255 / Math.Max(Math.Min(blendRange, 255), 1);
-            int alpha = 0;
-
-            // We need to support both directions, which is why this is
-            // using a step variable and a while loop. The idea is to
-            // go along each row and blend it, and then decrease the
-            // alpha each row we proceed to by a small bit so it looks
-            // like it's blending to the background color slowly.
-            int step = (startY < endExclusiveY ? 1 : -1);
-            int iteration = 0;
-            int y = startY;
-            while (iteration < blendRange)
-            {
-                Color color = Color.FromInts(alpha, fadeColor.R, fadeColor.G, fadeColor.B);
-                Pen pen = new Pen(color);
-                g.DrawLine(pen, 0, y, bitmap.Width - 1, y);
-
-                alpha += alphaStepDelta;
-
-                y += step;
-                iteration++;
-            }
-        }
-    }
-#endif
 
     private void GenerateSkyIfNeeded()
     {
