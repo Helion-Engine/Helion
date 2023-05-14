@@ -133,39 +133,29 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private static unsafe int GetBlankRowsFromBottom(Image image)
     {
-        return 0;
-#if NUKE_IT
-        if (image.Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
+        if (image.ImageType != ImageType.Argb)
             return 0;
 
-        var bmp = image.Bitmap;
-        int bytesPerPixel = 3;
+        bool done = false;
         int y = image.Height - 1;
-
-        bmp.WithLockedBits(ReadScan, ImageLockMode.ReadOnly);
-
-        void ReadScan(BitmapData bmpData)
+        for (; y >= 0; y--)
         {
-            byte* scanData = (byte*)bmpData.Scan0.ToPointer();
-            int stride = bmpData.Stride;
-            int bytesPerPixel = System.Drawing.Image.GetPixelFormatSize(bmpData.PixelFormat) / 8;
-
-            while (y >= 0)
+            for (int x = 0; x < image.Width; x++)
             {
-                byte* row = scanData + (y * stride);
-                for (int x = 0; x < bmp.Width; x++)
+                // Did we find a row that has a non-blank pixel?
+                if (image.GetPixel(x, y).A != 0)
                 {
-                    // Check if the alpha byte is set
-                    int index = x * bytesPerPixel;
-                    if (row[index + 3] != 0)
-                        return;
+                    done = true;
+                    break;
                 }
-                y--;
             }
+
+            if (done)
+                break;
         }
 
-        return image.Bitmap.Height - y - 1;
-#endif
+        // Return either the bottom row, or 0 if the entire image is transparent.
+        return Math.Max(0, image.Height - y - 1);
     }
 
     private Image? ImageFromEntry(Entry entry)
