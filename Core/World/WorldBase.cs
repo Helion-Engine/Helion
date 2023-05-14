@@ -1521,12 +1521,14 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(Player player, Player? other, string message)
+    public virtual void DisplayMessage(string message) => DisplayMessage(null, null, message);
+
+    public virtual void DisplayMessage(Player? player, Player? other, string message)
     {
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            if (player.Id == GetCameraPlayer().Id)
+            if (player == null || player.Id == GetCameraPlayer().Id)
                 Log.Info(message);
             PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }

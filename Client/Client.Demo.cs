@@ -41,7 +41,7 @@ public partial class Client
         m_demoRecorder.Start();
         worldLayer.StartRecording(m_demoRecorder);
         worldLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
-        worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Recording has started.");
+        worldLayer.World.DisplayMessage("Recording has started.");
     }
 
     private void CheatManager_CheatActivationChanged(object? sender, CheatEventArgs e)
@@ -190,14 +190,10 @@ public partial class Client
         var demoMap = GetDemoMap(mapInfoDef.MapName);
         if (demoMap == null)
         {
-            newLayer.World.DisplayMessage(newLayer.World.Player, null, 
-                $"Demo does not contain map {mapInfoDef.MapName}. Playback stopped.");
+            newLayer.World.DisplayMessage($"Demo does not contain map {mapInfoDef.MapName}. Playback stopped.");
 
             if (m_demoModel != null)
-            {
-                newLayer.World.DisplayMessage(newLayer.World.Player, null,
-                    $"Available maps are: {string.Join(", ", m_demoModel.Maps.Select(x => x.Map))}");
-            }
+                newLayer.World.DisplayMessage($"Available maps are: {string.Join(", ", m_demoModel.Maps.Select(x => x.Map))}");
 
             demoPlayer.Stop();
             return;
@@ -217,7 +213,7 @@ public partial class Client
         demoPlayer.Start();
         newLayer.StartPlaying(demoPlayer);
         newLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
-        newLayer.World.DisplayMessage(newLayer.World.Player, null, "Demo playback has started.");
+        newLayer.World.DisplayMessage("Demo playback has started.");
     }
 
     private void CheckLoadMapDemo(WorldLayer worldLayer, WorldModel? worldModel)
@@ -229,14 +225,14 @@ public partial class Client
         {
             m_demoRecorder.Stop();
             worldLayer.StopRecording();
-            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo recording has stopped.");
+            worldLayer.World.DisplayMessage("Demo recording has stopped.");
         }
 
         if (m_demoPlayer != null)
         {
             m_demoPlayer.Stop();
             worldLayer.StopPlaying();
-            worldLayer.World.DisplayMessage(worldLayer.World.Player, null, "Demo playback has stopped.");
+            worldLayer.World.DisplayMessage("Demo playback has stopped.");
             m_demoPlayer.Dispose();
             m_demoPlayer = null;
         }

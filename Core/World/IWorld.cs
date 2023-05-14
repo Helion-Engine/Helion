@@ -125,7 +125,8 @@ public interface IWorld : IDisposable
     bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
-    void DisplayMessage(Player player, Player? other, string message);
+    void DisplayMessage(string message);
+    void DisplayMessage(Player? player, Player? other, string message);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
