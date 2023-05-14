@@ -239,7 +239,7 @@ namespace Helion.Resources.Definitions.Texture
         {
             int line = parser.GetCurrentLine();
             if (parser.PeekInteger(out int _))
-                m_componentOptions.BlendColor = Color.FromInts(GetInt(parser), GetInt(parser), GetInt(parser), 255);
+                m_componentOptions.BlendColor = Color.FromInts(255, GetInt(parser), GetInt(parser), GetInt(parser));
             else
                 m_componentOptions.BlendColor = Color.FromName(parser.ConsumeString());
 

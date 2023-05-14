@@ -108,7 +108,7 @@ public class SkySphereTexture : IDisposable
         g /= totalPixels;
         b /= totalPixels;
 
-        return Color.FromInts(r, g, b, 255);
+        return Color.FromInts(255, r, g, b);
     }
 
     private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor,
@@ -173,7 +173,7 @@ public class SkySphereTexture : IDisposable
             int y = startY;
             while (iteration < blendRange)
             {
-                Color color = Color.FromInts(fadeColor.R, fadeColor.G, fadeColor.B, alpha);
+                Color color = Color.FromInts(alpha, fadeColor.R, fadeColor.G, fadeColor.B);
                 Pen pen = new Pen(color);
                 g.DrawLine(pen, 0, y, bitmap.Width - 1, y);
 

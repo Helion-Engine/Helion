@@ -563,7 +563,7 @@ public partial class DecorateParser
             if (!MathHelper.InNormalRange(r))
                 throw MakeException("Powerup colormap source B value is not in the 0.0 - 1.0 range");
 
-            Color source = Color.FromInts((int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255), 255);
+            Color source = Color.FromInts(255, (int)(sourceR * 255), (int)(sourceG * 255), (int)(sourceB * 255));
             m_currentDefinition.Properties.Powerup.Colormap = new PowerupColorMap(source, dest);
         }
         else

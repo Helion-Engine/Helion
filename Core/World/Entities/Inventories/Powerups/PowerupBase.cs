@@ -112,7 +112,7 @@ public class PowerupBase : IPowerup
         if (!int.TryParse(color.Color.AsSpan(6, 2), NumberStyles.HexNumber, null, out int b))
             return null;
 
-        return Color.FromInts(r, g, b, 0);
+        return Color.FromInts(0, r, g, b);
     }
 
     public virtual InventoryTickStatus Tick(Player player)
