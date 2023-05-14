@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
@@ -7,6 +8,9 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util.Extensions;
 using NLog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 using Image = Helion.Graphics.Image;
 
 namespace Helion.Resources.Images;
@@ -129,6 +133,8 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private static unsafe int GetBlankRowsFromBottom(Image image)
     {
+        return 0;
+#if NUKE_IT
         if (image.Bitmap.PixelFormat != PixelFormat.Format32bppArgb)
             return 0;
 
@@ -159,6 +165,7 @@ public class ArchiveImageRetriever : IImageRetriever
         }
 
         return image.Bitmap.Height - y - 1;
+#endif
     }
 
     private Image? ImageFromEntry(Entry entry)
@@ -170,8 +177,22 @@ public class ArchiveImageRetriever : IImageRetriever
         {
             try
             {
-                Bitmap bitmap = new(new MemoryStream(data), true);
-                image = new Image(bitmap, ImageType.Palette, (0, 0), entry.Namespace);
+                using MemoryStream inputStream = new MemoryStream(data);
+                using Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
+                Dimension dim = (img.Width, img.Height);
+                byte[] argbData = new byte[dim.Area];
+
+                int offset = 0;
+                foreach (Rgba32 rgba in img.GetPixelSpan<Rgba32>())
+                {
+                    argbData[offset] = rgba.R;
+                    argbData[offset + 1] = rgba.G;
+                    argbData[offset + 2] = rgba.B;
+                    argbData[offset + 3] = rgba.A;
+                    offset += 4;
+                }
+
+                image = Image.FromArgbBytes(dim, argbData, (0, 0), entry.Namespace);
             }
             catch
             {

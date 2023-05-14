@@ -9,8 +9,8 @@ using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
 using Helion.Client.Input;
 using Helion.Client.Music;
+using Helion.Graphics;
 using Helion.Layer;
-using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -124,26 +124,44 @@ public partial class Client : IDisposable, IInputManagement
         m_window.Renderer.PerformThrowableErrorChecks();
     }
 
-    private void HandleScreenshot()
+    // TODO: This should be delegated to the renderer, not done here.
+    private unsafe void HandleScreenshot()
     {
         if (!m_takeScreenshot)
             return;
 
+        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
+        Log.Info($"Saving screenshot to {path}");
+
         m_takeScreenshot = false;
         GL.Finish();
 
-        // TODO: This should be delegated to the renderer, not done here.
         (int w, int h) = m_window.Dimension;
-        Bitmap bmp = new(w, h);
-        Rectangle rect = new(0, 0, w, h);
-        BitmapData data = bmp.LockBits(rect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-        GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
-        bmp.UnlockBits(data);
-        bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+        int pixelCount = m_window.Dimension.Area;
+        byte[] rgb = new byte[pixelCount * 3];
 
-        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
-        Log.Info($"Saving screenshot to {path}");
-        bmp.Save(path);
+        fixed (byte* rgbPtr = rgb)
+        {
+            IntPtr ptr = new(rgbPtr);
+            GL.ReadPixels(0, 0, w, h, PixelFormat.Bgr, PixelType.UnsignedByte, ptr);
+        }
+
+        uint[] argb = new uint[m_window.Dimension.Area];
+        int offset = 0;
+        for (int i = 0; i < pixelCount; i++)
+        {
+            uint r = rgb[offset];
+            uint g = rgb[offset + 1];
+            uint b = rgb[offset + 2];
+            argb[offset] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            offset += 3;
+        }
+
+        // Flip the image vertically, because OpenGL's coordinate system.
+        // TODO
+
+        Image image = new(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global);
+        image.Save(path);
     }
 
     private void Render()

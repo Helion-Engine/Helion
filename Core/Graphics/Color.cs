@@ -41,9 +41,23 @@ public record struct Color(byte A, byte R, byte G, byte B)
     public Vec4F Normalized => new Vec4F(A, R, G, B) * (1 / 255.0f);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new SixLabors.ImageSharp.PixelFormats.Rgba32(R, G, B, A));
 
+    public Color(Vec4F normalized) : 
+        this((byte)(normalized.X * 255), (byte)(normalized.Y * 255), (byte)(normalized.Z * 255), (byte)(normalized.W * 255))
+    {
+    }
+
     public Color(byte R, byte G, byte B) : this(255, R, G, B)
     {
     }
+
+    public Color(uint argb) : this(ExtractAlpha(argb), ExtractRed(argb), ExtractGreen(argb), ExtractBlue(argb))
+    {
+    }
+
+    public static byte ExtractAlpha(uint argb) => (byte)((argb & 0xFF000000) >> 24);
+    public static byte ExtractRed(uint argb) => (byte)((argb & 0x00FF0000) >> 16);
+    public static byte ExtractGreen(uint argb) => (byte)((argb & 0x0000FF00) >> 8);
+    public static byte ExtractBlue(uint argb) => (byte)((argb & 0x000000FF));
 
     public static implicit operator Color(ValueTuple<byte, byte, byte> tuple)
     {
@@ -66,6 +80,21 @@ public record struct Color(byte A, byte R, byte G, byte B)
     public static Color FromInts(int a, int r, int g, int b)
     {
         return new((byte)Math.Clamp(a, 0, 255), (byte)Math.Clamp(r, 0, 255), (byte)Math.Clamp(g, 0, 255), (byte)Math.Clamp(b, 0, 255));
+    }
+
+    // `t` is [0.0, 1.0], it does not saturate if out of range. Returns the
+    // lineraly interpolated color, where t = 0 is equal to this, and t = 1
+    // is equal to `other`.
+    public static Color Lerp(Vec4F normalized, Color other, float t)
+    {
+        Vec4F otherNormal = other.Normalized;
+        Vec4F delta = otherNormal - normalized;
+        return new(normalized + (delta * t));
+    }
+
+    public Color Lerp(Color other, float t)
+    {
+        return Color.Lerp(Normalized, other, t);
     }
 
     public static Color FromName(string name)

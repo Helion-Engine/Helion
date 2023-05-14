@@ -31,26 +31,22 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         ReleaseUnmanagedResources();
     }
 
-    public void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
+    public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
         Precondition(image.Dimension.Width > 0 && image.Dimension.Height > 0, $"Image {name} ({resourceNamespace}) has at least one dimension that is zero");
-        Precondition(image.Bitmap.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb, "Only support 32-bit ARGB images for uploading currently");
 
         GL.BindTexture(texture.Target, texture.TextureId);
 
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
-        var pixelArea = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
-        var lockMode = ImageLockMode.ReadOnly;
-        var format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
-        var bitmapData = image.Bitmap.LockBits(pixelArea, lockMode, format);
-
-        // Because the C# image format is 'ARGB', we can get it into the
-        // RGBA format by doing a BGRA format and then reversing it.
-        GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0, 
-            OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, bitmapData.Scan0);
-
-        image.Bitmap.UnlockBits(bitmapData);
+        fixed (uint* pixelPtr = image.Pixels)
+        {
+            IntPtr ptr = new(pixelPtr);
+            // Because the C# image format is 'ARGB', we can get it into the
+            // RGBA format by doing a BGRA format and then reversing it.
+            GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
+                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+        }
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         SetTextureParameters(TextureTarget.Texture2D, resourceNamespace, flags);

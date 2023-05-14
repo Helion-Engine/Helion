@@ -29,7 +29,7 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         private static Helion.Graphics.Image CreateImage(int width, int height) =>
-            new(new Bitmap(width, height), Helion.Graphics.ImageType.Argb);
+            new((width, height), Helion.Graphics.ImageType.Argb);
 
         [Fact(DisplayName = "E1M8 baron boss death")]
         public void E1M8()

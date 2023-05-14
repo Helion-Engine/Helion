@@ -40,7 +40,7 @@ public partial class DecorateParser
         case "CYAN":
             return Color.Cyan;
         case "DARKBROWN":
-            return Color.FromArgb(64, 16, 16);
+            return Color.DarkBrown;
         case "DARKGRAY":
         case "DARKGREY":
             return Color.DarkGray;
@@ -88,7 +88,7 @@ public partial class DecorateParser
         if (!int.TryParse(blueStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int b))
             throw MakeException($"Cannot parse red component from 'rr gg bb' format for a color in actor '{m_currentDefinition.Name}");
 
-        return (r, g, b);
+        return Color.FromInts(255, r, g, b);
     }
 
     private WeaponBob ConsumeBobStyleProperty()
@@ -546,7 +546,7 @@ public partial class DecorateParser
         if (!MathHelper.InNormalRange(r))
             throw MakeException("Powerup colormap destination B value is not in the 0.0 - 1.0 range");
 
-        Color dest = Color.FromArgb(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
+        Color dest = Color.FromInts(255, (int)(r * 255), (int)(g * 255), (int)(b * 255));
         if (ConsumeIf(','))
         {
             double sourceR = ConsumeFloat();

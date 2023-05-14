@@ -76,7 +76,7 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         private static Helion.Graphics.Image CreateImage(int width, int height) =>
-            new(new Bitmap(width, height), Helion.Graphics.ImageType.Argb);
+            new((width, height), Helion.Graphics.ImageType.Argb);
 
         [Fact(DisplayName = "Doom Action 1 (DR) Door open and Close")]
         public void Action1()

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Xunit;
 
@@ -32,12 +33,12 @@ public class PaletteTest
         Color[] topLayer = palette.DefaultLayer;
         for (int i = 0; i < Palette.NumColors; i++)
         {
-            Color expected = Color.FromArgb(255 - i, 255 - i, 255 - i);
+            Color expected = Color.FromInts(255, 255 - i, 255 - i, 255 - i);
             topLayer[i].Should().Be(expected);
         }
 
         Color[] bottomLayer = palette.Layer(1);
-        Color bottomColor = Color.FromArgb(128, 128, 128);
+        Color bottomColor = (128, 128, 128);
         for (int i = 0; i < Palette.NumColors; i++)
             bottomLayer[i].Should().Be(bottomColor);
     }

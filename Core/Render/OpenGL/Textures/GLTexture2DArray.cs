@@ -84,13 +84,14 @@ public class GLTexture2DArray : GLTexture
     }
 
     // Assumes the user binds first.
-    public void UploadLayer(Image image, int layer)
+    public unsafe void UploadLayer(Image image, int layer)
     {
-        image.Bitmap.WithLockedBits(ptr =>
+        fixed (uint* pixelPtr = image.Pixels)
         {
-            GL.TexSubImage3D(TextureTarget.Texture2DArray, 0, 0, 0, layer, image.Width, image.Height, 1, 
+            IntPtr ptr = new(pixelPtr);
+            GL.TexSubImage3D(TextureTarget.Texture2DArray, 0, 0, 0, layer, image.Width, image.Height, 1,
                 PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
-        });
+        }
     }
 
     // Assumes the user binds first.

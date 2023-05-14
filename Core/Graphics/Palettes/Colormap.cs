@@ -55,7 +55,7 @@ public class Colormap
 
         int offset = 0;
         for (int i = 0; i < BytesPerLayer; i += ColorComponents)
-            colormapColors[offset++] = Color.FromArgb(255, data[i], data[i + 1], data[i + 2]);
+            colormapColors[offset++] = Color.FromInts(255, data[i], data[i + 1], data[i + 2]);
 
         return colormapColors;
     }

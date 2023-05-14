@@ -313,7 +313,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
     private GLTextureType CreateWhiteTexture()
     {
-        Image whiteImage = new(1, 1, ImageType.Argb, fillColor: Color.White);
+        Image whiteImage = new(1, 1, ImageType.Argb);
+        whiteImage.Fill(Color.White);
+
         return GenerateTexture(whiteImage, "NULLWHITE", ResourceNamespace.Global);
     }
 

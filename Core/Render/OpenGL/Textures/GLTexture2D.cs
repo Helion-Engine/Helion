@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Helion.Render.OpenGL.Textures;
 
@@ -44,13 +45,14 @@ public class GLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public void UploadImage(Image image)
+    public unsafe void UploadImage(Image image)
     {
-        image.Bitmap.WithLockedBits(ptr =>
+        fixed (uint* pixelPtr = image.Pixels)
         {
+            IntPtr ptr = new(pixelPtr);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
                 PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
-        });
+        }
 
         Dimension = image.Dimension;
         Offset = image.Offset;

@@ -1,14 +1,16 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Maps;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using NLog.Targets;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
-using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
@@ -96,7 +98,7 @@ public class SkySphereTexture : IDisposable
         {
             for (int x = 0; x < skyImage.Width; x++)
             {
-                Color color = skyImage.Bitmap.GetPixel(x, y);
+                Color color = skyImage.GetPixel(x, y);
                 r += color.R;
                 g += color.G;
                 b += color.B;
@@ -111,8 +113,81 @@ public class SkySphereTexture : IDisposable
         return Color.FromInts(255, r, g, b);
     }
 
-    private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor,
-        Image skyImage)
+    // The sky texture looks like this (p = padding):
+    //
+    //      0  o----------o
+    //         |Fade color|
+    //     1/p o..........o  <- Blending
+    //         |          |
+    //         | Texture  |
+    //     1/2 o----------o
+    //         |          |
+    //         | Texture  |
+    // 1 - 1/p o..........o  <- Blending
+    //         |Fade color|
+    //      1  o----------o
+    //
+    // This is why we multiply by four. Note that there is no blending
+    // at the horizon (middle line).
+    //
+    // TODO: This is far from optimized, but I didn't optimize because
+    // it should be fast enough that no one cares. At most it does this
+    // for one or two textures at the beginning of the map.
+    private static Image CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage)
+    {
+        int padding = Math.Max(1, skyImage.Height / DefaultPaddingDivisor);
+
+        Image fadedSky = new((skyImage.Width, (skyImage.Height + padding) * 2), ImageType.Argb);
+        int middleY = fadedSky.Height / 2;
+
+        // Fill the top and bottom halves with the fade colors, so we can draw
+        // everything else on top of it later on.
+        fadedSky.FillRows(topFadeColor, 0, middleY);
+        fadedSky.FillRows(bottomFadeColor, middleY, fadedSky.Height);
+
+        // Now draw the images on top of them.
+        skyImage.DrawOnTopOf(fadedSky, (0, middleY));
+        skyImage.DrawOnTopOf(fadedSky, (0, middleY - fadedSky.Height));
+
+        // Now blend the top of the image into the background.
+        if (rowsToEvaluate > 0)
+        {
+            // We're going to start from the top of the blending area and work
+            // our way downward, because the logic is more programmer friendly.
+            // This means we start out with maximal blending (hence, 1.0 - frac)
+            // and then blend less and less on the way down.
+            for (int y = 0; y < rowsToEvaluate; y++)
+            {
+                int targetY = y + (middleY - skyImage.Height);
+                float t = 1.0f - ((float)y / rowsToEvaluate);
+                FillRow(topFadeColor.Normalized, targetY, t);
+            }
+
+            // Do the same but start at the top of the bottom transition zone and
+            // walk downwards to blend.
+            for (int y = 0; y < rowsToEvaluate; y++)
+            {
+                int targetY = (middleY + skyImage.Height) - y;
+                float t = (float)y / rowsToEvaluate;
+                FillRow(bottomFadeColor.Normalized, targetY, t);
+            }
+        }
+
+        return fadedSky;
+
+        void FillRow(Vec4F normalized, int targetY, float t)
+        {
+            for (int x = 0; x < skyImage.Width; x++)
+            {
+                Color originalColor = skyImage.GetPixel(x, targetY);
+                Color newArgb = Color.Lerp(normalized, originalColor, t);
+                fadedSky.SetPixel(x, targetY, newArgb);
+            }
+        }
+    }
+
+#if NUKE_IT
+    private static Bitmap CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage)
     {
         int padding = Math.Max(1, skyImage.Height / DefaultPaddingDivisor);
         Pen topPen = new Pen(Color.FromArgb(255, topFadeColor));
@@ -184,6 +259,7 @@ public class SkySphereTexture : IDisposable
             }
         }
     }
+#endif
 
     private void GenerateSkyIfNeeded()
     {
@@ -231,18 +307,16 @@ public class SkySphereTexture : IDisposable
         Color topFadeColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage);
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
-        Bitmap fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
+        Image fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
         return CreateTexture(fadedSkyImage, $"[SKY] {m_archiveCollection.TextureManager.SkyTextureName}");
     }
 
-    private GLLegacyTexture CreateTexture(Bitmap fadedSkyImage, string debugName = "")
+    private GLLegacyTexture CreateTexture(Image fadedSkyImage, string debugName = "")
     {
         int textureId = GL.GenTexture();
-        Dimension dim = new(fadedSkyImage.Width, fadedSkyImage.Height);
-        Image image = new(fadedSkyImage, ImageType.Argb);
-        GLLegacyTexture texture = new(textureId, debugName, dim, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
+        GLLegacyTexture texture = new(textureId, debugName, fadedSkyImage.Dimension, fadedSkyImage.Offset, fadedSkyImage.Namespace, TextureTarget.Texture2D, fadedSkyImage.TransparentPixelCount());
 
-        m_textureManager.UploadAndSetParameters(texture, image, debugName, ResourceNamespace.Global, TextureFlags.Default);
+        m_textureManager.UploadAndSetParameters(texture, fadedSkyImage, debugName, ResourceNamespace.Global, TextureFlags.Default);
 
         return texture;
     }

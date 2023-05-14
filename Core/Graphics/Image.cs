@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Geometry;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
 using Helion.Resources;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
+using Newtonsoft.Json.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -35,13 +38,21 @@ public class Image
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
+    public Span<uint> Pixels => m_pixels;
 
-    private Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
+    public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)
     {
     }
 
-    private Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns)
+    public Image(int w, int h, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
+        this((w, h), imageType, offset, ns)
+    {
+        Precondition(w >= 0, "Tried providing a negative width for an image");
+        Precondition(h >= 0, "Tried providing a negative height for an image");
+    }
+
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns)
     {
         Precondition(pixels.Length == dimension.Area, "Image size mismatch");
 
@@ -61,12 +72,24 @@ public class Image
         return new(pixels, dimension, ImageType.Palette, offset, ns);
     }
 
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argb, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
     {
-        if (dimension.Area != argb.Length * 4)
+        if (dimension.Area != argbData.Length * 4)
             return null;
 
-        uint[] pixels = new uint[argb.Length / 4];
+        uint[] pixels = new uint[argbData.Length / 4];
+
+        int argbByteOffset = 0;
+        for (int i = 0; i < argbData.Length; i++)
+        {
+            uint a = argbData[argbByteOffset];
+            uint r = argbData[argbByteOffset + 1];
+            uint g = argbData[argbByteOffset + 2];
+            uint b = argbData[argbByteOffset + 3];
+            pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
+            argbByteOffset += 4;
+        }
+
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
@@ -137,9 +160,25 @@ public class Image
         m_pixels.Fill(color.Uint);
     }
 
+    public void FillRows(Color color, int startY, int endY)
+    {
+        int offsetStart = startY * Width;
+        int offsetEnd = (endY - startY) * Width;
+        uint argb = color.Uint;
+        for (int i = offsetStart; i < offsetEnd; i++)
+            m_pixels[i] = argb;
+    }
+
     public int TransparentPixelCount()
     {
         return m_pixels.Sum(p => (p & 0xFF000000) == 0 ? 1 : 0);
+    }
+
+    public Color GetPixel(int x, int y)
+    {
+        int offset = (y * Width) + x;
+        uint argb = m_pixels[offset];
+        return new(argb);
     }
 
     public void SetPixel(int x, int y, Color color)
