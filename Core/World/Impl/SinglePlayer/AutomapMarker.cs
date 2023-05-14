@@ -39,7 +39,6 @@ public class AutomapMarker
         }
     }
 
-    private readonly LegacyWorldRenderer m_worldRenderer;
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly Stopwatch m_stopwatch = new();
     private Task? m_task;
@@ -51,9 +50,8 @@ public class AutomapMarker
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 
-    public AutomapMarker(ArchiveCollection archiveCollection, LegacyWorldRenderer worldRenderer)
+    public AutomapMarker(ArchiveCollection archiveCollection)
     {
-        m_worldRenderer = worldRenderer;
         m_viewClipper = new ViewClipper(archiveCollection.DataCache);
     }
 
@@ -75,6 +73,7 @@ public class AutomapMarker
     {
         m_world.OnDestroying -= World_OnDestroying;
         Stop();
+        m_world = null;
     }
 
     public void Stop()

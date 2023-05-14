@@ -25,6 +25,8 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
+using Helion.Util.Configs.Impl;
+using System.Reflection;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -32,6 +34,7 @@ public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private bool m_chaseCamMode;
+    private AutomapMarker m_automapMarker;
 
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
@@ -124,6 +127,19 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoGravity = true;
         ChaseCamPlayer.Flags.NoBlockmap = true;
         ChaseCamPlayer.Flags.NoSector = true;
+
+        m_automapMarker = new AutomapMarker(ArchiveCollection);
+        Config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
+    }
+
+    private void AutomapBspThread_OnChanged(object? sender, bool set)
+    {
+        m_automapMarker.Stop();
+
+        if (!set)
+            return;
+
+        m_automapMarker.Start(this);
     }
 
     public override ListenerParams GetListener()
@@ -138,11 +154,16 @@ public class SinglePlayerWorld : WorldBase
             Player.SetCrosshairTarget(entity);
         else
             Player.SetCrosshairTarget(null);
-
         if (m_chaseCamMode)
             TickChaseCamPlayer();
 
         base.Tick();
+
+        if (Config.Render.Blockmap && Config.Render.AutomapBspThread)
+        {
+            var camera = Player.GetCamera(0);
+            m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians);
+        }
     }
 
     private void TickChaseCamPlayer()
@@ -241,6 +262,8 @@ public class SinglePlayerWorld : WorldBase
         base.Start(worldModel);
         if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
             AudioSystem.Music.Stop();
+
+        m_automapMarker.Start(this);
     }
 
     public static bool PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)

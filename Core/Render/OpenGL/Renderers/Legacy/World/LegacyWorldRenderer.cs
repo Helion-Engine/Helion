@@ -56,8 +56,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
     private readonly RenderObjectComparer m_renderObjectComparer = new();
-    private readonly ArchiveCollection m_archiveCollection;
-    private AutomapMarker? m_automapMarker;
+    private readonly ArchiveCollection m_archiveCollection;    
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -79,7 +78,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
-        m_config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
     }
 
     ~LegacyWorldRenderer()
@@ -96,61 +94,13 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void UpdateToNewWorld(IWorld world)
     {
         if (m_previousWorld != null)
-        {
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
-            m_previousWorld.OnTick -= World_OnTick;
-            m_previousWorld.LevelExit -= World_LevelExit;
-        }
-
-        m_automapMarker?.Stop();
 
         m_geometryRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
-        world.OnTick += World_OnTick;
-        world.LevelExit += World_LevelExit;
         m_previousWorld = world;
         m_lastTicker = -1;
         m_alphaEntities.FlushReferences();
-
-        if (m_config.Render.AutomapBspThread)
-            SetupAutomapMarker(world);
-    }
-
-    private void SetupAutomapMarker(IWorld world)
-    {
-        if (m_automapMarker == null)
-            m_automapMarker = new AutomapMarker(m_archiveCollection, this);
-
-        m_automapMarker.Start(world);
-    }
-
-    private void AutomapBspThread_OnChanged(object? sender, bool set)
-    {
-        if (!set)
-        {
-            m_automapMarker.Stop();
-            return;
-        }
-
-        if (m_previousWorld == null)
-            return;
-
-        SetupAutomapMarker(m_previousWorld);
-    }
-
-    private void World_LevelExit(object? sender, LevelChangeEvent e)
-    {
-        m_automapMarker?.Stop();
-    }
-
-    private void World_OnTick(object? sender, EventArgs e)
-    {
-        if (m_config.Render.Blockmap && m_config.Render.AutomapBspThread && m_automapMarker != null)
-        {
-            IWorld world = (IWorld)sender;
-            var camera = world.Player.GetCamera(0);
-            m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, world.Player.AngleRadians, world.Player.PitchRadians);
-        }
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
