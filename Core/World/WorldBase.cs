@@ -121,6 +121,7 @@ public abstract partial class WorldBase : IWorld
     public virtual bool IsChaseCamMode => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }
+    public bool IsDisposed { get; private set; }
     public abstract ListenerParams GetListener();
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
@@ -1656,6 +1657,7 @@ public abstract partial class WorldBase : IWorld
 
     protected virtual void PerformDispose()
     {
+        IsDisposed = true;
         SpecialManager.Dispose();
         EntityManager.Dispose();
         SoundManager.Dispose();

@@ -150,20 +150,21 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
-        if (GetCrosshairTarget(out Entity? entity))
-            Player.SetCrosshairTarget(entity);
-        else
-            Player.SetCrosshairTarget(null);
-        if (m_chaseCamMode)
-            TickChaseCamPlayer();
-
-        base.Tick();
-
         if (Config.Render.Blockmap && Config.Render.AutomapBspThread)
         {
             var camera = Player.GetCamera(0);
             m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians);
         }
+
+        if (GetCrosshairTarget(out Entity? entity))
+            Player.SetCrosshairTarget(entity);
+        else
+            Player.SetCrosshairTarget(null);
+
+        if (m_chaseCamMode)
+            TickChaseCamPlayer();
+
+        base.Tick();
     }
 
     private void TickChaseCamPlayer()
