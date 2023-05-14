@@ -131,7 +131,7 @@ public class ArchiveImageRetriever : IImageRetriever
         image.Dimension = (image.Dimension.Width, height);
     }
 
-    private static unsafe int GetBlankRowsFromBottom(Image image)
+    private static int GetBlankRowsFromBottom(Image image)
     {
         if (image.ImageType != ImageType.Argb)
             return 0;
