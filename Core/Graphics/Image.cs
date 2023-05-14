@@ -188,6 +188,27 @@ public class Image
             m_pixels[offset] = color.Uint;
     }
 
+    public Image FlipY()
+    {
+        uint[] flippedPixels = new uint[Dimension.Area];
+
+        for (int srcRow = 0; srcRow < Dimension.Height; srcRow++)
+        {
+            int destRow = Dimension.Height - 1 - srcRow;
+            int srcOffset = srcRow * Width;
+            int destOffset = destRow * Width;
+
+            for (int col = 0; col < Dimension.Width; col++)
+            {
+                flippedPixels[destOffset] = m_pixels[srcOffset];
+                srcOffset++;
+                destOffset++;
+            }
+        }
+
+        return new(flippedPixels, Dimension, ImageType, Offset, Namespace);
+    }
+
     private static Image CreateNullImage()
     {
         const int Dimension = 8;

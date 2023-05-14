@@ -157,10 +157,8 @@ public partial class Client : IDisposable, IInputManagement
             offset += 3;
         }
 
-        // Flip the image vertically, because OpenGL's coordinate system.
-        // TODO
-
-        Image image = new(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global);
+        // OpenGL's coordinate system require flipping the Y axis.
+        Image image = new Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
         image.Save(path);
     }
 
