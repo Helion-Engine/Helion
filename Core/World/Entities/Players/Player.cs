@@ -554,12 +554,36 @@ public class Player : Entity
 
         SetBob();
         SetViewHeight();
+        SetRunningFrameState();
 
         if (IsDead)
             DeathTick();
 
         StatusBar.Tick();
         m_hasNewWeapon = false;
+    }
+
+    private void SetRunningFrameState()
+    {
+        if (!Definition.SeeState.HasValue)
+            return;
+
+        bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
+
+        // Toggle between spawn and see states (stopped and running) based on movement
+        if (hasMoveSpeed &&
+            FrameState.Frame.MasterFrameIndex == Definition.SpawnState.Value &&
+            Definition.SeeState.HasValue)
+        {
+            FrameState.SetFrameIndex(Definition.SeeState.Value);
+        }
+        else if (!hasMoveSpeed && Velocity == Vec3D.Zero && Definition.SpawnState.HasValue &&
+            FrameState.Frame.MasterFrameIndex != Definition.SpawnState.Value &&
+            // Doom hard-coded this to check for any of the 4 running states S_PLAY_RUN1 - S_PLAY_RUN4
+            FrameState.Frame.MasterFrameIndex - Definition.SeeState.Value < 4)
+        {
+            FrameState.SetFrameIndex(Definition.SpawnState.Value);
+        }
     }
 
     private bool IsMaxFpsTickRate() =>
