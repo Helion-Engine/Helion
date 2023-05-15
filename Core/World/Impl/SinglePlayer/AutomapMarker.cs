@@ -115,13 +115,16 @@ public class AutomapMarker
 
             while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
             {
+                if (token.IsCancellationRequested)
+                    return;
+
                 m_lineDrawnTracker.ClearDrawnLines();
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
 
                 LegacyWorldRenderer.SetOccludePosition(pos.Position, pos.AngleRadians, pos.PitchRadians,
                     ref m_occlude, ref m_occludeViewPos);
-                MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position, pos.ViewDirection.XY, m_world);
+                MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position, pos.ViewDirection.XY, m_world, token);
             }
 
             m_stopwatch.Stop();
@@ -133,7 +136,7 @@ public class AutomapMarker
         }
     }
 
-    private unsafe void MarkBspLineClips(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world)
+    private unsafe void MarkBspLineClips(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world, CancellationToken token)
     {
         Vec2D pos2D = position.XY;
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
@@ -146,9 +149,12 @@ public class AutomapMarker
                 int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
                 int back = front ^ 1;
 
-                MarkBspLineClips(node->Children[front], position, viewDirection, world);
+                MarkBspLineClips(node->Children[front], position, viewDirection, world, token);
                 nodeIndex = node->Children[back];
             }
+
+            if (token.IsCancellationRequested)
+                return;
         }
 
         Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
