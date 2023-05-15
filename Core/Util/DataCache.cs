@@ -108,12 +108,13 @@ public class DataCache
         return newEnity;
     }
 
-    public void FreeEntity(Entity entity)
+    public bool FreeEntity(Entity entity)
     {
         if (!CacheEntities || entity.IsPlayer)
-            return;
+            return false;
 
         m_entities.Add(entity);
+        return true;
     }
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)

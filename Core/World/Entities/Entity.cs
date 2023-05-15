@@ -941,13 +941,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Owner = WeakEntity.Default;
         PickupPlayer = null;
 
-        World.DataCache.FreeEntity(this);
-
-        WeakEntity.DisposeEntity(this);
-        World = null!;
-        EntityManager = null!;
-        SoundManager = null!;
-        Definition = null!;
+        if (World.DataCache.FreeEntity(this))
+        {
+            WeakEntity.DisposeEntity(this);
+            World = null!;
+            EntityManager = null!;
+            SoundManager = null!;
+            Definition = null!;
+        }
 
         Velocity = Vec3D.Zero;
 
