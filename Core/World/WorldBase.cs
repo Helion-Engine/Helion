@@ -144,6 +144,10 @@ public abstract partial class WorldBase : IWorld
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
+    private readonly DynamicArray<Sector> m_developerMarkedSectors = new();
+    private readonly DynamicArray<Line> m_developerMarkedLines = new();
+    private readonly HashSet<int> m_developerCheckedSectors = new();
+    private int m_developerMarkedLineId = -1;
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -751,6 +755,9 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Line.Segment.OnRight(start))
             {
+                if (Config.Developer.DebugSpecials && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
+                    MarkSpecials(bi.Line);
+
                 if (bi.Line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
@@ -785,6 +792,102 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    private void MarkSpecials(Line line)
+    {
+        if (line.Id == m_developerMarkedLineId)
+            return;
+
+        m_developerMarkedLineId = line.Id;
+        bool clearedLines = MarkSpecialLines(line);
+
+        for (int i = 0; i < m_developerMarkedSectors.Length; i++)
+            m_developerMarkedSectors[i].MarkAutomap = false;
+        m_developerMarkedSectors.Clear();
+
+        if (line.HasSpecial)
+        {
+            var sectors = SpecialManager.GetSectorsFromSpecialLine(line);
+            foreach (Sector sector in sectors)
+            {
+                sector.MarkAutomap = true;
+                m_developerMarkedSectors.Add(sector);
+                Log.Info($"Line {line.Id} activates sector: {sector.Id}");
+            }
+        }
+
+        m_developerCheckedSectors.Clear();
+
+        if (clearedLines)
+        {
+            Sector? markSector = null;
+            if (line.Front.Sector.Tag != 0)
+            {
+                line.Front.Sector.MarkAutomap = true;
+                m_developerMarkedSectors.Add(line.Front.Sector);
+            }
+            else if (line.Back != null & line.Back.Sector.Tag != 0)
+            {
+                line.Back.Sector.MarkAutomap = true;
+                m_developerMarkedSectors.Add(line.Back.Sector);
+            }
+        }
+        else
+        {
+            for (int j = 0; j < m_developerMarkedLines.Length; j++)
+                m_developerMarkedLines[j].MarkAutomap = false;
+            m_developerMarkedLines.Clear();
+        }
+
+        if (m_developerMarkedLines.Length > 0 || m_developerMarkedSectors.Length > 0)
+        {
+            m_developerMarkedLines.Add(line);
+            line.MarkAutomap = true;
+        }
+    }
+
+    private bool MarkSpecialLines(Line sourceLine)
+    {
+        bool clearedLines = false;
+        int frontTag = sourceLine.Front.Sector.Tag;
+        int backTag = sourceLine.Back == null ? 0 : sourceLine.Back.Sector.Tag;
+
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            Line line = Lines[i];
+            if (!line.HasSpecial)
+                continue;
+
+            if (line.SectorTag == 0)
+                continue;
+
+            if (line.SectorTag != frontTag && line.SectorTag != backTag)
+                continue;
+
+            if (!clearedLines)
+            {
+                clearedLines = true;
+                for (int j = 0; j < m_developerMarkedLines.Length; j++)
+                    m_developerMarkedLines[j].MarkAutomap = false;
+                m_developerMarkedLines.Clear();
+            }
+
+            line.MarkAutomap = true;
+            m_developerMarkedLines.Add(line);
+            if (line.SectorTag == frontTag && !m_developerCheckedSectors.Contains(line.Front.Sector.Id))
+            {
+                m_developerCheckedSectors.Add(line.Front.Sector.Id);
+                Log.Info($"Sector {line.Front.Sector.Id} activated by line: {line.Id}");
+            }
+            if (line.SectorTag == backTag && line.Back != null && !m_developerCheckedSectors.Contains(line.Back.Sector.Id))
+            {
+                m_developerCheckedSectors.Add(line.Back.Sector.Id);
+                Log.Info($"Sector {line.Back.Sector.Id} activated by line: {line.Id}");
+            }
+        }
+
+        return clearedLines;
     }
 
     private void PlayerBumpUse(Entity entity)
@@ -861,6 +964,9 @@ public abstract partial class WorldBase : IWorld
     /// <param name="context">The ActivationContext to attempt to execute the special.</param>
     public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
     {
+        if (Config.Developer.DebugSpecials && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
+            MarkSpecials(line);
+
         if (!CanActivate(entity, line, context))
             return false;
 
