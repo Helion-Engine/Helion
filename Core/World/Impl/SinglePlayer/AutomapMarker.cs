@@ -71,6 +71,9 @@ public class AutomapMarker
 
     private void World_OnDestroying(object? sender, EventArgs e)
     {
+        if (m_world == null)
+            return;
+
         m_world.OnDestroying -= World_OnDestroying;
         Stop();
         m_world = null;
