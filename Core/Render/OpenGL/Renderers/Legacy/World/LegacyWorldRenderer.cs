@@ -224,7 +224,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
-        if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
+        if (entity.Flags.Shadow || (m_spriteTransparency && entity.Definition.Properties.Alpha < 1))
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
             m_alphaEntities.Add(entity);
