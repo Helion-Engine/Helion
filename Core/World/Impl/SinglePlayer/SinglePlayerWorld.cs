@@ -27,12 +27,15 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
 using Helion.Util.Configs.Impl;
 using System.Reflection;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Impl.SinglePlayer;
 
 public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly DebugSpecials m_debugSpecials = new();
     private bool m_chaseCamMode;
     private AutomapMarker m_automapMarker;
 
@@ -359,6 +362,18 @@ public class SinglePlayerWorld : WorldBase
             ResetLevel(Config.Game.LoadLatestOnDeath);
 
         return base.EntityUse(entity);
+    }
+
+    public override void OnTryEntityUseLine(Entity entity, Line line)
+    {
+        m_debugSpecials.MarkSpecials(this, entity, line);
+        base.OnTryEntityUseLine(entity, line);
+    }
+
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
+    {
+        m_debugSpecials.MarkSpecials(this, entity, line);
+        return base.ActivateSpecialLine(entity, line, context);
     }
 
     public override void ToggleChaseCameraMode()
