@@ -39,7 +39,7 @@ public class DebugSpecials
             {
                 sector.MarkAutomap = true;
                 m_developerMarkedSectors.Add(sector);
-                world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetActivations(line)}");
+                world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetLineSpecialDescritpion(line)}");
             }
         }
 
@@ -58,7 +58,7 @@ public class DebugSpecials
                     var markLine = m_developerMarkedLines[i];
                     markSector.MarkAutomap = true;
                     m_developerMarkedSectors.Add(markSector);
-                    world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetActivations(markLine)}");
+                    world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetLineSpecialDescritpion(markLine)}");
                 }
             }
         }
@@ -70,6 +70,14 @@ public class DebugSpecials
             line.MarkAutomap = true;
         }
     }
+
+    private static string GetLineSpecialDescritpion(Line line) =>
+        $"[{(int)line.Special.LineSpecialType}]{line.Special.LineSpecialType} - {GetArgs(line)} - {GetActivations(line)} - Activated[{GetIntBool(line.Activated)}] Repeat[{GetIntBool(line.Flags.Repeat)}]";
+
+    private static object GetArgs(Line line) =>
+        $"{line.Args.Arg0},{line.Args.Arg1},{line.Args.Arg2},{line.Args.Arg3},{line.Args.Arg4}";
+
+    private static int GetIntBool(bool b) => b ? 1 : 0;
 
     private static string GetActivations(Line line)
     {
