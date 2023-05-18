@@ -941,9 +941,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Owner = WeakEntity.Default;
         PickupPlayer = null;
 
+        WeakEntity.DisposeEntity(this);
+
         if (World.DataCache.FreeEntity(this))
         {
-            WeakEntity.DisposeEntity(this);
             World = null!;
             EntityManager = null!;
             SoundManager = null!;
