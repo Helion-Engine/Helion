@@ -1,4 +1,5 @@
-﻿using Helion.Util.Configs.Impl;
+﻿using Helion.Maps.Specials;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -27,7 +28,6 @@ public class DebugSpecials
         if (line.Id == m_developerMarkedLineId)
             return;
 
-        m_developerMarkedLineId = line.Id;
         ClearDeveloperMarkedSectors();
         ClearDeveloperMarkedLines();
         MarkSpecialLines(world, line);
@@ -39,7 +39,7 @@ public class DebugSpecials
             {
                 sector.MarkAutomap = true;
                 m_developerMarkedSectors.Add(sector);
-                world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id}");
+                world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetActivations(line)}");
             }
         }
 
@@ -47,24 +47,44 @@ public class DebugSpecials
         {
             Sector? markSector = null;
             if (line.Front.Sector.Tag != 0)
-            {
-                line.Front.Sector.MarkAutomap = true;
-                m_developerMarkedSectors.Add(line.Front.Sector);
-                world.DisplayMessage($"Sector {line.Front.Sector.Id} activated by line: {line.Id}");
-            }
+                markSector = line.Front.Sector;
             else if (line.Back != null & line.Back.Sector.Tag != 0)
+                markSector = line.Back.Sector;
+
+            if (markSector != null)
             {
-                line.Back.Sector.MarkAutomap = true;
-                m_developerMarkedSectors.Add(line.Back.Sector);
-                world.DisplayMessage($"Sector {line.Front.Sector.Id} activated by line: {line.Id}");
+                for (int i = 0; i < m_developerMarkedLines.Length; i++)
+                {
+                    var markLine = m_developerMarkedLines[i];
+                    markSector.MarkAutomap = true;
+                    m_developerMarkedSectors.Add(markSector);
+                    world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetActivations(markLine)}");
+                }
             }
         }
 
         if (m_developerMarkedLines.Length > 0 || m_developerMarkedSectors.Length > 0)
         {
+            m_developerMarkedLineId = line.Id;
             m_developerMarkedLines.Add(line);
             line.MarkAutomap = true;
         }
+    }
+
+    private static string GetActivations(Line line)
+    {
+        StringBuilder sb = new();
+        for (int i = 0; i < 32; i++)
+        {
+            int flag = 1 << i;
+            if (((int)line.Flags.Activations & flag) != 0)
+            {
+                if (sb.Length > 0)
+                    sb.Append(", ");
+                sb.Append((LineActivations)flag);
+            }
+        }
+        return sb.ToString();
     }
 
     private void MarkSpecialLines(IWorld world, Line sourceLine)
