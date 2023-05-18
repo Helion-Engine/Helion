@@ -224,7 +224,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
-        if (entity.Flags.Shadow || (m_spriteTransparency && entity.Definition.Properties.Alpha < 1))
+        if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
             m_alphaEntities.Add(entity);
@@ -325,7 +325,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Center = position;
         m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, DynamicArray<IRenderObject> alphaEntities)

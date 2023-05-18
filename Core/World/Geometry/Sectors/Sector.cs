@@ -65,6 +65,7 @@ public class Sector
     public int SoundValidationCount;
     public int SoundBlock;
     public int CheckCount;
+    public bool MarkAutomap;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public readonly InstantKillEffect InstantKillEffect;
     public readonly SectorEffect SectorEffect;

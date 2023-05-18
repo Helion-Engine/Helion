@@ -105,6 +105,7 @@ public interface IWorld : IDisposable
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);
     bool EntityUse(Entity entity);
+    void OnTryEntityUseLine(Entity entity, Line line);
     bool CanActivate(Entity entity, Line line, ActivationContext context);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);

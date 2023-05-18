@@ -751,6 +751,8 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Line.Segment.OnRight(start))
             {
+                OnTryEntityUseLine(entity, bi.Line);
+
                 if (bi.Line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
@@ -785,6 +787,11 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    public virtual void OnTryEntityUseLine(Entity entity, Line line)
+    {
+
     }
 
     private void PlayerBumpUse(Entity entity)
