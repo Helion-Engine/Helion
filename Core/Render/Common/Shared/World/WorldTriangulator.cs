@@ -132,7 +132,7 @@ public static class WorldTriangulator
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
         WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: true);
+        WallUV prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
 
         TriangulatedWorldVertex topLeft = new(left.X, left.Y, topZ, prevTopZ, 
             uv.TopLeft.X, uv.TopLeft.Y, prevUV.TopLeft.X, prevUV.TopLeft.Y);
