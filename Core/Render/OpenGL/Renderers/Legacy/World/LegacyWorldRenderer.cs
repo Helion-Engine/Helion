@@ -131,7 +131,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.Position.Z);
 
-        m_geometryRenderer.Clear(renderInfo.TickFraction);
+        m_geometryRenderer.Clear(renderInfo.TickFraction, true);
         m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderData.CheckCount = ++world.CheckCounter;
@@ -304,15 +304,15 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void Clear(IWorld world, RenderInfo renderInfo)
     {
-        bool clearSprites = world.GameTicker != m_lastTicker;
+        bool newTick = world.GameTicker != m_lastTicker;
         m_viewClipper.Clear();
 
-        m_geometryRenderer.Clear(renderInfo.TickFraction);
+        m_geometryRenderer.Clear(renderInfo.TickFraction, newTick);
 
-        if (clearSprites)
+        if (newTick)
         {
             m_entityRenderer.Clear(world);
-            m_worldDataManager.Clear(clearSprites);
+            m_worldDataManager.Clear();
         }
     }
 

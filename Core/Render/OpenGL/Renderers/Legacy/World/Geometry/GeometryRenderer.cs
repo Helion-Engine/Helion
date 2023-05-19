@@ -129,7 +129,7 @@ public class GeometryRenderer : IDisposable
         m_skyFloorVertexLookup = new(3);
         m_skyCeilingVertexLookup = new(3);
 
-        Clear(m_tickFraction);
+        Clear(m_tickFraction, true);
         CacheData(world);
 
         Portals.UpdateTo(world);
@@ -187,10 +187,11 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    public void Clear(double tickFraction)
+    public void Clear(double tickFraction, bool newTick)
     {
         m_tickFraction = tickFraction;
-        m_skyRenderer.Clear();
+        if (newTick)
+            m_skyRenderer.Clear();
         Portals.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
@@ -942,11 +943,15 @@ public class GeometryRenderer : IDisposable
         {
             (double bottomZ, double topZ) = FindOpeningFlats(facingSector, otherSector);
             (double prevBottomZ, double prevTopZ) = FindOpeningFlatsPrev(facingSector, otherSector);
-            double offset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ);
+            double offset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ, previous: false);
+            double prevOffset = 0;
+
+            if (offset != 0)
+                prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ, previous: true);
 
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, out _, offset);
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, out _, offset, prevOffset);
 
             if (m_cacheOverride)
             {
@@ -975,12 +980,15 @@ public class GeometryRenderer : IDisposable
     // There is some issue with how the original code renders middle textures with transfer heights.
     // It appears to incorrectly draw from the floor of the original sector instead of the transfer heights sector.
     // Alternatively, I could be dumb and this is dumb but it appears to work.
-    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, double bottomZ, double topZ)
+    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, double bottomZ, double topZ, bool previous)
     {
         if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
             return 0;
 
-        (double originalBottomZ, double originalTopZ) = FindOpeningFlats(facingSide.Sector, otherSide.Sector);
+        (double originalBottomZ, double originalTopZ) = previous ? 
+            FindOpeningFlatsPrev(facingSide.Sector, otherSide.Sector) :
+            FindOpeningFlats(facingSide.Sector, otherSide.Sector);
+
         if (facingSide.Line.Flags.Unpegged.Lower)
             return originalBottomZ - bottomZ;
 

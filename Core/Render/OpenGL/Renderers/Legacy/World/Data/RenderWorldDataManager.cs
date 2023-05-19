@@ -76,24 +76,14 @@ public class RenderWorldDataManager : IDisposable
         return newData;
     }
 
-    public void Clear(bool clearSprites)
+    public void Clear()
     {
         m_renderCount++;
         for (int i = 0; i < m_renderData.Count; i++)
-        {
-            RenderWorldData data = m_renderData[i];
-            if (data.Sprite && !clearSprites)
-                continue;
-            data.Clear();
-        }
+            m_renderData[i].Clear();
 
         for (int i = 0; i < m_alphaRenderData.Count; i++)
-        {
-            RenderWorldData data = m_alphaRenderData[i];
-            if (data.Sprite && !clearSprites)
-                continue;
-            data.Clear();
-        }
+            m_alphaRenderData[i].Clear();
     }
 
     public void DrawNonAlpha()

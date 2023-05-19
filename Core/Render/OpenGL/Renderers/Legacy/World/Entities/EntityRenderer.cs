@@ -166,8 +166,6 @@ public class EntityRenderer
             m_worldDataManager.GetAlphaRenderData(texture, m_program) :
             m_worldDataManager.GetRenderData(texture, m_program);
 
-        renderWorldData.Sprite = true;
-
         renderWorldData.Vbo.Add(topLeft);
         renderWorldData.Vbo.Add(bottomLeft);
         renderWorldData.Vbo.Add(topRight);

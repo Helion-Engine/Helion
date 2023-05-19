@@ -79,7 +79,7 @@ public static class WorldTriangulator
 
     public static WallVertices HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ, double prevBottomZ, double prevTopZ,
-        bool isFrontSide, out bool nothingVisible, double offset = 0)
+        bool isFrontSide, out bool nothingVisible, double offset = 0, double prevOffset = 0)
     {
         if (LineOpening.IsRenderingBlocked(facingSide.Line))
         {
@@ -88,7 +88,7 @@ public static class WorldTriangulator
         }
 
         Line line = facingSide.Line;
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, prevBottomZ, prevTopZ, textureDimension, offset);
+        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, prevBottomZ, prevTopZ, textureDimension, offset, prevOffset);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
@@ -200,7 +200,7 @@ public static class WorldTriangulator
     }
 
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ,
-        double topOpeningZ, double prevBottomOpeningZ, double prevTopOpeningZ, in Dimension textureDimension, double offset)
+        double topOpeningZ, double prevBottomOpeningZ, double prevTopOpeningZ, in Dimension textureDimension, double offset, double prevOffset)
     {
         double topZ = topOpeningZ;
         double bottomZ = topZ - textureDimension.Height;
@@ -216,8 +216,8 @@ public static class WorldTriangulator
 
         topZ += facingSide.Offset.Y + offset;
         bottomZ += facingSide.Offset.Y + offset;
-        prevTopZ += facingSide.Offset.Y + offset;
-        prevBottomZ += facingSide.Offset.Y + offset;
+        prevTopZ += facingSide.Offset.Y + prevOffset;
+        prevBottomZ += facingSide.Offset.Y + prevOffset;
 
         // Check if the lower/upper textures are set. If not then then the middle can be drawn through.
         double visibleTopZ = topZ;
