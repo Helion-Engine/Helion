@@ -1,8 +1,12 @@
 using Helion.Util;
 using Helion.Util.Configs.Values;
+using Helion.Util.Container;
 using Helion.Window;
+using Helion.Window.Input;
+using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using System;
 
 namespace Helion.Layer.Worlds;
 
@@ -36,6 +40,8 @@ public partial class WorldLayer
         (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
     };
 
+    private readonly DynamicArray<Key> m_pressedKeys = new();
+
     private bool IsCommandContinuousHold(string command, IConsumableInput input)
     {
         return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input);
@@ -51,7 +57,7 @@ public partial class WorldLayer
         return m_config.Keys.ConsumeCommandKeyDown(command, input);
     }
 
-    public void AddCommand(TickCommands cmd) => m_tickCommand.Add(cmd);
+    public void AddCommand(TickCommands cmd) => GetTickCommand().Add(cmd);
 
     public void HandleInput(IConsumableInput input)
     {
@@ -61,7 +67,7 @@ public partial class WorldLayer
         if (m_drawAutomap)
             HandleAutoMapInput(input);
 
-        if (!World.Paused && !World.PlayingDemo)
+        if (!AnyLayerObscuring && !World.DrawPause)
         {
             HandleCommandInput(input);
             World.HandleFrameInput(input);
@@ -81,6 +87,21 @@ public partial class WorldLayer
         }
 
         input.ConsumeScroll();
+        CheckCommandInput(input);
+    }
+
+    private void CheckCommandInput(IConsumableInput input)
+    {
+        input.Manager.GetPressedKeys(m_pressedKeys);
+        for (int i = 0; i < m_pressedKeys.Length; i++)
+        {
+            if (!input.ConsumeKeyPressed(m_pressedKeys[i]))
+                continue;
+            var key = m_pressedKeys[i];
+            var commands = World.Config.Keys[key];
+            foreach (var command in commands)
+                m_parent.SubmitConsoleText(command);
+        }
     }
 
     private void CheckSaveOrLoadGame(IConsumableInput input)
@@ -103,7 +124,7 @@ public partial class WorldLayer
         m_paused = !m_paused;
         if (m_paused)
         {
-            World.Pause(true);
+            World.Pause(PauseOptions.DrawPause);
             return;
         }
 
@@ -152,16 +173,17 @@ public partial class WorldLayer
 
     private void HandleCommandInput(IConsumableInput input)
     {
+        TickCommand cmd = GetTickCommand();
         for (int i = 0; i < KeyPressCommandMapping.Length; i++)
         {
             (string command, TickCommands tickCommand) = KeyPressCommandMapping[i];
             if (IsCommandDown(command, input))
-                m_tickCommand.Add(tickCommand);
+                cmd.Add(tickCommand);
         }
 
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
-            m_tickCommand.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
+            cmd.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
     }
 
     private void ChangeHudSize(bool increase)

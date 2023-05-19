@@ -55,6 +55,8 @@ using System.Diagnostics.CodeAnalysis;
 using Helion.Demo;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
+using Helion.Resources.Archives.Entries;
+using static Helion.World.IWorld;
 
 namespace Helion.World;
 
@@ -77,6 +79,8 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SideScrollEvent>? SideScrollChanged;
     public event EventHandler<SectorPlane>? SectorPlaneScrollChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    public event EventHandler? OnTick;
+    public event EventHandler? OnDestroying;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -86,8 +90,8 @@ public abstract partial class WorldBase : IWorld
     public int GameTicker { get; private set; }
     public int LevelTime { get; private set; }
     public double Gravity { get; private set; } = 1.0;
-    public bool Paused { get; private set; }
-    public bool DrawPause { get; private set; }
+    public bool Paused { get; protected set; }
+    public bool DrawPause { get; protected set; }
     public bool PlayingDemo { get; set; }
     public bool DemoEnded { get; set; }
     public IRandom Random => m_random;
@@ -100,10 +104,6 @@ public abstract partial class WorldBase : IWorld
     public LinkableList<Entity> Entities => EntityManager.Entities;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
-    public abstract Vec3D ListenerPosition { get; }
-    public abstract double ListenerAngle { get; }
-    public abstract double ListenerPitch { get; }
-    public abstract Entity ListenerEntity { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
     public BlockMap RenderBlockmap { get; private set; }
     public SpecialManager SpecialManager { get; private set; }
@@ -119,6 +119,11 @@ public abstract partial class WorldBase : IWorld
     public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
     public int CheckCounter { get; set; }
+    public virtual bool IsChaseCamMode => false;
+    public bool DrawHud { get; protected set; } = true;
+    public bool AnyLayerObscuring { get; set; }
+    public bool IsDisposed { get; private set; }
+    public abstract ListenerParams GetListener();
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -335,6 +340,7 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void Tick()
     {
+        OnTick?.Invoke(this, EventArgs.Empty);
         DebugCheck();
 
         if (Paused)
@@ -418,6 +424,12 @@ public abstract partial class WorldBase : IWorld
             nextNode = node.Next;
 
             Entity entity = node.Value;
+            if (entity.PlayerObj != null && entity.PlayerObj.PlayerNumber == short.MaxValue)
+            {
+                node = nextNode;
+                continue;
+            }
+
             entity.Tick();
 
             if (WorldState == WorldState.Exit)
@@ -478,7 +490,8 @@ public abstract partial class WorldBase : IWorld
 
     private void InstantKillSector(Entity entity)
     {
-        if (entity.IsDead)
+        // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
+        if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
         InstantKillEffect effect = entity.Sector.InstantKillEffect;
@@ -517,12 +530,12 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public void Pause(bool draw = false)
+    public virtual void Pause(PauseOptions options = PauseOptions.None)
     {
-        DrawPause = draw;
         if (Paused)
             return;
 
+        DrawPause = options.HasFlag(PauseOptions.DrawPause);
         ResetInterpolation();
         SoundManager.Pause();
 
@@ -541,14 +554,14 @@ public abstract partial class WorldBase : IWorld
         OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
 
-    public void Resume()
+    public virtual void Resume()
     {
+        DrawPause = false;
         if (!Paused || DemoEnded)
             return;
 
         SoundManager.Resume();
         Paused = false;
-        DrawPause = false;
         WorldResumed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -668,6 +681,7 @@ public abstract partial class WorldBase : IWorld
 
     public void Dispose()
     {
+        OnDestroying?.Invoke(this, EventArgs.Empty);
         SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
         PerformDispose();
         GC.SuppressFinalize(this);
@@ -738,6 +752,8 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Line.Segment.OnRight(start))
             {
+                OnTryEntityUseLine(entity, bi.Line);
+
                 if (bi.Line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
@@ -772,6 +788,11 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    public virtual void OnTryEntityUseLine(Entity entity, Line line)
+    {
+
     }
 
     private void PlayerBumpUse(Entity entity)
@@ -1509,12 +1530,15 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(Player player, Player? other, string message)
+    public virtual void DisplayMessage(string message) => DisplayMessage(null, null, message);
+
+    public virtual void DisplayMessage(Player? player, Player? other, string message)
     {
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            Log.Info(message);
+            if (player == null || player.Id == GetCameraPlayer().Id)
+                Log.Info(message);
             PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }
@@ -1641,6 +1665,7 @@ public abstract partial class WorldBase : IWorld
 
     protected virtual void PerformDispose()
     {
+        IsDisposed = true;
         SpecialManager.Dispose();
         EntityManager.Dispose();
         SoundManager.Dispose();
@@ -1906,10 +1931,7 @@ public abstract partial class WorldBase : IWorld
         {
             var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
             if (teleport != null)
-            {
-                teleport.Position.Z = teleport.Sector.ToFloorZ(pos);
                 SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
-            }
         }
     }
 
@@ -1922,6 +1944,7 @@ public abstract partial class WorldBase : IWorld
                 msg = player.Cheats.IsCheatActive(cheat.CheatType) ? cheat.CheatOn : cheat.CheatOff;
             else
                 msg = cheat.CheatOn;
+
             DisplayMessage(player, null, msg);
         }
 
@@ -2477,6 +2500,10 @@ public abstract partial class WorldBase : IWorld
         };
     }
 
+    public virtual void ToggleChaseCameraMode()
+    {
+    }
+
     private IList<PlayerModel> GetPlayerModels()
     {
         List<PlayerModel> playerModels = new(EntityManager.Players.Count);
@@ -2548,4 +2575,6 @@ public abstract partial class WorldBase : IWorld
 
         return lineModels;
     }
+
+    public virtual Player GetCameraPlayer() => Player;
 }

@@ -81,7 +81,7 @@ public partial class DehackedDefinition
 		"BFGExtra",					// MT_EXTRABFG
 		"GreenArmor",				// MT_MISC0
 		"BlueArmor",				// MT_MISC1
-		"",							// MT_MISC2
+		"HealthBonus",			    // MT_MISC2
 		"ArmorBonus",				// MT_MISC3
 		"BlueCard",					// MT_MISC4
 		"RedCard",					// MT_MISC5
@@ -4780,6 +4780,7 @@ public partial class DehackedDefinition
     private static readonly string RipSound = "Rip sound";
     private static readonly string FastSpeed = "Fast speed";
     private static readonly string MeleeRange = "Melee range";
+    private static readonly string GibHealth = "Gib health";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";

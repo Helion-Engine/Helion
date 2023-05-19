@@ -35,6 +35,7 @@ public delegate double GetTracerVelocityZ(Entity tracer, Entity target);
 
 public interface IWorld : IDisposable
 {
+    event EventHandler<LevelChangeEvent>? LevelExit;
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
     event EventHandler? OnResetInterpolation;
@@ -46,6 +47,8 @@ public interface IWorld : IDisposable
     event EventHandler<SideScrollEvent>? SideScrollChanged;
     event EventHandler<SectorPlane> SectorPlaneScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    event EventHandler? OnTick;
+    event EventHandler? OnDestroying;
 
     string MapName { get; }
     // Increments every tick unless the game is paused.
@@ -61,10 +64,6 @@ public interface IWorld : IDisposable
     IList<Sector> Sectors { get; }
     CompactBspTree BspTree { get; }
     LinkableList<Entity> Entities { get; }
-    Vec3D ListenerPosition { get; }
-    double ListenerAngle { get; }
-    double ListenerPitch { get; }
-    Entity ListenerEntity { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
@@ -89,11 +88,14 @@ public interface IWorld : IDisposable
     Player Player { get; }
     bool IsFastMonsters { get; }
     int CheckCounter { get; set; }
+    bool IsChaseCamMode { get; }
+    bool DrawHud { get; }
+    bool AnyLayerObscuring { get; set; }
 
 
     void Link(Entity entity);
     void Tick();
-    void Pause(bool draw = false);
+    void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IEnumerable<Sector> FindBySectorTag(int tag);
     IEnumerable<Entity> FindByTid(int tid);
@@ -104,6 +106,7 @@ public interface IWorld : IDisposable
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);
     bool EntityUse(Entity entity);
+    void OnTryEntityUseLine(Entity entity, Line line);
     bool CanActivate(Entity entity, Line line, ActivationContext context);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
@@ -124,7 +127,8 @@ public interface IWorld : IDisposable
     bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
-    void DisplayMessage(Player player, Player? other, string message);
+    void DisplayMessage(string message);
+    void DisplayMessage(Player? player, Player? other, string message);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
@@ -147,7 +151,10 @@ public interface IWorld : IDisposable
     void SetSideScroll(Side side, SideTexture textures);
     void SetSectorPlaneScroll(SectorPlane plane);
     void SetEntityPosition(Entity entity, Vec3D pos);
+    void ToggleChaseCameraMode();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
+    Player GetCameraPlayer();
+    ListenerParams GetListener();
 }

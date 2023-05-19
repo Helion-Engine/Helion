@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
@@ -25,6 +27,8 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Impl.SinglePlayer;
+using Helion.World.Physics;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 
@@ -52,6 +56,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
     private readonly RenderObjectComparer m_renderObjectComparer = new();
+    private readonly ArchiveCollection m_archiveCollection;    
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -60,6 +65,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_renderCount;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
+
+    public IWorld? World => m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -70,6 +77,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
+        m_archiveCollection = archiveCollection;
     }
 
     ~LegacyWorldRenderer()
@@ -104,7 +112,8 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
-        TraverseBsp(world, renderInfo);
+        if (!m_config.Render.Blockmap)
+            TraverseBsp(world, renderInfo);
 
         m_automapRenderer.Render(world, renderInfo);
     }
@@ -215,7 +224,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
-        if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
+        if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
             m_alphaEntities.Add(entity);
@@ -239,7 +248,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_spriteTransparency = m_config.Render.SpriteTransparency;
         Clear(world, renderInfo);
 
-        SetPosition(renderInfo);
+        SetOccludePosition(renderInfo.Camera.Position.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
+            ref m_occlude, ref m_occludeViewPos);
         if (m_config.Render.Blockmap)
             IterateBlockmap(world, renderInfo);
         else
@@ -276,19 +286,20 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.ResetInterpolation(world);
     }
 
-    private void SetPosition(RenderInfo renderInfo)
+    public static void SetOccludePosition(in Vec3D position, double angleRadians, double pitchRadians, 
+        ref bool occlude, ref Vec2D occludeViewPos)
     {
         // This is a hack until frustum culling exists.
         // Push the position back to stop occluding things that are straight up/down
-        if (Math.Abs(renderInfo.Camera.PitchRadians) > MathHelper.QuarterPi)
+        if (Math.Abs(pitchRadians) > MathHelper.QuarterPi)
         {
-            m_occlude = false;
+            occlude = false;
             return;
         }
 
-        m_occlude = true;
-        Vec2D unit = Vec2D.UnitCircle(renderInfo.ViewerEntity.AngleRadians + MathHelper.Pi);
-        m_occludeViewPos = renderInfo.Camera.Position.XY.Double + (unit * 32);
+        occlude = true;
+        Vec2D unit = Vec2D.UnitCircle(angleRadians + MathHelper.Pi);
+        occludeViewPos = position.XY + (unit * 32);
     }
 
     private void Clear(IWorld world, RenderInfo renderInfo)
@@ -316,7 +327,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewClipper.Center = position;
         m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, DynamicArray<IRenderObject> alphaEntities)

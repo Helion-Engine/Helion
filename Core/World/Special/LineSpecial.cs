@@ -208,13 +208,16 @@ public class LineSpecial
     public bool IsSectorSpecial() => IsSectorMove() || IsSectorLight() || IsSectorStopMove() ||
         IsSectorStopLight() || IsSectorFloorTrigger();
 
-    public bool CanActivateDuringSectorMovement()
+    public bool CanActivateDuringSectorMovement(in EntityActivateSpecial args, Sector sector)
     {
+        if (args.ActivationContext != ActivationContext.UseLine)
+            return false;
+
         switch (LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorOpenClose:
             case ZDoomLineSpecialType.DoorLockedRaise:
-                return true;
+                return args.ActivateLineSpecial.Back != null && args.ActivateLineSpecial.Back.Sector.Id == sector.Id;
 
             default:
                 break;

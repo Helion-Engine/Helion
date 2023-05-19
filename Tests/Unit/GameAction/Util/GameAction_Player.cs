@@ -54,7 +54,7 @@ namespace Helion.Tests.Unit.GameAction
                 Array.ForEach(commands, x => cmd.Add(x));
                 if (tickAngleTurn.HasValue)
                     cmd.MouseAngle -= tickAngleTurn.Value;
-                world.SetTickCommand(cmd);
+                world.SetTickCommand(world.Player, cmd);
                 world.Tick();
                 runTicks++;
 

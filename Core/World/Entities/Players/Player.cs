@@ -60,17 +60,18 @@ public class Player : Entity
     public int ItemCount;
     public int SecretsFound;
 
+    protected double m_prevPitch;
+    protected double m_viewZ;
+    protected double m_prevViewZ;
+    protected bool m_interpolateAngle;
+
     private bool m_isJumping;
     private bool m_hasNewWeapon;
     private int m_jumpTics;
     private int m_deathTics;
-    private double m_prevPitch;
-    private double m_viewZ;
-    private double m_prevViewZ;
     private double m_bob;
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
-    private bool m_interpolateAngle;
 
     private readonly OldCamera m_camera = new (Vec3F.Zero, 0, 0);
 
@@ -97,8 +98,9 @@ public class Player : Entity
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
+    public virtual bool IsCamera => false;
 
-    public bool DrawFullBright()
+    public virtual bool DrawFullBright()
     {
         if (World.Config.Render.Fullbright)
             return true;
@@ -422,6 +424,9 @@ public class Player : Entity
         PrevWeaponOffset = WeaponOffset;
         PrevBobOffset = BobOffset;
 
+        ViewAngleRadians = 0;
+        ViewPitchRadians = 0;
+
         base.ResetInterpolation();
     }
 
@@ -549,6 +554,7 @@ public class Player : Entity
 
         SetBob();
         SetViewHeight();
+        SetRunningFrameState();
 
         if (IsDead)
             DeathTick();
@@ -557,10 +563,33 @@ public class Player : Entity
         m_hasNewWeapon = false;
     }
 
+    private void SetRunningFrameState()
+    {
+        if (!Definition.SeeState.HasValue)
+            return;
+
+        bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
+
+        // Toggle between spawn and see states (stopped and running) based on movement
+        if (hasMoveSpeed &&
+            FrameState.Frame.MasterFrameIndex == Definition.SpawnState.Value &&
+            Definition.SeeState.HasValue)
+        {
+            FrameState.SetFrameIndex(Definition.SeeState.Value);
+        }
+        else if (!hasMoveSpeed && Velocity == Vec3D.Zero && Definition.SpawnState.HasValue &&
+            FrameState.Frame.MasterFrameIndex != Definition.SpawnState.Value &&
+            // Doom hard-coded this to check for any of the 4 running states S_PLAY_RUN1 - S_PLAY_RUN4
+            FrameState.Frame.MasterFrameIndex - Definition.SeeState.Value < 4)
+        {
+            FrameState.SetFrameIndex(Definition.SpawnState.Value);
+        }
+    }
+
     private bool IsMaxFpsTickRate() =>
         World.Config.Render.MaxFPS != 0 && World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
 
-    private bool ShouldInterpolate()
+    protected bool ShouldInterpolate()
     {
         if (IsMaxFpsTickRate())
             return false;
@@ -769,7 +798,8 @@ public class Player : Entity
         m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
         if (Weapon != null && Weapon.ReadyToFire)
         {
-            double value = 0.1 * World.LevelTime;
+            const double WeaponSwayMultiplier = Math.PI / 32;
+            double value = WeaponSwayMultiplier * World.LevelTime;
             BobOffset = (m_bob * Math.Cos(value % MathHelper.TwoPi), m_bob * Math.Sin(value % MathHelper.Pi));
         }
 
@@ -1048,11 +1078,28 @@ public class Player : Entity
 
         SetWeaponTop();
         Weapon.RequestFire();
+        SetFireState();
 
-         if (!Weapon.Definition.Flags.WeaponNoAlert)
+        if (!Weapon.Definition.Flags.WeaponNoAlert)
             World.NoiseAlert(this, this);
 
         return true;
+    }
+
+    public void SetFireState()
+    {
+        if (Weapon == null)
+            return;
+
+        if (Weapon.Definition.Flags.WeaponMeleeWeapon)
+        {
+            if (Definition.MissileState.HasValue)
+                FrameState.SetFrameIndex(Definition.MissileState.Value);
+            return;
+        }
+
+        if (Definition.MeleeState.HasValue)
+            FrameState.SetFrameIndex(Definition.MeleeState.Value);
     }
 
     /// <summary>

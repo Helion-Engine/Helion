@@ -1,7 +1,6 @@
 actor Spectre : Demon 58
 {
     ActiveSound "spectre/active"
-    Alpha 0.4
     AttackSound "spectre/melee"
     DeathSound "spectre/death"
     HitObituary "$OB_SPECTREHIT"

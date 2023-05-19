@@ -5,6 +5,7 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Special.SectorMovement;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction.Boom;
@@ -395,5 +396,38 @@ public class BoomActions
             GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
             GameActions.RunDoor(World, sector, 0, 72, 32, 148, true);
         }
+    }
+
+    [Fact(DisplayName = "Door can activate during movement DR")]
+    public void DoorUseActiveMovementWithTag()
+    {
+        const int Line = 242;
+        Sector sector = GameActions.GetSector(World, 44);
+        GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
+        sector.ActiveCeilingMove.Should().NotBeNull();
+        var ceiling = sector.ActiveCeilingMove!;
+        ceiling.MoveDirection.Should().Be(MoveDirection.Up);
+
+        GameActions.TickWorld(World, 35);
+        GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
+        sector.ActiveCeilingMove.Should().NotBeNull();
+        ceiling = sector.ActiveCeilingMove!;
+        ceiling.MoveDirection.Should().Be(MoveDirection.Down);
+
+        GameActions.RunSectorPlaneSpecial(World, sector);
+    }
+
+    [Fact(DisplayName = "Door can not activate during movement SR")]
+    public void DoorUseNotActivateDuringMovement()
+    {
+        const int Line = 246;
+        Sector sector = GameActions.GetSector(World, 44);
+        GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
+        sector.ActiveCeilingMove.Should().NotBeNull();
+        var ceiling = sector.ActiveCeilingMove!;
+        ceiling.MoveDirection.Should().Be(MoveDirection.Up);
+
+        GameActions.EntityUseLine(World, Player, Line).Should().BeFalse();
+        GameActions.RunSectorPlaneSpecial(World, sector);
     }
 }

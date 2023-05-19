@@ -196,6 +196,14 @@ public class FileConfig : Config
                     continue;
                 }
 
+                // If the user clears a key bind entirely then the command array will be empty.
+                // Keep this so that the defaults are not added.
+                if (commandArray.Count == 0)
+                {
+                    Keys.AddEmpty(key);
+                    continue;
+                }
+
                 foreach (var command in commandArray)
                     Keys.Add(key, command);
             }

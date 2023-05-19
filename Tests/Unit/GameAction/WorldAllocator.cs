@@ -48,12 +48,11 @@ namespace Helion.Tests.Unit.GameAction
 
             using ZipArchive archive = ZipFile.OpenRead(resourceZip);
             archive.ExtractToDirectory(Directory.GetCurrentDirectory(), true);
-
-            var config = new Config();
+            Config config = CreateConfig();
             var profiler = new Profiler();
             var audioSystem = new MockAudioSystem();
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility, new DataCache());
-            archiveCollection.Load(new string[] { fileName }, iwad: null, iwadTypeOverride: iwadType ).Should().BeTrue();
+            archiveCollection.Load(new string[] { fileName }, iwad: null, iwadTypeOverride: iwadType).Should().BeTrue();
 
             var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
             var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel);
@@ -78,6 +77,13 @@ namespace Helion.Tests.Unit.GameAction
             world.Start(worldModel);
             onInit(world);
             return world;
+        }
+
+        private static Config CreateConfig()
+        {
+            Config config = new();
+            config.Render.AutomapBspThread.Set(false);
+            return config;
         }
 
         private static bool UseExistingWorld(string resourceZip, string fileName, string mapName, string testKey, bool cacheWorld,

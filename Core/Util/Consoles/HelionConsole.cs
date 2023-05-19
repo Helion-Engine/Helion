@@ -127,8 +127,6 @@ public class HelionConsole : Target
             return;
 
         CacheSubmittedInput(inputText);
-
-        Log.Info(inputText);
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(inputText));
     }
 

@@ -451,6 +451,8 @@ public class DehackedApplier
                 properties.MeleeRange = thing.MeleeRange.Value;
             if (thing.FastSpeed.HasValue)
                 properties.FastSpeed = thing.FastSpeed.Value;
+            if (thing.GibHealth.HasValue)
+                properties.GibHealth = thing.GibHealth.Value;
 
             if (thing.AlertSound.HasValue)
                 properties.SeeSound = GetSound(dehacked, thing.AlertSound.Value);

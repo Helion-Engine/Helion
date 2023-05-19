@@ -10,6 +10,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Container;
@@ -209,36 +210,89 @@ public class LegacyAutomapRenderer : IDisposable
                 player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings);
         }
 
+        bool forceDraw = !world.Config.Render.AutomapBspThread;
+
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            if (!line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
+            if (line.Id == 304)
+            {
+                int lol = 1;
+            }
+            bool markedLine = IsLineMarked(line);
+            if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
             Vec2D start = line.StartPosition;
             Vec2D end = line.EndPosition;
 
-            if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
-                AddLockedLine(line.Args.Arg3, start, end))
+            if (!markedLine)
             {
-                continue;
-            }
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
+                    AddLockedLine(line.Args.Arg3, start, end))
+                    {
+                        continue;
+                    }
 
-            if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
-                AddLockedLine(line.Args.Arg4, start, end))
-            {
-                continue;
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
+                    AddLockedLine(line.Args.Arg4, start, end))
+                {
+                    continue;
+                }
             }
 
             if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
             {
-                AddLine(line.SeenForAutomap ? AutomapColor.White : AutomapColor.LightBlue, start, end);
+                AddLine(GetOneSidedColor(world, line, forceDraw, markedLine), start, end);
                 continue;
             }
 
             // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
-            AddLine((line.HasSpecial && line.Special.IsTeleport()) ? AutomapColor.Green : AutomapColor.Gray, start, end);
+            AddLine(GetTwoSidedColor(world, line, markedLine), start, end);
         }
+    }
+
+    private static AutomapColor GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    {
+        if (marked)
+            return GetMarkedColor(world);
+
+        if (line.SeenForAutomap || forceDraw)
+            return AutomapColor.White;
+
+        return AutomapColor.LightBlue;
+    }
+
+    private static AutomapColor GetTwoSidedColor(IWorld world, Line line, bool marked)
+    {
+        if (marked)
+            return GetMarkedColor(world);
+
+        if (line.HasSpecial && line.Special.IsTeleport())
+            return AutomapColor.Green;
+
+        return AutomapColor.Gray;
+    }
+
+    private static AutomapColor GetMarkedColor(IWorld world)
+    {
+        if (world.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            return AutomapColor.Purple;
+        return AutomapColor.LightBlue;
+    }
+
+    private static bool IsLineMarked(Line line)
+    {
+        if (line.MarkAutomap)
+            return true;
+
+        if (line.Front.Sector.MarkAutomap)
+            return true;
+
+        if (line.Back != null && line.Back.Sector.MarkAutomap)
+            return true;
+
+        return false;
     }
 
     private bool AddLockedLine(int keyNumber, in Vec2D start, in Vec2D end)

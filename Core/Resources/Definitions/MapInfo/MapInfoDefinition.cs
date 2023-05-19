@@ -225,7 +225,7 @@ public partial class MapInfoDefinition
 
     private EndGameDef? ParseEndGame(SimpleParser parser)
     {
-        if (!parser.ConsumeIf("{"))
+        if (!parser.Peek('{'))
             return null;
 
         EndGameDef endGameDef = new();

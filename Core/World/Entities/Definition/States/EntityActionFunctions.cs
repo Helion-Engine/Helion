@@ -1851,6 +1851,7 @@ public static class EntityActionFunctions
             {
                 entity.PlayerObj.Refire = true;
                 entity.PlayerObj.Weapon?.SetFireState();
+                entity.PlayerObj.SetFireState();
             }
             else
             {
