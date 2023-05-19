@@ -239,10 +239,7 @@ public static class BoomLineSpecTranslator
         }
         else if (skullOrKeyCard)
         {
-            const int KeyStart = ((int)ZDoomKeyType.RedAny - 1);
-            if (argsToMutate.Arg4 > 3)
-                argsToMutate.Arg4 %= 3;
-            argsToMutate.Arg4 += KeyStart;
+            argsToMutate.Arg4 = ((argsToMutate.Arg4 - 1) % 3) + (int)ZDoomKeyType.RedAny;
         }
     }
 
