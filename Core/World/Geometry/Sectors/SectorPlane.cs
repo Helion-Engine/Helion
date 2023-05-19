@@ -165,7 +165,7 @@ public class SectorPlane : ISoundSource
         if (Sector.GetActiveMoveSpecial(this) is SectorMoveSpecial moveSpecial)
             return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType).Distance(listenerEntity.Position);
 
-        return 0.0;
+        return short.MaxValue;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)
