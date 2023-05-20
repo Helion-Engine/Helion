@@ -52,7 +52,7 @@ public class DefaultSoundSource : ISoundSource
 
     }
 
-    public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource clearedSound)
+    public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
         clearedSound = m_audioSource;
         m_audioSource = null;

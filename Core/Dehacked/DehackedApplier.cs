@@ -361,7 +361,7 @@ public class DehackedApplier
         // Null frame that loops to itself
         frameIndex = entityFrameTable.Frames.Count;
 
-        EntityFrame newFrame = new EntityFrame(entityFrameTable, Constants.InvisibleSprite, 0, -1,
+        EntityFrame newFrame = new(entityFrameTable, Constants.InvisibleSprite, 0, -1,
             EntityFrameProperties.Default, null, Constants.NullFrameIndex, string.Empty);
         m_dehacked.NewEntityFrameLookup[frame] = newFrame;
         newFrame.VanillaIndex = frame;
@@ -495,7 +495,7 @@ public class DehackedApplier
         }
     }
 
-    private void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
+    private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
         if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))
             definition.Properties.DropItem = new(droppedName);
@@ -672,7 +672,7 @@ public class DehackedApplier
 
     private static void UpdateSpriteText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, DehackedString text)
     {
-        if (dehacked.PickupLookup.TryGetValue(text.OldString, out string value))
+        if (dehacked.PickupLookup.TryGetValue(text.OldString, out string? value))
         {
             dehacked.PickupLookup.Remove(text.OldString);
             dehacked.PickupLookup[text.NewString] = value;
@@ -933,18 +933,6 @@ public class DehackedApplier
             return false;
 
         return true;
-    }
-
-    private static List<ThingProperties> GetThingProperties(ThingProperties properties)
-    {
-        List<ThingProperties> list = new();
-        foreach (ThingProperties type in Enum.GetValues(typeof(ThingProperties)))
-        {
-            if (properties.HasFlag(type))
-                list.Add(type);
-        }
-
-        return list;
     }
 
     private static void ApplyCheats(DehackedDefinition dehacked)

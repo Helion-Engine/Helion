@@ -60,7 +60,6 @@ public class GameLayerManager : IGameLayerParent
     private readonly Stopwatch m_stopwatch = new();
     private bool m_disposed;
 
-    private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
     internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
         ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
@@ -154,11 +153,6 @@ public class GameLayerManager : IGameLayerParent
         m_console.ClearInputText();
         m_console.AddInput(text);
         m_console.SubmitInputText();
-    }
-
-    private void M_saveGameManager_GameSaved(object? sender, Models.WorldModel e)
-    {
-        throw new NotImplementedException();
     }
 
     public void ClearAllExcept(params IGameLayer[] layers)
@@ -304,7 +298,7 @@ public class GameLayerManager : IGameLayerParent
         if (m_config.Game.QuickSaveConfirm)
         {
             MessageMenu confirm = new MessageMenu(m_config, m_console, m_soundManager, m_archiveCollection,
-                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model.Text,  "Press Y to confirm." },
+                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save",  "Press Y to confirm." },
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;
 
@@ -326,6 +320,9 @@ public class GameLayerManager : IGameLayerParent
 
     private void WriteQuickSave()
     {
+        if (WorldLayer == null || LastSave == null)
+            return;
+
         var world = WorldLayer.World;
         var save = LastSave.Value;
         m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);

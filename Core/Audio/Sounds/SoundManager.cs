@@ -152,7 +152,7 @@ public class SoundManager : IDisposable
         }
     }
 
-    protected void StopSound(ISoundSource soundSource, LinkedList<WaitingSound> waitingSounds)
+    protected static void StopSound(ISoundSource soundSource, LinkedList<WaitingSound> waitingSounds)
     {
         LinkedListNode<WaitingSound>? node = waitingSounds.First;
         LinkedListNode<WaitingSound>? nextNode;
@@ -206,7 +206,7 @@ public class SoundManager : IDisposable
 
     private void ClearSounds(LinkedList<IAudioSource> audioSources)
     {
-        LinkedListNode<IAudioSource> node = audioSources.First;
+        LinkedListNode<IAudioSource>? node = audioSources.First;
         while (node != null)
         {
             node.Value.Stop();

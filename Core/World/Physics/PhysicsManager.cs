@@ -1064,7 +1064,7 @@ public class PhysicsManager
                         Line line = blockLine->Line;
                         if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer &&
                             (line.Front.Middle.TextureHandle != Constants.NoTextureIndex || 
-                            (line != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
+                            (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
                         {
                             entity.ViewLineClip = true;
                             

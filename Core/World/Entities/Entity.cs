@@ -367,10 +367,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         // lingering elements in the list.
         for (int i = 0; i < SectorNodes.Length; i++)
         {
-            var node = SectorNodes[i];
+            LinkableNode<Entity> node = SectorNodes[i];
             node.Unlink();
             World.DataCache.FreeLinkableNodeEntity(node);
-            SectorNodes.Data[i] = null;
+            SectorNodes.Data[i] = null!;
         }
 
         if (SubsectorNode != null)
@@ -383,10 +383,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         for (int i = 0; i < BlockmapNodes.Length; i++)
         {
-            var node = BlockmapNodes[i];
+            LinkableNode<Entity> node = BlockmapNodes[i];
             node.Unlink();
             World.DataCache.FreeLinkableNodeEntity(node);
-            BlockmapNodes.Data[i] = null;
+            BlockmapNodes.Data[i] = null!;
         }
         BlockmapNodes.Clear();
 
@@ -733,7 +733,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public void GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags, DynamicArray<Entity> entities)
     {
         Box3D box = new(position, Radius, Height);
-        Box2D box2D = new Box2D(position.XY, Radius);
+        Box2D box2D = new(position.XY, Radius);
         bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
         DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, entityTraverseFlags);
 
@@ -924,7 +924,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-        EntityListNode.Unlink();
+        EntityListNode?.Unlink();
 
         FrameState.SetFrameIndex(Constants.NullFrameIndex);
 
@@ -933,7 +933,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IntersectSectors.Clear();
 
         for (int i = 0; i < SoundChannels.Length; i++)
-            SoundChannels[i] = null;
+            SoundChannels[i] = null!;
 
         Target = WeakEntity.Default;
         Tracer = WeakEntity.Default;
@@ -1030,7 +1030,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (audioSource != null)
         {
             clearedSound = audioSource;
-            SoundChannels[(int)channel] = null;
+            SoundChannels[(int)channel] = null!;
             return true;
         }
 
@@ -1040,7 +1040,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        SoundChannels[(int)channel] = null;
+        SoundChannels[(int)channel] = null!;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

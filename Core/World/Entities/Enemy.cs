@@ -156,7 +156,7 @@ public partial class Entity
 
     public void ClosetChase()
     {
-        if (Target.Entity.IsDead)
+        if (Target.Entity != null && Target.Entity.IsDead)
             return;
 
         SetNewChaseDirection();

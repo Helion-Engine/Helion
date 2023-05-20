@@ -71,9 +71,10 @@ public class ScrollSpecial : ISpecial
             m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
     }
 
-    public ScrollSpecial(ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null,
+    public ScrollSpecial(IWorld world, ScrollType type, SectorPlane sectorPlane, in Vec2D speed, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
+        m_world = world;
         m_type = type;
         SectorPlane = sectorPlane;
         m_speed = speed;
@@ -91,8 +92,8 @@ public class ScrollSpecial : ISpecial
 
     }
 
-    public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
-        : this ((ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
+    public ScrollSpecial(IWorld world, SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
+        : this (world, (ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
     {
         if (m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
         {
@@ -181,13 +182,13 @@ public class ScrollSpecial : ISpecial
         {
             Scroll(line.Front.ScrollData!, speed);
             line.Front.OffsetChanged = true;
-            m_world.SetSideScroll(Line.Front, m_sideTextures);
+            m_world.SetSideScroll(line.Front, m_sideTextures);
         }
         else if (line.Back != null)
         {
             Scroll(line.Back.ScrollData!, speed);
             line.Back.OffsetChanged = true;
-            m_world.SetSideScroll(Line.Back, m_sideTextures);
+            m_world.SetSideScroll(line.Back, m_sideTextures);
         }
     }
 

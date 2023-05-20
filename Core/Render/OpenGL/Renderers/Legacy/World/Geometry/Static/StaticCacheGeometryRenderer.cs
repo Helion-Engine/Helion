@@ -1,39 +1,23 @@
-﻿using GlmSharp;
-using Helion.Bsp.States.Miniseg;
-using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Buffer.Array;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Static;
-using MoreLinq;
-using Newtonsoft.Json.Linq;
-using OpenTK.Graphics.OpenGL;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Reflection;
-using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -66,10 +50,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
     private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
 
-    private List<List<StaticGeometryData>> m_bufferLists = new();
+    private readonly List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticScroll;
+    private bool m_floodFill;
+    private bool m_floodFillAlt;
     private IWorld? m_world;
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
@@ -97,6 +83,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
+        m_floodFill = world.Config.Render.FloodFill;
+        m_floodFillAlt = world.Config.Render.FloodFillAlt;
 
         SetSideDynamicIgnore();
 
@@ -280,10 +268,10 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
         SectorPlane floodPlane, SideTexture texture, bool update)
     {
-        if (!m_world.Config.Render.FloodFill)
+        if (!m_floodFill)
             return;
 
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_world.Config.Render.FloodFillAlt);
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_floodFillAlt);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -543,7 +531,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
                 continue;
 
-            if ((scroll.Textures & SideTexture.Upper) != 0);
+            if ((scroll.Textures & SideTexture.Upper) != 0)
                 UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
             if ((scroll.Textures & SideTexture.Lower) != 0)
                 UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);

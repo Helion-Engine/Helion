@@ -53,7 +53,7 @@ public class BspSubsector
         Box = Box2D.Bound(segs) ?? default;
     }
 
-    public override string ToString() => $"{Id}, sector = {Sector.Id}, segs = {Segments.Count}, box = {Box}";
+    public override string ToString() => $"{Id}, sector = {Sector?.Id}, segs = {Segments.Count}, box = {Box}";
 }
 
 public class BspNodeNew
@@ -97,6 +97,9 @@ public class BspTreeNew
 
     private void CreateSegments(IMap map, List<Line> lines, List<Sector> sectors)
     {
+        if (map.GL == null)
+            return;
+
         var vertices = map.GetVertices();
         var glVertices = map.GL.Vertices;
 
@@ -141,6 +144,9 @@ public class BspTreeNew
 
     private void CreateSubsectors(IMap map)
     {
+        if (map.GL == null)
+            return;
+
         foreach ((int subsectorId, GLSubsector ssec) in map.GL.Subsectors.Enumerate())
         {
             Sector? sector = null;
@@ -168,6 +174,9 @@ public class BspTreeNew
 
     private void CreateNodes(IMap map)
     {
+        if (map.GL == null)
+            return;
+
         if (map.GL.Nodes.Empty())
         {
             CreateZeroNodeTree();
