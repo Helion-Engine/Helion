@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Textures;
 public class GLBufferTexture : IDisposable
 {
     public readonly string Label;
-    private readonly DynamicArray<float> m_data;
+    private readonly DynamicArray<float> m_data = new();
     private readonly int m_name;
     private readonly int m_textureName;
     private bool m_disposed;
