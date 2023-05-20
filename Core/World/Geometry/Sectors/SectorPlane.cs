@@ -3,6 +3,7 @@ using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -33,6 +34,7 @@ public class SectorPlane : ISoundSource
     public StaticGeometryData StaticFlood;
 
     private IAudioSource? m_audio;
+    private SoundInfo? m_soundInfo;
 
     public SectorPlane(int id, SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
     {
@@ -143,43 +145,45 @@ public class SectorPlane : ISoundSource
         m_audio = audioSource;
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
+    public void SoundCreated(SoundInfo soundInfo, SoundChannel channel)
+    {
+        m_soundInfo = soundInfo;
+    }
+
+    public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
         if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
         {
-            IAudioSource stopSource = m_audio;
+            clearedSound = m_audio;
             m_audio = null;
-            return stopSource;
+            return true;
         }
 
-        return null;
+        if (m_soundInfo != null && m_soundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
+        {
+            clearedSound = null;
+            return true;
+        }
+
+        clearedSound = null;
+        return false;
     }
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
         m_audio = null;
+        m_soundInfo = null;
     }
 
-    public double GetDistanceFrom(Entity listenerEntity)
-    {
-        if (Sector.GetActiveMoveSpecial(this) is SectorMoveSpecial moveSpecial)
-            return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType).Distance(listenerEntity.Position);
+    // Use the sector's LastActivePlaneMove. The move special itself may have been destroyed,
+    // but the distance needs to be calculated for stop sounds long after the movement has completed.
+    public double GetDistanceFrom(Entity listenerEntity) =>
+        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove).Distance(listenerEntity.Position);
 
-        return short.MaxValue;
-    }
+    public Vec3D? GetSoundPosition(Entity listenerEntity) =>
+        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove);
 
-    public Vec3D? GetSoundPosition(Entity listenerEntity)
-    {
-        if (Sector.GetActiveMoveSpecial(this) is SectorMoveSpecial moveSpecial)
-            return GetSoundSource(listenerEntity, moveSpecial.MoveData.SectorMoveType);
-
-        return null;
-    }
-
-    public Vec3D? GetSoundVelocity()
-    {
-        return Vec3D.Zero;
-    }
+    public Vec3D? GetSoundVelocity() => Vec3D.Zero;
 
     public bool CanMakeSound() => true;
 }

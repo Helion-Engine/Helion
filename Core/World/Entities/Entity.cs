@@ -4,6 +4,7 @@ using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -1013,21 +1014,28 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         SoundChannels[(int)channel] = audioSource;
     }
 
+    public void SoundCreated(SoundInfo soundInfo, SoundChannel channel)
+    {
+
+    }
+
     public double GetDistanceFrom(Entity listenerEntity)
     {
         return Position.Distance(listenerEntity.Position);
     }
 
-    public IAudioSource? TryClearSound(string sound, SoundChannel channel)
+    public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
         IAudioSource? audioSource = SoundChannels[(int)channel];
         if (audioSource != null)
         {
+            clearedSound = audioSource;
             SoundChannels[(int)channel] = null;
-            return audioSource;
+            return true;
         }
 
-        return null;
+        clearedSound = null;
+        return false;
     }
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)

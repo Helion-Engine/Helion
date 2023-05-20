@@ -125,13 +125,16 @@ public class SoundManager : IDisposable
 
     public void StopSoundBySource(ISoundSource source, SoundChannel channel, string sound)
     {
-        IAudioSource? stoppedSound = source.TryClearSound(sound, channel);
-        if (stoppedSound == null)
+        if (!source.TryClearSound(sound, channel, out IAudioSource? clearedSound))
             return;
 
-        StopSound(stoppedSound, m_soundsToPlay);
-        StopSound(stoppedSound, PlayingSounds);
-        StopSound(stoppedSound, m_waitingLoopSounds);
+        if (clearedSound != null)
+        {
+            StopSound(clearedSound, m_soundsToPlay);
+            StopSound(clearedSound, PlayingSounds);
+        }
+
+        StopSound(source, m_waitingLoopSounds);
     }
 
     protected void StopSound(IAudioSource audioSource, LinkedList<IAudioSource> audioSources)
@@ -143,20 +146,20 @@ public class SoundManager : IDisposable
             {
                 node.Value.Stop();
                 ArchiveCollection.DataCache.FreeAudioSource(node.Value);
-                audioSources.Remove(audioSource);
+                audioSources.Remove(node);
             }
             node = node.Next;
         }
     }
 
-    protected void StopSound(IAudioSource audioSource, LinkedList<WaitingSound> waitingSounds)
+    protected void StopSound(ISoundSource soundSource, LinkedList<WaitingSound> waitingSounds)
     {
         LinkedListNode<WaitingSound>? node = waitingSounds.First;
         LinkedListNode<WaitingSound>? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            if (ReferenceEquals(audioSource.AudioData.SoundSource, node.Value.SoundSource))
+            if (ReferenceEquals(soundSource, node.Value.SoundSource))
                 waitingSounds.Remove(node);
             node = nextNode;
         }

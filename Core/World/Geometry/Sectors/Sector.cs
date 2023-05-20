@@ -47,6 +47,7 @@ public class Sector
     public int RenderGametick;
     public int ChangeGametick;
     public int BlockmapCount;
+    public SectorPlaneFace LastActivePlaneMove;
     public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
     public bool Secret { get; private set; }
     public int DamageAmount { get; private set; }
@@ -403,6 +404,7 @@ public class Sector
 
     public void SetActiveMoveSpecial(SectorPlaneFace planeType, SectorMoveSpecial? special)
     {
+        LastActivePlaneMove = planeType;
         if (planeType == SectorPlaneFace.Floor)
             ActiveFloorMove = special;
         else

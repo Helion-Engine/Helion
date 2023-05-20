@@ -279,6 +279,8 @@ public class SectorMoveSpecial : ISectorSpecial
         {
             if (SoundData.StopSound != null)
                 CreateSound(SoundData.StopSound);
+            else if (SoundData.MovementSound != null)
+                StopSound(SoundData.MovementSound);
             return;
         }
 
