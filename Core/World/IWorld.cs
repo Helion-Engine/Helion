@@ -28,6 +28,7 @@ using Helion.World.Special.Specials;
 using Helion.Resources;
 using Helion.World.Static;
 using Helion.World.Blockmap;
+using Helion.Maps.Specials;
 
 namespace Helion.World;
 
@@ -150,6 +151,7 @@ public interface IWorld : IDisposable
     void SetSideScroll(Side side, SideTexture textures);
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
+    void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

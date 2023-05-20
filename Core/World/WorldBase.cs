@@ -442,8 +442,8 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                if (!entity.IsDisposed && entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
-                    InstantKillSector(entity);
+                if (entity.Sector.SectorDamageSpecial != null)
+                    entity.Sector.SectorDamageSpecial.Tick(entity);
             }
 
             node = nextNode;
@@ -468,9 +468,6 @@ public abstract partial class WorldBase : IWorld
             player.HandleTickCommand();
             player.TickCommand.TickHandled();
 
-            if (player.Sector.SectorDamageSpecial != null)
-                player.Sector.SectorDamageSpecial.Tick(player);
-
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
                 DisplayMessage(player, null, "$SECRETMESSAGE");
@@ -479,21 +476,17 @@ public abstract partial class WorldBase : IWorld
                 LevelStats.SecretCount++;
                 player.SecretsFound++;
             }
-
-            if (player.Sector.InstantKillEffect != InstantKillEffect.None && player.OnSectorFloorZ(player.Sector))
-                InstantKillSector(player);
         }
 
         Profiler.World.TickPlayer.Stop();
     }
 
-    private void InstantKillSector(Entity entity)
+    public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
     {
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        InstantKillEffect effect = entity.Sector.InstantKillEffect;
         if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();

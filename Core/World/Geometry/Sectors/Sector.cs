@@ -68,7 +68,7 @@ public class Sector
     public int CheckCount;
     public bool MarkAutomap;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
-    public readonly InstantKillEffect InstantKillEffect;
+    public readonly InstantKillEffect KillEffect;
     public readonly SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
@@ -91,7 +91,7 @@ public class Sector
         SectorSpecialType = sectorSpecial;
         Secret = sectorData.Secret;
         DamageAmount = sectorData.DamageAmount;
-        InstantKillEffect = sectorData.InstantKillEffect;
+        KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
 
         floor.Sector = this;
