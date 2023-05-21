@@ -350,8 +350,8 @@ public class GeometryRenderer : IDisposable
         }
 
         Side otherSide = side.PartnerSide!;
-        Sector facingSector = side.Sector;
-        Sector otherSector = otherSide.Sector;
+        Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
+        Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
 
         switch (texture)
         {
@@ -632,11 +632,13 @@ public class GeometryRenderer : IDisposable
 
     public void SetRenderFloor(SectorPlane floor)
     {
+        floor = floor.Sector.GetRenderSector(TransferHeightView.Middle).Floor;
         m_floorChanged = floor.CheckRenderingChanged();
     }
 
     public void SetRenderCeiling(SectorPlane ceiling)
     {
+        ceiling = ceiling.Sector.GetRenderSector(TransferHeightView.Middle).Ceiling;
         m_ceilingChanged = ceiling.CheckRenderingChanged();
     }
 
