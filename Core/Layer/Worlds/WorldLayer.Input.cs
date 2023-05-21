@@ -100,7 +100,11 @@ public partial class WorldLayer
             var key = m_pressedKeys[i];
             var commands = World.Config.Keys[key];
             foreach (var command in commands)
+            {
+                if (World.Paused && Constants.InGameCommands.Contains(command))
+                    return;
                 m_parent.SubmitConsoleText(command);
+            }
         }
     }
 
