@@ -23,6 +23,7 @@ public interface IInputManager
     bool IsKeyReleased(Key key);
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
+    void Clear();
     void Processed();
     bool IsKeyContinuousHold(Key key);
     void GetPressedKeys(DynamicArray<Key> pressedKeys);
