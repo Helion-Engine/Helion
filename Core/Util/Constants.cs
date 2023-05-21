@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Helion.Util;
 
@@ -144,6 +145,43 @@ public static class Constants
         public const string Pause = "Pause";
         public const string QuickSave = "QuickSave";
     }
+
+    public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        Input.Forward,
+        Input.Left,
+        Input.Backward,
+        Input.Right,
+        Input.Use,
+        Input.Run,
+        Input.Strafe,
+        Input.TurnLeft,
+        Input.TurnRight,
+        Input.LookUp,
+        Input.LookDown,
+        Input.Jump,
+        Input.Crouch,
+        Input.Console,
+        Input.Attack,
+        Input.NextWeapon,
+        Input.PreviousWeapon,
+        Input.WeaponSlot1,
+        Input.WeaponSlot2,
+        Input.WeaponSlot3,
+        Input.WeaponSlot4,
+        Input.WeaponSlot5,
+        Input.WeaponSlot6,
+        Input.WeaponSlot7,
+        Input.Screenshot,
+        Input.HudIncrease,
+        Input.HudDecrease,
+        Input.AutoMapIncrease,
+        Input.AutoMapDecrease,
+        Input.AutoMapUp,
+        Input.AutoMapDown,
+        Input.AutoMapLeft,
+        Input.AutoMapRight,
+    };
 
     public static class ConsoleCommands
     {

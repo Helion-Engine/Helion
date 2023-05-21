@@ -1,3 +1,4 @@
+using Helion.Maps.Specials;
 using Helion.World;
 using Helion.World.Special.Specials;
 
@@ -9,6 +10,7 @@ public class SectorDamageSpecialModel
     public int Damage { get; set; }
     public int RadSuitLeak { get; set; }
     public bool End { get; set; }
+    public InstantKillEffect InstantKillEffect { get; set; }
 
     public SectorDamageSpecial? ToWorldSpecial(IWorld world)
     {

@@ -6,14 +6,31 @@ namespace Helion.World.Special.Specials;
 
 public class LightChangeSpecial : SectorSpecialBase
 {
-    private readonly short m_lightLevel;
-    private readonly int m_step;
-    private readonly int m_min;
-    private readonly int m_max;
+    private short m_lightLevel;
+    private int m_step;
+    private int m_min;
+    private int m_max;
 
     public LightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)
         : base(world, sector)
     {
+        Set(world, sector, lightLevel, fadeTics);
+    }
+
+    public LightChangeSpecial(IWorld world, Sector sector, LightChangeSpecialModel model)
+        : base(world, sector)
+    {
+        m_lightLevel = model.Light;
+        m_step = model.Step;
+        m_min = model.Min;
+        m_max = model.Max;
+    }
+
+    public void Set(IWorld world, Sector sector, short lightLevel, int fadeTics)
+    {
+        World = world;
+        Sector = sector;
+
         m_lightLevel = lightLevel;
 
         if (fadeTics > 0)
@@ -31,15 +48,6 @@ public class LightChangeSpecial : SectorSpecialBase
             m_min = sector.LightLevel;
             m_max = m_lightLevel;
         }
-    }
-
-    public LightChangeSpecial(IWorld world, Sector sector, LightChangeSpecialModel model)
-        : base(world, sector)
-    {
-        m_lightLevel = model.Light;
-        m_step = model.Step;
-        m_min = model.Min;
-        m_max = model.Max;
     }
 
     public override ISpecialModel? ToSpecialModel()

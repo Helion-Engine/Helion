@@ -1,5 +1,6 @@
 using Helion.Models;
 using Helion.World.Cheats;
+using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 
@@ -26,8 +27,12 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
         return model;
     }
 
-    public override void Tick(Player player)
+    public override void Tick(Entity entity)
     {
+        if (entity.PlayerObj == null)
+            return;
+
+        var player = entity.PlayerObj;
         m_world.CheatManager.DeactivateCheat(player, CheatType.God);
         base.Tick(player);
 

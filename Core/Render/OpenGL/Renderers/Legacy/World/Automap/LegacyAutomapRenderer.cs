@@ -94,11 +94,11 @@ public class LegacyAutomapRenderer : IDisposable
             m_lastOffsetY = renderInfo.AutomapOffset.Y;
         }
 
-        PopulateData(world, renderInfo, out Box2F worldBounds);
+        PopulateData(world, renderInfo, out _);
 
         m_shader.Bind();
 
-        m_shader.Mvp(CalculateMvp(renderInfo, worldBounds, world));
+        m_shader.Mvp(CalculateMvp(renderInfo));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
         {
@@ -114,13 +114,10 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader.Unbind();
     }
 
-    private mat4 CalculateMvp(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
+    private mat4 CalculateMvp(RenderInfo renderInfo)
     {
-        vec2 scale = CalculateScale(renderInfo, worldBounds, world);
+        vec2 scale = CalculateScale(renderInfo);
         vec3 camera = renderInfo.Camera.Position.GlmVector;
-
-        float offsetX = (m_offsetX - m_lastOffsetY) * renderInfo.TickFraction;
-        float offsetY = (m_offsetY - m_lastOffsetY) * renderInfo.TickFraction;
 
         mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
@@ -129,13 +126,11 @@ public class LegacyAutomapRenderer : IDisposable
         return model * view * proj;
     }
 
-    private static vec2 CalculateScale(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
+    private static vec2 CalculateScale(RenderInfo renderInfo)
     {
         // Note: we're translating to NDC coordinates, so everything should
         // end up between [-1.0, 1.0].
-        (float w, float h) = worldBounds.Sides;
         (float vW, float vH) = (renderInfo.Viewport.Width, renderInfo.Viewport.Height);
-        float aspect = vW / vH;
 
         // TODO: Do this properly...
         float scale = (float)renderInfo.AutomapScale;
@@ -152,13 +147,13 @@ public class LegacyAutomapRenderer : IDisposable
         DrawEntity(player, renderInfo.TickFraction);
 
         if (player != null && (m_offsetX != 0 || m_offsetY != 0))
-            DrawCenterCross(world, player, renderInfo);
+            DrawCenterCross(player, renderInfo);
 
         TransferLineDataIntoBuffer(out box2F);
         m_vbo.UploadIfNeeded();
     }
 
-    private void DrawCenterCross(IWorld world, Player player, RenderInfo renderInfo)
+    private void DrawCenterCross(Player player, RenderInfo renderInfo)
     {
         const int VirtualLength = 17;
         var center = player.PrevPosition.Interpolate(player.Position, renderInfo.TickFraction);
@@ -215,10 +210,6 @@ public class LegacyAutomapRenderer : IDisposable
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            if (line.Id == 304)
-            {
-                int lol = 1;
-            }
             bool markedLine = IsLineMarked(line);
             if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;

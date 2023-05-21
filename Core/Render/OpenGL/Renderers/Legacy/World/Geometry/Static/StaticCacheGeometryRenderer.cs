@@ -5,7 +5,6 @@ using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -60,6 +59,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticScroll;
+    private bool m_floodFill;
+    private bool m_floodFillAlt;
     private IWorld? m_world;
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
@@ -98,6 +99,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
+        m_floodFill = world.Config.Render.FloodFill;
+        m_floodFillAlt = world.Config.Render.FloodFillAlt;
 
         SetSideDynamicIgnore();
 
@@ -285,10 +288,10 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
         SectorPlane floodPlane, SideTexture texture, bool update)
     {
-        if (!m_world.Config.Render.FloodFill)
+        if (!m_floodFill)
             return;
 
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_world.Config.Render.FloodFillAlt);
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_floodFillAlt);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -551,7 +554,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
                 continue;
 
-            if ((scroll.Textures & SideTexture.Upper) != 0);
+            if ((scroll.Textures & SideTexture.Upper) != 0)
                 UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
             if ((scroll.Textures & SideTexture.Lower) != 0)
                 UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);

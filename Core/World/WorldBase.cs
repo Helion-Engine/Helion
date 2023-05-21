@@ -167,7 +167,7 @@ public abstract partial class WorldBase : IWorld
         Map = map;
 
         if (Map.Reject != null)
-            m_lineOfSightReject = map.Reject;
+            m_lineOfSightReject = Map.Reject;
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
@@ -443,8 +443,8 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                if (!entity.IsDisposed && entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
-                    InstantKillSector(entity);
+                if (entity.Sector.SectorDamageSpecial != null)
+                    entity.Sector.SectorDamageSpecial.Tick(entity);
             }
 
             node = nextNode;
@@ -469,9 +469,6 @@ public abstract partial class WorldBase : IWorld
             player.HandleTickCommand();
             player.TickCommand.TickHandled();
 
-            if (player.Sector.SectorDamageSpecial != null)
-                player.Sector.SectorDamageSpecial.Tick(player);
-
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
                 DisplayMessage(player, null, "$SECRETMESSAGE");
@@ -480,21 +477,17 @@ public abstract partial class WorldBase : IWorld
                 LevelStats.SecretCount++;
                 player.SecretsFound++;
             }
-
-            if (player.Sector.InstantKillEffect != InstantKillEffect.None && player.OnSectorFloorZ(player.Sector))
-                InstantKillSector(player);
         }
 
         Profiler.World.TickPlayer.Stop();
     }
 
-    private void InstantKillSector(Entity entity)
+    public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
     {
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        InstantKillEffect effect = entity.Sector.InstantKillEffect;
         if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
@@ -1212,26 +1205,28 @@ public abstract partial class WorldBase : IWorld
         if (item.IsDisposed)
             return;
 
-        PlayerPickedUpItem(entity, item, health, definition);
+        if (entity.PlayerObj != null)
+            PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
         EntityManager.Destroy(item);
     }
 
-    private void PlayerPickedUpItem(Entity entity, Entity item, int previousHealth, EntityDefinition definition)
+    private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
     {
-        if (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll)
+        if (player.IsVooDooDoll)
         {
-            entity = EntityManager.GetRealPlayer(entity.PlayerObj.PlayerNumber);
-            if (entity == null)
+            var findPlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
+            if (findPlayer == null)
                 return;
+            player = findPlayer;
         }
 
-        item.PickupPlayer = entity.PlayerObj;
+        item.PickupPlayer = player;
         item.FrameState.SetState("Pickup", warn: false);
 
         if (item.Flags.CountItem)
         {
             LevelStats.ItemCount++;
-            entity.PlayerObj.ItemCount++;
+            player.ItemCount++;
         }
 
         string message = definition.Properties.Inventory.PickupMessage;
@@ -1239,12 +1234,12 @@ public abstract partial class WorldBase : IWorld
         if (healthProperty != null && previousHealth < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
             message = healthProperty.Value.LowMessage;
 
-        DisplayMessage(entity.PlayerObj, null, message);
+        DisplayMessage(player, null, message);
 
         if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
         {
-            SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound,
-                new SoundParams(entity, channel: SoundChannel.Item));
+            SoundManager.CreateSoundOn(player, definition.Properties.Inventory.PickupSound,
+                new SoundParams(player, channel: SoundChannel.Item));
         }
     }
 
@@ -1317,7 +1312,7 @@ public abstract partial class WorldBase : IWorld
             if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)
                 continue;
 
-            if (entity.Flags.Ripper && entity.Owner.Entity.Id != intersectEntity.Id)
+            if (entity.Flags.Ripper && entity.Owner.Entity?.Id != intersectEntity.Id)
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
@@ -1539,7 +1534,8 @@ public abstract partial class WorldBase : IWorld
         {
             if (player == null || player.Id == GetCameraPlayer().Id)
                 Log.Info(message);
-            PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
+            if (player != null)
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }
 
@@ -2352,12 +2348,10 @@ public abstract partial class WorldBase : IWorld
 
     private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
     {
-        bool anySuccess = false;
         Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
         if (updatePlayer == null)
             return false;
 
-        int health = updatePlayer.Health;
         bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
         if (!success)
             return false;

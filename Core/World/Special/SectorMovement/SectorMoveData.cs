@@ -3,9 +3,9 @@ using Helion.World.Special.Specials;
 
 namespace Helion.World.Special.SectorMovement;
 
-public class SectorMoveData
+public readonly struct SectorMoveData
 {
-    public SectorPlaneFace SectorMoveType;
+    public readonly SectorPlaneFace SectorMoveType;
     public readonly MoveRepetition MoveRepetition;
     public readonly double Speed;
     public readonly double ReturnSpeed;

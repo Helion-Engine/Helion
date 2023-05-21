@@ -571,7 +571,7 @@ public class Player : Entity
         bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
 
         // Toggle between spawn and see states (stopped and running) based on movement
-        if (hasMoveSpeed &&
+        if (hasMoveSpeed && Definition.SpawnState.HasValue &&
             FrameState.Frame.MasterFrameIndex == Definition.SpawnState.Value &&
             Definition.SeeState.HasValue)
         {

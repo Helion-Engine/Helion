@@ -569,6 +569,7 @@ public partial class Client
         }
 
         UnRegisterWorldEvents();
+        m_window.InputManager.Clear();
         m_resumeCommands.Clear();
         m_layerManager.Remove(m_layerManager.WorldLayer);
 

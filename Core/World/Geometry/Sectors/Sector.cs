@@ -47,6 +47,7 @@ public class Sector
     public int RenderGametick;
     public int ChangeGametick;
     public int BlockmapCount;
+    public SectorPlaneFace LastActivePlaneMove;
     public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
     public bool Secret { get; private set; }
     public int DamageAmount { get; private set; }
@@ -67,7 +68,7 @@ public class Sector
     public int CheckCount;
     public bool MarkAutomap;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
-    public readonly InstantKillEffect InstantKillEffect;
+    public readonly InstantKillEffect KillEffect;
     public readonly SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
@@ -90,7 +91,7 @@ public class Sector
         SectorSpecialType = sectorSpecial;
         Secret = sectorData.Secret;
         DamageAmount = sectorData.DamageAmount;
-        InstantKillEffect = sectorData.InstantKillEffect;
+        KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
 
         floor.Sector = this;
@@ -403,6 +404,7 @@ public class Sector
 
     public void SetActiveMoveSpecial(SectorPlaneFace planeType, SectorMoveSpecial? special)
     {
+        LastActivePlaneMove = planeType;
         if (planeType == SectorPlaneFace.Floor)
             ActiveFloorMove = special;
         else

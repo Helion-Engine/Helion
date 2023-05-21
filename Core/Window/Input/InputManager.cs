@@ -124,6 +124,18 @@ public class InputManager : IInputManager
         return false;
     }
 
+    public void Clear()
+    {
+        m_inputPrevDown.Clear();
+        m_inputDownRemove.Clear();
+        m_inputDownUpdate.Clear();
+        m_inputDown.Clear();
+        m_inputUp.Clear();
+        MouseMove = (0, 0);
+        m_mouseScroll = 0;
+        m_typedCharacters.Clear();
+    }
+
     public void Processed()
     {
         m_inputPrevDown.Clear();

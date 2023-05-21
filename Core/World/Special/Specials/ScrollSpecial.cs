@@ -182,13 +182,13 @@ public class ScrollSpecial : ISpecial
         {
             Scroll(line.Front.ScrollData!, speed);
             line.Front.OffsetChanged = true;
-            m_world.SetSideScroll(Line.Front, m_sideTextures);
+            m_world.SetSideScroll(line.Front, m_sideTextures);
         }
         else if (line.Back != null)
         {
             Scroll(line.Back.ScrollData!, speed);
             line.Back.OffsetChanged = true;
-            m_world.SetSideScroll(Line.Back, m_sideTextures);
+            m_world.SetSideScroll(line.Back, m_sideTextures);
         }
     }
 

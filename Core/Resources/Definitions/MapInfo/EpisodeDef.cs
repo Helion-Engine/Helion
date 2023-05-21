@@ -17,4 +17,9 @@ public class EpisodeDef
 
         return StartMap.EqualsIgnoreCase(episode.StartMap);
     }
+
+    public override int GetHashCode()
+    {
+        return StartMap.GetHashCode();
+    }
 }
