@@ -592,11 +592,13 @@ public class GeometryRenderer : IDisposable
 
     public void SetRenderFloor(SectorPlane floor)
     {
+        floor = floor.Sector.GetRenderSector(TransferHeightView.Middle).Floor;
         m_floorChanged = floor.CheckRenderingChanged();
     }
 
     public void SetRenderCeiling(SectorPlane ceiling)
     {
+        ceiling = ceiling.Sector.GetRenderSector(TransferHeightView.Middle).Ceiling;
         m_ceilingChanged = ceiling.CheckRenderingChanged();
     }
 
