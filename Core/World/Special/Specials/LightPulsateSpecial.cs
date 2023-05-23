@@ -1,5 +1,4 @@
 using Helion.Models;
-using Helion.Util;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials;
@@ -44,13 +43,14 @@ public class LightPulsateSpecial : SectorSpecialBase
 
     public override SpecialTickStatus Tick()
     {
-        int lightLevel = Sector.LightLevel + m_inc;
-        lightLevel = MathHelper.Clamp(lightLevel, MinBright, short.MaxValue);
-        World.SetSectorLightLevel(Sector, (short)lightLevel);
-
-        if ((m_inc < 0 && Sector.LightLevel <= MinBright) || (m_inc > 0 && Sector.LightLevel >= MaxBright))
+        short lightLevel = (short)(Sector.LightLevel + m_inc);
+        if ((m_inc < 0 && lightLevel <= MinBright) || (m_inc > 0 && lightLevel >= MaxBright))
+        {
             m_inc = -m_inc;
+            lightLevel = (short)(lightLevel + m_inc);
+        }
 
+        World.SetSectorLightLevel(Sector, lightLevel);
         return SpecialTickStatus.Continue;
     }
 
