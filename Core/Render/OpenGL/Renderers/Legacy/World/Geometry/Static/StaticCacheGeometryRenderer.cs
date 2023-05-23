@@ -142,9 +142,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void SetSideDynamicIgnore()
     {
+        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
         m_sideDynamicIgnore = SectorDynamic.Alpha;
-        if (!m_staticScroll)
-            m_sideDynamicIgnore |= SectorDynamic.Scroll;
     }
 
     private static void UpdateLookup(DynamicArray<int> array, int count)
