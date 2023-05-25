@@ -8,7 +8,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -52,11 +51,7 @@ using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Demo;
-using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Resources.Archives.Entries;
-using static Helion.World.IWorld;
 
 namespace Helion.World;
 
@@ -123,6 +118,7 @@ public abstract partial class WorldBase : IWorld
     public bool AnyLayerObscuring { get; set; }
     public bool IsDisposed { get; private set; }
     public abstract ListenerParams GetListener();
+    public int CurrentBossTarget { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -699,8 +695,6 @@ public abstract partial class WorldBase : IWorld
 
         return m_bossBrainTargets;
     }
-
-    public int CurrentBossTarget { get; set; }
 
     public void TelefragBlockingEntities(Entity entity)
     {
@@ -1533,7 +1527,7 @@ public abstract partial class WorldBase : IWorld
         {
             if (player == null || player.Id == GetCameraPlayer().Id)
                 Log.Info(message);
-            if (player != null)
+            if (player != null && player.Id == GetCameraPlayer().Id)
                 PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }

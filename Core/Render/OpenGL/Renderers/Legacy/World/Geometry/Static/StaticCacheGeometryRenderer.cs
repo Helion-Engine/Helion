@@ -848,7 +848,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data);
+        List<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData.TextureHandle);
         list.Add(data);
 
         var geometryData = data.GeometryData;
@@ -864,22 +864,22 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data);
+        List<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData.TextureHandle);
         list.Add(data);
 
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
+    private List<StaticGeometryData> GetOrCreateBufferList(int textureHandle)
     {
-        if (m_bufferData.Capacity <= data.GeometryData.TextureHandle)
-            m_bufferData.Resize(data.GeometryData.TextureHandle + 1024);
+        if (m_bufferData.Capacity <= textureHandle)
+            m_bufferData.Resize(textureHandle + 1024);
 
-        var list = m_bufferData.Data[data.GeometryData.TextureHandle];
+        var list = m_bufferData.Data[textureHandle];
         if (list == null)
         {
             list = new List<StaticGeometryData>(32);
-            m_bufferData.Data[data.GeometryData.TextureHandle] = list;
+            m_bufferData.Data[textureHandle] = list;
             m_bufferLists.Add(list);
         }
 
