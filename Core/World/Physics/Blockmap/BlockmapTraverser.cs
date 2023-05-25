@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
@@ -9,8 +6,6 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
-using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
 
 namespace Helion.World.Physics.Blockmap;
 
@@ -19,12 +14,14 @@ public class BlockmapTraverser
     private readonly IWorld m_world;
     private readonly BlockMap m_blockmap;
     private readonly DataCache m_dataCache;
+    private readonly int[] m_checkedLines;
 
     public BlockmapTraverser(IWorld world, BlockMap blockmap, DataCache dataCache)
     {
         m_world = world;
         m_blockmap = blockmap;
         m_dataCache = dataCache;
+        m_checkedLines = new int[m_world.Lines.Count];
     }
 
     public DynamicArray<BlockmapIntersect> GetBlockmapIntersections(in Box2D box, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
@@ -110,10 +107,10 @@ public class BlockmapTraverser
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
-                    if (line->BlockmapCount == checkCounter)
+                    if (m_checkedLines[line->LineId] == checkCounter)
                         continue;
 
-                    line->BlockmapCount = checkCounter;
+                    m_checkedLines[line->LineId] = checkCounter;
 
                     if (line->Segment.Intersection(seg, out double t))
                     {
@@ -180,12 +177,12 @@ sightTraverseEndOfLoop:
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
-                    if (line->BlockmapCount == checkCounter)
+                    if (m_checkedLines[line->LineId] == checkCounter)
                         continue;
 
                     if (line->Segment.Intersection(seg, out double t))
                     {
-                        line->BlockmapCount = checkCounter;
+                        m_checkedLines[line->LineId] = checkCounter;
                         intersect = line->Segment.FromTime(t);
 
                         intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(seg.Start)));
@@ -262,12 +259,12 @@ sightTraverseEndOfLoop:
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
-                    if (line->BlockmapCount == data.CheckCount)
+                    if (m_checkedLines[line->LineId] == data.CheckCount)
                         continue;
 
                     if (data.Seg != null && line->Segment.Intersection(data.Seg.Value, out double t))
                     {
-                        line->BlockmapCount = data.CheckCount;
+                        m_checkedLines[line->LineId] = data.CheckCount;
                         intersect = line->Segment.FromTime(t);
 
                         if (data.StopOnOneSidedLine && (line->OneSided || LineOpening.GetOpeningHeight(line->Line) <= 0))
@@ -281,7 +278,7 @@ sightTraverseEndOfLoop:
                     else if (data.Box != null && line->Segment.Intersects(data.Box.Value))
                     {
                         // TODO there currently isn't a way to calculate the intersection/distance... right now the only function that uses it doesn't need it (RadiusExplosion in PhysicsManager)
-                        line->BlockmapCount = data.CheckCount;
+                        m_checkedLines[line->LineId] = data.CheckCount;
                         data.Intersections.Add(new BlockmapIntersect(line->Line, default, 0.0));
                     }
                 }
