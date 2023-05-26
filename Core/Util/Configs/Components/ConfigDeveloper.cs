@@ -17,4 +17,7 @@ public class ConfigDeveloper
 
     [ConfigInfo("Marks lines and secctors that are activated by a special in the automap.", save: false)]
     public readonly ConfigValue<bool> DebugSpecials = new(false);
+
+    [ConfigInfo("Marks secret sectors in the automap.", save: false)]
+    public readonly ConfigValue<bool> MarkSecrets = new(false);
 }
