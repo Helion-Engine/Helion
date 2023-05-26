@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
@@ -47,6 +48,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
+    private readonly DynamicArray<List<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
     private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
 
@@ -391,9 +393,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferFloorLightLookup.Clear();
         m_transferCeilingLightLookup.Clear();
 
-        for (int i = 0; i < m_bufferData.Length; i++)
+        ClearBufferData(m_bufferData);
+        ClearBufferData(m_bufferDataClamp);
+    }
+
+    private static void ClearBufferData(DynamicArray<List<StaticGeometryData>?> bufferData)
+    {
+        for (int i = 0; i < bufferData.Length; i++)
         {
-            var list = m_bufferData.Data[i];
+            var list = bufferData.Data[i];
             if (list != null)
                 list.Clear();
         }
@@ -848,7 +856,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData.TextureHandle);
+        List<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         var geometryData = data.GeometryData;
@@ -864,22 +872,30 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData.TextureHandle);
+        List<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private List<StaticGeometryData> GetOrCreateBufferList(int textureHandle)
+    private List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
     {
-        if (m_bufferData.Capacity <= textureHandle)
-            m_bufferData.Resize(textureHandle + 1024);
+        if ((data.GeometryData.Texture.Flags & TextureFlags.ClampY) == 0)
+            return GetOrCreateBufferList(m_bufferData, data.GeometryData.TextureHandle);
 
-        var list = m_bufferData.Data[textureHandle];
+        return GetOrCreateBufferList(m_bufferDataClamp, data.GeometryData.TextureHandle);
+    }
+
+    private List<StaticGeometryData> GetOrCreateBufferList(DynamicArray<List<StaticGeometryData>?> bufferData, int textureHandle)
+    {
+        if (bufferData.Capacity <= textureHandle)
+            bufferData.Resize(textureHandle + 1024);
+
+        var list = bufferData.Data[textureHandle];
         if (list == null)
         {
             list = new List<StaticGeometryData>(32);
-            m_bufferData.Data[textureHandle] = list;
+            bufferData.Data[textureHandle] = list;
             m_bufferLists.Add(list);
         }
 
