@@ -33,7 +33,7 @@ namespace Helion.Tests.Unit.GameAction
         public void Dispose()
         {
             Player.Velocity = Vec3D.Zero;
-            Player.SetPosition(Vec3D.Zero);
+            Player.Position = Vec3D.Zero;
             GameActions.DestroyCreatedEntities(World);
             GameActions.TickWorld(World, 8);
             GC.SuppressFinalize(this);

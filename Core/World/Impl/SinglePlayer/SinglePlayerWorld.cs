@@ -383,7 +383,7 @@ public class SinglePlayerWorld : WorldBase
 
         if (m_chaseCamMode)
         {
-            ChaseCamPlayer.SetPosition(Player.Position);
+            ChaseCamPlayer.Position = Player.Position;
             ChaseCamPlayer.AngleRadians = Player.AngleRadians;
             ChaseCamPlayer.PitchRadians = Player.PitchRadians;
             ChaseCamPlayer.Velocity = Vec3D.Zero;
