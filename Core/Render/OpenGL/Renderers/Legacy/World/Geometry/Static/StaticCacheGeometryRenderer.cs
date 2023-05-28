@@ -417,6 +417,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         ClearBufferData(m_bufferData);
         ClearBufferData(m_bufferDataClamp);
+
+        m_bufferLists.FlushReferences();
     }
 
     private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
@@ -425,7 +427,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var list = bufferData.Data[i];
             if (list != null)
-                list.Clear();
+                list.FlushStruct();
         }
     }
 
@@ -936,7 +938,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
+    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(in StaticGeometryData data)
     {
         if ((data.GeometryData.Texture.Flags & TextureFlags.ClampY) == 0)
             return GetOrCreateBufferList(m_bufferData, data.GeometryData.TextureHandle);
