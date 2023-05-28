@@ -547,6 +547,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             list.Clear();
         }
+
+        m_bufferLists.Clear();
     }
 
     private void UpdateScrollSides()
@@ -952,9 +954,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             list = new DynamicArray<StaticGeometryData>(32);
             bufferData.Data[textureHandle] = list;
-            m_bufferLists.Add(list);
         }
 
+        m_bufferLists.Add(list);
         return list;
     }
 
