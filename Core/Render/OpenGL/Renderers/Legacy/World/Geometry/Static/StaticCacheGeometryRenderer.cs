@@ -951,7 +951,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (list == null)
         {
             list = new DynamicArray<StaticGeometryData>(32);
-            m_bufferData.Data[textureHandle] = list;
+            bufferData.Data[textureHandle] = list;
             m_bufferLists.Add(list);
         }
 
