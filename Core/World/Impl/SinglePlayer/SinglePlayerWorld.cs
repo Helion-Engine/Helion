@@ -25,10 +25,7 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
-using Helion.Util.Configs.Impl;
-using System.Reflection;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -36,8 +33,8 @@ public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly DebugSpecials m_debugSpecials = new();
+    private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
-    private AutomapMarker m_automapMarker;
 
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
@@ -386,7 +383,7 @@ public class SinglePlayerWorld : WorldBase
 
         if (m_chaseCamMode)
         {
-            ChaseCamPlayer.SetPosition(Player.Position);
+            ChaseCamPlayer.Position = Player.Position;
             ChaseCamPlayer.AngleRadians = Player.AngleRadians;
             ChaseCamPlayer.PitchRadians = Player.PitchRadians;
             ChaseCamPlayer.Velocity = Vec3D.Zero;

@@ -271,13 +271,13 @@ namespace Helion.Tests.Unit.GameAction
 
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
-            entity.SetPosition(pos);
+            entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().BeNull();
             sounds.Count.Should().Be(0);
 
             pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
-            entity.SetPosition(pos);
+            entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
             sounds.Count.Should().Be(1);
         }
@@ -291,7 +291,7 @@ namespace Helion.Tests.Unit.GameAction
 
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
-            entity.SetPosition(pos);
+            entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
             sounds.Count.Should().Be(1);
         }
@@ -307,7 +307,7 @@ namespace Helion.Tests.Unit.GameAction
 
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
-            entity.SetPosition(pos);
+            entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
             sounds.Count.Should().Be(0);
             waitingSounds.Count.Should().Be(1);
@@ -371,7 +371,7 @@ namespace Helion.Tests.Unit.GameAction
             // Create a loop sound past max distance so it's added to the waiting list
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
-            entity2.SetPosition(pos);
+            entity2.Position = pos;
             World.SoundManager.CreateSoundOn(entity2, "imp/sight1", new SoundParams(entity2, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
 
             World.Tick();

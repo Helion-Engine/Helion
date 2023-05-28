@@ -107,7 +107,7 @@ public struct TeleportSpecial
         double oldAngle = entity.AngleRadians;
         Vec3D oldPos = entity.Position;
         entity.UnlinkFromWorld();
-        entity.SetPosition(pos);
+        entity.Position = pos;
         Player? player = entity.PlayerObj;
 
         if (m_type == TeleportType.Doom)

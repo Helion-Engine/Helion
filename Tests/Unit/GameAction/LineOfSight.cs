@@ -25,7 +25,7 @@ namespace Helion.Tests.Unit.GameAction
         private void WorldInit(SinglePlayerWorld world)
         {
             world.CheatManager.ActivateCheat(world.Player, CheatType.God);
-            GameActions.GetEntity(world, 1).SetHeight(56);
+            GameActions.GetEntity(world, 1).Height = 56;
         }
 
         [Fact(DisplayName = "Basic line of sight checks")]

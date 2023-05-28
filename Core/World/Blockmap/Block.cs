@@ -18,7 +18,7 @@ namespace Helion.World.Blockmap;
 /// 
 public struct BlockLine
 {
-    public int BlockmapCount;
+    public int LineId;
     public Seg2D Segment;
     public bool OneSided;
     public LineFlags Flags;
@@ -28,6 +28,7 @@ public struct BlockLine
 
     public BlockLine(Seg2D segment, Line line, bool oneSided, Sector frontSector, Sector? backSector)
     {
+        LineId = line.Id;
         Segment = segment;
         Flags = line.Flags;
         Line = line;

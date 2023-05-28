@@ -305,15 +305,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     /// <summary>
-    /// Sets the height of the entity's box.
-    /// </summary>
-    /// <param name="height">The height to set.</param>
-    public void SetHeight(double height)
-    {
-        Height = height;
-    }
-
-    /// <summary>
     /// Sets the entity to the new X/Y coordinates.
     /// </summary>
     /// <param name="position">The new position.</param>
@@ -321,15 +312,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         Position.X = position.X;
         Position.Y = position.Y;
-    }
-
-    /// <summary>
-    /// Sets the entity to the new coordinate.
-    /// </summary>
-    /// <param name="position">The new position.</param>
-    public void SetPosition(Vec3D position)
-    {
-        Position = position;
     }
 
     /// <summary>
@@ -449,7 +431,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             Health = 0;
 
         bool gib = Health < -Properties.Health;
-        SetHeight(Definition.Properties.Height / 4.0);
+        Height = Definition.Properties.Height / 4.0;
 
         if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
@@ -514,7 +496,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             Flags.DontGib = true;
             Flags.Solid = false;
-            SetHeight(0.0);
+            Height = 0.0;
             return true;
         }
 
@@ -527,7 +509,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             FrameState.SetFrameIndex(Definition.RaiseState.Value);
             Health = Definition.Properties.Health;
-            SetHeight(Definition.Properties.Height);
+            Height = Definition.Properties.Height;
             Flags = Definition.Flags;
         }
     }

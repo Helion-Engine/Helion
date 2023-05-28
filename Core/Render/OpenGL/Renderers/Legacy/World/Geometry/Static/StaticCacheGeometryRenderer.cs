@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
@@ -51,6 +52,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
+    private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
     private DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
 
@@ -162,9 +164,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void SetSideDynamicIgnore()
     {
+        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
         m_sideDynamicIgnore = SectorDynamic.Alpha;
-        if (!m_staticScroll)
-            m_sideDynamicIgnore |= SectorDynamic.Scroll;
     }
 
     private static void UpdateLookup(DynamicArray<int> array, int count)
@@ -414,9 +415,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_transferFloorLightLookup.Clear();
         m_transferCeilingLightLookup.Clear();
 
-        for (int i = 0; i < m_bufferData.Length; i++)
+        ClearBufferData(m_bufferData);
+        ClearBufferData(m_bufferDataClamp);
+    }
+
+    private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
+    {
+        for (int i = 0; i < bufferData.Length; i++)
         {
-            var list = m_bufferData.Data[i];
+            var list = bufferData.Data[i];
             if (list != null)
                 list.Clear();
         }
@@ -929,14 +936,22 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private DynamicArray<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
     {
-        if (m_bufferData.Capacity <= data.GeometryData.TextureHandle)
-            m_bufferData.Resize(data.GeometryData.TextureHandle + 1024);
+        if ((data.GeometryData.Texture.Flags & TextureFlags.ClampY) == 0)
+            return GetOrCreateBufferList(m_bufferData, data.GeometryData.TextureHandle);
 
-        var list = m_bufferData.Data[data.GeometryData.TextureHandle];
+        return GetOrCreateBufferList(m_bufferDataClamp, data.GeometryData.TextureHandle);
+    }
+
+    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData, int textureHandle)
+    {
+        if (bufferData.Capacity <= textureHandle)
+            bufferData.Resize(textureHandle + 1024);
+
+        var list = bufferData.Data[textureHandle];
         if (list == null)
         {
             list = new DynamicArray<StaticGeometryData>(32);
-            m_bufferData.Data[data.GeometryData.TextureHandle] = list;
+            m_bufferData.Data[textureHandle] = list;
             m_bufferLists.Add(list);
         }
 

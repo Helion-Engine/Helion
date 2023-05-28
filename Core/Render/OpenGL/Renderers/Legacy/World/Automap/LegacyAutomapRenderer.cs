@@ -206,11 +206,12 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         bool forceDraw = !world.Config.Render.AutomapBspThread;
+        bool markSecrets = world.Config.Developer.MarkSecrets;
 
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            bool markedLine = IsLineMarked(line);
+            bool markedLine = IsLineMarked(line, markSecrets);
             if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
@@ -267,20 +268,20 @@ public class LegacyAutomapRenderer : IDisposable
 
     private static AutomapColor GetMarkedColor(IWorld world)
     {
-        if (world.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+        if (world.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
             return AutomapColor.Purple;
         return AutomapColor.LightBlue;
     }
 
-    private static bool IsLineMarked(Line line)
+    private static bool IsLineMarked(Line line, bool markSecrets)
     {
         if (line.MarkAutomap)
             return true;
 
-        if (line.Front.Sector.MarkAutomap)
+        if (line.Front.Sector.MarkAutomap && (line.Back != null && line.Back.Sector.MarkAutomap))
             return true;
 
-        if (line.Back != null && line.Back.Sector.MarkAutomap)
+        if (markSecrets && (line.Front.Sector.Secret || line.Back != null && line.Back.Sector.Secret))
             return true;
 
         return false;
@@ -380,7 +381,7 @@ public class LegacyAutomapRenderer : IDisposable
         else if (flash)
         {
             // Draw a square for keys, make it flash
-            if (entity.World.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            if (entity.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
                 AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
         }
         else if (entity.IsPlayer)

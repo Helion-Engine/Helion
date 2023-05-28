@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;

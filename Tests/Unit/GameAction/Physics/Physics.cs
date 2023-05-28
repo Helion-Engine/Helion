@@ -35,7 +35,7 @@ namespace Helion.Tests.Unit.GameAction
         public void Dispose()
         {
             Player.Velocity = Vec3D.Zero;
-            Player.SetPosition(Vec3D.Zero);
+            Player.Position = Vec3D.Zero;
             GameActions.DestroyCreatedEntities(World);
             // Clear any jumping ticks etc that may exist
             GameActions.TickWorld(World, 8);

@@ -8,7 +8,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -52,11 +51,7 @@ using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Demo;
-using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Resources.Archives.Entries;
-using static Helion.World.IWorld;
 
 namespace Helion.World;
 
@@ -124,6 +119,7 @@ public abstract partial class WorldBase : IWorld
     public bool AnyLayerObscuring { get; set; }
     public bool IsDisposed { get; private set; }
     public abstract ListenerParams GetListener();
+    public int CurrentBossTarget { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -701,8 +697,6 @@ public abstract partial class WorldBase : IWorld
         return m_bossBrainTargets;
     }
 
-    public int CurrentBossTarget { get; set; }
-
     public void TelefragBlockingEntities(Entity entity)
     {
         DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
@@ -920,12 +914,12 @@ public abstract partial class WorldBase : IWorld
         // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
         if (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success)
         {
-            projectile.SetPosition(testPos);
+            projectile.Position = testPos;
             projectile.Velocity = velocity;
             return projectile;
         }
 
-        projectile.SetPosition(testPos);
+        projectile.Position = testPos;
         HandleEntityHit(projectile, velocity, null);
         return null;
     }
@@ -1094,7 +1088,7 @@ public abstract partial class WorldBase : IWorld
             if (source.Owner.Entity == target && source.Position.XY == target.Position.XY)
             {
                 Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
-                source.SetPosition(move);
+                source.Position = move;
             }
 
             Vec2D xyDiff = source.Position.XY - target.Position.XY;
@@ -1143,7 +1137,7 @@ public abstract partial class WorldBase : IWorld
 
             thrustVelocity *= thrustAmount;
             if (savePos != source.Position)
-                source.SetPosition(savePos);
+                source.Position = savePos;
         }
 
         bool setPainState = m_random.NextByte() < target.Properties.PainChance;
@@ -1534,7 +1528,7 @@ public abstract partial class WorldBase : IWorld
         {
             if (player == null || player.Id == GetCameraPlayer().Id)
                 Log.Info(message);
-            if (player != null)
+            if (player != null && player.Id == GetCameraPlayer().Id)
                 PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }
@@ -1566,14 +1560,14 @@ public abstract partial class WorldBase : IWorld
 
         double oldHeight = entity.Height;
         entity.Flags.Solid = true;
-        entity.SetHeight(entity.Definition.Properties.Height);
+        entity.Height = entity.Definition.Properties.Height;
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
         DynamicArray<Entity> entities = DataCache.GetEntityList();
         entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
         entity.Flags.Solid = false;
-        entity.SetHeight(oldHeight);
+        entity.Height = oldHeight;
 
         bool blocked = entities.Length > 0;
         DataCache.FreeEntityList(entities);
@@ -2072,7 +2066,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             bi.Entity.Flags.Solid = true;
-            bi.Entity.SetHeight(entity.Definition.Properties.Height);
+            bi.Entity.Height = entity.Definition.Properties.Height;
 
             Entity? saveTarget = entity.Target.Entity;
             entity.SetTarget(bi.Entity);
@@ -2138,7 +2132,7 @@ public abstract partial class WorldBase : IWorld
     {
         entity.ResetInterpolation();
         entity.UnlinkFromWorld();
-        entity.SetPosition(pos);
+        entity.Position = pos;
         Link(entity);
     }
 

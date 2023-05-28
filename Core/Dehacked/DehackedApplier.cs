@@ -1093,7 +1093,11 @@ public class DehackedApplier
                 continue;
 
             string id = $"*deh/sound{sound.Index}";
-            soundInfoDef.Add(id, new SoundInfo(id, sound.EntryName, 0));
+            string entryName = sound.EntryName;
+            if (!entryName.StartsWith("DS", StringComparison.OrdinalIgnoreCase))
+                entryName = "DS" + entryName; 
+
+            soundInfoDef.Add(id, new SoundInfo(id, entryName, 0));
             m_dehacked.NewSoundLookup[sound.Index.Value] = id;
         }
     }

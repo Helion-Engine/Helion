@@ -1132,7 +1132,7 @@ public static class EntityActionFunctions
         newPos.X += unit.X * 24;
         newPos.Y += unit.Y * 24;
 
-        entity.SetPosition(newPos);
+        entity.Position = newPos;
     }
 
     private static void A_FireAssaultGun(Entity entity)
@@ -1652,7 +1652,7 @@ public static class EntityActionFunctions
         double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
         skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
         startPos += Vec3D.UnitSphere(angle, 0.0) * (entity.Radius + skull.Radius - 2);
-        skull.SetPosition(startPos);
+        skull.Position = startPos;
         skull.Flags.CountKill = false;
         skull.Flags.IsMonster = true;
 
@@ -2562,7 +2562,7 @@ public static class EntityActionFunctions
 
         Entity fire = entity.Tracer.Entity;
         Vec2D newPos = entity.Target.Entity.Position.XY - (Vec2D.UnitCircle(entity.AngleRadians) * 24);
-        fire.SetPosition(newPos.To3D(entity.Target.Entity.Position.Z));
+        fire.Position = newPos.To3D(entity.Target.Entity.Position.Z);
         entity.World.RadiusExplosion(fire, entity, 70, 70);
     }
 
@@ -2743,7 +2743,7 @@ public static class EntityActionFunctions
             }
         }
 
-        entity.SetPosition(oldPos);
+        entity.Position = oldPos;
         entity.AngleRadians = oldAngle;
     }
 
@@ -3229,7 +3229,7 @@ public static class EntityActionFunctions
         if (offsetXY != 0)
         {
             Vec2D offset = Vec2D.UnitCircle(entity.AngleRadians - MathHelper.HalfPi) * offsetXY;
-            createdEntity.SetPosition(createdEntity.Position + offset.To3D(0));
+            createdEntity.Position = createdEntity.Position + offset.To3D(0);
         }
 
         createdEntity.SetTracer(autoAimEntity);

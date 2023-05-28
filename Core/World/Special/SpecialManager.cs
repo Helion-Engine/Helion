@@ -1454,8 +1454,14 @@ public class SpecialManager : ITickable, IDisposable
 
     private static int GetOtics(int value) => value * 35 / 8;
 
-    private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0) =>
-        m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+    private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
+    {
+        if (fadeTics > 0)
+            return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+
+        m_world.SetSectorLightLevel(sector, (short)lightLevel);
+        return null;
+    }
 
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {
