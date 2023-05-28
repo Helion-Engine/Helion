@@ -640,6 +640,8 @@ public partial class DehackedDefinition
             if (index == null)
                 mnemonic = parser.ConsumeString();
 
+            parser.ConsumeIf("=");
+
             string entry = parser.ConsumeString();
             items.Add(new BexItem() { Mnemonic = mnemonic, Index = index, EntryName = entry });
         }
