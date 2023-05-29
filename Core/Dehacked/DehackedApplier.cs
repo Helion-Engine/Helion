@@ -28,9 +28,7 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
-    // There isn't anything great to map this to, so this value is tweaked from the shadow alpha to check if it's set for dehacked flag compatibility.
     private const double TranslucentValue = 0.38;
-    private const double ShadowTranslucentValue = 0.4;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -710,10 +708,10 @@ public class DehackedApplier
     public static void SetEntityFlagsMbf21(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
     {
         Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
-        properties.Gravity = thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
-        properties.MaxTargetRange = thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE) ? 896 : 0; // Short missile range (archvile)
-        properties.MinMissileChance = thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB) ? 160 : 200; // Higher missile attack probability (cyberdemon)
-        properties.MeleeThreshold = thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE) ? 196 : 0; // Has long melee range (revenant)
+        properties.Gravity = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV), opAnd) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
+        properties.MaxTargetRange = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE), opAnd) ? 896 : 0; // Short missile range (archvile)
+        properties.MinMissileChance = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB), opAnd) ? 160 : 200; // Higher missile attack probability (cyberdemon)
+        properties.MeleeThreshold = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE), opAnd) ? 196 : 0; // Has long melee range (revenant)
 
         flags.NoTarget = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.DMGIGNORED), opAnd);
         flags.NoRadiusDmg = GetNewFlagValue(flags.NoRadiusDmg, thingProperties.HasFlag(Mbf21ThingFlags.NORADIUSDMG), opAnd);
@@ -775,8 +773,6 @@ public class DehackedApplier
 
     public static void SetEntityFlags(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
     {
-        bool hadShadow = flags.Shadow;
-
         ThingProperties thingProperties = (ThingProperties)value;
         flags.Special = GetNewFlagValue(flags.Special, thingProperties.HasFlag(ThingProperties.SPECIAL), opAnd);
         flags.Solid = GetNewFlagValue(flags.Solid, thingProperties.HasFlag(ThingProperties.SOLID), opAnd);
@@ -807,16 +803,7 @@ public class DehackedApplier
         flags.MbfBouncer = GetNewFlagValue(flags.MbfBouncer, thingProperties.HasFlag(ThingProperties.BOUNCES), opAnd);
         flags.Friendly = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.FRIEND), opAnd);
 
-        // Apply correct alpha with shadow flag changes
-        if (hadShadow && !flags.Shadow)
-            properties.Alpha = 1;
-        else if (!hadShadow && flags.Shadow)
-            properties.Alpha = ShadowTranslucentValue;
-
-        if (thingProperties.HasFlag(ThingProperties.TRANSLUCENT))
-            properties.Alpha = TranslucentValue;
-        else if (!flags.Shadow)
-            properties.Alpha = 1;
+        properties.Alpha = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLUCENT), opAnd) ? TranslucentValue: 1;
 
         // TODO can we support these?
         //ThingProperties.TRANSLATION1
