@@ -10,6 +10,7 @@ public partial class WorldLayer
     private readonly Camera m_camera = new(Vec3F.Zero, 0, 0);
     private readonly WorldRenderContext m_worldContext;
     private readonly HudRenderContext m_hudContext;
+    private IRenderableSurfaceContext? m_renderableHudContext;
 
     public void Render(IRenderableSurfaceContext ctx)
     {
@@ -31,11 +32,11 @@ public partial class WorldLayer
 
         ctx.World(m_worldContext, RenderWorld);
         m_profiler.Render.World.Stop();
+    }
 
-        void RenderWorld(IWorldRenderContext context)
-        {
-            context.Draw(World);
-        }
+    void RenderWorld(IWorldRenderContext context)
+    {
+        context.Draw(World);
     }
 
     private void DrawAutomapAndHud(IRenderableSurfaceContext ctx)
@@ -43,18 +44,24 @@ public partial class WorldLayer
         m_profiler.Render.Hud.Start();
 
         m_hudContext.Set(ctx.Surface.Dimension);
-        ctx.Hud(m_hudContext, hud =>
-        {
-            if (m_drawAutomap)
-            {
-                ctx.ClearDepth();
-                DrawAutomap(hud);
-            }
-
-            ctx.ClearDepth();
-            DrawHud(m_hudContext, hud, m_drawAutomap);
-        });
+        m_renderableHudContext = ctx;
+        ctx.Hud(m_hudContext, DrawAutomapAndHudContext);
 
         m_profiler.Render.Hud.Stop();
+    }
+
+    private void DrawAutomapAndHudContext(IHudRenderContext hud)
+    {
+        if (m_renderableHudContext == null)
+            return;
+
+        if (m_drawAutomap)
+        {
+            m_renderableHudContext.ClearDepth();
+            DrawAutomap(hud);
+        }
+
+        m_renderableHudContext.ClearDepth();
+        DrawHud(m_hudContext, hud, m_drawAutomap);
     }
 }
