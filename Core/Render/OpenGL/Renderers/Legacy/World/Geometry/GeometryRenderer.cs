@@ -1474,8 +1474,8 @@ public class GeometryRenderer : IDisposable
             PrevZ = root.PrevZ,
             U = root.U,
             V = root.V,
-            PrevU = root.U,
-            PrevV = root.V,
+            PrevU = root.PrevU,
+            PrevV = root.PrevV,
             Alpha = 1.0f,
             Fuzz = 0,
         });
@@ -1491,8 +1491,8 @@ public class GeometryRenderer : IDisposable
             PrevZ = second.PrevZ,
             U = second.U,
             V = second.V,
-            PrevU = second.U,
-            PrevV = second.V,
+            PrevU = second.PrevU,
+            PrevV = second.PrevV,
             Alpha = 1.0f,
             Fuzz = 0,
         });
@@ -1508,8 +1508,8 @@ public class GeometryRenderer : IDisposable
             PrevZ = third.PrevZ,
             U = third.U,
             V = third.V,
-            PrevU = third.U,
-            PrevV = third.V,
+            PrevU = third.PrevU,
+            PrevV = third.PrevV,
             Alpha = 1.0f,
             Fuzz = 0,
         });
