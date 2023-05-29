@@ -2866,6 +2866,9 @@ public static class EntityActionFunctions
             return;
 
         int amount = frame.DehackedArgs1;
+        if (amount == 0 && entity.PlayerObj != null && entity.PlayerObj.Weapon != null)
+            amount = entity.PlayerObj.Weapon.Definition.Properties.Weapons.AmmoUse;
+
         if (amount < 0)
             entity.PlayerObj!.AddAmmo(-amount);
         else
