@@ -405,7 +405,7 @@ public class DehackedApplier
     {
         foreach (var thing in dehacked.Things)
         {
-            var definition = GetEntityDefinition(dehacked, thing.Number, composer);
+            var definition = GetEntityDefinition(dehacked, thing, composer);
             if (definition == null)
             {
                 Warning($"Invalid thing {thing.Number}");
@@ -558,9 +558,9 @@ public class DehackedApplier
         RemoveLabels.ForEach(x => definition.States.Labels.Remove(x));
     }
 
-    private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, int thingNumber, EntityDefinitionComposer composer)
+    private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, DehackedThing thing, EntityDefinitionComposer composer)
     {
-        int index = thingNumber - 1;
+        int index = thing.Number - 1;
         if (index < 0)
             return null;
 
@@ -569,18 +569,19 @@ public class DehackedApplier
         if (index < dehacked.ActorNames.Length)
             actorName = dehacked.ActorNames[index];
         else
-            actorName = GetNewActorName(index, composer);
+            actorName = GetNewActorName(index, composer, thing);
 
         return composer.GetByName(actorName);
     }
 
-    private string GetNewActorName(int index, EntityDefinitionComposer composer)
+    private string GetNewActorName(int index, EntityDefinitionComposer composer, DehackedThing thing)
     {
         if (m_dehacked.NewThingLookup.TryGetValue(index, out EntityDefinition? def))
             return def.Name;
 
         string newName = GetDehackedActorName(index);
         EntityDefinition definition = new(0, newName, 0, new List<string>());
+        definition.DehackedName = thing.Name;
         composer.Add(definition);
         m_dehacked.NewThingLookup[index] = definition;
         return newName;
