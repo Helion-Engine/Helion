@@ -2938,7 +2938,7 @@ public static class EntityActionFunctions
 
         double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
         double forwadDist = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
-        double sideDist = MathHelper.ToFixed(entity.Frame.DehackedArgs4);
+        double sideDist = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
         double forwardVel = MathHelper.FromFixed(entity.Frame.DehackedArgs6);
         double sideVel = MathHelper.FromFixed(entity.Frame.DehackedArgs7);
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
