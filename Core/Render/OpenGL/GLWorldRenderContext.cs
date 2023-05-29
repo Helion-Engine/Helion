@@ -41,7 +41,7 @@ public class GLWorldRenderContext : IWorldRenderContext
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.
         m_commands.DrawWorld(world, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
-            world.Player, m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
+            world.GetCameraPlayer(), m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
             m_context?.AutomapScale ?? 1.0);
     }
 

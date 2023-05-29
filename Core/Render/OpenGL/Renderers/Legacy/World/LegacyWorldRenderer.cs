@@ -132,7 +132,7 @@ public class LegacyWorldRenderer : WorldRenderer
         TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.Position.Z);
 
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
-        m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
+        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderData.CheckCount = ++world.CheckCounter;
 
@@ -323,7 +323,7 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(position3D);
 
-        m_entityRenderer.SetViewDirection(viewDirection);
+        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, viewDirection);
         m_viewClipper.Center = position;
         m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);

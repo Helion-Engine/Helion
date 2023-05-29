@@ -30,6 +30,7 @@ public class EntityRenderer
     private Vec2F m_viewRightNormal;
     private bool m_singleVertex;
     private bool m_spriteAlpha;
+    private int m_viewerEntityId;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
     {
@@ -53,8 +54,9 @@ public class EntityRenderer
     public void SetTickFraction(double tickFraction) =>
         m_tickFraction = tickFraction;
 
-    public void SetViewDirection(Vec2D viewDirection)
+    public void SetViewDirection(Entity viewerEntity, Vec2D viewDirection)
     {
+        m_viewerEntityId = viewerEntity.Id;
         m_viewRightNormal = viewDirection.RotateRight90().Unit().Float;
     }
 
@@ -106,7 +108,7 @@ public class EntityRenderer
 
     public bool ShouldNotDraw(Entity entity)
     {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.RenderedCounter == m_renderCounter;
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.RenderedCounter == m_renderCounter || entity.Id == m_viewerEntityId;
     }
 
     private void AddSpriteQuadSingleVertex(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
@@ -182,12 +184,11 @@ public class EntityRenderer
         Vec2F rightNormal = m_viewRightNormal;
         Vec2F entityCenterXY = entityCenterBottom.XY.Float;
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        // Doom graphics are drawn left to right and not centered. Have to translate the offset.
-        entityCenterXY += rightNormal * ((texture.Width / 2) - texture.Offset.X);
+        // Doom graphics are drawn left to right and not centered
+        entityCenterXY -= rightNormal * texture.Offset.X;
 
-        Vec2F halfWidth = rightNormal * texture.Dimension.Width / 2;
-        spriteQuad.Left = entityCenterXY - halfWidth;
-        spriteQuad.Right = entityCenterXY + halfWidth;
+        spriteQuad.Left = entityCenterXY;
+        spriteQuad.Right = entityCenterXY + (rightNormal * texture.Dimension.Width);
 
         spriteQuad.BottomZ = (float)entityCenterBottom.Z + offsetZ;
         spriteQuad.TopZ = spriteQuad.BottomZ + texture.Height;
