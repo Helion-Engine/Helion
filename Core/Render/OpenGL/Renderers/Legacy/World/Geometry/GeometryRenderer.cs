@@ -656,23 +656,19 @@ public class GeometryRenderer : IDisposable
 
     public bool LowerIsVisible(Sector facingSector, Sector otherSector)
     {
-        double facingZ = facingSector.Floor.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Floor.GetInterpolatedZ(m_tickFraction);
-        return facingZ < otherZ;
+        return facingSector.Floor.Z < otherSector.Floor.Z;
     }
 
     public bool UpperIsVisible(Sector facingSector, Sector otherSector)
     {
-        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        return facingZ > otherZ;
+        return facingSector.Ceiling.Z > otherSector.Ceiling.Z;
     }
 
     public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         skyHack = false;
-        double facingZ = facingSector.Ceiling.GetInterpolatedZ(m_tickFraction);
-        double otherZ = otherSector.Ceiling.GetInterpolatedZ(m_tickFraction);
+        double facingZ = facingSector.Ceiling.Z;
+        double otherZ = otherSector.Ceiling.Z;
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 

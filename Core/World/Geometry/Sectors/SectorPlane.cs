@@ -61,8 +61,6 @@ public class SectorPlane : ISoundSource
         Z = z;
     }
 
-    public double GetInterpolatedZ(double t) => PrevZ.Interpolate(Z, t);
-
     public void SetSectorMoveChanged(int gametick) => LastRenderChangeGametick = gametick;
 
     public bool CheckRenderingChanged()
