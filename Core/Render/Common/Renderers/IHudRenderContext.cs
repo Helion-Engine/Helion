@@ -104,10 +104,10 @@ public interface IHudRenderContext : IDisposable
     /// <param name="dimension">The dimension to render at.</param>
     /// <param name="action">The actions to do with the virtual resolution.
     /// </param>
-    void VirtualDimension(Dimension dimension, Action action)
+    void VirtualDimension<T>(Dimension dimension, Action<T> action, T param)
     {
         PushVirtualDimension(dimension);
-        action();
+        action(param);
         PopVirtualDimension();
     }
 
@@ -121,11 +121,11 @@ public interface IHudRenderContext : IDisposable
     /// <param name="aspectRatio">The aspect ratio to use.</param>
     /// <param name="action">The actions to do with the virtual resolution.
     /// </param>
-    void VirtualDimension(Dimension dimension, ResolutionScale scale, float aspectRatio,
-        Action action)
+    void VirtualDimension<T>(Dimension dimension, ResolutionScale scale, float aspectRatio,
+        Action<T> action, T param)
     {
         PushVirtualDimension(dimension, scale, aspectRatio);
-        action();
+        action(param);
         PopVirtualDimension();
     }
 
@@ -135,9 +135,9 @@ public interface IHudRenderContext : IDisposable
     /// </summary>
     /// <param name="action">The actions to take in the new resolution.</param>
     /// <param name="resolutionScale">The scale to use, by default is none.</param>
-    void DoomVirtualResolution(Action action, ResolutionScale resolutionScale = ResolutionScale.Center)
+    void DoomVirtualResolution<T>(Action<T> action, T param, ResolutionScale resolutionScale = ResolutionScale.Center)
     {
-        VirtualDimension((320, 200), resolutionScale, Constants.DoomVirtualAspectRatio, action);
+        VirtualDimension((320, 200), resolutionScale, Constants.DoomVirtualAspectRatio, action, param);
     }
 
     /// <summary>

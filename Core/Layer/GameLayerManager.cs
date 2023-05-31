@@ -14,6 +14,7 @@ using Helion.Menus.Impl;
 using Helion.Models;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -58,6 +59,9 @@ public class GameLayerManager : IGameLayerParent
     private readonly SaveGameManager m_saveGameManager;
     private readonly Profiler m_profiler;
     private readonly Stopwatch m_stopwatch = new();
+
+    private Renderer m_renderer;
+    private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
 
     internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
@@ -353,27 +357,33 @@ public class GameLayerManager : IGameLayerParent
 
     public void Render(Renderer renderer)
     {
-        renderer.Default.Render(ctx =>
-        {
-            HudRenderContext hudContext = new(renderer.RenderDimension);
+        m_renderer = renderer;
+        m_renderer.Default.Render(RenderDefault);
+    }
 
-            ctx.Viewport(renderer.RenderDimension.Box);
-            ctx.Clear(Renderer.DefaultBackground, true, true);
+    private void RenderDefault(IRenderableSurfaceContext ctx)
+    {
+        m_ctx = ctx;
+        HudRenderContext hudContext = new(m_renderer.RenderDimension);
 
-            WorldLayer?.Render(ctx);
+        ctx.Viewport(m_renderer.RenderDimension.Box);
+        ctx.Clear(Renderer.DefaultBackground, true, true);
 
-            m_profiler.Render.MiscLayers.Start();
-            ctx.Hud(hudContext, hud =>
-            {
-                IntermissionLayer?.Render(ctx, hud);
-                TitlepicLayer?.Render(hud);
-                EndGameLayer?.Render(ctx, hud);
-                MenuLayer?.Render(hud);
-                ReadThisLayer?.Render(hud);
-                ConsoleLayer?.Render(ctx, hud);
-            });
-            m_profiler.Render.MiscLayers.Stop();
-        });
+        WorldLayer?.Render(ctx);
+
+        m_profiler.Render.MiscLayers.Start();
+        ctx.Hud(hudContext, RenderHud);
+        m_profiler.Render.MiscLayers.Stop();
+    }
+
+    private void RenderHud(IHudRenderContext hudCtx)
+    {
+        IntermissionLayer?.Render(m_ctx, hudCtx);
+        TitlepicLayer?.Render(hudCtx);
+        EndGameLayer?.Render(m_ctx, hudCtx);
+        MenuLayer?.Render(hudCtx);
+        ReadThisLayer?.Render(hudCtx);
+        ConsoleLayer?.Render(m_ctx, hudCtx);
     }
 
     public void Dispose()

@@ -33,14 +33,16 @@ public partial class IntermissionLayer
 
         hud.RenderFullscreenImage(IntermissionPic);
 
-        hud.DoomVirtualResolution(() =>
-        {
-            DrawAnimations(hud);
-            DrawPointer(hud);
-            DrawTitle(hud);
-            DrawStatistics(hud);
-            DrawTime(hud);
-        });
+        hud.DoomVirtualResolution(RenderVirtualIntermission, hud);
+    }
+
+    private void RenderVirtualIntermission(IHudRenderContext hud)
+    {
+        DrawAnimations(hud);
+        DrawPointer(hud);
+        DrawTitle(hud);
+        DrawStatistics(hud);
+        DrawTime(hud);
     }
 
     private void DrawAnimations(IHudRenderContext hud)

@@ -26,6 +26,9 @@ public partial class EndGameLayer
     private bool m_initRenderPages;
     private uint m_charsToDraw;
 
+    private readonly record struct HudBackgroundImage(IRenderableSurfaceContext Ctx, IHudRenderContext Hud);
+    private readonly record struct HudVirtualText(IList<string> displayText, Ticker ticker, bool showAllText, IHudRenderContext hud);
+
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         hud.Clear(Color.Black);
@@ -52,14 +55,16 @@ public partial class EndGameLayer
         }
         else
         {
-            hud.DoomVirtualResolution(() =>
-            {
-                DrawBackgroundImages(m_images, m_xOffset, hud, ctx);
-
-                if (m_drawState == EndGameDrawState.TheEnd)
-                    hud.Image(TheEndImages[m_theEndImageIndex], m_theEndOffset, Align.Center);
-            });
+            hud.DoomVirtualResolution(VirtualDrawBackground, new HudBackgroundImage(ctx, hud));
         }
+    }
+
+    private void VirtualDrawBackground(HudBackgroundImage hud)
+    {
+        DrawBackgroundImages(m_images, m_xOffset, hud.Hud, hud.Ctx);
+
+        if (m_drawState == EndGameDrawState.TheEnd)
+            hud.Hud.Image(TheEndImages[m_theEndImageIndex], m_theEndOffset, Align.Center);
     }
 
     private void DrawCast(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -67,32 +72,34 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
-        hud.DoomVirtualResolution(() =>
-        {
-            hud.Image("BOSSBACK", Vec2I.Zero);
-            DrawCastMonsterText(hud);
+        hud.DoomVirtualResolution(VirtualDrawCast, hud);
+    }
 
-            if (m_castEntity == null)
-                return;
+    private void VirtualDrawCast(IHudRenderContext hud)
+    {
+        hud.Image("BOSSBACK", Vec2I.Zero);
+        DrawCastMonsterText(hud);
 
-            if (hud.Textures is not LegacyGLTextureManager textureManager)
-                return;
+        if (m_castEntity == null)
+            return;
 
-            var spriteDef = textureManager.GetSpriteDefinition(m_castEntity.Frame.SpriteIndex);
-            if (spriteDef == null)
-                return;
+        if (hud.Textures is not LegacyGLTextureManager textureManager)
+            return;
 
-            var spriteRotation = textureManager.GetSpriteRotation(spriteDef, m_castEntity.Frame.Frame, 0);
-            if (spriteRotation == null)
-                return;
+        var spriteDef = textureManager.GetSpriteDefinition(m_castEntity.Frame.SpriteIndex);
+        if (spriteDef == null)
+            return;
 
-            string image = spriteRotation.Texture.Name;
-            if (!hud.Textures.TryGet(image, out var handle))
-                return;
+        var spriteRotation = textureManager.GetSpriteRotation(spriteDef, m_castEntity.Frame.Frame, 0);
+        if (spriteRotation == null)
+            return;
 
-            Vec2I offset = new(160, 170);
-            hud.Image(image, offset + RenderDimensions.TranslateDoomOffset(handle.Offset));
-        });
+        string image = spriteRotation.Texture.Name;
+        if (!hud.Textures.TryGet(image, out var handle))
+            return;
+
+        Vec2I offset = new(160, 170);
+        hud.Image(image, offset + RenderDimensions.TranslateDoomOffset(handle.Offset));
     }
 
     private void DrawCastMonsterText(IHudRenderContext hud)
@@ -147,10 +154,12 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
         DrawBackground(flat, hud);
-        hud.DoomVirtualResolution(() =>
-        {
-            DrawText(displayText, ticker, showAllText, hud);
-        });
+        hud.DoomVirtualResolution(VirtualDrawText, new HudVirtualText(displayText, ticker, showAllText, hud));
+    }
+
+    private void VirtualDrawText(HudVirtualText hud)
+    {
+        DrawText(hud.displayText, hud.ticker, hud.showAllText, hud.hud);
     }
 
     private void DrawBackgroundImages(IList<string> images, int xOffset, IHudRenderContext hud,
