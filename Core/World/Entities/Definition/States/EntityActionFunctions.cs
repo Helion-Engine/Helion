@@ -3052,7 +3052,7 @@ public static class EntityActionFunctions
         }
 
         GetDehackedSound(entity, sound, out string? healSound);
-        if (entity.World.HealChase(entity, newFrame, healSound ?? string.Empty))
+        if (!entity.World.HealChase(entity, newFrame, healSound ?? string.Empty))
             A_Chase(entity);
     }
 
