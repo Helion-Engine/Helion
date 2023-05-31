@@ -1192,14 +1192,16 @@ public class Player : Entity
 
     private void SetWeaponFrameState(Weapon weapon, string label)
     {
-        weapon.FrameState.SetState(label, onSet: (EntityFrame frame) =>
-        {
-            if (frame.DehackedMisc1 == 0)
-                return;
+        weapon.FrameState.SetState(label, onSet: OnSetWeaponFrameState);
+    }
 
-            WeaponOffset.X = PrevWeaponOffset.X = frame.DehackedMisc1;
-            WeaponOffset.Y = PrevWeaponOffset.Y = frame.DehackedMisc2;
-        });
+    private void OnSetWeaponFrameState(EntityFrame frame)
+    {
+        if (frame.DehackedMisc1 == 0)
+            return;
+
+        WeaponOffset.X = PrevWeaponOffset.X = frame.DehackedMisc1;
+        WeaponOffset.Y = PrevWeaponOffset.Y = frame.DehackedMisc2;
     }
 
     public void SetWeaponUp()
