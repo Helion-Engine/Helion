@@ -92,10 +92,10 @@ public class LegacyHudRenderer : HudRenderer
                 float uvRight = (float)glyph.UV.Right;
                 float uvBottom = (float)glyph.UV.Bottom;
 
-                HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph);
-                HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph);
-                HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph);
-                HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph);
+                HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph, alpha);
+                HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph, alpha);
+                HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph, alpha);
+                HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph, alpha);
 
                 HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
@@ -103,11 +103,11 @@ public class LegacyHudRenderer : HudRenderer
         }
 
         DrawDepth += 1.0f;
+    }
 
-        HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph)
-        {
-            return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false);
-        }
+    private HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph, float alpha)
+    {
+        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false);
     }
 
     public override void Render(Rectangle viewport)
