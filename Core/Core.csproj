@@ -34,6 +34,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BmpSharp" Version="0.2.0" />
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
     <PackageReference Include="GlmSharp" Version="0.9.8" />
     <PackageReference Include="ini-parser" Version="2.5.2" />

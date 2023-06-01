@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using BmpSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Geometry;
@@ -233,45 +234,27 @@ public class Image
         return new(new[] { Color.White.Uint }, (1, 1), ImageType.Argb, (0, 0), ResourceNamespace.Global);
     }
 
-    // From: https://swharden.com/blog/2022-11-04-csharp-create-bitmap/
-    private byte[] GetBytes()
-    {
-        const int imageHeaderSize = 54;
-
-        byte[] rgb = new byte[Dimension.Area * 3];
-
-        int offset = 0;
-        for (int i = 0; i < m_pixels.Length; i++)
-        {
-            uint argb = m_pixels[i];
-            rgb[offset] = (byte)((argb & 0x00FF0000) >> 16);
-            rgb[offset + 1] = (byte)((argb & 0x0000FF00) >> 8);
-            rgb[offset + 2] = ((byte)(argb & 0x000000FF));
-            offset += 3;
-        }
-
-        byte[] bmpBytes = new byte[rgb.Length + imageHeaderSize];
-
-        bmpBytes[0] = (byte)'B';
-        bmpBytes[1] = (byte)'M';
-        bmpBytes[14] = 40;
-        Array.Copy(BitConverter.GetBytes(bmpBytes.Length), 0, bmpBytes, 2, 4);
-        Array.Copy(BitConverter.GetBytes(imageHeaderSize), 0, bmpBytes, 10, 4);
-        Array.Copy(BitConverter.GetBytes(Width), 0, bmpBytes, 18, 4);
-        Array.Copy(BitConverter.GetBytes(Height), 0, bmpBytes, 22, 4);
-        Array.Copy(BitConverter.GetBytes(32), 0, bmpBytes, 28, 2);
-        Array.Copy(BitConverter.GetBytes(rgb.Length), 0, bmpBytes, 34, 4);
-        Array.Copy(rgb, 0, bmpBytes, imageHeaderSize, rgb.Length);
-
-        return bmpBytes;
-    }
-
-    public bool Save(string path)
+    public bool SaveBmp(string path)
     {
         try
         {
-            byte[] data = GetBytes();
-            File.WriteAllBytes(path, data);
+            byte[] data = new byte[m_pixels.Length * 3]; // rgba -> [r, g, b]
+            for (int i = 0; i <  m_pixels.Length; i++)
+            {
+                uint pixel = m_pixels[i];
+                byte r = (byte)((pixel & 0x00FF0000) >> 16);
+                byte g = (byte)((pixel & 0x0000FF00) >> 8);
+                byte b = (byte)(pixel & 0x000000FF);
+
+                int offset = i * 3;
+                data[offset] = b;
+                data[offset + 1] = g;
+                data[offset + 2] = r;
+            }
+
+            var bitmap = new Bitmap(Width, Height, data, BitsPerPixelEnum.RGB24);
+            File.WriteAllBytes(path, bitmap.GetBmpBytes());
+
             return true;
         }
         catch

@@ -130,7 +130,7 @@ public partial class Client : IDisposable, IInputManagement
         if (!m_takeScreenshot)
             return;
 
-        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
+        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.bmp";
         Log.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
@@ -159,7 +159,7 @@ public partial class Client : IDisposable, IInputManagement
 
         // OpenGL's coordinate system require flipping the Y axis.
         Image image = new Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
-        image.Save(path);
+        image.SaveBmp(path);
     }
 
     private void Render()
