@@ -60,6 +60,8 @@ public class GameLayerManager : IGameLayerParent
     private readonly Profiler m_profiler;
     private readonly Stopwatch m_stopwatch = new();
 
+    private readonly HudRenderContext m_hudContext = new(default);
+
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
@@ -364,7 +366,7 @@ public class GameLayerManager : IGameLayerParent
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
         m_ctx = ctx;
-        HudRenderContext hudContext = new(m_renderer.RenderDimension);
+        m_hudContext.Dimension = m_renderer.RenderDimension;
 
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
@@ -372,7 +374,7 @@ public class GameLayerManager : IGameLayerParent
         WorldLayer?.Render(ctx);
 
         m_profiler.Render.MiscLayers.Start();
-        ctx.Hud(hudContext, RenderHud);
+        ctx.Hud(m_hudContext, RenderHud);
         m_profiler.Render.MiscLayers.Stop();
     }
 
