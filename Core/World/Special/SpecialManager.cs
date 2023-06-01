@@ -120,22 +120,21 @@ public class SpecialManager : ITickable, IDisposable
         else
             specialActivateSuccess = HandleDefault(args, special, m_world);
 
-        if (specialActivateSuccess)
+        if (!specialActivateSuccess)
+            return false;
+        
+        if (ShouldCreateSwitchSpecial(args))
         {
-            if (ShouldCreateSwitchSpecial(args))
-            {
-                var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
-                if (switchSpecial != null)
-                    RemoveSpecial(switchSpecial);
-                switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
-                if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
-                    AddSpecial(switchSpecial);
-            }
-
-            args.ActivateLineSpecial.SetActivated(true);
+            var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
+            if (switchSpecial != null)
+                RemoveSpecial(switchSpecial);
+            switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
+            if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
+                AddSpecial(switchSpecial);
         }
 
-        return specialActivateSuccess;
+        args.ActivateLineSpecial.SetActivated(true);
+        return true;
     }
 
     private SwitchChangeSpecial? GetExistingSwitchSpecial(Line line)
