@@ -99,7 +99,7 @@ public class ScrollSpecial : ISpecial
         {
             m_accelScrollSpeed.AccelSpeed.X = model.AccelSpeedX.Value;
             m_accelScrollSpeed.AccelSpeed.Y = model.AccelSpeedY.Value;
-            m_accelScrollSpeed.LastChangeZ = model.AccelLastZ.Value;
+            m_accelScrollSpeed.LastHeight = model.AccelLastZ.Value;
         }
     }
 
@@ -117,7 +117,7 @@ public class ScrollSpecial : ISpecial
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                 AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
-                AccelLastZ = m_accelScrollSpeed?.LastChangeZ,
+                AccelLastZ = m_accelScrollSpeed?.LastHeight,
                 ScrollFlags = GetModelScrollFlags()
             };
 
@@ -147,7 +147,7 @@ public class ScrollSpecial : ISpecial
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                 AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
-                AccelLastZ = m_accelScrollSpeed?.LastChangeZ,
+                AccelLastZ = m_accelScrollSpeed?.LastHeight,
                 ScrollFlags = GetModelScrollFlags()
             };
         }
