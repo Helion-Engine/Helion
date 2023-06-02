@@ -35,7 +35,7 @@ public class Image
     public readonly ImageType ImageType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
-    private readonly uint[] m_pixels;
+    private readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -110,48 +110,30 @@ public class Image
 
     public void DrawOnTopOf(Image image, Vec2I offset)
     {
-        int writeXStart = offset.X;
-        int writeXEnd = writeXStart + image.Width;
-        int writeYStart = offset.Y;
-        int writeYEnd = writeYStart + image.Height;
-
-        // Do we write any pixels at all? If we're fully outside, such as too
-        // far to the left/right/up/down, we can't draw anything.
-        if (writeXStart >= Width || writeXEnd <= 0 || writeYStart >= Height || writeYEnd <= 0)
-            return;
-
-        int thisOffset = 0;
-        for (int y = 0; y < Height; y++)
+        for (int thisY = 0; thisY < Height; thisY++)
         {
-            int targetOffset = (offset.Y * image.Width) + offset.X;
-            int targetX = offset.X;
+            int targetY = thisY + offset.Y;
 
-            // If this row is above the image as we draw downward, continue on
-            // because maybe we will have some rows that intersect the image.
-            if (targetOffset < 0)
+            if (targetY < 0)
                 continue;
+            if (targetY >= image.Height)
+                break;
 
-            // Since we draw from the top downward, if we've gone past the bottom,
-            // then there's no more rows to draw.
-            if (targetOffset >= image.m_pixels.Length)
-                return;
-            
-            for (int x = 0; x < Width; x++)
+            for (int thisX = 0; thisX < Width; thisX++)
             {
-                // If we've written too far to the right and would go out of bounds,
-                // stop blitting this row.
-                if (targetX >= Width)
+                int targetX = thisX + offset.X;
+                if (targetX < 0)
+                    continue;
+                if (targetX >= image.Width)
                     break;
 
-                // If we're inside the image, copy the pixel over. This is gated by
-                // the above conditional so that we know we're writing in the range
-                // of [0, width).
-                if (targetX >= 0)
-                    image.m_pixels[targetOffset] = m_pixels[thisOffset];
+                int thisOffset = (thisY * Width) + thisX;
+                int targetOffset = (targetY * image.Width) + targetX;
 
-                thisOffset++;
-                targetOffset++;
-                targetX++;
+                uint pixel = m_pixels[thisOffset];
+                uint alpha = (pixel & 0xFF000000) >> 24;
+                if (alpha > 0)
+                    image.m_pixels[targetOffset] = pixel;
             }
         }
     }
