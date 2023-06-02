@@ -155,21 +155,21 @@ public partial class WorldLayer
             return;
 
         if (m_config.Hud.ShowFPS)
-            DrawFpsValue("", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
+            DrawFpsValue(hud, "", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
 
         if (m_config.Hud.ShowMinMaxFPS)
         {
-            DrawFpsValue("Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY);
-            DrawFpsValue("Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY);
+            DrawFpsValue(hud, "Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY);
+            DrawFpsValue(hud, "Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY);
         }
+    }
 
-        void DrawFpsValue(string prefix, double fps, ref int y)
-        {
-            string avgFps = $"{prefix}FPS: {(int)Math.Round(fps)}";
-            hud.Text(avgFps, ConsoleFont, m_infoFontSize, (-m_padding, y), out Dimension avgArea,
-                TextAlign.Right, both: Align.TopRight);
-            y += avgArea.Height + FpsMessageSpacing;
-        }
+    void DrawFpsValue(IHudRenderContext hud, string prefix, double fps, ref int y)
+    {
+        string avgFps = $"{prefix}FPS: {(int)Math.Round(fps)}";
+        hud.Text(avgFps, ConsoleFont, m_infoFontSize, (-m_padding, y), out Dimension avgArea,
+            TextAlign.Right, both: Align.TopRight, color: Color.White);
+        y += avgArea.Height + FpsMessageSpacing;
     }
 
     private void DrawPosition(IHudRenderContext hud, ref int topRightY)
@@ -177,18 +177,18 @@ public partial class WorldLayer
         if (!Player.Cheats.IsCheatActive(Helion.World.Cheats.CheatType.ShowPosition))
             return;
 
-        DrawCoordinate('X', Player.Position.X, ref topRightY);
-        DrawCoordinate('Y', Player.Position.Y, ref topRightY);
-        DrawCoordinate('Z', Player.Position.Z, ref topRightY);
-        DrawCoordinate('A', Player.AngleRadians * 180 / Math.PI, ref topRightY);
+        DrawCoordinate(hud, 'X', Player.Position.X, ref topRightY);
+        DrawCoordinate(hud, 'Y', Player.Position.Y, ref topRightY);
+        DrawCoordinate(hud, 'Z', Player.Position.Z, ref topRightY);
+        DrawCoordinate(hud, 'A', Player.AngleRadians * 180 / Math.PI, ref topRightY);
+    }
 
-        void DrawCoordinate(char axis, double position, ref int y)
-        {
-            hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, m_infoFontSize,
-                (-m_padding, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
-                color: Color.White);
-            y += area.Height + FpsMessageSpacing;
-        }
+    void DrawCoordinate(IHudRenderContext hud, char axis, double position, ref int y)
+    {
+        hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, m_infoFontSize,
+            (-m_padding, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
+            color: Color.White);
+        y += area.Height + FpsMessageSpacing;
     }
 
     private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)

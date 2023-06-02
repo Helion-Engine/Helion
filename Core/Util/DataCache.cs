@@ -26,6 +26,8 @@ using Helion.World.Special.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Physics;
 using Helion.World;
+using System.Drawing;
+using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Util;
 
@@ -238,7 +240,7 @@ public class DataCache
     }
 
     public RenderableString GetRenderableString(string str, Font font, int fontSize, TextAlign align = TextAlign.Left,
-        int maxWidth = int.MaxValue)
+        int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         if (m_strings.Length > 0)
         {
