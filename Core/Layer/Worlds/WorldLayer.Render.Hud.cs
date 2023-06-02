@@ -74,10 +74,12 @@ public partial class WorldLayer
         if (!Player.World.DrawPause)
             return;
 
-        hud.DoomVirtualResolution((int value) =>
-        {
-            hud.Image("M_PAUSE", (0, 8), both: Align.TopMiddle);
-        }, 0);
+        hud.DoomVirtualResolution(VirtualDrawPause, hud);
+    }
+
+    private void VirtualDrawPause(IHudRenderContext hud)
+    {
+        hud.Image("M_PAUSE", (0, 8), both: Align.TopMiddle);
     }
 
     private static readonly string[] StatLabels = new string[] { "Kills: ", "Items: ", "Secrets: " };
@@ -538,22 +540,20 @@ public partial class WorldLayer
 
     private void DrawFullTotalAmmo(IHudRenderContext hud)
     {
+        bool backpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
+        DrawFullTotalAmmoText(hud, "Clip", backpack ? 400 : 200, 173);
+        DrawFullTotalAmmoText(hud, "Shell", backpack ? 100 : 50, 179);
+        DrawFullTotalAmmoText(hud, "RocketAmmo", backpack ? 100 : 50, 185);
+        DrawFullTotalAmmoText(hud, "Cell", backpack ? 600 : 300, 191);
+    }
+
+    void DrawFullTotalAmmoText(IHudRenderContext hud, string ammoName, int maxAmmo, int y)
+    {
         const int FontSize = 6;
         const string YellowFontName = "HudYellowNumbers";
-
-        bool backpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
-
-        DrawFullTotalAmmoText("Clip", backpack ? 400 : 200, 173);
-        DrawFullTotalAmmoText("Shell", backpack ? 100 : 50, 179);
-        DrawFullTotalAmmoText("RocketAmmo", backpack ? 100 : 50, 185);
-        DrawFullTotalAmmoText("Cell", backpack ? 600 : 300, 191);
-
-        void DrawFullTotalAmmoText(string ammoName, int maxAmmo, int y)
-        {
-            int ammo = Player.Inventory.Amount(ammoName);
-            hud.Text(ammo.ToString(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
-            hud.Text(maxAmmo.ToString(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
-        }
+        int ammo = Player.Inventory.Amount(ammoName);
+        hud.Text(ammo.ToString(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
+        hud.Text(maxAmmo.ToString(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
     }
 
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
