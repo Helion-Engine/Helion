@@ -28,6 +28,7 @@ using Helion.World.Special.Specials;
 using Helion.Resources;
 using Helion.World.Static;
 using Helion.World.Blockmap;
+using Helion.Maps.Specials;
 
 namespace Helion.World;
 
@@ -45,6 +46,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<SideScrollEvent>? SideScrollChanged;
+    event EventHandler<SectorPlane> SectorPlaneScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
@@ -105,6 +107,7 @@ public interface IWorld : IDisposable
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);
     bool EntityUse(Entity entity);
+    void OnTryEntityUseLine(Entity entity, Line line);
     bool CanActivate(Entity entity, Line line, ActivationContext context);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
@@ -125,7 +128,8 @@ public interface IWorld : IDisposable
     bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
-    void DisplayMessage(Player player, Player? other, string message);
+    void DisplayMessage(string message);
+    void DisplayMessage(Player? player, Player? other, string message);
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
@@ -146,8 +150,10 @@ public interface IWorld : IDisposable
     void SetPlaneTexture(SectorPlane plane, int textureHandle);
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSideScroll(Side side, SideTexture textures);
+    void SetSectorPlaneScroll(SectorPlane plane);
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
+    void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

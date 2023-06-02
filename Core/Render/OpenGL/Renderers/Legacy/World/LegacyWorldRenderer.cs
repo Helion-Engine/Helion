@@ -56,8 +56,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
     private readonly RenderObjectComparer m_renderObjectComparer = new();
-    private readonly ArchiveCollection m_archiveCollection;
-    private AutomapMarker? m_automapMarker;
+    private readonly ArchiveCollection m_archiveCollection;    
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -79,7 +78,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
-        m_config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
     }
 
     ~LegacyWorldRenderer()
@@ -96,61 +94,13 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void UpdateToNewWorld(IWorld world)
     {
         if (m_previousWorld != null)
-        {
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
-            m_previousWorld.OnTick -= World_OnTick;
-            m_previousWorld.LevelExit -= World_LevelExit;
-        }
-
-        m_automapMarker?.Stop();
 
         m_geometryRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
-        world.OnTick += World_OnTick;
-        world.LevelExit += World_LevelExit;
         m_previousWorld = world;
         m_lastTicker = -1;
         m_alphaEntities.FlushReferences();
-
-        if (m_config.Render.AutomapBspThread)
-            SetupAutomapMarker(world);
-    }
-
-    private void SetupAutomapMarker(IWorld world)
-    {
-        if (m_automapMarker == null)
-            m_automapMarker = new AutomapMarker(m_archiveCollection, this);
-
-        m_automapMarker.Start(world);
-    }
-
-    private void AutomapBspThread_OnChanged(object? sender, bool set)
-    {
-        if (!set)
-        {
-            m_automapMarker.Stop();
-            return;
-        }
-
-        if (m_previousWorld == null)
-            return;
-
-        SetupAutomapMarker(m_previousWorld);
-    }
-
-    private void World_LevelExit(object? sender, LevelChangeEvent e)
-    {
-        m_automapMarker?.Stop();
-    }
-
-    private void World_OnTick(object? sender, EventArgs e)
-    {
-        if (m_config.Render.Blockmap && m_config.Render.AutomapBspThread && m_automapMarker != null)
-        {
-            IWorld world = (IWorld)sender;
-            var camera = world.Player.GetCamera(0);
-            m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, world.Player.AngleRadians, world.Player.PitchRadians);
-        }
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
@@ -170,6 +120,10 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
+        bool shouldRender = m_lastTicker != world.GameTicker;
+        if (!shouldRender)
+            return;
+
         m_renderData.ViewPos = renderInfo.Camera.Position.XY.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
@@ -177,8 +131,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
         TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.Position.Z);
 
-        m_geometryRenderer.Clear(renderInfo.TickFraction);
-        m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
+        m_geometryRenderer.Clear(renderInfo.TickFraction, true);
+        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderData.CheckCount = ++world.CheckCounter;
 
@@ -192,7 +146,6 @@ public class LegacyWorldRenderer : WorldRenderer
         double maxDistSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
         bool occlude = m_renderData.OccludePos.HasValue;
-        bool renderEntities = m_lastTicker != world.GameTicker;
 
         BlockmapBoxIterator<Block> it = world.RenderBlockmap.Iterate(box);
         while (it.HasNext())
@@ -237,9 +190,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, m_renderData.ViewPos3D);
             }
 
-            if (!renderEntities)
-                continue;
-
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
             {
                 if (entityNode.Value.BlockmapCount == m_renderData.CheckCount)
@@ -274,7 +224,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
-        if (m_spriteTransparency && entity.Definition.Properties.Alpha < 1)
+        if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
             m_alphaEntities.Add(entity);
@@ -354,14 +304,16 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void Clear(IWorld world, RenderInfo renderInfo)
     {
-        bool clearSprites = world.GameTicker != m_lastTicker;
+        bool newTick = world.GameTicker != m_lastTicker;
         m_viewClipper.Clear();
-        m_worldDataManager.Clear(clearSprites);
 
-        m_geometryRenderer.Clear(renderInfo.TickFraction);
+        m_geometryRenderer.Clear(renderInfo.TickFraction, newTick);
 
-        if (clearSprites)
+        if (newTick)
+        {
             m_entityRenderer.Clear(world);
+            m_worldDataManager.Clear();
+        }
     }
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
@@ -371,11 +323,10 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(position3D);
 
-        m_entityRenderer.SetViewDirection(viewDirection);
+        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, viewDirection);
         m_viewClipper.Center = position;
         m_renderCount = ++world.CheckCounter;
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-        // RenderAlphaObjects(position, position3D, m_entityRenderer.AlphaEntities);
     }
 
     private void RenderAlphaObjects(Vec2D position, Vec3D position3D, DynamicArray<IRenderObject> alphaEntities)

@@ -10,6 +10,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Container;
@@ -93,11 +94,11 @@ public class LegacyAutomapRenderer : IDisposable
             m_lastOffsetY = renderInfo.AutomapOffset.Y;
         }
 
-        PopulateData(world, renderInfo, out Box2F worldBounds);
+        PopulateData(world, renderInfo, out _);
 
         m_shader.Bind();
 
-        m_shader.Mvp(CalculateMvp(renderInfo, worldBounds, world));
+        m_shader.Mvp(CalculateMvp(renderInfo));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
         {
@@ -113,13 +114,10 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader.Unbind();
     }
 
-    private mat4 CalculateMvp(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
+    private mat4 CalculateMvp(RenderInfo renderInfo)
     {
-        vec2 scale = CalculateScale(renderInfo, worldBounds, world);
+        vec2 scale = CalculateScale(renderInfo);
         vec3 camera = renderInfo.Camera.Position.GlmVector;
-
-        float offsetX = (m_offsetX - m_lastOffsetY) * renderInfo.TickFraction;
-        float offsetY = (m_offsetY - m_lastOffsetY) * renderInfo.TickFraction;
 
         mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
@@ -128,13 +126,11 @@ public class LegacyAutomapRenderer : IDisposable
         return model * view * proj;
     }
 
-    private static vec2 CalculateScale(RenderInfo renderInfo, Box2F worldBounds, IWorld world)
+    private static vec2 CalculateScale(RenderInfo renderInfo)
     {
         // Note: we're translating to NDC coordinates, so everything should
         // end up between [-1.0, 1.0].
-        (float w, float h) = worldBounds.Sides;
         (float vW, float vH) = (renderInfo.Viewport.Width, renderInfo.Viewport.Height);
-        float aspect = vW / vH;
 
         // TODO: Do this properly...
         float scale = (float)renderInfo.AutomapScale;
@@ -151,13 +147,13 @@ public class LegacyAutomapRenderer : IDisposable
         DrawEntity(player, renderInfo.TickFraction);
 
         if (player != null && (m_offsetX != 0 || m_offsetY != 0))
-            DrawCenterCross(world, player, renderInfo);
+            DrawCenterCross(player, renderInfo);
 
         TransferLineDataIntoBuffer(out box2F);
         m_vbo.UploadIfNeeded();
     }
 
-    private void DrawCenterCross(IWorld world, Player player, RenderInfo renderInfo)
+    private void DrawCenterCross(Player player, RenderInfo renderInfo)
     {
         const int VirtualLength = 17;
         var center = player.PrevPosition.Interpolate(player.Position, renderInfo.TickFraction);
@@ -210,37 +206,85 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         bool forceDraw = !world.Config.Render.AutomapBspThread;
+        bool markSecrets = world.Config.Developer.MarkSecrets;
 
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            if (!forceDraw && !line.Flags.Automap.AlwaysDraw && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
+            bool markedLine = IsLineMarked(line, markSecrets);
+            if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
             Vec2D start = line.StartPosition;
             Vec2D end = line.EndPosition;
 
-            if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
-                AddLockedLine(line.Args.Arg3, start, end))
+            if (!markedLine)
             {
-                continue;
-            }
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
+                    AddLockedLine(line.Args.Arg3, start, end))
+                    {
+                        continue;
+                    }
 
-            if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
-                AddLockedLine(line.Args.Arg4, start, end))
-            {
-                continue;
+                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
+                    AddLockedLine(line.Args.Arg4, start, end))
+                {
+                    continue;
+                }
             }
 
             if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
             {
-                AddLine(line.SeenForAutomap || forceDraw ? AutomapColor.White : AutomapColor.LightBlue, start, end);
+                AddLine(GetOneSidedColor(world, line, forceDraw, markedLine), start, end);
                 continue;
             }
 
             // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
-            AddLine((line.HasSpecial && line.Special.IsTeleport()) ? AutomapColor.Green : AutomapColor.Gray, start, end);
+            AddLine(GetTwoSidedColor(world, line, markedLine), start, end);
         }
+    }
+
+    private static AutomapColor GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    {
+        if (marked)
+            return GetMarkedColor(world);
+
+        if (line.SeenForAutomap || forceDraw)
+            return AutomapColor.White;
+
+        return AutomapColor.LightBlue;
+    }
+
+    private static AutomapColor GetTwoSidedColor(IWorld world, Line line, bool marked)
+    {
+        if (marked)
+            return GetMarkedColor(world);
+
+        if (line.HasSpecial && line.Special.IsTeleport())
+            return AutomapColor.Green;
+
+        return AutomapColor.Gray;
+    }
+
+    private static AutomapColor GetMarkedColor(IWorld world)
+    {
+        if (world.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            return AutomapColor.Purple;
+        return AutomapColor.LightBlue;
+    }
+
+    private static bool IsLineMarked(Line line, bool markSecrets)
+    {
+        if (line.MarkAutomap)
+            return true;
+
+        if (line.Front.Sector.MarkAutomap && (line.Back != null && line.Back.Sector.MarkAutomap))
+            return true;
+
+        if (markSecrets && (line.Front.Sector.Secret || line.Back != null && line.Back.Sector.Secret))
+            return true;
+
+        return false;
     }
 
     private bool AddLockedLine(int keyNumber, in Vec2D start, in Vec2D end)
@@ -337,7 +381,7 @@ public class LegacyAutomapRenderer : IDisposable
         else if (flash)
         {
             // Draw a square for keys, make it flash
-            if (entity.World.Gametick / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            if (entity.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
                 AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
         }
         else if (entity.IsPlayer)

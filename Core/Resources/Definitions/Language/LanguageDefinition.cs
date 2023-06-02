@@ -131,11 +131,13 @@ public class LanguageDefinition
         return message;
     }
 
-    public string GetMessage(Player player, Player? other, string message)
+    public string GetMessage(Player? player, Player? other, string message)
     {
         if (message.Length > 0 && message[0] == '$')
         {
             message = LookupMessage(message[1..]);
+            if (player == null)
+                return message;
             return AddMessageParams(player, other, message);
         }
 

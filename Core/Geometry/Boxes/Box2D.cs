@@ -37,8 +37,8 @@ namespace Helion.Geometry.Boxes
 
         public Box2D(Vec2D min, Vec2D max)
         {
-            Precondition(min.X <= max.X, "Bounding box min X > max X");
-            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            //Precondition(min.X <= max.X, "Bounding box min X > max X");
+            //Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
             Min = min;
             Max = max;
@@ -46,8 +46,8 @@ namespace Helion.Geometry.Boxes
 
         public Box2D(Vec2D min, Vector2D max)
         {
-            Precondition(min.X <= max.X, "Bounding box min X > max X");
-            Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
+            //Precondition(min.X <= max.X, "Bounding box min X > max X");
+            //Precondition(min.Y <= max.Y, "Bounding box min Y > max Y");
 
             Min = min;
             Max = max.Struct;

@@ -27,10 +27,10 @@ public class ImageLayer : IGameLayer
     {
         hud.Clear(Color.Black);
 
-        hud.DoomVirtualResolution(() =>
+        hud.DoomVirtualResolution((int value) =>
         {
             hud.Image(Image, (0, 0));
-        });
+        }, 0);
     }
 
     public void Dispose()

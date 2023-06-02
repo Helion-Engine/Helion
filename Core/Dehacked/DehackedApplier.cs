@@ -28,9 +28,7 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
-    // There isn't anything great to map this to, so this value is tweaked from the shadow alpha to check if it's set for dehacked flag compatibility.
     private const double TranslucentValue = 0.38;
-    private const double ShadowTranslucentValue = 0.4;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -361,7 +359,7 @@ public class DehackedApplier
         // Null frame that loops to itself
         frameIndex = entityFrameTable.Frames.Count;
 
-        EntityFrame newFrame = new EntityFrame(entityFrameTable, Constants.InvisibleSprite, 0, -1,
+        EntityFrame newFrame = new(entityFrameTable, Constants.InvisibleSprite, 0, -1,
             EntityFrameProperties.Default, null, Constants.NullFrameIndex, string.Empty);
         m_dehacked.NewEntityFrameLookup[frame] = newFrame;
         newFrame.VanillaIndex = frame;
@@ -407,7 +405,7 @@ public class DehackedApplier
     {
         foreach (var thing in dehacked.Things)
         {
-            var definition = GetEntityDefinition(dehacked, thing.Number, composer);
+            var definition = GetEntityDefinition(dehacked, thing, composer);
             if (definition == null)
             {
                 Warning($"Invalid thing {thing.Number}");
@@ -495,7 +493,7 @@ public class DehackedApplier
         }
     }
 
-    private void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
+    private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
         if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))
             definition.Properties.DropItem = new(droppedName);
@@ -560,9 +558,9 @@ public class DehackedApplier
         RemoveLabels.ForEach(x => definition.States.Labels.Remove(x));
     }
 
-    private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, int thingNumber, EntityDefinitionComposer composer)
+    private EntityDefinition? GetEntityDefinition(DehackedDefinition dehacked, DehackedThing thing, EntityDefinitionComposer composer)
     {
-        int index = thingNumber - 1;
+        int index = thing.Number - 1;
         if (index < 0)
             return null;
 
@@ -571,18 +569,19 @@ public class DehackedApplier
         if (index < dehacked.ActorNames.Length)
             actorName = dehacked.ActorNames[index];
         else
-            actorName = GetNewActorName(index, composer);
+            actorName = GetNewActorName(index, composer, thing);
 
         return composer.GetByName(actorName);
     }
 
-    private string GetNewActorName(int index, EntityDefinitionComposer composer)
+    private string GetNewActorName(int index, EntityDefinitionComposer composer, DehackedThing thing)
     {
         if (m_dehacked.NewThingLookup.TryGetValue(index, out EntityDefinition? def))
             return def.Name;
 
         string newName = GetDehackedActorName(index);
         EntityDefinition definition = new(0, newName, 0, new List<string>());
+        definition.DehackedName = thing.Name;
         composer.Add(definition);
         m_dehacked.NewThingLookup[index] = definition;
         return newName;
@@ -672,7 +671,7 @@ public class DehackedApplier
 
     private static void UpdateSpriteText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, DehackedString text)
     {
-        if (dehacked.PickupLookup.TryGetValue(text.OldString, out string value))
+        if (dehacked.PickupLookup.TryGetValue(text.OldString, out string? value))
         {
             dehacked.PickupLookup.Remove(text.OldString);
             dehacked.PickupLookup[text.NewString] = value;
@@ -710,10 +709,10 @@ public class DehackedApplier
     public static void SetEntityFlagsMbf21(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
     {
         Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
-        properties.Gravity = thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
-        properties.MaxTargetRange = thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE) ? 896 : 0; // Short missile range (archvile)
-        properties.MinMissileChance = thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB) ? 160 : 200; // Higher missile attack probability (cyberdemon)
-        properties.MeleeThreshold = thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE) ? 196 : 0; // Has long melee range (revenant)
+        properties.Gravity = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.LOGRAV), opAnd) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
+        properties.MaxTargetRange = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.SHORTMRANGE), opAnd) ? 896 : 0; // Short missile range (archvile)
+        properties.MinMissileChance = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.HIGHERMPROB), opAnd) ? 160 : 200; // Higher missile attack probability (cyberdemon)
+        properties.MeleeThreshold = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.LONGMELEE), opAnd) ? 196 : 0; // Has long melee range (revenant)
 
         flags.NoTarget = GetNewFlagValue(flags.NoTarget, thingProperties.HasFlag(Mbf21ThingFlags.DMGIGNORED), opAnd);
         flags.NoRadiusDmg = GetNewFlagValue(flags.NoRadiusDmg, thingProperties.HasFlag(Mbf21ThingFlags.NORADIUSDMG), opAnd);
@@ -775,8 +774,6 @@ public class DehackedApplier
 
     public static void SetEntityFlags(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
     {
-        bool hadShadow = flags.Shadow;
-
         ThingProperties thingProperties = (ThingProperties)value;
         flags.Special = GetNewFlagValue(flags.Special, thingProperties.HasFlag(ThingProperties.SPECIAL), opAnd);
         flags.Solid = GetNewFlagValue(flags.Solid, thingProperties.HasFlag(ThingProperties.SOLID), opAnd);
@@ -807,16 +804,7 @@ public class DehackedApplier
         flags.MbfBouncer = GetNewFlagValue(flags.MbfBouncer, thingProperties.HasFlag(ThingProperties.BOUNCES), opAnd);
         flags.Friendly = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.FRIEND), opAnd);
 
-        // Apply correct alpha with shadow flag changes
-        if (hadShadow && !flags.Shadow)
-            properties.Alpha = 1;
-        else if (!hadShadow && flags.Shadow)
-            properties.Alpha = ShadowTranslucentValue;
-
-        if (thingProperties.HasFlag(ThingProperties.TRANSLUCENT))
-            properties.Alpha = TranslucentValue;
-        else if (!flags.Shadow)
-            properties.Alpha = 1;
+        properties.Alpha = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLUCENT), opAnd) ? TranslucentValue: 1;
 
         // TODO can we support these?
         //ThingProperties.TRANSLATION1
@@ -933,18 +921,6 @@ public class DehackedApplier
             return false;
 
         return true;
-    }
-
-    private static List<ThingProperties> GetThingProperties(ThingProperties properties)
-    {
-        List<ThingProperties> list = new();
-        foreach (ThingProperties type in Enum.GetValues(typeof(ThingProperties)))
-        {
-            if (properties.HasFlag(type))
-                list.Add(type);
-        }
-
-        return list;
     }
 
     private static void ApplyCheats(DehackedDefinition dehacked)
@@ -1105,7 +1081,11 @@ public class DehackedApplier
                 continue;
 
             string id = $"*deh/sound{sound.Index}";
-            soundInfoDef.Add(id, new SoundInfo(id, sound.EntryName, 0));
+            string entryName = sound.EntryName;
+            if (!entryName.StartsWith("DS", StringComparison.OrdinalIgnoreCase))
+                entryName = "DS" + entryName; 
+
+            soundInfoDef.Add(id, new SoundInfo(id, entryName, 0));
             m_dehacked.NewSoundLookup[sound.Index.Value] = id;
         }
     }

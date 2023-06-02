@@ -1,9 +1,12 @@
 using Helion.Util;
 using Helion.Util.Configs.Values;
+using Helion.Util.Container;
 using Helion.Window;
+using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using System;
 
 namespace Helion.Layer.Worlds;
 
@@ -36,6 +39,8 @@ public partial class WorldLayer
         (Constants.Input.WeaponSlot6,    TickCommands.WeaponSlot6),
         (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
     };
+
+    private readonly DynamicArray<Key> m_pressedKeys = new();
 
     private bool IsCommandContinuousHold(string command, IConsumableInput input)
     {
@@ -82,6 +87,25 @@ public partial class WorldLayer
         }
 
         input.ConsumeScroll();
+        CheckCommandInput(input);
+    }
+
+    private void CheckCommandInput(IConsumableInput input)
+    {
+        input.Manager.GetPressedKeys(m_pressedKeys);
+        for (int i = 0; i < m_pressedKeys.Length; i++)
+        {
+            if (!input.ConsumeKeyPressed(m_pressedKeys[i]))
+                continue;
+            var key = m_pressedKeys[i];
+            var commands = World.Config.Keys[key];
+            foreach (var command in commands)
+            {
+                if (World.Paused && Constants.InGameCommands.Contains(command))
+                    return;
+                m_parent.SubmitConsoleText(command);
+            }
+        }
     }
 
     private void CheckSaveOrLoadGame(IConsumableInput input)

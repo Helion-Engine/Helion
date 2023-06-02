@@ -1,6 +1,6 @@
 namespace Helion.World.Special.SectorMovement;
 
-public class SectorSoundData
+public readonly struct SectorSoundData
 {
     public readonly string? StartSound;
     public readonly string? ReturnSound;

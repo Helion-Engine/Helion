@@ -54,7 +54,7 @@ public class PortalRenderer : IDisposable
         {
             SectorPlane top = facingSide.Sector.Ceiling;
             SectorPlane bottom = otherSide.Sector.Ceiling;
-            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMaxZ = bottom.Z;
             if (!IsSky(floodSector.Ceiling))
                 facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
@@ -67,7 +67,7 @@ public class PortalRenderer : IDisposable
             m_fakeCeiling.Z = bottom.Z + FakeWallHeight;
             m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
             m_fakeCeiling.LightLevel = floodSector.LightLevel;
-            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront, 0);
+            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront);
             facingSide.UpperFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
         }
         else
@@ -75,7 +75,7 @@ public class PortalRenderer : IDisposable
             Debug.Assert(sideTexture == SideTexture.Lower, $"Expected lower floor, got {sideTexture} instead");
             SectorPlane top = otherSide.Sector.Floor;
             SectorPlane bottom = facingSide.Sector.Floor;
-            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, 0);
+            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMinZ = top.Z;
             if (!IsSky(floodSector.Floor))
                 facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
@@ -89,7 +89,7 @@ public class PortalRenderer : IDisposable
             m_fakeFloor.Z = bottom.Z - FakeWallHeight;
             m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
             m_fakeFloor.LightLevel = floodSector.LightLevel;
-            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, 0);
+            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront);
             facingSide.LowerFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
         }
     }

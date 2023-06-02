@@ -45,13 +45,13 @@ public class SectorMoveSpecial : ISectorSpecial
     private bool m_playedStartSound;
 
     public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
-        SectorMoveData specialData)
+        in SectorMoveData specialData)
         : this(world, sector, start, dest, specialData, new SectorSoundData())
     {
     }
 
     public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
-        SectorMoveData specialData, SectorSoundData soundData)
+        in SectorMoveData specialData, in SectorSoundData soundData)
     {
         Sector = sector;
         m_world = world;
@@ -279,6 +279,8 @@ public class SectorMoveSpecial : ISectorSpecial
         {
             if (SoundData.StopSound != null)
                 CreateSound(SoundData.StopSound);
+            else if (SoundData.MovementSound != null)
+                StopSound(SoundData.MovementSound);
             return;
         }
 

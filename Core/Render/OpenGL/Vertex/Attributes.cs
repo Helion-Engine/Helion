@@ -101,11 +101,11 @@ public static class Attributes
                 throw new($"Unsupported attribute type in {nameof(TVertex)}: {info.FieldType.FullName}");
             }
 
-            VertexAttributeAttribute codeAttr = info.GetCustomAttribute<VertexAttributeAttribute>();
+            VertexAttributeAttribute? codeAttr = info.GetCustomAttribute<VertexAttributeAttribute>();
             if (codeAttr == null)
                 continue;
 
-            string name = codeAttr.InferName ? info.Name : codeAttr.Name;
+            string? name = codeAttr.InferName ? info.Name : codeAttr.Name;
             size = codeAttr.InferSize ? size : codeAttr.Size;
             int index = GetNextIndex(codeAttr);
             indexUsed.Add(index);

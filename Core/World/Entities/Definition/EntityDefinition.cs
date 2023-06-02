@@ -28,6 +28,7 @@ public class EntityDefinition
     public int? RaiseState;
     public int? SeeState;
     public int? PainState;
+    public string DehackedName = string.Empty;
 
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
@@ -57,5 +58,5 @@ public class EntityDefinition
     /// <returns>True if it is the type, false if not.</returns>
     public bool IsType(string className) => ParentClassLookup.Contains(className);
 
-    public override string ToString() => $"{Name} (id = {Id}, editorId = {EditorId})";
+    public override string ToString() => $"{(string.IsNullOrEmpty(DehackedName) ? Name : DehackedName)} (id = {Id}, editorId = {EditorId})";
 }

@@ -1,39 +1,24 @@
-﻿using GlmSharp;
-using Helion.Bsp.States.Miniseg;
-using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Buffer.Array;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
+﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Shared.World;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Static;
-using MoreLinq;
-using Newtonsoft.Json.Linq;
-using OpenTK.Graphics.OpenGL;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Reflection;
-using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -47,29 +32,37 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly RenderProgram m_program;
     private readonly List<GeometryData> m_geometry = new();
+
+    private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
     private readonly TextureGeometryLookup m_textureToGeometryLookup = new();
-    private readonly List<GeometryData> m_runtimeGeometry = new();
+
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
 
-    private readonly List<Sector> m_updateLightSectors = new();
+    private readonly DynamicArray<Sector> m_updateLightSectors = new();
     private readonly DynamicArray<int> m_updatelightSectorsLookup = new();
-    private readonly List<SideScrollEvent> m_updateScrollSides = new();
+    private readonly DynamicArray<SideScrollEvent> m_updateScrollSides = new();
     private readonly DynamicArray<int> m_updateScrollSidesLookup = new();
+    private readonly DynamicArray<SectorPlane> m_updateScrollPlanes = new();
+    private readonly DynamicArray<int> m_updateScrollPlanesLookup = new();
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly Dictionary<int, List<Sector>> m_transferHeightsLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferFloorLightLookup = new();
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
-    private readonly DynamicArray<List<StaticGeometryData>?> m_bufferData = new();
+    private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
+    private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly GeometryIndexComparer m_geometryIndexComparer = new();
+    private DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
+
     private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
 
-    private List<List<StaticGeometryData>> m_bufferLists = new();
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticScroll;
+    private bool m_floodFill;
+    private bool m_floodFillAlt;
     private IWorld? m_world;
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
@@ -94,9 +87,22 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearData();
         m_skyRenderer.Reset();
 
+        m_runtimeGeometry.FlushReferences();
+        m_updateLightSectors.FlushReferences();
+        m_updateScrollSides.FlushStruct();
+        m_updateScrollPlanes.FlushReferences();
+        for (int i = 0; i < m_bufferData.Length; i++)
+        {
+            var list = m_bufferData.Data[i];
+            if (list != null)
+                list.FlushStruct();
+        }
+
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
+        m_floodFill = world.Config.Render.FloodFill;
+        m_floodFillAlt = world.Config.Render.FloodFillAlt;
 
         SetSideDynamicIgnore();
 
@@ -109,7 +115,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
         if (m_staticScroll)
+        {
             m_world.SideScrollChanged += World_SideScrollChanged;
+            m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
+        }
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -150,13 +159,13 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
         UpdateLookup(m_updateScrollSidesLookup, world.Sides.Count);
+        UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
     }
 
     private void SetSideDynamicIgnore()
     {
+        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
         m_sideDynamicIgnore = SectorDynamic.Alpha;
-        if (!m_staticScroll)
-            m_sideDynamicIgnore |= SectorDynamic.Scroll;
     }
 
     private static void UpdateLookup(DynamicArray<int> array, int count)
@@ -280,10 +289,10 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
         SectorPlane floodPlane, SideTexture texture, bool update)
     {
-        if (!m_world.Config.Render.FloodFill)
+        if (!m_floodFill)
             return;
 
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_world.Config.Render.FloodFillAlt);
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_floodFillAlt);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -382,6 +391,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world.SideScrollChanged -= World_SideScrollChanged;
+            m_world.SectorPlaneScrollChanged -= World_SectorPlaneScrollChanged;
             m_world = null;
         }
 
@@ -399,16 +409,25 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_runtimeGeometry.Clear();
         m_updateLightSectors.Clear();
         m_updateScrollSides.Clear();
+        m_updateScrollPlanes.Clear();
 
         m_transferHeightsLookup.Clear();
         m_transferFloorLightLookup.Clear();
         m_transferCeilingLightLookup.Clear();
 
-        for (int i = 0; i < m_bufferData.Length; i++)
+        ClearBufferData(m_bufferData);
+        ClearBufferData(m_bufferDataClamp);
+
+        m_bufferLists.FlushReferences();
+    }
+
+    private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
+    {
+        for (int i = 0; i < bufferData.Length; i++)
         {
-            var list = m_bufferData.Data[i];
+            var list = bufferData.Data[i];
             if (list != null)
-                list.Clear();
+                list.FlushStruct();
         }
     }
 
@@ -476,9 +495,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void UpdateRunTimeBuffers()
     {
         // These are textures added at run time. Need to be uploaded then cleared.
-        if (m_runtimeGeometry.Count > 0)
+        if (m_runtimeGeometry.Length > 0)
         {
-            for (int i = 0; i < m_runtimeGeometry.Count; i++)
+            for (int i = 0; i < m_runtimeGeometry.Length; i++)
             {
                 var data = m_runtimeGeometry[i];
                 data.Vbo.Bind();
@@ -490,16 +509,17 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLights();
-        UpdateScroll();
+        UpdateScrollSides();
+        UpdateScrollPlanes();
         UpdateBufferData();
     }
 
     private void UpdateBufferData()
     {
-        for (int bufferIndex = 0; bufferIndex < m_bufferLists.Count; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < m_bufferLists.Length; bufferIndex++)
         {
-            List<StaticGeometryData> list = m_bufferLists[bufferIndex];
-            if (list.Count == 0)
+            DynamicArray<StaticGeometryData> list = m_bufferLists[bufferIndex];
+            if (list.Length == 0)
                 continue;
 
             GeometryData? geometryData = list[0].GeometryData;
@@ -510,7 +530,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             int startIndex = list[0].GeometryDataStartIndex;
             int lastIndex = startIndex + list[0].GeometryDataLength;
-            for (int i = 1; i < list.Count; i++)
+            for (int i = 1; i < list.Length; i++)
             {
                 if (lastIndex != list[i].GeometryDataStartIndex)
                 {
@@ -529,21 +549,23 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             list.Clear();
         }
+
+        m_bufferLists.Clear();
     }
 
-    private void UpdateScroll()
+    private void UpdateScrollSides()
     {
-        if (m_updateScrollSides.Count == 0)
+        if (m_updateScrollSides.Length == 0)
             return;
 
-        for (int i = 0; i < m_updateScrollSides.Count; i++)
+        for (int i = 0; i < m_updateScrollSides.Length; i++)
         {
             var scroll = m_updateScrollSides[i];
             var side = scroll.Side;
             if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
                 continue;
 
-            if ((scroll.Textures & SideTexture.Upper) != 0);
+            if ((scroll.Textures & SideTexture.Upper) != 0)
                 UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
             if ((scroll.Textures & SideTexture.Lower) != 0)
                 UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);
@@ -554,12 +576,33 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateScrollSides.Clear();
     }
 
-    private void UpdateLights()
+    private void UpdateScrollPlanes()
     {
-        if (m_updateLightSectors.Count == 0)
+        if (m_updateScrollPlanes.Length == 0)
             return;
 
-        for (int i = 0; i < m_updateLightSectors.Count; i++)
+        for (int i = 0; i < m_updateScrollPlanes.Length; i++)
+        {
+            var plane = m_updateScrollPlanes[i];
+            var data = plane.Static;
+            if (plane.Sector.IsMoving || data.GeometryData == null)
+                continue;
+
+            DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
+            list.Add(data);
+
+            GeometryRenderer.UpdatePlaneOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryDataLength, data.GeometryData.Texture, plane);
+        }
+
+        m_updateScrollPlanes.Clear();
+    }
+
+    private void UpdateLights()
+    {
+        if (m_updateLightSectors.Length == 0)
+            return;
+
+        for (int i = 0; i < m_updateLightSectors.Length; i++)
         {
             Sector sector = m_updateLightSectors[i];
             short level = sector.LightLevel;
@@ -785,6 +828,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateScrollSides.Add(e);
     }
 
+    private void World_SectorPlaneScrollChanged(object? sender, SectorPlane e)
+    {
+        if (!m_staticScroll)
+            return;
+
+        if (m_updateScrollPlanesLookup[e.Id] == m_world.Gametick)
+            return;
+
+        m_updateScrollPlanesLookup[e.Id] = m_world.Gametick;
+        m_updateScrollPlanes.Add(e);
+    }
+
     private static void ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
@@ -861,7 +916,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data);
+        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         var geometryData = data.GeometryData;
@@ -877,25 +932,33 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        List<StaticGeometryData> list = GetOrCreateBufferList(data);
+        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
         list.Add(data);
 
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private List<StaticGeometryData> GetOrCreateBufferList(StaticGeometryData data)
+    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(in StaticGeometryData data)
     {
-        if (m_bufferData.Capacity <= data.GeometryData.TextureHandle)
-            m_bufferData.Resize(data.GeometryData.TextureHandle + 1024);
+        if ((data.GeometryData.Texture.Flags & TextureFlags.ClampY) == 0)
+            return GetOrCreateBufferList(m_bufferData, data.GeometryData.TextureHandle);
 
-        var list = m_bufferData.Data[data.GeometryData.TextureHandle];
+        return GetOrCreateBufferList(m_bufferDataClamp, data.GeometryData.TextureHandle);
+    }
+
+    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData, int textureHandle)
+    {
+        if (bufferData.Capacity <= textureHandle)
+            bufferData.Resize(textureHandle + 1024);
+
+        var list = bufferData.Data[textureHandle];
         if (list == null)
         {
-            list = new List<StaticGeometryData>(32);
-            m_bufferData.Data[data.GeometryData.TextureHandle] = list;
-            m_bufferLists.Add(list);
+            list = new DynamicArray<StaticGeometryData>(32);
+            bufferData.Data[textureHandle] = list;
         }
 
+        m_bufferLists.Add(list);
         return list;
     }
 
@@ -916,6 +979,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 vertex->PrevZ = 0;
                 vertex->U = 0;
                 vertex->V = 0;
+                vertex->PrevU = 0;
+                vertex->PrevV = 0;
             }
         }
 

@@ -56,6 +56,7 @@ public class PhysicsManager
     private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
     private readonly DynamicArray<Entity> m_stackCrush = new();
+    private readonly int[] m_checkedBlockLines;
 
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
@@ -66,6 +67,7 @@ public class PhysicsManager
         m_entityManager = world.EntityManager;
         m_random = random;
         BlockmapTraverser = new BlockmapTraverser(world, m_blockmap, world.DataCache);
+        m_checkedBlockLines = new int[m_world.Lines.Count];
     }
 
     /// <summary>
@@ -791,10 +793,10 @@ public class PhysicsManager
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
-                    if (line->BlockmapCount == checkCounter)
+                    if (m_checkedBlockLines[line->LineId] == checkCounter)
                         continue;
 
-                    line->BlockmapCount = checkCounter;
+                    m_checkedBlockLines[line->LineId] = checkCounter;
 
                     // Doomism: Ignore if blocked by flags only.
                     if (Line.BlocksEntity(line, entity))
@@ -1053,10 +1055,10 @@ public class PhysicsManager
             {
                 fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
                 {
-                    if (blockLine->BlockmapCount == checkCounter)
+                    if (m_checkedBlockLines[blockLine->LineId] == checkCounter)
                         continue;
 
-                    blockLine->BlockmapCount = checkCounter;
+                    m_checkedBlockLines[blockLine->LineId] = checkCounter;
                     if (blockLine->Segment.Intersects(nextBox))
                     {
                         LineBlock blockType = LineBlocksEntity(entity, position, blockLine, tryMove);
@@ -1064,10 +1066,9 @@ public class PhysicsManager
                         Line line = blockLine->Line;
                         if (blockType == LineBlock.NoBlock && !entity.ViewLineClip && entity.IsPlayer &&
                             (line.Front.Middle.TextureHandle != Constants.NoTextureIndex || 
-                            (line != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
+                            (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex)))
                         {
                             entity.ViewLineClip = true;
-                            
                         }
 
                         if (blockType != LineBlock.NoBlock)

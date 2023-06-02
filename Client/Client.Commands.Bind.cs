@@ -44,11 +44,11 @@ public partial class Client
         if (!GetInputKey(key, out var inputKey))
             return;
 
-        var inputCommands = GetAvailableInputCommands();
-        if (!CheckAvailableInputCommands(inputCommands, command))
+        if (!CheckAvailableInputCommands(GetAvailableInputCommands(), GetAllCommands(), command))
             return;
 
-        m_config.Keys.Remove(inputKey.Value);
+        if (removeExisting)
+            m_config.Keys.Remove(inputKey.Value);
         m_config.Keys.Add(inputKey.Value, command);
     }
 
@@ -78,11 +78,6 @@ public partial class Client
         }
 
         string command = args.Args[1];
-
-        var inputCommands = GetAvailableInputCommands();
-        if (!CheckAvailableInputCommands(inputCommands, command))
-            return;
-
         if (!m_config.Keys.Remove(inputKey.Value, command))
             Log.Error($"{inputKey} does not have ${command}");
     }
@@ -124,12 +119,12 @@ public partial class Client
         return properties.Select(x => x.Name).OrderBy(x => x).ToArray();
     }
 
-    private static bool CheckAvailableInputCommands(IList<string> inputCommands, string command)
+    private bool CheckAvailableInputCommands(IEnumerable<string> inputCommands, IEnumerable<string> commands, string command)
     {
-        if (!inputCommands.Any(x => x.EqualsIgnoreCase(command)))
+        if (!inputCommands.Any(x => x.EqualsIgnoreCase(command)) && !commands.Any(x => x.EqualsIgnoreCase(command)))
         {
             Log.Error($"Invalid command: {command}");
-            Log.Info("Use inputcommands to view all available commands");
+            Log.Info("Use inputcommands and commands to view all available commands");
             return false;
         }
 

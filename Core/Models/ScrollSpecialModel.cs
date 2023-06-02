@@ -45,7 +45,7 @@ public class ScrollSpecialModel : ISpecialModel
             if (!world.IsSectorIdValid(sectorId))
                 return null;
 
-            return new ScrollSpecial(world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
+            return new ScrollSpecial(world, world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
         }
 
         return new ScrollSpecial(world, world.Lines[0], Geometry.Vectors.Vec2D.Zero, Maps.Specials.ZDoom.ZDoomLineScroll.MiddleTexture);

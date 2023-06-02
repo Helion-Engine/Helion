@@ -44,6 +44,7 @@ public class Line : IBspUsableLine
     public int BlockmapCount;
     public int PhysicsCount;
     private double? m_length;
+    public bool MarkAutomap;
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;

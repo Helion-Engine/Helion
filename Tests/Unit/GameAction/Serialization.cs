@@ -265,7 +265,7 @@ public class Serialization : IDisposable
             sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
             sector.DataChanges.Should().Be(newSector.DataChanges);
             sector.SoundTarget.Entity?.Id.Should().Be(newSector.SoundTarget.Entity?.Id);
-            sector.InstantKillEffect.Should().Be(newSector.InstantKillEffect);
+            sector.KillEffect.Should().Be(newSector.KillEffect);
             sector.SectorEffect.Should().Be(newSector.SectorEffect);
             sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
 

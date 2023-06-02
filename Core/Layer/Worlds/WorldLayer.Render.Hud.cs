@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -7,6 +8,7 @@ using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -23,6 +25,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
+using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
 
@@ -47,6 +50,8 @@ public partial class WorldLayer
     private Dimension m_viewport;
     private readonly List<(string message, float alpha)> m_messages = new();
 
+    private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset);
+
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
         m_scale = (float)m_config.Hud.Scale.Value;
@@ -69,10 +74,10 @@ public partial class WorldLayer
         if (!Player.World.DrawPause)
             return;
 
-        hud.DoomVirtualResolution(() =>
+        hud.DoomVirtualResolution((int value) =>
         {
             hud.Image("M_PAUSE", (0, 8), both: Align.TopMiddle);
-        });
+        }, 0);
     }
 
     private static readonly string[] StatLabels = new string[] { "Kills: ", "Items: ", "Secrets: " };
@@ -228,9 +233,14 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset)
     {
+        hud.DoomVirtualResolution(VirtualDrawHudWeapon, new HudDrawWeapon(hud, frameState, yOffset));
+    }
+
+    private void VirtualDrawHudWeapon(HudDrawWeapon hud)
+    {
         int lightLevel;
 
-        if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
+        if (hud.FrameState.Frame.Properties.Bright || Player.DrawFullBright())
         {
             lightLevel = 255;
         }
@@ -241,30 +251,26 @@ public partial class WorldLayer
             lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
-        byte byteColor = (byte)Math.Clamp(lightLevel, 0, 255);
-        Color lightLevelColor = (byteColor, byteColor, byteColor);
-        string sprite = frameState.Frame.Sprite + (char)(frameState.Frame.Frame + 'A') + "0";
+        Color lightLevelColor = ((byte)lightLevel, (byte)lightLevel, (byte)lightLevel);
+        string sprite = hud.FrameState.Frame.Sprite + (char)(hud.FrameState.Frame.Frame + 'A') + "0";
 
-        if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
+        if (!hud.Hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
             return;
 
-        hud.DoomVirtualResolution(() =>
-        {
-            Vec2I offset = handle.Offset;
-            float tickFraction = m_lastTickInfo.Fraction;
+        Vec2I offset = handle.Offset;
+        float tickFraction = m_lastTickInfo.Fraction;
 
-            offset.Y += yOffset;
-            Vec2I weaponOffset = Player.PrevWeaponOffset.Interpolate(Player.WeaponOffset, tickFraction).Int + 
-                Player.PrevBobOffset.Interpolate(Player.BobOffset, tickFraction).Int;
+        offset.Y += hud.yOffset;
+        Vec2I weaponOffset = Player.PrevWeaponOffset.Interpolate(Player.WeaponOffset, tickFraction).Int +
+            Player.PrevBobOffset.Interpolate(Player.BobOffset, tickFraction).Int;
 
-            float alpha = 1.0f;
-            IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
-            if (powerup != null && powerup.DrawPowerupEffect)
-                alpha = 0.3f;
+        float alpha = 1.0f;
+        IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
+        if (powerup != null && powerup.DrawPowerupEffect)
+            alpha = 0.3f;
 
-            offset = TranslateDoomOffset(offset);
-            hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
-        });
+        offset = TranslateDoomOffset(offset);
+        hud.Hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
     }
 
     private void DrawCrosshair(IHudRenderContext hud)
@@ -398,8 +404,6 @@ public partial class WorldLayer
 
     private void DrawFullStatusBar(IHudRenderContext hud)
     {
-        const int FullHudFaceX = 149;
-        const int FullHudFaceY = 170;
         const string StatusBar = "STBAR";
 
         if (hud.Textures.TryGet(StatusBar, out var statusBarHandle))
@@ -407,43 +411,52 @@ public partial class WorldLayer
 
         hud.RenderStatusBar(StatusBar);
 
-        hud.DoomVirtualResolution(() =>
-        {
-            DrawFullHudHealthArmorAmmo(hud);
-            DrawFullHudWeaponSlots(hud);
-            DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
-            DrawFullHudKeys(hud);
-            DrawFullTotalAmmo(hud);
-        });
+        hud.DoomVirtualResolution(VirtualDrawFullStatusBar, hud);
     }
 
-    private void DrawStatusBarBackground(IHudRenderContext hud, Render.Common.Textures.IRenderableTextureHandle barHandle)
+    private void VirtualDrawFullStatusBar(IHudRenderContext hud)
+    {
+        const int FullHudFaceX = 149;
+        const int FullHudFaceY = 170;
+        DrawFullHudHealthArmorAmmo(hud);
+        DrawFullHudWeaponSlots(hud);
+        DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
+        DrawFullHudKeys(hud);
+        DrawFullTotalAmmo(hud);
+    }
+
+    private readonly record struct HudStatusBarbackground(IHudRenderContext Hud, IRenderableTextureHandle BarHandle, IRenderableTextureHandle BackgroundHandle);
+
+    private void DrawStatusBarBackground(IHudRenderContext hud, IRenderableTextureHandle barHandle)
     {
         if (!hud.Textures.TryGet(m_config.Hud.BackgroundTexture, out var backgroundHandle))
             return;
 
-        hud.DoomVirtualResolution(() =>
-        {
-            // NOTE: This is a terrible hack. The code to convert from
-            // window space into the custom screen space, then figure out
-            // the gutter, then translate back into the window space, can
-            // be solved for all possible cases for the foreseeable future
-            // by overdrawing 1000 pixels (in 320x200 resolution) on each
-            // side. The only way this would become visible is if there
-            // was a widescreen that was like 9280x1280. If this ever is
-            // a thing, a proper fix can be added.
-            const int Overflow = 1000;
-            int xOffset = -Overflow;
-            int yOffset = -barHandle.Dimension.Height + 1;
-            int width = backgroundHandle.Dimension.Width;
-            int iterations = ((Overflow + 320 + Overflow) / backgroundHandle.Dimension.Width) + 1;
+        hud.DoomVirtualResolution(VirtualStatusBarBackground, new HudStatusBarbackground(hud, barHandle, backgroundHandle), 
+            ResolutionScale.None);
+    }
 
-            for (int i = 0; i < iterations; i++)
-            {
-                hud.Image(m_config.Hud.BackgroundTexture, (xOffset, yOffset), Align.BottomLeft);
-                xOffset += width;
-            }
-        }, ResolutionScale.None);
+    private void VirtualStatusBarBackground(HudStatusBarbackground hud)
+    {
+        // NOTE: This is a terrible hack. The code to convert from
+        // window space into the custom screen space, then figure out
+        // the gutter, then translate back into the window space, can
+        // be solved for all possible cases for the foreseeable future
+        // by overdrawing 1000 pixels (in 320x200 resolution) on each
+        // side. The only way this would become visible is if there
+        // was a widescreen that was like 9280x1280. If this ever is
+        // a thing, a proper fix can be added.
+        const int Overflow = 1000;
+        int xOffset = -Overflow;
+        int yOffset = -hud.BarHandle.Dimension.Height + 1;
+        int width = hud.BackgroundHandle.Dimension.Width;
+        int iterations = ((Overflow + 320 + Overflow) / hud.BackgroundHandle.Dimension.Width) + 1;
+
+        for (int i = 0; i < iterations; i++)
+        {
+            hud.Hud.Image(m_config.Hud.BackgroundTexture, (xOffset, yOffset), Align.BottomLeft);
+            xOffset += width;
+        }
     }
 
     private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)

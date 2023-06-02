@@ -7,7 +7,7 @@ namespace Helion.World.Special.Specials;
 public class AccelScrollSpeed
 {
     public Vec2D AccelSpeed;
-    public double LastChangeZ;
+    public double LastHeight;
     public readonly Sector Sector;
     public readonly ZDoomScroll ScrollFlags;
 
@@ -17,22 +17,22 @@ public class AccelScrollSpeed
     {
         Sector = changeSector;
         m_speed = speed;
-        LastChangeZ = GetZ();
+        LastHeight = GetHeight();
         ScrollFlags = scrollFlags;
     }
 
     public void Tick()
     {
-        double currentZ = GetZ();
-        if (LastChangeZ == currentZ)
+        double currentHeight = GetHeight();
+        if (LastHeight == currentHeight)
         {
             if ((ScrollFlags & ZDoomScroll.Displacement) != 0)
                 AccelSpeed = Vec2D.Zero;
             return;
         }
 
-        double diff = currentZ - LastChangeZ;
-        LastChangeZ = currentZ;
+        double diff = currentHeight - LastHeight;
+        LastHeight = currentHeight;
         Vec2D speed = m_speed;
         speed *= diff;
 
@@ -42,6 +42,6 @@ public class AccelScrollSpeed
             AccelSpeed = speed;
     }
 
-    private double GetZ() => Sector.Floor.Z - Sector.Ceiling.Z;
+    private double GetHeight() => Sector.Floor.Z + Sector.Ceiling.Z;
 
 }

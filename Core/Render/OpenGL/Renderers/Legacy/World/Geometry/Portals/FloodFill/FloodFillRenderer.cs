@@ -28,7 +28,7 @@ public readonly record struct FloodFillInfo(SectorPlane SectorPlane, double MinV
 {
     public int GetTextureIndex() => SectorPlane.TextureHandle;
     public SectorPlaneFace GetFace() => SectorPlane.Facing;
-    public float GetZ(double frac) => (float)SectorPlane.GetInterpolatedZ(frac);
+    public float GetZ(double frac) => (float)SectorPlane.Z;
 }
 
 public readonly record struct StaticFloodGeometry(RenderableVertices<PortalStencilVertex> VertexData, int Index, int Length);

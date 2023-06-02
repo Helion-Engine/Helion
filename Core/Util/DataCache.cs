@@ -45,6 +45,7 @@ public class DataCache
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
+    private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -108,12 +109,13 @@ public class DataCache
         return newEnity;
     }
 
-    public void FreeEntity(Entity entity)
+    public bool FreeEntity(Entity entity)
     {
         if (!CacheEntities || entity.IsPlayer)
-            return;
+            return false;
 
         m_entities.Add(entity);
+        return true;
     }
 
     public LinkableNode<Entity> GetLinkableNodeEntity(Entity entity)
@@ -293,5 +295,24 @@ public class DataCache
     public void FreeClipSpan(LinkedListNode<ClipSpan> clipSpan)
     {
         m_clipSpans.Add(clipSpan);
+    }
+
+    public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)
+    {
+        if (m_lightChanges.Length > 0)
+        {
+            var spec = m_lightChanges.RemoveLast();
+            spec.Set(world, sector, lightLevel, fadeTics);
+            return spec;
+        }
+
+        return new LightChangeSpecial(world, sector, lightLevel, fadeTics);
+    }
+
+    public void FreeLightChangeSpecial(LightChangeSpecial special)
+    {
+        special.World = null!;
+        special.Sector = null!;
+        m_lightChanges.Add(special);
     }
 }

@@ -22,19 +22,22 @@ public partial class MenuLayer
 
     public void Render(IHudRenderContext hud)
     {
+        hud.DoomVirtualResolution(RenderVirtualHud, hud);
+    }
+
+    private void RenderVirtualHud(IHudRenderContext hud)
+    {
         if (!m_menus.TryPeek(out Menu? menu))
             return;
 
-        hud.DoomVirtualResolution(() =>
+        int offsetY = menu.TopPixelPadding;
+
+        foreach (IMenuComponent component in menu)
         {
-            int offsetY = menu.TopPixelPadding;
+            bool isSelected = ReferenceEquals(menu.CurrentComponent, component);
 
-            foreach (IMenuComponent component in menu)
+            switch (component)
             {
-                bool isSelected = ReferenceEquals(menu.CurrentComponent, component);
-
-                switch (component)
-                {
                 case MenuImageComponent imageComponent:
                     DrawImage(hud, imageComponent, isSelected, ref offsetY);
                     break;
@@ -52,9 +55,8 @@ public partial class MenuLayer
                     break;
                 default:
                     throw new Exception($"Unexpected menu component type for drawing: {component.GetType().FullName}");
-                }
             }
-        });
+        }
     }
 
     private void DrawText(IHudRenderContext hud, MenuTextComponent text, ref int offsetY)

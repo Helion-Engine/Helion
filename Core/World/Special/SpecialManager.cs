@@ -120,22 +120,21 @@ public class SpecialManager : ITickable, IDisposable
         else
             specialActivateSuccess = HandleDefault(args, special, m_world);
 
-        if (specialActivateSuccess)
+        if (!specialActivateSuccess)
+            return false;
+        
+        if (ShouldCreateSwitchSpecial(args))
         {
-            if (ShouldCreateSwitchSpecial(args))
-            {
-                var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
-                if (switchSpecial != null)
-                    RemoveSpecial(switchSpecial);
-                switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
-                if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
-                    AddSpecial(switchSpecial);
-            }
-
-            args.ActivateLineSpecial.SetActivated(true);
+            var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
+            if (switchSpecial != null)
+                RemoveSpecial(switchSpecial);
+            switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
+            if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
+                AddSpecial(switchSpecial);
         }
 
-        return specialActivateSuccess;
+        args.ActivateLineSpecial.SetActivated(true);
+        return true;
     }
 
     private SwitchChangeSpecial? GetExistingSwitchSpecial(Line line)
@@ -234,6 +233,8 @@ public class SpecialManager : ITickable, IDisposable
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
             sectorSpecial.FinalizeDestroy();
+            if (sectorSpecial is LightChangeSpecial lightChange)
+                m_world.DataCache.FreeLightChangeSpecial(lightChange);
         }
 
         // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can beo
@@ -764,11 +765,11 @@ public class SpecialManager : ITickable, IDisposable
             {
                 Vec2D scrollSpeed = speeds.ScrollSpeed.Value;
                 scrollSpeed.X = -scrollSpeed.X;
-                AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(m_world, ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
             }
 
             if (speeds.CarrySpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(m_world, ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
         }
     }
 
@@ -834,6 +835,9 @@ public class SpecialManager : ITickable, IDisposable
 
         if (sector.DamageAmount > 0)
             sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount);
+
+        if (sector.KillEffect != InstantKillEffect.None)
+            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.KillEffect);
     }
 
     private static int GetDamageAmount(ZDoomSectorSpecialType type)
@@ -1449,8 +1453,14 @@ public class SpecialManager : ITickable, IDisposable
 
     private static int GetOtics(int value) => value * 35 / 8;
 
-    private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0) =>
-        new LightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+    private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
+    {
+        if (fadeTics > 0)
+            return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+
+        m_world.SetSectorLightLevel(sector, (short)lightLevel);
+        return null;
+    }
 
     private ISpecial CreateRaisePlatTxSpecial(Sector sector, Line line, double speed, int lockout)
     {

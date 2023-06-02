@@ -156,7 +156,7 @@ public partial class Entity
 
     public void ClosetChase()
     {
-        if (Target.Entity.IsDead)
+        if (Target.Entity != null && Target.Entity.IsDead)
             return;
 
         SetNewChaseDirection();
@@ -321,8 +321,7 @@ public partial class Entity
         if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
         {
             BlockFloating = true;
-            Vec3D pos = (Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
-            SetPosition(pos);
+            Position = (Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
             return true;
         }
         else

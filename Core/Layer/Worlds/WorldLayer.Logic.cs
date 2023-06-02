@@ -164,7 +164,7 @@ public partial class WorldLayer
         if (result == DemoTickResult.DemoEnded)
         {
             m_demoEnded = true;
-            World.DisplayMessage(Player, null, "The demo has ended.");
+            World.DisplayMessage("The demo has ended.");
             World.DemoEnded = true;
             World.Pause();
         }

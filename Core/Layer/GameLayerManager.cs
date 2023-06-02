@@ -14,6 +14,7 @@ using Helion.Menus.Impl;
 using Helion.Models;
 using Helion.Render;
 using Helion.Render.Common.Context;
+using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -58,9 +59,13 @@ public class GameLayerManager : IGameLayerParent
     private readonly SaveGameManager m_saveGameManager;
     private readonly Profiler m_profiler;
     private readonly Stopwatch m_stopwatch = new();
+
+    private readonly HudRenderContext m_hudContext = new(default);
+
+    private Renderer m_renderer;
+    private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
 
-    private Box2I WindowBox => new(Vec2I.Zero, m_window.Dimension.Vector);
     internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
         ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
@@ -149,9 +154,11 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
-    private void M_saveGameManager_GameSaved(object? sender, Models.WorldModel e)
+    public void SubmitConsoleText(string text)
     {
-        throw new NotImplementedException();
+        m_console.ClearInputText();
+        m_console.AddInput(text);
+        m_console.SubmitInputText();
     }
 
     public void ClearAllExcept(params IGameLayer[] layers)
@@ -297,7 +304,7 @@ public class GameLayerManager : IGameLayerParent
         if (m_config.Game.QuickSaveConfirm)
         {
             MessageMenu confirm = new MessageMenu(m_config, m_console, m_soundManager, m_archiveCollection,
-                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model.Text,  "Press Y to confirm." },
+                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save",  "Press Y to confirm." },
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;
 
@@ -319,6 +326,9 @@ public class GameLayerManager : IGameLayerParent
 
     private void WriteQuickSave()
     {
+        if (WorldLayer == null || LastSave == null)
+            return;
+
         var world = WorldLayer.World;
         var save = LastSave.Value;
         m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);
@@ -349,27 +359,33 @@ public class GameLayerManager : IGameLayerParent
 
     public void Render(Renderer renderer)
     {
-        renderer.Default.Render(ctx =>
-        {
-            HudRenderContext hudContext = new(renderer.RenderDimension);
+        m_renderer = renderer;
+        m_renderer.Default.Render(RenderDefault);
+    }
 
-            ctx.Viewport(renderer.RenderDimension.Box);
-            ctx.Clear(Renderer.DefaultBackground, true, true);
+    private void RenderDefault(IRenderableSurfaceContext ctx)
+    {
+        m_ctx = ctx;
+        m_hudContext.Dimension = m_renderer.RenderDimension;
 
-            WorldLayer?.Render(ctx);
+        ctx.Viewport(m_renderer.RenderDimension.Box);
+        ctx.Clear(Renderer.DefaultBackground, true, true);
 
-            m_profiler.Render.MiscLayers.Start();
-            ctx.Hud(hudContext, hud =>
-            {
-                IntermissionLayer?.Render(ctx, hud);
-                TitlepicLayer?.Render(hud);
-                EndGameLayer?.Render(ctx, hud);
-                MenuLayer?.Render(hud);
-                ReadThisLayer?.Render(hud);
-                ConsoleLayer?.Render(ctx, hud);
-            });
-            m_profiler.Render.MiscLayers.Stop();
-        });
+        WorldLayer?.Render(ctx);
+
+        m_profiler.Render.MiscLayers.Start();
+        ctx.Hud(m_hudContext, RenderHud);
+        m_profiler.Render.MiscLayers.Stop();
+    }
+
+    private void RenderHud(IHudRenderContext hudCtx)
+    {
+        IntermissionLayer?.Render(m_ctx, hudCtx);
+        TitlepicLayer?.Render(hudCtx);
+        EndGameLayer?.Render(m_ctx, hudCtx);
+        MenuLayer?.Render(hudCtx);
+        ReadThisLayer?.Render(hudCtx);
+        ConsoleLayer?.Render(m_ctx, hudCtx);
     }
 
     public void Dispose()

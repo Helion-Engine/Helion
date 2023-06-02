@@ -8,7 +8,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -52,11 +51,7 @@ using Helion.World.Entities.Definition.States;
 using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Demo;
-using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Resources.Archives.Entries;
-using static Helion.World.IWorld;
 
 namespace Helion.World;
 
@@ -77,6 +72,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<SideScrollEvent>? SideScrollChanged;
+    public event EventHandler<SectorPlane>? SectorPlaneScrollChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
@@ -121,7 +117,9 @@ public abstract partial class WorldBase : IWorld
     public virtual bool IsChaseCamMode => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }
+    public bool IsDisposed { get; private set; }
     public abstract ListenerParams GetListener();
+    public int CurrentBossTarget { get; set; }
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
@@ -165,7 +163,7 @@ public abstract partial class WorldBase : IWorld
         Map = map;
 
         if (Map.Reject != null)
-            m_lineOfSightReject = map.Reject;
+            m_lineOfSightReject = Map.Reject;
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
@@ -441,8 +439,8 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                if (!entity.IsDisposed && entity.Sector.InstantKillEffect != InstantKillEffect.None && entity.OnSectorFloorZ(entity.Sector))
-                    InstantKillSector(entity);
+                if (entity.Sector.SectorDamageSpecial != null)
+                    entity.Sector.SectorDamageSpecial.Tick(entity);
             }
 
             node = nextNode;
@@ -467,9 +465,6 @@ public abstract partial class WorldBase : IWorld
             player.HandleTickCommand();
             player.TickCommand.TickHandled();
 
-            if (player.Sector.SectorDamageSpecial != null)
-                player.Sector.SectorDamageSpecial.Tick(player);
-
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
                 DisplayMessage(player, null, "$SECRETMESSAGE");
@@ -478,21 +473,17 @@ public abstract partial class WorldBase : IWorld
                 LevelStats.SecretCount++;
                 player.SecretsFound++;
             }
-
-            if (player.Sector.InstantKillEffect != InstantKillEffect.None && player.OnSectorFloorZ(player.Sector))
-                InstantKillSector(player);
         }
 
         Profiler.World.TickPlayer.Stop();
     }
 
-    private void InstantKillSector(Entity entity)
+    public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
     {
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        InstantKillEffect effect = entity.Sector.InstantKillEffect;
         if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
@@ -706,8 +697,6 @@ public abstract partial class WorldBase : IWorld
         return m_bossBrainTargets;
     }
 
-    public int CurrentBossTarget { get; set; }
-
     public void TelefragBlockingEntities(Entity entity)
     {
         DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
@@ -750,6 +739,8 @@ public abstract partial class WorldBase : IWorld
 
             if (bi.Line.Segment.OnRight(start))
             {
+                OnTryEntityUseLine(entity, bi.Line);
+
                 if (bi.Line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
@@ -784,6 +775,11 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    public virtual void OnTryEntityUseLine(Entity entity, Line line)
+    {
+
     }
 
     private void PlayerBumpUse(Entity entity)
@@ -918,12 +914,12 @@ public abstract partial class WorldBase : IWorld
         // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
         if (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success)
         {
-            projectile.SetPosition(testPos);
+            projectile.Position = testPos;
             projectile.Velocity = velocity;
             return projectile;
         }
 
-        projectile.SetPosition(testPos);
+        projectile.Position = testPos;
         HandleEntityHit(projectile, velocity, null);
         return null;
     }
@@ -1092,7 +1088,7 @@ public abstract partial class WorldBase : IWorld
             if (source.Owner.Entity == target && source.Position.XY == target.Position.XY)
             {
                 Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
-                source.SetPosition(move);
+                source.Position = move;
             }
 
             Vec2D xyDiff = source.Position.XY - target.Position.XY;
@@ -1141,7 +1137,7 @@ public abstract partial class WorldBase : IWorld
 
             thrustVelocity *= thrustAmount;
             if (savePos != source.Position)
-                source.SetPosition(savePos);
+                source.Position = savePos;
         }
 
         bool setPainState = m_random.NextByte() < target.Properties.PainChance;
@@ -1203,26 +1199,28 @@ public abstract partial class WorldBase : IWorld
         if (item.IsDisposed)
             return;
 
-        PlayerPickedUpItem(entity, item, health, definition);
+        if (entity.PlayerObj != null)
+            PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
         EntityManager.Destroy(item);
     }
 
-    private void PlayerPickedUpItem(Entity entity, Entity item, int previousHealth, EntityDefinition definition)
+    private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
     {
-        if (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll)
+        if (player.IsVooDooDoll)
         {
-            entity = EntityManager.GetRealPlayer(entity.PlayerObj.PlayerNumber);
-            if (entity == null)
+            var findPlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
+            if (findPlayer == null)
                 return;
+            player = findPlayer;
         }
 
-        item.PickupPlayer = entity.PlayerObj;
+        item.PickupPlayer = player;
         item.FrameState.SetState("Pickup", warn: false);
 
         if (item.Flags.CountItem)
         {
             LevelStats.ItemCount++;
-            entity.PlayerObj.ItemCount++;
+            player.ItemCount++;
         }
 
         string message = definition.Properties.Inventory.PickupMessage;
@@ -1230,12 +1228,12 @@ public abstract partial class WorldBase : IWorld
         if (healthProperty != null && previousHealth < healthProperty.Value.LowMessageHealth && healthProperty.Value.LowMessage.Length > 0)
             message = healthProperty.Value.LowMessage;
 
-        DisplayMessage(entity.PlayerObj, null, message);
+        DisplayMessage(player, null, message);
 
         if (!string.IsNullOrEmpty(definition.Properties.Inventory.PickupSound))
         {
-            SoundManager.CreateSoundOn(entity, definition.Properties.Inventory.PickupSound,
-                new SoundParams(entity, channel: SoundChannel.Item));
+            SoundManager.CreateSoundOn(player, definition.Properties.Inventory.PickupSound,
+                new SoundParams(player, channel: SoundChannel.Item));
         }
     }
 
@@ -1308,7 +1306,7 @@ public abstract partial class WorldBase : IWorld
             if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)
                 continue;
 
-            if (entity.Flags.Ripper && entity.Owner.Entity.Id != intersectEntity.Id)
+            if (entity.Flags.Ripper && entity.Owner.Entity?.Id != intersectEntity.Id)
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
@@ -1521,14 +1519,17 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(Player player, Player? other, string message)
+    public virtual void DisplayMessage(string message) => DisplayMessage(null, null, message);
+
+    public virtual void DisplayMessage(Player? player, Player? other, string message)
     {
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            if (player.Id == GetCameraPlayer().Id)
+            if (player == null || player.Id == GetCameraPlayer().Id)
                 Log.Info(message);
-            PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
+            if (player != null && player.Id == GetCameraPlayer().Id)
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }
 
@@ -1559,14 +1560,14 @@ public abstract partial class WorldBase : IWorld
 
         double oldHeight = entity.Height;
         entity.Flags.Solid = true;
-        entity.SetHeight(entity.Definition.Properties.Height);
+        entity.Height = entity.Definition.Properties.Height;
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
         DynamicArray<Entity> entities = DataCache.GetEntityList();
         entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
         entity.Flags.Solid = false;
-        entity.SetHeight(oldHeight);
+        entity.Height = oldHeight;
 
         bool blocked = entities.Length > 0;
         DataCache.FreeEntityList(entities);
@@ -1654,6 +1655,7 @@ public abstract partial class WorldBase : IWorld
 
     protected virtual void PerformDispose()
     {
+        IsDisposed = true;
         SpecialManager.Dispose();
         EntityManager.Dispose();
         SoundManager.Dispose();
@@ -2064,7 +2066,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             bi.Entity.Flags.Solid = true;
-            bi.Entity.SetHeight(entity.Definition.Properties.Height);
+            bi.Entity.Height = entity.Definition.Properties.Height;
 
             Entity? saveTarget = entity.Target.Entity;
             entity.SetTarget(bi.Entity);
@@ -2130,7 +2132,7 @@ public abstract partial class WorldBase : IWorld
     {
         entity.ResetInterpolation();
         entity.UnlinkFromWorld();
-        entity.SetPosition(pos);
+        entity.Position = pos;
         Link(entity);
     }
 
@@ -2340,12 +2342,10 @@ public abstract partial class WorldBase : IWorld
 
     private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
     {
-        bool anySuccess = false;
         Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
         if (updatePlayer == null)
             return false;
 
-        int health = updatePlayer.Health;
         bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
         if (!success)
             return false;
@@ -2418,6 +2418,11 @@ public abstract partial class WorldBase : IWorld
     public void SetSideScroll(Side side, SideTexture textures)
     {
         SideScrollChanged?.Invoke(this, new SideScrollEvent(side, textures));
+    }
+
+    public void SetSectorPlaneScroll(SectorPlane plane)
+    {
+        SectorPlaneScrollChanged?.Invoke(this, plane);
     }
 
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>

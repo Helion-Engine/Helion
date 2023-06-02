@@ -25,12 +25,15 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Impl.SinglePlayer;
 
 public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly DebugSpecials m_debugSpecials = new();
+    private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
 
     public override Player Player { get; protected set; }
@@ -124,6 +127,19 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoGravity = true;
         ChaseCamPlayer.Flags.NoBlockmap = true;
         ChaseCamPlayer.Flags.NoSector = true;
+
+        m_automapMarker = new AutomapMarker(ArchiveCollection);
+        Config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
+    }
+
+    private void AutomapBspThread_OnChanged(object? sender, bool set)
+    {
+        m_automapMarker.Stop();
+
+        if (!set)
+            return;
+
+        m_automapMarker.Start(this);
     }
 
     public override ListenerParams GetListener()
@@ -134,6 +150,12 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
+        if (Config.Render.Blockmap && Config.Render.AutomapBspThread)
+        {
+            var camera = Player.GetCamera(0);
+            m_automapMarker.AddPosition(camera.Position.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians);
+        }
+
         if (GetCrosshairTarget(out Entity? entity))
             Player.SetCrosshairTarget(entity);
         else
@@ -241,6 +263,8 @@ public class SinglePlayerWorld : WorldBase
         base.Start(worldModel);
         if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
             AudioSystem.Music.Stop();
+
+        m_automapMarker.Start(this);
     }
 
     public static bool PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
@@ -271,9 +295,10 @@ public class SinglePlayerWorld : WorldBase
 
     public void HandleFrameInput(IConsumableInput input)
     {
+        HandleMouseLook(input);
+
         if (!Paused)
             CheatManager.HandleInput(Player, input);
-        HandleMouseLook(input);
     }
 
     public void SetTickCommand(Player player, TickCommand tickCommand)
@@ -336,17 +361,29 @@ public class SinglePlayerWorld : WorldBase
         return base.EntityUse(entity);
     }
 
+    public override void OnTryEntityUseLine(Entity entity, Line line)
+    {
+        m_debugSpecials.MarkSpecials(this, entity, line);
+        base.OnTryEntityUseLine(entity, line);
+    }
+
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
+    {
+        m_debugSpecials.MarkSpecials(this, entity, line);
+        return base.ActivateSpecialLine(entity, line, context);
+    }
+
     public override void ToggleChaseCameraMode()
     {
         m_chaseCamMode = !m_chaseCamMode;
         string activated = m_chaseCamMode ? "activated" : "deactivated";
-        Log.Info($"Third person camera mode {activated}");
+        Log.Info($"Chase camera {activated}.");
 
         DrawHud = !m_chaseCamMode;
 
         if (m_chaseCamMode)
         {
-            ChaseCamPlayer.SetPosition(Player.Position);
+            ChaseCamPlayer.Position = Player.Position;
             ChaseCamPlayer.AngleRadians = Player.AngleRadians;
             ChaseCamPlayer.PitchRadians = Player.PitchRadians;
             ChaseCamPlayer.Velocity = Vec3D.Zero;

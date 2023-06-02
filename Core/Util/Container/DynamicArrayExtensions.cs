@@ -13,4 +13,10 @@ public static class DynamicArrayExtensions
         for (int i = 0; i < array.Capacity; i++)
             array[i] = null;
     }
+
+    public static void FlushStruct<T>(this DynamicArray<T> array) where T : struct
+    {
+        for (int i = 0; i < array.Capacity; i++)
+            array[i] = default;
+    }
 }
