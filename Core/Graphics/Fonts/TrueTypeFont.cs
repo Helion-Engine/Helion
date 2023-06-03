@@ -141,10 +141,10 @@ public static class TrueTypeFont
             {
                 Rgba32 rgba = pixelRow[x];
 
-                bytes[bytesOffset] = rgba.B;
-                bytes[bytesOffset + 1] = rgba.G;
-                bytes[bytesOffset + 2] = rgba.R;
-                bytes[bytesOffset + 3] = rgba.A;
+                bytes[bytesOffset] = rgba.A;
+                bytes[bytesOffset + 1] = rgba.R;
+                bytes[bytesOffset + 2] = rgba.G;
+                bytes[bytesOffset + 3] = rgba.B;
 
                 bytesOffset += 4;
             }
