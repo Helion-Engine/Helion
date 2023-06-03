@@ -13,7 +13,6 @@ using Helion.Maps;
 using Helion.Resources;
 using Helion.Util.Assertion;
 using Helion.Util.Extensions;
-using Newtonsoft.Json.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -249,34 +248,5 @@ public class Image
     private static Image CreateWhiteImage()
     {
         return new(new[] { Color.White.Uint }, (1, 1), ImageType.Argb, (0, 0), ResourceNamespace.Global);
-    }
-
-    public bool SaveBmp(string path)
-    {
-        try
-        {
-            byte[] data = new byte[m_pixels.Length * 3]; // rgba -> [r, g, b]
-            for (int i = 0; i <  m_pixels.Length; i++)
-            {
-                uint pixel = m_pixels[i];
-                byte r = (byte)((pixel & 0x00FF0000) >> 16);
-                byte g = (byte)((pixel & 0x0000FF00) >> 8);
-                byte b = (byte)(pixel & 0x000000FF);
-
-                int offset = i * 3;
-                data[offset] = b;
-                data[offset + 1] = g;
-                data[offset + 2] = r;
-            }
-
-            var bitmap = new Bitmap(Width, Height, data, BitsPerPixelEnum.RGB24);
-            File.WriteAllBytes(path, bitmap.GetBmpBytes());
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
     }
 }

@@ -130,7 +130,7 @@ public partial class Client : IDisposable, IInputManagement
         if (!m_takeScreenshot)
             return;
 
-        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.bmp";
+        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
         Log.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
@@ -157,8 +157,8 @@ public partial class Client : IDisposable, IInputManagement
             offset += 3;
         }
 
-        Image image = new(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global);
-        image.SaveBmp(path);
+        Image image = new Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        image.SavePng(path);
     }
 
     private void Render()
