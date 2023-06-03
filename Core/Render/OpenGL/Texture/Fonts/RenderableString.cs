@@ -83,7 +83,6 @@ public class RenderableString
 
         DynamicArray<RenderableGlyph>? currentSentence = null;
         var colorRanges = GetColorRanges(str, drawColor);
-        //foreach (var colorRange in colorRanges)
         for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
         {
             var colorRange = colorRanges[colorRangeIndex];
@@ -139,7 +138,7 @@ public class RenderableString
         ColorRanges.Clear();
         if (drawColor != null)
         {
-            ColorRanges.Add(new ColorRange(0, str.Length - 1, DefaultColor));
+            ColorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
             return ColorRanges;
         }
 

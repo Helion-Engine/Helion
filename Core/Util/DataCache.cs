@@ -245,11 +245,11 @@ public class DataCache
         if (m_strings.Length > 0)
         {
             var renderableString = m_strings.RemoveLast();
-            renderableString.Set(this, str, font, fontSize, align, maxWidth);
+            renderableString.Set(this, str, font, fontSize, align, maxWidth, drawColor);
             return renderableString;
         }
 
-        return new RenderableString(this, str, font, fontSize, align, maxWidth);
+        return new RenderableString(this, str, font, fontSize, align, maxWidth, drawColor);
     }
 
     public void FreeRenderableString(RenderableString renderableString)
