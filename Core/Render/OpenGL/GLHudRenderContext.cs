@@ -197,21 +197,9 @@ public class GLHudRenderContext : IHudRenderContext
         window = both ?? window;
         anchor = both ?? anchor;
 
-        string colorPrefix = "";
-        if (color != null)
-        {
-            Color c = color.Value;
-            colorPrefix = @$"\c[{c.R},{c.G},{c.B}]";
-        }
-
         int scaledFontSize = (int)(fontSize * scale);
 
-        RenderableString renderableString;
-        if (color.HasValue && color != Color.White)
-            renderableString = m_archiveCollection.DataCache.GetRenderableString($"{colorPrefix}{text}", fontObject, scaledFontSize, textAlign, maxWidth);
-        else
-            renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth);
-
+        RenderableString renderableString =m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth, color);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,

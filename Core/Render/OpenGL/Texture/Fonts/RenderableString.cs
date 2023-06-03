@@ -51,27 +51,27 @@ public class RenderableString
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
     public RenderableString(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
-        int maxWidth = int.MaxValue)
+        int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         Font = font;
-        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth);
+        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);
         AlignTo(align);
         RecalculateGlyphLocations();
     }
 
     public void Set(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
-        int maxWidth = int.MaxValue)
+        int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         Font = font;
-        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth);
+        Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);
         AlignTo(align);
         RecalculateGlyphLocations();
     }
 
     public static List<RenderableSentence> PopulateSentences(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize,
-        int maxWidth)
+        int maxWidth, Color? drawColor)
     {
         double scale = (double)fontSize / font.MaxHeight;
         int currentWidth = 0;
@@ -82,8 +82,7 @@ public class RenderableString
             return sentences;
 
         DynamicArray<RenderableGlyph>? currentSentence = null;
-        var colorRanges = GetColorRanges(str);
-        //foreach (var colorRange in colorRanges)
+        var colorRanges = GetColorRanges(str, drawColor);
         for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
         {
             var colorRange = colorRanges[colorRangeIndex];
@@ -99,7 +98,7 @@ public class RenderableString
                 // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
                 if (endX > maxWidth && currentSentence != null && currentSentence.Length > 0)
                 {
-                    CreateAndAddSentenceIfPossible();
+                    CreateAndAddSentenceIfPossible(currentSentence, sentences, ref currentWidth, ref currentHeight);
                     continue;
                 }
 
@@ -116,26 +115,33 @@ public class RenderableString
             }
         }
 
-        CreateAndAddSentenceIfPossible();
+        CreateAndAddSentenceIfPossible(currentSentence, sentences, ref currentWidth, ref currentHeight);
         return sentences;
-
-        void CreateAndAddSentenceIfPossible()
-        {
-            if (currentSentence == null || currentSentence.Length == 0)
-                return;
-
-            RenderableSentence sentence = new(currentSentence);
-            sentences.Add(sentence);
-            currentSentence = null;
-
-            currentWidth = 0;
-            currentHeight += sentence.DrawArea.Height;
-        }
     }
 
-    private static List<ColorRange> GetColorRanges(string str)
+    private static void CreateAndAddSentenceIfPossible(DynamicArray<RenderableGlyph>? currentSentence, List<RenderableSentence> sentences,
+        ref int currentWidth, ref int currentHeight)
+    {
+        if (currentSentence == null || currentSentence.Length == 0)
+            return;
+
+        RenderableSentence sentence = new(currentSentence);
+        sentences.Add(sentence);
+        currentSentence = null;
+
+        currentWidth = 0;
+        currentHeight += sentence.DrawArea.Height;
+    }
+
+    private static List<ColorRange> GetColorRanges(string str, Color? drawColor)
     {
         ColorRanges.Clear();
+        if (drawColor != null)
+        {
+            ColorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
+            return ColorRanges;
+        }
+
         ColorRanges.Add(new ColorRange(0, DefaultColor));
 
         bool success = FindNextColorIndex(str, 0, out int startIndex, out int endIndex);
@@ -362,6 +368,13 @@ public class RenderableString
         {
             StartIndex = index;
             EndIndex = index;
+            Color = color;
+        }
+
+        public ColorRange(int startIndex, int endIndex, Color color)
+        {
+            StartIndex = startIndex;
+            EndIndex = endIndex;
             Color = color;
         }
     }
