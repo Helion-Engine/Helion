@@ -75,13 +75,14 @@ public class Image
 
     public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
     {
-        if (dimension.Area != argbData.Length * 4)
+        if (dimension.Area * 4 != argbData.Length)
             return null;
 
-        uint[] pixels = new uint[argbData.Length / 4];
+        int numPixels = argbData.Length / 4;
+        uint[] pixels = new uint[numPixels];
 
         int argbByteOffset = 0;
-        for (int i = 0; i < argbData.Length; i++)
+        for (int i = 0; i < numPixels; i++)
         {
             uint a = argbData[argbByteOffset];
             uint r = argbData[argbByteOffset + 1];
