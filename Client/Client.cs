@@ -143,22 +143,21 @@ public partial class Client : IDisposable, IInputManagement
         fixed (byte* rgbPtr = rgb)
         {
             IntPtr ptr = new(rgbPtr);
-            GL.ReadPixels(0, 0, w, h, PixelFormat.Bgr, PixelType.UnsignedByte, ptr);
+            GL.ReadPixels(0, 0, w, h, PixelFormat.Rgb, PixelType.UnsignedByte, ptr);
         }
 
-        uint[] argb = new uint[m_window.Dimension.Area];
+        uint[] argb = new uint[pixelCount];
         int offset = 0;
         for (int i = 0; i < pixelCount; i++)
         {
             uint r = rgb[offset];
             uint g = rgb[offset + 1];
             uint b = rgb[offset + 2];
-            argb[offset] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            argb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
             offset += 3;
         }
 
-        // OpenGL's coordinate system require flipping the Y axis.
-        Image image = new Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        Image image = new(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global);
         image.SaveBmp(path);
     }
 
