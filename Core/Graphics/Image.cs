@@ -109,6 +109,35 @@ public class Image
         return new(pixels, Dimension, ImageType.Argb, Offset, Namespace);
     }
 
+    private uint BlendPixels(uint back, uint front)
+    {
+        uint frontA = (front >> 24) & 0xFF;
+        if (frontA == 0)
+            return back;
+
+        float alpha = frontA / 255.0f;
+        uint frontR = (front >> 16) & 0xFF;
+        uint frontG = (front >> 8) & 0xFF;
+        uint frontB = front & 0xFF;
+        uint backA = (back >> 24) & 0xFF;
+        uint backR = (back >> 16) & 0xFF;
+        uint backG = (back >> 8) & 0xFF;
+        uint backB = back & 0xFF;
+
+        float oneMinusAlpha = 1.0f - alpha;
+        float newA = (alpha * frontA) + (oneMinusAlpha * backA);
+        float newR = (alpha * frontR) + (oneMinusAlpha * backR);
+        float newG = (alpha * frontG) + (oneMinusAlpha * backG);
+        float newB = (alpha * frontB) + (oneMinusAlpha * backB);
+
+        uint a = (uint)newA;
+        uint r = (uint)newR;
+        uint g = (uint)newG;
+        uint b = (uint)newB;
+
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
     public void DrawOnTopOf(Image image, Vec2I offset)
     {
         for (int thisY = 0; thisY < Height; thisY++)
@@ -132,9 +161,14 @@ public class Image
                 int targetOffset = (targetY * image.Width) + targetX;
 
                 uint pixel = m_pixels[thisOffset];
-                uint alpha = (pixel & 0xFF000000) >> 24;
+                uint alpha = (pixel >> 24) & 0xFF;
                 if (alpha > 0)
-                    image.m_pixels[targetOffset] = pixel;
+                {
+                    if (alpha == 255)
+                        image.m_pixels[targetOffset] = pixel;
+                    else
+                        image.m_pixels[targetOffset] = BlendPixels(image.m_pixels[targetOffset], pixel);
+                }
             }
         }
     }
