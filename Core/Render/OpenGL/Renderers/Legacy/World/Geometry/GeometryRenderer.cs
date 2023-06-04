@@ -120,6 +120,8 @@ public class GeometryRenderer : IDisposable
             m_subsectors[i] = new();
 
         m_drawnSides = new int[world.Sides.Count];
+        for (int i = 0; i < world.Sides.Count; i++)
+            m_drawnSides[i] = -1;
 
         m_vertexFloorLookup = new(3);
         m_vertexCeilingLookup = new(3);
