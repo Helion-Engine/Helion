@@ -27,7 +27,7 @@ public partial class WorldLayer
 
         // TODO: Workaround until later...
         var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
-        m_camera.Set(oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
+        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
         m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
 
         ctx.World(m_worldContext, RenderWorld);

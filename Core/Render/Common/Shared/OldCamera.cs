@@ -28,8 +28,10 @@ public class OldCamera
     public static readonly vec3 UpGlm = Up.GlmVector;
 
     /// <summary>
-    /// The current camera position.
+    /// The current interpolated camera position.
     /// </summary>
+    public Vec3F PositionInterpolated;
+
     public Vec3F Position;
 
     /// <summary>
@@ -58,16 +60,18 @@ public class OldCamera
     /// <param name="pitchRadians">The vertical looking angle in radians.
     /// This should be between [-pi/2, pi/2], or else it will be clamped
     /// to that range.</param>
-    public OldCamera(Vec3F position, float yawRadians, float pitchRadians)
+    public OldCamera(Vec3F positionInterpolated, Vec3F position, float yawRadians, float pitchRadians)
     {
+        PositionInterpolated = positionInterpolated;
         Position = position;
         YawRadians = ClampYaw(yawRadians);
         PitchRadians = ClampPitch(pitchRadians);
         Direction = DirectionFrom(yawRadians, pitchRadians);
     }
 
-    public void Set(Vec3F position, float yawRadians, float pitchRadians)
+    public void Set(Vec3F positionInterpolated, Vec3F position, float yawRadians, float pitchRadians)
     {
+        PositionInterpolated = positionInterpolated;
         Position = position;
         YawRadians = ClampYaw(yawRadians);
         PitchRadians = ClampPitch(pitchRadians);
@@ -96,7 +100,7 @@ public class OldCamera
     /// <returns>The view matrix for the camera information.</returns>
     public mat4 CalculateViewMatrix(bool onlyXY = false)
     {
-        vec3 pos = Position.GlmVector;
+        vec3 pos = PositionInterpolated.GlmVector;
         vec3 eye = pos + Direction.WithZ(onlyXY ? 0 : Direction.Z).GlmVector;
         return mat4.LookAt(pos, eye, UpGlm);
     }
