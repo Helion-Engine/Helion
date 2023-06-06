@@ -36,5 +36,5 @@ public struct MiddleDrawSpan
     /// <returns>True if we cannot see it and should exit early instead of
     /// trying to render it, false if we can see something and it needs to
     /// be rendered.</returns>
-    public bool NotVisible() => VisibleTopZ <= VisibleBottomZ;
+    public bool NotVisible() => VisibleTopZ <= VisibleBottomZ && PrevVisibleTopZ <= PrevVisibleBottomZ;
 }

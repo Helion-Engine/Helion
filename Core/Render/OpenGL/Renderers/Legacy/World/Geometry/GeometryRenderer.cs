@@ -667,12 +667,12 @@ public class GeometryRenderer : IDisposable
 
     public bool LowerIsVisible(Sector facingSector, Sector otherSector)
     {
-        return facingSector.Floor.Z < otherSector.Floor.Z;
+        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ;
     }
 
     public bool UpperIsVisible(Sector facingSector, Sector otherSector)
     {
-        return facingSector.Ceiling.Z > otherSector.Ceiling.Z;
+        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ;
     }
 
     public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
@@ -680,6 +680,8 @@ public class GeometryRenderer : IDisposable
         skyHack = false;
         double facingZ = facingSector.Ceiling.Z;
         double otherZ = otherSector.Ceiling.Z;
+        double prevFacingZ = facingSector.Ceiling.PrevZ;
+        double prevOtherZ = otherSector.Ceiling.PrevZ;
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 
@@ -691,7 +693,7 @@ public class GeometryRenderer : IDisposable
             return skyHack;
         }
 
-        bool upperVisible = facingZ > otherZ;
+        bool upperVisible = facingZ > otherZ || prevFacingZ > prevOtherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
@@ -700,7 +702,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
             {
-                skyHack = facingZ <= otherZ;
+                skyHack = facingZ <= otherZ || prevFacingZ <= prevOtherZ;
                 return skyHack;
             }
 
