@@ -126,6 +126,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!shouldRender)
             return;
 
+        m_renderCount = ++world.CheckCounter;
         m_renderData.ViewerEntity = renderInfo.ViewerEntity;
         m_renderData.ViewPos = renderInfo.Camera.PositionInterpolated.XY.Double;
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;

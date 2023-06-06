@@ -453,10 +453,10 @@ public class GeometryRenderer : IDisposable
 
     private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
     {
-        if (m_drawnSides[side.Id] == m_world.GameTicker)
+        if (m_drawnSides[side.Id] == m_world.CheckCounter)
             return;
 
-        m_drawnSides[side.Id] = m_world.GameTicker;
+        m_drawnSides[side.Id] = m_world.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
             side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
