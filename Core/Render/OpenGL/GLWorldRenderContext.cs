@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL;
 
 public class GLWorldRenderContext : IWorldRenderContext
 {
-    private readonly Shared.OldCamera m_oldCamera = new(Vec3F.Zero, 0, 0);
+    private readonly Shared.OldCamera m_oldCamera = new(Vec3F.Zero, Vec3F.Zero, 0, 0);
     private readonly RenderCommands m_commands;
     private WorldRenderContext? m_context;
 
@@ -35,8 +35,7 @@ public class GLWorldRenderContext : IWorldRenderContext
     public void Draw(IWorld world)
     {
         Camera camera = m_context.Camera;
-        Vec3F cameraPosition = camera.Position(m_context.InterpolationFrac);
-        m_oldCamera.Set(cameraPosition, camera.YawRadians, camera.PitchRadians);
+        m_oldCamera.Set(camera.PositionInterpolated, camera.Position, camera.YawRadians, camera.PitchRadians);
 
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.

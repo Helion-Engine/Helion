@@ -55,6 +55,7 @@ public class GeometryRenderer : IDisposable
     private bool m_lightChangedLine;
     private bool m_cacheOverride;
     private Vec3D m_position;
+    private Vec3D m_prevPosition;
     private Sector m_viewSector;
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
@@ -71,6 +72,7 @@ public class GeometryRenderer : IDisposable
     private DynamicArray<SkyGeometryVertex[][]> m_skyCeilingVertexLookup = new(3);
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
+    private int[] m_drawnSides = Array.Empty<int>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -116,6 +118,10 @@ public class GeometryRenderer : IDisposable
         m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
         for (int i = 0; i < world.Sectors.Count; i++)
             m_subsectors[i] = new();
+
+        m_drawnSides = new int[world.Sides.Count];
+        for (int i = 0; i < world.Sides.Count; i++)
+            m_drawnSides[i] = -1;
 
         m_vertexFloorLookup = new(3);
         m_vertexCeilingLookup = new(3);
@@ -205,6 +211,7 @@ public class GeometryRenderer : IDisposable
         m_buffer = true;
         m_viewSector = viewSector;
         m_position = position;
+        m_prevPosition = m_position;
         SetSectorRendering(subsector.Sector);
 
         if (subsector.Sector.TransferHeights != null)
@@ -220,17 +227,18 @@ public class GeometryRenderer : IDisposable
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
-    public void RenderSector(Sector viewSector, Sector sector, in Vec3D position)
+    public void RenderSector(Sector viewSector, Sector sector, in Vec3D position, in Vec3D prevPos)
     {
         m_buffer = true;
         m_viewSector = viewSector;
         m_position = position;
+        m_prevPosition = prevPos;
 
         SetSectorRendering(sector);
 
         if (sector.TransferHeights != null)
         {
-            RenderSectorWalls(sector, position.XY);
+            RenderSectorWalls(sector, position.XY, prevPos.XY);
             if ((m_dynamic || !sector.AreFlatsStatic))
                 RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
             return;
@@ -239,18 +247,21 @@ public class GeometryRenderer : IDisposable
         m_cacheOverride = false;
         m_transferHeightsView = TransferHeightView.Middle;
 
-        RenderSectorWalls(sector, position.XY);
+        RenderSectorWalls(sector, position.XY, prevPos.XY);
         if ((m_dynamic || !sector.AreFlatsStatic))
             RenderSectorFlats(sector, sector, sector);
     }
 
-    public void RenderSectorWall(Sector viewSector, Sector sector, Line line, Vec3D position)
+    public void RenderSectorWall(Sector viewSector, Sector sector, Line line, Vec3D position, Vec3D prevPos)
     {
         m_buffer = true;
         m_viewSector = viewSector;
         m_position = position;
+        m_prevPosition = prevPos;
         SetSectorRendering(sector);
-        RenderSectorWall(sector, line, position.XY);
+        RenderSectorSideWall(sector, line.Front, position.XY, prevPos.XY, true);
+        if (line.Back != null)
+            RenderSectorSideWall(sector, line.Back, position.XY, prevPos.XY, false);
     }
 
     private void SetSectorRendering(Sector sector)
@@ -376,8 +387,11 @@ public class GeometryRenderer : IDisposable
         DynamicArray<Subsector> subsectors = m_subsectors[sector.Id];
         sector.LastRenderGametick = m_world.Gametick;
 
-        bool floorVisible = m_position.Z >= renderSector.ToFloorZ(m_position);
-        bool ceilingVisible = m_position.Z <= renderSector.ToCeilingZ(m_position);
+        double floorZ = renderSector.Floor.Z;
+        double ceilingZ = renderSector.Ceiling.Z;
+
+        bool floorVisible = m_position.Z >= floorZ || m_prevPosition.Z >= floorZ;
+        bool ceilingVisible = m_position.Z <= ceilingZ || m_prevPosition.Z <= ceilingZ;
         if (floorVisible && (m_dynamic || !sector.IsFloorStatic))
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
@@ -422,28 +436,27 @@ public class GeometryRenderer : IDisposable
         TextureManager.LoadTextureImages(textures);
     }
 
-    private void RenderSectorWalls(Sector sector, Vec2D pos2D)
+    private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
     {
         for (int i = 0; i < sector.Lines.Count; i++)
         {
             Line line = sector.Lines[i];
-            RenderSectorWall(sector, line, pos2D);
+            bool onFront = line.Segment.OnRight(pos2D);
+            bool onBothSides = onFront != line.Segment.OnRight(prevPos2D);
+
+            if (onFront || onBothSides)
+                RenderSectorSideWall(sector, line.Front, pos2D, prevPos2D, true);
+            if (line.Back != null && (!onFront || onBothSides))
+                RenderSectorSideWall(sector, line.Back, pos2D, prevPos2D, false);
         }
     }
 
-    private void RenderSectorWall(Sector sector, Line line, Vec2D pos2D)
+    private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
     {
-        if (m_lineDrawnTracker.HasDrawn(line))
+        if (m_drawnSides[side.Id] == m_world.CheckCounter)
             return;
 
-        bool onFrontSide = line.Segment.OnRight(pos2D);
-        if (!onFrontSide && line.OneSided)
-            return;
-
-        Side? side = onFrontSide ? line.Front : line.Back;
-        if (side == null)
-            throw new NullReferenceException("Trying to draw the wrong side of a one sided line (or a miniseg)");
-
+        m_drawnSides[side.Id] = m_world.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
             side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
@@ -464,8 +477,6 @@ public class GeometryRenderer : IDisposable
         // Restore to original sector
         if (transferHeights)
             SetSectorRendering(sector);
-
-        m_lineDrawnTracker.MarkDrawn(line);
     }
 
     private void RenderWalls(Subsector subsector, in Vec3D position, Vec2D pos2D)
@@ -656,12 +667,12 @@ public class GeometryRenderer : IDisposable
 
     public bool LowerIsVisible(Sector facingSector, Sector otherSector)
     {
-        return facingSector.Floor.Z < otherSector.Floor.Z;
+        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ;
     }
 
     public bool UpperIsVisible(Sector facingSector, Sector otherSector)
     {
-        return facingSector.Ceiling.Z > otherSector.Ceiling.Z;
+        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ;
     }
 
     public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
@@ -669,6 +680,8 @@ public class GeometryRenderer : IDisposable
         skyHack = false;
         double facingZ = facingSector.Ceiling.Z;
         double otherZ = otherSector.Ceiling.Z;
+        double prevFacingZ = facingSector.Ceiling.PrevZ;
+        double prevOtherZ = otherSector.Ceiling.PrevZ;
         bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 
@@ -680,7 +693,7 @@ public class GeometryRenderer : IDisposable
             return skyHack;
         }
 
-        bool upperVisible = facingZ > otherZ;
+        bool upperVisible = facingZ > otherZ || prevFacingZ > prevOtherZ;
         // Return true if the upper is not visible so DrawTwoSidedUpper can attempt to draw sky hacks
         if (isFacingSky)
         {
@@ -689,7 +702,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex)
             {
-                skyHack = facingZ <= otherZ;
+                skyHack = facingZ <= otherZ || prevFacingZ <= prevOtherZ;
                 return skyHack;
             }
 

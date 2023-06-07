@@ -98,7 +98,7 @@ public class RenderableString
                 // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
                 if (endX > maxWidth && currentSentence != null && currentSentence.Length > 0)
                 {
-                    CreateAndAddSentenceIfPossible(currentSentence, sentences, ref currentWidth, ref currentHeight);
+                    CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref currentWidth, ref currentHeight);
                     continue;
                 }
 
@@ -115,11 +115,11 @@ public class RenderableString
             }
         }
 
-        CreateAndAddSentenceIfPossible(currentSentence, sentences, ref currentWidth, ref currentHeight);
+        CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref currentWidth, ref currentHeight);
         return sentences;
     }
 
-    private static void CreateAndAddSentenceIfPossible(DynamicArray<RenderableGlyph>? currentSentence, List<RenderableSentence> sentences,
+    private static void CreateAndAddSentenceIfPossible(List<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
         ref int currentWidth, ref int currentHeight)
     {
         if (currentSentence == null || currentSentence.Length == 0)

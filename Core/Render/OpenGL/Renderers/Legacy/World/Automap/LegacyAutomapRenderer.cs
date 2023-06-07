@@ -117,7 +117,7 @@ public class LegacyAutomapRenderer : IDisposable
     private mat4 CalculateMvp(RenderInfo renderInfo)
     {
         vec2 scale = CalculateScale(renderInfo);
-        vec3 camera = renderInfo.Camera.Position.GlmVector;
+        vec3 camera = renderInfo.Camera.PositionInterpolated.GlmVector;
 
         mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);

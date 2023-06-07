@@ -169,7 +169,7 @@ public class FloodFillRenderer : IDisposable
         // A smarter way of doing this to avoid tons of program changing would
         // be to draw everything in batches of 255, instead of changing programs
         // twice for every different portal.
-        double viewZ = renderInfo.Camera.Position.Z;
+        double viewZ = renderInfo.Camera.PositionInterpolated.Z;
         int stencilIndex = 1;
         for (int i = 0; i < m_floodData.Count; i++)
         {

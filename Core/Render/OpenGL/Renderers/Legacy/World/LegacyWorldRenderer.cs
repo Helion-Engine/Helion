@@ -38,9 +38,11 @@ public class LegacyWorldRenderer : WorldRenderer
 {
     struct RenderBlockMapData
     {
+        public Entity ViewerEntity;
         public Vec2D? OccludePos;
         public Vec2D ViewPos;
         public Vec2D ViewDirection;
+        public Vec3D ViewPosInterpolated3D;
         public Vec3D ViewPos3D;
         public int CheckCount;
         public int MaxDistance;
@@ -124,12 +126,15 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!shouldRender)
             return;
 
-        m_renderData.ViewPos = renderInfo.Camera.Position.XY.Double;
+        m_renderCount = ++world.CheckCounter;
+        m_renderData.ViewerEntity = renderInfo.ViewerEntity;
+        m_renderData.ViewPos = renderInfo.Camera.PositionInterpolated.XY.Double;
+        m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_viewSector = world.BspTree.ToSector(m_renderData.ViewPos3D);
+        m_viewSector = world.BspTree.ToSector(m_renderData.ViewPosInterpolated3D);
 
-        TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.Position.Z);
+        TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.PositionInterpolated.Z);
 
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
         m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, m_renderData.ViewDirection);
@@ -187,7 +192,8 @@ public class LegacyWorldRenderer : WorldRenderer
                     continue;
 
                 sideNode.Value.BlockmapCount = m_renderData.CheckCount;
-                m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, m_renderData.ViewPos3D);
+                m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, 
+                    m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
             }
 
             for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
@@ -202,7 +208,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_lastTicker = world.GameTicker;
 
-        RenderAlphaObjects(m_renderData.ViewPos, m_renderData.ViewPos3D, m_alphaEntities);
+        RenderAlphaObjects(m_renderData.ViewPos, m_renderData.ViewPosInterpolated3D, m_alphaEntities);
         m_alphaEntities.Clear();
     }
 
@@ -231,7 +237,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
         }
 
-        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPos3D);
+        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);
     }
 
     void RenderSector(Sector sector)
@@ -239,7 +245,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (sector.CheckCount == m_renderData.CheckCount)
             return;
 
-        m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D);
+        m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
         sector.CheckCount = m_renderData.CheckCount;
     }
 
@@ -248,7 +254,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_spriteTransparency = m_config.Render.SpriteTransparency;
         Clear(world, renderInfo);
 
-        SetOccludePosition(renderInfo.Camera.Position.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
+        SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
         if (m_config.Render.Blockmap)
             IterateBlockmap(world, renderInfo);
@@ -318,8 +324,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void TraverseBsp(IWorld world, RenderInfo renderInfo)
     {
-        Vec2D position = renderInfo.Camera.Position.XY.Double;
-        Vec3D position3D = renderInfo.Camera.Position.Double;
+        Vec2D position = renderInfo.Camera.PositionInterpolated.XY.Double;
+        Vec3D position3D = renderInfo.Camera.PositionInterpolated.Double;
         Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
         m_viewSector = world.BspTree.ToSector(position3D);
 

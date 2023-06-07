@@ -73,7 +73,7 @@ public class Player : Entity
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
 
-    private readonly OldCamera m_camera = new (Vec3F.Zero, 0, 0);
+    private readonly OldCamera m_camera = new (Vec3F.Zero, Vec3F.Zero, 0, 0);
 
     public Inventory Inventory { get; private set; }
     public Weapon? Weapon { get; private set; }
@@ -505,13 +505,13 @@ public class Player : Entity
 
             float yaw = (float)(prev + t * (current - prev));
             float pitch = (float)(m_prevPitch + t * (playerPitch - m_prevPitch));
-            m_camera.Set(position.Float, yaw, pitch);
+            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
         }
         else
         {
             float yaw = (float)MathHelper.GetPositiveAngle(playerAngle);
             float pitch = (float)(playerPitch);
-            m_camera.Set(position.Float, yaw, pitch);
+            m_camera.Set(position.Float, GetViewPosition().Float, yaw, pitch);
         }
 
         return m_camera;
