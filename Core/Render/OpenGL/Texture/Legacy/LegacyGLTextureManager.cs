@@ -1,5 +1,4 @@
 using System;
-using System.Drawing.Imaging;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
