@@ -220,7 +220,8 @@ public struct TeleportSpecial
 
                 // Exit position is proportional to the position on the source teleport line
                 double time = sourceLine.Segment.ToTime(teleportEntity.Position.XY);
-                Vec2D destLinePos = line.Segment.FromTime(1.0 - time);
+                double destTime = m_teleportLineReverse ? time : 1.0 - time;
+                Vec2D destLinePos = line.Segment.FromTime(destTime);
 
                 Vec2D sourcePos = sourceLine.Segment.FromTime(time);
                 double distance = teleportEntity.Position.XY.Distance(sourcePos);
