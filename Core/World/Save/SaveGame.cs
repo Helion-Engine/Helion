@@ -83,18 +83,31 @@ public class SaveGame
             Files = world.GetGameFilesModel()
         };
 
+        string saveTempFile = TempFileManager.GetFile();
+        WorldModel worldModel = world.ToWorldModel();
+
+        try
+        {
+            File.Delete(saveTempFile);
+            using ZipArchive zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create);
+            ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
+            using (Stream stream = entry.Open())
+                stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(saveGameModel, DefaultSerializerSettings)));
+
+            entry = zipArchive.CreateEntry(WorldDataFile);
+            using (Stream stream = entry.Open())
+                stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings)));
+        }
+        catch (Exception ex)
+        {
+            return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel, filename, false, ex);
+        }
+
         if (File.Exists(filename))
             File.Delete(filename);
 
-        using ZipArchive zipArchive = ZipFile.Open(filename, ZipArchiveMode.Create);
-        ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
-        using (Stream stream = entry.Open())
-            stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(saveGameModel, DefaultSerializerSettings)));
+        File.Copy(saveTempFile, filename);
 
-        WorldModel worldModel = world.ToWorldModel();
-        entry = zipArchive.CreateEntry(WorldDataFile);
-        using (Stream stream = entry.Open())
-            stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings)));
-        return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel);
+        return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel, filename, true);
     }
 }

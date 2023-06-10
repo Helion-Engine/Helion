@@ -391,6 +391,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private void SaveGameManager_GameSaved(object? sender, SaveGameEvent e)
     {
-        m_lastWorldModel = e.WorldModel;
+        if (e.Success)
+            m_lastWorldModel = e.WorldModel;
     }
 }

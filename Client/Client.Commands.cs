@@ -295,7 +295,7 @@ public partial class Client
             return;
         }
 
-        m_layerManager.LastSave = new(saveGame, worldModel);
+        m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
         LoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 
@@ -597,8 +597,16 @@ public partial class Client
         if (players.Count > 0 && m_config.Game.AutoSave)
         {
             string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(newLayer.World.ArchiveCollection)}";
-            string saveFile = m_saveGameManager.WriteNewSaveGame(newLayer.World, title, autoSave: true);
-            m_console.AddMessage($"Saved {saveFile}");
+            SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(newLayer.World, title, autoSave: true);
+            if (saveGameEvent.Success)
+                m_console.AddMessage($"Saved {saveGameEvent.FileName}");
+
+            if (!saveGameEvent.Success)
+            {
+                m_console.AddMessage($"Failed to save {saveGameEvent.FileName}");
+                if (saveGameEvent.Exception != null)
+                    throw saveGameEvent.Exception;
+            }
         }
 
         if (m_demoPlayer != null)

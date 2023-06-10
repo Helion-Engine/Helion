@@ -96,7 +96,8 @@ public class GameLayerManager : IGameLayerParent
 
     private void SaveGameManager_GameSaved(object? sender, SaveGameEvent e)
     {
-        LastSave = e;
+        if (e.Success)
+            LastSave = e;
     }
 
     public bool HasMenuOrConsole() => MenuLayer != null || ConsoleLayer != null;

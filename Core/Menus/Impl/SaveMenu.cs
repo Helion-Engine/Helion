@@ -136,9 +136,10 @@ public class SaveMenu : Menu
 
             if (GetWorld(out IWorld? world) && world != null)
             {
-                m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save);
+                SaveGameEvent saveGameEvent = m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save);
                 m_parent.Dispose();
-                DisplayMessage(world, SaveMessage);
+
+                HandleSaveEvent(world, saveGameEvent);
             }
             else
             {
@@ -155,9 +156,10 @@ public class SaveMenu : Menu
         {
             if (GetWorld(out IWorld? world) && world != null)
             {
-                m_saveGameManager.WriteNewSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection));
+                SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection));
                 m_parent.Manager.Remove(m_parent);
-                DisplayMessage(world, SaveMessage);
+
+                HandleSaveEvent(world, saveGameEvent);
             }
             else
             {
@@ -166,6 +168,19 @@ public class SaveMenu : Menu
 
             return null;
         };
+    }
+
+    private void HandleSaveEvent(IWorld world, SaveGameEvent saveGameEvent)
+    {
+        if (saveGameEvent.Success)
+        {
+            DisplayMessage(world, SaveMessage);
+            return;
+        }
+
+        DisplayMessage(world, $"Failed to save {saveGameEvent.FileName}");
+        if (saveGameEvent.Exception != null)
+            throw saveGameEvent.Exception;
     }
 
     private bool GetWorld(out IWorld? world)

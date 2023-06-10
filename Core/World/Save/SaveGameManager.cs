@@ -14,11 +14,17 @@ public readonly struct SaveGameEvent
 {
     public readonly SaveGame SaveGame;
     public readonly WorldModel WorldModel;
+    public readonly string FileName;
+    public readonly bool Success;
+    public readonly Exception? Exception;
 
-    public SaveGameEvent(SaveGame saveGame, WorldModel worldModel)
+    public SaveGameEvent(SaveGame saveGame, WorldModel worldModel, string filename, bool success, Exception? ex = null)
     {
         SaveGame = saveGame;
+        FileName = filename;
         WorldModel = worldModel;
+        Success = success;
+        Exception = ex;
     }
 }
 
@@ -33,14 +39,16 @@ public class SaveGameManager
         m_config = config;
     }
 
-    public string WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
+    public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
         WriteSaveGame(world, title, null, autoSave);
 
-    public string WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
+    public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
     {
         string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
-        GameSaved?.Invoke(this, SaveGame.WriteSaveGame(world, title, filename));
-        return filename;
+        var saveEvent = SaveGame.WriteSaveGame(world, title, filename);
+
+        GameSaved?.Invoke(this, saveEvent);
+        return saveEvent;
     }
 
     public List<SaveGame> GetSortedSaveGames(ArchiveCollection archiveCollection)
