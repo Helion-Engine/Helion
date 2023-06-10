@@ -42,6 +42,8 @@ public partial class WorldLayer
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
 
+    private int m_lastTick = -1;
+
     private bool IsCommandContinuousHold(string command, IConsumableInput input)
     {
         return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input);
@@ -59,8 +61,11 @@ public partial class WorldLayer
 
     public void AddCommand(TickCommands cmd) => GetTickCommand().Add(cmd);
 
+
     public void HandleInput(IConsumableInput input)
     {
+        bool tickChanged = World.GameTicker != m_lastTick;
+        m_lastTick = World.GameTicker;
         if (IsCommandPressed(Constants.Input.Pause, input))
             HandlePausePress();
 
@@ -69,9 +74,13 @@ public partial class WorldLayer
 
         if (!AnyLayerObscuring && !World.DrawPause)
         {
-            HandleCommandInput(input);
+            if (tickChanged)
+                HandleCommandInput(input);
             World.HandleFrameInput(input);
         }
+
+        if (!tickChanged)
+            return;
 
         CheckSaveOrLoadGame(input);
 
@@ -92,6 +101,7 @@ public partial class WorldLayer
 
     private void CheckCommandInput(IConsumableInput input)
     {
+        m_pressedKeys.Clear();
         input.Manager.GetPressedKeys(m_pressedKeys);
         for (int i = 0; i < m_pressedKeys.Length; i++)
         {
