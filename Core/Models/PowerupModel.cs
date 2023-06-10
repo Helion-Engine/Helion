@@ -6,7 +6,7 @@ public class PowerupModel
 {
     public string Name { get; set; } = string.Empty;
     public int PowerupType { get; set; }
-    public Color? DrawColor { get; set; }
+    public ColorModel? DrawColor { get; set; }
     public float DrawAlpha { get; set; }
     public bool DrawPowerupEffect { get; set; } = true;
     public bool DrawEffectActive { get; set; } = true;

@@ -55,7 +55,7 @@ public class PowerupBase : IPowerup
         m_player = player;
         EntityDefinition = definition;
         PowerupType = (PowerupType)model.PowerupType;
-        m_drawColor = model.DrawColor;
+        m_drawColor = ColorModel.ToColor(model.DrawColor);
         DrawAlpha = model.DrawAlpha;
         DrawPowerupEffect = model.DrawPowerupEffect;
         DrawEffectActive = model.DrawEffectActive;
@@ -71,7 +71,7 @@ public class PowerupBase : IPowerup
         {
             Name = EntityDefinition.Name.ToString(),
             PowerupType = (int)PowerupType,
-            DrawColor = DrawColor,
+            DrawColor = ColorModel.ToColorModel(DrawColor),
             DrawAlpha = DrawAlpha,
             DrawPowerupEffect = DrawPowerupEffect,
             DrawEffectActive = DrawEffectActive,
