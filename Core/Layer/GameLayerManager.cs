@@ -211,33 +211,51 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
+    private int m_lastTick = -1;
+
     public void HandleInput(IConsumableInput input)
     {
-        if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input))
-            ToggleConsoleLayer(input);
-        ConsoleLayer?.HandleInput(input);
-
-        if (ShouldCreateMenu(input))
+        input.NewGameTick = CheckNewGameTick();
+        if (input.NewGameTick)
         {
-            if (ReadThisLayer != null)
-                Remove(ReadThisLayer);
-            CreateMenuLayer();
+            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input))
+                ToggleConsoleLayer(input);
+            ConsoleLayer?.HandleInput(input);
+
+            if (ShouldCreateMenu(input))
+            {
+                if (ReadThisLayer != null)
+                    Remove(ReadThisLayer);
+                CreateMenuLayer();
+            }
+
+            if (!HasMenuOrConsole())
+            {
+                EndGameLayer?.HandleInput(input);
+                TitlepicLayer?.HandleInput(input);
+                IntermissionLayer?.HandleInput(input);
+            }
+
+            if (ReadThisLayer == null)
+                MenuLayer?.HandleInput(input);
+
+            if (ConsoleLayer == null)
+                ReadThisLayer?.HandleInput(input);
         }
-
-        if (!HasMenuOrConsole())
-        {
-            EndGameLayer?.HandleInput(input);
-            TitlepicLayer?.HandleInput(input);
-            IntermissionLayer?.HandleInput(input);
-        }
-
-        if (ReadThisLayer == null)
-            MenuLayer?.HandleInput(input);
-
-        if (ConsoleLayer == null)
-            ReadThisLayer?.HandleInput(input);
 
         WorldLayer?.HandleInput(input);
+    }
+
+    public bool CheckNewGameTick()
+    {
+        if (WorldLayer == null)
+            return true;
+
+        if (WorldLayer.World.GameTicker == m_lastTick)
+            return false;
+
+        m_lastTick = WorldLayer.World.GameTicker;
+        return true;
     }
 
     private bool ShouldCreateMenu(IConsumableInput input)

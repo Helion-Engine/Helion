@@ -100,11 +100,11 @@ public partial class Client : IDisposable, IInputManagement
 
         m_layerManager.HandleInput(input);
 
-        // Because we had to tightly bound the consumable input to the
-        // input manager, we only want to clear the state after we've
-        // handled all of the input. This wipes the input manager clean,
-        // and we only should do that after we are done with the input.
-        m_window.InputManager.Processed();
+        // Only clear keys if new tick since they are only processed each tick.
+        // Mouse movement is always processed to render most up to date view.
+        if (input.NewGameTick)
+            m_window.InputManager.ProcessedKeys();
+        m_window.InputManager.ProcessedMouseMovement();
 
         m_profiler.Input.Stop();
     }

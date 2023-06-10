@@ -135,7 +135,7 @@ public class InputManager : IInputManager
         m_typedCharacters.Clear();
     }
 
-    public void Processed()
+    public void ProcessedKeys()
     {
         m_inputPrevDown.Clear();
         for (int i = 0; i < m_inputDown.Length; i++)
@@ -159,9 +159,13 @@ public class InputManager : IInputManager
 
         m_inputUp.Clear();
 
-        MouseMove = (0, 0);
         m_mouseScroll = 0;
         m_typedCharacters.Clear();
+    }
+
+    public void ProcessedMouseMovement()
+    {
+        MouseMove = (0, 0);
     }
 
     public IConsumableInput Poll()

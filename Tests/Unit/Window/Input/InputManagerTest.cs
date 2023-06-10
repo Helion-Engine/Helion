@@ -36,7 +36,7 @@ public class InputManagerTest
         inputManager.IsKeyDown(Key.A).Should().BeTrue();
         inputManager.IsKeyUp(Key.A).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyDown(Key.A).Should().BeFalse();
         inputManager.IsKeyUp(Key.A).Should().BeTrue();
     }
@@ -87,7 +87,7 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.B);
         inputManager.IsKeyPressed(Key.B).Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPressed(Key.B).Should().BeFalse();
     }
 
@@ -100,11 +100,11 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.B);
         inputManager.IsKeyHeldDown(Key.B).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyHeldDown(Key.B).Should().BeTrue();
 
         inputManager.SetKeyUp(Key.B);
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyHeldDown(Key.B).Should().BeFalse();
     }
 
@@ -117,16 +117,16 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.MouseRight);
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
 
         inputManager.SetKeyUp(Key.MouseRight);
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevDown(Key.MouseRight).Should().BeFalse();
     }
 
@@ -139,16 +139,16 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.Ampersand);
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
 
         inputManager.SetKeyUp(Key.Ampersand);
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyPrevUp(Key.Ampersand).Should().BeTrue();
     }
 
@@ -161,14 +161,14 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.F7);
         inputManager.IsKeyReleased(Key.F7).Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyReleased(Key.F7).Should().BeFalse();
 
         inputManager.SetKeyUp(Key.F7);
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyReleased(Key.F7).Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.IsKeyReleased(Key.Ampersand).Should().BeFalse();
     }
 
@@ -181,13 +181,13 @@ public class InputManagerTest
         inputManager.SetKeyDown(Key.F7);
         inputManager.HasAnyKeyPressed().Should().BeTrue();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.HasAnyKeyPressed().Should().BeFalse();
 
         inputManager.SetKeyUp(Key.F7);
         inputManager.HasAnyKeyPressed().Should().BeFalse();
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
         inputManager.HasAnyKeyPressed().Should().BeFalse();
     }
 
@@ -201,7 +201,8 @@ public class InputManagerTest
         inputManager.AddMouseScroll(5);
         inputManager.AddTypedCharacters("hi");
 
-        inputManager.Processed();
+        inputManager.ProcessedKeys();
+        inputManager.ProcessedMouseMovement();
 
         inputManager.IsKeyPrevDown(Key.A).Should().BeTrue();
         inputManager.IsKeyDown(Key.A).Should().BeTrue();

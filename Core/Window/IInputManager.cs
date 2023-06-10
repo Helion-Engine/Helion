@@ -24,7 +24,8 @@ public interface IInputManager
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
     void Clear();
-    void Processed();
+    void ProcessedKeys();
+    void ProcessedMouseMovement();
     bool IsKeyContinuousHold(Key key);
     void GetPressedKeys(DynamicArray<Key> pressedKeys);
     IConsumableInput Poll();

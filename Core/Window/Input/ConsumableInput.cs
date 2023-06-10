@@ -19,6 +19,7 @@ public class ConsumableInput : IConsumableInput
     private bool m_allConsumed;
 
     public IInputManager Manager => m_inputManager;
+    public bool NewGameTick { get; set; }
 
     public ConsumableInput(InputManager inputManager)
     {

@@ -12,6 +12,7 @@ namespace Helion.Window;
 public interface IConsumableInput
 {
     IInputManager Manager { get; }
+    bool NewGameTick { get; set; }
 
     void ConsumeAll();
     bool ConsumeKeyDown(Key key);

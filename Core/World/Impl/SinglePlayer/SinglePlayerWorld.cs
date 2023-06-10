@@ -297,6 +297,9 @@ public class SinglePlayerWorld : WorldBase
     {
         HandleMouseLook(input);
 
+        if (!input.NewGameTick)
+            return;
+
         if (!Paused)
             CheatManager.HandleInput(Player, input);
     }
