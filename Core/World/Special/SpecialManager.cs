@@ -1085,211 +1085,273 @@ public class SpecialManager : ITickable, IDisposable
                 return CreateFloorAndCeilingLowerRaise(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2 * SpeedFactor, line.Args.Arg3);
 
             default:
-                ISpecial? sectorSpecial = CreateSingleSectorSpecial(args.ActivateLineSpecial, special, sector);
+                bool success = CreateSingleSectorSpecial(args.ActivateLineSpecial, special, sector, out ISpecial? sectorSpecial);
                 if (sectorSpecial != null)
                     AddSpecial(sectorSpecial);
-                return sectorSpecial != null;
+                return success;
         }
     }
 
-    public ISpecial? CreateSingleSectorSpecial(Line line, LineSpecial special, Sector sector)
+    public bool CreateSingleSectorSpecial(Line line, LineSpecial special, Sector sector, out ISpecial? sectorSpecial)
     {
         switch (special.LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorGeneric:
-                return CreateGenericDoorSpecial(sector, line);
+                sectorSpecial = CreateGenericDoorSpecial(sector, line);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.GenericLift:
-                return CreateGenericLiftSpecial(sector, line);
+                sectorSpecial = CreateGenericLiftSpecial(sector, line);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.GenericFloor:
-                return CreateGenericPlaneSpecial(sector, line, SectorPlaneFace.Floor);
+                sectorSpecial = CreateGenericPlaneSpecial(sector, line, SectorPlaneFace.Floor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.GenericCeiling:
-                return CreateGenericPlaneSpecial(sector, line, SectorPlaneFace.Ceiling);
+                sectorSpecial = CreateGenericPlaneSpecial(sector, line, SectorPlaneFace.Ceiling);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.GenericCrusher:
-                return CreateGenericCrusherSpecial(sector, line);
+                sectorSpecial = CreateGenericCrusherSpecial(sector, line);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.StairsGeneric:
-                return CreateGenericStairsSpecial(sector, line);
+                sectorSpecial = CreateGenericStairsSpecial(sector, line);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorOpenClose:
-                return CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                sectorSpecial = CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorOpenStay:
-                return CreateDoorOpenStaySpecial(sector, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateDoorOpenStaySpecial(sector, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorClose:
-                return CreateDoorCloseSpecial(sector, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateDoorCloseSpecial(sector, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorCloseWaitOpen:
-                return CreateDoorCloseOpenSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                sectorSpecial = CreateDoorCloseOpenSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorLockedRaise:
-                return CreateDoorLockedSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
+                sectorSpecial = CreateDoorLockedSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.LiftDownWaitUpStay:
-                return CreateLiftSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                sectorSpecial = CreateLiftSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerToLowest:
-                return CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerToHighest:
-                return CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Special.LineSpecialCompatibility);
+                sectorSpecial = CreateFloorLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Special.LineSpecialCompatibility);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerToNearest:
-                return CreateFloorLowerSpecial(sector, SectorDest.NextLowestFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorLowerSpecial(sector, SectorDest.NextLowestFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerByValue:
-                return CreateFloorLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerByValueTimes8:
-                return CreateFloorLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseToLowest:
-                return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseToHighest:
-                return CreateFloorRaiseSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseToLowestCeiling:
-                return CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseToNearest:
-                return CreateFloorRaiseSpecial(sector, SectorDest.NextHighestFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, SectorDest.NextHighestFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseByValue:
-                return CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseByValueTimes8:
-                return CreateFloorRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorMoveToValue:
-                return CreateSectorMoveSpecial(sector, sector.Floor, SectorPlaneFace.Floor, line.SpeedArg * SpeedFactor,
+                sectorSpecial = CreateSectorMoveSpecial(sector, sector.Floor, SectorPlaneFace.Floor, line.SpeedArg * SpeedFactor,
                     line.AmountArg, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorMoveToValueTimes8:
-                return CreateSectorMoveSpecial(sector, sector.Floor, SectorPlaneFace.Floor, line.SpeedArg * SpeedFactor,
+                sectorSpecial = CreateSectorMoveSpecial(sector, sector.Floor, SectorPlaneFace.Floor, line.SpeedArg * SpeedFactor,
                     line.AmountArg * 8, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingLowerToLowest:
-                return CreateCeilingLowerSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingLowerSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingLowerToHighestFloor:
-                return CreateCeilingLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingLowerSpecial(sector, SectorDest.HighestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingLowerToFloor:
-                return CreateCeilingLowerSpecial(sector, SectorDest.Floor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingLowerSpecial(sector, SectorDest.Floor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingLowerByValue:
-                return CreateCeilingLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingLowerSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingLowerByValueTimes8:
-                return CreateCeilingLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingLowerSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingRaiseToNearest:
-                return CreateCeilingRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingRaiseSpecial(sector, SectorDest.LowestAdjacentCeiling, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingRaiseByValue:
-                return CreateCeilingRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingRaiseSpecial(sector, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingRaiseByValueTimes8:
-                return CreateCeilingRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateCeilingRaiseSpecial(sector, line.AmountArg * 8, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingMoveToValue:
-                return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorPlaneFace.Ceiling, line.SpeedArg * SpeedFactor,
+                sectorSpecial = CreateSectorMoveSpecial(sector, sector.Ceiling, SectorPlaneFace.Ceiling, line.SpeedArg * SpeedFactor,
                     line.AmountArg, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingMoveToValueTimes8:
-                return CreateSectorMoveSpecial(sector, sector.Ceiling, SectorPlaneFace.Ceiling, line.SpeedArg * SpeedFactor,
+                sectorSpecial = CreateSectorMoveSpecial(sector, sector.Ceiling, SectorPlaneFace.Ceiling, line.SpeedArg * SpeedFactor,
                     line.AmountArg * 8, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.PlatPerpetualRaiseLip:
-                return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
+                sectorSpecial = CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.LiftPerpetual:
-                return CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, 8);
+                sectorSpecial = CreatePerpetualMovingFloorSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, 8);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.StairsBuildUpDoom:
-                return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Args.Arg3, false);
+                sectorSpecial = CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Args.Arg3, false);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.StairsBuildUpDoomCrush:
-                return CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Args.Arg3, true);
+                sectorSpecial = CreateStairSpecial(sector, line.SpeedArg * SpeedFactor, line.Args.Arg2, line.Args.Arg3, true);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingCrushAndRaiseDist:
-                return CreateCeilingCrusherSpecial(sector, line.Args.Arg1, line.Args.Arg2 * SpeedFactor, line.Args.Arg3, (ZDoomCrushMode)line.Args.Arg4);
+                sectorSpecial = CreateCeilingCrusherSpecial(sector, line.Args.Arg1, line.Args.Arg2 * SpeedFactor, line.Args.Arg3, (ZDoomCrushMode)line.Args.Arg4);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingCrushRaiseAndLower:
-                return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2, CrushReturnFactor));
+                sectorSpecial = CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2, CrushReturnFactor));
+                return true;
 
             case ZDoomLineSpecialType.CeilingCrushStayDown:
-                return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2),
+                sectorSpecial = CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg3, line.Args.Arg2),
                     MoveRepetition.None);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingCrushRaiseSilent:
-                return CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg3),
+                sectorSpecial = CreateCeilingCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, new CrushData((ZDoomCrushMode)line.Args.Arg4, line.Args.Arg3),
                     silent: true);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseAndCrushDoom:
-                return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+                sectorSpecial = CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorRaiseCrush:
-                return CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+                sectorSpecial = CreateFloorCrusherSpecial(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, (ZDoomCrushMode)line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingCrushStop:
                 break;
 
             case ZDoomLineSpecialType.FloorRaiseByValueTxTy:
-                return CreateFloorRaiseSpecialMatchTextureAndType(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecialMatchTextureAndType(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.FloorLowerToLowestTxTy:
-                return CreateFloorLowerSpecialChangeTextureAndType(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorLowerSpecialChangeTextureAndType(sector, SectorDest.LowestAdjacentFloor, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.PlatUpValueStayTx:
-                return CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseSpecialMatchTexture(sector, line, line.AmountArg, line.SpeedArg * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.PlatRaiseAndStay:
-                return CreateRaisePlatTxSpecial(sector, line, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
+                sectorSpecial = CreateRaisePlatTxSpecial(sector, line, line.Args.Arg1 * SpeedFactor, line.Args.Arg2);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.LightChangeToValue:
-                return CreateLightChangeSpecial(sector, line.Args.Arg1);
+                sectorSpecial = CreateLightChangeSpecial(sector, line.Args.Arg1);
+                return true;
 
             case ZDoomLineSpecialType.LightMinNeighbor:
-                return CreateLightChangeSpecial(sector, sector.GetMinLightLevelNeighbor());
+                sectorSpecial = CreateLightChangeSpecial(sector, sector.GetMinLightLevelNeighbor());
+                return true;
 
             case ZDoomLineSpecialType.LightMaxNeighbor:
-                return CreateLightChangeSpecial(sector, sector.GetMaxLightLevelNeighbor());
+                sectorSpecial = CreateLightChangeSpecial(sector, sector.GetMaxLightLevelNeighbor());
+                return true;
 
             case ZDoomLineSpecialType.FloorRaiseByTexture:
-                return CreateFloorRaiseByTextureSpecial(sector, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateFloorRaiseByTextureSpecial(sector, line.Args.Arg1 * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.CeilingRaiseToHighest:
-                return CreateCeilingRaiseSpecial(sector, SectorDest.HighestAdjacentCeiling, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateCeilingRaiseSpecial(sector, SectorDest.HighestAdjacentCeiling, line.Args.Arg1 * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.DoorWaitClose:
-                return AddDelayedSpecial(CreateDoorCloseSpecial(sector, line.Args.Arg1 * SpeedFactor), line.Args.Arg2);
+                sectorSpecial = AddDelayedSpecial(CreateDoorCloseSpecial(sector, line.Args.Arg1 * SpeedFactor), line.Args.Arg2);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.LightStrobeDoom:
-                return new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), line.Args.Arg1, line.Args.Arg2, false);
+                sectorSpecial = new LightStrobeSpecial(m_world, sector, m_random, sector.GetMinLightLevelNeighbor(), line.Args.Arg1, line.Args.Arg2, false);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.PlatUpByValue:
-                return CreatePlatUpByValue(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, line.Args.Arg3);
+                sectorSpecial = CreatePlatUpByValue(sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, line.Args.Arg3);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.PlatToggleCeiling:
-                return CreatePlatToggleCeiling(sector);
+                sectorSpecial = CreatePlatToggleCeiling(sector);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorRaiseToNearest:
-                return CreateEleveatorToNearest(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateEleveatorToNearest(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
-                return CreateEleveatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateEleveatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
+                return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
-                return CreateEleveatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateEleveatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
+                return sectorSpecial != null;
         }
 
-        return null;
+        sectorSpecial = null;
+        return false;
     }
 
     private ISpecial? CreateEleveatorToFloor(Sector sector, Line line, double speed)
@@ -1456,7 +1518,7 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial CreateLightChangeSpecial(Sector sector, int lightLevel, int fadeTics = 0)
     {
         if (fadeTics > 0)
-            return m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
+            m_world.DataCache.GetLightChangeSpecial(m_world, sector, (short)lightLevel, fadeTics);
 
         m_world.SetSectorLightLevel(sector, (short)lightLevel);
         return null;
