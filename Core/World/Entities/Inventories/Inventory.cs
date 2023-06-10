@@ -135,11 +135,27 @@ public class Inventory
 
     public static string GetBaseInventoryName(EntityDefinition definition)
     {
-        int index = definition.ParentClassNames.FindIndex(x => x.Equals(AmmoClassName, StringComparison.OrdinalIgnoreCase));
-        if (index > 0 && index < definition.ParentClassNames.Count - 1)
-            return definition.ParentClassNames[index + 1];
+        if (definition.BaseInventoryName != null)
+            return definition.BaseInventoryName;
 
-        return definition.Name;
+        int index = -1;
+        for (int i = 0; i < definition.ParentClassNames.Count; i++)
+        {
+            if (definition.ParentClassNames[i].Equals(AmmoClassName, StringComparison.OrdinalIgnoreCase))
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > 0 && index < definition.ParentClassNames.Count - 1)
+        {
+            definition.BaseInventoryName = definition.ParentClassNames[index + 1];
+            return definition.BaseInventoryName;
+        }
+
+        definition.BaseInventoryName = definition.Name;
+        return definition.BaseInventoryName;
     }
 
     public static bool IsPowerup(EntityDefinition def) =>
