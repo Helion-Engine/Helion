@@ -7,8 +7,9 @@ public static class MapInfoDefExtensions
 {
     private static readonly Regex[] PrefixRegex = new Regex[]
     {
-         new(@"^level .+[:-]", RegexOptions.IgnoreCase),
-         new(@"^map .+[:-]", RegexOptions.IgnoreCase)
+         new(@"^\S+: ", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+         new(@"^level .+[:-]", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+         new(@"^map .+[:-]", RegexOptions.IgnoreCase | RegexOptions.Compiled)
     };
 
     public static string GetNiceNameOrLookup(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
