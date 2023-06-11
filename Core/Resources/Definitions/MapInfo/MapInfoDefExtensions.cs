@@ -14,6 +14,9 @@ public static class MapInfoDefExtensions
 
     public static string GetNiceNameOrLookup(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
     {
+        if (mapInfo.DisplayName != null)
+            return mapInfo.DisplayName;
+
         string displayName = mapInfo.NiceName;
         if (mapInfo.LookupName.Length > 0)
             displayName = archiveCollection.Definitions.Language.GetMessage(mapInfo.LookupName);
@@ -24,13 +27,23 @@ public static class MapInfoDefExtensions
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = "Unknown";
 
+        mapInfo.DisplayName = displayName;
         return displayName;
+    }
+
+    public static string GetDisplayNameWithPrefix(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
+    {
+        if (mapInfo.DisplayNameWithPrefix != null)
+            return mapInfo.DisplayNameWithPrefix;
+
+        string displayName = mapInfo.GetNiceNameOrLookup(archiveCollection);
+        mapInfo.DisplayNameWithPrefix = $"{mapInfo.MapName}: {displayName}";
+        return mapInfo.DisplayNameWithPrefix;
     }
 
     public static string GetMapNameWithPrefix(this MapInfoDef mapInfo, ArchiveCollection archiveCollection)
     {
-        string displayName = GetNiceNameOrLookup(mapInfo, archiveCollection);
-        return $"{mapInfo.MapName}: {displayName}";
+        return mapInfo.GetDisplayNameWithPrefix(archiveCollection);    
     }
 
     private static string ReplaceMapNamePrefix(MapInfoDef mapInfo, string displayName)

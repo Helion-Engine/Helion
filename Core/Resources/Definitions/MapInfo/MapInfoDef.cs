@@ -11,6 +11,8 @@ public class MapInfoDef : ICloneable
 
     public string Map { get; set; } = string.Empty;
     public string MapName { get; set; } = string.Empty;
+    public string? DisplayName { get; set; }
+    public string? DisplayNameWithPrefix { get; set; }
     public string TitlePatch { get; set; } = string.Empty;
     public string Next { get; set; } = string.Empty;
     public string SecretNext { get; set; } = string.Empty;
