@@ -630,10 +630,19 @@ public class DehackedApplier
         }
     }
 
+    private static readonly HashSet<string> IgnoreTextNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "The Ultimate DOOM Startup v%i.%i                                                D",
+        "DOOM 2: Hell on Earth v%i.%i                                                    "
+    };
+
     private static void ApplyText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, LanguageDefinition language)
-    {       
+    {
         foreach (var text in dehacked.Strings)
         {
+            if (IgnoreTextNames.Contains(text.OldString))
+                continue;
+
             if (dehacked.SpriteNames.Contains(text.OldString))
             {
                 UpdateSpriteText(dehacked, entityFrameTable, text);

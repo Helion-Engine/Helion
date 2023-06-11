@@ -1,3 +1,4 @@
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
@@ -60,37 +61,49 @@ public partial class DehackedDefinition
             if (BaseTypes.Contains(item))
                 parser.ConsumeString();
 
-            if (item.Equals(ThingName, StringComparison.OrdinalIgnoreCase))
+            if (item.EqualsIgnoreCase(ThingName))
                 ParseThing(parser);
-            else if (item.Equals(FrameName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(FrameName))
                 ParseFrame(parser);
-            else if (item.Equals(AmmoName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(AmmoName))
                 ParseAmmo(parser);
-            else if (item.Equals(WeaponName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(WeaponName))
                 ParseWeapon(parser);
-            else if (item.Equals(CheatName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(CheatName))
                 ParseCheat(parser);
-            else if (item.Equals(TextName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(TextName))
                 ParseText(parser);
-            else if (item.Equals(PointerName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(PointerName))
                 ParsePointer(parser);
-            else if (item.Equals(MiscName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(MiscName))
                 ParseMisc(parser, itemLine);
-            else if (item.Equals(SoundName, StringComparison.Ordinal))
+            else if (item.EqualsIgnoreCase(SoundName))
                 ParseSound(parser);
-            else if (item.Equals(BexStringName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(BexStringName))
                 ParseBexText(parser);
-            else if (item.Equals(BexPointerName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(BexPointerName))
                 ParseBexPointer(parser);
-            else if (item.Equals(BexParName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(BexParName))
                 ParseBexPar(parser);
-            else if (item.Equals(BexSoundName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(BexSoundName))
                 ParseBexItem(parser, BexSounds);
-            else if (item.Equals(BexSpriteName, StringComparison.OrdinalIgnoreCase))
+            else if (item.EqualsIgnoreCase(BexSpriteName))
                 ParseBexItem(parser, BexSprites);
+            else if (IsUselessLine(item))
+                parser.ConsumeLine();
             else
                 UnknownWarning(parser, "type", item);
         }
+    }
+
+    private static bool IsUselessLine(string item)
+    {
+        if (item.EqualsIgnoreCase("Engine"))
+            return true;
+        if (item.EqualsIgnoreCase("IWAD"))
+            return true;
+
+        return false;
     }
 
     public bool GetEntityDefinitionName(int thingNumber, [NotNullWhen(true)] out string? name)
