@@ -13,6 +13,7 @@ using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -31,6 +32,7 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
+    private const int MapFontSize = 12;
     private const int DebugFontSize = 8;
     private const int LeftOffset = 1;
     private const int TopOffset = 1;
@@ -47,6 +49,7 @@ public partial class WorldLayer
     private int m_padding = 4;
     private float m_scale = 1.0f;
     private int m_infoFontSize = DebugFontSize;
+    private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
     private readonly List<(string message, float alpha)> m_messages = new();
 
@@ -56,6 +59,7 @@ public partial class WorldLayer
     {
         m_scale = (float)m_config.Hud.Scale.Value;
         m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 12);
+        m_mapHeaderFontSize = Math.Max((int)(m_scale * MapFontSize), 20);
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
@@ -67,6 +71,16 @@ public partial class WorldLayer
         DrawHudEffects(hud);
         DrawRecentConsoleMessages(hud);
         DrawPause(hud);
+
+        if (automapVisible)
+            DrawMapHeader(hud);
+    }
+
+    private void DrawMapHeader(IHudRenderContext hud)
+    {
+        string text = World.MapInfo.GetDisplayNameWithPrefix(World.ArchiveCollection);
+        Vec2I pos = new((int)(2 * m_scale), (int)(2 * m_scale));
+        hud.Text(text, SmallHudFont, m_mapHeaderFontSize, pos);
     }
 
     private void DrawPause(IHudRenderContext hud)
