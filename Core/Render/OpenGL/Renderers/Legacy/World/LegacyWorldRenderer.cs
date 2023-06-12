@@ -36,18 +36,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class LegacyWorldRenderer : WorldRenderer
 {
-    struct RenderBlockMapData
-    {
-        public Entity ViewerEntity;
-        public Vec2D? OccludePos;
-        public Vec2D ViewPos;
-        public Vec2D ViewDirection;
-        public Vec3D ViewPosInterpolated3D;
-        public Vec3D ViewPos3D;
-        public int CheckCount;
-        public int MaxDistance;
-    }
-
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
@@ -128,7 +116,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_renderCount = ++world.CheckCounter;
         m_renderData.ViewerEntity = renderInfo.ViewerEntity;
-        m_renderData.ViewPos = renderInfo.Camera.PositionInterpolated.XY.Double;
+        m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
@@ -146,7 +134,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_renderData.MaxDistance = 6000;
 
         m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
-        Box2D box = new(m_renderData.ViewPos, m_renderData.MaxDistance);
+        Box2D box = new(m_renderData.ViewPosInterpolated, m_renderData.MaxDistance);
 
         double maxDistSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
@@ -178,8 +166,8 @@ public class LegacyWorldRenderer : WorldRenderer
                     continue;
 
                 Box2D sectorBox = sector.GetBoundingBox();
-                double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPos.X, Math.Max(0, m_renderData.ViewPos.X - sectorBox.Max.X));
-                double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPos.Y, Math.Max(0, m_renderData.ViewPos.Y - sectorBox.Max.Y));
+                double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorBox.Max.X));
+                double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorBox.Max.Y));
                 if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
                     RenderSector(sector);
             }
@@ -208,7 +196,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_lastTicker = world.GameTicker;
 
-        RenderAlphaObjects(m_renderData.ViewPos, m_renderData.ViewPosInterpolated3D, m_alphaEntities);
+        RenderAlphaObjects(m_alphaEntities);
         m_alphaEntities.Clear();
     }
 
@@ -225,14 +213,14 @@ public class LegacyWorldRenderer : WorldRenderer
                 return;
         }
 
-        double dx = Math.Max(entity.Position.X - m_renderData.ViewPos.X, Math.Max(0, m_renderData.ViewPos.X - entity.Position.X));
-        double dy = Math.Max(entity.Position.Y - m_renderData.ViewPos.Y, Math.Max(0, m_renderData.ViewPos.Y - entity.Position.Y));
+        double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
+        double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
         if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
         if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
-            entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPos);
+            entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPosInterpolated);
             m_alphaEntities.Add(entity);
             return;
         }
@@ -335,25 +323,30 @@ public class LegacyWorldRenderer : WorldRenderer
         RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
     }
 
-    private void RenderAlphaObjects(Vec2D position, Vec3D position3D, DynamicArray<IRenderObject> alphaEntities)
+    private void RenderAlphaObjects(DynamicArray<IRenderObject> alphaEntities)
     {
         // This will just render based on distance from their center point.
         // Not really correct, but mostly correct enough for now.
         DynamicArray<IRenderObject> alphaObjects = alphaEntities;
         alphaObjects.AddRange(m_geometryRenderer.AlphaSides);
         alphaObjects.Sort(m_renderObjectComparer);
+
+        Vec2D prevPos = m_renderData.ViewPosInterpolated;
+
         for (int i = 0; i < alphaObjects.Length; i++)
         {
             IRenderObject renderObject = alphaObjects[i];
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                m_entityRenderer.RenderEntity(m_viewSector, entity, position3D);
+                m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {
                 Side side = (Side)renderObject;
-                m_geometryRenderer.RenderAlphaSide(side, side.Line.Segment.OnRight(position));
+                bool onFront = side.Line.Segment.OnRight(prevPos);
+                if (side.IsFront == onFront)
+                    m_geometryRenderer.RenderAlphaSide(side, onFront);
             }
         }
     }
