@@ -169,20 +169,21 @@ public class ArchiveImageRetriever : IImageRetriever
             {
                 using MemoryStream inputStream = new MemoryStream(data);
                 using Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
-                Dimension dim = (img.Width, img.Height);
-                byte[] argbData = new byte[dim.Area];
 
+                Span<Rgba32> pixelSpans = img.GetPixelSpan<Rgba32>();
+                byte[] argbData = new byte[pixelSpans.Length * 4];
                 int offset = 0;
-                foreach (Rgba32 rgba in img.GetPixelSpan<Rgba32>())
+
+                foreach (Rgba32 rgba in pixelSpans)
                 {
-                    argbData[offset] = rgba.R;
-                    argbData[offset + 1] = rgba.G;
-                    argbData[offset + 2] = rgba.B;
-                    argbData[offset + 3] = rgba.A;
+                    argbData[offset] = rgba.A;
+                    argbData[offset + 1] = rgba.R;
+                    argbData[offset + 2] = rgba.G;
+                    argbData[offset + 3] = rgba.B;
                     offset += 4;
                 }
 
-                image = Image.FromArgbBytes(dim, argbData, (0, 0), entry.Namespace);
+                image = Image.FromArgbBytes((img.Width, img.Height), argbData, (0, 0), entry.Namespace);
             }
             catch
             {
