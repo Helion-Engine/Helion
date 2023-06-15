@@ -134,8 +134,7 @@ public class AutomapMarker
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
-            await Task.Delay(ticks - (int)m_stopwatch.ElapsedMilliseconds, token)
-                .ContinueWith(t => t.Exception == default);
+            Thread.Sleep(Math.Max(ticks - (int)m_stopwatch.ElapsedMilliseconds, 0));
         }
     }
 
