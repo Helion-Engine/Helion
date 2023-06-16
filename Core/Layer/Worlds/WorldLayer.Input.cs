@@ -61,12 +61,6 @@ public partial class WorldLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        if (IsCommandPressed(Constants.Input.Pause, input))
-            HandlePausePress();
-
-        if (m_drawAutomap)
-            HandleAutoMapInput(input);
-
         if (!AnyLayerObscuring && !World.DrawPause)
         {
             if (input.NewGameTick)
@@ -76,6 +70,12 @@ public partial class WorldLayer
 
         if (!input.NewGameTick)
             return;
+
+        if (IsCommandPressed(Constants.Input.Pause, input))
+            HandlePausePress();
+
+        if (m_drawAutomap)
+            HandleAutoMapInput(input);
 
         CheckSaveOrLoadGame(input);
 

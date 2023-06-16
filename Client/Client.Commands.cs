@@ -39,6 +39,12 @@ public partial class Client
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
 
+    [ConsoleCommand("screenshot", "Capture a screenshot")]
+    private void Screenshot(ConsoleCommandEventArgs args)
+    {
+        m_takeScreenshot = true;
+    }
+
     [ConsoleCommand("chasecam", "Toggles chase camera mode")]
     private void ToggleChaseCam(ConsoleCommandEventArgs args)
     {

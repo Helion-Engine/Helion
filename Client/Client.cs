@@ -95,8 +95,6 @@ public partial class Client : IDisposable, IInputManagement
         m_profiler.Input.Start();
 
         IConsumableInput input = m_window.InputManager.Poll();
-        if (!m_takeScreenshot)
-            m_takeScreenshot = m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Screenshot, input);
 
         m_layerManager.HandleInput(input);
 
@@ -104,6 +102,7 @@ public partial class Client : IDisposable, IInputManagement
         // Mouse movement is always processed to render most up to date view.
         if (input.NewGameTick)
             m_window.InputManager.ProcessedKeys();
+
         m_window.InputManager.ProcessedMouseMovement();
 
         m_profiler.Input.Stop();
