@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System;
-using Helion.Util.Extensions;
 using Helion.Util;
 
 namespace Helion.Client;
@@ -42,9 +41,6 @@ public partial class Client
         string command = args.Args[1];
 
         if (!GetInputKey(key, out var inputKey))
-            return;
-
-        if (!CheckAvailableInputCommands(GetAvailableInputCommands(), GetAllCommands(), command))
             return;
 
         if (removeExisting)
@@ -117,18 +113,6 @@ public partial class Client
     {
         var properties = typeof(Constants.Input).GetFields();
         return properties.Select(x => x.Name).OrderBy(x => x).ToArray();
-    }
-
-    private bool CheckAvailableInputCommands(IEnumerable<string> inputCommands, IEnumerable<string> commands, string command)
-    {
-        if (!inputCommands.Any(x => x.EqualsIgnoreCase(command)) && !commands.Any(x => x.EqualsIgnoreCase(command)))
-        {
-            Log.Error($"Invalid command: {command}");
-            Log.Info("Use inputcommands and commands to view all available commands");
-            return false;
-        }
-
-        return true;
     }
 
     private void LogKeyBindings()
