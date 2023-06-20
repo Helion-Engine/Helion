@@ -23,8 +23,6 @@ public struct RenderableSentence
     /// </summary>
     public readonly DynamicArray<RenderableGlyph> Glyphs;
 
-    private char[] m_characters = new char[128];
-
     public RenderableSentence(DynamicArray<RenderableGlyph> glyphs)
     {
         Glyphs = glyphs;
