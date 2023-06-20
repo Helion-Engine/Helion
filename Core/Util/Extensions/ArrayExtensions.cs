@@ -1,4 +1,7 @@
 using Force.Crc32;
+using Helion.Util.Container;
+using Helion.Window.Input;
+using static Helion.Util.Constants;
 
 namespace Helion.Util.Extensions;
 
@@ -27,5 +30,16 @@ public static class ArrayExtensions
     public static string CalculateCrc32(this byte[] bytes)
     {
         return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
+    }
+
+    public static bool Contains(this DynamicArray<Key> keys, Key key)
+    {
+        for (int i = 0; i < keys.Length; i++)
+        {
+            if (keys[i] == key)
+                return true;
+        }
+
+        return false;
     }
 }

@@ -8,6 +8,8 @@ using NLog;
 
 namespace Helion.Util.Configs.Impl;
 
+public readonly record struct KeyCommandItem(Key Key, string Command);
+
 /// <summary>
 /// A case insensitive two-way lookup.
 /// </summary>
@@ -18,20 +20,22 @@ public class ConfigKeyMapping : IConfigKeyMapping
     private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
 
     public bool Changed { get; private set; }
-    private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
-    private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
+    //private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
+    //private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
 
-    public Dictionary<Key, HashSet<string>> GetKeyToCommandsDictionary() => m_keyToCommands;
+    private readonly List<KeyCommandItem> m_commands = new();
 
-    public IReadOnlySet<string> this[Key key] =>
-        m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ?
-            commands :
-            EmptyStringSet;
+    //public Dictionary<Key, HashSet<string>> GetKeyToCommandsDictionary() => m_keyToCommands;
 
-    public IReadOnlySet<Key> this[string command] =>
-        m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ?
-            keys :
-            EmptyKeySet;
+    //public IReadOnlySet<string> this[Key key] =>
+    //    m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ?
+    //        commands :
+    //        EmptyStringSet;
+
+    //public IReadOnlySet<Key> this[string command] =>
+    //    m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ?
+    //        keys :
+    //        EmptyKeySet;
 
     public void AddDefaultsIfMissing()
     {
@@ -80,9 +84,20 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Changed = false;
     }
 
+    private bool HasKey(Key key)
+    {
+        for (int i = 0; i < m_commands.Count; i++)
+        {
+            if (m_commands[i].Key == key)
+                return true;
+        }
+
+        return false;
+    }
+
     private void AddIfMissing(Key key, params string[] commands)
     {
-        if (m_keyToCommands.ContainsKey(key))
+        if (HasKey(key))
             return;
 
         foreach (var command in commands)
@@ -94,75 +109,51 @@ public class ConfigKeyMapping : IConfigKeyMapping
         if (key == Key.Unknown || command == "")
             return;
 
-        if (m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
+        for (int i = 0; i < m_commands.Count; i++)
         {
-            Changed |= !commands.Contains(command);
-            commands.Add(command);
-        }
-        else
-        {
-            Changed = true;
-            m_keyToCommands[key] = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { command };
+            var cmd = m_commands[i];
+            if (cmd.Key == key && command.Equals(cmd.Command, StringComparison.OrdinalIgnoreCase))
+                return;
         }
 
-        if (m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys))
-        {
-            Changed |= !keys.Contains(key);
-            keys.Add(key);
-        }
-        else
-        {
-            Changed = true;
-            m_commandsToKey[command] = new HashSet<Key> { key };
-        }
+        Changed = true;
+        m_commands.Add(new(key, command));
     }
 
     public bool Remove(Key key)
     {
-        if (!m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
-            return false;
-
-        foreach (var command in commands)
-            m_commandsToKey.Remove(command);
-
-        commands.Clear();
-        Changed = true;
-        return true;
+        int removed = m_commands.RemoveAll(x => x.Key == key);
+        Changed = removed > 0;
+        return removed > 0;
     }
 
     public bool Remove(Key key, string command)
     {
-        if (!m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
-            return false;
-
-        if (m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys))
-            keys.Remove(key);
-
-        if (commands.Remove(command))
-        {
-            Changed = true;
-            return true;
-        }
-
-        return false;
+        int removed = m_commands.RemoveAll(x => x.Key == key && x.Command.Equals(command, StringComparison.OrdinalIgnoreCase));
+        Changed = removed > 0;
+        return removed > 0;
     }
 
     public void AddEmpty(Key key)
     {
-        if (m_keyToCommands.ContainsKey(key))
+        if (HasKey(key))
             return;
 
-        m_keyToCommands.Add(key, new HashSet<string>());
+        m_commands.Add(new(key, string.Empty));
     }
 
     public bool ConsumeCommandKeyPress(string command, IConsumableInput input)
     {
-        foreach (Key key in this[command])
+        for (int i = 0; i < m_commands.Count; i++)
         {
-            if (ConsumeMouseWheel(key, input))
+            var cmd = m_commands[i];
+            if (!cmd.Command.Equals(command))
+                continue;
+
+            if (ConsumeMouseWheel(cmd.Key, input))
                 return true;
 
-            if (input.ConsumeKeyPressed(key))
+            if (input.ConsumeKeyPressed(cmd.Key))
                 return true;
         }
 
@@ -171,12 +162,16 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     public bool ConsumeCommandKeyDown(string command, IConsumableInput input)
     {
-        foreach (Key key in this[command])
+        for (int i = 0; i < m_commands.Count; i++)
         {
-            if (ConsumeMouseWheel(key, input))
+            var cmd = m_commands[i];
+            if (!cmd.Command.Equals(command))
+                continue;
+
+            if (ConsumeMouseWheel(cmd.Key, input))
                 return true;
 
-            if (input.ConsumeKeyDown(key))
+            if (input.ConsumeKeyDown(cmd.Key))
                 return true;
         }
 
@@ -185,12 +180,16 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     public bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input)
     {
-        foreach (Key key in this[command])
+        for (int i = 0; i < m_commands.Count; i++)
         {
-            if (input.ConsumeKeyPressed(key) || input.Manager.IsKeyContinuousHold(key))
+            var cmd = m_commands[i];
+            if (!cmd.Command.Equals(command))
+                continue;
+
+            if (input.ConsumeKeyPressed(cmd.Key) || input.Manager.IsKeyContinuousHold(cmd.Key))
                 return true;
 
-            if (ConsumeMouseWheel(key, input))
+            if (ConsumeMouseWheel(cmd.Key, input))
                 return true;
         }
 
@@ -199,9 +198,13 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     public bool IsCommandKeyDown(string command, IConsumableInput input)
     {
-        foreach (Key key in this[command])
+        for (int i = 0; i < m_commands.Count; i++)
         {
-            if (input.Manager.IsKeyDown(key))
+            var cmd = m_commands[i];
+            if (!cmd.Command.Equals(command))
+                continue;
+
+            if (input.Manager.IsKeyDown(cmd.Key))
                 return true;
         }
 
@@ -220,22 +223,10 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     public void UnbindAll(Key key)
     {
-        if (!m_keyToCommands.TryGetValue(key, out HashSet<string>? commands))
-            return;
-
-        foreach (string command in commands)
-        {
-            if (!m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys))
-                continue;
-
-            keys.Remove(key);
-            if (keys.Empty())
-                m_commandsToKey.Remove(command);
-        }
-
-        Changed |= m_keyToCommands.ContainsKey(key);
-        m_keyToCommands.Remove(key);
+        int removed = m_commands.RemoveAll(x => x.Key == key);
+        Changed |= removed > 0;
     }
 
-    public Dictionary<Key, HashSet<string>> GetKeyMapping() => m_keyToCommands;
+    //public Dictionary<Key, HashSet<string>> GetKeyMapping() => m_keyToCommands;
+    public IList<KeyCommandItem> GetKeyMapping() => m_commands;
 }

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 
 namespace Helion.Window.Input;
 
@@ -172,5 +173,16 @@ public class InputManager : IInputManager
     {
         m_consumableInput.Reset();
         return m_consumableInput;
+    }
+
+    private static bool Contains(DynamicArray<Key> input, Key key)
+    {
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == key)
+                return true;
+        }
+
+        return false;
     }
 }

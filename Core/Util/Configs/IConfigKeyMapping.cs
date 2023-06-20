@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Util.Configs.Impl;
 using Helion.Window;
 using Helion.Window.Input;
 
@@ -15,8 +16,8 @@ public interface IConfigKeyMapping
     /// </summary>
     public bool Changed { get; }
 
-    IReadOnlySet<string> this[Key key] { get; }
-    IReadOnlySet<Key> this[string command] { get; }
+    //IReadOnlySet<string> this[Key key] { get; }
+    //IReadOnlySet<Key> this[string command] { get; }
 
     /// <summary>
     /// Adds a key to be mapped. This is a bi-directional mapping.
@@ -75,5 +76,5 @@ public interface IConfigKeyMapping
     /// <param name="key">The key to unbind.</param>
     void UnbindAll(Key key);
 
-    Dictionary<Key, HashSet<string>> GetKeyMapping();
+    IList<KeyCommandItem> GetKeyMapping();
 }

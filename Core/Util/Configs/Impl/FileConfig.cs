@@ -117,7 +117,21 @@ public class FileConfig : Config
             }
 
             KeyDataCollection section = data[KeysSectionName];
-            foreach ((Key key, IEnumerable<string> commands) in Keys.GetKeyMapping())
+            Dictionary<Key, List<string>> commandMapping = new();
+            foreach (var item in Keys.GetKeyMapping())
+            {
+                if (commandMapping.TryGetValue(item.Key, out var list))
+                {
+                    list.Add(item.Command);
+                    continue;
+                }
+
+                list = new();
+                list.Add(item.Command);
+                commandMapping[item.Key] = list;
+            }
+
+            foreach ((Key key, IEnumerable<string> commands) in commandMapping)
                 section[key.ToString()] = $"[{commands.Select(cmd => $"\"{cmd}\"").Join(", ")}]";
 
             return true;

@@ -394,14 +394,14 @@ public class PhysicsManager
         while (node != null)
         {
             Entity checkEntity = node.Value;
-            if (checkEntity.OverEntity.Entity != null && crushEntities.Contains(checkEntity.OverEntity.Entity))
+            if (checkEntity.OverEntity.Entity != null && ContainsEntity(crushEntities, checkEntity.OverEntity.Entity))
                 m_stackCrush.Add(checkEntity);
             node = node.Next;
         }
 
         for (int i = 0; i < crushEntities.Length; i++)
         {
-            if (m_stackCrush.Contains(crushEntities[i]))
+            if (ContainsEntity(m_stackCrush, crushEntities[i]))
                 continue;
             m_stackCrush.Add(crushEntities[i]);
         }
@@ -426,6 +426,17 @@ public class PhysicsManager
         }
 
         m_stackCrush.Clear();
+    }
+
+    private static bool ContainsEntity(DynamicArray<Entity> entities, Entity entity)
+    {
+        for (int i = 0; i < entities.Length; i++)
+        {
+            if (entities[i] == entity)
+                return true;
+        }
+
+        return false;
     }
 
     private void SetToGiblets(Entity entity)

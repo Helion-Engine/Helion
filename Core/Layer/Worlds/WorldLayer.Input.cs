@@ -104,12 +104,16 @@ public partial class WorldLayer
             if (!input.ConsumeKeyPressed(m_pressedKeys[i]))
                 continue;
             var key = m_pressedKeys[i];
-            var commands = World.Config.Keys[key];
-            foreach (var command in commands)
+            var commands = World.Config.Keys.GetKeyMapping();
+            for (int j = 0; j < commands.Count; j++)
             {
-                if (World.Paused && Constants.InGameCommands.Contains(command))
+                var cmd = commands[j];
+                if (cmd.Key != key)
+                    continue;
+
+                if (World.Paused && Constants.InGameCommands.Contains(cmd.Command))
                     return;
-                m_parent.SubmitConsoleText(command);
+                m_parent.SubmitConsoleText(cmd.Command);
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Helion.Util.Configs.Impl;
 using Helion.Window.Input;
@@ -27,7 +28,7 @@ public class FileConfigTest
         FileConfig fileConfig = new("this path does not exist", false);
 
         // Defaults are always set
-        fileConfig.Keys[Key.MouseLeft].Should().NotBeEmpty();
+        fileConfig.Keys.GetKeyMapping().FirstOrDefault(x => x.Key == Key.MouseLeft).Should().NotBeNull();
     }
 
     [Fact(DisplayName = "Can read config file with default values set")]
@@ -37,7 +38,7 @@ public class FileConfigTest
 
         // We assume for now there will always be MouseLeft set (like clicking fire),
         // so it not being set means the defaults were set.
-        fileConfig.Keys[Key.MouseLeft].Should().NotBeEmpty();
+        fileConfig.Keys.GetKeyMapping().FirstOrDefault(x => x.Key == Key.MouseLeft).Should().NotBeNull();
     }
 
     [Fact(DisplayName = "Can write config file")]

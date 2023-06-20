@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Helion.Util;
 using Helion.Util.Configs.Impl;
@@ -69,8 +70,8 @@ public class ConfigKeyMappingTest
         // No keys are added yet.
         foreach ((Key key, string command) in ExpectedMappings)
         {
-            keys[key].Should().BeEmpty();
-            keys[command].Should().BeEmpty();
+            GetCommandKeys(keys, command).Should().BeEmpty();
+            GetKeyCommands(keys, key).Should().BeEmpty();
         }
 
         keys.AddDefaultsIfMissing();
@@ -78,8 +79,8 @@ public class ConfigKeyMappingTest
         // Now with the defaults applied, let's make sure they are in fact added.
         foreach ((Key key, string command) in ExpectedMappings)
         {
-            keys[key].Should().Contain(command);
-            keys[command].Should().Contain(key);
+            GetKeyCommands(keys, key).Should().Contain(command);
+            GetCommandKeys(keys, command).Should().Contain(key);
         }
     }
 
@@ -91,9 +92,9 @@ public class ConfigKeyMappingTest
         keys.Add(Key.A, "second");
         keys.Add(Key.B, "third");
 
-        keys[Key.A].Should().Equal("first", "second");
-        keys[Key.B].Should().Equal("third");
-        keys[Key.C].Should().BeEmpty();
+        GetKeyCommands(keys, Key.A).Should().Equal("first", "second");
+        GetKeyCommands(keys, Key.B).Should().Equal("third");
+        GetKeyCommands(keys, Key.C).Should().BeEmpty();
     }
 
     [Fact(DisplayName = "Look up by command")]
@@ -104,26 +105,26 @@ public class ConfigKeyMappingTest
         keys.Add(Key.A, "second");
         keys.Add(Key.B, "first");
 
-        keys["first"].Should().Equal(Key.A, Key.B);
-        keys["second"].Should().Equal(Key.A);
-        keys["no such command"].Should().BeEmpty();
+        GetCommandKeys(keys, "first").Should().Equal(Key.A, Key.B);
+        GetCommandKeys(keys, "second").Should().Equal(Key.A);
+        GetCommandKeys(keys, "no such command").Should().BeEmpty();
     }
 
     [Fact(DisplayName = "Can add new key/command mapping")]
     public void AddNewMapping()
     {
         ConfigKeyMapping keys = new();
-        keys[Key.A].Should().BeEmpty();
-        keys["a"].Should().BeEmpty();
+        GetKeyCommands(keys, Key.A).Should().BeEmpty();
+        GetCommandKeys(keys, "a").Should().BeEmpty();
 
         keys.Add(Key.A, "a");
-        keys[Key.A].Should().Equal("a");
-        keys["a"].Should().Equal(Key.A);
+        GetKeyCommands(keys, Key.A).Should().Equal("a");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A);
 
         // Adding again should do nothing.
         keys.Add(Key.A, "a");
-        keys[Key.A].Should().Equal("a");
-        keys["a"].Should().Equal(Key.A);
+        GetKeyCommands(keys, Key.A).Should().Equal("a");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A);
     }
 
     [Fact(DisplayName = "Can add existing key mapping to a new command")]
@@ -132,13 +133,13 @@ public class ConfigKeyMappingTest
         ConfigKeyMapping keys = new();
         keys.Add(Key.A, "a");
 
-        keys[Key.A].Should().Equal("a");
-        keys["a"].Should().Equal(Key.A);
+        GetKeyCommands(keys, Key.A).Should().Equal("a");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A);
 
         keys.Add(Key.A, "b");
-        keys[Key.A].Should().Equal("a", "b");
-        keys["a"].Should().Equal(Key.A);
-        keys["b"].Should().Equal(Key.A);
+        GetKeyCommands(keys, Key.A).Should().Equal("a", "b");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A);
+        GetCommandKeys(keys, "b").Should().Equal(Key.A);
     }
 
     [Fact(DisplayName = "Can add an existing command to a new key")]
@@ -147,13 +148,13 @@ public class ConfigKeyMappingTest
         ConfigKeyMapping keys = new();
         keys.Add(Key.A, "a");
 
-        keys[Key.A].Should().Equal("a");
-        keys["a"].Should().Equal(Key.A);
+        GetKeyCommands(keys, Key.A).Should().Equal("a");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A);
 
         keys.Add(Key.B, "a");
-        keys[Key.A].Should().Equal("a");
-        keys[Key.B].Should().Equal("a");
-        keys["a"].Should().Equal(Key.A, Key.B);
+        GetKeyCommands(keys, Key.A).Should().Equal("a");
+        GetKeyCommands(keys, Key.B).Should().Equal("a");
+        GetCommandKeys(keys, "a").Should().Equal(Key.A, Key.B);
     }
 
     [Fact(DisplayName = "Can consume a key press for a command")]
@@ -192,14 +193,14 @@ public class ConfigKeyMappingTest
 
         // Nothing changes if there's no binding.
         keys.UnbindAll(Key.A);
-        keys[Key.C].Should().Equal("something", "another");
-        keys[Key.F].Should().Equal("something");
+        GetKeyCommands(keys, Key.C).Should().Equal("something", "another");
+        GetKeyCommands(keys, Key.F).Should().Equal("something");
 
         // A binding will get removed.
         keys.UnbindAll(Key.C);
-        keys[Key.C].Should().BeEmpty();
-        keys["something"].Should().Equal(Key.F);
-        keys["another"].Should().BeEmpty();
+        GetKeyCommands(keys, Key.C).Should().BeEmpty();
+        GetCommandKeys(keys, "something").Should().Equal(Key.F);
+        GetCommandKeys(keys, "another").Should().BeEmpty();
     }
 
     [Fact(DisplayName = "Unbind all marks change if key was bound")]
@@ -255,11 +256,47 @@ public class ConfigKeyMappingTest
             foreach (string value in values)
                 keys.Add(key, value);
 
-        var actual = keys.GetKeyToCommandsDictionary();
+        var mapping = keys.GetKeyMapping();
+        Dictionary<Key, List<string>> actual = new();
+        foreach (var cmd in mapping)
+        {
+            if (actual.TryGetValue(cmd.Key, out var list))
+            {
+                list.Add(cmd.Command);
+                continue;
+            }
+
+            list = new() { cmd.Command };
+            actual[cmd.Key] = list;
+        }
         actual.Count.Should().Be(expected.Count);
 
         foreach ((Key key, List<string> values) in expected)
             actual[key].Should().Equal(values);
+    }
+
+    private static IList<string> GetKeyCommands(ConfigKeyMapping keys, Key key)
+    {
+        List<string> commands = new();
+        foreach (var item in keys.GetKeyMapping())
+        {
+            if (item.Key == key)
+                commands.Add(item.Command);
+        }
+
+        return commands;
+    }
+
+    private static IList<Key> GetCommandKeys(ConfigKeyMapping keys, string command)
+    {
+        List<Key> key = new();
+        foreach (var item in keys.GetKeyMapping())
+        {
+            if (item.Command.Equals(command, System.StringComparison.OrdinalIgnoreCase))
+                key.Add(item.Key);
+        }
+
+        return key;
     }
 }
 

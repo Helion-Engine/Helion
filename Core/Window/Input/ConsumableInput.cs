@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 
 namespace Helion.Window.Input;
 

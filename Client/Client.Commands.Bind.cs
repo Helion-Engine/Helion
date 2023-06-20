@@ -119,7 +119,6 @@ public partial class Client
     {
         Log.Info("Key bindings");
         foreach (var item in m_config.Keys.GetKeyMapping())
-            foreach (var value in item.Value)
-                Log.Info($"{item.Key}: {value}");
+            Log.Info($"{item.Key}: {item.Command}");
     }
 }
