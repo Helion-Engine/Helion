@@ -174,15 +174,4 @@ public class InputManager : IInputManager
         m_consumableInput.Reset();
         return m_consumableInput;
     }
-
-    private static bool Contains(DynamicArray<Key> input, Key key)
-    {
-        for (int i = 0; i < input.Length; i++)
-        {
-            if (input[i] == key)
-                return true;
-        }
-
-        return false;
-    }
 }
