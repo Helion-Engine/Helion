@@ -141,6 +141,7 @@ public abstract partial class WorldBase : IWorld
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
+    private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -173,6 +174,8 @@ public abstract partial class WorldBase : IWorld
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
         IsFastMonsters = skillDef.IsFastMonsters(config);
+
+        m_defaultDamageAction = new(DefaultDamage);
 
         if (worldModel != null)
         {
@@ -925,12 +928,12 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
-        Func<int>? damageFunc = null)
+        Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default)
     {
         double originalPitch = pitch;
 
         if (damageFunc == null)
-            damageFunc = DefaultDamage;
+            damageFunc = m_defaultDamageAction;
 
         if (autoAim)
         {
@@ -950,14 +953,14 @@ public abstract partial class WorldBase : IWorld
 
         if (!shooter.Refire && bulletCount == 1)
         {
-            int damage = damageFunc();
+            int damage = damageFunc(damageParams);
             FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);
         }
         else
         {
             for (int i = 0; i < bulletCount; i++)
             {
-                int damage = damageFunc();
+                int damage = damageFunc(damageParams);
                 double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
                 double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
                 FireHitscan(shooter, angle, newPitch, distance, damage);
@@ -965,7 +968,7 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private int DefaultDamage() => 5 * ((m_random.NextByte() % 3) + 1);
+    private int DefaultDamage(DamageFuncParams damageParams) => 5 * ((m_random.NextByte() % 3) + 1);
 
     public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
     {

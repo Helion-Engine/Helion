@@ -2818,8 +2818,8 @@ public static class EntityActionFunctions
         int damage = frame.DehackedArgs4;
         int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
-        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageFunction);
-        int DamageFunction() => damage * ((entity.World.Random.NextByte() % mod) + 1);
+        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
+            new DamageFuncParams(entity, damage, mod));
     }
 
     public static void A_WeaponMeleeAttack(Entity entity)
@@ -3000,8 +3000,8 @@ public static class EntityActionFunctions
         entity.PlayAttackSound();
         entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
 
-        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageFunction);
-        int DamageFunction() => damage * ((entity.World.Random.NextByte() % mod) + 1);
+        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageAttackFunction,
+            new DamageFuncParams(entity, damage, mod));
     }
 
     private static void A_MonsterMeleeAttack(Entity entity)
@@ -3295,5 +3295,11 @@ public static class EntityActionFunctions
         if (distance < 1)
             distance = 1;
         return z / distance;
+    }
+
+    private static int DamageAttackFunction(DamageFuncParams damageParams)
+    {
+        Entity entity = (Entity)damageParams.Object;
+        return damageParams.Arg0 * ((entity.World.Random.NextByte() % damageParams.Arg1) + 1);
     }
 }
