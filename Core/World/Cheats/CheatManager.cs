@@ -50,11 +50,14 @@ public class CheatManager
 
     public static void SetCheatCode(CheatType type, string code, int index = 0)
     {
-        ICheat? cheat = Cheats.FirstOrDefault(x => x.CheatType == type);
-        if (cheat == null)
-            return;
+        for (int i = 0; i < Cheats.Length; i++)
+        {
+            if (Cheats[i].CheatType != type)
+                continue;
 
-        cheat.SetCode(code, index);
+            Cheats[i].SetCode(code, index);
+            return;
+        }
     }
 
     public void ActivateCheat(Player player, CheatType cheatType, int levelNumber = -1)
@@ -99,8 +102,11 @@ public class CheatManager
     {
         var cheat = Cheats.FirstOrDefault(x => command.Equals(x.ConsoleCommand, StringComparison.OrdinalIgnoreCase));
 
-        if (cheat != null)
+        for (int i = 0; i < Cheats.Length; i++)
         {
+            if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             ActivateCheat(player, cheat.CheatType);
             return true;
         }
@@ -117,9 +123,9 @@ public class CheatManager
             m_currentCheat.Append(key);
             string cheatString = m_currentCheat.ToString();
 
-            if (Cheats.Any(x => x.PartialMatch(cheatString)))
+            if (AnyPartialMatch(cheatString))
             {
-                ICheat? cheat = Cheats.FirstOrDefault(x => x.IsMatch(cheatString));
+                ICheat? cheat = GetCheatMatch(cheatString);
                 if (cheat != null)
                 {
                     SetCheat(player, cheat.CheatType, true);
@@ -132,5 +138,27 @@ public class CheatManager
             
             m_currentCheat.Clear();
         }
+    }
+
+    private bool AnyPartialMatch(string cheatString)
+    {
+        for (int i = 0; i < Cheats.Length; i++)
+        {
+            if (Cheats[i].PartialMatch(cheatString))
+                return true;
+        }
+
+        return false;
+    }
+
+    private ICheat? GetCheatMatch(string cheatString)
+    {
+        for (int i = 0; i < Cheats.Length; i++)
+        {
+            if (Cheats[i].IsMatch(cheatString))
+                return Cheats[i];
+        }
+
+        return null;
     }
 }

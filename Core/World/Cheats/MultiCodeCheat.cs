@@ -35,7 +35,25 @@ public class MultiCodeCheat : ICheat
         m_codes[index] = code;
     }
 
-    public bool IsMatch(string str) => m_codes.Any(x => x.Equals(str, StringComparison.InvariantCultureIgnoreCase));
+    public bool IsMatch(string str)
+    {
+        for (int i = 0; i < m_codes.Length; i++)
+        {
+            if (m_codes[i].Equals(str, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+        }
 
-    public bool PartialMatch(string str) => m_codes.Any(x => x.StartsWith(str, StringComparison.InvariantCultureIgnoreCase));
+        return false;
+    }
+
+    public bool PartialMatch(string str)
+    {
+        for (int i = 0; i < m_codes.Length; i++)
+        {
+            if (m_codes[i].StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
 }
