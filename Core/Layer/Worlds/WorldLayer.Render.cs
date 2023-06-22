@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
+using System;
 
 namespace Helion.Layer.Worlds;
 
@@ -11,6 +12,9 @@ public partial class WorldLayer
     private readonly WorldRenderContext m_worldContext;
     private readonly HudRenderContext m_hudContext;
     private IRenderableSurfaceContext? m_renderableHudContext;
+
+    private Action<IHudRenderContext> m_drawAutomapAndHudAction;
+    private readonly Action<IWorldRenderContext> m_renderWorldAction;
 
     public void Render(IRenderableSurfaceContext ctx)
     {
@@ -30,7 +34,7 @@ public partial class WorldLayer
         m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
         m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
 
-        ctx.World(m_worldContext, RenderWorld);
+        ctx.World(m_worldContext, m_renderWorldAction);
         m_profiler.Render.World.Stop();
     }
 
@@ -39,13 +43,14 @@ public partial class WorldLayer
         context.Draw(World);
     }
 
+
     private void DrawAutomapAndHud(IRenderableSurfaceContext ctx)
     {
         m_profiler.Render.Hud.Start();
 
         m_hudContext.Set(ctx.Surface.Dimension);
         m_renderableHudContext = ctx;
-        ctx.Hud(m_hudContext, DrawAutomapAndHudContext);
+        ctx.Hud(m_hudContext, m_drawAutomapAndHudAction);
 
         m_profiler.Render.Hud.Stop();
     }

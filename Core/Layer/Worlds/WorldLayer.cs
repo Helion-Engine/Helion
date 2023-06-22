@@ -64,6 +64,10 @@ public partial class WorldLayer : IGameLayerParent
         World = world;
         CurrentMap = mapInfoDef;
 
+        m_drawAutomapAndHudAction = new(DrawAutomapAndHudContext);
+        m_virtualDrawHudWeaponAction = new(VirtualDrawHudWeapon);
+        m_renderWorldAction = new(RenderWorld);
+
         m_ticker.Start();
     }
 

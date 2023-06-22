@@ -59,6 +59,8 @@ public class GameLayerManager : IGameLayerParent
     private readonly SaveGameManager m_saveGameManager;
     private readonly Profiler m_profiler;
     private readonly Stopwatch m_stopwatch = new();
+    private readonly Action<IRenderableSurfaceContext> m_renderDefaultAction;
+    private readonly Action<IHudRenderContext> m_renderHudAction;
 
     private readonly HudRenderContext m_hudContext = new(default);
 
@@ -84,6 +86,8 @@ public class GameLayerManager : IGameLayerParent
         m_saveGameManager = saveGameManager;
         m_profiler = profiler;
         m_stopwatch.Start();
+        m_renderDefaultAction = new(RenderDefault);
+        m_renderHudAction = new(RenderHud);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }
@@ -379,7 +383,7 @@ public class GameLayerManager : IGameLayerParent
     public void Render(Renderer renderer)
     {
         m_renderer = renderer;
-        m_renderer.Default.Render(RenderDefault);
+        m_renderer.Default.Render(m_renderDefaultAction);
     }
 
     private void RenderDefault(IRenderableSurfaceContext ctx)
@@ -393,7 +397,7 @@ public class GameLayerManager : IGameLayerParent
         WorldLayer?.Render(ctx);
 
         m_profiler.Render.MiscLayers.Start();
-        ctx.Hud(m_hudContext, RenderHud);
+        ctx.Hud(m_hudContext, m_renderHudAction);
         m_profiler.Render.MiscLayers.Stop();
     }
 

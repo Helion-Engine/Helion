@@ -52,6 +52,7 @@ public partial class WorldLayer
     private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
     private readonly List<(string message, float alpha)> m_messages = new();
+    private readonly Action<HudDrawWeapon> m_virtualDrawHudWeaponAction;
 
     private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset);
 
@@ -249,7 +250,7 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset)
     {
-        hud.DoomVirtualResolution(VirtualDrawHudWeapon, new HudDrawWeapon(hud, frameState, yOffset));
+        hud.DoomVirtualResolution(m_virtualDrawHudWeaponAction, new HudDrawWeapon(hud, frameState, yOffset));
     }
 
     private void VirtualDrawHudWeapon(HudDrawWeapon hud)
