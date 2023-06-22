@@ -147,7 +147,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
-            if (!cmd.Command.Equals(command))
+            if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (ConsumeMouseWheel(cmd.Key, input))
@@ -165,7 +165,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
-            if (!cmd.Command.Equals(command))
+            if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (ConsumeMouseWheel(cmd.Key, input))
@@ -183,7 +183,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
-            if (!cmd.Command.Equals(command))
+            if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (input.ConsumeKeyPressed(cmd.Key) || input.Manager.IsKeyContinuousHold(cmd.Key))
@@ -201,7 +201,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
-            if (!cmd.Command.Equals(command))
+            if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             if (input.Manager.IsKeyDown(cmd.Key))
@@ -227,6 +227,5 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Changed |= removed > 0;
     }
 
-    //public Dictionary<Key, HashSet<string>> GetKeyMapping() => m_keyToCommands;
     public IList<KeyCommandItem> GetKeyMapping() => m_commands;
 }
