@@ -45,7 +45,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
-    private readonly RenderObjectComparer m_renderObjectComparer = new();
+    private readonly Comparison<IRenderObject> m_renderObjectComparer = new(RenderObjectCompare);
     private readonly ArchiveCollection m_archiveCollection;    
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
@@ -68,6 +68,15 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
+    }
+
+    static int RenderObjectCompare(IRenderObject? x, IRenderObject? y)
+    {
+        if (x == null || y == null)
+            return 1;
+
+        // Reverse distance order
+        return y.RenderDistance.CompareTo(x.RenderDistance);
     }
 
     ~LegacyWorldRenderer()

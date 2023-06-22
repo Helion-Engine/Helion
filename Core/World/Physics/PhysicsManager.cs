@@ -54,7 +54,7 @@ public class PhysicsManager
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<Entity> m_onEntities = new();
-    private readonly SectorMoveOrderComparer m_sectorMoveOrderComparer = new();
+    private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly int[] m_checkedBlockLines;
 
@@ -68,6 +68,19 @@ public class PhysicsManager
         m_random = random;
         BlockmapTraverser = new BlockmapTraverser(world, m_blockmap, world.DataCache);
         m_checkedBlockLines = new int[m_world.Lines.Count];
+    }
+
+    static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
+    {
+        if (x == null || y == null)
+            return 1;
+
+        int compare = x.Position.Z.CompareTo(y.Position.Z);
+
+        if (compare == 0)
+            compare = x.Id.CompareTo(y.Id);
+
+        return compare;
     }
 
     /// <summary>

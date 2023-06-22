@@ -53,10 +53,10 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
-    private readonly GeometryIndexComparer m_geometryIndexComparer = new();
     private DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
 
     private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
+    private readonly Comparison<StaticGeometryData> m_geometryIndexComparison = new(GeometryIndexCompare);
 
     private bool m_staticMode;
     private bool m_disposed;
@@ -75,6 +75,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(config, archiveCollection, textureManager);
+    }
+
+    static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
+    {
+        return x.GeometryDataStartIndex.CompareTo(y.GeometryDataStartIndex);
     }
 
     ~StaticCacheGeometryRenderer()
@@ -526,7 +531,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (geometryData == null)
                 continue;
 
-            list.Sort(m_geometryIndexComparer);
+            list.Sort(GeometryIndexCompare);
 
             int startIndex = list[0].GeometryDataStartIndex;
             int lastIndex = startIndex + list[0].GeometryDataLength;

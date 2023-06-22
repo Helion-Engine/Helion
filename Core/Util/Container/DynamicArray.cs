@@ -165,9 +165,16 @@ public class DynamicArray<T>
         Array.Sort<T>(Data, index, length, null);
     }
 
-    public void Sort(IComparer<T> comparer)
+    //public void Sort(IComparer<T> comparer)
+    //{
+    //    Span<T> span = Data.AsSpan(0, Length);
+    //    MemoryExtensions.Sort(span, comparer);
+    //}
+
+    public void Sort(Comparison<T> comparison)
     {
-        Array.Sort<T>(Data, 0, Length, comparer);
+        Span<T> span = Data.AsSpan(0, Length);
+        MemoryExtensions.Sort(span, comparison);
     }
 
     private void EnsureCapacity(int desiredCapacity)
