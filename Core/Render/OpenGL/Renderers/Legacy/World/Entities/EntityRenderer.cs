@@ -14,17 +14,31 @@ using Helion.World.Geometry.Subsectors;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer
 {
+    private class Vec2DCompararer : IEqualityComparer<Vec2D>
+    {
+        public bool Equals(Vec2D x, Vec2D y)
+        {
+            return x.X == y.X && x.Y == y.Y;
+        }
+
+        public int GetHashCode([DisallowNull] Vec2D obj)
+        {
+            return HashCode.Combine(obj.X, obj.Y);
+        }
+    }
+
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly RenderWorldDataManager m_worldDataManager;
-    private readonly Dictionary<Vec2D, int> m_renderPositions = new();
+    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private int m_renderCounter;
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
