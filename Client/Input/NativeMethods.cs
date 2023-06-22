@@ -1,14 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using NLog;
 
 namespace Helion.Client.Input;
 
-public static class NativeMethods
+public static unsafe class NativeMethods
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     public static bool RegisterRawMouseInput(IntPtr handle)
     {
         RAWINPUTDEVICE[] rid = new RAWINPUTDEVICE[1];
@@ -25,20 +22,11 @@ public static class NativeMethods
         uint dwSize = (uint)Marshal.SizeOf(typeof(RAWINPUT));
         uint headerSize = (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER));
         IntPtr rawData = Marshal.AllocHGlobal((int)dwSize);
+        RAWINPUT rawInput;
 
-        if (GetRawInputData(message.LParam, WinMouseConstants.RID_INPUT, rawData, ref dwSize, headerSize) != -1)
+        if (GetRawInputData(message.LParam, WinMouseConstants.RID_INPUT, &rawInput, ref dwSize, headerSize) != -1)
         {
             // In the future if we register for any other form of input we would need to check for header.dwType == RIM_TYPEMOUSE
-            object? rawInputObj = Marshal.PtrToStructure(rawData, typeof(RAWINPUT));
-            if (rawInputObj == null)
-            {
-                Log.Error("Reading raw input returns a null value, should never happen");
-                x = 0;
-                y = 0;
-                return;
-            }
-
-            RAWINPUT rawInput = (RAWINPUT)rawInputObj;
             x = rawInput.mouse.lLastX;
             y = rawInput.mouse.lLastY;
             // TODO: Mask `rawInput.mouse.ulButtons` with Constants for button presses.
@@ -60,7 +48,7 @@ public static class NativeMethods
     private static extern bool RegisterRawInputDevices(RAWINPUTDEVICE[] pRawInputDevice, uint uiNumDevices, uint cbSize);
 
     [DllImport("User32.dll", SetLastError = true)]
-    private static extern int GetRawInputData(IntPtr hRawInput, uint uiCommand, IntPtr pData, ref uint pcbSize, uint cbSizeHeader);
+    private static extern int GetRawInputData(IntPtr hRawInput, uint uiCommand, RAWINPUT *pData, ref uint pcbSize, uint cbSizeHeader);
 
     [DllImport("User32.dll", SetLastError = true)]
     private static extern bool SetCursorPos(int x, int y);
