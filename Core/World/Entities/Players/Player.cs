@@ -740,9 +740,11 @@ public class Player : Entity
 
     private static TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
     {
-        TickCommands? command = WeaponSlotCommands.FirstOrDefault(x => tickCommand.Has(x));
-        if (command != null)
-            return command.Value;
+        for (int i = 0; i < WeaponSlotCommands.Length; i++)
+        {
+            if (tickCommand.Has(WeaponSlotCommands[i]))
+                return WeaponSlotCommands[i];
+        }
         return TickCommands.None;
     }
 
