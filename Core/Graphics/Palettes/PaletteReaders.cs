@@ -63,7 +63,7 @@ public static class PaletteReaders
         if (dim == 0)
             return null;
 
-        ushort[] indices = new ushort[dim * dim];
+        uint[] indices = new uint[dim * dim];
 
         int offset = 0;
         for (int y = 0; y < dim; y++)
@@ -100,7 +100,7 @@ public static class PaletteReaders
             for (int i = 0; i < width; i++)
                 offsets[i] = reader.ReadInt32();
 
-            ushort[] indices = new ushort[width * height];
+            uint[] indices = new uint[width * height];
             indices.Fill(Image.TransparentIndex);
 
             for (int col = 0; col < width; col++)

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
 using BmpSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -63,13 +61,12 @@ public class Image
         m_pixels = pixels;
     }
 
-    public static Image? FromPaletteIndices(Dimension dimension, ushort[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
+    public static Image? FromPaletteIndices(Dimension dimension, uint[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
     {
         if (dimension.Area != indices.Length)
             return null;
 
-        uint[] pixels = indices.Select(s => (uint)s).ToArray();
-        return new(pixels, dimension, ImageType.Palette, offset, ns);
+        return new(indices, dimension, ImageType.Palette, offset, ns);
     }
 
     public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
@@ -188,7 +185,13 @@ public class Image
 
     public int TransparentPixelCount()
     {
-        return m_pixels.Sum(p => (p & 0xFF000000) == 0 ? 1 : 0);
+        int count = 0;
+        for (int i = 0; i < m_pixels.Length ; i++)
+        {
+            if ((m_pixels[i] & 0xFF000000) == 0)
+                count++;
+        }
+        return count;
     }
 
     public Color GetPixel(int x, int y)
