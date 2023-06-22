@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Vertex;
 
@@ -182,9 +183,11 @@ public static class Attributes
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
-            attr.PointerType.Switch(
-                attrF => GL.VertexAttribPointer(attr.Index, attr.Size, attrF, attr.Normalized, attr.Stride, attr.Offset),
-                attrI => GL.VertexAttribIPointer(attr.Index, attr.Size, attrI, attr.Stride, new(attr.Offset)));
+            if (attr.PointerType.TryPickT0(out var attrF, out var attrI))
+                GL.VertexAttribPointer(attr.Index, attr.Size, attrF, attr.Normalized, attr.Stride, attr.Offset);
+            else
+                GL.VertexAttribIPointer(attr.Index, attr.Size, attrI, attr.Stride, new(attr.Offset));
+
             GL.EnableVertexAttribArray(attr.Index);
         }
     }
