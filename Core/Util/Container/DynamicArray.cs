@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
@@ -47,8 +48,8 @@ public class DynamicArray<T>
     public DynamicArray(int capacity = 8)
     {
         Precondition(capacity > 0, "Must have a positive capacity");
-
-        Data = new T[Math.Max(1, capacity)];
+        capacity = Math.Max(1, capacity);
+        Data = ArrayPool<T>.Shared.Rent(capacity);
     }
 
     public T this[int index]
@@ -199,8 +200,9 @@ public class DynamicArray<T>
 
     private void SetCapacity(int newCapacity)
     {
-        T[] newData = new T[newCapacity];
+        T[] newData = ArrayPool<T>.Shared.Rent(newCapacity);
         Array.Copy(Data, newData, Data.Length);
+        ArrayPool<T>.Shared.Return(Data, true);
         Data = newData;
         Version++;
     }
