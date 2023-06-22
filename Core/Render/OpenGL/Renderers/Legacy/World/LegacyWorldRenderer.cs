@@ -44,7 +44,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly ViewClipper m_viewClipper;
-    private readonly DynamicArray<IRenderObject> m_alphaEntities = new();
+    private readonly DynamicArray<IRenderObject> m_alphaEntities = new(256);
     private readonly Comparison<IRenderObject> m_renderObjectComparer = new(RenderObjectCompare);
     private readonly ArchiveCollection m_archiveCollection;    
     private Sector m_viewSector;

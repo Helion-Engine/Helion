@@ -28,7 +28,7 @@ public class SkySphereRenderer : IDisposable
     public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
         m_vao = new("Sky sphere");
-        m_vbo = new("Sky sphere");
+        m_vbo = new("Sky sphere", 32 * 32);
         m_program = new();
         m_texture = new(archiveCollection, textureManager, textureHandle);
 

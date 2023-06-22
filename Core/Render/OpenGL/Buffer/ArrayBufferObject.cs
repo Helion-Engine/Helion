@@ -10,7 +10,7 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     protected override BufferTarget Target => BufferTarget.ArrayBuffer;
     protected abstract BufferUsageHint Hint { get; }
 
-    protected ArrayBufferObject(string objectLabel) : base(objectLabel)
+    protected ArrayBufferObject(string objectLabel, int capacity = BufferObject<T>.DefaultCapacity) : base(objectLabel, capacity)
     {
     }
 

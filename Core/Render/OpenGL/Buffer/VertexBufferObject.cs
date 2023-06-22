@@ -11,7 +11,7 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
 {
     protected override string LabelPrefix => "VBO";
 
-    protected VertexBufferObject(string label) : base(label)
+    protected VertexBufferObject(string label, int capacity = BufferObject<T>.DefaultCapacity) : base(label, capacity)
     {
     }
 
@@ -38,7 +38,7 @@ public class StaticVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
 
-    public StaticVertexBuffer(string label) : base(label)
+    public StaticVertexBuffer(string label, int capacity = BufferObject<T>.DefaultCapacity) : base(label, capacity)
     {
     }
 }

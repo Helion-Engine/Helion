@@ -166,7 +166,7 @@ public class DataCache
         if (m_blockmapLists.Length > 0)
             return m_blockmapLists.RemoveLast();
 
-        return new DynamicArray<BlockmapIntersect>();
+        return new DynamicArray<BlockmapIntersect>(256);
     }
 
     public void FreeBlockmapIntersectList(DynamicArray<BlockmapIntersect> list)
@@ -230,7 +230,7 @@ public class DataCache
         if (m_glyphs.Length > 0)
             return m_glyphs.RemoveLast();
 
-        return new DynamicArray<RenderableGlyph>();
+        return new DynamicArray<RenderableGlyph>(256);
     }
 
     private void FreeRenderableGlyphs(DynamicArray<RenderableGlyph> list)
