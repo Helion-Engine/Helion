@@ -1,5 +1,6 @@
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;
+using Helion.Menus.Base.Text;
 using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
@@ -35,26 +36,26 @@ public class NewGameEpisodeMenu : Menu
             if (episode.Optional && ArchiveCollection.Entries.FindByName(episode.PicName) == null)
                 continue;
 
-            MenuImageComponent component = MakeMenuComponent(episode);
+            IMenuComponent component = MakeMenuComponent(episode);
             Components = Components.Add(component);
         }
 
         SetToFirstActiveComponent();
 
-        MenuImageComponent MakeMenuComponent(EpisodeDef episode)
+        IMenuComponent MakeMenuComponent(EpisodeDef episode)
         {
             if (ArchiveCollection.IWadInfo.IWadType == IWadType.DoomShareware &&
                 !episode.StartMap.Equals("e1m1", StringComparison.OrdinalIgnoreCase))
             {
                 string[] lines = archiveCollection.Definitions.Language.GetMessages("$SWSTRING");
-                return new(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2",
+                return new MenuImageComponent(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2",
                     () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines),
                     imageAlign: Align.TopLeft);
             }
 
-            return new(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2",
+            return new MenuImageComponent(episode.PicName, OffsetX, PaddingY, "M_SKULL1", "M_SKULL2",
                     () => new NewGameSkillMenu(config, console, soundManager, archiveCollection, episode.StartMap),
-                    imageAlign: Align.TopLeft);
+                    imageAlign: Align.TopLeft, title: ArchiveCollection.Language.GetMessage(episode.Name));
         }
     }
 }

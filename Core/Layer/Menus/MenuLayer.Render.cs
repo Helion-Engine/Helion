@@ -71,34 +71,47 @@ public partial class MenuLayer
         if (image.AddToOffsetY)
             offsetY += image.PaddingTopY;
 
-        if (!hud.Textures.TryGet(image.ImageName, out var handle))
-            return;
-
-        Vec2I offset = TranslateDoomOffset(handle.Offset);
-        int offsetX = offset.X + image.OffsetX;
-
-        hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: (Align)image.ImageAlign);
-
-        if (isSelected)
+        if (hud.Textures.TryGet(image.ImageName, out var handle))
         {
-            string selectedName = (ShouldDrawActive ? image.ActiveImage : image.InactiveImage) ?? "";
+            Vec2I offset = TranslateDoomOffset(handle.Offset);
+            int offsetX = offset.X + image.OffsetX;
 
-            if (!hud.Textures.TryGet(selectedName, out var selectedHandle))
+            hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: (Align)image.ImageAlign);
+
+            if (isSelected)
+                DrawSelectedImage(hud, image, drawY, offsetX);
+
+            if (!image.AddToOffsetY)
                 return;
 
-            offsetX += SelectedOffsetX;
-            Vec2I selectedOffset = TranslateDoomOffset(selectedHandle.Offset);
-            Vec2I drawPosition = selectedOffset + (offsetX, drawY - SelectedOffsetY);
-            hud.Image(selectedName, drawPosition, both: (Align)image.ImageAlign);
+            if (image.OverrideY == null)
+                offsetY += area.Height + offset.Y + image.PaddingBottomY;
+            else
+                offsetY += image.OverrideY.Value;
         }
+        else if (!string.IsNullOrEmpty(image.Title))
+        {
+            const string Font = "SmallFont";
+            const int FontSize = 12;
+            Dimension textDimensions = hud.MeasureText(image.Title, Font, FontSize);
+            hud.Text(image.Title, Font, FontSize, (0, drawY), both: (Align)image.ImageAlign);
+            offsetY += textDimensions.Height + 2;
 
-        if (!image.AddToOffsetY)
+            if (isSelected)
+                DrawSelectedImage(hud, image, drawY, 0);
+        }
+    }
+
+    private void DrawSelectedImage(IHudRenderContext hud, MenuImageComponent image, int drawY, int offsetX)
+    {
+        string selectedName = (ShouldDrawActive ? image.ActiveImage : image.InactiveImage) ?? "";
+        if (!hud.Textures.TryGet(selectedName, out var selectedHandle))
             return;
 
-        if (image.OverrideY == null)
-            offsetY += area.Height + offset.Y + image.PaddingBottomY;
-        else
-            offsetY += image.OverrideY.Value;
+        offsetX += SelectedOffsetX;
+        Vec2I selectedOffset = TranslateDoomOffset(selectedHandle.Offset);
+        Vec2I drawPosition = selectedOffset + (offsetX, drawY - SelectedOffsetY);
+        hud.Image(selectedName, drawPosition, both: (Align)image.ImageAlign);
     }
 
     private void DrawSaveRow(IHudRenderContext hud, MenuSaveRowComponent saveRowComponent, bool isSelected,

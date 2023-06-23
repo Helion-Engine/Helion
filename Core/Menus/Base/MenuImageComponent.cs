@@ -6,6 +6,7 @@ namespace Helion.Menus.Base;
 public class MenuImageComponent : IMenuComponent
 {
     public readonly string ImageName;
+    public readonly string Title;
     public readonly int OffsetX;
     public readonly int PaddingTopY;
     public readonly int PaddingBottomY;
@@ -19,9 +20,10 @@ public class MenuImageComponent : IMenuComponent
 
     public MenuImageComponent(string imageName, int offsetX = 0, int paddingTopY = 0,
         string? activeImage = null, string? inactiveImage = null, Func<Menu?>? action = null,
-        Align imageAlign = Align.TopMiddle, int paddingBottomY = 0, bool addToOffsetY = true, int? overrideY = null)
+        Align imageAlign = Align.TopMiddle, int paddingBottomY = 0, bool addToOffsetY = true, int? overrideY = null, string title = "")
     {
         ImageName = imageName;
+        Title = title;
         OffsetX = offsetX;
         PaddingTopY = paddingTopY;
         PaddingBottomY = paddingBottomY;
