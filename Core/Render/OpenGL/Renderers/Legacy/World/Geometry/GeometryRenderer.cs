@@ -612,7 +612,7 @@ public class GeometryRenderer : IDisposable
         else if (side.Line.StartPosition.X == side.Line.EndPosition.X)
             return Math.Clamp(lightLevel + 16, 0, short.MaxValue);
 
-        return side.Sector.LightLevel;
+        return lightLevel;
     }
 
     private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
