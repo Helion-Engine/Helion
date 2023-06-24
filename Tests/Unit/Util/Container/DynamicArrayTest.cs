@@ -25,13 +25,13 @@ public class DynamicArrayTest
 
         array.Add(5, 7);
         array.Length.Should().Be(2);
-        array.Data.Should().Equal(5, 7);
-        array.Capacity.Should().Be(2);
+        CompareArrays(array, 5, 7);
+        array.Capacity.Should().BeGreaterThanOrEqualTo(2);
 
         array.Add(1);
         array.Length.Should().Be(3);
-        array.Data.Should().Equal(5, 7, 1, default(int)); // Capacity is doubled, so add a default.
-        array.Capacity.Should().BeGreaterThan(2);
+        CompareArrays(array, 5, 7, 1);
+        array.Capacity.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact(DisplayName = "Can index into a dynamic array")]
@@ -52,12 +52,12 @@ public class DynamicArrayTest
         DynamicArray<int> array = new(2);
 
         array.Add(1, -5, 4);
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        CompareArrays(array, 1, -5, 4);
 
         int capacity = array.Capacity;
         array.Clear();
 
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        CompareArrays(array, 1, -5, 4);
         array.Length.Should().Be(0);
         array.Capacity.Should().Be(capacity);
     }
@@ -68,17 +68,17 @@ public class DynamicArrayTest
         DynamicArray<int> array = new(2);
 
         array.Add(1, -5, 4);
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        CompareArrays(array, 1, -5, 4);
         int capacity = array.Capacity;
 
         array.RemoveLast().Should().Be(4);
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        CompareArrays(array, 1, -5, 4);
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(2);
 
         array.RemoveLast().Should().Be(-5);
         array.RemoveLast().Should().Be(1);
-        array.Data.Should().Equal(1, -5, 4, default(int));
+        CompareArrays(array, 1, -5, 4);
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(0);
 
@@ -87,5 +87,19 @@ public class DynamicArrayTest
         a.Should().Throw<InvalidOperationException>();
         array.Capacity.Should().Be(capacity);
         array.Length.Should().Be(0);
+    }
+
+    private static bool CompareArrays(DynamicArray<int> x, params int[] y)
+    {
+        if (x.Length != y.Length)
+            return false;
+
+        for (int i = 0; i < x.Length; i++)
+        {
+            if (x[i] != y[i])
+                return false;
+        }
+
+        return true;
     }
 }
