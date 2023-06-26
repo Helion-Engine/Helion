@@ -30,7 +30,7 @@ namespace Helion.Audio.Impl
             GC.SuppressFinalize(this);
         }
 
-        public void PlayGroup(IEnumerable<IAudioSource> audioSources)
+        public void PlayGroup(LinkedList<IAudioSource> audioSources)
         {
             foreach (var audioSource in audioSources)
                 audioSource.Play();

@@ -45,7 +45,7 @@ public interface IAudioSourceManager : IDisposable
 
     void CacheSound(string name);
     void SetListener(Vec3D pos, double angle, double pitch);
-    void PlayGroup(IEnumerable<IAudioSource> audioSources);
+    void PlayGroup(LinkedList<IAudioSource> audioSources);
     void DeviceChanging();
     void Tick();
 }

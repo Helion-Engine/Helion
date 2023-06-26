@@ -91,10 +91,14 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         return source;
     }
 
-    public void PlayGroup(IEnumerable<IAudioSource> audioSources)
+    public void PlayGroup(LinkedList<IAudioSource> audioSources)
     {
-        foreach (IAudioSource audioSource in audioSources)
-           m_playGroup.Add(((OpenALAudioSource)audioSource).ID);
+        var node = audioSources.First;
+        while (node != null)
+        {
+            m_playGroup.Add(((OpenALAudioSource)node.Value).ID);
+            node = node.Next;
+        }
 
         OpenALDebug.Start("Playing audio group");
         AL.SourcePlay(m_playGroup.Length, m_playGroup.Data);
