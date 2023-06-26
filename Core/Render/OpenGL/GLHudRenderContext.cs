@@ -199,7 +199,7 @@ public class GLHudRenderContext : IHudRenderContext
 
         int scaledFontSize = (int)(fontSize * scale);
 
-        RenderableString renderableString =m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth, color);
+        RenderableString renderableString = m_archiveCollection.DataCache.GetRenderableString(text, fontObject, scaledFontSize, textAlign, maxWidth, color);
         drawArea = renderableString.DrawArea;
 
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,

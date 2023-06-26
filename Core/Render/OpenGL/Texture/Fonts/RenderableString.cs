@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -138,7 +139,7 @@ public class RenderableString
         ColorRanges.Clear();
         if (drawColor != null)
         {
-            ColorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
+            ColorRanges.Add(new ColorRange(0, StringBuffer.StringLength(str), drawColor.Value));
             return ColorRanges;
         }
 
@@ -160,7 +161,7 @@ public class RenderableString
         // Since we never set the very last element's ending point due to
         // the loop invariant, we do that now.
         var last = ColorRanges.Last();
-        last.EndIndex = str.Length;
+        last.EndIndex = StringBuffer.StringLength(str);
         ColorRanges[^1] = last;
 
         if (last.StartIndex == last.EndIndex)
@@ -174,28 +175,29 @@ public class RenderableString
         //\c[1,2,3]
         startIndex = -1;
         endIndex = -1;
-        while (index < str.Length)
+        int length = StringBuffer.StringLength(str);
+        while (index < length)
         {
-            while (index < str.Length && str[index++] != '\\') ;
+            while (index < length && str[index++] != '\\') ;
 
             startIndex = index - 1;
 
-            while (index < str.Length && str[index++] != 'c') ;
+            while (index < length && str[index++] != 'c') ;
 
-            if (index >= str.Length || str[index++] != '[')
+            if (index >= length || str[index++] != '[')
                 continue;
 
             for (int i = 0; i < 3; i++)
             {
                 int scanIndex = index;
-                while (index < str.Length && char.IsDigit(str[index]) && index - scanIndex <= 3)
+                while (index < length && char.IsDigit(str[index]) && index - scanIndex <= 3)
                     index++;
 
                 if (i < 2 && str[index++] != ',')
                     continue;
             }
 
-            if (index >= str.Length || str[index++] != ']')
+            if (index >= length || str[index++] != ']')
                 continue;
 
             endIndex = index;

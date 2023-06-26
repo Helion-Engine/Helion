@@ -14,6 +14,7 @@ using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -25,6 +26,7 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
+using MoreLinq;
 using static Helion.Render.Common.RenderDimensions;
 using static Helion.Util.Constants;
 
@@ -54,7 +56,23 @@ public partial class WorldLayer
     private readonly List<(string message, float alpha)> m_messages = new();
     private readonly Action<HudDrawWeapon> m_virtualDrawHudWeaponAction;
 
-    private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset);
+    private string m_weaponSprite = StringBuffer.GetStringExact(6);
+    private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
+    private string m_healthString = StringBuffer.GetString(16);
+    private string m_armorString = StringBuffer.GetString(16);
+    private string m_ammoString = StringBuffer.GetString(16);
+    private string m_maxAmmoString = StringBuffer.GetString(16);
+
+    private string m_fpsString = StringBuffer.GetString(16);
+    private string m_fpsMinString = StringBuffer.GetString(16);
+    private string m_fpsMaxString = StringBuffer.GetString(16);
+
+    private string m_killString = StringBuffer.GetString(64);
+    private string m_itemString = StringBuffer.GetString(64);
+    private string m_secretString = StringBuffer.GetString(64);
+    private string m_timeString = StringBuffer.GetString(64);
+
+    private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset, bool Flash);
 
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
@@ -111,9 +129,13 @@ public partial class WorldLayer
         int maxValueWidth = 0;
         var align = Align.TopRight;
 
-        StatValues[0] = $"{World.LevelStats.KillCount} / {World.LevelStats.TotalMonsters}";
-        StatValues[1] = $"{World.LevelStats.ItemCount} / {World.LevelStats.TotalItems}";
-        StatValues[2] = $"{World.LevelStats.SecretCount} / {World.LevelStats.TotalSecrets}";
+        StringBuffer.Clear(m_killString);
+        StringBuffer.Clear(m_itemString);
+        StringBuffer.Clear(m_secretString);
+
+        StatValues[0] = AppendStatString(m_killString, World.LevelStats.KillCount, World.LevelStats.TotalMonsters);
+        StatValues[1] = AppendStatString(m_itemString, World.LevelStats.ItemCount, World.LevelStats.TotalItems);
+        StatValues[2] = AppendStatString(m_secretString, World.LevelStats.SecretCount, World.LevelStats.TotalSecrets);
 
         for (int i = 0; i < StatLabels.Length; i++)
         {
@@ -141,11 +163,27 @@ public partial class WorldLayer
             TextAlign.Right, both: align, color: GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets));
         labelPos.Y += dim.Height + m_padding;
 
-        hud.Text(TimeSpan.FromSeconds(World.LevelTime / 35).ToString(), ConsoleFont, m_infoFontSize, labelPos, out dim,
+        TimeSpan ts = TimeSpan.FromSeconds(World.LevelTime / 35);
+        StringBuffer.Clear(m_timeString);
+        StringBuffer.Append(m_timeString, (int)ts.Hours, 2);
+        StringBuffer.Append(m_timeString, ':');
+        StringBuffer.Append(m_timeString, (int)ts.Minutes, 2);
+        StringBuffer.Append(m_timeString, ':');
+        StringBuffer.Append(m_timeString, (int)ts.Seconds, 2);
+
+        hud.Text(m_timeString, ConsoleFont, m_infoFontSize, labelPos, out dim,
             TextAlign.Right, both: align, color: Color.White);
         labelPos.Y += dim.Height;
 
         topRightY = labelPos.Y;
+    }
+
+    private static string AppendStatString(string str, int current, int max)
+    {
+        str = StringBuffer.Append(str, current);
+        str = StringBuffer.Append(str, " / ");
+        str = StringBuffer.Append(str, max);
+        return str;
     }
 
     private void DrawHudEffects(IHudRenderContext hud)
@@ -172,19 +210,23 @@ public partial class WorldLayer
             return;
 
         if (m_config.Hud.ShowFPS)
-            DrawFpsValue(hud, "", m_fpsTracker.AverageFramesPerSecond, ref topRightY);
+            DrawFpsValue(hud, "", m_fpsTracker.AverageFramesPerSecond, ref topRightY, m_fpsString);
 
         if (m_config.Hud.ShowMinMaxFPS)
         {
-            DrawFpsValue(hud, "Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY);
-            DrawFpsValue(hud, "Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY);
+            DrawFpsValue(hud, "Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY, m_fpsMaxString);
+            DrawFpsValue(hud, "Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY, m_fpsMinString);
         }
     }
 
-    void DrawFpsValue(IHudRenderContext hud, string prefix, double fps, ref int y)
+    void DrawFpsValue(IHudRenderContext hud, string prefix, double fps, ref int y, string bufferString)
     {
-        string avgFps = $"{prefix}FPS: {(int)Math.Round(fps)}";
-        hud.Text(avgFps, ConsoleFont, m_infoFontSize, (-m_padding, y), out Dimension avgArea,
+        StringBuffer.Clear(bufferString);
+        StringBuffer.Append(bufferString, prefix);
+        StringBuffer.Append(bufferString, "FPS: ");
+        StringBuffer.Append(bufferString, (int)Math.Round(fps));
+
+        hud.Text(bufferString, ConsoleFont, m_infoFontSize, (-m_padding, y), out Dimension avgArea,
             TextAlign.Right, both: Align.TopRight, color: Color.White);
         y += avgArea.Height + FpsMessageSpacing;
     }
@@ -219,9 +261,9 @@ public partial class WorldLayer
 
             // Doom pushes the gun sprite up when the status bar is showing
             int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
-            DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset);
+            DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
-                DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset);
+                DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
 
             hudContext.DrawInvul = false;
         }
@@ -248,9 +290,9 @@ public partial class WorldLayer
         return player.Sector.GetRenderSector(player.Sector, player.GetViewPosition().Z).LightLevel;
     }
 
-    private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset)
+    private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
-        hud.DoomVirtualResolution(m_virtualDrawHudWeaponAction, new HudDrawWeapon(hud, frameState, yOffset));
+        hud.DoomVirtualResolution(m_virtualDrawHudWeaponAction, new HudDrawWeapon(hud, frameState, yOffset, flash));
     }
 
     private void VirtualDrawHudWeapon(HudDrawWeapon hud)
@@ -269,7 +311,7 @@ public partial class WorldLayer
         }
 
         Color lightLevelColor = ((byte)lightLevel, (byte)lightLevel, (byte)lightLevel);
-        string sprite = hud.FrameState.Frame.Sprite + (char)(hud.FrameState.Frame.Frame + 'A') + "0";
+        string sprite = GetHudWeaponSpriteString(hud);
 
         if (!hud.Hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
             return;
@@ -288,6 +330,30 @@ public partial class WorldLayer
 
         offset = TranslateDoomOffset(offset);
         hud.Hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
+    }
+
+    private string GetHudWeaponSpriteString(HudDrawWeapon hud)
+    {
+        string sprite = hud.Flash ? m_weaponFlashSprite : m_weaponSprite;
+        int length = sprite.Length;
+        sprite = StringBuffer.Set(sprite, hud.FrameState.Frame.Sprite);
+        sprite = StringBuffer.Append(sprite, (char)(hud.FrameState.Frame.Frame + 'A'));
+        sprite = StringBuffer.Append(sprite, '0');
+
+        // This buffer string needs to have the exact length of the sprite. All these lookups are dependent on GetHashCode which changes with string.Length...
+        int stringBufferLength = StringBuffer.StringLength(sprite);
+        if (sprite.Length != StringBuffer.StringLength(sprite))
+        {
+            string exactSpriteString = StringBuffer.ToStringExact(sprite);
+            if (!ReferenceEquals(exactSpriteString, sprite))
+                StringBuffer.FreeString(sprite);
+            if (hud.Flash)
+                m_weaponFlashSprite = exactSpriteString;
+            else
+                m_weaponSprite = exactSpriteString;
+        }
+
+        return sprite;
     }
 
     private void DrawCrosshair(IHudRenderContext hud)
@@ -327,7 +393,6 @@ public partial class WorldLayer
         DrawMinimalHudAmmo(hud);
     }
 
-
     private static Color GetStatColor(int current, int total)
     {
         if (current >= total)
@@ -347,8 +412,9 @@ public partial class WorldLayer
         hud.Image(Medkit, (x, y), out var medkitArea, both: Align.BottomLeft, scale: m_scale);
         x += medkitArea.Width + m_padding;
 
-        string health = Math.Max(0, Player.Health).ToString();
-        hud.Text(health, LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
+        StringBuffer.Clear(m_healthString);
+        m_healthString = StringBuffer.Append(m_healthString, Math.Max(0, Player.Health));
+        hud.Text(m_healthString, LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
 
         // This is to make sure the face never moves (even if the health changes).
         x += hud.MeasureText("9999", LargeHudFont, m_fontHeight).Width;
@@ -368,7 +434,9 @@ public partial class WorldLayer
                 x += armorArea.Width + m_padding;
             }
 
-            hud.Text(Player.Armor.ToString(), LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
+            StringBuffer.Clear(m_armorString);
+            m_armorString = StringBuffer.Append(m_armorString, Player.Armor);
+            hud.Text(m_armorString, LargeHudFont, m_fontHeight, (x, y), both: Align.BottomLeft);
         }
     }
 
@@ -408,7 +476,9 @@ public partial class WorldLayer
         int y = -m_padding;
 
         int ammo = Player.Inventory.Amount(ammoType);
-        hud.Text(ammo.ToString(), LargeHudFont, m_fontHeight, (x, y), out Dimension textRect,
+        StringBuffer.Clear(m_ammoString);
+        m_ammoString = StringBuffer.Append(m_ammoString, ammo);
+        hud.Text(m_ammoString, LargeHudFont, m_fontHeight, (x, y), out Dimension textRect,
             both: Align.BottomRight);
 
         x -= textRect.Width + m_padding;
@@ -485,15 +555,20 @@ public partial class WorldLayer
         if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)
         {
             int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
-            string ammo = Math.Clamp(ammoAmount, 0, 999).ToString();
-            hud.Text(ammo, LargeHudFont, FontSize, (43, OffsetY), anchor: Align.TopRight);
+            StringBuffer.Clear(m_ammoString);
+            m_ammoString = StringBuffer.Append(m_ammoString, Math.Clamp(ammoAmount, 0, 999));
+            hud.Text(m_ammoString, LargeHudFont, FontSize, (43, OffsetY), anchor: Align.TopRight);
         }
 
-        string health = $"{Math.Clamp(Player.Health, 0, 999)}%";
-        hud.Text(health, LargeHudFont, FontSize, (102, OffsetY), anchor: Align.TopRight);
+        StringBuffer.Clear(m_healthString);
+        m_healthString = StringBuffer.Append(m_healthString, Math.Clamp(Player.Health, 0, 999));
+        m_healthString = StringBuffer.Append(m_healthString, '%');
+        hud.Text(m_healthString, LargeHudFont, FontSize, (102, OffsetY), anchor: Align.TopRight);
 
-        string armor = $"{Math.Clamp(Player.Armor, 0, 999)}%";
-        hud.Text(armor, LargeHudFont, FontSize, (233, OffsetY), anchor: Align.TopRight);
+        StringBuffer.Clear(m_armorString);
+        m_armorString = StringBuffer.Append(m_armorString, Math.Clamp(Player.Armor, 0, 999));
+        m_armorString = StringBuffer.Append(m_armorString, '%');
+        hud.Text(m_armorString, LargeHudFont, FontSize, (233, OffsetY), anchor: Align.TopRight);
     }
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
@@ -504,15 +579,46 @@ public partial class WorldLayer
             DrawWeaponNumber(hud, slot);
     }
 
+    private string m_weaponNumberTexture = StringBuffer.GetString(16);
+
+    private static readonly string[] HasWeaponImages = new[]
+    {
+        string.Empty,
+        "STYSNUM1",
+        "STYSNUM2",
+        "STYSNUM3",
+        "STYSNUM4",
+        "STYSNUM5",
+        "STYSNUM6",
+        "STYSNUM7",
+    };
+
+    private static readonly string[] WeaponImages = new[]
+    {
+        string.Empty,
+        "STGNUM1",
+        "STGNUM2",
+        "STGNUM3",
+        "STGNUM4",
+        "STGNUM5",
+        "STGNUM6",
+        "STGNUM7",
+    };
+
     private void DrawWeaponNumber(IHudRenderContext hud, int slot)
     {
         Weapon? weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 0);
         if (slot == 3 && weapon == null)
             weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 1);
 
-        string numberImage = (weapon != null ? "STYSNUM" : "STGNUM") + slot;
+        if (slot < 0 || slot >= WeaponImages.Length || slot >= HasWeaponImages.Length)
+            return;
 
-        hud.Image(numberImage, slot switch
+        string image = weapon != null ? HasWeaponImages[slot] : WeaponImages[slot];
+        if (string.IsNullOrEmpty(image))
+            return;
+
+        hud.Image(image, slot switch
         {
             2 => (111, 172),
             3 => (123, 172),
@@ -567,8 +673,12 @@ public partial class WorldLayer
         const int FontSize = 6;
         const string YellowFontName = "HudYellowNumbers";
         int ammo = Player.Inventory.Amount(ammoName);
-        hud.Text(ammo.ToString(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
-        hud.Text(maxAmmo.ToString(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
+        StringBuffer.Clear(m_ammoString);
+        StringBuffer.Clear(m_maxAmmoString);
+        StringBuffer.Append(m_ammoString, ammo);
+        StringBuffer.Append(m_maxAmmoString, maxAmmo);
+        hud.Text(m_ammoString, YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
+        hud.Text(m_maxAmmoString, YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
     }
 
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
