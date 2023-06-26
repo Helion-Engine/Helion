@@ -36,6 +36,9 @@ public class CheatManager
         new ExactMatchCheat(BeholdActivated, string.Empty, "idbeholda", CheatType.BeholdComputerAreaMap, canToggle: false),
         new ExactMatchCheat(BeholdActivated, string.Empty, "idbeholdl", CheatType.BeholdLightAmp, canToggle: false),
         new ExactMatchCheat(BeholdActivated, string.Empty, "idbeholds", CheatType.BeholdBerserk, canToggle: false),
+
+        new ExactMatchCheat("Exit", string.Empty, "exitlevel", "exitlevel", CheatType.Exit, canToggle: false),
+        new ExactMatchCheat("Exit Secret", string.Empty, "exitlevelsecret", "exitlevelsecret", CheatType.ExitSecret, canToggle: false),
     };
 
     private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
@@ -100,14 +103,12 @@ public class CheatManager
 
     public bool HandleCommand(Player player, string command)
     {
-        var cheat = Cheats.FirstOrDefault(x => command.Equals(x.ConsoleCommand, StringComparison.OrdinalIgnoreCase));
-
         for (int i = 0; i < Cheats.Length; i++)
         {
             if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            ActivateCheat(player, cheat.CheatType);
+            ActivateCheat(player, Cheats[i].CheatType);
             return true;
         }
 

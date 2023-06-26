@@ -2001,6 +2001,11 @@ public abstract partial class WorldBase : IWorld
             case CheatType.Automap:
                 TogglePowerup(player, PowerupNameFromCheatType(cheat.CheatType), PowerupTypeFromCheatType(cheat.CheatType));
                 break;
+            case CheatType.Exit:
+            case CheatType.ExitSecret:
+                ClearConsole?.Invoke(this, EventArgs.Empty);
+                ExitLevel(cheat.CheatType == CheatType.ExitSecret ? LevelChangeType.SecretNext : LevelChangeType.Next);
+                break;
             default:
                 break;
         }

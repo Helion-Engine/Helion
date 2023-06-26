@@ -29,5 +29,7 @@ public enum CheatType
     Fly,
     Ressurect,
     Kill,
-    KillAllMonsters
+    KillAllMonsters,
+    Exit,
+    ExitSecret
 }
