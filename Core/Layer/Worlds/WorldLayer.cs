@@ -4,6 +4,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -40,6 +41,9 @@ public partial class WorldLayer : IGameLayerParent
     private readonly TickCommand m_tickCommand = new();
     private readonly TickCommand m_chaseCamTickCommand = new();
     private readonly TickCommand m_demoTickCommand = new();
+    private readonly Action<IHudRenderContext> m_virtualDrawFullStatusBarAction;
+    private readonly Action<HudStatusBarbackground> m_virtualStatusBarBackgroundAction;
+    private readonly Action<IHudRenderContext> m_virtualDrawPauseAction;
     private TickerInfo m_lastTickInfo = new(0, 0);
     private bool m_drawAutomap;
     private Vec2I m_autoMapOffset = (0, 0);
@@ -67,6 +71,9 @@ public partial class WorldLayer : IGameLayerParent
         m_drawAutomapAndHudAction = new(DrawAutomapAndHudContext);
         m_virtualDrawHudWeaponAction = new(VirtualDrawHudWeapon);
         m_renderWorldAction = new(RenderWorld);
+        m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
+        m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
+        m_virtualDrawPauseAction = new(VirtualDrawPause);
 
         m_ticker.Start();
     }

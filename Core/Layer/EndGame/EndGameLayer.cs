@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
+using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Language;
@@ -60,6 +61,9 @@ public partial class EndGameLayer : IGameLayer
     private readonly string m_flatImage;
     private readonly IList<string> m_displayText;
     private readonly Ticker m_ticker = new(LettersPerSecond);
+    private readonly Action<HudBackgroundImage> m_virtualDrawBackground;
+    private readonly Action<IHudRenderContext> m_virtualDrawCast;
+    private readonly Action<HudVirtualText> m_virtualDrawText;
     private EndGameDrawState m_drawState = EndGameDrawState.Text;
     private TimeSpan m_timespan;
     private bool m_shouldScroll;
@@ -96,6 +100,10 @@ public partial class EndGameLayer : IGameLayer
         m_flatImage = language.GetMessage(currentCluster.Flat);
         m_displayText = LookUpDisplayText(archiveCollection, language, clusterText);
         m_timespan = GetPageTime();
+
+        m_virtualDrawBackground = new(VirtualDrawBackground);
+        m_virtualDrawCast = new(VirtualDrawCast);
+        m_virtualDrawText = new(VirtualDrawText);
 
         m_ticker.Start();
         string music = currentCluster.Music;

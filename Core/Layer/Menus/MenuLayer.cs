@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio.Sounds;
 using Helion.Menus;
 using Helion.Menus.Impl;
+using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
@@ -20,6 +22,7 @@ public partial class MenuLayer : IGameLayer
     private readonly SaveGameManager m_saveGameManager;
     private readonly Stack<Menu> m_menus = new();
     private readonly Stopwatch m_stopwatch = new();
+    private readonly Action<IHudRenderContext> m_renderVirtualHudAction;
     private bool m_disposed;
 
     public MenuLayer(GameLayerManager manager, IConfig config, HelionConsole console,
@@ -31,6 +34,7 @@ public partial class MenuLayer : IGameLayer
         m_archiveCollection = archiveCollection;
         m_soundManager = soundManager;
         m_saveGameManager = saveGameManager;
+        m_renderVirtualHudAction = new(RenderVirtualHud);
         m_stopwatch.Start();
 
         MainMenu mainMenu = new(this, config, console, soundManager, archiveCollection, saveGameManager);

@@ -22,7 +22,7 @@ public partial class MenuLayer
 
     public void Render(IHudRenderContext hud)
     {
-        hud.DoomVirtualResolution(RenderVirtualHud, hud);
+        hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
     }
 
     private void RenderVirtualHud(IHudRenderContext hud)

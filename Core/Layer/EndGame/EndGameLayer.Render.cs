@@ -55,7 +55,7 @@ public partial class EndGameLayer
         }
         else
         {
-            hud.DoomVirtualResolution(VirtualDrawBackground, new HudBackgroundImage(ctx, hud));
+            hud.DoomVirtualResolution(m_virtualDrawBackground, new HudBackgroundImage(ctx, hud));
         }
     }
 
@@ -72,7 +72,7 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
-        hud.DoomVirtualResolution(VirtualDrawCast, hud);
+        hud.DoomVirtualResolution(m_virtualDrawCast, hud);
     }
 
     private void VirtualDrawCast(IHudRenderContext hud)
@@ -154,7 +154,7 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
         DrawBackground(flat, hud);
-        hud.DoomVirtualResolution(VirtualDrawText, new HudVirtualText(displayText, ticker, showAllText, hud));
+        hud.DoomVirtualResolution(m_virtualDrawText, new HudVirtualText(displayText, ticker, showAllText, hud));
     }
 
     private void VirtualDrawText(HudVirtualText hud)

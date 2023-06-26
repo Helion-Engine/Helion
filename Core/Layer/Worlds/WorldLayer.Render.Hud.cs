@@ -89,7 +89,7 @@ public partial class WorldLayer
         if (!Player.World.DrawPause)
             return;
 
-        hud.DoomVirtualResolution(VirtualDrawPause, hud);
+        hud.DoomVirtualResolution(m_virtualDrawPauseAction, hud);
     }
 
     private void VirtualDrawPause(IHudRenderContext hud)
@@ -428,7 +428,7 @@ public partial class WorldLayer
 
         hud.RenderStatusBar(StatusBar);
 
-        hud.DoomVirtualResolution(VirtualDrawFullStatusBar, hud);
+        hud.DoomVirtualResolution(m_virtualDrawFullStatusBarAction, hud);
     }
 
     private void VirtualDrawFullStatusBar(IHudRenderContext hud)
@@ -449,7 +449,7 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(m_config.Hud.BackgroundTexture, out var backgroundHandle))
             return;
 
-        hud.DoomVirtualResolution(VirtualStatusBarBackground, new HudStatusBarbackground(hud, barHandle, backgroundHandle), 
+        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, barHandle, backgroundHandle), 
             ResolutionScale.None);
     }
 

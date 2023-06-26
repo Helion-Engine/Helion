@@ -33,7 +33,7 @@ public partial class IntermissionLayer
 
         hud.RenderFullscreenImage(IntermissionPic);
 
-        hud.DoomVirtualResolution(RenderVirtualIntermission, hud);
+        hud.DoomVirtualResolution(m_renderVirtualIntermissionAction, hud);
     }
 
     private void RenderVirtualIntermission(IHudRenderContext hud)
