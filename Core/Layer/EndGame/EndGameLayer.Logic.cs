@@ -19,8 +19,15 @@ public partial class EndGameLayer
     {
         UpdateScroller();
 
-        if (!m_forceState && (m_drawState == EndGameDrawState.Complete || !m_stopwatch.IsRunning || m_stopwatch.Elapsed < m_timespan))
-            return;
+        if (!m_forceState)
+        {
+            // If we're manually advancing through due to the user pressing buttons,
+            // we still want to hold at some drawing states until the user presses
+            // more input.
+            bool stateNeedsMoreInput = m_drawState == EndGameDrawState.Complete || m_drawState == EndGameDrawState.TextComplete;
+            if (stateNeedsMoreInput || !m_stopwatch.IsRunning || m_stopwatch.Elapsed < m_timespan)
+                return;
+        }
 
         if (m_drawState == EndGameDrawState.TextComplete && NextMapInfo != null)
             return;
