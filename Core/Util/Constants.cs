@@ -146,6 +146,13 @@ public static class Constants
         public const string QuickSave = "QuickSave";
     }
 
+    public static class Fonts
+    {
+        public const string Small = "SmallFont";
+        public const string LargeHud = "LargeHudFont";
+        public const string Console = "Console";
+    };
+
     public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
     {
         Input.Forward,

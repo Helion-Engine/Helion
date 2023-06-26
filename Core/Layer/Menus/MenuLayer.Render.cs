@@ -91,10 +91,9 @@ public partial class MenuLayer
         }
         else if (!string.IsNullOrEmpty(image.Title))
         {
-            const string Font = "SmallFont";
             const int FontSize = 12;
-            Dimension textDimensions = hud.MeasureText(image.Title, Font, FontSize);
-            hud.Text(image.Title, Font, FontSize, (0, drawY), both: (Align)image.ImageAlign);
+            Dimension textDimensions = hud.MeasureText(image.Title, Constants.Fonts.Small, FontSize);
+            hud.Text(image.Title, Constants.Fonts.Small, FontSize, (0, drawY), both: (Align)image.ImageAlign);
             offsetY += textDimensions.Height + 2;
 
             if (isSelected)

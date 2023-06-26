@@ -42,8 +42,8 @@ public partial class WorldLayer
     private const long FadingNanoSpan = 350L * 1000L * 1000L;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
-    private static readonly string SmallHudFont = "SmallFont";
-    private static readonly string LargeHudFont = "LargeHudFont";
+    private static readonly string SmallHudFont = Constants.Fonts.Small;
+    private static readonly string LargeHudFont = Constants.Fonts.LargeHud;
     private static readonly string ConsoleFont = "Console";
     private int m_fontHeight = 16;
     private int m_padding = 4;
