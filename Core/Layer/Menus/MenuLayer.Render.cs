@@ -31,9 +31,9 @@ public partial class MenuLayer
             return;
 
         int offsetY = menu.TopPixelPadding;
-
-        foreach (IMenuComponent component in menu)
+        for (int i = 0; i < menu.Components.Count; i++)
         {
+            IMenuComponent component = menu.Components[i];
             bool isSelected = ReferenceEquals(menu.CurrentComponent, component);
 
             switch (component)

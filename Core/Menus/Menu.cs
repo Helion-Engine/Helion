@@ -15,7 +15,7 @@ namespace Helion.Menus;
 /// <summary>
 /// A menu that can be interacted with.
 /// </summary>
-public abstract class Menu : IEnumerable<IMenuComponent>
+public abstract class Menu
 {
     /// <summary>
     /// How many pixels are padded from the top.
@@ -29,11 +29,12 @@ public abstract class Menu : IEnumerable<IMenuComponent>
     public readonly bool LeftAlign;
     public readonly bool ClearOnClose;
 
+    public ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
+
     protected readonly ArchiveCollection ArchiveCollection;
     protected readonly IConfig Config;
     protected readonly SoundManager SoundManager;
     protected readonly HelionConsole Console;
-    protected ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
     protected int? ComponentIndex { get; set; }
 
     public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
@@ -145,8 +146,4 @@ public abstract class Menu : IEnumerable<IMenuComponent>
             }
         }
     }
-
-    public IEnumerator<IMenuComponent> GetEnumerator() => Components.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
