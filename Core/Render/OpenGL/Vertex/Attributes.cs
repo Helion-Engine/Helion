@@ -18,6 +18,8 @@ public static class Attributes
     private static readonly Dictionary<Type, List<VaoAttribute>> TypeToData = new();
     private static readonly HashSet<Type> IsValid = new(); // If present, there's no undefined attributes, and is safe to use.
 
+    private static readonly HashSet<int> IndexUsed = new();
+
     private static List<VaoAttribute> ReadStructAttributes<TVertex>() where TVertex : struct
     {
         Type type = typeof(TVertex);
@@ -30,7 +32,6 @@ public static class Attributes
         int offset = 0;
         int stride = 0;
         int nextAvailableIndex = 0;
-        HashSet<int> indexUsed = new();
 
         foreach (FieldInfo info in type.GetFields())
         {
@@ -108,8 +109,8 @@ public static class Attributes
 
             string? name = codeAttr.InferName ? info.Name : codeAttr.Name;
             size = codeAttr.InferSize ? size : codeAttr.Size;
-            int index = GetNextIndex(codeAttr);
-            indexUsed.Add(index);
+            int index = GetNextIndex(codeAttr, IndexUsed, ref nextAvailableIndex);
+            IndexUsed.Add(index);
 
             VaoAttribute attr = codeAttr.IsIntegral ?
                 new(name, index, size, integerType, offset, stride) :
@@ -127,18 +128,19 @@ public static class Attributes
         foreach (VaoAttribute attr in attributes) 
             attr.Stride = stride;
 
+        IndexUsed.Clear();
         return attributes;
+    }
 
-        int GetNextIndex(VertexAttributeAttribute codeAttribute)
-        {
-            if (!codeAttribute.InferIndex)
-                return codeAttribute.Index;
+    private static int GetNextIndex(VertexAttributeAttribute codeAttribute, HashSet<int> indexUsed, ref int nextAvailableIndex)
+    {
+        if (!codeAttribute.InferIndex)
+            return codeAttribute.Index;
 
-            while (indexUsed.Contains(nextAvailableIndex))
-                nextAvailableIndex++;
+        while (indexUsed.Contains(nextAvailableIndex))
+            nextAvailableIndex++;
 
-            return nextAvailableIndex;
-        }
+        return nextAvailableIndex;
     }
 
     private static void AssertCorrectMappingOrThrow<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
@@ -151,13 +153,9 @@ public static class Attributes
         if ((type.Attributes & TypeAttributes.SequentialLayout) != TypeAttributes.SequentialLayout)
             throw new($"Layout of {nameof(TVertex)} is not {LayoutKind.Sequential}");
 
-        HashSet<string> activeIndices = shaderAttribs.Select(a => a.Name.ToLower()).ToHashSet();
-
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
-            string lowerAttribName = attr.Name.ToLower();
-
-            ProgramAttribute? progAttr = shaderAttribs.FirstOrDefault(a => a.Name.ToLower() == lowerAttribName);
+            ProgramAttribute? progAttr = FindShaderAttribute(shaderAttribs, attr.Name);
             if (progAttr == null)
                 throw new($"Cannot find shader attribute named {attr.Name}, was it optimized out?");
 
@@ -166,12 +164,7 @@ public static class Attributes
             // in the above they are, but the code below says they are not.
             //if (attr.Size != progAttr.Size)
             //    throw new($"Different attribute size in shader for {attr.Name}, expected {attr.Size}, got {progAttr.Size}");
-
-            activeIndices.Remove(lowerAttribName);
         }
-
-        if (activeIndices.Any())
-            throw new($"Unable to find active attributes named: {activeIndices.Join(", ")}");
 
         IsValid.Add(type);
     }
@@ -202,5 +195,16 @@ public static class Attributes
 
         vbo.Unbind();
         vao.Unbind();
+    }
+
+    private static ProgramAttribute? FindShaderAttribute(ProgramAttributes shaderAttribs, string name)
+    {
+        for (int i = 0; i < shaderAttribs.Count; i++)
+        {
+            if (shaderAttribs[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return shaderAttribs[i];
+        }
+
+        return null;
     }
 }
