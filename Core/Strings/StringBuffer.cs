@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Helion.Strings;
 
+// String buffer class that will concat and reuse buffers without allocations. NOT thread safe.
 public unsafe static class StringBuffer
 {
     private const int MinBufferLength = 64;
@@ -22,13 +23,16 @@ public unsafe static class StringBuffer
     public static string Append(string str, string text)
     {
         int length = StringLength(str);
-        str = EnsureBufferLength(str,  length + StringLength(text), true);
+        int copyLength = StringLength(text);
+        str = EnsureBufferLength(str, length + copyLength, true);
         fixed (char* to = str)
         {
+            copyLength *= sizeof(char);
             fixed (char* from = text)
             {
-                for (int i = 0; i < text.Length; i++)
-                    to[length + i] = from[i];
+                Buffer.MemoryCopy(from, to + length,
+                    str.Length * sizeof(char) - (length * sizeof(char)),
+                    copyLength);
             }
 
             to[length + text.Length] = Null;
@@ -48,14 +52,14 @@ public unsafe static class StringBuffer
         return str;
     }
 
-    public static string Append(string str, int number, int pad = 0)
+    public static string Append(string str, int number, int pad = 0, char padChar = '0')
     {
         if (number == 0)
         {
             pad--;
             while (pad > 0)
             {
-                Append(str, '0');
+                Append(str, padChar);
                 pad--;
             }
             return Append(str, '0');
@@ -63,19 +67,11 @@ public unsafe static class StringBuffer
 
         int length = StringLength(str);
         int addCount = 0;
-        int countValue = number;
+        int countValue = Math.Abs(number);
         while (countValue > 0)
         {
             addCount++;
             countValue /= 10;
-        }
-
-        pad -= addCount;
-        while (pad > 0)
-        {
-            Append(str, '0');
-            addCount++;
-            pad--;
         }
 
         str = EnsureBufferLength(str, length + addCount, true);
@@ -85,6 +81,14 @@ public unsafe static class StringBuffer
             {
                 buffer[length] = '-';
                 addCount++;
+            }
+
+            pad -= addCount;
+            while (pad > 0)
+            {
+                Append(str, padChar);
+                addCount++;
+                pad--;
             }
 
             int index = 0;
@@ -108,11 +112,11 @@ public unsafe static class StringBuffer
         if (str.Length >= length)
             return str;
 
-        FreeString(str);
         string newString = GetString(length);
         if (copy)
             SetBuffer(newString, str);
 
+        FreeString(str);
         return newString;
     }
 
@@ -129,7 +133,11 @@ public unsafe static class StringBuffer
             }
         }
 
-        string newString = new string(InitChar, Math.Max(minLength, MinBufferLength));
+        int amount = minLength / MinBufferLength;
+        if (minLength % MinBufferLength != 0)
+            amount += 1;
+
+        string newString = new string(InitChar, MinBufferLength * amount);
         Clear(newString);
         return newString;
     }
@@ -158,7 +166,7 @@ public unsafe static class StringBuffer
             return str;
 
         string newString = GetStringExact(length);
-        Set(newString, str);
+        SetBuffer(newString, str);
         return newString;
     }
 
@@ -190,14 +198,11 @@ public unsafe static class StringBuffer
 
     private static void SetBuffer(string str, string text)
     {
+        int copyLength = StringLength(text);
         fixed (char* to = str)
         {
             fixed (char* from = text)
-            {
-                for (int i = 0; i < text.Length; i++)
-                    to[i] = from[i];
-            }
-
+                Buffer.MemoryCopy(from, to, str.Length * sizeof(char), copyLength * sizeof(char));
             to[text.Length] = Null;
         }
     }
