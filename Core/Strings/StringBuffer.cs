@@ -182,15 +182,17 @@ public unsafe static class StringBuffer
         _strings.Add(str);
     }
 
+    public static void ClearStringCache()
+    {
+        _strings.Clear();
+    }
+
     public static int StringLength(string str)
     {
-        fixed (char* buffer = str)
+        for (int i = 0; i < str.Length; i++)
         {
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == Null)
-                    return i;
-            }
+            if (str[i] == Null)
+                return i;
         }
 
         return str.Length;

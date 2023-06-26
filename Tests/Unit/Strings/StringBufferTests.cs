@@ -130,6 +130,9 @@ public class StringBufferTests
     [Fact(DisplayName = "Free string")]
     public void Free()
     {
+        // Make sure to start clean with this test
+        StringBuffer.ClearStringCache();
+
         string first = StringBuffer.GetString(16);
         first = StringBuffer.Set(first, "first");
 
