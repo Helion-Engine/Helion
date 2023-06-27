@@ -8,6 +8,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System.Collections.Generic;
+using Helion.Audio.Sounds;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -47,6 +48,8 @@ public class DataCache
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
+    private readonly DynamicArray<LinkedListNode<IAudioSource>> m_audioNodes = new();
+    private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
@@ -281,7 +284,7 @@ public class DataCache
         data.Vertices.Clear();
         m_hudDrawBufferData.Add(data);
     }
-
+    
     public LinkedListNode<ClipSpan> GetClipSpan(ClipSpan clipSpan)
     {
         if (m_clipSpans.Length > 0)
@@ -297,6 +300,42 @@ public class DataCache
     public void FreeClipSpan(LinkedListNode<ClipSpan> clipSpan)
     {
         m_clipSpans.Add(clipSpan);
+    }
+    
+    public LinkedListNode<IAudioSource> GetAudioNode(IAudioSource audio)
+    {
+        if (m_audioNodes.Length > 0)
+        {
+            var node = m_audioNodes.RemoveLast();
+            node.Value = audio;
+            return node;
+        }
+
+        return new LinkedListNode<IAudioSource>(audio);
+    }
+
+    public void FreeAudioNode(LinkedListNode<IAudioSource> audio)
+    {
+        audio.Value = null!;
+        m_audioNodes.Add(audio);
+    }
+    
+    public LinkedListNode<WaitingSound> GetWaitingSoundNode(WaitingSound sound)
+    {
+        if (m_waitingSoundNodes.Length > 0)
+        {
+            var node = m_waitingSoundNodes.RemoveLast();
+            node.Value = sound;
+            return node;
+        }
+
+        return new LinkedListNode<WaitingSound>(sound);
+    }
+
+    public void FreeWaitingSoundNode(LinkedListNode<WaitingSound> audio)
+    {
+        audio.Value = default;
+        m_waitingSoundNodes.Add(audio);
     }
 
     public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)

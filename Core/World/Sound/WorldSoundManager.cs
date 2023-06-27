@@ -179,6 +179,7 @@ public class WorldSoundManager : SoundManager, ITickable
             {
                 m_world.DataCache.FreeAudioSource(node.Value);
                 PlayingSounds.Remove(node.Value);
+                m_world.DataCache.FreeAudioNode(node);
                 node = nextNode;
                 continue;
             }
@@ -191,6 +192,7 @@ public class WorldSoundManager : SoundManager, ITickable
 
                 AddWaitingSoundFromBumpedSound(node.Value);
                 m_world.DataCache.FreeAudioSource(node.Value);
+                m_world.DataCache.FreeAudioNode(node);
             }
             else
             {
