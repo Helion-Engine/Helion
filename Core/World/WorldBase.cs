@@ -562,7 +562,7 @@ public abstract partial class WorldBase : IWorld
         bool anyPlayerAlive = false;
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
-            if (EntityManager.Players[i].IsDead)
+            if (!EntityManager.Players[i].IsDead)
             {
                 anyPlayerAlive = true;
                 break;
