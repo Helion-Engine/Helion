@@ -4,7 +4,7 @@ using System.Diagnostics.Contracts;
 
 namespace Helion.Strings;
 
-public partial class StringBuffer
+public partial class SpanString
 {
     internal const int UNICODE_PLANE00_END = 0x00ffff;
     // The starting codepoint for Unicode plane 1.  Plane 1 contains 0x010000 ~ 0x01ffff.
@@ -25,10 +25,10 @@ public partial class StringBuffer
     }
 
     // Taken from https://referencesource.microsoft.com/#mscorlib/system/char.cs,0fe3da7070268ee9,references
-    // Modified to use StringBuffer to not allocate a string each time a key is pressed.
-    public static string ConvertFromUtf32(string str, int utf32)
+    // Modified to use SpanString to not allocate a string each time a key is pressed.
+    public void ConvertFromUtf32(int utf32)
     {
-        Clear(str);
+        Clear();
         // For UTF32 values from U+00D800 ~ U+00DFFF, we should throw.  They
         // are considered as irregular code unit sequence, but they are not illegal.
         if ((utf32 < 0 || utf32 > UNICODE_PLANE16_END) || (utf32 >= HIGH_SURROGATE_START && utf32 <= LOW_SURROGATE_END))
@@ -40,12 +40,12 @@ public partial class StringBuffer
         if (utf32 < UNICODE_PLANE01_START)
         {
             // This is a BMP character.
-            return Append(str, (char)utf32);
+            Append((char)utf32);
+            return;
         }
         // This is a sumplementary character.  Convert it to a surrogate pair in UTF-16.
         utf32 -= UNICODE_PLANE01_START;
-        str = Append(str, (char)((utf32 / 0x400) + (int)CharUnicodeInfo.HIGH_SURROGATE_START));
-        str = Append(str, (char)((utf32 % 0x400) + (int)CharUnicodeInfo.LOW_SURROGATE_START));
-        return str;
+        Append((char)((utf32 / 0x400) + (int)CharUnicodeInfo.HIGH_SURROGATE_START));
+        Append((char)((utf32 % 0x400) + (int)CharUnicodeInfo.LOW_SURROGATE_START));
     }
 }

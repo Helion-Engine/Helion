@@ -23,22 +23,22 @@ public unsafe static partial class StringBuffer
         return str;
     }
 
-    public static string Append(string str, string text)
+    public static string Append(string str, ReadOnlySpan<char> data)
     {
         int length = StringLength(str);
-        int copyLength = StringLength(text);
+        int copyLength = data.Length;
         str = EnsureBufferLength(str, length + copyLength, true);
         fixed (char* to = str)
         {
             copyLength *= sizeof(char);
-            fixed (char* from = text)
+            fixed (char* from = data)
             {
                 Buffer.MemoryCopy(from, to + length,
                     str.Length * sizeof(char) - (length * sizeof(char)),
                     copyLength);
             }
 
-            to[length + text.Length] = Null;
+            to[length + data.Length] = Null;
         }
         return str;
     }
@@ -52,61 +52,6 @@ public unsafe static partial class StringBuffer
             buffer[length] = c;
             buffer[length + 1] = Null;
         }
-        return str;
-    }
-
-    public static string Append(string str, int number, int pad = 0, char padChar = '0')
-    {
-        if (number == 0)
-        {
-            pad--;
-            while (pad > 0)
-            {
-                Append(str, padChar);
-                pad--;
-            }
-            return Append(str, '0');
-        }
-
-        int length = StringLength(str);
-        int addCount = 0;
-        int countValue = Math.Abs(number);
-        while (countValue > 0)
-        {
-            addCount++;
-            countValue /= 10;
-        }
-
-        str = EnsureBufferLength(str, length + addCount, true);
-        fixed (char* buffer = str)
-        {
-            if (number < 0)
-            {
-                buffer[length] = '-';
-                addCount++;
-            }
-
-            pad -= addCount;
-            while (pad > 0)
-            {
-                Append(str, padChar);
-                addCount++;
-                pad--;
-            }
-
-            int index = 0;
-            int value = Math.Abs(number);
-            while (value > 0)
-            {
-                int digit = (value % 10);
-                value /= 10;
-                buffer[length + addCount - index - 1] = (char)(digit + '0');
-                index++;
-            }
-
-            buffer[length + addCount] = Null;
-        }
-
         return str;
     }
 

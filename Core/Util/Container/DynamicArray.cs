@@ -21,7 +21,7 @@ public class DynamicArray<T>
     /// How many elements are in the array.
     /// </summary>
     public int Length { get; private set; }
-
+    
     /// <summary>
     /// The exposed underlying array of data. This list may be longer than
     /// the number of elements contained, use <see cref="Length"/>.
@@ -142,7 +142,7 @@ public class DynamicArray<T>
     /// <param name="size">The new size to use. Should never be negative.
     /// </param>
     public void Resize(int size)
-    {
+    {        
         SetCapacity(size);
         Length = size;
     }
@@ -166,19 +166,13 @@ public class DynamicArray<T>
         Array.Sort<T>(Data, index, length, null);
     }
 
-    //public void Sort(IComparer<T> comparer)
-    //{
-    //    Span<T> span = Data.AsSpan(0, Length);
-    //    MemoryExtensions.Sort(span, comparer);
-    //}
-
     public void Sort(Comparison<T> comparison)
     {
         Span<T> span = Data.AsSpan(0, Length);
         MemoryExtensions.Sort(span, comparison);
     }
 
-    private void EnsureCapacity(int desiredCapacity)
+    public void EnsureCapacity(int desiredCapacity)
     {
         Precondition(Capacity > 0, "Should never have a zero capacity");
 
@@ -196,6 +190,11 @@ public class DynamicArray<T>
                 newCapacity *= 2;
 
         SetCapacity(newCapacity);
+    }
+
+    public void SetLength(int length)
+    {
+        Length = length;
     }
 
     private void SetCapacity(int newCapacity)

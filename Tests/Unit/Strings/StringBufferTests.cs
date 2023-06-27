@@ -22,18 +22,6 @@ public class StringBufferTests
         StringBuffer.StringLength(str).Should().Be(0);
     }
 
-    [Fact(DisplayName = "Append strings")]
-    public void AppendString()
-    {
-        string str = StringBuffer.GetString(16);
-        int length = str.Length * 2;
-        for (int i = 0; i < length; i++)
-            str = StringBuffer.Append(str, (i % 10).ToString());
-
-        for (int i = 0; i < length; i++)
-            str[i].Should().Be((i % 10).ToString()[0]);
-    }
-
     [Fact(DisplayName = "Append chars")]
     public void AppendChar()
     {
@@ -44,38 +32,6 @@ public class StringBufferTests
 
         for (int i = 0; i < length; i++)
             str[i].Should().Be((i % 10).ToString()[0]);
-    }
-
-    [Fact(DisplayName = "Append numbers")]
-    public void AppendNumber()
-    {
-        string str = StringBuffer.GetStringExact(4);
-        str.Length.Should().Be(4);
-        str = StringBuffer.Append(str, 420);
-        CompareString(str, "420");
-        str = StringBuffer.Append(str, 69);
-        CompareString(str, "42069");
-        str.Length.Should().BeGreaterThan(5);
-    }
-
-    [Fact(DisplayName = "Append zero")]
-    public void AppendZero()
-    {
-        string str = StringBuffer.GetStringExact(4);
-        for (int i = 0; i < 8; i++)
-            str = StringBuffer.Append(str, 0);
-        CompareString(str, "00000000");
-    }
-
-    [Fact(DisplayName = "Append negative number")]
-    public void AppendNegativeNumber()
-    {
-        string str = StringBuffer.GetStringExact(4);
-        str = StringBuffer.Append(str, -1);
-        CompareString(str, "-1");
-
-        str = StringBuffer.Append(str, -9876);
-        CompareString(str, "-1-9876");
     }
 
     [Fact(DisplayName = "ToStringExact")]
@@ -90,30 +46,6 @@ public class StringBufferTests
         str = StringBuffer.Append(str, " test2");
         exact = StringBuffer.ToStringExact(str);
         exact.Should().Be("test test2");
-    }
-
-    [Fact(DisplayName = "Pad numbers")]
-    public void PadNumber()
-    {
-        string str = StringBuffer.GetString(16);
-        str = StringBuffer.Append(str, 0, 2);
-        CompareString(str, "00");
-
-        str = StringBuffer.Append(str, ':');
-        str = StringBuffer.Append(str, 123, 6);
-        CompareString(str, "00:000123");
-    }
-
-    [Fact(DisplayName = "Pad number set pad char")]
-    public void PadNumberSetPadChar()
-    {
-        string str = StringBuffer.GetString(16);
-        str = StringBuffer.Append(str, 0, 2, 'x');
-        CompareString(str, "x0");
-
-        str = StringBuffer.Append(str, ':');
-        str = StringBuffer.Append(str, 123, 6, 'x');
-        CompareString(str, "x0:xxx123");
     }
 
     [Fact(DisplayName = "Clear string")]

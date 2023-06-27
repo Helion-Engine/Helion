@@ -36,7 +36,7 @@ public class Window : GameWindow, IWindow
     private readonly IConfig m_config;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
-    private string m_textInput = StringBuffer.GetString();
+    private SpanString m_textInput = new();
     private bool m_disposed;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
@@ -208,8 +208,8 @@ public class Window : GameWindow, IWindow
 
     private void Window_TextInput(TextInputEventArgs args)
     {
-        m_textInput = StringBuffer.ConvertFromUtf32(m_textInput, args.Unicode);
-        m_inputManager.AddTypedCharacters(StringBuffer.AsSpan(m_textInput));
+        m_textInput.ConvertFromUtf32(args.Unicode);
+        m_inputManager.AddTypedCharacters(m_textInput.AsSpan());
     }
 
     public void HandleRawMouseMovement(int x, int y)
