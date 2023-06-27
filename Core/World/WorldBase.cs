@@ -559,11 +559,22 @@ public abstract partial class WorldBase : IWorld
 
     public void BossDeath(Entity entity)
     {
-        if (EntityManager.Players.All(x => x.IsDead))
+        bool anyPlayerAlive = false;
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+        {
+            if (EntityManager.Players[i].IsDead)
+            {
+                anyPlayerAlive = true;
+                break;
+            }
+        }
+
+        if (!anyPlayerAlive)
             return;
 
-        foreach (var special in m_bossDeathSpecials)
+        for (int i = 0; i < m_bossDeathSpecials.Count; i++)
         {
+            var special = m_bossDeathSpecials[i];
             if (special.EntityDefinitionId == entity.Definition.Id)
                 special.Tick();
         }
