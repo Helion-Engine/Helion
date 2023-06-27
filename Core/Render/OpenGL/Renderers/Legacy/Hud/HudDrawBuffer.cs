@@ -19,7 +19,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 /// </remarks>
 public class HudDrawBuffer
 {
-    public readonly List<HudDrawBufferData> DrawBuffer = new();
+    public readonly List<HudDrawBufferData> DrawBuffer = new(256);
 
     private readonly DataCache m_dataCache;
 
