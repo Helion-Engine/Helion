@@ -34,7 +34,7 @@ public class ExactMatchCheat : ICheat
 
     public void SetCode(string code, int index = 0) => m_code = code;
 
-    public bool IsMatch(string str) => m_code.Equals(str, StringComparison.InvariantCultureIgnoreCase);
+    public bool IsMatch(ReadOnlySpan<char> str) => m_code.AsSpan().Equals(str, StringComparison.InvariantCultureIgnoreCase);
 
-    public bool PartialMatch(string str) => m_code.StartsWith(str, StringComparison.InvariantCultureIgnoreCase);
+    public bool PartialMatch(ReadOnlySpan<char> str) => m_code.AsSpan().StartsWith(str, StringComparison.InvariantCultureIgnoreCase);
 }

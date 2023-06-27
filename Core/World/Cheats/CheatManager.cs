@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Helion.Strings;
 using Helion.Window;
 using Helion.World.Entities.Players;
 
@@ -42,7 +43,7 @@ public class CheatManager
     };
 
     private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
-    private readonly StringBuilder m_currentCheat = new();
+    private string m_currentCheat = StringBuffer.GetString(128);
 
     public event EventHandler<CheatEventArgs>? CheatActivationChanged;
 
@@ -121,31 +122,31 @@ public class CheatManager
         for (int i = 0; i < characters.Length; i++)
         {
             char key = characters[i];
-            m_currentCheat.Append(key);
-            string cheatString = m_currentCheat.ToString();
+            m_currentCheat = StringBuffer.Append(m_currentCheat, key);
 
-            if (AnyPartialMatch(cheatString))
+            if (AnyPartialMatch(m_currentCheat))
             {
-                ICheat? cheat = GetCheatMatch(cheatString);
+                ICheat? cheat = GetCheatMatch(m_currentCheat);
                 if (cheat != null)
                 {
                     SetCheat(player, cheat.CheatType, true);
                     if (cheat.ClearTypedCheatString)
-                        m_currentCheat.Clear();
+                        StringBuffer.Clear(m_currentCheat);
                 }
 
                 continue;
             }
-            
-            m_currentCheat.Clear();
+
+            StringBuffer.Clear(m_currentCheat);
         }
     }
 
     private bool AnyPartialMatch(string cheatString)
     {
+        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan(0, StringBuffer.StringLength(cheatString));
         for (int i = 0; i < Cheats.Length; i++)
         {
-            if (Cheats[i].PartialMatch(cheatString))
+            if (Cheats[i].PartialMatch(cheatSpan))
                 return true;
         }
 
@@ -154,9 +155,10 @@ public class CheatManager
 
     private ICheat? GetCheatMatch(string cheatString)
     {
+        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan(0, StringBuffer.StringLength(cheatString));
         for (int i = 0; i < Cheats.Length; i++)
         {
-            if (Cheats[i].IsMatch(cheatString))
+            if (Cheats[i].IsMatch(cheatSpan))
                 return Cheats[i];
         }
 

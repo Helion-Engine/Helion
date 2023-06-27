@@ -1,4 +1,5 @@
 using Helion.World.Entities.Players;
+using System;
 
 namespace Helion.World.Cheats;
 
@@ -12,8 +13,8 @@ public interface ICheat
     bool ClearTypedCheatString { get; }
 
     void SetCode(string code, int index = 0);
-    bool IsMatch(string str);
-    bool PartialMatch(string str);
+    bool IsMatch(ReadOnlySpan<char> str);
+    bool PartialMatch(ReadOnlySpan<char> str);
 
     public virtual void SetActivated(Player player)
     {

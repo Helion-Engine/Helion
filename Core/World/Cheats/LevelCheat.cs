@@ -26,11 +26,11 @@ public class LevelCheat : ICheat
 
     public void SetCode(string code, int index = 0) => m_code = code;
 
-    public bool IsMatch(string str)
+    public bool IsMatch(ReadOnlySpan<char> str)
     {
         if (PartialMatch(str) && str.Length == m_code.Length + 2 && char.IsDigit(str[^1]) && char.IsDigit(str[^2]))
         {
-            string digits = str.Substring(str.Length - 2, 2);
+            ReadOnlySpan<char> digits = str.Slice(str.Length - 2, 2);
             if (int.TryParse(digits, out int levelNumber))
             {
                 LevelNumber = levelNumber;
@@ -41,9 +41,9 @@ public class LevelCheat : ICheat
         return false;
     }
 
-    public bool PartialMatch(string str)
+    public bool PartialMatch(ReadOnlySpan<char> str)
     {
-        if (m_code.StartsWith(str))
+        if (m_code.AsSpan().StartsWith(str))
             return true;
         return str.Length <= m_code.Length + 2 && str.StartsWith(m_code);
     }

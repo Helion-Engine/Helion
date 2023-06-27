@@ -35,22 +35,22 @@ public class MultiCodeCheat : ICheat
         m_codes[index] = code;
     }
 
-    public bool IsMatch(string str)
+    public bool IsMatch(ReadOnlySpan<char> str)
     {
         for (int i = 0; i < m_codes.Length; i++)
         {
-            if (m_codes[i].Equals(str, StringComparison.InvariantCultureIgnoreCase))
+            if (m_codes[i].AsSpan().Equals(str, StringComparison.InvariantCultureIgnoreCase))
                 return true;
         }
 
         return false;
     }
 
-    public bool PartialMatch(string str)
+    public bool PartialMatch(ReadOnlySpan<char> str)
     {
         for (int i = 0; i < m_codes.Length; i++)
         {
-            if (m_codes[i].StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
+            if (m_codes[i].AsSpan().StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
                 return true;
         }
 
