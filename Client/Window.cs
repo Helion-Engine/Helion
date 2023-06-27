@@ -5,6 +5,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Resources.Archives.Collection;
+using Helion.Strings;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Timing;
@@ -35,6 +36,7 @@ public class Window : GameWindow, IWindow
     private readonly IConfig m_config;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
+    private string m_textInput = StringBuffer.GetString();
     private bool m_disposed;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
@@ -206,7 +208,8 @@ public class Window : GameWindow, IWindow
 
     private void Window_TextInput(TextInputEventArgs args)
     {
-        m_inputManager.AddTypedCharacters(args.AsString);
+        m_textInput = StringBuffer.ConvertFromUtf32(m_textInput, args.Unicode);
+        m_inputManager.AddTypedCharacters(m_textInput.AsSpan(0, StringBuffer.StringLength(m_textInput)));
     }
 
     public void HandleRawMouseMovement(int x, int y)
