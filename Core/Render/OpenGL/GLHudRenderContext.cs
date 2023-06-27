@@ -181,7 +181,7 @@ public class GLHudRenderContext : IHudRenderContext
         m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
     }
 
-    public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
+    public void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
         TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, int maxWidth = int.MaxValue, int maxHeight = int.MaxValue, Color? color = null,
         float scale = 1.0f, float alpha = 1.0f)
@@ -208,7 +208,7 @@ public class GLHudRenderContext : IHudRenderContext
         m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
     }
 
-    public Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
+    public Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f)
     {
         Font? fontObject = m_archiveCollection.GetFont(font);

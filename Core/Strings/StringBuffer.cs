@@ -203,6 +203,11 @@ public unsafe static partial class StringBuffer
         return str.Length;
     }
 
+    public static ReadOnlySpan<char> AsSpan(string str)
+    {
+        return str.AsSpan(0, StringLength(str));
+    }
+
     private static void SetBuffer(string str, string text)
     {
         int copyLength = StringLength(text);

@@ -157,6 +157,17 @@ public class StringBufferTests
         ReferenceEquals(first, third).Should().BeTrue();
     }
 
+    [Fact(DisplayName = "AsSpan")]
+    public void AsSpan()
+    {
+        string str = StringBuffer.GetString();
+        str = StringBuffer.Append(str, "testing");
+        var span = StringBuffer.AsSpan(str);
+        span.Length.Should().Be(7);
+        for (int i = 0; i < span.Length; i++)
+            span[i].Should().Be(str[i]);
+    }
+
     private static void CompareString(string stringBuffer, string str)
     {
         int length = StringBuffer.StringLength(stringBuffer);

@@ -209,7 +209,7 @@ public class Window : GameWindow, IWindow
     private void Window_TextInput(TextInputEventArgs args)
     {
         m_textInput = StringBuffer.ConvertFromUtf32(m_textInput, args.Unicode);
-        m_inputManager.AddTypedCharacters(m_textInput.AsSpan(0, StringBuffer.StringLength(m_textInput)));
+        m_inputManager.AddTypedCharacters(StringBuffer.AsSpan(m_textInput));
     }
 
     public void HandleRawMouseMovement(int x, int y)

@@ -29,6 +29,7 @@ using Helion.World.Physics;
 using Helion.World;
 using Font = Helion.Graphics.Fonts.Font;
 using Helion.Graphics;
+using System;
 
 namespace Helion.Util;
 
@@ -242,7 +243,7 @@ public class DataCache
         m_glyphs.Add(list);
     }
 
-    public RenderableString GetRenderableString(string str, Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString GetRenderableString(ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         if (m_strings.Length > 0)

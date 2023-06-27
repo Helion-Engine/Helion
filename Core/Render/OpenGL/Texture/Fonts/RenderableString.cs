@@ -7,7 +7,6 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
-using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -51,7 +50,7 @@ public class RenderableString
     /// <param name="align">Alignment (only needed if there are multiple
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
-    public RenderableString(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         Font = font;
@@ -61,7 +60,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public void Set(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public void Set(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         Font = font;
@@ -71,7 +70,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, string str, Graphics.Fonts.Font font, int fontSize,
+    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
         double scale = (double)fontSize / font.MaxHeight;
@@ -79,7 +78,7 @@ public class RenderableString
         int currentHeight = 0;
 
         List<RenderableSentence> sentences = dataCache.GetRenderableSentences();
-        if (string.IsNullOrEmpty(str))
+        if (str.Length == 0)
             return sentences;
 
         DynamicArray<RenderableGlyph>? currentSentence = null;
@@ -134,12 +133,12 @@ public class RenderableString
         currentHeight += sentence.DrawArea.Height;
     }
 
-    private static List<ColorRange> GetColorRanges(string str, Color? drawColor)
+    private static List<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
     {
         ColorRanges.Clear();
         if (drawColor != null)
         {
-            ColorRanges.Add(new ColorRange(0, StringBuffer.StringLength(str), drawColor.Value));
+            ColorRanges.Add(new ColorRange(0, str.Length, drawColor.Value));
             return ColorRanges;
         }
 
@@ -152,7 +151,7 @@ public class RenderableString
             currentColorInfo.EndIndex = startIndex;
             ColorRanges[^1] = currentColorInfo;
 
-            Color color = ColorDefinitionToColor(str.AsSpan(startIndex, endIndex - startIndex));
+            Color color = ColorDefinitionToColor(str.Slice(startIndex, endIndex - startIndex));
             ColorRanges.Add(new ColorRange(endIndex, color));
             startIndex = endIndex + 1;
             success = FindNextColorIndex(str, startIndex, out startIndex, out endIndex);
@@ -161,7 +160,7 @@ public class RenderableString
         // Since we never set the very last element's ending point due to
         // the loop invariant, we do that now.
         var last = ColorRanges.Last();
-        last.EndIndex = StringBuffer.StringLength(str);
+        last.EndIndex = str.Length;
         ColorRanges[^1] = last;
 
         if (last.StartIndex == last.EndIndex)
@@ -170,12 +169,12 @@ public class RenderableString
         return ColorRanges;
     }
 
-    private static bool FindNextColorIndex(string str, int index, out int startIndex, out int endIndex)
+    private static bool FindNextColorIndex(ReadOnlySpan<char> str, int index, out int startIndex, out int endIndex)
     {
         //\c[1,2,3]
         startIndex = -1;
         endIndex = -1;
-        int length = StringBuffer.StringLength(str);
+        int length = str.Length;
         while (index < length)
         {
             while (index < length && str[index++] != '\\') ;

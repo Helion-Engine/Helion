@@ -83,18 +83,38 @@ public interface IHudRenderContext : IDisposable
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
-    void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
+    void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
     {
         Text(text, font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, scale, alpha);
     }
 
+    void Text(string text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
+        Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
+        int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
+    {
+        Text(text.AsSpan(), font, fontSize, origin, out _, textAlign, window, anchor, both, maxWidth, maxHeight, color, scale, alpha);
+    }
+
     void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left,
+        Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
+        int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f)
+    {
+        Text(text.AsSpan(), font, fontSize, origin, out drawArea, textAlign, window, anchor, both, maxWidth, maxHeight, color, scale, alpha);
+    }
+
+    void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, out Dimension drawArea, TextAlign textAlign = TextAlign.Left,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
     Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
+        int maxHeight = int.MaxValue, float scale = 1.0f)
+    {
+        return MeasureText(text.AsSpan(), font, fontSize, maxWidth, maxHeight, scale);
+    }
+
+    Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f);
 
     /// <summary>

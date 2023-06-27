@@ -143,7 +143,7 @@ public class CheatManager
 
     private bool AnyPartialMatch(string cheatString)
     {
-        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan(0, StringBuffer.StringLength(cheatString));
+        ReadOnlySpan<char> cheatSpan = StringBuffer.AsSpan(cheatString);
         for (int i = 0; i < Cheats.Length; i++)
         {
             if (Cheats[i].PartialMatch(cheatSpan))
@@ -155,7 +155,7 @@ public class CheatManager
 
     private ICheat? GetCheatMatch(string cheatString)
     {
-        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan(0, StringBuffer.StringLength(cheatString));
+        ReadOnlySpan<char> cheatSpan = StringBuffer.AsSpan(cheatString);
         for (int i = 0; i < Cheats.Length; i++)
         {
             if (Cheats[i].IsMatch(cheatSpan))
