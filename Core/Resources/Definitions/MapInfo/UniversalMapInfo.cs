@@ -68,10 +68,12 @@ public partial class MapInfoDefinition
                     ParseInterTextBackDrop(parser, mapDef);
                 else if (item.EqualsIgnoreCase("intermusic"))
                     ParseInterMusic(parser, mapDef);
-                else if (item.Equals("episode"))
+                else if (item.EqualsIgnoreCase("episode"))
                     ParseEpisode(parser, mapDef);
-                else if (item.Equals("bossaction"))
+                else if (item.EqualsIgnoreCase("bossaction"))
                     ParseBossAction(parser, mapDef);
+                else if (item.EqualsIgnoreCase("author"))
+                    mapDef.Author = parser.ConsumeString();
                 else
                 {
                     WarnMissing("map", item, line);

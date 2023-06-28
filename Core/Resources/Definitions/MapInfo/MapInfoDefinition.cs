@@ -212,6 +212,8 @@ public partial class MapInfoDefinition
             mapDef.EnterPic = parser.ConsumeString();
         else if (item.Equals(MapExitPicName, StringComparison.OrdinalIgnoreCase))
             mapDef.ExitPic = parser.ConsumeString();
+        else if (item.Equals(MapAuthorName, StringComparison.OrdinalIgnoreCase))
+            mapDef.Author = parser.ConsumeString();
     }
 
     private static void WarnMissing(string def, string item, int line) =>

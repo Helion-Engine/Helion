@@ -104,6 +104,7 @@ public partial class MapInfoDefinition
     private static readonly string MapEnterPicName = "enterpic";
     private static readonly string MapExitPicName = "exitpic";
     private static readonly string MapEndPicName = "endpic";
+    private static readonly string MapAuthorName = "author";
 
     private static readonly HashSet<string> MapNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -120,6 +121,7 @@ public partial class MapInfoDefinition
         MapEnterPicName,
         MapExitPicName,
         MapEndPicName,
+        MapAuthorName,
     };
 
     private static readonly string ClusterEnterTextName = "entertext";

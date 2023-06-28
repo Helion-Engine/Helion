@@ -33,6 +33,7 @@ public class MapInfoDef : ICloneable
     public string EnterPic { get; set; } = string.Empty;
     public string ExitPic { get; set; } = string.Empty;
     public string EndPic { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
     public List<BossAction> BossActions { get; set; } = new List<BossAction>();
 
     public bool HasOption(MapOptions option) => m_levelOptions[(int)option];
