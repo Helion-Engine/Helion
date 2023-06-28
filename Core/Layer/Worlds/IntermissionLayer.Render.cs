@@ -8,6 +8,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Resources.Definitions.Intermission;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using static Helion.Render.Common.RenderDimensions;
@@ -131,19 +132,37 @@ public partial class IntermissionLayer
     {
         const string FinishedImage = "WIF";
         const string NowEnteringImage = "WIENTER";
-        const int topPaddingY = 5;
+        const int topPaddingY = 6;
         const int topMargin = 2;
+
+        int offsetY = 0;
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
             hud.Image(NowEnteringImage, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
-            hud.Image(NextMapInfo.TitlePatch, (0, drawArea.Height + topPaddingY + 1), both: Align.TopMiddle);
+            offsetY += drawArea.Height + topPaddingY;
+            hud.Image(NextMapInfo.TitlePatch, (0, offsetY), both: Align.TopMiddle);
+            offsetY += drawArea.Height;
+            DrawAuthor(hud, NextMapInfo, topMargin, ref offsetY);
         }
         else
         {
             hud.Image(CurrentMapInfo.TitlePatch, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
-            hud.Image(FinishedImage, (0, drawArea.Height + topPaddingY + 1), both: Align.TopMiddle);
+            offsetY += drawArea.Height;
+            DrawAuthor(hud, CurrentMapInfo, topMargin, ref offsetY);
+            hud.Image(FinishedImage, (0, offsetY + topPaddingY), both: Align.TopMiddle);
         }
+    }
+
+    private static void DrawAuthor(IHudRenderContext hud, MapInfoDef mapInfo, int topMargin, ref int offsetY)
+    {
+        const int AuthorFontSize = 8;
+        if (string.IsNullOrEmpty(mapInfo.Author))
+            return; 
+        
+        offsetY += topMargin;
+        hud.Text(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize, (0, offsetY), both: Align.TopMiddle);
+        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize).Height;
     }
 
     private void DrawStatistics(IHudRenderContext hud)
