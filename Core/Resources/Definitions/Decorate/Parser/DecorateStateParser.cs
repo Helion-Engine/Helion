@@ -254,7 +254,7 @@ public partial class DecorateParser
         string upperText = text.ToUpper();
         if (upperText.StartsWith("A_") || ActionSpecialHelper.Exists(upperText))
         {
-            string functionName = ConsumeIdentifier();
+            string functionName = string.Intern(ConsumeIdentifier());
             return new ActorActionFunction(functionName, ConsumeActionFunctionArguments());
         }
 
@@ -337,7 +337,7 @@ public partial class DecorateParser
     private void ConsumeActorStateElement()
     {
         // TODO: Need to eventually support periods like "Some.Label".
-        string text = ConsumeString();
+        string text = string.Intern(ConsumeString());
 
         if (TryGetStateBranch(text, out ActorStateBranch branchType))
         {

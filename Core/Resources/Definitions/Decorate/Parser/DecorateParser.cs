@@ -94,7 +94,7 @@ public partial class DecorateParser : ParserBase
 
     private void ConsumeActorHeader()
     {
-        string name = ConsumeString();
+        string name = string.Intern(ConsumeString());
 
         string? parent = null;
         if (ConsumeIf(':'))

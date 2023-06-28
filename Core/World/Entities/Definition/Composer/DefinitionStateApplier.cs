@@ -239,7 +239,8 @@ public class DefinitionStateApplier
         {
             if (includeGenericLabels)
                 masterLabelTable[pair.Key] = new FrameLabel(pair.Value + offset, 0);
-            masterLabelTable[$"{upperActorName}::{pair.Key}"] = new FrameLabel(pair.Value + offset, 0);
+            string key = string.Intern($"{upperActorName}::{pair.Key}");
+            masterLabelTable[key] = new FrameLabel(pair.Value + offset, 0);
         }
     }
 

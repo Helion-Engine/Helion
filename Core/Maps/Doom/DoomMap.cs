@@ -142,8 +142,8 @@ public class DoomMap : IMap
         {
             short floorZ = reader.ReadInt16();
             short ceilZ = reader.ReadInt16();
-            string floorTexture = reader.ReadEightByteString();
-            string ceilTexture = reader.ReadEightByteString();
+            string floorTexture = string.Intern(reader.ReadEightByteString());
+            string ceilTexture = string.Intern(reader.ReadEightByteString());
             short lightLevel = reader.ReadInt16();
             ushort special = reader.ReadUInt16();
             ushort tag = reader.ReadUInt16();
@@ -168,9 +168,9 @@ public class DoomMap : IMap
         for (int id = 0; id < numSides; id++)
         {
             Vec2I offset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
-            string upperTexture = reader.ReadEightByteString();
-            string lowerTexture = reader.ReadEightByteString();
-            string middleTexture = reader.ReadEightByteString();
+            string upperTexture = string.Intern(reader.ReadEightByteString());
+            string lowerTexture = string.Intern(reader.ReadEightByteString());
+            string middleTexture = string.Intern(reader.ReadEightByteString());
             ushort sectorIndex = reader.ReadUInt16();
 
             if (sectorIndex >= sectors.Count)
