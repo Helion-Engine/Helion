@@ -14,7 +14,7 @@ public partial class SpanString
 
     public SpanString(int initialCapacity = 32)
     {
-        m_chars = new(32);
+        m_chars = new(initialCapacity);
     }
 
     public SpanString(string str)
