@@ -128,4 +128,5 @@ public enum Key
     MouseCustom8,
     MouseWheelUp,
     MouseWheelDown,
+    Max
 }

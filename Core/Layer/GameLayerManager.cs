@@ -67,6 +67,7 @@ public class GameLayerManager : IGameLayerParent
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
+    private int m_lastTick = -1;
 
     internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
@@ -215,8 +216,6 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
-    private int m_lastTick = -1;
-
     public void HandleInput(IConsumableInput input)
     {
         input.NewGameTick = CheckNewGameTick();
@@ -248,6 +247,14 @@ public class GameLayerManager : IGameLayerParent
         }
 
         WorldLayer?.HandleInput(input);
+    }
+
+    public bool IsNewGameTick()
+    {
+        if (WorldLayer == null)
+            return true;
+
+        return WorldLayer.World.GameTicker != m_lastTick;
     }
 
     public bool CheckNewGameTick()

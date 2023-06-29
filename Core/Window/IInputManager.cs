@@ -17,10 +17,7 @@ public interface IInputManager
     bool IsKeyDown(Key key);
     bool IsKeyPrevDown(Key key);
     bool IsKeyHeldDown(Key key);
-    bool IsKeyUp(Key key);
-    bool IsKeyPrevUp(Key key);
     bool IsKeyPressed(Key key);
-    bool IsKeyReleased(Key key);
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
     void Clear();
@@ -28,5 +25,5 @@ public interface IInputManager
     void ProcessedMouseMovement();
     bool IsKeyContinuousHold(Key key);
     void GetPressedKeys(DynamicArray<Key> pressedKeys);
-    IConsumableInput Poll();
+    IConsumableInput Poll(bool pollKeys);
 }

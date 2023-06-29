@@ -70,7 +70,6 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
 
         m_consoleCommands.RegisterMethodsOrThrow(this);
-
         m_console.OnConsoleCommandEvent += Console_OnCommand;
         m_window.RenderFrame += Window_MainLoop;
         m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
@@ -82,6 +81,7 @@ public partial class Client : IDisposable, IInputManagement
     {
         FailedToDispose(this);
         PerformDispose();
+
     }
 
     [Conditional("DEBUG")]
@@ -93,14 +93,14 @@ public partial class Client : IDisposable, IInputManagement
     private void HandleInput()
     {
         m_profiler.Input.Start();
+        bool newGameTick = m_layerManager.IsNewGameTick();
 
-        IConsumableInput input = m_window.InputManager.Poll();
-
+        IConsumableInput input = m_window.InputManager.Poll(newGameTick);
         m_layerManager.HandleInput(input);
 
         // Only clear keys if new tick since they are only processed each tick.
         // Mouse movement is always processed to render most up to date view.
-        if (input.NewGameTick)
+        if (newGameTick)
             m_window.InputManager.ProcessedKeys();
 
         m_window.InputManager.ProcessedMouseMovement();

@@ -16,12 +16,7 @@ public interface IConsumableInput
 
     void ConsumeAll();
     bool ConsumeKeyDown(Key key);
-    bool ConsumeKeyPrevDown(Key key);
-    bool ConsumeKeyHeldDown(Key key);
-    bool ConsumeKeyUp(Key key);
-    bool ConsumeKeyPrevUp(Key key);
     bool ConsumeKeyPressed(Key key);
-    bool ConsumeKeyReleased(Key key);
     bool ConsumePressOrContinuousHold(Key key);
     bool HasAnyKeyPressed();
     ReadOnlySpan<char> ConsumeTypedCharacters();

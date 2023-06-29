@@ -101,9 +101,9 @@ public partial class WorldLayer
         input.Manager.GetPressedKeys(m_pressedKeys);
         for (int i = 0; i < m_pressedKeys.Length; i++)
         {
-            if (!input.ConsumeKeyPressed(m_pressedKeys[i]))
-                continue;
             var key = m_pressedKeys[i];
+            if (!input.ConsumeKeyPressed(key))
+                continue;
             var commands = World.Config.Keys.GetKeyMapping();
             for (int j = 0; j < commands.Count; j++)
             {

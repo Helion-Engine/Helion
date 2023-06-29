@@ -6,13 +6,11 @@ using Helion.Util.Extensions;
 
 namespace Helion.Window.Input;
 
-/// <summary>
-/// A basic implementation of consumable input.
-/// </summary>
 public class ConsumableInput : IConsumableInput
 {
     private readonly InputManager m_inputManager;
-    private readonly DynamicArray<Key> m_inputConsumed = new();
+    private readonly DynamicArray<Key> m_inputDownConsumed = new();
+    private readonly DynamicArray<Key> m_inputUpConsumed = new();
     private readonly DynamicArray<Key> m_pressedKeys = new();
     private bool m_typedCharsConsumed;
     private Vec2I m_mouseMove = (0, 0);
@@ -36,65 +34,20 @@ public class ConsumableInput : IConsumableInput
 
     public bool ConsumeKeyDown(Key key)
     {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
+        if (m_allConsumed || m_inputDownConsumed.Contains(key))
             return false;
 
-        m_inputConsumed.Add(key);
+        m_inputDownConsumed.Add(key);
         return Manager.IsKeyDown(key);
-    }
-
-    public bool ConsumeKeyPrevDown(Key key)
-    {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
-            return false;
-
-        m_inputConsumed.Add(key);
-        return Manager.IsKeyPrevDown(key);
-    }
-
-    public bool ConsumeKeyHeldDown(Key key)
-    {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
-            return false;
-
-        m_inputConsumed.Add(key);
-        return Manager.IsKeyHeldDown(key);
-    }
-
-    public bool ConsumeKeyUp(Key key)
-    {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
-            return false;
-
-        m_inputConsumed.Add(key);
-        return Manager.IsKeyUp(key);
-    }
-
-    public bool ConsumeKeyPrevUp(Key key)
-    {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
-            return false;
-
-        m_inputConsumed.Add(key);
-        return Manager.IsKeyPrevUp(key);
     }
 
     public bool ConsumeKeyPressed(Key key)
     {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
+        if (m_allConsumed || m_inputDownConsumed.Contains(key))
             return false;
 
-        m_inputConsumed.Add(key);
+        m_inputDownConsumed.Add(key);
         return Manager.IsKeyPressed(key);
-    }
-
-    public bool ConsumeKeyReleased(Key key)
-    {
-        if (m_allConsumed || m_inputConsumed.Contains(key))
-            return false;
-
-        m_inputConsumed.Add(key);
-        return Manager.IsKeyReleased(key);
     }
 
     public bool ConsumePressOrContinuousHold(Key key)
@@ -137,7 +90,7 @@ public class ConsumableInput : IConsumableInput
 
         for (int i = 0; i < m_pressedKeys.Length; i++)
         {
-            if (m_inputConsumed.Contains(m_pressedKeys[i]))
+            if (m_inputDownConsumed.Contains(m_pressedKeys[i]))
                 continue;
 
             return true;
@@ -148,7 +101,8 @@ public class ConsumableInput : IConsumableInput
 
     internal void Reset()
     {
-        m_inputConsumed.Clear();
+        m_inputDownConsumed.Clear();
+        m_inputUpConsumed.Clear();
         m_allConsumed = false;
         m_typedCharsConsumed = false;
         m_mouseMove = Manager.MouseMove;

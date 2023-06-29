@@ -42,4 +42,10 @@ public static class ArrayExtensions
 
         return false;
     }
+
+    public static void AddUnique(this DynamicArray<Key> keys, Key key)
+    {
+        if (!keys.Contains(key))
+            keys.Add(key);
+    }
 }
