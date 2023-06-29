@@ -1,7 +1,5 @@
 ﻿using Helion.Util.Container;
-using SixLabors.Shapes;
 using System;
-using static OneOf.Types.TrueFalseOrNull;
 
 namespace Helion.Strings;
 
