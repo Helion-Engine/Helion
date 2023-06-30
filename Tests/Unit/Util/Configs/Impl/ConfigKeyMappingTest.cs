@@ -166,7 +166,7 @@ public class ConfigKeyMappingTest
         var input = Substitute.For<IConsumableInput>();
         input.ConsumeKeyPressed(Arg.Is(Key.C)).Returns(true);
 
-        keys.ConsumeCommandKeyPress("something", input).Should().BeTrue();
+        keys.ConsumeCommandKeyPress("something", input, out _).Should().BeTrue();
         input.Received(1).ConsumeKeyPressed(Key.C);
     }
 
@@ -179,7 +179,7 @@ public class ConfigKeyMappingTest
         var input = Substitute.For<IConsumableInput>();
         input.ConsumeKeyDown(Arg.Is(Key.C)).Returns(true);
 
-        keys.ConsumeCommandKeyDown("something", input).Should().BeTrue();
+        keys.ConsumeCommandKeyDown("something", input, out _).Should().BeTrue();
         input.Received(1).ConsumeKeyDown(Key.C);
     }
 

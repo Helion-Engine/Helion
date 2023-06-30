@@ -221,7 +221,7 @@ public class GameLayerManager : IGameLayerParent
         input.NewGameTick = CheckNewGameTick();
         if (input.NewGameTick)
         {
-            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input))
+            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input, out _))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
 

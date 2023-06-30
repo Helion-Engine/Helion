@@ -31,6 +31,7 @@ public class TickCommand
     public double MousePitch { get; set; }
     public double ForwardMoveSpeed { get; set; }
     public double SideMoveSpeed { get; set; }
+    public int WeaponScroll { get; set; }
 
     public DynamicArray<TickCommands> GetCommands() => m_commands;
 
@@ -42,6 +43,7 @@ public class TickCommand
         MousePitch = 0;
         ForwardMoveSpeed = 0;
         SideMoveSpeed = 0;
+        WeaponScroll = 0;
         m_commands.Clear();
     }
 

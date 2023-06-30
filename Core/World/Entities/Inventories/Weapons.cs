@@ -60,12 +60,28 @@ public class Weapons
         return weapons;
     }
 
-    public (int, int) GetNextSlot(Player player) => CycleSlot(player, true);
-    public (int, int) GetPreviousSlot(Player player) => CycleSlot(player, false);
+    public (int, int) GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, true);
+    public (int, int) GetPreviousSlot(Player player) => CycleSlot(player, player.WeaponSlot, false);
 
-    private (int, int) CycleSlot(Player player, bool next)
+    public (int, int) GetNextSlot(Player player, int amount)
     {
-        int slot = player.WeaponSlot;
+        var slot = (player.WeaponSlot, player.WeaponSubSlot);
+        if (amount == 0)
+            return slot;
+
+        bool direction = amount > 0;
+        amount = Math.Abs(amount);
+        while (amount > 0)
+        {
+            slot = CycleSlot(player, slot.WeaponSlot, direction);
+            amount--;
+        }
+
+        return slot;
+    }
+
+    private (int, int) CycleSlot(Player player, int slot, bool next)
+    {
         int startSlot = slot;
 
         int subslot = CycleSubSlot(player, next);

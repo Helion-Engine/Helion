@@ -83,9 +83,9 @@ public class InputManagerTest
         inputManager.Scroll.Should().Be(0);
 
         inputManager.AddMouseScroll(4);
-        inputManager.Scroll.Should().Be(4);
-
         inputManager.AddMouseScroll(-7);
+
+        inputManager.Poll(true);
         inputManager.Scroll.Should().Be(-3);
     }
 
@@ -219,6 +219,7 @@ public class InputManagerTest
         input.ConsumeKeyDown(Key.A).Should().BeFalse();
         input.ConsumeMouseMove().Should().Be(new Vec2I(1, 1));
         input.ConsumeMouseMove().Should().Be(Vec2I.Zero);
+        input.Scroll.Should().Be(5);
         input.ConsumeScroll().Should().Be(5);
         input.ConsumeScroll().Should().Be(0);
         input.ConsumeTypedCharacters().ToString().Should().Be("hi");

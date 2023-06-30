@@ -42,19 +42,25 @@ public partial class WorldLayer
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
 
-    private bool IsCommandContinuousHold(string command, IConsumableInput input)
+    private bool IsCommandContinuousHold(string command, IConsumableInput input) =>
+        IsCommandContinuousHold(command, input, out _);
+
+    private bool IsCommandContinuousHold(string command, IConsumableInput input, out int scrollAmount)
     {
-        return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input);
+        return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input, out scrollAmount);
     }
 
-    private bool IsCommandPressed(string command, IConsumableInput input)
+    private bool IsCommandPressed(string command, IConsumableInput input) =>
+        IsCommandPressed(command, input, out _);
+
+    private bool IsCommandPressed(string command, IConsumableInput input, out int scrollAmount)
     {
-        return m_config.Keys.ConsumeCommandKeyPress(command, input);
+        return m_config.Keys.ConsumeCommandKeyPress(command, input, out scrollAmount);
     }
 
-    private bool IsCommandDown(string command, IConsumableInput input)
+    private bool IsCommandDown(string command, IConsumableInput input, out int scrollAmount)
     {
-        return m_config.Keys.ConsumeCommandKeyDown(command, input);
+        return m_config.Keys.ConsumeCommandKeyDown(command, input, out scrollAmount);
     }
 
     public void AddCommand(TickCommands cmd) => GetTickCommand().Add(cmd);
@@ -91,7 +97,6 @@ public partial class WorldLayer
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
 
-        input.ConsumeScroll();
         CheckCommandInput(input);
     }
 
@@ -150,10 +155,11 @@ public partial class WorldLayer
 
     private void HandleAutoMapInput(IConsumableInput input)
     {
-        if (IsCommandContinuousHold(Constants.Input.AutoMapDecrease, input))
-            ChangeAutoMapSize(false);
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapIncrease, input))
-            ChangeAutoMapSize(true);
+        int scrollAmount = 0;
+        if (IsCommandContinuousHold(Constants.Input.AutoMapDecrease, input, out scrollAmount))
+            ChangeAutoMapSize(GetChangeAmount(input, -1, scrollAmount));
+        else if (IsCommandContinuousHold(Constants.Input.AutoMapIncrease, input, out scrollAmount))
+            ChangeAutoMapSize(GetChangeAmount(input, 1, scrollAmount));
         else if (IsCommandContinuousHold(Constants.Input.AutoMapUp, input))
             ChangeAutoMapOffsetY(true);
         else if (IsCommandContinuousHold(Constants.Input.AutoMapDown, input))
@@ -162,6 +168,14 @@ public partial class WorldLayer
             ChangeAutoMapOffsetX(true);
         else if (IsCommandContinuousHold(Constants.Input.AutoMapLeft, input))
             ChangeAutoMapOffsetX(false);
+    }
+
+    private static int GetChangeAmount(IConsumableInput input, int baseAmount, int scrollAmount)
+    {
+        if (scrollAmount == 0)
+            return baseAmount;
+
+        return baseAmount * Math.Abs(scrollAmount);
     }
 
     private void ChangeAutoMapOffsetY(bool increase)
@@ -174,12 +188,12 @@ public partial class WorldLayer
         m_autoMapOffset.X += (increase ? 1 : -1);
     }
 
-    private void ChangeAutoMapSize(bool increase)
+    private void ChangeAutoMapSize(int amount)
     {       
         if (m_autoMapScale > 0.5)
-            m_autoMapScale += (increase ? 0.2 : -0.2);
+            m_autoMapScale += amount * 0.2;
         else
-            m_autoMapScale += (increase ? 0.04 : -0.04);
+            m_autoMapScale += amount * 0.04;
 
         m_autoMapScale = MathHelper.Clamp(m_autoMapScale, 0.04, 25);
         m_config.Hud.AutoMap.Scale.Set(m_autoMapScale);
@@ -187,14 +201,20 @@ public partial class WorldLayer
 
     private void HandleCommandInput(IConsumableInput input)
     {
+        int weaponScroll = 0;
         TickCommand cmd = GetTickCommand();
         for (int i = 0; i < KeyPressCommandMapping.Length; i++)
         {
             (string command, TickCommands tickCommand) = KeyPressCommandMapping[i];
-            if (IsCommandDown(command, input))
+            if (IsCommandDown(command, input, out int scrollAmount))
+            {
+                if (tickCommand == TickCommands.NextWeapon || tickCommand == TickCommands.PreviousWeapon)
+                    weaponScroll += scrollAmount;
                 cmd.Add(tickCommand);
+            }
         }
 
+        cmd.WeaponScroll = weaponScroll;
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
             cmd.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);

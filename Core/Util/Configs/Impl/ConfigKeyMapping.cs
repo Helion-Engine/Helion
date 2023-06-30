@@ -20,22 +20,8 @@ public class ConfigKeyMapping : IConfigKeyMapping
     private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
 
     public bool Changed { get; private set; }
-    //private readonly Dictionary<Key, HashSet<string>> m_keyToCommands = new();
-    //private readonly Dictionary<string, HashSet<Key>> m_commandsToKey = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly List<KeyCommandItem> m_commands = new();
-
-    //public Dictionary<Key, HashSet<string>> GetKeyToCommandsDictionary() => m_keyToCommands;
-
-    //public IReadOnlySet<string> this[Key key] =>
-    //    m_keyToCommands.TryGetValue(key, out HashSet<string>? commands) ?
-    //        commands :
-    //        EmptyStringSet;
-
-    //public IReadOnlySet<Key> this[string command] =>
-    //    m_commandsToKey.TryGetValue(command, out HashSet<Key>? keys) ?
-    //        keys :
-    //        EmptyKeySet;
 
     public void AddDefaultsIfMissing()
     {
@@ -142,15 +128,16 @@ public class ConfigKeyMapping : IConfigKeyMapping
         m_commands.Add(new(key, string.Empty));
     }
 
-    public bool ConsumeCommandKeyPress(string command, IConsumableInput input)
+    public bool ConsumeCommandKeyPress(string command, IConsumableInput input, out int scrollAmount)
     {
+        scrollAmount = 0;
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
             if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (ConsumeMouseWheel(cmd.Key, input))
+            if (ConsumeMouseWheel(cmd.Key, input, out scrollAmount))
                 return true;
 
             if (input.ConsumeKeyPressed(cmd.Key))
@@ -160,15 +147,16 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
-    public bool ConsumeCommandKeyDown(string command, IConsumableInput input)
+    public bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount)
     {
+        scrollAmount = 0;
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
             if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (ConsumeMouseWheel(cmd.Key, input))
+            if (ConsumeMouseWheel(cmd.Key, input, out scrollAmount))
                 return true;
 
             if (input.ConsumeKeyDown(cmd.Key))
@@ -178,8 +166,9 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
-    public bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input)
+    public bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input, out int scrollAmount)
     {
+        scrollAmount = 0;
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
@@ -189,7 +178,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
             if (input.ConsumeKeyPressed(cmd.Key) || input.Manager.IsKeyContinuousHold(cmd.Key))
                 return true;
 
-            if (ConsumeMouseWheel(cmd.Key, input))
+            if (ConsumeMouseWheel(cmd.Key, input, out scrollAmount))
                 return true;
         }
 
@@ -211,12 +200,19 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
-    private static bool ConsumeMouseWheel(Key key, IConsumableInput input)
+    private static bool ConsumeMouseWheel(Key key, IConsumableInput input, out int scrollAmount)
     {
-        if (key == Key.MouseWheelUp && input.Manager.Scroll > 0)
-            return input.ConsumeScroll() > 0;
-        else if (key == Key.MouseWheelDown && input.Manager.Scroll < 0)
-            return input.ConsumeScroll() < 0;
+        scrollAmount = 0;
+        if (key == Key.MouseWheelUp && input.Scroll > 0)
+        {
+            scrollAmount = input.ConsumeScroll();
+            return true;
+        }
+        else if (key == Key.MouseWheelDown && input.Scroll < 0)
+        {
+            scrollAmount = input.ConsumeScroll();
+            return true;
+        }
 
         return false;
     }

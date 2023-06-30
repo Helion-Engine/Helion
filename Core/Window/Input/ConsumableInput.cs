@@ -19,6 +19,7 @@ public class ConsumableInput : IConsumableInput
 
     public IInputManager Manager => m_inputManager;
     public bool NewGameTick { get; set; }
+    public int Scroll => m_mouseScroll;
 
     public ConsumableInput(InputManager inputManager)
     {
@@ -99,13 +100,13 @@ public class ConsumableInput : IConsumableInput
         return false;
     }
 
-    internal void Reset()
+    internal void Reset(int mouseScroll)
     {
         m_inputDownConsumed.Clear();
         m_inputUpConsumed.Clear();
         m_allConsumed = false;
         m_typedCharsConsumed = false;
+        m_mouseScroll = mouseScroll;
         m_mouseMove = Manager.MouseMove;
-        m_mouseScroll = Manager.Scroll;
     }
 }

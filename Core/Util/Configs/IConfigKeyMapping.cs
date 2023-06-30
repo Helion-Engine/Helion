@@ -16,9 +16,6 @@ public interface IConfigKeyMapping
     /// </summary>
     public bool Changed { get; }
 
-    //IReadOnlySet<string> this[Key key] { get; }
-    //IReadOnlySet<Key> this[string command] { get; }
-
     /// <summary>
     /// Adds a key to be mapped. This is a bi-directional mapping.
     /// </summary>
@@ -36,7 +33,7 @@ public interface IConfigKeyMapping
     /// <param name="input">The consumable input.</param>
     /// <returns>True if it was found to be pressed and was consumed, false if
     /// not or if something else consumed it.</returns>
-    bool ConsumeCommandKeyPress(string command, IConsumableInput input);
+    bool ConsumeCommandKeyPress(string command, IConsumableInput input, out int scrollAmount);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently down.
@@ -45,7 +42,7 @@ public interface IConfigKeyMapping
     /// <param name="input">The consumable input.</param>
     /// <returns>True if it was found to be down and was consumed, false if
     /// not or if something else consumed it.</returns>
-    bool ConsumeCommandKeyDown(string command, IConsumableInput input);
+    bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently down.
@@ -61,7 +58,7 @@ public interface IConfigKeyMapping
     /// <param name="command">The command, which is not case sensitive.</param>
     /// <param name="input">The consumable input.</param>
     /// <returns>True if it was pressed and consumed or continously held down.</returns>
-    bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input);
+    bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input, out int scrollAmount);
 
     /// <summary>
     /// Unbinds all commands and keys that match this key. This means the

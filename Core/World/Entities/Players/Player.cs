@@ -660,7 +660,12 @@ public class Player : Entity
             Refire = false;
         }
 
-        if (TickCommand.Has(TickCommands.NextWeapon))
+        if (TickCommand.WeaponScroll != 0)
+        {
+            var slot = Inventory.Weapons.GetNextSlot(this, TickCommand.WeaponScroll);
+            ChangePlayerWeaponSlot(slot);
+        }
+        else if (TickCommand.Has(TickCommands.NextWeapon))
         {
             var slot = Inventory.Weapons.GetNextSlot(this);
             ChangePlayerWeaponSlot(slot);

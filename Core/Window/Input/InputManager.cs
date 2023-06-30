@@ -28,9 +28,11 @@ public class InputManager : IInputManager
     private readonly Stopwatch m_keyHold = new();
     private readonly Stopwatch m_keyDelay = new();
     private double m_mouseScroll;
+    private double m_processMouseScroll;
     private Key m_prevKeyDown;
 
-    public int Scroll => (int)m_mouseScroll;
+    public int CurrentScroll => (int)m_mouseScroll;
+    public int Scroll => (int)m_processMouseScroll;
     public ReadOnlySpan<char> TypedCharacters => new(m_typedKeys.Data, 0, m_typedKeys.Length);
 
     public InputManager()
@@ -148,12 +150,13 @@ public class InputManager : IInputManager
         m_typedKeys.Clear();
         MouseMove = (0, 0);
         m_mouseScroll = 0;
+        m_processMouseScroll = 0;
     }
 
     public void ProcessedKeys()
     {
+        m_processMouseScroll = 0;
         m_typedKeys.Clear();
-        m_mouseScroll = 0;
 
         m_downKeysToRemove.Clear();
         for (int i = 0; i < m_upKeys.Length; i++)
@@ -170,14 +173,18 @@ public class InputManager : IInputManager
 
     public IConsumableInput Poll(bool pollKeys)
     {
-        m_consumableInput.Reset();
         if (pollKeys)
             CreateCurrentInputKeys();
+
+        m_consumableInput.Reset((int)m_processMouseScroll);
         return m_consumableInput;
     }
 
     private void CreateCurrentInputKeys()
     {
+        m_processMouseScroll = m_mouseScroll;
+        m_mouseScroll = 0;
+
         m_prevDownKeys.Clear();
         m_prevDownKeys.AddRange(m_downKeys);
 

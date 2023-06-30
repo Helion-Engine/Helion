@@ -13,6 +13,7 @@ public interface IConsumableInput
 {
     IInputManager Manager { get; }
     bool NewGameTick { get; set; }
+    public int Scroll { get; }
 
     void ConsumeAll();
     bool ConsumeKeyDown(Key key);
