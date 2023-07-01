@@ -63,6 +63,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         AddIfMissing(Key.Tab, Constants.Input.Automap);
         AddIfMissing(Key.Pause, Constants.Input.Pause);
         AddIfMissing(Key.F6, Constants.Input.QuickSave);
+        AddIfMissing(Key.Escape, Constants.Input.Menu);
     }
 
     public void ClearChanged()

@@ -48,6 +48,7 @@ public class GameLayerInput
         World.Config.Keys.Add(Key.ControlRight, Constants.Input.Attack);
         World.Config.Keys.Add(Key.E, Constants.Input.Use);
         World.Config.Keys.Add(Key.Backtick, Constants.Input.Console);
+        World.Config.Keys.Add(Key.Escape, Constants.Input.Menu);
     }
 
     [Fact(DisplayName = "Test input run logic key down/up")]

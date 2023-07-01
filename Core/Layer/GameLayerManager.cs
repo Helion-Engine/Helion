@@ -238,7 +238,7 @@ public class GameLayerManager : IGameLayerManager
     {        
         if (input.HandleKeyInput)
         {
-            if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input, out _))
+            if (ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
 
@@ -271,16 +271,27 @@ public class GameLayerManager : IGameLayerManager
         if (MenuLayer != null || ConsoleLayer != null)
             return false;
 
-        bool hasMenuInput = (ReadThisLayer != null && input.ConsumeKeyDown(Key.Escape)) || input.Manager.HasAnyKeyPressed();
+        bool hasMenuInput = (ReadThisLayer != null && ConsumeCommandDown(Constants.Input.Menu, input))
+            || input.Manager.HasAnyKeyPressed();
 
         if (TitlepicLayer != null && hasMenuInput && !CheckIgnoreMenuCommands(input))
         {
-            // Have to eat the escape key if it exists, otherwise the menu will immediately close.
-            input.ConsumeKeyPressed(Key.Escape);
+            // Eat everything including escape key if it exists, otherwise the menu will immediately close.
+            input.ConsumeAll();
             return true;
         }
         
-        return input.ConsumeKeyPressed(Key.Escape);
+        return ConsumeCommandPressed(Constants.Input.Menu, input);
+    }
+
+    private bool ConsumeCommandPressed(string command, IConsumableInput input)
+    {
+        return m_config.Keys.ConsumeCommandKeyPress(command, input, out _);
+    }
+
+    private bool ConsumeCommandDown(string command, IConsumableInput input)
+    {
+        return m_config.Keys.ConsumeCommandKeyPress(command, input, out _);
     }
 
     private bool CheckIgnoreMenuCommands(IConsumableInput input)
