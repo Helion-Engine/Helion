@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Helion.Audio;
 using Helion.Audio.Sounds;
@@ -36,7 +35,6 @@ public partial class IntermissionLayer : IGameLayer
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SoundManager m_soundManager;
     private readonly IMusicPlayer m_musicPlayer;
-    private readonly Stopwatch m_stopwatch = new();
     private readonly LevelStats m_levelPercents = new();
     private readonly int m_totalLevelTime;
     private readonly Action<IHudRenderContext> m_renderVirtualIntermissionAction;
@@ -61,14 +59,12 @@ public partial class IntermissionLayer : IGameLayer
         m_archiveCollection = world.ArchiveCollection;
         m_soundManager = soundManager;
         m_musicPlayer = musicPlayer;
-        m_stopwatch.Start();
         m_totalLevelTime = World.LevelTime / (int)Constants.TicksPerSecond;
         m_renderVirtualIntermissionAction = new(RenderVirtualIntermission);
 
         IntermissionPic = string.IsNullOrEmpty(currentMapInfo.ExitPic) ? "INTERPIC" : currentMapInfo.ExitPic;
         CalculatePercentages();
         CheckEpisodeIntermission();
-        Tick();
 
         m_delayStateTics = (int)Constants.TicksPerSecond;
         m_delayState = IntermissionState.TallyingKills;

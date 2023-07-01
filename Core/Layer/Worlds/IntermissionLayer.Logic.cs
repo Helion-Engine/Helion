@@ -14,11 +14,8 @@ public partial class IntermissionLayer
 
     public void RunLogic(TickerInfo tickerInfo)
     {
-        if (m_stopwatch.ElapsedMilliseconds > 1000 / Constants.TicksPerSecond)
-        {
-            m_stopwatch.Restart();
+        for (int i = 0; i < tickerInfo.Ticks; i++)
             Tick();
-        }
     }
 
     private void Tick()
