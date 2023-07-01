@@ -37,7 +37,7 @@ namespace Helion.Layer;
 /// Responsible for coordinating input, logic, and rendering calls in order
 /// for different kinds of layers.
 /// </summary>
-public class GameLayerManager : IGameLayerParent
+public class GameLayerManager : IGameLayerManager
 {
     public ConsoleLayer? ConsoleLayer { get; private set; }
     public MenuLayer? MenuLayer { get; private set; }
@@ -216,9 +216,23 @@ public class GameLayerManager : IGameLayerParent
         }
     }
 
-    public void HandleInput(IConsumableInput input)
+    public void HandleInput(IInputManager inputManager)
     {
+        bool newGameTick = CheckNewGameTick();
+        IConsumableInput input = inputManager.Poll(newGameTick);
         input.NewGameTick = CheckNewGameTick();
+        HandleInput(input);
+
+        // Only clear keys if new tick since they are only processed each tick.
+        // Mouse movement is always processed to render most up to date view.
+        if (newGameTick)
+            inputManager.ProcessedKeys();
+
+        inputManager.ProcessedMouseMovement();
+    }
+
+    public void HandleInput(IConsumableInput input)
+    {        
         if (input.NewGameTick)
         {
             if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input, out _))
@@ -247,14 +261,6 @@ public class GameLayerManager : IGameLayerParent
         }
 
         WorldLayer?.HandleInput(input);
-    }
-
-    public bool IsNewGameTick()
-    {
-        if (WorldLayer == null)
-            return true;
-
-        return WorldLayer.World.GameTicker != m_lastTick;
     }
 
     public bool CheckNewGameTick()

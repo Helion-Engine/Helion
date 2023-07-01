@@ -93,18 +93,7 @@ public partial class Client : IDisposable, IInputManagement
     private void HandleInput()
     {
         m_profiler.Input.Start();
-        bool newGameTick = m_layerManager.IsNewGameTick();
-
-        IConsumableInput input = m_window.InputManager.Poll(newGameTick);
-        m_layerManager.HandleInput(input);
-
-        // Only clear keys if new tick since they are only processed each tick.
-        // Mouse movement is always processed to render most up to date view.
-        if (newGameTick)
-            m_window.InputManager.ProcessedKeys();
-
-        m_window.InputManager.ProcessedMouseMovement();
-
+        m_layerManager.HandleInput(m_window.InputManager);
         m_profiler.Input.Stop();
     }
 
