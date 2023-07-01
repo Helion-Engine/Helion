@@ -77,6 +77,7 @@ public partial class Client : IDisposable, IInputManagement
         m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
 
         RegisterConfigChanges();
+        m_ticker.Start();
     }
 
     private void GameLayerManager_GameLayerAdded(object? sender, IGameLayer e)
