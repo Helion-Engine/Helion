@@ -4,6 +4,7 @@ using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Timing;
 
 namespace Helion.Layer.Worlds;
 
@@ -11,7 +12,7 @@ public partial class IntermissionLayer
 {
     private bool m_exited;
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
         if (m_stopwatch.ElapsedMilliseconds > 1000 / Constants.TicksPerSecond)
         {

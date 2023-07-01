@@ -14,6 +14,7 @@ using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
+using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
 
@@ -80,7 +81,7 @@ public class TitlepicLayer : IGameLayer
             return;
     }
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
         // No logic to run.
     }

@@ -1,8 +1,9 @@
 ﻿using Helion.Window;
+using System;
 
 namespace Helion.Layer;
 
 public interface IGameLayerManager : IGameLayerParent
 {
-    void HandleInput(IInputManager inputManager);
+    event EventHandler<IGameLayer> GameLayerAdded;
 }

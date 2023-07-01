@@ -35,7 +35,7 @@ public partial class ConsoleLayer : IGameLayer
         PerformDispose();
     }
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
         // Not used.
     }

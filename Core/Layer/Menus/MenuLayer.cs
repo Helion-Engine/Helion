@@ -8,6 +8,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Util.Timing;
 using Helion.World.Save;
 
 namespace Helion.Layer.Menus;
@@ -59,7 +60,7 @@ public partial class MenuLayer : IGameLayer
         m_menus.Push(message);
     }
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
         // No logic.
     }

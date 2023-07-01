@@ -25,6 +25,7 @@ using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Profiling;
+using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using Helion.World;
@@ -39,6 +40,8 @@ namespace Helion.Layer;
 /// </summary>
 public class GameLayerManager : IGameLayerManager
 {
+    public event EventHandler<IGameLayer> GameLayerAdded;
+
     public ConsoleLayer? ConsoleLayer { get; private set; }
     public MenuLayer? MenuLayer { get; private set; }
     public ReadThisLayer? ReadThisLayer { get; private set; }
@@ -67,7 +70,6 @@ public class GameLayerManager : IGameLayerManager
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
-    private int m_lastTick = -1;
 
     internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
@@ -158,6 +160,9 @@ public class GameLayerManager : IGameLayerManager
         default:
             throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
         }
+
+        if (gameLayer != null)
+            GameLayerAdded?.Invoke(this, gameLayer);
     }
 
     public void SubmitConsoleText(string text)
@@ -216,11 +221,11 @@ public class GameLayerManager : IGameLayerManager
         }
     }
 
-    public void HandleInput(IInputManager inputManager)
+    private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
     {
-        bool newGameTick = CheckNewGameTick();
+        bool newGameTick = tickerInfo.Ticks > 0;
         IConsumableInput input = inputManager.Poll(newGameTick);
-        input.NewGameTick = CheckNewGameTick();
+        input.NewGameTick = newGameTick;
         HandleInput(input);
 
         // Only clear keys if new tick since they are only processed each tick.
@@ -261,18 +266,6 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
-    }
-
-    public bool CheckNewGameTick()
-    {
-        if (WorldLayer == null)
-            return true;
-
-        if (WorldLayer.World.GameTicker == m_lastTick)
-            return false;
-
-        m_lastTick = WorldLayer.World.GameTicker;
-        return true;
     }
 
     private bool ShouldCreateMenu(IConsumableInput input)
@@ -371,15 +364,17 @@ public class GameLayerManager : IGameLayerManager
         world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
     }
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
-        ConsoleLayer?.RunLogic();
-        MenuLayer?.RunLogic();
-        ReadThisLayer?.RunLogic();
-        EndGameLayer?.RunLogic();
-        TitlepicLayer?.RunLogic();
-        IntermissionLayer?.RunLogic();
-        WorldLayer?.RunLogic();
+        HandleInput(m_window.InputManager, tickerInfo);
+
+        ConsoleLayer?.RunLogic(tickerInfo);
+        MenuLayer?.RunLogic(tickerInfo);
+        ReadThisLayer?.RunLogic(tickerInfo);
+        EndGameLayer?.RunLogic(tickerInfo);
+        TitlepicLayer?.RunLogic(tickerInfo);
+        IntermissionLayer?.RunLogic(tickerInfo);
+        WorldLayer?.RunLogic(tickerInfo);
 
         if (!HasMenuOrConsole() && m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
         {

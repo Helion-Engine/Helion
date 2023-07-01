@@ -1,4 +1,5 @@
 using Helion.Demo;
+using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
@@ -18,9 +19,9 @@ public partial class WorldLayer
                                       m_parent.TitlepicLayer != null ||
                                       m_parent.IntermissionLayer != null ||
                                       m_parent.ReadThisLayer != null;
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
-        TickWorld();
+        TickWorld(tickerInfo);
         HandlePauseOrResume();
     }
 
@@ -65,12 +66,14 @@ public partial class WorldLayer
         return true;
     }
 
-    private void TickWorld()
+    public int GetTicksToRun() => m_lastTickInfo.Ticks;
+
+    private void TickWorld(TickerInfo tickerInfo)
     {
+        m_lastTickInfo = tickerInfo;
+        int ticksToRun = m_lastTickInfo.Ticks;
         World.AnyLayerObscuring = AnyLayerObscuring;
         TickCommand cmd = GetTickCommand();
-        m_lastTickInfo = m_ticker.GetTickerInfo();
-        int ticksToRun = m_lastTickInfo.Ticks;
 
         double demoPlaybackSpeed = m_config.Demo.PlaybackSpeed;
         if (m_demoPlayer != null && demoPlaybackSpeed != 1 && demoPlaybackSpeed != 0)

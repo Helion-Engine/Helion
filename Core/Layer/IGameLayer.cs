@@ -1,4 +1,5 @@
 using System;
+using Helion.Util.Timing;
 using Helion.Window;
 
 namespace Helion.Layer;
@@ -6,5 +7,5 @@ namespace Helion.Layer;
 public interface IGameLayer : IDisposable
 {
     void HandleInput(IConsumableInput input);
-    void RunLogic();
+    void RunLogic(TickerInfo tickerInfo);
 }

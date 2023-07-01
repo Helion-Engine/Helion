@@ -1,5 +1,6 @@
 using Helion.Graphics;
 using Helion.Render.Common.Renderers;
+using Helion.Util.Timing;
 using Helion.Window;
 
 namespace Helion.Layer.Images;
@@ -18,7 +19,7 @@ public class ImageLayer : IGameLayer
         // Not used.
     }
 
-    public virtual void RunLogic()
+    public virtual void RunLogic(TickerInfo tickerInfo)
     {
         // Not used.
     }

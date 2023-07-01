@@ -11,6 +11,7 @@ using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Graphics;
 using Helion.Layer;
+using Helion.Layer.Worlds;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -23,7 +24,6 @@ using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
-using Helion.Window;
 using Helion.World.Save;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -50,6 +50,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly FpsTracker m_fpsTracker = new();
     private readonly ConsoleCommands m_consoleCommands = new();
     private readonly Profiler m_profiler = new();
+    private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private bool m_disposed;
     private bool m_takeScreenshot;
 
@@ -67,6 +68,7 @@ public partial class Client : IDisposable, IInputManagement
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
 
+        m_layerManager.GameLayerAdded += GameLayerManager_GameLayerAdded;
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
 
         m_consoleCommands.RegisterMethodsOrThrow(this);
@@ -75,6 +77,12 @@ public partial class Client : IDisposable, IInputManagement
         m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
 
         RegisterConfigChanges();
+    }
+
+    private void GameLayerManager_GameLayerAdded(object? sender, IGameLayer e)
+    {
+        if (e is WorldLayer)
+            m_ticker.Restart();
     }
 
     ~Client()
@@ -90,19 +98,10 @@ public partial class Client : IDisposable, IInputManagement
         m_audioSystem.ThrowIfErrorCheckFails();
     }
 
-    private void HandleInput()
-    {
-        m_profiler.Input.Start();
-        m_layerManager.HandleInput(m_window.InputManager);
-        m_profiler.Input.Stop();
-    }
-
     private void RunLogic()
     {
         m_profiler.Logic.Start();
-
-        m_layerManager.RunLogic();
-
+        m_layerManager.RunLogic(m_ticker.GetTickerInfo());
         m_profiler.Logic.Stop();
     }
 
@@ -177,7 +176,7 @@ public partial class Client : IDisposable, IInputManagement
 
         CheckForErrorsIfDebug();
 
-        HandleInput();
+        //HandleInput();
         RunLogic();
         Render();
 

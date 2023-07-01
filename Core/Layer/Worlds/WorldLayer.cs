@@ -35,7 +35,6 @@ public partial class WorldLayer : IGameLayerParent
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly GameLayerManager m_parent;
-    private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private readonly FpsTracker m_fpsTracker;
     private readonly Profiler m_profiler;
     private readonly TickCommand m_tickCommand = new();
@@ -74,8 +73,6 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);
-
-        m_ticker.Start();
     }
 
     ~WorldLayer()

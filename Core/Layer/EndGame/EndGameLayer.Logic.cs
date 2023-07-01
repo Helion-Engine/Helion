@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
+using Helion.Util.Timing;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition.States;
 using System;
@@ -15,7 +16,7 @@ public partial class EndGameLayer
     private readonly Stopwatch m_scroller = new();
     private readonly Stopwatch m_stopwatch = new();
 
-    public void RunLogic()
+    public void RunLogic(TickerInfo tickerInfo)
     {
         UpdateScroller();
 
