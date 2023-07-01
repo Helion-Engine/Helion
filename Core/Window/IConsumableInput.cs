@@ -12,7 +12,7 @@ namespace Helion.Window;
 public interface IConsumableInput
 {
     IInputManager Manager { get; }
-    bool NewGameTick { get; set; }
+    public bool HandleKeyInput { get; set; }
     public int Scroll { get; }
 
     void ConsumeAll();

@@ -34,6 +34,7 @@ public class TickCommand
     public int WeaponScroll { get; set; }
 
     public DynamicArray<TickCommands> GetCommands() => m_commands;
+    public DynamicArray<TickCommands> GetPreviousCommands() => m_previousCommands;
 
     public void Clear()
     {

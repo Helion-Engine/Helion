@@ -293,13 +293,13 @@ public class SinglePlayerWorld : WorldBase
         return playingSuccess;
     }
 
-    public void HandleFrameInput(IConsumableInput input)
+    public void HandleMouseMovement(IConsumableInput input)
     {
         HandleMouseLook(input);
+    }
 
-        if (!input.NewGameTick)
-            return;
-
+    public void HandleKeyInput(IConsumableInput input)
+    {
         if (!Paused)
             CheatManager.HandleInput(Player, input);
     }

@@ -223,14 +223,12 @@ public class GameLayerManager : IGameLayerManager
 
     private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
     {
-        bool newGameTick = tickerInfo.Ticks > 0;
-        IConsumableInput input = inputManager.Poll(newGameTick);
-        input.NewGameTick = newGameTick;
+        IConsumableInput input = inputManager.Poll(tickerInfo.Ticks > 0);
         HandleInput(input);
 
         // Only clear keys if new tick since they are only processed each tick.
         // Mouse movement is always processed to render most up to date view.
-        if (newGameTick)
+        if (input.HandleKeyInput)
             inputManager.ProcessedKeys();
 
         inputManager.ProcessedMouseMovement();
@@ -238,7 +236,7 @@ public class GameLayerManager : IGameLayerManager
 
     public void HandleInput(IConsumableInput input)
     {        
-        if (input.NewGameTick)
+        if (input.HandleKeyInput)
         {
             if (m_config.Keys.ConsumeCommandKeyPress(Constants.Input.Console, input, out _))
                 ToggleConsoleLayer(input);

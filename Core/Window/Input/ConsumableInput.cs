@@ -18,7 +18,7 @@ public class ConsumableInput : IConsumableInput
     private bool m_allConsumed;
 
     public IInputManager Manager => m_inputManager;
-    public bool NewGameTick { get; set; }
+    public bool HandleKeyInput { get; set; }
     public int Scroll => m_mouseScroll;
 
     public ConsumableInput(InputManager inputManager)

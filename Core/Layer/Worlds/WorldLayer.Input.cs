@@ -69,16 +69,17 @@ public partial class WorldLayer
     {
         if (!AnyLayerObscuring && !World.DrawPause)
         {
-            if (input.NewGameTick)
+            if (input.HandleKeyInput)
             {
                 if (m_drawAutomap)
                     HandleAutoMapInput(input);
                 HandleCommandInput(input);
+                World.HandleKeyInput(input);
             }
-            World.HandleFrameInput(input);
+            World.HandleMouseMovement(input);
         }
 
-        if (!input.NewGameTick)
+        if (!input.HandleKeyInput)
             return;
 
         if (IsCommandPressed(Constants.Input.Pause, input))

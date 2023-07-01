@@ -177,6 +177,7 @@ public class InputManager : IInputManager
             CreateCurrentInputKeys();
 
         m_consumableInput.Reset((int)m_processMouseScroll);
+        m_consumableInput.HandleKeyInput = pollKeys;
         return m_consumableInput;
     }
 
