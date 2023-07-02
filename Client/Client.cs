@@ -177,7 +177,6 @@ public partial class Client : IDisposable, IInputManagement
 
         CheckForErrorsIfDebug();
 
-        //HandleInput();
         RunLogic();
         Render();
 

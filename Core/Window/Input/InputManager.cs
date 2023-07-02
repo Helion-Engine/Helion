@@ -34,6 +34,9 @@ public class InputManager : IInputManager
     public int CurrentScroll => (int)m_mouseScroll;
     public int Scroll => (int)m_processMouseScroll;
     public ReadOnlySpan<char> TypedCharacters => new(m_typedKeys.Data, 0, m_typedKeys.Length);
+    public DynamicArray<Key> GetDownKeys() => m_downKeys;
+    public DynamicArray<Key> GetPrevDownKeys() => m_prevDownKeys;
+    public DynamicArray<InputKey> GetEvents() => m_events;
 
     public InputManager()
     {
@@ -156,14 +159,34 @@ public class InputManager : IInputManager
     public void ProcessedKeys()
     {
         m_processMouseScroll = 0;
-        m_typedKeys.Clear();
 
         m_downKeysToRemove.Clear();
-        for (int i = 0; i < m_upKeys.Length; i++)
-            m_downKeysToRemove.Add(m_upKeys[i]);
+        for (int i = 0; i < m_processEvents.Length; i++)
+        {
+            var ev = m_processEvents[i];
+            if (!GetLastKeyState(m_processEvents, ev.Key))
+                m_downKeysToRemove.AddUnique(ev.Key);
+        }
 
         RemoveAll(m_downKeys, m_downKeysToRemove);
+
+        m_typedKeys.Clear();
         m_upKeys.Clear();
+    }
+
+    private bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
+    {
+        bool pressed = false;
+        for (int i = 0; i <  events.Length; i++)
+        {
+            var ev = events[i];
+            if (ev.Key != key)
+                continue;
+
+            pressed = ev.Pressed;
+        }
+
+        return pressed;
     }
 
     public void ProcessedMouseMovement()
@@ -197,16 +220,16 @@ public class InputManager : IInputManager
             if (ev.Pressed)
             {
                 m_downKeys.AddUnique(ev.Key);
-                m_addedDownKeys.Add(ev.Key);
+                m_addedDownKeys.AddUnique(ev.Key);
             }
             else
             {
-                m_upKeys.Add(ev.Key);
+                m_upKeys.AddUnique(ev.Key);
             }
 
             m_processEvents.Add(m_events[i]);
         }
-
+        
         m_downKeysToRemove.Clear();
         for (int i = 0; i < m_upKeys.Length; i++)
         {
@@ -267,6 +290,9 @@ public class InputManager : IInputManager
 
     private void RemoveAll(DynamicArray<Key> search, DynamicArray<Key> keysToRemove)
     {
+        if (keysToRemove.Length == 0)
+            return;
+
         m_removeAllKeys.Clear();
         for (int i = 0; i < search.Length; i++)
         {
