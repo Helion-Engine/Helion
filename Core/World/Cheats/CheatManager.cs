@@ -43,7 +43,7 @@ public class CheatManager
     };
 
     private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
-    private string m_currentCheat = StringBuffer.GetString(128);
+    private SpanString m_currentCheat = new(128);
 
     public event EventHandler<CheatEventArgs>? CheatActivationChanged;
 
@@ -122,7 +122,7 @@ public class CheatManager
         for (int i = 0; i < characters.Length; i++)
         {
             char key = characters[i];
-            m_currentCheat = StringBuffer.Append(m_currentCheat, key);
+            m_currentCheat.Append(key);
 
             if (AnyPartialMatch(m_currentCheat))
             {
@@ -131,19 +131,19 @@ public class CheatManager
                 {
                     SetCheat(player, cheat.CheatType, true);
                     if (cheat.ClearTypedCheatString)
-                        StringBuffer.Clear(m_currentCheat);
+                        m_currentCheat.Clear();
                 }
 
                 continue;
             }
 
-            StringBuffer.Clear(m_currentCheat);
+            m_currentCheat.Clear();
         }
     }
 
-    private bool AnyPartialMatch(string cheatString)
+    private bool AnyPartialMatch(SpanString cheatString)
     {
-        ReadOnlySpan<char> cheatSpan = StringBuffer.AsSpan(cheatString);
+        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan();
         for (int i = 0; i < Cheats.Length; i++)
         {
             if (Cheats[i].PartialMatch(cheatSpan))
@@ -153,9 +153,9 @@ public class CheatManager
         return false;
     }
 
-    private ICheat? GetCheatMatch(string cheatString)
+    private ICheat? GetCheatMatch(SpanString cheatString)
     {
-        ReadOnlySpan<char> cheatSpan = StringBuffer.AsSpan(cheatString);
+        ReadOnlySpan<char> cheatSpan = cheatString.AsSpan();
         for (int i = 0; i < Cheats.Length; i++)
         {
             if (Cheats[i].IsMatch(cheatSpan))
