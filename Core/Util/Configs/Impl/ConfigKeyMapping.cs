@@ -16,8 +16,6 @@ public readonly record struct KeyCommandItem(Key Key, string Command);
 public class ConfigKeyMapping : IConfigKeyMapping
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static readonly IReadOnlySet<Key> EmptyKeySet = new HashSet<Key>();
-    private static readonly IReadOnlySet<string> EmptyStringSet = new HashSet<string>();
 
     public bool Changed { get; private set; }
 
