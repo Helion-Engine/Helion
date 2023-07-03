@@ -37,6 +37,8 @@ public class RenderableString
     /// </summary>
     public List<RenderableSentence> Sentences;
 
+    public readonly bool ShouldFree;
+
     /// <summary>
     /// Creates a rendered string that is ready to be passed to a renderer.
     /// </summary>
@@ -51,8 +53,9 @@ public class RenderableString
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
     public RenderableString(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
-        int maxWidth = int.MaxValue, Color? drawColor = null)
+        int maxWidth = int.MaxValue, Color? drawColor = null, bool shouldFree = true)
     {
+        ShouldFree = shouldFree;
         Font = font;
         Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);
@@ -63,6 +66,10 @@ public class RenderableString
     public void Set(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
+        // This is kind of a hack. If reusing this string the underlying data needs to freed.
+        if (!ShouldFree)
+            dataCache.FreeRenderableStringData(this);
+
         Font = font;
         Sentences = PopulateSentences(dataCache, str, font, fontSize, maxWidth, drawColor);
         DrawArea = CalculateDrawArea(Sentences);

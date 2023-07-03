@@ -5,6 +5,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Util;
 
@@ -82,6 +83,9 @@ public interface IHudRenderContext : IDisposable
     void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f);
+
+    void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
+        Align? both = null);
 
     void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,

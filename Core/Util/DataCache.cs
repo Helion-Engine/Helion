@@ -258,13 +258,21 @@ public class DataCache
 
     public void FreeRenderableString(RenderableString renderableString)
     {
+        if (!renderableString.ShouldFree)
+            return;
+
+        FreeRenderableStringData(renderableString);
+        m_strings.Add(renderableString);
+    }
+
+    public void FreeRenderableStringData(RenderableString renderableString)
+    {
         for (int i = 0; i < renderableString.Sentences.Count; i++)
             FreeRenderableGlyphs(renderableString.Sentences[i].Glyphs);
         FreeRenderableSentences(renderableString.Sentences);
 
         renderableString.Sentences = null!;
         renderableString.Font = null!;
-        m_strings.Add(renderableString);
     }
 
     public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture)

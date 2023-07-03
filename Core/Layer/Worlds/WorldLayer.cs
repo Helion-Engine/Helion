@@ -2,11 +2,15 @@ using System;
 using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Fonts;
 using Helion.Maps;
 using Helion.Models;
+using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
@@ -52,6 +56,7 @@ public partial class WorldLayer : IGameLayerParent
 
     private Player Player => World.Player;
     public bool ShouldFocus => !World.Paused || (World.IsChaseCamMode && !AnyLayerObscuring);
+    private readonly Font DefaultFont;
 
     public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker, 
         SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
@@ -73,6 +78,36 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);
+
+        DefaultFont = World.ArchiveCollection.GetFont(LargeHudFont);
+        m_renderHealthString = InitRenderableString();
+        m_renderArmorString = InitRenderableString();
+        m_renderAmmoString = InitRenderableString();
+        m_renderFpsString = InitRenderableString(TextAlign.Right);
+        m_renderFpsMinString = InitRenderableString(TextAlign.Right);
+        m_renderFpsMaxString = InitRenderableString(TextAlign.Right);
+        m_renderTimeString = InitRenderableString(TextAlign.Right);
+        m_renderKillString = InitRenderableString(TextAlign.Right);
+        m_renderItemString = InitRenderableString(TextAlign.Right);
+        m_renderSecretString = InitRenderableString(TextAlign.Right);
+        m_renderKillLabel = InitRenderableString(TextAlign.Right);
+        m_renderItemLabel = InitRenderableString(TextAlign.Right);
+        m_renderSecretLabel = InitRenderableString(TextAlign.Right);
+
+        StatValues = new SpanString[] { m_killString, m_itemString, m_secretString };
+        RenderableStatLabels = new RenderableString[] { m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel };
+        RenderableStatValues = new RenderableString[] { m_renderKillString, m_renderItemString, m_renderSecretString };
+    }
+
+    private RenderableString InitRenderableString(TextAlign align = TextAlign.Left) => 
+        new(World.ArchiveCollection.DataCache, string.Empty, DefaultFont, 12, align: align, shouldFree: false);
+
+    private Font GetFontOrDefault(string name)
+    {
+        var font = World.ArchiveCollection.GetFont(name);
+        if (font == null)
+            return DefaultFont;
+        return font;
     }
 
     ~WorldLayer()

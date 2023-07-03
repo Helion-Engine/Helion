@@ -154,6 +154,16 @@ public class GLHudRenderContext : IHudRenderContext
         drawArea = (location, location + drawDim.Vector);
     }
 
+    public void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
+    Align? both = null)
+    {
+        window = both ?? window;
+        anchor = both ?? anchor;
+        Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, str.DrawArea.Width, str.DrawArea.Height,
+            window, anchor);
+        m_commands.DrawText(str, pos.X, pos.Y, 1.0f);
+    }
+
     public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
         TextAlign textAlign = TextAlign.Left, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, int maxWidth = Int32.MaxValue, int maxHeight = Int32.MaxValue, float scale = 1.0f,
