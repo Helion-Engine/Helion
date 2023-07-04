@@ -23,13 +23,12 @@ public class Font : IEnumerable<(char, Glyph)>
     public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar,
         bool isTrueTypeFont = false)
     {
-        Precondition(!glyphs.Empty(), "Cannot have an empty glyph set for a font");
-
         Name = name;
         m_glyphs = glyphs;
         Image = image;
         IsTrueTypeFont = isTrueTypeFont;
-        MaxHeight = glyphs.Values.Max(g => g.Area.Height);
+        if (glyphs.Count > 0)
+            MaxHeight = glyphs.Values.Max(g => g.Area.Height);
 
         if (!glyphs.TryGetValue(defaultChar, out m_defaultGlyph))
             m_defaultGlyph = glyphs.Values.FirstOrDefault();

@@ -80,6 +80,9 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualDrawPauseAction = new(VirtualDrawPause);
 
         DefaultFont = World.ArchiveCollection.GetFont(LargeHudFont);
+        if (DefaultFont == null)
+            DefaultFont = new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
+
         m_renderHealthString = InitRenderableString();
         m_renderArmorString = InitRenderableString();
         m_renderAmmoString = InitRenderableString();
@@ -92,7 +95,7 @@ public partial class WorldLayer : IGameLayerParent
         m_renderSecretString = InitRenderableString(TextAlign.Right);
         m_renderKillLabel = InitRenderableString(TextAlign.Right);
         m_renderItemLabel = InitRenderableString(TextAlign.Right);
-        m_renderSecretLabel = InitRenderableString(TextAlign.Right);
+        m_renderSecretLabel = InitRenderableString(TextAlign.Right);        
 
         StatValues = new SpanString[] { m_killString, m_itemString, m_secretString };
         RenderableStatLabels = new RenderableString[] { m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel };
