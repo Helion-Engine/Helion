@@ -67,6 +67,7 @@ public class Player : Entity
 
     private bool m_isJumping;
     private bool m_hasNewWeapon;
+    private bool m_strafeCommand;
     private int m_jumpTics;
     private int m_deathTics;
     private double m_bob;
@@ -478,7 +479,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!TickCommand.Has(TickCommands.Strafe) && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
+        if (!m_strafeCommand && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -NotQuiteVertical, NotQuiteVertical);
@@ -602,13 +603,14 @@ public class Player : Entity
 
     public void HandleTickCommand()
     {
+        m_strafeCommand = TickCommand.Has(TickCommands.Strafe);
         if (TickCommand.Has(TickCommands.Use))
             World.EntityUse(this);
 
         if (IsDead || IsFrozen)
             return;
 
-        if (TickCommand.AngleTurn != 0 && !TickCommand.Has(TickCommands.Strafe))
+        if (TickCommand.AngleTurn != 0 && !m_strafeCommand)
             AddToYaw(TickCommand.AngleTurn, false);
 
         if (TickCommand.PitchTurn != 0)
@@ -701,7 +703,7 @@ public class Player : Entity
         if (TickCommand.Has(TickCommands.CenterView))
             PitchRadians = 0;
 
-        if (!TickCommand.Has(TickCommands.Strafe))
+        if (!m_strafeCommand)
         {
             AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle);
             PitchRadians = AddPitch(PitchRadians, TickCommand.MousePitch);
