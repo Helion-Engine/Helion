@@ -6,20 +6,18 @@ using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Configs;
 using MoreLinq;
-using static Helion.Util.Assertion.Assert;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
 namespace Helion.Render.OpenGL.Texture;
 
+[Flags]
 public enum TextureFlags
 {
     Default,

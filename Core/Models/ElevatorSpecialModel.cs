@@ -6,8 +6,8 @@ namespace Helion.Models
 {
     public class ElevatorSpecialModel : ISpecialModel
     {
-        public SectorMoveSpecialModel FirstMove { get; set; }
-        public SectorMoveSpecialModel SecondMove { get; set; }
+        public SectorMoveSpecialModel FirstMove { get; set; } = null!;
+        public SectorMoveSpecialModel SecondMove { get; set; } = null!;
 
         public ISpecial? ToWorldSpecial(IWorld world)
         {

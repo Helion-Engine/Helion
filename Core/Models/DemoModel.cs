@@ -22,7 +22,7 @@ public class DemoModel
 {
     public string AppVersion { get; set; } = string.Empty;
     public DemoVersion Version { get; set; }
-    public GameFilesModel GameFiles { get; set; }
+    public GameFilesModel GameFiles { get; set; } = null!;
     public IList<DemoMap> Maps { get; set; } = Array.Empty<DemoMap>();
     public IList<DemoCheat> Cheats { get; set; } = Array.Empty<DemoCheat>();
     public IList<ConfigValueModel> ConfigValues { get; set; } = Array.Empty<ConfigValueModel>();

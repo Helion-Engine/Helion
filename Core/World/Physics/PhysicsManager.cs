@@ -836,9 +836,9 @@ public class PhysicsManager
                             entity.SectorNodes.Add(sector.Link(entity));
                         }
 
-                        if (line->BackSector != null && line->BackSector.CheckCount != checkCounter)
+                        if (line->BackSector != null && line->BackSector!.CheckCount != checkCounter)
                         {
-                            Sector sector = line->BackSector;
+                            Sector sector = line->BackSector!;
                             sector.CheckCount = checkCounter;
                             entity.IntersectSectors.Add(sector);
                             entity.SectorNodes.Add(sector.Link(entity));

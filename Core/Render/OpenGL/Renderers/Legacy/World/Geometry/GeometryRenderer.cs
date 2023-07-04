@@ -95,6 +95,8 @@ public class GeometryRenderer : IDisposable
             m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
         }
+
+        m_world = null!;
     }
 
     ~GeometryRenderer()

@@ -27,8 +27,6 @@ using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
-using Helion.Window.Input;
-using Helion.World;
 using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 
@@ -40,7 +38,7 @@ namespace Helion.Layer;
 /// </summary>
 public class GameLayerManager : IGameLayerManager
 {
-    public event EventHandler<IGameLayer> GameLayerAdded;
+    public event EventHandler<IGameLayer>? GameLayerAdded;
 
     public ConsoleLayer? ConsoleLayer { get; private set; }
     public MenuLayer? MenuLayer { get; private set; }
@@ -91,6 +89,8 @@ public class GameLayerManager : IGameLayerManager
         m_stopwatch.Start();
         m_renderDefaultAction = new(RenderDefault);
         m_renderHudAction = new(RenderHud);
+        m_renderer = null!;
+        m_ctx = null!;
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }

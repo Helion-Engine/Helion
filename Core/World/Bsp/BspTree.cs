@@ -1,5 +1,4 @@
-﻿using Helion.Bsp.Node;
-using Helion.Geometry.Boxes;
+﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
@@ -8,9 +7,7 @@ using Helion.Util.Extensions;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using OneOf;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -111,7 +108,7 @@ public class BspTreeNew
             Line? line = null;
             Sector? sector = null;
 
-            if (!seg.IsMiniseg)
+            if (seg.Linedef.HasValue)
             {
                 // Apparently zdbsp writes segment indices that don't exist (ex: summer of slaughter map31)
                 int linedefId = (int)seg.Linedef.Value;

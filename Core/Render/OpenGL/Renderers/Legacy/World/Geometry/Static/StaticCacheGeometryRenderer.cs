@@ -22,11 +22,9 @@ using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-public readonly record struct StaticFloodPlane(SectorPlane Flood, SectorPlane FloodWith);
-
 public class StaticCacheGeometryRenderer : IDisposable
 {
-    private static readonly SectorDynamic IgnoreFlags = SectorDynamic.Movement;
+    private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
 
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
@@ -53,10 +51,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly Dictionary<int, List<Sector>> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
-    private DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
-
-    private readonly TransparentGeometryDataComparer m_transparentGeometryDataComparer = new();
-    private readonly Comparison<StaticGeometryData> m_geometryIndexComparison = new(GeometryIndexCompare);
+    private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
 
     private bool m_staticMode;
     private bool m_disposed;
@@ -80,6 +75,14 @@ public class StaticCacheGeometryRenderer : IDisposable
     static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
     {
         return x.GeometryDataStartIndex.CompareTo(y.GeometryDataStartIndex);
+    }
+
+    static int TransparentGeometryCompare(GeometryData x, GeometryData y)
+    {
+        if (x.Texture.TransparentPixelCount == y.Texture.TransparentPixelCount)
+            return x.Texture.TextureId.CompareTo(y.Texture.TextureId);
+
+        return x.Texture.TransparentPixelCount.CompareTo(y.Texture.TransparentPixelCount);
     }
 
     ~StaticCacheGeometryRenderer()
@@ -382,7 +385,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometry.Add(data);
         // Sorts textures that do not have transparent pixels first.
         // This is to get around the issue of middle textures with transparent pixels being drawn first and discarding stuff behind that should not be.
-        m_geometry.Sort(m_transparentGeometryDataComparer);
+        m_geometry.Sort(TransparentGeometryCompare);
         m_textureToGeometryLookup.Add(textureHandle, repeat, data);
     }
 
@@ -593,7 +596,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (plane.Sector.IsMoving || data.GeometryData == null)
                 continue;
 
-            DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
+            DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
             list.Add(data);
 
             GeometryRenderer.UpdatePlaneOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryDataLength, data.GeometryData.Texture, plane);
@@ -835,7 +838,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorPlaneScrollChanged(object? sender, SectorPlane e)
     {
-        if (!m_staticScroll)
+        if (!m_staticScroll || m_world == null)
             return;
 
         if (m_updateScrollPlanesLookup[e.Id] == m_world.Gametick)
@@ -921,7 +924,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
+        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
         list.Add(data);
 
         var geometryData = data.GeometryData;
@@ -937,18 +940,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data);
+        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
         list.Add(data);
 
         GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
     }
 
-    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(in StaticGeometryData data)
+    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(GeometryData geometryData)
     {
-        if ((data.GeometryData.Texture.Flags & TextureFlags.ClampY) == 0)
-            return GetOrCreateBufferList(m_bufferData, data.GeometryData.TextureHandle);
+        if ((geometryData.Texture.Flags & TextureFlags.ClampY) == 0)
+            return GetOrCreateBufferList(m_bufferData, geometryData.TextureHandle);
 
-        return GetOrCreateBufferList(m_bufferDataClamp, data.GeometryData.TextureHandle);
+        return GetOrCreateBufferList(m_bufferDataClamp, geometryData.TextureHandle);
     }
 
     private DynamicArray<StaticGeometryData> GetOrCreateBufferList(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData, int textureHandle)

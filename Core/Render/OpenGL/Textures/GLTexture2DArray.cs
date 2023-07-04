@@ -19,7 +19,7 @@ public class GLTexture2DArray : GLTexture
     public int Depth { get; protected set; } = 1;
     public Vec2F UVInverse { get; protected set; } = Vec2F.One;
 
-    public int Name => base.Name;
+    public new int Name => base.Name;
 
     public GLTexture2DArray(string label)
     {

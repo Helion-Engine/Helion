@@ -3299,7 +3299,7 @@ public static class EntityActionFunctions
 
     private static int DamageAttackFunction(DamageFuncParams damageParams)
     {
-        Entity entity = (Entity)damageParams.Object;
+        Entity entity = (Entity)damageParams.Object!;
         return damageParams.Arg0 * ((entity.World.Random.NextByte() % damageParams.Arg1) + 1);
     }
 }

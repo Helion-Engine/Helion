@@ -105,7 +105,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private void World_OnResetInterpolation(object? sender, EventArgs e)
     {
         m_lastTicker = -1;
-        ResetInterpolation((IWorld)sender);
+        ResetInterpolation((IWorld)sender!);
     }
 
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)

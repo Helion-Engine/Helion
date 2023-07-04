@@ -2,7 +2,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
@@ -12,9 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,9 +38,9 @@ public class AutomapMarker
 
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly Stopwatch m_stopwatch = new();
+    private readonly ViewClipper m_viewClipper;
     private Task? m_task;
-    private CancellationTokenSource _cancelTasks = new();
-    private ViewClipper m_viewClipper;
+    private CancellationTokenSource m_cancelTasks = new();
     private IWorld? m_world;
     private bool m_occlude;
     private Vec2D m_occludeViewPos;
@@ -65,7 +62,7 @@ public class AutomapMarker
         world.OnDestroying += World_OnDestroying;
         m_world = world;
         m_lineDrawnTracker.UpdateToWorld(world);
-        m_task = Task.Factory.StartNew(() => AutomapTask(_cancelTasks.Token), _cancelTasks.Token,
+        m_task = Task.Factory.StartNew(() => AutomapTask(m_cancelTasks.Token), m_cancelTasks.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
@@ -84,13 +81,13 @@ public class AutomapMarker
         if (m_task == null)
             return;
 
-        _cancelTasks.Cancel();
-        _cancelTasks.Dispose();
+        m_cancelTasks.Cancel();
+        m_cancelTasks.Dispose();
         m_task.Wait();
 
         ClearData();
 
-        _cancelTasks = new CancellationTokenSource();
+        m_cancelTasks = new CancellationTokenSource();
         m_task = null;
     }
 
@@ -106,7 +103,7 @@ public class AutomapMarker
         m_positions.Enqueue(new PlayerPosition(pos, viewDirection, angleRadians, pitchRadians));
     }
 
-    private async void AutomapTask(CancellationToken token)
+    private void AutomapTask(CancellationToken token)
     {
         int ticks = (int)(1000 / Constants.TicksPerSecond);
         while (true)
@@ -195,7 +192,7 @@ public class AutomapMarker
         }
     }
 
-    private unsafe void AddLineClip(SubsectorSegment edge)
+    private void AddLineClip(SubsectorSegment edge)
     {
         if (edge.Side!.Line.OneSided)
             m_viewClipper.AddLine(edge.Start, edge.End);

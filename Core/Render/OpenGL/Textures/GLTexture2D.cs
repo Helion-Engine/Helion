@@ -16,7 +16,7 @@ public class GLTexture2D : GLTexture
     public Vec2I Offset { get; protected set; }
     public Vec2F UVInverse { get; protected set; } = Vec2F.One;
 
-    public int Name => base.Name;
+    public new int Name => base.Name;
 
     public GLTexture2D(string label)
     {

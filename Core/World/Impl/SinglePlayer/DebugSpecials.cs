@@ -48,7 +48,7 @@ public class DebugSpecials
             Sector? markSector = null;
             if (line.Front.Sector.Tag != 0)
                 markSector = line.Front.Sector;
-            else if (line.Back != null & line.Back.Sector.Tag != 0)
+            else if (line.Back != null && line.Back.Sector.Tag != 0)
                 markSector = line.Back.Sector;
 
             if (markSector != null)

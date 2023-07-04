@@ -80,7 +80,7 @@ public class RenderDataCollection<TVertex> : IDisposable where TVertex : struct
             return;
 
         for (int i = 0; i < m_allRenderData.Length; i++)
-            m_allRenderData[i].Dispose();
+            m_allRenderData[i]?.Dispose();
         m_allRenderData.Clear();
 
         m_disposed = true;

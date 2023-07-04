@@ -25,7 +25,10 @@ public class RenderInfo
 
     public RenderInfo()
     {
-
+        // Set must be called on new allocation
+        Camera = null!;
+        Config = null!;
+        ViewerEntity = null!;
     }
 
     public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,

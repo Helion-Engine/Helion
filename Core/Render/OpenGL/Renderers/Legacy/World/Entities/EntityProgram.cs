@@ -21,7 +21,7 @@ public class EntityProgram : RenderProgram
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, "viewRightNormal");
 
-    protected override string? VertexShader() => @"
+    protected override string VertexShader() => @"
         #version 330
 
         layout(location = 0) in vec3 pos;

@@ -174,7 +174,7 @@ public partial class MapInfoDefinition
         return mapDef;
     }
 
-    private void ParseMapDefFields(SimpleParser parser, MapInfoDef? mapDef, string item)
+    private void ParseMapDefFields(SimpleParser parser, MapInfoDef mapDef, string item)
     {
         ConsumeEquals(parser);
 

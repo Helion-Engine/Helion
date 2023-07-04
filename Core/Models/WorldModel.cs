@@ -7,7 +7,7 @@ namespace Helion.Models;
 
 public class WorldModel
 {
-    public GameFilesModel Files { get; set; }
+    public GameFilesModel Files { get; set; } = null!;
     public IList<ConfigValueModel> ConfigValues { get; set; } = Array.Empty<ConfigValueModel>();
 
     public string MapName { get; set; } = string.Empty;

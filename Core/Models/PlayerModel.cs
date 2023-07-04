@@ -29,7 +29,7 @@ public class PlayerModel : EntityModel
     public double WeaponOffsetY { get; set; }
     public int WeaponSlot { get; set; }
     public int WeaponSubSlot { get; set; }
-    public InventoryModel Inventory { get; set; }
+    public InventoryModel Inventory { get; set; } = null!;
     public FrameStateModel? AnimationWeaponFrame { get; set; }
     public FrameStateModel? WeaponFlashFrame { get; set; }
     public IList<int> Cheats { get; set; } = Array.Empty<int>();

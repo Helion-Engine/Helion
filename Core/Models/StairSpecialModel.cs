@@ -16,7 +16,7 @@ public class StairSpecialModel : ISpecialModel
     public bool Crush { get; set; }
     public IList<int> SectorIds { get; set; } = Array.Empty<int>();
     public IList<int> Heights { get; set; } = Array.Empty<int>();
-    public SectorMoveSpecialModel MoveSpecial { get; set; }
+    public SectorMoveSpecialModel MoveSpecial { get; set; } = null!;
 
     public ISpecial? ToWorldSpecial(IWorld world)
     {

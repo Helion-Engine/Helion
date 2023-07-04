@@ -108,7 +108,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
     public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
-    public readonly LinkableNode<Entity>? EntityListNode;
+    public readonly LinkableNode<Entity> EntityListNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -136,6 +136,16 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Entity()
     {
         EntityListNode = new(this);
+        Definition = null!;
+        EntityManager = null!;
+        HighestFloorObject = null!;
+        HighestFloorSector = null!;
+        LowestCeilingObject = null!;
+        LowestCeilingSector = null!;
+        Sector = null!;
+        Properties = null!;
+        SoundManager = null!;
+        World = null!;
     }
 
     public void Set(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,

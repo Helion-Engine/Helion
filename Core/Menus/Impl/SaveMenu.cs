@@ -33,7 +33,6 @@ public class SaveMenu : Menu
     private readonly SaveGameManager m_saveGameManager;
     private readonly bool m_isSave;
     private readonly bool m_canSave;
-    private readonly bool m_clearOnExit;
 
     private SaveGame? m_deleteSave;
 

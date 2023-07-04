@@ -41,7 +41,7 @@ public class Inventory
     /// item (ex: weapons, which need more logic).
     /// </summary>
     private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
-    private LookupArray<InventoryItem> ItemsById = new();
+    private LookupArray<InventoryItem?> ItemsById = new();
     private readonly List<InventoryItem> ItemList = new();
     private readonly List<InventoryItem> Keys = new();
     private readonly EntityDefinitionComposer EntityDefinitionComposer;

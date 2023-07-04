@@ -11,8 +11,8 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Commands;
+using Helion.Util.Assertion;
 using Helion.World;
-using Helion.World.Impl.SinglePlayer;
 
 namespace Helion.Render.OpenGL;
 
@@ -34,14 +34,17 @@ public class GLWorldRenderContext : IWorldRenderContext
 
     public void Draw(IWorld world)
     {
+        if (m_context == null)
+            return;
+
         Camera camera = m_context.Camera;
         m_oldCamera.Set(camera.PositionInterpolated, camera.Position, camera.YawRadians, camera.PitchRadians);
-
+        
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.
         m_commands.DrawWorld(world, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
-            world.GetCameraPlayer(), m_context?.DrawAutomap ?? false, m_context?.AutomapOffset ?? (0, 0),
-            m_context?.AutomapScale ?? 1.0);
+            world.GetCameraPlayer(), m_context.DrawAutomap, m_context.AutomapOffset,
+            m_context.AutomapScale);
     }
 
     public void DrawLine(Seg3D seg, Color color)

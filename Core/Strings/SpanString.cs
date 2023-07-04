@@ -110,7 +110,7 @@ public partial class SpanString
         return m_chars.Data.AsSpan(0, m_chars.Length);
     }
 
-    public string ToString()
+    public override string ToString()
     {
         return new string(AsSpan());
     }

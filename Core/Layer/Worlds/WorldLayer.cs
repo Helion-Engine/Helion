@@ -79,9 +79,9 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);
 
-        DefaultFont = World.ArchiveCollection.GetFont(LargeHudFont);
-        if (DefaultFont == null)
-            DefaultFont = new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
+        var font = World.ArchiveCollection.GetFont(LargeHudFont);
+        font ??= new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
+        DefaultFont = font;
 
         m_renderHealthString = InitRenderableString();
         m_renderArmorString = InitRenderableString();
