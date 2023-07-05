@@ -230,6 +230,9 @@ public class SectorMoveSpecial : ISectorSpecial
 
         if ((IsNonRepeat && SectorPlane.Z == DestZ) || MoveStatus == SectorMoveStatus.BlockedAndStop)
         {
+            if (CheckInstantMove(destZ))
+                ResetInterpolation();
+
             if (MoveData.FloorChangeTextureHandle != null)
                 m_world.SetPlaneTexture(Sector.Floor, MoveData.FloorChangeTextureHandle.Value);
 
@@ -259,6 +262,11 @@ public class SectorMoveSpecial : ISectorSpecial
             FlipMovementDirection(false);
 
         return SpecialTickStatus.Continue;
+    }
+
+    private bool CheckInstantMove(double destZ)
+    {
+        return Math.Abs(destZ - SectorPlane.PrevZ) > Math.Abs(m_speed);
     }
 
     private void StopMovementSound()
