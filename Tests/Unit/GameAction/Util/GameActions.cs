@@ -415,6 +415,15 @@ namespace Helion.Tests.Unit.GameAction
             world.LinkClamped(entity);
         }
 
+        public static void SetEntityPositionInit(WorldBase world, Entity entity, Vec3D pos)
+        {
+            entity.UnlinkFromWorld();
+            entity.MoveLinked = false;
+            entity.PrevPosition = pos;
+            entity.Position = pos;
+            world.Link(entity);
+        }
+
         public static void SetEntityTarget(Entity source, Entity target)
         {
             source.SetTarget(target);

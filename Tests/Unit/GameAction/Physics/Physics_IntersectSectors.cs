@@ -68,7 +68,7 @@ public partial class Physics
     public void ImpassibleMoveLineCheckPlayer()
     {
         var sector = GameActions.GetSectorByTag(World, 21);
-        GameActions.SetEntityPosition(World, Player, (-160, 2104, 0));
+        GameActions.SetEntityPositionInit(World, Player, (-160, 2104, 0));
         Player.Position.Z.Should().Be(0);
 
         GameActions.ActivateLine(World, Player, 363, ActivationContext.UseLine).Should().BeTrue();

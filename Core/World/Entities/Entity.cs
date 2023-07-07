@@ -71,6 +71,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new();
+    public DynamicArray<Sector> IntersectMovementSectors = new();
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -383,6 +384,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockmapNodes.Clear();
 
         IntersectSectors.Clear();
+        IntersectMovementSectors.Clear();
         BlockingLine = null;
         BlockingEntity = null;
         BlockingSectorPlane = null;
@@ -923,6 +925,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockmapNodes.Clear();
         SectorNodes.Clear();
         IntersectSectors.Clear();
+        IntersectMovementSectors.Clear();
 
         for (int i = 0; i < SoundChannels.Length; i++)
             SoundChannels[i] = null!;

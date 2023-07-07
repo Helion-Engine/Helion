@@ -101,12 +101,33 @@ namespace Helion.Tests.Unit.GameAction
             sector.Floor.Z.Should().Be(64);
         }
 
-        [Fact(DisplayName = "Floor raise blocked by entity hitting a different ceiling")]
-        public void FloorRaiseBlockedByDifferentCeiling()
+        [Fact(DisplayName = "Floor raise not blocked because of bad blockmap check")]
+        public void EntityNotBlockedBecauseOfBadBlockmapCheck()
         {
-            var ceilingEntity = GameActions.GetEntity(World, 54);            
+            // Doom iterated the lines in the blockmap to set the highest floor and lowest ceiling.
+            // It incorrectly would short when it hit a line with impassible flag.
+            // This means it would skip entire blocks of lines that are valid.
+            // In this case the blockmap iteration hits the impassible wall first from sector 56
+            // and never checks lines for sector 57.
             var sector = GameActions.GetSectorByTag(World, 11);
             var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1200, -256));
+            GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
+            sector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, 200);
+            sector.Floor.Z.Should().Be(-128);
+
+            sector.ActiveFloorMove.Should().BeNull();
+            World.SpecialManager.RemoveSpecial(sector.ActiveFloorMove!);
+            monster.Dispose();
+            GameActions.RunSectorPlaneSpecial(World, sector);
+        }
+
+        [Fact(DisplayName = "Floor raise blocked by entity hitting a different ceiling")]
+        public void FloorRaiseBlockedByDifferentCeiling()
+        {         
+            var sector = GameActions.GetSectorByTag(World, 11);
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(120, 1192, -256));
             GameActions.ActivateLine(World, Player, 249, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveFloorMove.Should().NotBeNull();
 

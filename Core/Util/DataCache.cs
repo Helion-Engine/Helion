@@ -62,14 +62,15 @@ public class DataCache
         for (int i = 0; i < m_entities.Capacity; i++)
         {
             Entity? entity = m_entities[i];
-            if (entity == null)
+            if (entity == null!)
                 continue;
             entity.IntersectSectors.FlushReferences();
+            entity.IntersectMovementSectors.FlushReferences();
         }
 
         for (int i = 0; i < m_blockmapLists.Capacity; i++)
         {
-            if (m_blockmapLists[i] == null)
+            if (m_blockmapLists[i] == null!)
                 continue;
             for (int j = 0; j < m_blockmapLists[i].Capacity; j++)
             {
@@ -80,7 +81,7 @@ public class DataCache
 
         for (int i = 0; i < m_entityLists.Capacity; i++)
         {
-            if (m_entityLists[i] == null)
+            if (m_entityLists[i] == null!)
                 continue;
             m_entityLists[i].FlushReferences();
         }
