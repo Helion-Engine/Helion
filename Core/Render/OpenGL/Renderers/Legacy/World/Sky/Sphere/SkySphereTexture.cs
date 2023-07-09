@@ -148,31 +148,31 @@ public class SkySphereTexture : IDisposable
         // Now draw the images on top of them.
         skyImage.DrawOnTopOf(fadedSky, (0, middleY));
         skyImage.DrawOnTopOf(fadedSky, (0, middleY - skyImage.Height));
-
+        
         // Now blend the top of the image into the background.
         if (rowsToEvaluate > 0)
         {
-            // We're going to start from the top of the blending area and work
-            // our way downward, because the logic is more programmer friendly.
-            // This means we start out with maximal blending (hence, 1.0 - frac)
-            // and then blend less and less on the way down.
+            // Start from the top of the top piece and fade downwards, from the
+            // background color into the image.
+            Vec4F topColorVec = topFadeColor.Normalized;
             for (int y = 0; y < rowsToEvaluate; y++)
             {
-                int targetY = y + (middleY - skyImage.Height);
-                float t = 1.0f - ((float)y / rowsToEvaluate);
-                FillRow(topFadeColor.Normalized, targetY, t);
+                int targetY = padding + y;
+                float t = (float)y / rowsToEvaluate;
+                FillRow(topColorVec, targetY, t);
             }
-
+            
             // Do the same but start at the top of the bottom transition zone and
             // walk downwards to blend.
+            Vec4F bottomColorVec = bottomFadeColor.Normalized;
             for (int y = 0; y < rowsToEvaluate; y++)
             {
                 int targetY = (middleY + skyImage.Height - 1) - y;
                 float t = (float)y / rowsToEvaluate;
-                FillRow(bottomFadeColor.Normalized, targetY, t);
+                FillRow(bottomColorVec, targetY, t);
             }
         }
-
+        
         return fadedSky;
 
         void FillRow(Vec4F normalized, int targetY, float t)

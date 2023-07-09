@@ -177,7 +177,7 @@ public class Image
     public void FillRows(Color color, int startY, int endY)
     {
         int offsetStart = startY * Width;
-        int offsetEnd = (endY - startY) * Width;
+        int offsetEnd = endY * Width;
         uint argb = color.Uint;
         for (int i = offsetStart; i < offsetEnd; i++)
             m_pixels[i] = argb;

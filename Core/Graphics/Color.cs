@@ -1,6 +1,7 @@
-﻿using Helion.Geometry.Vectors;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Helion.Geometry.Vectors;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
@@ -39,7 +40,7 @@ public record struct Color(byte A, byte R, byte G, byte B)
 
     public uint Uint => (uint)((A << 24) | (R << 16) | (G << 8) | B);
     public Vec4F Normalized => new Vec4F(A, R, G, B) * (1 / 255.0f);
-    public SixLabors.ImageSharp.Color ToImageSharp => new(new SixLabors.ImageSharp.PixelFormats.Rgba32(R, G, B, A));
+    public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) : 
         this((byte)(normalized.X * 255), (byte)(normalized.Y * 255), (byte)(normalized.Z * 255), (byte)(normalized.W * 255))
@@ -83,7 +84,7 @@ public record struct Color(byte A, byte R, byte G, byte B)
     }
 
     // `t` is [0.0, 1.0], it does not saturate if out of range. Returns the
-    // lineraly interpolated color, where t = 0 is equal to this, and t = 1
+    // linearly interpolated color, where t = 0 is equal to this, and t = 1
     // is equal to `other`.
     public static Color Lerp(Vec4F normalized, Color other, float t)
     {
@@ -92,73 +93,40 @@ public record struct Color(byte A, byte R, byte G, byte B)
         return new(normalized + (delta * t));
     }
 
-    public Color Lerp(Color other, float t)
-    {
-        return Color.Lerp(Normalized, other, t);
-    }
-
     public static Color FromName(string name)
-    { 
-        switch (name.ToLower())
+    {
+        return name.ToLower() switch
         {
-        case "black":
-            return Color.Black;
-        case "blue":
-            return Color.Blue;
-        case "brown":
-            return Color.Brown;
-        case "chocolate":
-            return Color.Chocolate;
-        case "cyan":
-            return Color.Cyan;
-        case "darkbrown":
-            return Color.DarkBrown;
-        case "darkgray":
-        case "darkgrEy":
-            return Color.DarkGray;
-        case "darkgreen":
-            return Color.DarkGreen;
-        case "darkred":
-            return Color.DarkRed;
-        case "firebrick":
-            return Color.Firebrick;
-        case "gold":
-            return Color.Gold;
-        case "gray":
-        case "grey":
-            return Color.Gray;
-        case "green":
-            return Color.Green;
-        case "khaki":
-            return Color.Khaki;
-        case "lawngreen":
-            return Color.LawnGreen;
-        case "lightblue":
-            return Color.LightBlue;
-        case "lightgreen":
-            return Color.LightGreen;
-        case "olive":
-            return Color.Olive;
-        case "orange":
-            return Color.Orange;
-        case "peachpuff":
-            return Color.PeachPuff;
-        case "purple":
-            return Color.Purple;
-        case "red":
-            return Color.Red;
-        case "rosybrown":
-            return Color.RosyBrown;
-        case "saddlebrown":
-            return Color.SaddleBrown;
-        case "tan":
-            return Color.Tan;
-        case "white":
-            return Color.White;
-        case "yellow":
-            return Color.Yellow;
-        default:
-            return Color.Black;
-        }
+            "black" => Black,
+            "blue" => Blue,
+            "brown" => Brown,
+            "chocolate" => Chocolate,
+            "cyan" => Cyan,
+            "darkbrown" => DarkBrown,
+            "darkgray" => DarkGray,
+            "darkgrey" => DarkGray,
+            "darkgreen" => DarkGreen,
+            "darkred" => DarkRed,
+            "firebrick" => Firebrick,
+            "gold" => Gold,
+            "gray" => Gray,
+            "grey" => Gray,
+            "green" => Green,
+            "khaki" => Khaki,
+            "lawngreen" => LawnGreen,
+            "lightblue" => LightBlue,
+            "lightgreen" => LightGreen,
+            "olive" => Olive,
+            "orange" => Orange,
+            "peachpuff" => PeachPuff,
+            "purple" => Purple,
+            "red" => Red,
+            "rosybrown" => RosyBrown,
+            "saddlebrown" => SaddleBrown,
+            "tan" => Tan,
+            "white" => White,
+            "yellow" => Yellow,
+            _ => Black
+        };
     }
 }
