@@ -64,7 +64,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     {
         Config = config;
         ArchiveCollection = archiveCollection;
-        NullTexture = CreateNullTexture();
+        NullTexture = config.Render.NullTexture ? CreateNullTexture() : CreateTransparentNullTexture();
         WhiteTexture = CreateWhiteTexture();
         NullSpriteRotation = CreateNullSpriteRotation();
         NullFont = CreateNullFont();
@@ -307,6 +307,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     private GLTextureType CreateNullTexture()
     {
         return GenerateTexture(Image.NullImage, "NULL", ResourceNamespace.Global);
+    }
+
+    private GLTextureType CreateTransparentNullTexture()
+    {
+        return GenerateTexture(Image.TransparentImage, "NULL", ResourceNamespace.Global);
     }
 
     private GLTextureType CreateWhiteTexture()

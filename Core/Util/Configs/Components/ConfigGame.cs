@@ -34,7 +34,7 @@ public class ConfigGame
     [ConfigInfo("The skill level to use when starting a map.", save: false, demo: true)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
 
-    [ConfigInfo("Enables monster closet detection and limited monster AI.", restartRequired: true, demo: true)]
+    [ConfigInfo("Enables monster closet detection and limited monster AI.", mapRestartRequired: true, demo: true)]
     public readonly ConfigValue<bool> MonsterCloset = new(true);
 
     [ConfigInfo("Confirm overwriting when quick saving.")]

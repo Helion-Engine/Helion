@@ -1,4 +1,3 @@
-using Helion.Geometry;
 using Helion.Render.Common.Textures;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
@@ -78,10 +77,10 @@ public class ConfigRender
     [ConfigInfo("Max render distance.")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
-    [ConfigInfo("Static rendering mode.", restartRequired: true)]
+    [ConfigInfo("Static rendering mode.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
-    [ConfigInfo("Update scrolling walls for static rendering.", restartRequired: true)]
+    [ConfigInfo("Update scrolling walls for static rendering.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> StaticScroll = new(false);
 
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
@@ -93,12 +92,15 @@ public class ConfigRender
     [ConfigInfo("Field of view. Default = 90")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60, 120));
 
-    [ConfigInfo("Enable sector flood fill.", restartRequired: true)]
+    [ConfigInfo("Enable sector flood fill.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> FloodFill = new(true);
 
-    [ConfigInfo("Enable alternate method for sector flood fill.", restartRequired: true)]
+    [ConfigInfo("Enable alternate method for sector flood fill.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> FloodFillAlt = new(false);
 
     [ConfigInfo("Enable sprite rendering with single vertex using the geometry shader.")]
     public readonly ConfigValue<bool> SingleVertexSprites = new(false);
+
+    [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
+    public readonly ConfigValue<bool> NullTexture = new(false);
 }

@@ -356,7 +356,7 @@ public partial class Client : IDisposable, IInputManagement
 
         try
         {
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config.Compatibility, ArchiveCollection.StaticDataCache);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(config, @"SoundFonts\Default.sf2");

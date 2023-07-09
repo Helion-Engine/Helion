@@ -27,7 +27,8 @@ using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Bytes;
-using Helion.Util.Configs.Components;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -81,11 +82,11 @@ public class ArchiveCollection : IResources
     private bool m_lastLoadedMapIsTemp;
     private IWadInfo? m_overrideIWadInfo;
 
-    public ArchiveCollection(IArchiveLocator archiveLocator, ConfigCompat config, DataCache dataCache)
+    public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
     {
         m_archiveLocator = archiveLocator;
-        Definitions = new DefinitionEntries(this, config);
-        Textures = new ResourceTextureManager(this);
+        Definitions = new DefinitionEntries(this, config.Compatibility);
+        Textures = new ResourceTextureManager(this, config);
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
         ImageRetriever = new ArchiveImageRetriever(this);
         TextureManager = new TextureManager(this);
