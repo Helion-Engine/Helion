@@ -1,6 +1,5 @@
 ﻿using System;
-using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Util;
+using Helion.RenderNew.OpenGL.Util;
 using Helion.RenderNew.Textures;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -40,7 +39,7 @@ public class GLRenderer : IDisposable
         // some glDebugControl... setting that changes them all to don't
         // cares if we have already registered a function? See:
         // https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageControl
-        if (!GLExtensions.DebugOutput || !m_config.Developer.Render.Debug)
+        if (!GLInfo.Extensions.DebugOutput || !m_config.Developer.Render.Debug)
             return;
 
         GL.Enable(EnableCap.DebugOutput);
@@ -75,11 +74,11 @@ public class GLRenderer : IDisposable
         if (InfoPrinted)
             return;
 
-        Log.Info("OpenGL v{0}", GLVersion.Version);
+        Log.Info("OpenGL v{0}", GLInfo.GLVersion.Version);
         Log.Info("OpenGL Shading Language: {0}", GLInfo.ShadingVersion);
         Log.Info("OpenGL Vendor: {0}", GLInfo.Vendor);
         Log.Info("OpenGL Hardware: {0}", GLInfo.Renderer);
-        Log.Info("OpenGL Extensions: {0}", GLExtensions.Count);
+        Log.Info("OpenGL Extensions: {0}", GLInfo.Extensions.Count);
 
         InfoPrinted = true;
     }

@@ -1,0 +1,51 @@
+using System;
+using Helion.RenderNew.OpenGL.Util;
+using OpenTK.Graphics.OpenGL;
+
+namespace Helion.RenderNew.OpenGL.Vertex;
+
+public class VertexArrayObject : IDisposable
+{
+    private readonly int m_name;
+    private bool m_disposed;
+
+    public VertexArrayObject(string label)
+    {
+        m_name = GL.GenVertexArray();
+
+        Bind();
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, label);
+        Unbind();
+    }
+
+    ~VertexArrayObject()
+    {
+        Dispose(false);
+    }
+
+    public void Bind()
+    {
+        GL.BindVertexArray(m_name);
+    }
+
+    public void Unbind()
+    {
+        GL.BindVertexArray(0);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (m_disposed)
+            return;
+
+        GL.DeleteVertexArray(m_name);
+
+        m_disposed = true;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+}

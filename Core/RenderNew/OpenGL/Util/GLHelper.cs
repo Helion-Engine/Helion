@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
-using Helion.Render.OpenGL.Context;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -55,7 +54,7 @@ public static class GLHelper
     [Conditional("DEBUG")]
     public static void ObjectLabel(ObjectLabelIdentifier type, int objectId, string name)
     {
-        if (name != "" && GLExtensions.LabelDebug)
+        if (name != "" && GLInfo.Extensions.LabelDebug)
             GL.ObjectLabel(type, objectId, name.Length, name);
     }
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Util;
@@ -17,6 +19,52 @@ public class GLInfo
         Vendor = GL.GetString(StringName.Vendor);
     }
     
+    public record GLVersion(int Major, int Minor)
+    {
+        public static readonly List<GLVersion> SupportedVersions = new() { new(4, 6), new(4, 5), new(4, 4) };
+        public static readonly GLVersion Version;
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        private static readonly Regex VersionRegex = new(@"(\d)\.(\d).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        static GLVersion()
+        {
+            Version = FindVersion();
+        }
+
+        private static GLVersion FindVersion()
+        {
+            string version = GL.GetString(StringName.Version);
+            Match match = VersionRegex.Match(version);
+            if (!match.Success)
+            {
+                Log.Error("Unable to match OpenGL version for: '{0}'", version);
+                return new(0, 0);
+            }
+
+            if (int.TryParse(match.Groups[1].Value, out int major))
+            {
+                if (int.TryParse(match.Groups[2].Value, out int minor))
+                    return new(major, minor);
+
+                Log.Error("Unable to read OpenGL minor version from: {0}", version);
+            }
+
+            Log.Error("Unable to read OpenGL major version from: {0}", version);
+            return new(0, 0);
+        }
+
+        public static bool Supports(int major, int minor)
+        {
+            if (major > Version.Major)
+                return false;
+            if (major == Version.Major)
+                return Version.Minor >= minor;
+            return true;
+        }
+
+        public override string ToString() => $"{Major}.{Minor}";
+    }
+    
     public static class Extensions
     {
         public static readonly bool TextureFilterAnisotropic;
@@ -24,7 +72,7 @@ public class GLInfo
         public static readonly bool LabelDebug;
         private static readonly HashSet<string> ExtensionSet = new(StringComparer.OrdinalIgnoreCase);
 
-        public static int Count => Extensions.Count;
+        public static int Count => ExtensionSet.Count;
 
         static Extensions()
         {

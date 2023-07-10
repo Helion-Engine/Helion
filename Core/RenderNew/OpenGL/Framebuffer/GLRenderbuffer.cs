@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Helion.Geometry;
-using Helion.Render.OpenGL.Util;
+using Helion.RenderNew.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Framebuffer;

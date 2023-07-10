@@ -3,7 +3,6 @@ using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics;
-using System.Xml.Linq;
 
 namespace Helion.Render.OpenGL.Framebuffer;
 
