@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.RenderNew.OpenGL.Buffers;
 using Helion.RenderNew.OpenGL.Programs;
+using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Vertex;
@@ -187,21 +189,13 @@ public static class Attributes
     {
         vao.Bind();
         vbo.Bind();
-
         Apply<TVertex>(shaderAttribs);
-
         vbo.Unbind();
         vao.Unbind();
     }
 
     private static ProgramAttribute? FindShaderAttribute(ProgramAttributes shaderAttribs, string name)
     {
-        for (int i = 0; i < shaderAttribs.Count; i++)
-        {
-            if (shaderAttribs[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                return shaderAttribs[i];
-        }
-
-        return null;
+        return shaderAttribs.FirstOrDefault(attr => attr.Name.EqualsIgnoreCase(name));
     }
 }

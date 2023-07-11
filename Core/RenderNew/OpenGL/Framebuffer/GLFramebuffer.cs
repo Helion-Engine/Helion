@@ -12,12 +12,12 @@ public class GLFramebuffer : IDisposable
 {
     public readonly string Label;
     public readonly Dimension Dimension;
-    private readonly List<ImmutableTexture2D> m_textures = new();
+    private readonly List<ImmutableGLTexture2D> m_textures = new();
     private readonly GLRenderbuffer? m_renderBuffer;
     private readonly int m_name;
     private bool m_disposed;
 
-    public IReadOnlyList<ImmutableTexture2D> Textures => m_textures;
+    public IReadOnlyList<ImmutableGLTexture2D> Textures => m_textures;
 
     public GLFramebuffer(string label, Dimension dimension, int numColorAttachments, RenderbufferStorage? storage = null)
     {
@@ -60,7 +60,7 @@ public class GLFramebuffer : IDisposable
         {
             FramebufferAttachment attachment = FramebufferAttachment.ColorAttachment0 + attachmentIndex;
 
-            ImmutableTexture2D colorAttachmentTexture = new($"(Framebuffer {label}) Color Attachment {attachmentIndex}", dimension);
+            ImmutableGLTexture2D colorAttachmentTexture = new($"(Framebuffer {label}) Color Attachment {attachmentIndex}", dimension, Bindless.Yes, TextureWrapMode.Clamp);
             colorAttachmentTexture.Bind();
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, w, h, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
             colorAttachmentTexture.SetParameters(TextureWrapMode.Clamp);
@@ -91,7 +91,7 @@ public class GLFramebuffer : IDisposable
         if (m_disposed)
             return;
 
-        foreach (ImmutableTexture2D texture in m_textures)
+        foreach (ImmutableGLTexture2D texture in m_textures)
             texture.Dispose();
         m_textures.Clear();
         m_renderBuffer?.Dispose();

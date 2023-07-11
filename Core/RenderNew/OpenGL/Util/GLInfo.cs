@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Helion.Geometry.Vectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Util;
 
-public class GLInfo
+public static class GLInfo
 {
     public static readonly string Vendor;
     public static readonly string ShadingVersion;
@@ -95,10 +96,16 @@ public class GLInfo
     public static class Limits
     {
         public static readonly float MaxAnisotropy;
+        public static readonly Vec3I MaxComputeWorkGroupCount;
 
         static Limits()
         {
             MaxAnisotropy = GL.GetFloat(GetPName.MaxTextureMaxAnisotropy);
+            
+            GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 0, out int workGroupX);
+            GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 1, out int workGroupY);
+            GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 2, out int workGroupZ);
+            MaxComputeWorkGroupCount = (workGroupX, workGroupY, workGroupZ);
         }
     }
 

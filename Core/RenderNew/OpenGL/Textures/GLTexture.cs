@@ -4,14 +4,23 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Textures;
 
-public abstract class ImmutableTexture : IDisposable
+public enum Bindless
+{
+    Yes,
+    No
+}
+
+public abstract class GLTexture : IDisposable
 {
     public readonly string Label;
     public readonly int Name;
+    public long? BindlessHandle { get; protected set; }
     private readonly TextureTarget m_target;
     private bool m_disposed;
 
-    protected ImmutableTexture(string label, TextureTarget target)
+    public bool IsBindless => BindlessHandle != null; 
+
+    protected GLTexture(string label, TextureTarget target)
     {
         Label = label;
         Name = GL.GenTexture();
@@ -22,7 +31,7 @@ public abstract class ImmutableTexture : IDisposable
         Unbind();
     }
 
-    ~ImmutableTexture()
+    ~GLTexture()
     {
         Dispose(false);
     }
@@ -39,22 +48,30 @@ public abstract class ImmutableTexture : IDisposable
 
     public void Dispose()
     {
-        if (m_disposed)
-            return;
-        
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+    
+    public void MakeResident()
+    {
+        if (BindlessHandle.HasValue)
+            GL.Arb.MakeTextureHandleResident(BindlessHandle.Value);
+    }
+    
+    public void MakeNonResident()
+    {
+        if (BindlessHandle.HasValue)
+            GL.Arb.MakeTextureHandleNonResident(BindlessHandle.Value);
     }
 
     protected virtual void Dispose(bool disposing)
     {
-        ReleaseUnmanagedResources();
+        if (m_disposed)
+            return;
+        
+        MakeNonResident();
+        GL.DeleteTexture(Name);
 
         m_disposed = true;
-    }
-
-    private void ReleaseUnmanagedResources()
-    {
-        GL.DeleteTexture(Name);
     }
 }

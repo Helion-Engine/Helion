@@ -9,12 +9,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Textures;
 
-public class ImmutableTexture2D : ImmutableTexture
+public class ImmutableGLTexture2D : GLTexture
 {
     public readonly Dimension Dimension;
     public readonly Vec2F UVInverse;
     
-    public ImmutableTexture2D(string label, Image image, TextureWrapMode wrapMode) :
+    public ImmutableGLTexture2D(string label, Image image, Bindless isBindless, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(image.Dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative image area: {image.Dimension}");
@@ -37,10 +37,12 @@ public class ImmutableTexture2D : ImmutableTexture
         }
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         SetParameters(wrapMode);
+        if (isBindless == Bindless.Yes)
+            MakeBindless();
         Unbind();
     }
-    
-    public ImmutableTexture2D(string label, Dimension dimension) :
+
+    public ImmutableGLTexture2D(string label, Dimension dimension, Bindless isBindless, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative area: {dimension}");
@@ -53,9 +55,18 @@ public class ImmutableTexture2D : ImmutableTexture
         GL.TextureStorage2D(Name, GLHelper.CalculateMipmapLevels(Dimension), SizedInternalFormat.Rgba8, w, h);
         GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, w, h, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        SetParameters(wrapMode);
+        if (isBindless == Bindless.Yes)
+            MakeBindless();
         Unbind();
     }
-    
+
+    private void MakeBindless()
+    {
+        BindlessHandle = GL.Arb.GetTextureHandle(Name);
+        MakeResident();
+    }
+
     // Assumes the user binds first.
     public void SetParameters(TextureWrapMode wrapMode)
     {
@@ -73,42 +84,5 @@ public class ImmutableTexture2D : ImmutableTexture
 
         float value = anisotropy.Value.Clamp(1, (int)GLInfo.Limits.MaxAnisotropy);
         GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)All.TextureMaxAnisotropy, value);
-    }
-}
-
-public class ImmutableBindlessTexture2D : ImmutableTexture2D
-{
-    private readonly long m_bindlessHandle;
-    private bool m_disposed;
-    
-    public ImmutableBindlessTexture2D(string label, Image image, TextureWrapMode wrapMode) :
-        base($"[Texture2D] {label}", image, wrapMode)
-    {
-        Bind();
-        m_bindlessHandle = GL.Arb.GetTextureHandle(Name);
-        MakeResident();
-        Unbind();
-    }
-
-    private void MakeResident()
-    {
-        GL.Arb.MakeTextureHandleResident(m_bindlessHandle);
-    }
-    
-    private void MakeNonResident()
-    {
-        GL.Arb.MakeTextureHandleNonResident(m_bindlessHandle);
-    }
-    
-    protected override void Dispose(bool disposing)
-    {
-        if (m_disposed)
-            return;
-        
-        MakeNonResident();
-
-        m_disposed = true;
-        
-        base.Dispose(true);
     }
 }

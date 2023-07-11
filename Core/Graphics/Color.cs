@@ -5,8 +5,10 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
+// Due to the layout, this is likely with the most significant byte being B,
+// and the lowest significant byte being A.
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public record struct Color(byte A, byte R, byte G, byte B)
+public readonly record struct Color(byte A, byte R, byte G, byte B)
 {
     public static readonly Color Transparent = (0, 0, 0, 0);
 
@@ -40,6 +42,10 @@ public record struct Color(byte A, byte R, byte G, byte B)
 
     public uint Uint => (uint)((A << 24) | (R << 16) | (G << 8) | B);
     public Vec4F Normalized => new Vec4F(A, R, G, B) * (1 / 255.0f);
+    public float NormalizedR => R / 255.0f;
+    public float NormalizedG => G / 255.0f;
+    public float NormalizedB => B / 255.0f;
+    public float NormalizedA => A / 255.0f;
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) : 

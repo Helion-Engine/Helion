@@ -1,5 +1,8 @@
 ﻿using System;
 using Helion.RenderNew.OpenGL.Util;
+using Helion.RenderNew.Renderers.Hud;
+using Helion.RenderNew.Renderers.World;
+using Helion.RenderNew.Surfaces;
 using Helion.RenderNew.Textures;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -14,22 +17,29 @@ public class GLRenderer : IDisposable
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
 
+    public readonly GLDefaultSurface DefaultSurface;
     private readonly IWindow m_window;
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly GLTextureManager m_textureManager;
+    private readonly HudRenderer m_hudRenderer;
+    private readonly WorldRenderer m_worldRenderer;
     private bool m_disposed;
 
     public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection)
     {
-        m_window = window;
-        m_config = config;
-        m_archiveCollection = archiveCollection;
-        m_textureManager = new(m_config, archiveCollection);
-        
+        // Set up the static GL state machine before doing stuff.
         SetGLDebugger();
         PrintGLInfo();
         SetGLStates();
+        
+        m_window = window;
+        m_config = config;
+        m_archiveCollection = archiveCollection;
+        m_textureManager = new(config, archiveCollection);
+        m_hudRenderer = new(m_config, m_textureManager);
+        m_worldRenderer = new(m_config, m_textureManager);
+        DefaultSurface = new(window);
     }
 
     private void SetGLDebugger()
@@ -113,6 +123,8 @@ public class GLRenderer : IDisposable
             return;
         
         m_textureManager.Dispose();
+        m_hudRenderer.Dispose();
+        m_worldRenderer.Dispose();
 
         GC.SuppressFinalize(this);
         m_disposed = true;
