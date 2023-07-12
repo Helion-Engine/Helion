@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Helion.Geometry;
 using Helion.RenderNew.OpenGL.Util;
 using Helion.RenderNew.Renderers.Hud;
 using Helion.RenderNew.Renderers.World;
@@ -24,6 +27,7 @@ public class GLRenderer : IDisposable
     private readonly GLTextureManager m_textureManager;
     private readonly HudRenderer m_hudRenderer;
     private readonly WorldRenderer m_worldRenderer;
+    private readonly Dictionary<string, GLTextureSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
     private bool m_disposed;
 
     public GLRenderer(IWindow window, IConfig config, ArchiveCollection archiveCollection)
@@ -111,6 +115,44 @@ public class GLRenderer : IDisposable
         GL.CullFace(CullFaceMode.Back);
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
     }
+
+    public GLTextureSurface GetOrCreate(string name, Dimension dimension)
+    {
+        Debug.Assert(dimension.HasPositiveArea, "New render surface should have positive dimensions");
+        
+        m_surfaces.TryGetValue(name, out GLTextureSurface? existingSurface);
+        if (existingSurface != null && existingSurface.Dimension == dimension)
+            return existingSurface;
+
+        // If we're resizing one, remove tracking of the old one and dispose.
+        if (existingSurface != null)
+        {
+            m_surfaces.Remove(name);
+            existingSurface.Dispose();
+        }
+        
+        GLTextureSurface surface = new(name, dimension);
+        m_surfaces[name] = surface;
+        return surface;
+    }
+
+    // True if one was deleted, false if no match could not be found.
+    public bool DeleteSurface(string name)
+    {
+        if (!m_surfaces.TryGetValue(name, out GLTextureSurface? surface)) 
+            return false;
+        
+        m_surfaces.Remove(name);
+        surface.Dispose();
+        return true;
+    }
+    
+    public void DeleteAllSurfaces()
+    {
+        foreach (GLTextureSurface surface in m_surfaces.Values)
+            surface.Dispose();
+        m_surfaces.Clear();
+    }
     
     public static void FlushPipeline()
     {
@@ -121,7 +163,8 @@ public class GLRenderer : IDisposable
     {
         if (m_disposed)
             return;
-        
+
+        DeleteAllSurfaces();
         m_textureManager.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();

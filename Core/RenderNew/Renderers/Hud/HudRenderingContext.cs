@@ -41,58 +41,54 @@ public class HudRenderingContext : IDisposable
         if (!m_currentlyRendering)
             throw new($"Did not call {nameof(End)}() for {nameof(HudRenderingContext)}");
         
-        // TODO: Flush renderer.
+        FlushWork();
         
         m_currentlyRendering = false;
     }
 
-    public void DrawLine(Seg2F seg, Color color)
+    public void FlushWork()
+    {
+        // TODO
+    }
+
+    public void DrawLine(Seg2F seg, RgbColor color)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw lines when {nameof(Begin)} was not called");
-        
-        if (color.A == 0)
-            return;
         
         // TODO: Write to GL_LINES
     }
     
-    public void DrawRect(Box2I box, Color color)
+    public void DrawRect(Box2I box, RgbColor color)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw boxes when {nameof(Begin)} was not called");
-        
-        if (color.A == 0)
-            return;
-        
+
         DrawLine((box.BottomLeft.Float, box.TopLeft.Float), color);
         DrawLine((box.TopLeft.Float, box.TopRight.Float), color);
         DrawLine((box.TopRight.Float, box.BottomRight.Float), color);
         DrawLine((box.BottomRight.Float, box.BottomLeft.Float), color);
     }
     
-    public void FillRect(Box2I box, Color color)
+    public void FillRect(Box2I box, RgbColor color)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to fill boxes when {nameof(Begin)} was not called");
-        
-        if (color.A == 0)
-            return;
-        
-        DrawImage(m_textureManager.WhiteTexture, box, blend: color, alpha: color.NormalizedA);
+
+        DrawImage(m_textureManager.WhiteTexture, box, blend: color);
     }
     
-    public void DrawImage(string textureName, Vec2I origin, float scale = 1.0f, Color? blend = null, float alpha = 1.0f)
+    public void DrawImage(string textureName, Vec2I origin, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(textureName, out ImmutableGLTexture2D texture);
+        m_textureManager.Get(textureName, out GLTexture2D texture);
         Box2I box = (origin, origin + texture.Dimension);
         DrawImage(texture, box, scale, blend, alpha);
     }
     
-    public void DrawImage(string textureName, Box2I box, float scale = 1.0f, Color? blend = null, float alpha = 1.0f)
+    public void DrawImage(string textureName, Box2I box, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(textureName, out ImmutableGLTexture2D texture);
+        m_textureManager.Get(textureName, out GLTexture2D texture);
         DrawImage(texture, box, scale, blend, alpha);
     }
 
-    private void DrawImage(ImmutableGLTexture2D texture, Box2I box, float scale = 1.0f, Color? blend = null, float alpha = 1.0f)
+    private void DrawImage(GLTexture2D texture, Box2I box, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw images when {nameof(Begin)} was not called");
         Debug.Assert(scale > 0.0f, "Scaling an image must be done with a positive value");
@@ -104,7 +100,7 @@ public class HudRenderingContext : IDisposable
         // TODO
     }
 
-    public void DrawSurface(GLTextureSurface surface, Box2I box, float scale = 1.0f, Color? blend = null, float alpha = 1.0f)
+    public void DrawSurface(GLTextureSurface surface, Box2I box, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw a surface when {nameof(Begin)} was not called");
 
@@ -114,12 +110,12 @@ public class HudRenderingContext : IDisposable
         // TODO
     }
     
-    public void DrawText(string text, string font, int height, Color color)
+    public void DrawText(string text, string font, int height, RgbColor color, float alpha = 1.0f)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw text when {nameof(Begin)} was not called");
         Debug.Assert(height >= 0, "Font height must not be negative");
 
-        if (height <= 0 || color.A == 0)
+        if (height <= 0 || alpha <= 0.0f)
             return;
 
         // TODO
@@ -134,5 +130,6 @@ public class HudRenderingContext : IDisposable
             throw new($"Trying to dispose {nameof(HudRenderingContext)} while actively rendering");
         
         m_disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

@@ -9,12 +9,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.RenderNew.OpenGL.Textures;
 
-public class ImmutableGLTexture2D : GLTexture
+public class GLTexture2D : GLTexture
 {
     public readonly Dimension Dimension;
     public readonly Vec2F UVInverse;
     
-    public ImmutableGLTexture2D(string label, Image image, Bindless isBindless, TextureWrapMode wrapMode) :
+    public GLTexture2D(string label, Image image, Bindless isBindless, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(image.Dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative image area: {image.Dimension}");
@@ -36,13 +36,13 @@ public class ImmutableGLTexture2D : GLTexture
             }  
         }
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        SetParameters(wrapMode);
+        SetParameters(wrapMode, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         if (isBindless == Bindless.Yes)
             MakeBindless();
         Unbind();
     }
 
-    public ImmutableGLTexture2D(string label, Dimension dimension, Bindless isBindless, TextureWrapMode wrapMode) :
+    public GLTexture2D(string label, Dimension dimension, Bindless isBindless, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative area: {dimension}");
@@ -55,7 +55,7 @@ public class ImmutableGLTexture2D : GLTexture
         GL.TextureStorage2D(Name, GLHelper.CalculateMipmapLevels(Dimension), SizedInternalFormat.Rgba8, w, h);
         GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, w, h, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        SetParameters(wrapMode);
+        SetParameters(wrapMode, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
         if (isBindless == Bindless.Yes)
             MakeBindless();
         Unbind();
@@ -68,10 +68,10 @@ public class ImmutableGLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public void SetParameters(TextureWrapMode wrapMode)
+    public void SetParameters(TextureWrapMode wrapMode, TextureMinFilter minFilter, TextureMagFilter magFilter)
     {
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapMode);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapMode);
     }

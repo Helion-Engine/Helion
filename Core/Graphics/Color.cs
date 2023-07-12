@@ -5,6 +5,55 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
+// When you want colors without an alpha channel.
+public readonly record struct RgbColor(byte R, byte G, byte B)
+{
+    public static readonly RgbColor Black = Color.Black.Rgb;
+    public static readonly RgbColor Blue = Color.Blue.Rgb;
+    public static readonly RgbColor Brown = Color.Brown.Rgb;
+    public static readonly RgbColor Chocolate = Color.Chocolate.Rgb;
+    public static readonly RgbColor Cyan = Color.Cyan.Rgb;
+    public static readonly RgbColor DarkBrown = Color.DarkBrown.Rgb;
+    public static readonly RgbColor DarkGray = Color.DarkGray.Rgb;
+    public static readonly RgbColor DarkGreen = Color.DarkGreen.Rgb;
+    public static readonly RgbColor DarkRed = Color.DarkRed.Rgb;
+    public static readonly RgbColor Firebrick = Color.Firebrick.Rgb;
+    public static readonly RgbColor Gold = Color.Gold.Rgb;
+    public static readonly RgbColor Gray = Color.Gray.Rgb;
+    public static readonly RgbColor Green = Color.Green.Rgb;
+    public static readonly RgbColor Khaki = Color.Khaki.Rgb;
+    public static readonly RgbColor LawnGreen = Color.LawnGreen.Rgb;
+    public static readonly RgbColor LightBlue = Color.LightBlue.Rgb;
+    public static readonly RgbColor LightGreen = Color.LightGreen.Rgb;
+    public static readonly RgbColor Olive = Color.Olive.Rgb;
+    public static readonly RgbColor Orange = Color.Orange.Rgb;
+    public static readonly RgbColor PeachPuff = Color.PeachPuff.Rgb;
+    public static readonly RgbColor Purple = Color.Purple.Rgb;
+    public static readonly RgbColor Red = Color.Red.Rgb;
+    public static readonly RgbColor RosyBrown = Color.RosyBrown.Rgb;
+    public static readonly RgbColor SaddleBrown = Color.SaddleBrown.Rgb;
+    public static readonly RgbColor Tan = Color.Tan.Rgb;
+    public static readonly RgbColor White = Color.White.Rgb;
+    public static readonly RgbColor Yellow = Color.Yellow.Rgb;
+    
+    public Vec3F Normalized => new Vec3F(R, G, B) * (1 / 255.0f);
+    public float NormalizedR => R / 255.0f;
+    public float NormalizedG => G / 255.0f;
+    public float NormalizedB => B / 255.0f;
+    
+    public static implicit operator RgbColor(ValueTuple<byte, byte, byte> tuple)
+    {
+        return new(tuple.Item1, tuple.Item2, tuple.Item3);
+    }
+    
+    public void Deconstruct(out byte r, out byte g, out byte b)
+    {
+        r = R;
+        g = G;
+        b = B;
+    }
+}
+
 // Due to the layout, this is likely with the most significant byte being B,
 // and the lowest significant byte being A.
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -46,6 +95,7 @@ public readonly record struct Color(byte A, byte R, byte G, byte B)
     public float NormalizedG => G / 255.0f;
     public float NormalizedB => B / 255.0f;
     public float NormalizedA => A / 255.0f;
+    public RgbColor Rgb => new(R, G, B);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) : 
