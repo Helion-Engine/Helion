@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.RenderNew.OpenGL.Textures;
 using Helion.RenderNew.Surfaces;
 using Helion.RenderNew.Textures;
+using Helion.Resources;
 using Helion.Util.Configs;
 
 namespace Helion.RenderNew.Renderers.Hud;
@@ -77,14 +78,14 @@ public class HudRenderingContext : IDisposable
     
     public void DrawImage(string textureName, Vec2I origin, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(textureName, out GLTexture2D texture);
+        m_textureManager.Get(textureName, ResourceNamespace.Global, out GLTexture2D texture);
         Box2I box = (origin, origin + texture.Dimension);
         DrawImage(texture, box, scale, blend, alpha);
     }
     
     public void DrawImage(string textureName, Box2I box, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(textureName, out GLTexture2D texture);
+        m_textureManager.Get(textureName, ResourceNamespace.Global, out GLTexture2D texture);
         DrawImage(texture, box, scale, blend, alpha);
     }
 

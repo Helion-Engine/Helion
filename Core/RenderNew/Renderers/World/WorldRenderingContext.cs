@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.RenderNew.OpenGL.Textures;
 using Helion.RenderNew.Surfaces;
 using Helion.RenderNew.Textures;
+using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.World;
 
@@ -98,7 +99,7 @@ public class WorldRenderingContext : IDisposable
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw world image when {nameof(Begin)} was not called");
         
-        m_textureManager.Get(textureName, out var texture);
+        m_textureManager.Get(textureName, ResourceNamespace.Global, out var texture);
         DrawTexture(texture, quad, blend, alpha);
     }
     

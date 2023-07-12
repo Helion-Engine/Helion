@@ -63,7 +63,7 @@ public class GLFramebuffer : IDisposable
             GLTexture2D colorAttachmentTexture = new($"(Framebuffer {label}) Color Attachment {attachmentIndex}", dimension, Bindless.Yes, TextureWrapMode.Clamp);
             colorAttachmentTexture.Bind();
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, w, h, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
-            colorAttachmentTexture.SetParameters(TextureWrapMode.Clamp);
+            colorAttachmentTexture.SetParameters(TextureWrapMode.Clamp, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2D, colorAttachmentTexture.Name, 0);
             colorAttachmentTexture.Unbind();
 
