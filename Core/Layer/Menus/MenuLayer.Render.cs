@@ -76,7 +76,7 @@ public partial class MenuLayer
             Vec2I offset = TranslateDoomOffset(handle.Offset);
             int offsetX = offset.X + image.OffsetX;
 
-            hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: (Align)image.ImageAlign);
+            hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: image.ImageAlign);
 
             if (isSelected)
                 DrawSelectedImage(hud, image, drawY, offsetX);
@@ -92,12 +92,13 @@ public partial class MenuLayer
         else if (!string.IsNullOrEmpty(image.Title))
         {
             const int FontSize = 12;
+            const int TextOffsetX = 48;
             Dimension textDimensions = hud.MeasureText(image.Title, Constants.Fonts.Small, FontSize);
-            hud.Text(image.Title, Constants.Fonts.Small, FontSize, (0, drawY), both: (Align)image.ImageAlign);
+            hud.Text(image.Title, Constants.Fonts.Small, FontSize, (TextOffsetX, drawY), both: image.ImageAlign);
             offsetY += textDimensions.Height + 2;
 
             if (isSelected)
-                DrawSelectedImage(hud, image, drawY, 0);
+                DrawSelectedImage(hud, image, drawY, TextOffsetX);
         }
     }
 
@@ -110,7 +111,7 @@ public partial class MenuLayer
         offsetX += SelectedOffsetX;
         Vec2I selectedOffset = TranslateDoomOffset(selectedHandle.Offset);
         Vec2I drawPosition = selectedOffset + (offsetX, drawY - SelectedOffsetY);
-        hud.Image(selectedName, drawPosition, both: (Align)image.ImageAlign);
+        hud.Image(selectedName, drawPosition, both: image.ImageAlign);
     }
 
     private void DrawSaveRow(IHudRenderContext hud, MenuSaveRowComponent saveRowComponent, bool isSelected,
