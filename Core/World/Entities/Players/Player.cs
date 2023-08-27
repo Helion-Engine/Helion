@@ -651,17 +651,6 @@ public class Player : Entity
             Velocity.Z += MathHelper.Clamp(movement.Z, -MaxMovement, MaxMovement);
         }
 
-        if (TickCommand.Has(TickCommands.Attack))
-        {
-            FireWeapon();
-            AttackDown = true;
-        }
-        else
-        {
-            AttackDown = false;
-            Refire = false;
-        }
-
         if (TickCommand.WeaponScroll != 0)
         {
             var slot = Inventory.Weapons.GetNextSlot(this, TickCommand.WeaponScroll);
