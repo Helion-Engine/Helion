@@ -834,6 +834,7 @@ public static class EntityActionFunctions
             return;
 
         entity.PlayerObj.ForceLowerWeapon(true);
+        entity.PlayerObj.TrySwitchWeapon();
     }
 
     private static void A_CheckSight(Entity entity)
