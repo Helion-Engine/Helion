@@ -636,7 +636,7 @@ public class SpecialManager : ITickable, IDisposable
         foreach (var sector in sectors)
         {
             double length = line.GetLength();
-            sector.Friction = Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0);           
+            sector.SetFriction(Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0));
         }
     }
 

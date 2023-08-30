@@ -172,6 +172,12 @@ public class Sector
     public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
 
+    public void SetFriction(double friction)
+    {
+        DataChanges |= SectorDataTypes.Friction;
+        Friction = friction;
+    }
+
     public void SetLightLevel(short lightLevel, int gametick)
     {
         DataChanges |= SectorDataTypes.Light;
@@ -242,7 +248,7 @@ public class Sector
             SkyTexture = SkyTextureHandle,
             TransferFloorLight = m_transferFloorLightSector?.Id,
             TransferCeilingLight = m_transferCeilingLightSector?.Id,
-            TransferHeights = TransferHeights?.ControlSector.Id
+            TransferHeights = TransferHeights?.ControlSector.Id,
         };
 
         if (DataChanged)
@@ -257,6 +263,8 @@ public class Sector
                 sectorModel.CeilingTex = world.TextureManager.GetTexture(Ceiling.TextureHandle).Name;
             if ((DataChanges & SectorDataTypes.SectorSpecialType) != 0)
                 sectorModel.SectorSpecialType = (int)SectorSpecialType;
+            if ((DataChanges & SectorDataTypes.Friction) != 0)
+                sectorModel.Friction = Friction;
             if ((DataChanges & SectorDataTypes.Light) != 0)
             {
                 sectorModel.LightLevel = LightLevel;
@@ -332,6 +340,9 @@ public class Sector
 
             if ((DataChanges & SectorDataTypes.SkyTexture) != 0 && sectorModel.SkyTexture.HasValue)
                 SkyTextureHandle = sectorModel.SkyTexture;
+
+            if ((DataChanges & SectorDataTypes.Friction) != 0 && sectorModel.Friction.HasValue)
+                Friction = sectorModel.Friction.Value;
 
             Secret = sectorModel.Secret;
             DamageAmount = sectorModel.DamageAmount;
