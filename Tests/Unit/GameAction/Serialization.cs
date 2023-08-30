@@ -268,6 +268,7 @@ public class Serialization : IDisposable
             sector.KillEffect.Should().Be(newSector.KillEffect);
             sector.SectorEffect.Should().Be(newSector.SectorEffect);
             sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
+            sector.Friction.Should().Be(newSector.Friction);
 
             if (sector.SectorDamageSpecial != null)
                 sector.SectorDamageSpecial.Equals(newSector.SectorDamageSpecial).Should().BeTrue();
