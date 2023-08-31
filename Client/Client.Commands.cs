@@ -265,8 +265,14 @@ public partial class Client
     private void CommandLoadGame(ConsoleCommandEventArgs args)
     {
         string fileName = args.Args[0];
-        SaveGame saveGame = new(fileName);
+        Log.Info($"Loading save file {fileName}");
+        if (!File.Exists(fileName))
+        {
+            LogError($"Save file {fileName} not found.");
+            return;
+        }
 
+        SaveGame saveGame = new(fileName);
         if (saveGame.Model == null)
         {
             LogError("Corrupt save game.");

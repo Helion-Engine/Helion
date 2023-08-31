@@ -15,12 +15,14 @@ public static class ModelVerification
         if (!VerifyFileModel(archiveCollection, filesModel.IWad, log))
             return false;
 
-        var fileArchives = archiveCollection.Archives.Where(x => x.ExtractedFrom == null);
-        if (fileArchives.Count() != filesModel.Files.Count)
+        var fileArchives = archiveCollection.Archives.Where(x => x.ExtractedFrom == null).ToList();
+        if (fileArchives.Count != filesModel.Files.Count)
         {
-            if (log != null)
-                LogExtraLoadedArchives(filesModel, log, fileArchives);
+            if (log == null)
+                return false;
 
+            LogExtraLoadedArchives(filesModel, log, fileArchives);
+            LogMissingFiles(filesModel, log, fileArchives);
             return false;
         }
 
@@ -30,21 +32,27 @@ public static class ModelVerification
         return true;
     }
 
-    private static void LogExtraLoadedArchives(GameFilesModel filesModel, Logger log, IEnumerable<Archive> fileArchives)
+    private static void LogExtraLoadedArchives(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
     {
-        List<Archive> extraArchives = new();
         foreach (var archive in fileArchives)
         {
             if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5)))
                 continue;
-            extraArchives.Add(archive);
+            log.Error($"Loaded '{Path.GetFileName(archive.OriginalFilePath)}' that is not part of this save.");
         }
-
-        foreach (var extraArchive in extraArchives)
-            log.Error($"Loaded '{Path.GetFileName(extraArchive.OriginalFilePath)}' that is not part of this save.");
     }
 
-    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
+    private static void LogMissingFiles(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
+    {
+        foreach (var file in filesModel.Files)
+        {
+            if (fileArchives.Any(x => x.MD5.Equals(file.MD5)))
+                continue;
+            log.Error($"Required archive '{file.FileName}' for this save is not loaded.");
+        }
+    }
+
+    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, ILogger? log)
     {
         if (fileModel.FileName == null)
         {
@@ -55,7 +63,7 @@ public static class ModelVerification
         var archive = archiveCollection.GetArchiveByFileName(fileModel.FileName);
         if (archive == null)
         {
-            log?.Error($"Required archive {fileModel.FileName} for this save game is not loaded.");
+            log?.Error($"Required archive '{fileModel.FileName}' for this save is not loaded.");
             return false;
         }
 
