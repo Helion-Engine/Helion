@@ -922,8 +922,8 @@ public class PhysicsManager
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
         bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
-        Line? blockingLine = null;
-        Entity? blockingEntity = null;
+        Line? slideBlockLine = null;
+        Entity? slideBlockEntity = null;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -931,7 +931,6 @@ public class PhysicsManager
                 break;
 
             Vec2D nextPosition = entity.Position.XY + stepDelta;
-
             if (IsPositionValid(entity, nextPosition, m_tryMoveData))
             {
                 entity.MoveLinked = true;
@@ -947,11 +946,15 @@ public class PhysicsManager
             {
                 // BlockingLine and BlockingEntity will get cleared on HandleSlide(IsPositionValid) calls.
                 // Carry them over so other functions after TryMoveXY can use them for verification.
-                blockingLine = entity.BlockingLine;
-                blockingEntity = entity.BlockingEntity;
+                var blockingLine = entity.BlockingLine;
+                var blockingEntity = entity.BlockingEntity;
                 HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
                 entity.BlockingLine = blockingLine;
                 entity.BlockingEntity = blockingEntity;
+                if (slideBlockLine == null && blockingLine != null)
+                    slideBlockLine = blockingLine;
+                if (slideBlockEntity == null && blockingEntity != null)
+                    slideBlockEntity = blockingEntity;
                 slidesLeft--;
                 success = false;
                 continue;
@@ -967,8 +970,10 @@ public class PhysicsManager
 
         if (!success)
         {
-            entity.BlockingLine = blockingLine;
-            entity.BlockingEntity = blockingEntity;
+            if (slideBlockEntity != null && entity.BlockingEntity == null)
+                entity.BlockingEntity = slideBlockEntity;
+            if (slideBlockLine != null && entity.BlockingLine == null)
+                entity.BlockingLine = slideBlockLine;
             m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
         }
 
