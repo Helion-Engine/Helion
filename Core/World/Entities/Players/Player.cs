@@ -412,6 +412,17 @@ public class Player : Entity
             m_jumpStartZ = double.MaxValue;
         }
 
+        if (!Flags.NoGravity && !IsDead && BlockingLine != null && Sector.Friction > Constants.DefaultFriction && Position.Z <= Sector.Floor.Z &&
+            Math.Abs(velocity.X) + Math.Abs(velocity.Y) > 10)
+        {
+            var existingSound = SoundChannels[(int)SoundChannel.Default];
+            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWith("*grunt"))
+                PlayGruntSound();
+            var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, null);
+            Velocity.X = bounceVelocity.X/2;
+            Velocity.Y = bounceVelocity.Y/2;
+        }
+
         base.Hit(velocity);
     }
 

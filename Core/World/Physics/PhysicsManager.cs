@@ -922,6 +922,8 @@ public class PhysicsManager
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
         bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
+        Line? blockingLine = null;
+        Entity? blockingEntity = null;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -945,8 +947,8 @@ public class PhysicsManager
             {
                 // BlockingLine and BlockingEntity will get cleared on HandleSlide(IsPositionValid) calls.
                 // Carry them over so other functions after TryMoveXY can use them for verification.
-                var blockingLine = entity.BlockingLine;
-                var blockingEntity = entity.BlockingEntity;
+                blockingLine = entity.BlockingLine;
+                blockingEntity = entity.BlockingEntity;
                 HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
                 entity.BlockingLine = blockingLine;
                 entity.BlockingEntity = blockingEntity;
@@ -964,7 +966,11 @@ public class PhysicsManager
             StackedEntityMoveXY(entity);
 
         if (!success)
+        {
+            entity.BlockingLine = blockingLine;
+            entity.BlockingEntity = blockingEntity;
             m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
+        }
 
         m_tryMoveData.Success = success;
         return m_tryMoveData;

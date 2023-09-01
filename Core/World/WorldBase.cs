@@ -1266,7 +1266,7 @@ public abstract partial class WorldBase : IWorld
                 PlayerBumpUse(entity);
         }
 
-        if (entity.ShouldDieOnCollison())
+        if (entity.ShouldDieOnCollision())
         {
             if (entity.BlockingEntity != null)
             {
