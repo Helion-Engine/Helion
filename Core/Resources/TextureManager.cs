@@ -9,7 +9,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
-using NLog;
 
 namespace Helion.Resources;
 
@@ -28,7 +27,9 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
-    private DynamicArray<SpriteDefinition> m_spriteDefinitions = new();
+    private readonly DynamicArray<SpriteDefinition> m_spriteDefinitions = new();
+
+    public DynamicArray<SpriteDefinition> SpriteDefinitions => m_spriteDefinitions;
 
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = 1;

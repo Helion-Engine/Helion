@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -199,6 +200,24 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
             spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
 
         return spriteRotation;
+    }
+
+    public void CacheSpriteRotations(SpriteDefinition spriteDef)
+    {
+        for (int i = 0; i < SpriteDefinition.MaxFrames; i++)
+        {
+            for (int j = 0; j < SpriteDefinition.MaxRotations; j++)
+            {
+                var rotation = spriteDef.Rotations[i, j];
+                if (rotation == null)
+                    continue;
+
+                if (rotation.Texture.RenderStore != null)
+                    continue;
+
+                rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+            }
+        }
     }
 
     public SpriteDefinition? GetSpriteDefinition(int spriteIndex)

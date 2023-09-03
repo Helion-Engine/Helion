@@ -15,6 +15,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -46,7 +47,8 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new(256);
     private readonly Comparison<IRenderObject> m_renderObjectComparer = new(RenderObjectCompare);
-    private readonly ArchiveCollection m_archiveCollection;    
+    private readonly ArchiveCollection m_archiveCollection;
+    private readonly LegacyGLTextureManager m_textureManager;
     private Sector m_viewSector;
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
@@ -68,6 +70,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_viewSector = Sector.CreateDefault();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
+        m_textureManager = textureManager;
     }
 
     static int RenderObjectCompare(IRenderObject? x, IRenderObject? y)
@@ -94,6 +97,16 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
+
+        var spriteDefinitions = m_archiveCollection.TextureManager.SpriteDefinitions;
+        for (int i = 0; i < spriteDefinitions.Length; i++)
+        {
+            var spriteDefinition = spriteDefinitions[i];
+            if (spriteDefinition == null)
+                continue;
+
+            m_textureManager.CacheSpriteRotations(spriteDefinition);
+        }
 
         m_geometryRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
