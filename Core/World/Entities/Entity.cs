@@ -132,7 +132,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public IAudioSource[] SoundChannels = new IAudioSource[Entity.MaxSoundChannels];
+    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
@@ -1020,7 +1020,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (audioSource != null)
         {
             clearedSound = audioSource;
-            SoundChannels[(int)channel] = null!;
+            SoundChannels[(int)channel] = null;
             return true;
         }
 
@@ -1030,7 +1030,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        SoundChannels[(int)channel] = null!;
+        SoundChannels[(int)channel] = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

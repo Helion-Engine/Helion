@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Assertion;
@@ -1480,7 +1480,7 @@ doneIsPositionValid:
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))
                 continue;
 
-            if (sector.Friction < lowestFriction)
+            if (sector.Friction < lowestFriction && (sector.SectorEffect & SectorEffect.Friction) != 0)
                 lowestFriction = sector.Friction;
         }
 

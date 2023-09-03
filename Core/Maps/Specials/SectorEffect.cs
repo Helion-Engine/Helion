@@ -7,5 +7,5 @@ public enum SectorEffect
 {
     None = 0,
     WindOrPush = 1,
-    Ice = 2
+    Friction = 2
 }
