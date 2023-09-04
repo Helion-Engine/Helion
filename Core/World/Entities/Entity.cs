@@ -238,7 +238,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public EntityModel ToEntityModel(EntityModel entityModel)
     {
-        entityModel.Name = Definition.Name.ToString();
+        entityModel.Name = Definition.Name;
         entityModel.Id = Id;
         entityModel.ThingId = ThingId;
         entityModel.AngleRadians = AngleRadians;
@@ -262,7 +262,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.Sector = Sector.Id;
         entityModel.MoveDir = (int)m_direction;
         entityModel.BlockFloat = BlockFloating;
-        entityModel.ArmorDefinition = ArmorDefinition?.Name.ToString();
+        entityModel.ArmorDefinition = ArmorDefinition?.Name;
         entityModel.Frame = FrameState.ToFrameStateModel();
         entityModel.Flags = Flags.ToEntityFlagsModel();
         entityModel.Threshold = Threshold;
