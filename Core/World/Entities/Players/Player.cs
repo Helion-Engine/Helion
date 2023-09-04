@@ -11,6 +11,7 @@ using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
@@ -412,7 +413,31 @@ public class Player : Entity
             m_jumpStartZ = double.MaxValue;
         }
 
+        if (!Flags.NoGravity && !Flags.NoClip && !IsDead && BlockingLine != null && 
+            Sector.Friction > Constants.DefaultFriction && 
+            Position.Z <= Sector.Floor.Z &&
+            Math.Abs(velocity.X) + Math.Abs(velocity.Y) > 8 && 
+            CheckIcyBounceLineAngle(BlockingLine, velocity))
+        {
+            var existingSound = SoundChannels[(int)SoundChannel.Default];
+            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWith("*grunt"))
+                PlayGruntSound();
+            var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, null);
+            Velocity.X = bounceVelocity.X/2;
+            Velocity.Y = bounceVelocity.Y/2;
+        }
+
         base.Hit(velocity);
+    }
+
+    private bool CheckIcyBounceLineAngle(Line line, in Vec3D velocity)
+    {
+        var onFront = line.Segment.OnRight(Position);
+        var velocityAngle = Math.Atan2(velocity.Y, velocity.X);
+        var lineAngle = onFront ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
+        var bounceAngle = MathHelper.GetPositiveAngle(velocityAngle - lineAngle);
+
+        return bounceAngle > MathHelper.QuarterPi && bounceAngle < MathHelper.HalfPi + MathHelper.QuarterPi;
     }
 
     public override void ResetInterpolation()
@@ -649,17 +674,6 @@ public class Player : Entity
             Velocity.X += MathHelper.Clamp(movement.X, -MaxMovement, MaxMovement);
             Velocity.Y += MathHelper.Clamp(movement.Y, -MaxMovement, MaxMovement);
             Velocity.Z += MathHelper.Clamp(movement.Z, -MaxMovement, MaxMovement);
-        }
-
-        if (TickCommand.Has(TickCommands.Attack))
-        {
-            FireWeapon();
-            AttackDown = true;
-        }
-        else
-        {
-            AttackDown = false;
-            Refire = false;
         }
 
         if (TickCommand.WeaponScroll != 0)

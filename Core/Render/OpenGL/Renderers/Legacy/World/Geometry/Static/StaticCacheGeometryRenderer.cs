@@ -122,11 +122,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
+        m_world.SideScrollChanged += World_SideScrollChanged;
         if (m_staticScroll)
-        {
-            m_world.SideScrollChanged += World_SideScrollChanged;
             m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
-        }
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -827,7 +825,18 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void World_SideScrollChanged(object? sender, SideScrollEvent e)
     {
         if (!m_staticScroll)
+        {
+            if (m_updateScrollSidesLookup[e.Side.Id] > 0)
+                return;
+
+            // Remove if the texture has transparent pixels.
+            // Overlapping on top of the static texture creates rendering issues in OpenGL. 
+            m_updateScrollSidesLookup[e.Side.Id] = 1;
+            if ((e.Textures & SideTexture.Middle) != 0 &&
+                m_textureManager.GetTexture(e.Side.Middle.TextureHandle, false).TransparentPixelCount > 0)
+                ClearGeometryVertices(e.Side.Middle.Static);
             return;
+        }
 
         if (m_updateScrollSidesLookup[e.Side.Id] == m_counter)
             return;

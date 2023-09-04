@@ -13,7 +13,7 @@ public class SectorModel
     public short? LightLevel;
     public short? FloorLightLevel;
     public short? CeilingLightLevel;
-    // Integer textures handles are deprecated here. Keeping for backwards compatibiity.
+    // Integer textures handles are deprecated here. Keeping for backwards compatibility.
     public int? FloorTexture;
     public int? CeilingTexture;
     public string? FloorTex;
@@ -25,4 +25,5 @@ public class SectorModel
     public int? TransferFloorLight;
     public int? TransferCeilingLight;
     public int? TransferHeights;
+    public double? Friction;
 }

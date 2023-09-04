@@ -7,6 +7,7 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -64,7 +65,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     {
         Config = config;
         ArchiveCollection = archiveCollection;
-        NullTexture = CreateNullTexture();
+        NullTexture = config.Render.NullTexture ? CreateNullTexture() : CreateTransparentNullTexture();
         WhiteTexture = CreateWhiteTexture();
         NullSpriteRotation = CreateNullSpriteRotation();
         NullFont = CreateNullFont();
@@ -201,6 +202,24 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         return spriteRotation;
     }
 
+    public void CacheSpriteRotations(SpriteDefinition spriteDef)
+    {
+        for (int i = 0; i < SpriteDefinition.MaxFrames; i++)
+        {
+            for (int j = 0; j < SpriteDefinition.MaxRotations; j++)
+            {
+                var rotation = spriteDef.Rotations[i, j];
+                if (rotation == null)
+                    continue;
+
+                if (rotation.Texture.RenderStore != null)
+                    continue;
+
+                rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+            }
+        }
+    }
+
     public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
     {
         SpriteDefinition? spriteDef = TextureManager.GetSpriteDefinition(spriteIndex);
@@ -307,6 +326,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     private GLTextureType CreateNullTexture()
     {
         return GenerateTexture(Image.NullImage, "NULL", ResourceNamespace.Global);
+    }
+
+    private GLTextureType CreateTransparentNullTexture()
+    {
+        return GenerateTexture(Image.TransparentImage, "NULL", ResourceNamespace.Global);
     }
 
     private GLTextureType CreateWhiteTexture()

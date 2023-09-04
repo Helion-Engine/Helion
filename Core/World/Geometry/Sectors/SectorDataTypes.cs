@@ -17,4 +17,5 @@ public enum SectorDataTypes
     Secret = 256,
     SkyTexture = 512,
     TransferHeights = 1024,
+    Friction = 2048
 }

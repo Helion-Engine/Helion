@@ -6,8 +6,9 @@ namespace Helion.Resources;
 
 public class SpriteDefinition
 {
-    private const int MaxFrames = 29;
-    private const int MaxRotations = 8;
+    public const int MaxFrames = 29;
+    public const int MaxRotations = 8;
+    public SpriteRotation?[,] Rotations => m_spriteRotations;
 
     public readonly string Name;
     public bool HasRotations { get; private set; }

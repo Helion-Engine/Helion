@@ -1,12 +1,13 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
+using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
@@ -612,6 +613,9 @@ public class PhysicsManager
 
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector> intersectSectors, bool smoothZ, bool clampToLinkedSectors = true)
     {
+        Invariant(ReferenceEquals(entity.IntersectSectors, intersectSectors) || ReferenceEquals(entity.IntersectMovementSectors, intersectSectors),
+            $"Intersect sectors not owned by entity.");
+
         if (entity.IsDisposed || entity.Definition.IsBulletPuff)
             return;
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
@@ -624,7 +628,6 @@ public class PhysicsManager
 
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
-        double entityTopZ = entity.TopZ;
 
         if (entity.TopZ > lowestCeil)
         {
@@ -919,6 +922,8 @@ public class PhysicsManager
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
         bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
+        Line? slideBlockLine = null;
+        Entity? slideBlockEntity = null;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -926,7 +931,6 @@ public class PhysicsManager
                 break;
 
             Vec2D nextPosition = entity.Position.XY + stepDelta;
-
             if (IsPositionValid(entity, nextPosition, m_tryMoveData))
             {
                 entity.MoveLinked = true;
@@ -947,6 +951,10 @@ public class PhysicsManager
                 HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
                 entity.BlockingLine = blockingLine;
                 entity.BlockingEntity = blockingEntity;
+                if (slideBlockLine == null && blockingLine != null)
+                    slideBlockLine = blockingLine;
+                if (slideBlockEntity == null && blockingEntity != null)
+                    slideBlockEntity = blockingEntity;
                 slidesLeft--;
                 success = false;
                 continue;
@@ -961,7 +969,13 @@ public class PhysicsManager
             StackedEntityMoveXY(entity);
 
         if (!success)
+        {
+            if (slideBlockEntity != null && entity.BlockingEntity == null)
+                entity.BlockingEntity = slideBlockEntity;
+            if (slideBlockLine != null && entity.BlockingLine == null)
+                entity.BlockingLine = slideBlockLine;
             m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
+        }
 
         m_tryMoveData.Success = success;
         return m_tryMoveData;
@@ -976,7 +990,8 @@ public class PhysicsManager
         DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
 
         for (int i = 0; i < intersections.Length; i++)
-            ClampBetweenFloorAndCeiling(intersections[i].Entity!, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
+            ClampBetweenFloorAndCeiling(intersections[i].Entity!, intersections[i].Entity!.IntersectSectors, 
+                smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
     }
 
     private void StackedEntityMoveZ(Entity entity)
@@ -984,10 +999,14 @@ public class PhysicsManager
         Entity? currentOverEntity = entity.OverEntity.Entity;
 
         if (entity.OverEntity.Entity != null && entity.OverEntity.Entity.Position.Z > entity.TopZ)
-            entity.SetOverEntity(null);      
+            entity.SetOverEntity(null);
 
         if (entity.OnEntity.Entity != null)
-            ClampBetweenFloorAndCeiling(entity.OnEntity.Entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: entity.OnEntity.Entity.MoveLinked);
+        {
+            Entity onEntity = entity.OnEntity.Entity;
+            ClampBetweenFloorAndCeiling(onEntity, onEntity.IntersectSectors,
+                smoothZ: false, clampToLinkedSectors: onEntity.MoveLinked);
+        }
 
         while (currentOverEntity != null)
         {
@@ -996,7 +1015,7 @@ public class PhysicsManager
             {
                 Entity relinkEntity = node.Value;
                 if (relinkEntity.OnEntity.Entity == entity)
-                    ClampBetweenFloorAndCeiling(relinkEntity, entity.IntersectSectors, false);
+                    ClampBetweenFloorAndCeiling(relinkEntity, relinkEntity.IntersectSectors, false);
                 node = node.Next;
             }
 
@@ -1461,7 +1480,7 @@ doneIsPositionValid:
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))
                 continue;
 
-            if (sector.Friction < lowestFriction)
+            if (sector.Friction < lowestFriction && (sector.SectorEffect & SectorEffect.Friction) != 0)
                 lowestFriction = sector.Friction;
         }
 

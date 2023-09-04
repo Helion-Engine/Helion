@@ -99,6 +99,7 @@ font SmallFont
 font LargeHudFont
 {
     space = 12;
+    align = top;
     characters
     {
         "-" STTMINUS align center;

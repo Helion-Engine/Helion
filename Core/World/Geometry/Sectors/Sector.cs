@@ -6,7 +6,6 @@ using Helion.Resources;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
@@ -15,11 +14,9 @@ using Helion.World.Special.Specials;
 using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Geometry.Boxes;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Islands;
-using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
 
 namespace Helion.World.Geometry.Sectors;
@@ -172,6 +169,12 @@ public class Sector
     public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
 
+    public void SetFriction(double friction)
+    {
+        DataChanges |= SectorDataTypes.Friction;
+        Friction = friction;
+    }
+
     public void SetLightLevel(short lightLevel, int gametick)
     {
         DataChanges |= SectorDataTypes.Light;
@@ -242,7 +245,7 @@ public class Sector
             SkyTexture = SkyTextureHandle,
             TransferFloorLight = m_transferFloorLightSector?.Id,
             TransferCeilingLight = m_transferCeilingLightSector?.Id,
-            TransferHeights = TransferHeights?.ControlSector.Id
+            TransferHeights = TransferHeights?.ControlSector.Id,
         };
 
         if (DataChanged)
@@ -257,6 +260,8 @@ public class Sector
                 sectorModel.CeilingTex = world.TextureManager.GetTexture(Ceiling.TextureHandle).Name;
             if ((DataChanges & SectorDataTypes.SectorSpecialType) != 0)
                 sectorModel.SectorSpecialType = (int)SectorSpecialType;
+            if ((DataChanges & SectorDataTypes.Friction) != 0)
+                sectorModel.Friction = Friction;
             if ((DataChanges & SectorDataTypes.Light) != 0)
             {
                 sectorModel.LightLevel = LightLevel;
@@ -332,6 +337,9 @@ public class Sector
 
             if ((DataChanges & SectorDataTypes.SkyTexture) != 0 && sectorModel.SkyTexture.HasValue)
                 SkyTextureHandle = sectorModel.SkyTexture;
+
+            if ((DataChanges & SectorDataTypes.Friction) != 0 && sectorModel.Friction.HasValue)
+                Friction = sectorModel.Friction.Value;
 
             Secret = sectorModel.Secret;
             DamageAmount = sectorModel.DamageAmount;

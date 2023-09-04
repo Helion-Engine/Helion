@@ -41,35 +41,42 @@ public class NewGameSkillMenu : Menu
 
         var defaultSkillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(SkillLevel.None);
         int indexOffset = 0;
+        int index = 0;
 
-        archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills.ForEach((skillDef, index) =>
+        foreach (var skillDef in archiveCollection.Definitions.MapInfoDefinition.MapInfo.Skills)
         {
-            SkillLevel skillLevel = (SkillLevel)(index + 1);
             if (skillDef == defaultSkillDef)
                 indexOffset = index;
 
             IMenuComponent component;
+            string title = ArchiveCollection.Language.GetMessage(skillDef.Name);
+
             if (skillDef.MustConfirm)
             {
                 m_confirmSkills.Add(skillDef);
-                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, Confirm(skillDef), overrideY: 16);
+                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, Confirm(skillDef),
+                    overrideY: 16, title: title);
             }
             else
             {
-                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, CreateWorld(skillDef), overrideY: 16);
+                component = CreateMenuOption(skillDef.PicName, OffsetX, PaddingY, CreateWorld(skillDef),
+                    overrideY: 16, title: title);
             }
 
             Components = Components.Add(component);
-        });
+            index++;
+        }
 
         // Menu title etc are menu components so offset by the index of the default difficulty
         SetToFirstActiveComponent();
         ComponentIndex += indexOffset;
 
-        IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0, int? overrideY = null, bool addToOffsetY = true)
+        IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0, 
+            int? overrideY = null, bool addToOffsetY = true, string title = "")
         {
             return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action,
-                imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY, overrideY: overrideY, addToOffsetY: addToOffsetY);
+                imageAlign: Align.TopLeft, paddingBottomY: paddingBottomY, overrideY: overrideY, addToOffsetY: addToOffsetY, 
+                title: title);
         }
 
         Func<Menu?> Confirm(SkillDef skillDef)

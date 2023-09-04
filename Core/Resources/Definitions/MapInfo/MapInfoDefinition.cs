@@ -370,7 +370,10 @@ public partial class MapInfoDefinition
                 break;
             }
 
-            textItems.Add(text);
+            if (text.Contains("\\n"))
+                textItems.AddRange(text.Split("\\n"));
+            else
+                textItems.Add(text);
 
             if (!hasComma)
                 break;

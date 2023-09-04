@@ -1,15 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using BmpSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.Geometry;
 using Helion.Graphics.Palettes;
-using Helion.Maps;
 using Helion.Resources;
-using Helion.Util.Assertion;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
@@ -27,6 +20,7 @@ public class Image
     public const ushort TransparentIndex = 0xFF00;
     public static readonly Image NullImage = CreateNullImage();
     public static readonly Image WhiteImage = CreateWhiteImage();
+    public static readonly Image TransparentImage = CreateTransparentImage();
 
     public Dimension Dimension;
     public readonly ImageType ImageType;
@@ -229,12 +223,15 @@ public class Image
         return new(flippedPixels, Dimension, ImageType, Offset, Namespace);
     }
 
+
+
     private static Image CreateNullImage()
     {
         const int Dimension = 8;
         const int HalfDimension = Dimension / 2;
 
         Image image = new((Dimension, Dimension), ImageType.Argb);
+
         image.Fill(Color.Black);
 
         for (int y = 0; y < HalfDimension; y++)
@@ -251,5 +248,10 @@ public class Image
     private static Image CreateWhiteImage()
     {
         return new(new[] { Color.White.Uint }, (1, 1), ImageType.Argb, (0, 0), ResourceNamespace.Global);
+    }
+
+    private static Image CreateTransparentImage()
+    {
+        return new(new[] { Color.Transparent.Uint }, (1, 1), ImageType.Argb, (0, 0), ResourceNamespace.Global);
     }
 }

@@ -132,7 +132,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public IAudioSource[] SoundChannels = new IAudioSource[Entity.MaxSoundChannels];
+    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
@@ -888,19 +888,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
             if (bounceWall && BlockingLine != null)
             {
-                double velocityAngle = Math.Atan2(Velocity.X, Velocity.Y);
-                double lineAngle = BlockingLine.Segment.Start.Angle(BlockingLine.Segment.End);
-                double newAngle = 2 * lineAngle - velocityAngle;
-                if (MathHelper.GetPositiveAngle(newAngle) == MathHelper.GetPositiveAngle(velocityAngle))
-                    newAngle += MathHelper.Pi;
-                Vec2D velocity2D = velocity.XY.Rotate(newAngle - velocityAngle);
-                Velocity.X = velocity2D.X;
-                Velocity.Y = velocity2D.Y;
+                var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, BlockingLine);
+                Velocity.X = bounceVelocity.X;
+                Velocity.Y = bounceVelocity.Y;
             }
         }
     }
 
-    public bool ShouldDieOnCollison()
+    public bool ShouldDieOnCollision()
     {
         if (Flags.MbfBouncer && Flags.Missile)
             return BlockingEntity != null || BlockingLine != null;
@@ -1025,7 +1020,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (audioSource != null)
         {
             clearedSound = audioSource;
-            SoundChannels[(int)channel] = null!;
+            SoundChannels[(int)channel] = null;
             return true;
         }
 
@@ -1035,7 +1030,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        SoundChannels[(int)channel] = null!;
+        SoundChannels[(int)channel] = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

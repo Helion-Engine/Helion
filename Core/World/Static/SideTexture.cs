@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.World.Static;
 
+[Flags]
 public enum SideTexture
 {
     None = 0,

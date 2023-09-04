@@ -1,5 +1,7 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.Util;
 
@@ -377,5 +379,17 @@ public static class MathHelper
         // bits that are set higher than the rightmost bit we found. If so, then
         // it's not a power of two. Classic bit twiddling trick.
         return n > 0 && (n & ~(n ^ (n - 1))) == 0;
+    }
+
+    public static Vec2D BounceVelocity(Vec2D velocity, Line? line)
+    {
+        double velocityAngle = Math.Atan2(velocity.X, velocity.Y);
+        if (line == null)
+            return velocity.Rotate(Pi);
+
+        double newAngle = 2 * line.Segment.Start.Angle(line.Segment.End) - velocityAngle;
+        if (GetPositiveAngle(newAngle) == GetPositiveAngle(velocityAngle))
+            newAngle += Pi;
+        return velocity.Rotate(newAngle - velocityAngle);
     }
 }

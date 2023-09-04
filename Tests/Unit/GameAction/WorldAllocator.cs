@@ -51,7 +51,7 @@ namespace Helion.Tests.Unit.GameAction
             Config config = CreateConfig();
             var profiler = new Profiler();
             var audioSystem = new MockAudioSystem();
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config.Compatibility, new DataCache());
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
             archiveCollection.Load(new string[] { fileName }, iwad: null, iwadTypeOverride: iwadType).Should().BeTrue();
 
             var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);

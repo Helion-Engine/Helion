@@ -834,6 +834,7 @@ public static class EntityActionFunctions
             return;
 
         entity.PlayerObj.ForceLowerWeapon(true);
+        entity.PlayerObj.TrySwitchWeapon();
     }
 
     private static void A_CheckSight(Entity entity)
@@ -1798,22 +1799,37 @@ public static class EntityActionFunctions
 
     public static void A_WeaponReady(Entity entity)
     {
-        if (entity.PlayerObj != null && entity.PlayerObj.Weapon != null)
+        if (entity.PlayerObj == null || entity.PlayerObj.Weapon == null)
+            return;
+        
+        var player = entity.PlayerObj;
+        player.Weapon.ReadyState = true;
+        player.WeaponOffset.Y = Constants.WeaponTop;
+        if (!player.Weapon.Definition.Flags.WeaponNoAutofire || !player.AttackDown)
+            entity.PlayerObj.Weapon.ReadyToFire = true;
+
+        if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
         {
-            entity.PlayerObj.Weapon.ReadyState = true;
-            entity.PlayerObj.WeaponOffset.Y = Constants.WeaponTop;
-            if (!entity.PlayerObj.Weapon.Definition.Flags.WeaponNoAutofire || !entity.PlayerObj.AttackDown)
-                entity.PlayerObj.Weapon.ReadyToFire = true;
+            entity.PlayerObj.LowerWeapon();
+            return;
+        }
 
-            if (entity.PlayerObj.PendingWeapon != null || entity.PlayerObj.IsDead)
-                entity.PlayerObj.LowerWeapon();
+        if (player.TickCommand.Has(TickCommands.Attack))
+        {
+            player.FireWeapon();
+            player.AttackDown = true;
+        }
+        else
+        {
+            player.AttackDown = false;
+            player.Refire = false;
+        }
 
-            if (!entity.PlayerObj.IsVooDooDoll && entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-                entity.PlayerObj.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
-            {
-                entity.World.SoundManager.CreateSoundOn(entity, entity.PlayerObj.Weapon.Definition.Properties.Weapons.ReadySound,
-                    new SoundParams(entity, channel: entity.WeaponSoundChannel));
-            }
+        if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
+            player.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+        {
+            entity.World.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
+                new SoundParams(entity, channel: entity.WeaponSoundChannel));
         }
     }
 

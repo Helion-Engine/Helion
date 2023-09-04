@@ -2,6 +2,7 @@
 using Helion.Graphics;
 using Helion.Resources.Textures.Animations;
 using Helion.Resources.Textures.Sprites;
+using Helion.Util.Configs;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -13,24 +14,28 @@ namespace Helion.Resources.Textures;
 public class ResourceTextureManager : IResourceTextureManager
 {
     public const int NoTextureIndex = 0;
-    public static readonly ResourceTexture NullTexture = new(NoTextureIndex, "null", Image.NullImage, ResourceNamespace.Global);
+    private readonly ResourceTexture NullTexture;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly IResources m_resources;
     private readonly ResourceTextureAnimationManager m_animationManager;
     private readonly ResourceSpriteManager m_resourceSpriteManager;
     private readonly ResourceTracker<ResourceTexture> m_textures = new();
-    private readonly List<ResourceTexture> m_textureList = new() { NullTexture };
+    private readonly List<ResourceTexture> m_textureList = new();
 
     public int Count => m_textureList.Count;
     public IResourceTextureAnimationManager Animations => m_animationManager;
     public IResourceSpriteManager Sprites => m_resourceSpriteManager;
-    
-    public ResourceTextureManager(IResources resources)
+
+    public ResourceTextureManager(IResources resources, IConfig config)
     {
         m_resources = resources;
         m_animationManager = new ResourceTextureAnimationManager(resources, this);
         m_resourceSpriteManager = new ResourceSpriteManager(this);
+
+        NullTexture = new(NoTextureIndex, "null", 
+            config.Render.NullTexture ? Image.NullImage : Image.TransparentImage, ResourceNamespace.Global);
+        m_textureList.Add(NullTexture);
     }
 
     public ResourceTexture this[int index] => GetByIndex(index);
