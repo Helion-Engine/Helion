@@ -1370,6 +1370,11 @@ public abstract partial class WorldBase : IWorld
         if (start == end)
             return true;
 
+        if (from.Sector.TransferHeights != null && TransferHeightsLineOfSightBlocked(from, to, from.Sector.TransferHeights))
+            return false;
+        if (to.Sector.TransferHeights != null && TransferHeightsLineOfSightBlocked(to, from, to.Sector.TransferHeights))
+            return false;
+
         Seg2D seg = new(start, end);
         DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
         if (hitOneSidedLine)
@@ -1386,6 +1391,13 @@ public abstract partial class WorldBase : IWorld
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
         DataCache.FreeBlockmapIntersectList(intersections);
         return status != TraversalPitchStatus.Blocked;
+    }
+
+    private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
+    {
+        var sector = heights.ControlSector;
+        return (from.Position.Z + from.Height <= sector.Floor.Z && to.Position.Z >= sector.Floor.Z) ||
+               (from.Position.Z >= sector.Ceiling.Z && to.Position.Z + to.Height <= sector.Ceiling.Z);
     }
 
     private bool IsLineOfSightRejected(Entity from, Entity to)
