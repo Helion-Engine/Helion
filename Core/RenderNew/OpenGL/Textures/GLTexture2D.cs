@@ -4,6 +4,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.RenderNew.OpenGL.Util;
+using Helion.Resources;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 
@@ -14,7 +15,7 @@ public class GLTexture2D : GLTexture
     public readonly Dimension Dimension;
     public readonly Vec2F UVInverse;
     
-    public GLTexture2D(string label, Image image, Bindless isBindless, TextureWrapMode wrapMode) :
+    public GLTexture2D(string label, Image image, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(image.Dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative image area: {image.Dimension}");
@@ -37,12 +38,10 @@ public class GLTexture2D : GLTexture
         }
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         SetParameters(wrapMode, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        if (isBindless == Bindless.Yes)
-            MakeBindless();
         Unbind();
     }
 
-    public GLTexture2D(string label, Dimension dimension, Bindless isBindless, TextureWrapMode wrapMode) :
+    public GLTexture2D(string label, Dimension dimension, TextureWrapMode wrapMode) :
         base($"[Texture2D] {label}", TextureTarget.Texture2D)
     {
         Debug.Assert(dimension.HasPositiveArea, $"Cannot have a texture with a zero or negative area: {dimension}");
@@ -56,15 +55,24 @@ public class GLTexture2D : GLTexture
         GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, w, h, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, IntPtr.Zero);
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         SetParameters(wrapMode, TextureMinFilter.Nearest, TextureMagFilter.Nearest);
-        if (isBindless == Bindless.Yes)
-            MakeBindless();
         Unbind();
     }
 
-    private void MakeBindless()
+    // Assumes the user binds first.
+    public unsafe void Upload(Texture texture, Vec2I offset)
     {
-        BindlessHandle = GL.Arb.GetTextureHandle(Name);
-        MakeResident();
+        (int x, int y) = offset;
+        (int w, int h) = texture.Image.Dimension;
+
+        fixed (uint* pixelPtr = texture.Image.Pixels)
+        {
+            IntPtr ptr = new(pixelPtr);
+            // Because the C# image format is 'ARGB', we can get it into the
+            // RGBA format by doing a BGRA format and then reversing it.
+            GL.TexSubImage2D(TextureTarget.Texture2D, 0, x, y, w, h, PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+        }
+        
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
     }
 
     // Assumes the user binds first.

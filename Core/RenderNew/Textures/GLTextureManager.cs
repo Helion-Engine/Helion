@@ -22,8 +22,8 @@ public class GLTextureManager : IDisposable
     {
         m_config = config;
         m_archiveCollection = archiveCollection;
-        NullTexture = new("Null", Image.NullImage, Bindless.Yes, TextureWrapMode.Repeat);
-        WhiteTexture = new("White", Image.WhiteImage, Bindless.Yes, TextureWrapMode.Repeat);
+        NullTexture = new("Null", Image.NullImage, TextureWrapMode.Repeat);
+        WhiteTexture = new("White", Image.WhiteImage, TextureWrapMode.Repeat);
     }
     
     public bool Get(string name, ResourceNamespace resourceNamespace, out GLTexture2D texture)
@@ -47,7 +47,7 @@ public class GLTextureManager : IDisposable
             return false;
         }
 
-        texture = new($"'{resourceNamespace}' {name}", resourceTexture.Image, Bindless.Yes, TextureWrapMode.Repeat);
+        texture = new($"'{resourceNamespace}' {name}", resourceTexture.Image, TextureWrapMode.Repeat);
         m_loadedTextures.Insert(name, resourceNamespace, texture);
         return true;
     }
@@ -57,7 +57,11 @@ public class GLTextureManager : IDisposable
         if (m_disposed)
             return;
         
-        // TODO
+        NullTexture.Dispose();
+        WhiteTexture.Dispose();
+        foreach (GLTexture2D texture in m_loadedTextures.GetValues())
+            texture.Dispose();
+        m_loadedTextures.Clear();
 
         m_disposed = true;
     }

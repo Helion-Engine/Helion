@@ -7,8 +7,8 @@ namespace Helion.RenderNew.OpenGL.Programs;
 public abstract class RenderProgram : IDisposable
 {
     public readonly string Label;
-    public readonly Render.OpenGL.Shader.ProgramUniforms Uniforms = new();
-    public readonly Render.OpenGL.Shader.ProgramAttributes Attributes = new();
+    public readonly ProgramUniforms Uniforms = new();
+    public readonly ProgramAttributes Attributes = new();
     private int m_program;
     private bool m_disposed;
 
@@ -31,33 +31,29 @@ public abstract class RenderProgram : IDisposable
     }
 
     protected abstract string VertexShader();
-    protected virtual string? GeometryShader() => null;
-    protected virtual string? FragmentShader() => null;
+    protected abstract string FragmentShader();
 
     private void CreateAndCompileShaderOrThrow()
     {
-        (int vertex, int? geometry, int? fragment) = CompileShadersOrThrow();
+        (int vertex, int? fragment) = CompileShadersOrThrow();
 
         GL.LinkProgram(m_program);
         ThrowIfLinkFailure();
 
         DetachAndDelete(m_program, vertex);
-        DetachAndDelete(m_program, geometry);
         DetachAndDelete(m_program, fragment);
     }
 
-    private (int vertex, int? geometry, int? fragment) CompileShadersOrThrow()
+    private (int vertex, int? fragment) CompileShadersOrThrow()
     {
         int? vertexShader = null;
-        int? geometryShader = null;
         int? fragmentShader = null;
 
         try
         {
             vertexShader = CompileShaderOrThrow(VertexShader(), ShaderType.VertexShader);
-            geometryShader = CompileShaderOrThrow(GeometryShader(), ShaderType.GeometryShader);
             fragmentShader = CompileShaderOrThrow(FragmentShader(), ShaderType.FragmentShader);
-            return (vertexShader.Value, geometryShader, fragmentShader);
+            return (vertexShader.Value, fragmentShader);
         }
         catch
         {
@@ -66,19 +62,12 @@ public abstract class RenderProgram : IDisposable
                 GL.DetachShader(m_program, vertexShader.Value);
                 GL.DeleteShader(vertexShader.Value);
             }
-
-            if (geometryShader != null)
-            {
-                GL.DetachShader(m_program, geometryShader.Value);
-                GL.DeleteShader(geometryShader.Value);
-
-            }
             
             if (fragmentShader != null)
             {
                 GL.DetachShader(m_program, fragmentShader.Value);
                 GL.DeleteShader(fragmentShader.Value);
-            }
+            } 
 
             throw;
         }
