@@ -97,6 +97,7 @@ public static class GLInfo
     {
         public static readonly float MaxAnisotropy;
         public static readonly Vec3I MaxComputeWorkGroupCount;
+        public static readonly int MaxTextureSize;
 
         static Limits()
         {
@@ -106,6 +107,8 @@ public static class GLInfo
             GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 1, out int workGroupY);
             GL.GetInteger((GetIndexedPName)All.MaxComputeWorkGroupCount, 2, out int workGroupZ);
             MaxComputeWorkGroupCount = (workGroupX, workGroupY, workGroupZ);
+            
+            GL.GetInteger(GetPName.MaxTextureSize, out MaxTextureSize);
         }
     }
 

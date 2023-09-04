@@ -9,7 +9,7 @@ public class HudRenderer : IDisposable
     public readonly HudRenderingContext Context;
     private bool m_disposed;
 
-    public HudRenderer(IConfig config, GLTextureManager textureManager)
+    public HudRenderer(IConfig config, GLAtlasTextureManager textureManager)
     {
         Context = new(config, textureManager, this);
     }

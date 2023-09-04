@@ -4,7 +4,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Quads;
 using Helion.Geometry.Segments;
 using Helion.Graphics;
-using Helion.RenderNew.OpenGL.Textures;
 using Helion.RenderNew.Surfaces;
 using Helion.RenderNew.Textures;
 using Helion.Resources;
@@ -23,12 +22,12 @@ public struct WorldRenderingInfo
 public class WorldRenderingContext : IDisposable
 {
     private readonly IConfig m_config;
-    private readonly GLTextureManager m_textureManager;
+    private readonly GLAtlasTextureManager m_textureManager;
     private readonly WorldRenderer m_worldRenderer;
     private bool m_currentlyRendering;
     private bool m_disposed;
 
-    public WorldRenderingContext(IConfig config, GLTextureManager textureManager, WorldRenderer worldRenderer)
+    public WorldRenderingContext(IConfig config, GLAtlasTextureManager textureManager, WorldRenderer worldRenderer)
     {
         m_config = config;
         m_textureManager = textureManager;
@@ -92,7 +91,7 @@ public class WorldRenderingContext : IDisposable
     {
         Debug.Assert(m_currentlyRendering, $"Trying to fill world quad when {nameof(Begin)} was not called");
         
-        DrawTexture(m_textureManager.WhiteTexture, quad, blend: color, alpha: alpha);
+        DrawTexture(m_textureManager.WhiteHandle, quad, blend: color, alpha: alpha);
     }
     
     public void DrawImage(string textureName, Quad3D quad, RgbColor? blend = null, float alpha = 1.0f)
@@ -110,7 +109,7 @@ public class WorldRenderingContext : IDisposable
         // TODO: DrawTexture(...)
     }
 
-    private void DrawTexture(GLTexture texture, Quad3D quad, RgbColor? blend = null, float alpha = 1.0f)
+    private void DrawTexture(TextureHandle handle, Quad3D quad, RgbColor? blend = null, float alpha = 1.0f)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw world texture when {nameof(Begin)} was not called");
         

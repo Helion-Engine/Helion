@@ -9,7 +9,7 @@ public class WorldRenderer : IDisposable
     public readonly WorldRenderingContext Context;
     private bool m_disposed;
 
-    public WorldRenderer(IConfig config, GLTextureManager textureManager)
+    public WorldRenderer(IConfig config, GLAtlasTextureManager textureManager)
     {
         Context = new(config, textureManager, this);
     }
