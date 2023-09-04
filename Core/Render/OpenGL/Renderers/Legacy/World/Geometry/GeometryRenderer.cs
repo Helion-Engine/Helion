@@ -1047,6 +1047,7 @@ public class GeometryRenderer : IDisposable
 
     public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;
     public void SetBuffer(bool set) => m_buffer = set;
+    public void SetRenderPosition(Vec3D position) => m_position = position;
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {

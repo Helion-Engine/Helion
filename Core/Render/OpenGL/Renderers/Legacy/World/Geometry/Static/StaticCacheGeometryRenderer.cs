@@ -19,6 +19,7 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Static;
 using System;
 using System.Collections.Generic;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -218,6 +219,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
+            // Geometry renderer calculate the view position based on the position Z so it needs to be forced to the middle
+            if (line.Front.Sector.TransferHeights != null)
+                m_geometryRenderer.SetRenderPosition(new Vec3D(0, 0, line.Front.Sector.TransferHeights.ControlSector.Floor.Z + 1));
+
             m_geometryRenderer.SetRenderOneSided(line.Front);
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
             AddSkyGeometry(line.Front, WallLocation.Middle, null, skyVertices, line.Front.Sector, update);
@@ -242,6 +247,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         Side otherSide = side.PartnerSide!;
         if (update && (side.Sector.IsMoving || otherSide.Sector.IsMoving))
             return;
+
+        if (side.Sector.TransferHeights != null)
+            m_geometryRenderer.SetRenderPosition(new Vec3D(0, 0, side.Sector.TransferHeights.ControlSector.Floor.Z + 1));
 
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
