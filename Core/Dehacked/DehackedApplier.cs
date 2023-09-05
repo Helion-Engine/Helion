@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.Dehacked;
@@ -104,6 +105,19 @@ public class DehackedApplier
 
     private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
     {
+        if (dehacked.Weapons.Count == 0)
+            return;
+
+        var properties = new List<WeaponProperty>();
+        for (int i = 0; i < 8; i++)
+        {
+            var weaponDef = GetWeaponDefinition(i, composer);
+            if (weaponDef == null)
+                continue;
+            properties.Add(weaponDef.Properties.Weapons);
+        }
+
+
         foreach (var weapon in dehacked.Weapons)
         {
             EntityDefinition? weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
@@ -122,7 +136,7 @@ public class DehackedApplier
             if (weapon.FiringFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, weaponDef, weapon.FiringFrame.Value, Constants.FrameStates.Flash);
             if (weapon.AmmoType.HasValue)
-                SetWeaponAmmo(weaponDef, weapon.AmmoType.Value);
+                SetWeaponAmmo(weaponDef, properties, weapon.AmmoType.Value);
             if (weapon.AmmoPerShot.HasValue)
                 weaponDef.Properties.Weapons.AmmoUse = weapon.AmmoPerShot.Value;
             if (weapon.Mbf21Bits.HasValue)
@@ -146,7 +160,7 @@ public class DehackedApplier
         weaponDef.Flags.WeaponNoAutoSwitch = flags.HasFlag(Mbf21WeaponFlags.NOAUTOSWITCHTO);
     }
 
-    private static void SetWeaponAmmo(EntityDefinition weaponDef, int ammoType)
+    private static void SetWeaponAmmo(EntityDefinition weaponDef, List<WeaponProperty> properties, int ammoType)
     {
         switch (ammoType)
         {
@@ -168,7 +182,14 @@ public class DehackedApplier
             default:
                 Warning($"Invalid ammo type {ammoType}");
                 break;
+        }
 
+        foreach (var property in properties)
+        {
+            if (property.AmmoType != weaponDef.Properties.Weapons.AmmoType)
+                continue;
+            weaponDef.Properties.Weapons.AmmoUse = property.AmmoUse;
+            weaponDef.Properties.Weapons.AmmoGive = property.AmmoGive;
         }
     }
 
@@ -1024,10 +1045,16 @@ public class DehackedApplier
 
         if (dehacked.Misc.MonstersInfight.HasValue)
         {
-            // Enabling this option allows monsters of the same species to injur each other.
+            // Enabling this option allows monsters of the same species to injure each other.
             bool set = dehacked.Misc.MonstersInfight.Value == MonsterInfightType.Enable;
             foreach (var mapInfo in definitionEntries.MapInfoDefinition.MapInfo.Maps)
                 mapInfo.SetOption(MapOptions.TotalInfighting, set);
+        }
+
+        if (dehacked.Misc.MonstersIgnoreEachOther.HasValue)
+        {
+            foreach (var mapInfo in definitionEntries.MapInfoDefinition.MapInfo.Maps)
+                mapInfo.SetOption(MapOptions.NoInfighting, dehacked.Misc.MonstersIgnoreEachOther.Value);
         }
     }
 

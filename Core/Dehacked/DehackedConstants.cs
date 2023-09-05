@@ -4813,6 +4813,8 @@ public partial class DehackedDefinition
     private static readonly string PerAmmo = "Per ammo";
 
     private static readonly string AmmoType = "Ammo type";
+    private static readonly string AmmoUse = "Ammo use";
+    private static readonly string MinAmmo = "Min ammo";
     private static readonly string DeselectFrame = "Deselect frame";
     private static readonly string SelectFrame = "Select frame";
     private static readonly string BobbingFrame = "Bobbing frame";
@@ -4853,6 +4855,7 @@ public partial class DehackedDefinition
     private static readonly string IDKFAArmorClass = "IDKFA Armor Class";
     private static readonly string BFGCellsPerShot = "BFG Cells/Shot";
     private static readonly string MonstersInfight = "Monsters Infight";
+    private static readonly string MonstersIgnore = "Monsters Ignore Each Other";
     private static readonly string AmmoPerShot = "Ammo per shot";
 
     private static readonly string SoundOffset = "Offset";

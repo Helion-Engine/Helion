@@ -75,7 +75,7 @@ public partial class DehackedDefinition
                 ParseText(parser);
             else if (item.EqualsIgnoreCase(PointerName))
                 ParsePointer(parser);
-            else if (item.EqualsIgnoreCase(MiscName))
+            else if (item.StartsWith(MiscName, StringComparison.OrdinalIgnoreCase))
                 ParseMisc(parser, itemLine);
             else if (item.EqualsIgnoreCase(SoundName))
                 ParseSound(parser);
@@ -401,6 +401,10 @@ public partial class DehackedDefinition
                 weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
             else if (line.StartsWith(AmmoPerShot, StringComparison.OrdinalIgnoreCase))
                 weapon.AmmoPerShot = GetIntProperty(parser, AmmoPerShot);
+            else if (line.StartsWith(AmmoUse, StringComparison.OrdinalIgnoreCase))
+                weapon.AmmoPerShot = GetIntProperty(parser, AmmoUse);
+            else if (line.StartsWith(MinAmmo, StringComparison.OrdinalIgnoreCase))
+                weapon.MinAmmo = GetIntProperty(parser, MinAmmo);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
                 weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
             else
@@ -562,6 +566,8 @@ public partial class DehackedDefinition
                 Misc.BfgCellsPerShot = GetIntProperty(parser, BFGCellsPerShot);
             else if (item.StartsWith(MonstersInfight, StringComparison.OrdinalIgnoreCase))
                 Misc.MonstersInfight = (MonsterInfightType)GetIntProperty(parser, MonstersInfight);
+            else if (item.StartsWith(MonstersIgnore, StringComparison.OrdinalIgnoreCase))
+                Misc.MonstersIgnoreEachOther = GetIntProperty(parser, MonstersIgnore) != 0;
             else
                 UnknownWarning(parser, "misc");
         }

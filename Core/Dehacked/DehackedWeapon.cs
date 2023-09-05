@@ -10,5 +10,6 @@ public class DehackedWeapon
     public int? ShootingFrame { get; set; }
     public int? FiringFrame { get; set; }
     public int? AmmoPerShot { get; set; }
+    public int? MinAmmo { get; set; }
     public uint? Mbf21Bits { get; set; }
 }

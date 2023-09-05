@@ -18,4 +18,5 @@ public class DehackedMisc
     public int? IdkfaArmorClass { get; set; }
     public int? BfgCellsPerShot { get; set; }
     public MonsterInfightType? MonstersInfight { get; set; }
+    public bool? MonstersIgnoreEachOther { get; set; }
 }
