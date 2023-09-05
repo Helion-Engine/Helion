@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Helion.Audio;
 using Helion.Dehacked;
 using Helion.Geometry.Segments;
@@ -11,7 +10,6 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories;
@@ -22,7 +20,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
-using Helion.World.Sound;
 using Helion.World.Special;
 using NLog;
 using static Helion.Dehacked.DehackedDefinition;
@@ -396,6 +393,7 @@ public static class EntityActionFunctions
         ["A_JumpIfTargetInSight"] = A_JumpIfTargetInSight,
         ["A_JumpIfTracerInSight"] = A_JumpIfTracerInSight,
         ["A_JumpIfFlagsSet"] = A_JumpIfFlagsSet,
+        ["A_FireRailGun"] = A_FireRailGun
     };
 
     public static ActionFunction? Find(string? actionFuncName)
@@ -1162,7 +1160,7 @@ public static class EntityActionFunctions
         if (!entity.PlayerObj.CheckAmmo())
             return;
 
-        entity.PlayerObj.DescreaseAmmo();
+        entity.PlayerObj.DecreaseAmmo();
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
         int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
         entity.PlayerObj.Weapon?.SetFlashState(offset);
@@ -1200,7 +1198,7 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.PlayerObj.DescreaseAmmo();
+            entity.PlayerObj.DecreaseAmmo();
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
@@ -1232,7 +1230,7 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.PlayerObj.DescreaseAmmo();
+            entity.PlayerObj.DecreaseAmmo();
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
@@ -1244,7 +1242,7 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.PlayerObj.DescreaseAmmo();
+            entity.PlayerObj.DecreaseAmmo();
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
@@ -1761,7 +1759,7 @@ public static class EntityActionFunctions
 
     private static void A_RailAttack(Entity entity)
     {
-         // TODO
+        // TODO
     }
 
     private static void A_Lower(Entity entity)
@@ -2903,6 +2901,17 @@ public static class EntityActionFunctions
         if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) < amount &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
             weapon.FrameState.SetState(newFrame);
+    }
+
+    public static void A_FireRailGun(Entity entity)
+    {
+        if (entity.PlayerObj == null)
+            return;
+
+        entity.PlayerObj.DecreaseAmmo();
+        entity.World.SoundManager.CreateSoundOn(entity, "weapons/railgf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
+        entity.PlayerObj.Weapon?.SetFlashState();
+        entity.World.FireHitscan(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, 8192, 150, HitScanOptions.PassThroughEntities | HitScanOptions.DrawRail);
     }
 
     private static void A_RefireTo(Entity entity)

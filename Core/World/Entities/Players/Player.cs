@@ -1232,7 +1232,7 @@ public class Player : Entity
         Weapon = AnimationWeapon;
     }
 
-    public void DescreaseAmmo()
+    public void DecreaseAmmo()
     {
         if (Weapon == null)
             return;

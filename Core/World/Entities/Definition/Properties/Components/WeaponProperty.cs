@@ -2,8 +2,12 @@ using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.World.Entities.Definition.Properties.Components;
 
-public class WeaponProperty
-{
+public struct WeaponProperty
+{ 
+    public WeaponProperty()
+    {
+    }
+
     public int AmmoGive;
     public int AmmoGive1;
     public int AmmoGive2;

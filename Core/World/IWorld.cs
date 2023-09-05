@@ -115,7 +115,7 @@ public interface IWorld : IDisposable
         double addAngle = 0, double addPitch = 0, double zOffset = 0, bool decreaseAmmo = true);
     void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default);
-    Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage);
+    Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage, HitScanOptions options = HitScanOptions.Default);
     bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType, Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null);
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);

@@ -428,30 +428,34 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void PopulatePrimitives(IWorld world)
     {
-        const float MaxAlpha = 1.0f;
-
-        if (m_config.Developer.Render.Tracers)
+        var node = world.Player.Tracers.Tracers.First;
+        while (node != null)
         {
-            foreach (PlayerTracerInfo info in world.Player.Tracers)
+            var info = node.Value;
+            int ticks = world.Gametick - info.Gametick;
+            if (ticks > info.Ticks)
             {
-                if (world.Gametick - info.Gametick > PlayerTracers.TracerRenderTicks)
-                    continue;
-
-                AddSeg(info.AimPath, PlayerTracers.AimColor);
-
-                if (info.AimPath != info.LookPath)
-                    AddSeg(info.LookPath, PlayerTracers.LookColor);
-
-                foreach (Seg3D tracer in info.Tracers)
-                    AddSeg(tracer, PlayerTracers.TracerColor);
+                node = node.Next;
+                continue;
             }
-        }
 
-        void AddSeg(Seg3D segment, Vec3F color)
-        {
-            Seg3F seg = (segment.Start.Float, segment.End.Float);
-            m_primitiveRenderer.AddSegment(seg, color, MaxAlpha);
+            float alpha = ticks == 0 ? 1 : (info.Ticks - ticks) / (float)ticks;
+            AddSeg(info.AimPath, PlayerTracers.AimColor, alpha);
+
+            if (info.AimPath != info.LookPath)
+                AddSeg(info.LookPath, PlayerTracers.LookColor, alpha);
+
+            foreach (Seg3D tracer in info.Tracers)
+                AddSeg(tracer, node.Value.Color, alpha);
+
+            node = node.Next;
         }
+    }
+
+    void AddSeg(Seg3D segment, Vec3F color, float alpha)
+    {
+        Seg3F seg = (segment.Start.Float, segment.End.Float);
+        m_primitiveRenderer.AddSegment(seg, color, alpha);
     }
 
     private void SetUniforms(RenderInfo renderInfo)

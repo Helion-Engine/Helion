@@ -885,7 +885,7 @@ public abstract partial class WorldBase : IWorld
         autoAimEntity = null;
         Player? player = shooter.PlayerObj;
         if (decreaseAmmo && player != null)
-            player.DescreaseAmmo();
+            player.DecreaseAmmo();
 
         Vec3D start = shooter.ProjectileAttackPos;
         start.Z += zOffset;
@@ -980,44 +980,49 @@ public abstract partial class WorldBase : IWorld
 
     private int DefaultDamage(DamageFuncParams damageParams) => 5 * ((m_random.NextByte() % 3) + 1);
 
-    public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage)
+    public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage,
+        HitScanOptions options = HitScanOptions.Default)
     {
         Vec3D start = shooter.HitscanAttackPos;
         Vec3D end = start + Vec3D.UnitSphere(angle, pitch) * distance;
         Vec3D intersect = Vec3D.Zero;
 
-        BlockmapIntersect? bi = FireHitScan(shooter, start, end, pitch, damage <= 0, ref intersect, out Sector? hitSector);
+        BlockmapIntersect? bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
+            ref intersect, out Sector? hitSector);
 
         if (bi != null || hitSector != null)
-            if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
-                shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick);
+            if (Config.Developer.Render.Tracers && shooter.PlayerObj != null && damage > 0)
+                shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick, PlayerTracers.TracerColor);
 
-        if (bi != null)
+        if ((options & HitScanOptions.DrawRail) != 0)
         {
-            if (damage > 0)
-            {
-                // Only move closer on a line hit
-                if (bi.Value.Entity == null && hitSector == null)
-                    MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-                CreateBloodOrPulletPuff(bi.Value.Entity, intersect, angle, distance, damage);
-            }
-
-            if (bi.Value.Entity != null)
-            {
-                DamageEntity(bi.Value.Entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                return bi.Value.Entity;
-            }
+            Vec3D railEnd = bi != null && bi.Value.Line != null ? intersect : end;
+            shooter.PlayerObj.Tracers.AddTracer((start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
+        if (bi == null)
+            return null;
+
+        if (damage > 0)
+        {
+            // Only move closer on a line hit
+            if (bi.Value.Entity == null && hitSector == null)
+                MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
+        }
+
+        if (bi.Value.Entity != null)
+            return bi.Value.Entity;
+        
         return null;
     }
 
-    public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double pitch, bool isTest,
-        ref Vec3D intersect, out Sector? hitSector)
+    public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
+        HitScanOptions options, ref Vec3D intersect, out Sector? hitSector)
     {
         hitSector = null;
         BlockmapIntersect? returnValue = null;
         double floorZ, ceilingZ;
+        bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
         DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
 
@@ -1026,7 +1031,7 @@ public abstract partial class WorldBase : IWorld
             BlockmapIntersect bi = intersections[i];
             if (bi.Line != null)
             {
-                if (!isTest && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
+                if (damage > 0 && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                 {
                     var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
                     EntityActivatedSpecial(args);
@@ -1079,7 +1084,13 @@ public abstract partial class WorldBase : IWorld
             else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
-                break;
+                if (damage > 0)
+                {
+                    DamageEntity(bi.Entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                    CreateBloodOrPulletPuff(bi.Entity, intersect, angle, distance, damage);
+                }
+                if (!passThrough)
+                    break;
             }
         }
 
@@ -1097,7 +1108,7 @@ public abstract partial class WorldBase : IWorld
         if (source != null && thrust != Thrust.None)
         {
             Vec3D savePos = source.Position;
-            // Check if the souce is owned by this target and the same position and move to get a valid thrust angle. (player shot missile against wall)
+            // Check if the source is owned by this target and the same position and move to get a valid thrust angle. (player shot missile against wall)
             if (source.Owner.Entity == target && source.Position.XY == target.Position.XY)
             {
                 Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
