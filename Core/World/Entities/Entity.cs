@@ -21,10 +21,9 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
-using static Microsoft.FSharp.Core.ByRefKinds;
+using NLog;
 
 namespace Helion.World.Entities;
 
@@ -479,14 +478,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (Definition.States.Labels.ContainsKey(Constants.FrameStates.Death))
         {
-            SetDeath(source, false);
             if (Definition.DeathState != null)
                 FrameState.SetFrameIndex(Definition.DeathState.Value);
-
-            // Vanilla would set the ticks to 1 if less than 1 always because it didn't care if it was actually randomized.
-            // Not doing this can break dehacked frames...
-            if (Flags.Randomize || World.ArchiveCollection.Definitions.DehackedDefinition != null)
-                SetRandomizeTicks();
+            SetDeathRandomizeTicks();
+            SetDeath(source, false);
         }
     }
 
@@ -494,10 +489,27 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath))
         {
-            SetDeath(source, true);
             if (Definition.XDeathState != null)
                 FrameState.SetFrameIndex(Definition.XDeathState.Value);
+            SetDeathRandomizeTicks();
+            SetDeath(source, true);
         }
+    }
+
+    private void SetDeathRandomizeTicks()
+    {
+        if (Flags.Missile)
+        {
+            if (Flags.Randomize)
+                SetRandomizeTicks();
+            if (FrameState.CurrentTick < 1)
+                FrameState.SetTics(1);
+            return;
+        }
+
+        SetRandomizeTicks();
+        if (FrameState.CurrentTick < 1)
+            FrameState.SetTics(1);
     }
 
     public bool SetCrushState()
