@@ -87,32 +87,6 @@ public struct Seg2
         return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
                CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
     }
-
-    //=========================================================================
-    // public bool _Intersection(Seg2 seg, out float t)
-    // {
-    //     t = 0;
-    //     return false;
-    // }
-    //
-    // public bool _Intersection(Seg2 seg, out Vec2 intersectionPoint)
-    // {
-    //     intersectionPoint = default;
-    //     return false;
-    // }
-    //
-    // public bool _LineIntersection(Seg2 seg, out float t)
-    // {
-    //     t = 0;
-    //     return false;
-    // }
-    //
-    // public bool _LineIntersection(Seg2 seg, out Vec2 intersectionPoint)
-    // {
-    //     intersectionPoint = default;
-    //     return false;
-    // }
-    //=========================================================================
     
     public bool Intersects(Seg2 other) => Intersection(other, out float _);
     
