@@ -10,6 +10,8 @@ namespace Helion.GeometryNew.Vectors;
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct Vec2
 {
+    public static readonly Vec2 NaN = new(float.NaN, float.NaN);
+    
     public float X;
     public float Y;
 
@@ -64,6 +66,8 @@ public struct Vec2
     public float Dot(Vec2 other) => (X * other.X) + (Y * other.Y);
     public float Component(Vec2 onto) => Dot(onto) / onto.Length;
     public Vec2 Projection(Vec2 onto) => Dot(onto) / onto.LengthSquared * onto;
+    public bool OnRight(Seg2 seg) => seg.PerpDot(this) <= 0;
+    public bool OnLeft(Seg2 seg) => !OnRight(seg);
     public Vec2 Right90 => (Y, -X);
     public Vec2 Left90 => (-Y, X);
     public float Angle(in Vec2 other) => MathF.Atan2(other.Y - Y, other.X - X);

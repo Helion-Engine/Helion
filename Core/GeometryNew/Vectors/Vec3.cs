@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using GlmSharp;
+using Helion.GeometryNew.Segments;
 using Helion.Util.Extensions;
 
 namespace Helion.GeometryNew.Vectors;
@@ -53,20 +54,16 @@ public struct Vec3
     public static bool operator ==(Vec3 self, Vec3 other) => self.X == other.X && self.Y == other.Y && self.Z == other.Z;
     public static bool operator !=(Vec3 self, Vec3 other) => !(self == other);
     
-    public static Vec3 UnitSphere(float angle, float pitch)
-    {
-        float sinAngle = MathF.Sin(angle);
-        float cosAngle = MathF.Cos(angle);
-        float sinPitch = MathF.Sin(pitch);
-        float cosPitch = MathF.Cos(pitch);
-        return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);
-    }
-    
+    public Vec3 Min(Vec3 vec) => (X.Min(vec.X), Y.Min(vec.Y), Z.Min(vec.Z));
+    public Vec3 Max(Vec3 vec) => (X.Max(vec.X), Y.Max(vec.Y), Z.Max(vec.Z));
     public bool Approx(Vec3 other) => X.ApproxEquals(other.X) && Y.ApproxEquals(other.Y) && Z.ApproxEquals(other.Z);
     public float DistanceSquared(Vec3 other) => (this - other).LengthSquared;
     public float Distance(Vec3 other) => (this - other).Length;
     public Vec3 Lerp(Vec3 end, float t) => this + (t * (end - this));
     public float Dot(Vec3 other) => (X * other.X) + (Y * other.Y) + (Z * other.Z);
+    public Vec3 Cross(Vec3 vec) => ((Y * vec.Z) - (vec.Y * Z), -((X * vec.Z) - (vec.X * Z)), (X * vec.Y) - (vec.X * Y));
+    public bool OnRight(Seg2 seg) => seg.PerpDot(XY) <= 0;
+    public bool OnLeft(Seg2 seg) => !OnRight(seg);
     public float Pitch(Vec3 other, float length) => MathF.Atan2(other.Z - Z, length);
     public float Angle(Vec3 other) => MathF.Atan2(other.Y - Y, other.X - X);
     
@@ -74,7 +71,7 @@ public struct Vec3
     {
         this /= Length;
     }
-    
+
     public override string ToString() => $"{X}, {Y}, {Z}";
     public override bool Equals(object? obj) => obj is Vec3 v && this == v;
     public override int GetHashCode() => HashCode.Combine(X, Y, Z);

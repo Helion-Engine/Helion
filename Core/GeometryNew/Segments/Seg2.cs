@@ -53,11 +53,9 @@ public struct Seg2
     public bool SameDirection(Seg2 seg) => SameDirection(seg.Delta);
     public float PerpDot(Vec2 point) => (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
     public double PerpDot(Vec3 point) => PerpDot(point.XY);
-    public bool OnRight(Vec2 point) => PerpDot(point) <= 0;
-    public bool OnRight(Vec3 point) => PerpDot(point.XY) <= 0;
-    public bool OnRight(Seg2 seg) => OnRight(seg.Start) && OnRight(seg.End);
-    public bool DifferentSides(Vec2 first, Vec2 second) => OnRight(first) != OnRight(second);
-    public bool DifferentSides(Seg2 seg) => OnRight(seg.Start) != OnRight(seg.End);
+    public bool OnRight(Seg2 seg) => Start.OnRight(seg) && End.OnRight(seg);
+    public bool DifferentSides(Vec2 first, Vec2 second) => first.OnRight(this) != second.OnRight(this);
+    public bool DifferentSides(Seg2 seg) => DifferentSides(seg.Start, seg.End);
     
     public bool SameDirection(Vec2 delta)
     {
@@ -89,10 +87,36 @@ public struct Seg2
         return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
                CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
     }
+
+    //=========================================================================
+    // public bool _Intersection(Seg2 seg, out float t)
+    // {
+    //     t = 0;
+    //     return false;
+    // }
+    //
+    // public bool _Intersection(Seg2 seg, out Vec2 intersectionPoint)
+    // {
+    //     intersectionPoint = default;
+    //     return false;
+    // }
+    //
+    // public bool _LineIntersection(Seg2 seg, out float t)
+    // {
+    //     t = 0;
+    //     return false;
+    // }
+    //
+    // public bool _LineIntersection(Seg2 seg, out Vec2 intersectionPoint)
+    // {
+    //     intersectionPoint = default;
+    //     return false;
+    // }
+    //=========================================================================
     
-    public bool Intersects(Seg2 other) => Intersection(other, out _);
+    public bool Intersects(Seg2 other) => Intersection(other, out float _);
     
-    public bool Intersection(Seg2 seg, out float tLhs)
+    public bool Intersection(Seg2 seg, out float t)
     {
         float areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
         float areaEnd = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.Start.X, seg.Start.Y);
@@ -104,43 +128,57 @@ public struct Seg2
     
             if (areaThisStart.DifferentSign(areaThisEnd))
             {
-                tLhs = areaThisStart / (areaThisStart - areaThisEnd);
-                return tLhs >= 0 && tLhs <= 1;
+                t = areaThisStart / (areaThisStart - areaThisEnd);
+                return t >= 0 && t <= 1;
             }
         }
     
-        tLhs = default;
+        t = default;
         return false;
     }
+
+    public bool Intersection(Seg2 seg, out Vec2 point)
+    {
+        bool intersected = Intersection(seg, out float t);
+        point = intersected ? FromTime(t) : Vec2.NaN;
+        return intersected;
+    }
     
-    public bool IntersectionAsLine(Seg2 seg, out float tLhs)
+    public bool LineIntersection(Seg2 seg, out float t)
     {
         float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
         if (determinant.ApproxZero())
         {
-            tLhs = default;
+            t = default;
             return false;
         }
     
         Vec2 startDelta = Start - seg.Start;
-        tLhs = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) / determinant;
+        t = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) / determinant;
         return true;
     }
     
-    public bool IntersectionAsLine(Seg2 seg, out float tLhs, out float tRhs)
+    public bool LineIntersection(Seg2 seg, out Vec2 point)
+    {
+        bool intersected = LineIntersection(seg, out float t);
+        point = intersected ? FromTime(t) : Vec2.NaN;
+        return intersected;
+    }
+    
+    public bool LineIntersection(Seg2 seg, out float t, out float tOther)
     {
         float determinant = (-seg.Delta.X * Delta.Y) + (Delta.X * seg.Delta.Y);
         if (determinant.ApproxZero())
         {
-            tLhs = default;
-            tRhs = default;
+            t = default;
+            tOther = default;
             return false;
         }
     
         Vec2 startDelta = Start - seg.Start;
         float inverseDeterminant = 1.0f / determinant;
-        tLhs = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) * inverseDeterminant;
-        tRhs = ((-Delta.Y * startDelta.X) + (Delta.X * startDelta.Y)) * inverseDeterminant;
+        t = ((seg.Delta.X * startDelta.Y) - (seg.Delta.Y * startDelta.X)) * inverseDeterminant;
+        tOther = ((-Delta.Y * startDelta.X) + (Delta.X * startDelta.Y)) * inverseDeterminant;
         return true;
     }
     

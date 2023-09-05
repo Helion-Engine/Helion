@@ -34,7 +34,7 @@ public readonly record struct Circle(Vec2 Origin, float Radius)
         // Source: https://stackoverflow.com/a/1879223/3453041
         Vec2 closest = (Origin.X.Clamp(box.Left, box.Right), Origin.Y.Clamp(box.Top, box.Bottom));
         Vec2 distance = Origin - closest;
-        return distance.LengthSquared <  (Radius * Radius);
+        return distance.LengthSquared < (Radius * Radius);
     }
     
     public bool Intersects(Seg2 seg)
