@@ -445,8 +445,11 @@ public class LegacyWorldRenderer : WorldRenderer
             if (info.AimPath != info.LookPath)
                 AddSeg(info.LookPath, PlayerTracers.LookColor, alpha);
 
-            foreach (Seg3D tracer in info.Tracers)
+            for (var i = 0; i < info.Tracers.Count; i++)
+            {
+                Seg3D tracer = info.Tracers[i];
                 AddSeg(tracer, node.Value.Color, alpha);
+            }
 
             node = node.Next;
         }

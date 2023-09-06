@@ -205,9 +205,6 @@ public class Renderer : IDisposable
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.CullFace(CullFaceMode.Back);
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-        
-        // Tracers and railguns use wider lines.
-        GL.LineWidth(5);
     }
 
     private void SetGLDebugger()

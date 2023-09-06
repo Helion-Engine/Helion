@@ -43,11 +43,15 @@ public class PrimitiveWorldRenderer : IDisposable
 
         m_program.Bind();
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
-
+        
+        GL.LineWidth(5); // Tracers for railguns should not be of width 1.
+        
         m_vbo.UploadIfNeeded();
         m_vao.Bind();
         m_vbo.DrawArrays(PrimitiveType.Lines);
         m_vao.Unbind();
+        
+        //GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
 
         m_program.Unbind();
 
