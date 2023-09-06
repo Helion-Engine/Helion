@@ -1141,10 +1141,12 @@ public static class EntityActionFunctions
 
     private static void A_FireBFG(Entity entity)
     {
-        // TODO not sure of difference between A_FireBFG and A_FireOldBFG
-        if (entity.PlayerObj != null)
-            entity.PlayerObj.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "BFGBall", out _);
+        if (entity.PlayerObj == null)
+            return;
+
+        entity.PlayerObj.DecreaseAmmoCompatibility(40);
+        entity.PlayerObj.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+            entity.World.Config.Game.AutoAim, "BFGBall", out _);
     }
 
     private static void A_FireBullets(Entity entity)
@@ -1160,7 +1162,7 @@ public static class EntityActionFunctions
         if (!entity.PlayerObj.CheckAmmo())
             return;
 
-        entity.PlayerObj.DecreaseAmmo();
+        entity.PlayerObj.DecreaseAmmoCompatibility(1);
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
         int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
         entity.PlayerObj.Weapon?.SetFlashState(offset);
@@ -1180,40 +1182,45 @@ public static class EntityActionFunctions
 
     private static void A_FireMissile(Entity entity)
     {
-        if (entity.PlayerObj != null)
-        {
-            entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "Rocket", out _);
-        }
+        if (entity.PlayerObj == null)
+            return;
+
+        entity.PlayerObj.DecreaseAmmoCompatibility(1);
+        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+            entity.World.Config.Game.AutoAim, "Rocket", out _);
     }
 
     private static void A_FireOldBFG(Entity entity)
     {
         // TODO not sure of difference between A_FireBFG and A_FireOldBFG
-        if (entity.PlayerObj != null)
-            entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall", out _);
+        if (entity.PlayerObj == null)
+            return;
+
+        entity.PlayerObj.DecreaseAmmoCompatibility(40);
+        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, false, "BFGBall", out _);
     }
 
     private static void A_FirePistol(Entity entity)
     {
-        if (entity.PlayerObj != null)
-        {
-            entity.PlayerObj.DecreaseAmmo();
-            entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
-            entity.PlayerObj.Weapon?.SetFlashState();
-            entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
-                entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
-        }
+        if (entity.PlayerObj == null)
+            return;
+        
+        entity.PlayerObj.DecreaseAmmoCompatibility(1);
+        entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
+        entity.PlayerObj.Weapon?.SetFlashState();
+        entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+            entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
     }
 
     private static void A_FirePlasma(Entity entity)
     {
-        if (entity.PlayerObj != null)
-        {
-            entity.PlayerObj.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
-            entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
-                entity.World.Config.Game.AutoAim, "PlasmaBall", out _);
-        }
+        if (entity.PlayerObj == null)
+            return;
+
+        entity.PlayerObj.DecreaseAmmoCompatibility(1);
+        entity.PlayerObj.Weapon?.SetFlashState(entity.World.Random.NextByte() & 1);
+        entity.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+            entity.World.Config.Game.AutoAim, "PlasmaBall", out _);
     }
 
     private static void A_FireProjectile(Entity entity)
@@ -1230,7 +1237,7 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.PlayerObj.DecreaseAmmo();
+            entity.PlayerObj.DecreaseAmmoCompatibility(1);
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
@@ -1242,7 +1249,7 @@ public static class EntityActionFunctions
     {
         if (entity.PlayerObj != null)
         {
-            entity.PlayerObj.DecreaseAmmo();
+            entity.PlayerObj.DecreaseAmmoCompatibility(2);
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
             entity.World.FireHitscanBullets(entity, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
@@ -2818,7 +2825,7 @@ public static class EntityActionFunctions
         double pitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs3));
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset, false);
+        FireProjectile(entity, null, name, angle, pitch, offsetXY, zOffset);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)
@@ -2908,7 +2915,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null)
             return;
 
-        entity.PlayerObj.DecreaseAmmo();
+        entity.PlayerObj.DecreaseAmmoCompatibility();
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/railgf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
         entity.PlayerObj.Weapon?.SetFlashState();
         entity.World.FireHitscan(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, 8192, 150, HitScanOptions.PassThroughEntities | HitScanOptions.DrawRail);
@@ -3007,7 +3014,7 @@ public static class EntityActionFunctions
         double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        FireProjectile(entity, entity.Target.Entity, name, angle, pitchOffset, offsetXY, zOffset, false);
+        FireProjectile(entity, entity.Target.Entity, name, angle, pitchOffset, offsetXY, zOffset);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
@@ -3240,7 +3247,7 @@ public static class EntityActionFunctions
         return dehacked.GetEntityDefinitionName(index, out name);
     }
 
-    private static void FireProjectile(Entity entity, Entity? target, string name, double addAngle, double addPitch, double offsetXY, double zOffset, bool decreaseAmmo)
+    private static void FireProjectile(Entity entity, Entity? target, string name, double addAngle, double addPitch, double offsetXY, double zOffset)
     {
         double firePitch = 0;
         if (entity.PlayerObj != null)
@@ -3250,7 +3257,7 @@ public static class EntityActionFunctions
             firePitch = entity.PitchTo(entity.ProjectileAttackPos, target);
 
         Entity? createdEntity = entity.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, true, name, 
-            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset, decreaseAmmo);
+            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
         if (createdEntity == null)
             return;
 

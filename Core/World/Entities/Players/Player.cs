@@ -1232,12 +1232,17 @@ public class Player : Entity
         Weapon = AnimationWeapon;
     }
 
-    public void DecreaseAmmo()
+    public void DecreaseAmmoCompatibility(int amount = 0)
     {
         if (Weapon == null)
             return;
 
-        Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, Weapon.Definition.Properties.Weapons.AmmoUse);
+        // Doom hard coded the decrease amounts for each weapon fire. Have to check if ammo use was changed via dehacked.
+        // Handles example case where weapon is rocket launcher but fire calls A_FireBFG.
+        if (amount <= 0 || Weapon.AmmoDefinition.Properties.Weapons.AmmoUseSet)
+            amount = Weapon.Definition.Properties.Weapons.AmmoUse;
+
+        Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, amount);
     }
 
     public void DecreaseAmmo(int amount)

@@ -14,6 +14,7 @@ public struct WeaponProperty
     public string AmmoType = string.Empty;
     public string AmmoType1 = string.Empty;
     public string AmmoType2 = string.Empty;
+    public bool AmmoUseSet = false;
     public int AmmoUse;
     public int AmmoUse1;
     public int AmmoUse2;

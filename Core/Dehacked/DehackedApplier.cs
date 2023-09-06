@@ -138,7 +138,11 @@ public class DehackedApplier
             if (weapon.AmmoType.HasValue)
                 SetWeaponAmmo(weaponDef, properties, weapon.AmmoType.Value);
             if (weapon.AmmoPerShot.HasValue)
+            {
                 weaponDef.Properties.Weapons.AmmoUse = weapon.AmmoPerShot.Value;
+                weaponDef.Properties.Weapons.AmmoUseSet = true;
+
+            }
             if (weapon.Mbf21Bits.HasValue)
                 ApplyWeaponMbf21Bits(weaponDef, weapon.Mbf21Bits.Value);
         }
