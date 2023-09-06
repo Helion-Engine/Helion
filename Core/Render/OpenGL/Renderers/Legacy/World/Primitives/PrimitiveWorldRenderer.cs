@@ -51,7 +51,7 @@ public class PrimitiveWorldRenderer : IDisposable
         m_vbo.DrawArrays(PrimitiveType.Lines);
         m_vao.Unbind();
         
-        //GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
+        GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
 
         m_program.Unbind();
 
