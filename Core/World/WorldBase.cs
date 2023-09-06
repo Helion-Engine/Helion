@@ -880,13 +880,10 @@ public abstract partial class WorldBase : IWorld
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
     public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
-        double addAngle = 0, double addPitch = 0, double zOffset = 0, bool decreaseAmmo = true)
+        double addAngle = 0, double addPitch = 0, double zOffset = 0)
     {
         autoAimEntity = null;
         Player? player = shooter.PlayerObj;
-        if (decreaseAmmo && player != null)
-            player.DecreaseAmmo();
-
         Vec3D start = shooter.ProjectileAttackPos;
         start.Z += zOffset;
 
@@ -1000,20 +997,10 @@ public abstract partial class WorldBase : IWorld
             shooter.PlayerObj.Tracers.AddTracer((start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
-        if (bi == null)
+        if (bi == null || bi.Value.Entity == null)
             return null;
-
-        if (damage > 0)
-        {
-            // Only move closer on a line hit
-            if (bi.Value.Entity == null && hitSector == null)
-                MoveIntersectCloser(start, ref intersect, angle, bi.Value.Distance2D);
-        }
-
-        if (bi.Value.Entity != null)
-            return bi.Value.Entity;
         
-        return null;
+        return bi.Value.Entity;
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
@@ -1055,8 +1042,8 @@ public abstract partial class WorldBase : IWorld
 
                     GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
                     hitSector = bi.Line.Front.Sector;
-                    DataCache.FreeBlockmapIntersectList(intersections);
-                    return bi;
+                    returnValue = bi;
+                    break;
                 }
 
                 GetOrderedSectors(bi.Line, start, out Sector front, out Sector back);
@@ -1092,6 +1079,14 @@ public abstract partial class WorldBase : IWorld
                 if (!passThrough)
                     break;
             }
+        }
+
+        if (returnValue != null && damage > 0)
+        {
+            // Only move closer on a line hit
+            if (returnValue.Value.Entity == null && hitSector == null)
+                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.Distance2D);
+            CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
         }
 
         DataCache.FreeBlockmapIntersectList(intersections);

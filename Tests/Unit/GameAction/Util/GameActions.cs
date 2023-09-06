@@ -256,9 +256,10 @@ namespace Helion.Tests.Unit.GameAction
         public static BlockmapIntersect? FireHitscanTest(WorldBase world, Entity entity)
         {
             Vec3D intersect = Vec3D.Zero;
-            // TODO: Check angle, pitch, distance, and damage.
+            double angle = entity.AngleRadians;
+            double pitch = entity.PlayerObj == null ? 0 : entity.PlayerObj.PitchRadians;
             return world.FireHitScan(entity, entity.HitscanAttackPos, Vec3D.UnitSphere(entity.AngleRadians, 0) * Constants.EntityShootDistance, 
-                0, 0, 2048, 0, HitScanOptions.Default, ref intersect, out _);
+                angle, pitch, Constants.EntityShootDistance, 5, HitScanOptions.Default, ref intersect, out _);
         }
 
         public static void SetEntityOutOfBounds(WorldBase world, Entity entity)
