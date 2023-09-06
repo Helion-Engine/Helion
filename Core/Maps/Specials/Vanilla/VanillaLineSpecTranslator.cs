@@ -46,7 +46,7 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.SR_TeleportNoFog:
             case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
             case VanillaLineSpecialType.WR_MonsterTeportNoFog:
-                argsToMutate.Arg1 = (int)TeleportType.BoomFixed;
+                argsToMutate.Arg1 = (int)TeleportType.BoomCompat;
                 argsToMutate.Arg2 = tag;
                 argsToMutate.Arg3 = 1;
                 return ZDoomLineSpecialType.TeleportNoFog;
