@@ -368,6 +368,7 @@ public class LineSpecial
             case ZDoomLineSpecialType.ElevatorRaiseToNearest:
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
+            case ZDoomLineSpecialType.PlatDownWaitUpStayLip:
                 return true;
 
             default:
@@ -428,6 +429,7 @@ public class LineSpecial
             case ZDoomLineSpecialType.ElevatorRaiseToNearest:
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
+            case ZDoomLineSpecialType.PlatDownWaitUpStayLip:
                 return true;
 
             default:

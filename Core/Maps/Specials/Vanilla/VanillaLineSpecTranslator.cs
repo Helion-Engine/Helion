@@ -79,7 +79,7 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = GetSectorMoveSpeed(type);
                 argsToMutate.Arg2 = GetDelay(type);
-                return ZDoomLineSpecialType.LiftDownWaitUpStay;
+                return ZDoomLineSpecialType.PlatDownWaitUpStayLip;
 
             case VanillaLineSpecialType.D1_OpenDoorFastStay:
             case VanillaLineSpecialType.D1_OpenDoorStay:
