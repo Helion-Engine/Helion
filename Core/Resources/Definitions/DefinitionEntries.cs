@@ -56,6 +56,7 @@ public class DefinitionEntries
     private bool m_parseDehacked;
     private bool m_parseDecorate;
     private bool m_parseUniversalMapInfo;
+    private bool m_parseLegacyMapInfo;
 
     /// <summary>
     /// Creates a definition entries data structure which has no tracked
@@ -81,7 +82,7 @@ public class DefinitionEntries
         m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
         m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLangaugeCompatibility, entry);
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
-        m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
+        m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseZMapInfo, entry);
         m_entryNameToAction["UMAPINFO"] = entry => ParseEntry(ParseUniversalMapInfo, entry);
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
@@ -133,7 +134,16 @@ public class DefinitionEntries
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
-    private void ParseMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+    private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+
+    private void ParseMapInfo(string text)
+    {
+        if (!m_parseLegacyMapInfo)
+            return;
+
+        MapInfoDefinition.Parse(m_archiveCollection, text);
+    }
+
     private void ParseUniversalMapInfo(string text)
     {
         if (!m_parseUniversalMapInfo)
@@ -193,6 +203,7 @@ public class DefinitionEntries
         m_parseDecorate = true;
         m_parseDehacked = true;
         m_parseUniversalMapInfo = true;
+        m_parseLegacyMapInfo = true;
 
         bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
         if (ConfigCompatibility.PreferDehacked && hasBoth)
@@ -200,7 +211,11 @@ public class DefinitionEntries
         else if (!ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDehacked = false;
 
-        if (archive.AnyEntryByName("ZMAPINFO") || archive.AnyEntryByName("MAPINFO"))
+        var hasZmapinfo = archive.AnyEntryByName("ZMAPINFO");
+        if (hasZmapinfo)
+            m_parseLegacyMapInfo = false;
+
+        if (hasZmapinfo || archive.AnyEntryByName("MAPINFO"))
             m_parseUniversalMapInfo = false;
 
         m_pnamesTextureXCollection = new PnamesTextureXCollection();
