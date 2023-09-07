@@ -24,7 +24,7 @@ public class GLRenderer : IDisposable
     private readonly IWindow m_window;
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly GLTextureManager m_textureManager;
+    private readonly GLAtlasTextureManager m_textureManager;
     private readonly HudRenderer m_hudRenderer;
     private readonly WorldRenderer m_worldRenderer;
     private readonly Dictionary<string, GLTextureSurface> m_surfaces = new(StringComparer.OrdinalIgnoreCase);
@@ -43,7 +43,7 @@ public class GLRenderer : IDisposable
         m_textureManager = new(config, archiveCollection);
         m_hudRenderer = new(m_config, m_textureManager);
         m_worldRenderer = new(m_config, m_textureManager);
-        DefaultSurface = new(window);
+        DefaultSurface = new(window, m_hudRenderer.Context, m_worldRenderer.Context);
     }
 
     private void SetGLDebugger()
@@ -131,7 +131,7 @@ public class GLRenderer : IDisposable
             existingSurface.Dispose();
         }
         
-        GLTextureSurface surface = new(name, dimension);
+        GLTextureSurface surface = new(name, dimension, m_hudRenderer.Context, m_worldRenderer.Context);
         m_surfaces[name] = surface;
         return surface;
     }
@@ -146,17 +146,17 @@ public class GLRenderer : IDisposable
         surface.Dispose();
         return true;
     }
-    
+
+    public static void FlushPipeline()
+    {
+        GL.Finish();
+    }
+
     public void DeleteAllSurfaces()
     {
         foreach (GLTextureSurface surface in m_surfaces.Values)
             surface.Dispose();
         m_surfaces.Clear();
-    }
-    
-    public static void FlushPipeline()
-    {
-        GL.Finish();
     }
 
     public void Dispose()

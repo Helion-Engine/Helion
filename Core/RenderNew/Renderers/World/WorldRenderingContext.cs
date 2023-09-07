@@ -12,13 +12,6 @@ using Helion.World;
 
 namespace Helion.RenderNew.Renderers.World;
 
-public struct WorldRenderingInfo
-{
-    // Position
-    // Angle
-    // Re-use rendered data if not the first pass
-}
-
 public class WorldRenderingContext : IDisposable
 {
     private readonly IConfig m_config;
@@ -98,8 +91,8 @@ public class WorldRenderingContext : IDisposable
     {
         Debug.Assert(m_currentlyRendering, $"Trying to draw world image when {nameof(Begin)} was not called");
         
-        m_textureManager.Get(textureName, ResourceNamespace.Global, out var texture);
-        DrawTexture(texture, quad, blend, alpha);
+        TextureHandle handle = m_textureManager.Get(textureName, ResourceNamespace.Global);
+        DrawTexture(handle, quad, blend, alpha);
     }
     
     public void DrawSurface(GLTextureSurface surface, Quad3D quad, RgbColor? blend = null, float alpha = 1.0f)
@@ -116,11 +109,11 @@ public class WorldRenderingContext : IDisposable
         // TODO
     }
     
-    public void Render(IWorld world, in WorldRenderingInfo renderInfo)
+    public void Render(IWorld world, WorldRenderingInfo renderInfo)
     {
         Debug.Assert(m_currentlyRendering, $"Trying to render a world when {nameof(Begin)} was not called");
         
-        // TODO
+        m_worldRenderer.Render(world, renderInfo);
     }
     
     public void Dispose()

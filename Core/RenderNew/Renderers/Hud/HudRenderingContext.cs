@@ -4,8 +4,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.RenderNew.OpenGL.Textures;
-using Helion.RenderNew.Surfaces;
 using Helion.RenderNew.Textures;
 using Helion.Resources;
 using Helion.Util.Configs;
@@ -78,14 +76,14 @@ public class HudRenderingContext : IDisposable
     
     public void DrawImage(string name, Vec2I origin, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(name, ResourceNamespace.Global, out TextureHandle handle);
+        TextureHandle handle = m_textureManager.Get(name, ResourceNamespace.Global);
         Box2I box = (origin, origin + handle.Dimension);
         DrawImage(handle, box, scale, blend, alpha);
     }
     
     public void DrawImage(string name, Box2I box, float scale = 1.0f, RgbColor? blend = null, float alpha = 1.0f)
     {
-        m_textureManager.Get(name, ResourceNamespace.Global, out TextureHandle handle);
+        TextureHandle handle = m_textureManager.Get(name, ResourceNamespace.Global);
         DrawImage(handle, box, scale, blend, alpha);
     }
 

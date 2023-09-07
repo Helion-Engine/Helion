@@ -59,12 +59,12 @@ public class GLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public unsafe void Upload(Texture texture, Vec2I offset)
+    public unsafe void Upload(Image image, Vec2I offset)
     {
         (int x, int y) = offset;
-        (int w, int h) = texture.Image.Dimension;
+        (int w, int h) = image.Dimension;
 
-        fixed (uint* pixelPtr = texture.Image.Pixels)
+        fixed (uint* pixelPtr = image.Pixels)
         {
             IntPtr ptr = new(pixelPtr);
             // Because the C# image format is 'ARGB', we can get it into the

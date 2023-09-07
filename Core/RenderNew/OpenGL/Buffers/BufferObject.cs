@@ -13,9 +13,9 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     private static readonly int BytesPerElement = Marshal.SizeOf<T>();
     
     public readonly string Label;
+    protected readonly int Name;
     protected readonly DynamicArray<T> Data;
     protected bool NeedsUpload;
-    private readonly int m_name;
     private readonly BufferTarget m_target;
     private readonly BufferUsageHint m_hint;
     private bool m_disposed;
@@ -23,13 +23,13 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     protected BufferObject(string label, BufferTarget target, BufferUsageHint hint, int capacity)
     {
         Label = label;
-        m_name = GL.GenBuffer();
+        Name = GL.GenBuffer();
         Data = new(capacity);
         m_target = target;
         m_hint = hint;
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, Label);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, Name, Label);
         Unbind();
     }
 
@@ -40,7 +40,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     public void Bind()
     {
-        GL.BindBuffer(m_target, m_name);
+        GL.BindBuffer(m_target, Name);
     }
 
     public void Unbind()
@@ -75,6 +75,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     private void ReleaseUnmanagedResources()
     {
-        GL.DeleteBuffer(m_name);
+        GL.DeleteBuffer(Name);
     }
 }
