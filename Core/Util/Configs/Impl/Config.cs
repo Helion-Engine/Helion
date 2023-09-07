@@ -108,7 +108,7 @@ public class Config : IConfig
 
     protected bool CheckAnyBindingsChanged()
     {
-        return Keys.Changed || Components.Values.Any(c => c.Value.Changed && c.Attribute.Save);
+        return Keys.Changed || Components.Values.Any(c => c.Value.Changed && c.Attribute.Save && c.Value.WriteToConfig);
     }
 
     protected void UnsetChangedFlag()
@@ -121,7 +121,7 @@ public class Config : IConfig
     protected void LogChangedValues()
     {
         foreach ((string key, ConfigComponent component) in Components)
-            if (component.Value.Changed && component.Attribute.Save)
+            if (component.Value.Changed && component.Attribute.Save && component.Value.WriteToConfig)
                 Log.Trace($"Writing changed value {key} = {component.Value.ObjectValue}");
     }
 

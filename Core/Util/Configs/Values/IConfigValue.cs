@@ -20,6 +20,8 @@ public interface IConfigValue
     /// </summary>
     bool Changed { get; set; }
 
+    bool WriteToConfig { get; set; }
+
     /// <summary>
     /// The flags on when this value should be changed.
     /// </summary>

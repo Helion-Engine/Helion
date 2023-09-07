@@ -30,6 +30,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     public T DefaultValue { get; private set; }
     public bool Changed { get; set; }
     public ConfigSetFlags SetFlags { get; }
+    public bool WriteToConfig { get; set; } = true;
 
     // Given a <previousValue, newValue>, returns true if the value should
     // be accepted, or false if it is an unacceptable value and should not
@@ -45,7 +46,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     // For example, if we want this to only update on a world change, then
     // we stash away the change until then.
     private T? m_queuedChange;
-    // This is necessary becuase if T is a struct (int, double, enum) it won't actually be 'null'
+    // This is necessary because if T is a struct (int, double, enum) it won't actually be 'null'
     private bool m_hasQueuedChange;
 
     public event EventHandler<T>? OnChanged;
@@ -95,6 +96,13 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public ConfigSetResult Set(T newValue)
     {
+        WriteToConfig = true;
+        return SetValue(newValue, false);
+    }
+
+    public ConfigSetResult SetWithNoWriteConfig(T newValue)
+    {
+        WriteToConfig = false;
         return SetValue(newValue, false);
     }
 

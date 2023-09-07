@@ -102,7 +102,7 @@ public class FileConfig : Config
 
             KeyDataCollection section = data[EngineSectionName];
             foreach ((string path, ConfigInfoAttribute attr, IConfigValue value) in Components.Values)
-                if (attr.Save)
+                if (attr.Save && value.WriteToConfig)
                     section[path] = value.ToString();
 
             return true;
