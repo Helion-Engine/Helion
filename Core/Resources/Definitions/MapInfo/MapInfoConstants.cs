@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util.Configs.Components;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
@@ -248,5 +249,6 @@ public partial class MapInfoDefinition
         { "noclustertext",          new MapOptionSet { Option = MapOptions.NeedClusterText, Value = false } },
         { "needclustertext",        new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
         { "allowmonstertelefrags",  new MapOptionSet { Option = MapOptions.AllowMonsterTelefrags, Value = true } },
+        { "compat_missileclip",     new MapOptionSet { Option = MapOptions.Compatibility_MissileClip, Value = true } },
     };
 }

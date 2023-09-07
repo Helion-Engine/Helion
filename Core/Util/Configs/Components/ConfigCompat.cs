@@ -18,4 +18,7 @@ public class ConfigCompat
 
     [ConfigInfo("Emulate vanilla infinitely tall things.", serialize: true, demo: true)]
     public readonly ConfigValue<bool> InfinitelyTallThings = new(false);
+
+    [ConfigInfo("Things use their original vanilla heights for projectile collision checks.", serialize: true, demo: true)]
+    public readonly ConfigValue<bool> MissileClip = new(false);
 }

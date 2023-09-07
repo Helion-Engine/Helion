@@ -12,5 +12,6 @@ public enum MapOptions
     NoInfighting,
     TotalInfighting,
     ResetHealth,
-    ResetInventory
+    ResetInventory,
+    Compatibility_MissileClip
 }

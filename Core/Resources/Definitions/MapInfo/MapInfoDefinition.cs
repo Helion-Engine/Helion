@@ -24,6 +24,8 @@ public partial class MapInfoDefinition
         SimpleParser parser = new SimpleParser();
         parser.Parse(data);
 
+        MapInfo.SetDefaultMap(null);
+
         while (!parser.IsDone())
         {
             string item = parser.ConsumeString();
@@ -43,7 +45,7 @@ public partial class MapInfoDefinition
             else if (item.Equals(AddDefaultMapName, StringComparison.OrdinalIgnoreCase))
                 ParseMapDef(parser, false, MapInfo.DefaultMap);
             else if (item.Equals(MapName, StringComparison.OrdinalIgnoreCase))
-                MapInfo.AddMap(ParseMapDef(parser, true, (MapInfoDef)MapInfo.DefaultMap.Clone()));
+                MapInfo.AddMap(ParseMapDef(parser, true, MapInfo.DefaultMap == null ? null : (MapInfoDef)MapInfo.DefaultMap.Clone()));
             else if (item.Equals(SkillName, StringComparison.OrdinalIgnoreCase))
                 MapInfo.AddSkill(ParseSkillDef(parser));
             else if (item.Equals(ClearSkillsName, StringComparison.OrdinalIgnoreCase))
@@ -83,6 +85,7 @@ public partial class MapInfoDefinition
 
     private MapInfoDef ParseMapDef(SimpleParser parser, bool parseHeader, MapInfoDef? mapDef = null)
     {
+        bool hasDefaultMap = mapDef != null;
         if (mapDef == null)
             mapDef = new();
 
@@ -90,9 +93,9 @@ public partial class MapInfoDefinition
         {
             int defLine = parser.GetCurrentLine();
             mapDef.MapName = parser.ConsumeString();
-
+            
             MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
-            if (existing != null)
+            if (!hasDefaultMap && existing != null)
                 mapDef = existing;
 
             if (parser.Peek("lookup"))
@@ -160,7 +163,10 @@ public partial class MapInfoDefinition
             }
             else if (MapOptionsLookup.TryGetValue(item, out MapOptionSet? set))
             {
-                mapDef.SetOption(set.Option, set.Value);
+                bool setValue = true;
+                if (parser.ConsumeIf("="))
+                    setValue = parser.ConsumeString() != "0";
+                mapDef.SetOption(set.Option, setValue);
             }
             else
             {

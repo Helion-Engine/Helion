@@ -1,6 +1,5 @@
 using Helion.Maps.Shared;
 using Helion.Util.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,12 +12,12 @@ public class MapInfo
     public IReadOnlyList<MapInfoDef> Maps => m_maps.AsReadOnly();
     public IReadOnlyList<ClusterDef> Clusters => m_clusters.AsReadOnly();
     public IReadOnlyList<SkillDef> Skills => m_skills.AsReadOnly();
-    public MapInfoDef DefaultMap { get; private set; } = new();
+    public MapInfoDef? DefaultMap { get; private set; }
 
-    private readonly List<EpisodeDef> m_episodes = new List<EpisodeDef>();
-    private readonly List<MapInfoDef> m_maps = new List<MapInfoDef>();
-    private readonly List<ClusterDef> m_clusters = new List<ClusterDef>();
-    private readonly List<SkillDef> m_skills = new List<SkillDef>();
+    private readonly List<EpisodeDef> m_episodes = new();
+    private readonly List<MapInfoDef> m_maps = new();
+    private readonly List<ClusterDef> m_clusters = new();
+    private readonly List<SkillDef> m_skills = new ();
 
     public void ClearEpisodes() => m_episodes.Clear();
 
@@ -96,7 +95,7 @@ public class MapInfo
         return mapInfoDef;
     }
 
-    public void SetDefaultMap(MapInfoDef map) => DefaultMap = map;
+    public void SetDefaultMap(MapInfoDef? map) => DefaultMap = map;
     public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
     public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
     public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
