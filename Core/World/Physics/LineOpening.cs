@@ -90,10 +90,11 @@ public class LineOpening
         OpeningHeight = CeilingZ - FloorZ;
     }
 
-    public void SetTop(TryMoveData tryMove, Entity other)
+    public void SetTop(TryMoveData tryMove, Entity other, bool missileClipCompat)
     {
         CeilingZ = tryMove.LowestCeilingZ;
-        FloorZ = other.Position.Z + other.Height;
+        double otherHeight = missileClipCompat ? other.GetMissileClipHeight(missileClipCompat) : other.Height;
+        FloorZ = other.Position.Z + otherHeight;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
     }

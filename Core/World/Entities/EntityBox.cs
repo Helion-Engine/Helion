@@ -1,3 +1,4 @@
+using System;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
@@ -94,9 +95,28 @@ public partial class Entity
         Position.Y - Radius >= other.Max.Y || 
         Position.Y + Radius <= other.Min.Y);
 
-    public bool OverlapsZ(Entity other) => 
+    public bool OverlapsZ(Entity other) =>
         Position.Z + Height > other.Position.Z && 
         Position.Z < other.Position.Z + other.Height;
+
+    public bool OverlapsZ(Entity other, double otherHeight) =>
+        Position.Z + Height > other.Position.Z &&
+        Position.Z < other.Position.Z + otherHeight;
+
+    public bool OverlapsMissileClipZ(Entity other, bool missileClipCompat) =>
+        OverlapsZ(other, other.GetMissileClipHeight(missileClipCompat));
+
+    public double GetMissileClipHeight(bool missileClipCompat)
+    {
+        int passHeight = Properties.ProjectilePassHeight;
+        if (passHeight == 0)
+            return Height;
+
+        if (passHeight > 0)
+            return passHeight;
+
+        return missileClipCompat ? Math.Abs(passHeight) : Height;
+    }
 
     private static bool Intersects(double dist1, double dist2, Vec2D p1, Vec2D p2, ref Vec2D intersect)
     {

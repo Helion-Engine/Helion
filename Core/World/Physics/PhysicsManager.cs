@@ -7,7 +7,6 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
-using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
@@ -706,6 +705,8 @@ public class PhysicsManager
                     continue;
 
                 double intersectTopZ = intersectEntity.TopZ;
+                if (entity.Flags.Missile && m_world.Config.Compatibility.MissileClip)
+                    intersectTopZ = intersectEntity.GetMissileClipHeight(true);
                 bool above = entity.PrevPosition.Z >= intersectTopZ;
                 bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
                 bool clipped = false;
@@ -1088,7 +1089,8 @@ public class PhysicsManager
                     if (nextEntity.Overlaps2D(nextBox))
                     {
                         tryMove.IntersectEntities2D.Add(nextEntity);
-                        bool overlapsZ = entity.OverlapsZ(nextEntity);
+                        bool overlapsZ = entity.Flags.Missile ? 
+                            entity.OverlapsMissileClipZ(nextEntity, m_world.Config.Compatibility.MissileClip) : entity.OverlapsZ(nextEntity);
 
                         // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
                         // This flag can be modified by dehacked
@@ -1191,7 +1193,7 @@ doneIsPositionValid:
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
             // This entity is higher than the other entity and requires step up checking
-            m_lineOpening.SetTop(tryMove, other);
+            m_lineOpening.SetTop(tryMove, other, entity.Flags.Missile && m_world.Config.Compatibility.MissileClip);
         }
         else
         {

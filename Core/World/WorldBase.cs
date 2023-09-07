@@ -174,7 +174,10 @@ public abstract partial class WorldBase : IWorld
         SpecialManager = new SpecialManager(this, m_random);
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
-        m_defaultDamageAction = new(DefaultDamage);
+        m_defaultDamageAction = DefaultDamage;
+
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_MissileClip))
+            Config.Compatibility.MissileClip.SetWithNoWriteConfig(true);
 
         if (worldModel != null)
         {

@@ -9,6 +9,9 @@ public static class DefinitionPropertyApplier
         if (definition.IsType(EntityDefinitionType.Inventory))
             definition.Flags.Special = true;
 
+        if (properties.ProjectilePassHeight != null)
+            definition.Properties.ProjectilePassHeight = properties.ProjectilePassHeight.Value;
+
         if (properties.Alpha != null)
             definition.Properties.Alpha = properties.Alpha.Value;
 
