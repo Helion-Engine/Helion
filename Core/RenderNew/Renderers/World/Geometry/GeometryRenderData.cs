@@ -4,14 +4,14 @@ using Helion.RenderNew.Interfaces.World;
 namespace Helion.RenderNew.Renderers.World.Geometry;
 
 [StructLayout(LayoutKind.Sequential, Pack = 16)]
-internal record struct SectorPlaneRenderData(
+public record struct SectorPlaneRenderData(
     float Z, 
     float PrevZ, 
     float LightLevel, 
     int TextureIdx);
 
 [StructLayout(LayoutKind.Sequential, Pack = 32)]
-internal record struct WallRenderData(
+public record struct WallRenderData(
     int TextureIdx,
     int LightLevel,
     int FacingSectorIdx,

@@ -12,6 +12,7 @@ public class WorldGeometryRenderer : IDisposable
 {
     private readonly ShaderStorageBufferObject<SectorPlaneRenderData> m_sectorPlaneSsbo = new("Sector plane SSBO", 8, BufferUsageHint.DynamicDraw);
     private readonly ShaderStorageBufferObject<WallRenderData> m_wallSsbo = new("Wall SSBO", 8, BufferUsageHint.DynamicDraw);
+    private readonly VertexBufferObject<int> m_wallVbo = new("Wall vertex buffer", BufferUsageHint.DynamicDraw, 4096);
     private bool m_disposed;
 
     ~WorldGeometryRenderer()
@@ -29,12 +30,17 @@ public class WorldGeometryRenderer : IDisposable
     {
         DynamicArray<SectorPlaneRenderData> data = new(1024);
         
+        // The floor always comes first when indexing based on sector index.
         foreach (IRenderableSector sector in world.GetRenderableSectors())
         {
-            // The floor always comes first when indexing based on sector index.
             foreach (IRenderableSectorPlane plane in new[] { sector.GetFloor(), sector.GetCeiling() })
             {
-                SectorPlaneRenderData renderData = new(plane.GetZ(), plane.GetZ(), sector.GetLightLevel(), plane.GetTextureIdx());
+                float z = plane.GetZ();
+                float prevZ = z;
+                int lightLevel = sector.GetLightLevel();
+                int textureIdx = plane.GetTextureIdx();
+                
+                SectorPlaneRenderData renderData = new(z, prevZ, lightLevel, textureIdx);
                 data.Add(renderData);
             }
         }
@@ -76,8 +82,8 @@ public class WorldGeometryRenderer : IDisposable
             AddNewWall(side?.GetUpper(), side, facingSector, oppositeSector, isFront, WallSection.Upper);
         }
 
-        void AddNewWall(IRenderableWall? wall, IRenderableSide? side, IRenderableSector? facingSector, IRenderableSector? oppositeSector,
-            bool isFront, WallSection section)
+        void AddNewWall(IRenderableWall? wall, IRenderableSide? side, IRenderableSector? facingSector, 
+            IRenderableSector? oppositeSector, bool isFront, WallSection section)
         {
             WallRenderData wallData = new();
             
