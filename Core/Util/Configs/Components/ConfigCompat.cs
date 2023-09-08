@@ -21,4 +21,7 @@ public class ConfigCompat
 
     [ConfigInfo("Things use their original vanilla heights for projectile collision checks.", serialize: true, demo: true)]
     public readonly ConfigValue<bool> MissileClip = new(false);
+
+    [ConfigInfo("Limits lost souls spawn by pain elementals to 21.", serialize: true, demo: true)]
+    public readonly ConfigValue<bool> PainElementalLostSoulLimit = new(false);
 }

@@ -175,9 +175,7 @@ public abstract partial class WorldBase : IWorld
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
-
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_MissileClip))
-            Config.Compatibility.MissileClip.SetWithNoWriteConfig(true);
+        SetCompatibilityOptions(mapInfoDef);
 
         if (worldModel != null)
         {
@@ -197,6 +195,20 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+    }
+
+    private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
+    {
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_MissileClip))
+            Config.Compatibility.MissileClip.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_ShortestTexture))
+            Config.Compatibility.VanillaShortestTexture.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_FloorMove))
+            Config.Compatibility.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_NoCrossOver))
+            Config.Compatibility.InfinitelyTallThings.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.Compatibility_LimitPain))
+            Config.Compatibility.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
     }
 
     private void DemoPlaybackEnded(object? sender, EventArgs e)
@@ -2074,14 +2086,20 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public int EntityAliveCount(int entityDefinitionId)
+    public int EntityCount(int entityDefinitionId) =>
+        EntityCount(entityDefinitionId, true);
+
+    public int EntityAliveCount(int entityDefinitionId) =>
+        EntityCount(entityDefinitionId, true);
+
+    private int EntityCount(int entityDefinitionId, bool checkAlive)
     {
         int count = 0;
         LinkableNode<Entity>? node = Entities.Head;
         while (node != null)
         {
             Entity entity = node.Value;
-            if (entity.Definition.Id == entityDefinitionId && !entity.IsDead)
+            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
                 count++;
             node = node.Next;
         }

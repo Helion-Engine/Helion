@@ -1646,6 +1646,13 @@ public static class EntityActionFunctions
 
     private static void A_PainShootSkull(Entity entity, double angle)
     {
+        if (entity.World.Config.Compatibility.PainElementalLostSoulLimit)
+        {
+            var def = entity.World.EntityManager.DefinitionComposer.GetByName("LostSoul");
+            if (def != null && entity.World.EntityCount(def.Id) > 20)
+                return;
+        }
+
         Vec3D skullPos = entity.Position;
         Vec3D startPos = entity.Position;
         skullPos.Z += 8;
