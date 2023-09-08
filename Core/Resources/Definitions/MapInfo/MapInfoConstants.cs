@@ -254,5 +254,6 @@ public partial class MapInfoDefinition
         { "compat_floormove",       new MapOptionSet { Option = MapOptions.Compatibility_FloorMove, Value = true } },
         { "compat_nopassover",      new MapOptionSet { Option = MapOptions.Compatibility_NoCrossOver, Value = true } },
         { "compat_limitpain",       new MapOptionSet { Option = MapOptions.Compatibility_LimitPain, Value = true } },
+        { "compat_notossdrops",     new MapOptionSet { Option = MapOptions.COmpatibility_NoTossDrops, Value = true } },
     };
 }

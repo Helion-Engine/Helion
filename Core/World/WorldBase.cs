@@ -1527,14 +1527,23 @@ public abstract partial class WorldBase : IWorld
         {
             for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
             {
+                bool spawnInit = true;
                 Vec3D pos = deathEntity.Position;
-                pos.Z += deathEntity.Definition.Properties.Height / 2;
-                Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos);
-                if (dropItem != null)
+                pos.Z = deathEntity.Sector.Floor.Z;
+                double addVelocity = 0;
+                if (!Config.Compatibility.NoTossDrops)
                 {
-                    dropItem.Flags.Dropped = true;
-                    dropItem.Velocity.Z += 4;
+                    spawnInit = false;
+                    pos.Z = deathEntity.Position.Z + deathEntity.Definition.Properties.Height / 2;
+                    addVelocity = 4;
                 }
+                
+                Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos, init: spawnInit);
+                if (dropItem == null)
+                    continue;
+                
+                dropItem.Flags.Dropped = true;
+                dropItem.Velocity.Z += addVelocity;
             }
         }
     }

@@ -24,4 +24,7 @@ public class ConfigCompat
 
     [ConfigInfo("Limits lost souls spawn by pain elementals to 21.", serialize: true, demo: true)]
     public readonly ConfigValue<bool> PainElementalLostSoulLimit = new(false);
+
+    [ConfigInfo("Disables item drop tossing.", serialize: true, demo: true)]
+    public readonly ConfigValue<bool> NoTossDrops = new(false);
 }

@@ -17,5 +17,6 @@ public enum MapOptions
     Compatibility_ShortestTexture,
     Compatibility_FloorMove,
     Compatibility_NoCrossOver,
-    Compatibility_LimitPain
+    Compatibility_LimitPain,
+    COmpatibility_NoTossDrops
 }
