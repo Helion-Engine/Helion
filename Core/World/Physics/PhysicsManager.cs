@@ -109,6 +109,9 @@ public class PhysicsManager
     /// <param name="entity">The entity to move.</param>
     public void Move(Entity entity)
     {
+        entity.BlockingEntity = null;
+        entity.BlockingLine = null;
+        entity.BlockingSectorPlane = null;
         MoveXY(entity);
         MoveZ(entity);
     }
@@ -464,11 +467,11 @@ public class PhysicsManager
 
     private void SetToGiblets(Entity entity)
     {
-        if (!entity.SetCrushState())
-        {
-            m_entityManager.Destroy(entity);
-            m_entityManager.Create("REALGIBS", entity.Position);
-        }
+        if (entity.SetCrushState())
+            return;
+
+        m_entityManager.Destroy(entity);
+        m_entityManager.Create("REALGIBS", entity.Position);
     }
 
     private static void PushUpBlockingEntity(Entity pusher)
@@ -1496,10 +1499,6 @@ doneIsPositionValid:
     {
         if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
             return;
-
-        entity.BlockingEntity = null;
-        entity.BlockingLine = null;
-        entity.BlockingSectorPlane = null;
 
         // Have to check this first. Doom modifies the position first and then velocity.
         // This means z velocity isn't applied until the next tick after moving off a ledge.
