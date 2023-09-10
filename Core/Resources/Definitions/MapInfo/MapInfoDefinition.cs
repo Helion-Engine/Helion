@@ -168,6 +168,12 @@ public partial class MapInfoDefinition
                     setValue = parser.ConsumeString() != "0";
                 mapDef.SetOption(set.Option, setValue);
             }
+            else if (item.StartsWith("compat_", StringComparison.OrdinalIgnoreCase) || MapOptionsIgnore.Contains(item))
+            {
+                // The compat options outside of MapOptionsLookup are either not support, but mostly are not relevant to Helion
+                if (parser.GetCurrentLine() == line)
+                    parser.ConsumeLine();
+            }
             else
             {
                 WarnMissing("map", item, line);

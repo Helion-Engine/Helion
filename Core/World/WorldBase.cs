@@ -199,15 +199,15 @@ public abstract partial class WorldBase : IWorld
 
     private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
     {
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_MissileClip))
+        if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
             Config.Compatibility.MissileClip.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_ShortestTexture))
+        if (mapInfoDef.HasOption(MapOptions.CompatShortestTexture))
             Config.Compatibility.VanillaShortestTexture.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_FloorMove))
+        if (mapInfoDef.HasOption(MapOptions.CompatFloorMove))
             Config.Compatibility.VanillaSectorPhysics.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_NoCrossOver))
+        if (mapInfoDef.HasOption(MapOptions.CompatNoCrossOver))
             Config.Compatibility.InfinitelyTallThings.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.Compatibility_LimitPain))
+        if (mapInfoDef.HasOption(MapOptions.CompatLimitPain))
             Config.Compatibility.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
     }
 

@@ -355,6 +355,37 @@ public partial class Client
     private void CommandInventorySetAmount(ConsoleCommandEventArgs args) =>
         AddWorldResumeCommand(DoInventorySetAmount, args);
 
+    [ConsoleCommand("nojump", "Disables player jumping")]
+    private void NoJump(ConsoleCommandEventArgs args) =>
+        ToggleMapOption(MapOptions.NoJump, args);
+
+    [ConsoleCommand("NoCrouch", "Disables player crouching")]
+    private void NoCrouch(ConsoleCommandEventArgs args) =>
+        ToggleMapOption(MapOptions.NoCrouch, args);
+
+    [ConsoleCommand("NoFreelook", "Disables player freelook")]
+    private void NoFreelook(ConsoleCommandEventArgs args) =>
+        ToggleMapOption(MapOptions.NoFreelook, args);
+
+    [ConsoleCommand("AllowMonsterTelefrags", "Allows monster telefrags")]
+    private void AllowMonsterTelefrags(ConsoleCommandEventArgs args) =>
+        ToggleMapOption(MapOptions.AllowMonsterTelefrags, args);
+
+    private void ToggleMapOption(MapOptions option, ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        var mapInfo = m_layerManager.WorldLayer.World.MapInfo;
+        if (args.Args.Count > 0 && int.TryParse(args.Args[0], out int set))
+        {
+            mapInfo.SetOption(option, set != 0);
+            return;
+        }
+
+        Log.Info($"{option} is {mapInfo.HasOption(option)}");
+    }
+
     private void DoInventoryAdd(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer != null && args.Args.Count > 0)

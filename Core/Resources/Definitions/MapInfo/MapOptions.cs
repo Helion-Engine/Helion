@@ -13,10 +13,10 @@ public enum MapOptions
     TotalInfighting,
     ResetHealth,
     ResetInventory,
-    Compatibility_MissileClip,
-    Compatibility_ShortestTexture,
-    Compatibility_FloorMove,
-    Compatibility_NoCrossOver,
-    Compatibility_LimitPain,
-    COmpatibility_NoTossDrops
+    CompatMissileClip,
+    CompatShortestTexture,
+    CompatFloorMove,
+    CompatNoCrossOver,
+    CompatLimitPain,
+    CompatNoTossDrops
 }
