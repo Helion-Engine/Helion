@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Helion.Maps.Specials.Vanilla;
+﻿using System;
+using FluentAssertions;
 using Helion.Resources.IWad;
-using Helion.World;
+using Helion.Util;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
@@ -429,5 +429,38 @@ public class BoomActions
 
         GameActions.EntityUseLine(World, Player, Line).Should().BeFalse();
         GameActions.RunSectorPlaneSpecial(World, sector);
+    }
+
+    [Fact(DisplayName = "Boom silent teleport matching landing angle")]
+    public void SilentTeleportCorrectAngle()
+    {
+        var teleportSector = GameActions.GetSectorByTag(World, 8);
+        GameActions.EntityCrossLine(World, Player, 249, moveOutofBounds: false);
+        GameActions.RunTeleport(World, Player, teleportSector, 7);
+        var angle = MathHelper.GetPositiveAngle(Player.AngleRadians);
+        var teleportAngle = MathHelper.GetPositiveAngle(GameActions.GetEntity(World, 7).AngleRadians);
+        angle.Should().Be(teleportAngle);
+    }
+
+    [Fact(DisplayName = "Boom silent teleport bad landing angle (+180)")]
+    public void SilentTeleportOppositeAngle()
+    {
+        var teleportSector = GameActions.GetSectorByTag(World, 8);
+        GameActions.EntityCrossLine(World, Player, 254, moveOutofBounds: false);
+        GameActions.RunTeleport(World, Player, teleportSector, 7);
+        var angle = MathHelper.GetPositiveAngle(Player.AngleRadians);
+        var teleportAngle = MathHelper.GetPositiveAngle(GameActions.GetEntity(World, 7).AngleRadians + Math.PI);
+        angle.Should().Be(teleportAngle);
+    }
+
+    [Fact(DisplayName = "Boom silent teleport bad landing angle (+180)")]
+    public void SilentTeleportOppositeAngle2()
+    {
+        var teleportSector = GameActions.GetSectorByTag(World, 8);
+        GameActions.EntityCrossLine(World, Player, 255, moveOutofBounds: false);
+        GameActions.RunTeleport(World, Player, teleportSector, 7);
+        var angle = MathHelper.GetPositiveAngle(Player.AngleRadians);
+        var teleportAngle = MathHelper.GetPositiveAngle(GameActions.GetEntity(World, 7).AngleRadians + Math.PI);
+        angle.Should().Be(teleportAngle);
     }
 }
