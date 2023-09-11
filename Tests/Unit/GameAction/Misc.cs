@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.Util;
+using Helion.World;
+using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
@@ -74,6 +78,47 @@ public class Misc
         clip.Position.Z.Should().Be(0);
         clip.Velocity.Z.Should().Be(0);
         World.Config.Compatibility.NoTossDrops.Set(false);
+    }
+
+    [Fact(DisplayName = "Hitscan default option")]
+    public void HitscanDefault()
+    {
+        List<Entity> monsters = new();
+        for (int i = 0; i < 3; i++)
+            monsters.Add(GameActions.CreateEntity(World, "Zombieman", (-320, -576 + (i * 64), 0)));
+
+        foreach (var monster in monsters)
+            monster.IsDead.Should().BeFalse();
+
+        GameActions.SetEntityToLine(World, Player, 2, 64);
+        GameActions.SetEntityPosition(World, Player, (-320, -160));
+        World.FireHitscan(Player, Player.AngleRadians, 0, 2048, 1000);
+
+        monsters[0].IsDead.Should().BeFalse();
+        monsters[1].IsDead.Should().BeFalse();
+        monsters[2].IsDead.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Hitscan pass through option")]
+    public void HitscanPassThroughOption()
+    {
+        List<Entity> monsters = new();
+        for (int i = 0; i < 3; i++)
+            monsters.Add(GameActions.CreateEntity(World, "Zombieman", (-320, -576 + (i*64), 0)));
+
+        var behindLineMonster = GameActions.CreateEntity(World, "Zombieman", (-320, -704, 0));
+
+        foreach (var monster in monsters)
+            monster.IsDead.Should().BeFalse();
+        behindLineMonster.IsDead.Should().BeFalse();
+
+        GameActions.SetEntityToLine(World, Player, 2, 64);
+        GameActions.SetEntityPosition(World, Player, (-320, -160));
+        World.FireHitscan(Player, Player.AngleRadians, 0, 2048, 1000, HitScanOptions.PassThroughEntities);
+
+        foreach (var monster in monsters)
+            monster.IsDead.Should().BeTrue();
+        behindLineMonster.IsDead.Should().BeFalse();
     }
 }
 
