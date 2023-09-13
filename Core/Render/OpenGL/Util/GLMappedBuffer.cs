@@ -9,11 +9,13 @@ public readonly unsafe ref struct GLMappedBuffer<T> where T : struct
     public readonly IntPtr Pointer;
     private readonly Span<T> m_span;
     private readonly T* m_mappedMemoryPtr;
+    private readonly BufferTarget m_target;
     
-    public GLMappedBuffer(Span<T> span)
+    public GLMappedBuffer(Span<T> span, BufferTarget target)
     {
         m_span = span;
-        Pointer = GL.MapBuffer(BufferTarget.ArrayBuffer, BufferAccess.WriteOnly);
+        m_target = target;
+        Pointer = GL.MapBuffer(target, BufferAccess.ReadWrite /* BufferAccess.WriteOnly */);
         m_mappedMemoryPtr = (T*)Pointer.ToPointer();
     }
     
@@ -29,6 +31,6 @@ public readonly unsafe ref struct GLMappedBuffer<T> where T : struct
 
     public void Dispose()
     {
-        GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+        GL.UnmapBuffer(m_target);
     }
 }

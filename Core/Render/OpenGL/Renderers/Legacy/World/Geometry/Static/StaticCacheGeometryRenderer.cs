@@ -20,17 +20,23 @@ using Helion.World.Static;
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Util;
+using NLog;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly RenderProgram m_program;
     private readonly List<GeometryData> m_geometry = new();
+    private readonly GLBufferTexture m_sectorLights;
 
     private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
     private readonly TextureGeometryLookup m_textureToGeometryLookup = new();
@@ -65,12 +71,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private SectorDynamic m_sideDynamicIgnore;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        RenderProgram program, GeometryRenderer geometryRenderer)
+        RenderProgram program, GeometryRenderer geometryRenderer, GLBufferTexture sectorLights)
     {
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(config, archiveCollection, textureManager);
+        m_sectorLights = sectorLights;
     }
 
     static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -112,12 +119,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_staticScroll = world.Config.Render.StaticScroll;
         m_floodFill = world.Config.Render.FloodFill;
         m_floodFillAlt = world.Config.Render.FloodFillAlt;
-
+        
         SetSideDynamicIgnore();
 
         if (!m_staticMode)
             return;
-
+        
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
@@ -126,6 +133,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideScrollChanged += World_SideScrollChanged;
         if (m_staticScroll)
             m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
+
+        UploadAllSectorData(world);
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -167,6 +176,38 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
         UpdateLookup(m_updateScrollSidesLookup, world.Sides.Count);
         UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
+    }
+    
+    private unsafe void UploadAllSectorData(IWorld world)
+    {
+        m_sectorLights.Map(data =>
+        {
+            float* planeLights = (float*)data.ToPointer();
+            for (int i = 0; i < world.Sectors.Count; i++)
+            {
+                Sector sector = world.Sectors[i];
+                int floorIndex = i * 2;
+                planeLights[floorIndex] = sector.Floor.LightLevel;
+                planeLights[floorIndex + 1] = sector.Ceiling.LightLevel;
+            } 
+        });
+    }
+
+    private unsafe void UpdateSectorLightLevels(DynamicArray<(int sectorIndex, short floorLightLevel, short ceilingLightLevel)> sectorsToUpdate)
+    {
+        m_sectorLights.BindBuffer();
+        GLMappedBuffer<float> planeLightsBuffer = m_sectorLights.MapWithDisposable();
+        
+        for (int i = 0; i < sectorsToUpdate.Length; i++)
+        {
+            (int sectorIdx, float floorLight, float ceilingLight) = sectorsToUpdate[i];
+            int floorIndex = sectorIdx * 2;
+            planeLightsBuffer[floorIndex] = floorLight;
+            planeLightsBuffer[floorIndex + 1] = ceilingLight;
+        }
+        
+        planeLightsBuffer.Dispose();
+        m_sectorLights.UnbindBuffer();
     }
 
     private void SetSideDynamicIgnore()
@@ -493,11 +534,19 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         UpdateRunTimeBuffers();
 
+        GL.ActiveTexture(TextureUnit.Texture1);
+        m_sectorLights.BindBuffer();
+        m_sectorLights.BindTexture();
+        m_sectorLights.BindTexBuffer();
+
         for (int i = 0; i < m_geometry.Count; i++)
         {
             var data = m_geometry[i];
-            var texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & Texture.TextureFlags.ClampY) == 0);
+            
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & Texture.TextureFlags.ClampY) == 0);
             texture.Bind();
+            
             data.Vao.Bind();
             data.Vbo.Bind();
             data.Vbo.DrawArrays();

@@ -26,7 +26,7 @@ public class GLBufferTexture : IDisposable
         m_data.Resize(size);
 
         BindBuffer();
-        GL.BufferData(BufferTarget.TextureBuffer, size, m_data.Data, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.TextureBuffer, size, m_data.Data, BufferUsageHint.DynamicDraw);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
     }
@@ -35,18 +35,25 @@ public class GLBufferTexture : IDisposable
     {
         Dispose(false);
     }
-
+    
     public void Map(Action<IntPtr> action)
     {
         Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
         
         BindBuffer();
         
-        GLMappedBuffer<float> buffer = new(m_data.Data);
+        GLMappedBuffer<float> buffer = new(m_data.Data, BufferTarget.TextureBuffer);
         action(buffer.Pointer);
         buffer.Dispose();
         
         UnbindBuffer();
+    }
+    
+    // You must bind, and call dispose, or else bad things will happen.
+    public GLMappedBuffer<float> MapWithDisposable()
+    {
+        Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
+        return new(m_data.Data, BufferTarget.TextureBuffer);
     }
 
     public void BindBuffer()
@@ -57,6 +64,16 @@ public class GLBufferTexture : IDisposable
     public void UnbindBuffer()
     {
         GL.BindBuffer(BufferTarget.TextureBuffer, 0);
+    }
+    
+    public void BindTexture()
+    {
+        GL.BindTexture(TextureTarget.TextureBuffer, m_textureName);
+    }
+    
+    public void UnbindTexture()
+    {
+        GL.BindTexture(TextureTarget.TextureBuffer, 0);
     }
 
     public void BindTexBuffer()

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
@@ -15,7 +12,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -28,8 +24,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using Helion.World.Impl.SinglePlayer;
-using Helion.World.Physics;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 

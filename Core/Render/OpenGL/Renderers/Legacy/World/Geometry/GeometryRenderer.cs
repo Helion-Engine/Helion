@@ -11,6 +11,8 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Textures;
+using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -47,6 +49,7 @@ public class GeometryRenderer : IDisposable
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly GLBufferTexture m_sectorLights = new("Sector lights texture buffer", 65536);
     private double m_tickFraction;
     private bool m_skyOverride;
     private bool m_floorChanged;
@@ -88,7 +91,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this, m_sectorLights);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -1532,5 +1535,6 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
         Portals.Dispose();
+        m_sectorLights.Dispose();
     }
 }
