@@ -484,6 +484,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.SectorLightTexture(TextureUnit.Texture1);
         m_program.HasInvulnerability(drawInvulnerability);
         m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
         m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));

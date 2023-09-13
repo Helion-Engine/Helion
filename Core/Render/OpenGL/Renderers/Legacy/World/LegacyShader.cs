@@ -13,6 +13,7 @@ public class LegacyShader : RenderProgram
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
+    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, "sectorLightTexture");
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
@@ -32,6 +33,7 @@ public class LegacyShader : RenderProgram
         layout(location = 5) in float fuzz;
         layout(location = 6) in vec2 prevUV;
         layout(location = 7) in float clearAlpha;
+        layout(location = 8) in float lightLevelBufferIndex;
 
         out vec2 uvFrag;
         out vec2 prevUVFrag;
@@ -39,11 +41,13 @@ public class LegacyShader : RenderProgram
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float clearAlphaFrag;
+        flat out float lightLevelBufferValueFrag;
         out float dist;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform float timeFrac;
+        uniform samplerBuffer sectorLightTexture;
 
         void main() {
             uvFrag = uv;
@@ -52,6 +56,9 @@ public class LegacyShader : RenderProgram
             alphaFrag = alpha;
             fuzzFrag = fuzz;
             clearAlphaFrag = clearAlpha;
+
+            int texBufferIndex = int(lightLevelBufferIndex);
+            lightLevelBufferValueFrag = texelFetch(sectorLightTexture, texBufferIndex).r;
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
@@ -68,6 +75,7 @@ public class LegacyShader : RenderProgram
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float clearAlphaFrag;
+        flat in float lightLevelBufferValueFrag;
         in float dist;
 
         out vec4 fragColor;
@@ -105,7 +113,7 @@ public class LegacyShader : RenderProgram
         const int lightFadeStart = 56;
 
         void main() {
-            float lightLevel = lightLevelFrag;
+            float lightLevel = lightLevelFrag + lightLevelBufferValueFrag;
             float d = clamp(dist - lightFadeStart, 0, dist);
             int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
             int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);

@@ -535,7 +535,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateRunTimeBuffers();
 
         GL.ActiveTexture(TextureUnit.Texture1);
-        m_sectorLights.BindBuffer();
         m_sectorLights.BindTexture();
         m_sectorLights.BindTexBuffer();
 
