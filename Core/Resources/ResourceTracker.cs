@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Helion.Util;
 using Helion.Util.Container;
 
 namespace Helion.Resources;
-
-// TODO: This probably should be called NamespaceTracker or something clearer...
 
 /// <summary>
 /// Tracks a specific resource by a namespace and name combination.
@@ -19,6 +16,14 @@ namespace Helion.Resources;
 public class ResourceTracker<T> where T : class
 {
     private readonly HashTable<ResourceNamespace, string, T> m_table = new(comparer2: StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, T> m_tableByName = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly ResourceTrackerOptions m_options;
+
+    public ResourceTracker(ResourceTrackerOptions options = ResourceTrackerOptions.StoreByName)
+    {
+        m_options = options;
+    }
 
     /// <summary>
     /// Clears all the tracked resources.
@@ -52,6 +57,8 @@ public class ResourceTracker<T> where T : class
     public void Insert(string name, ResourceNamespace resourceNamespace, T value)
     {
         m_table.Insert(resourceNamespace, name, value);
+        if ((m_options & ResourceTrackerOptions.StoreByName) != 0)
+            m_tableByName[name] = value;
     }
 
     /// <summary>
@@ -63,6 +70,7 @@ public class ResourceTracker<T> where T : class
     public void Remove(string name, ResourceNamespace resourceNamespace)
     {
         m_table.Remove(resourceNamespace, name);
+        m_tableByName.Remove(name);
     }
 
     /// <summary>
@@ -95,17 +103,8 @@ public class ResourceTracker<T> where T : class
         if (desiredNamespaceElement != null)
             return desiredNamespaceElement;
 
-        foreach (ResourceNamespace resourceNamespace in m_table.GetFirstKeys())
-        {
-            if (resourceNamespace == priorityNamespace)
-                continue;
-
-            T? resource = null;
-            if (m_table.TryGet(resourceNamespace, name, ref resource))
-                return resource;
-        }
-
-        return null;
+        m_tableByName.TryGetValue(name, out var value);
+        return value;
     }
 
     /// <summary>

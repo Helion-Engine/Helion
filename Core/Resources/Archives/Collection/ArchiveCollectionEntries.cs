@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 
 namespace Helion.Resources.Archives.Collection;
 
@@ -17,19 +16,19 @@ public class ArchiveCollectionEntries
     /// A mapping of an upper case string to the most recently loaded
     /// entry.
     /// </summary>
-    private readonly Dictionary<string, Entry> m_pathToEntry = new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Entry> m_pathToEntry = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// A mapping of an upper case string to the most recently loaded
     /// entry.
     /// </summary>
-    private readonly Dictionary<string, Entry> m_nameToEntries = new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Entry> m_nameToEntries = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// A mapping of upper case name and namespace to the most recent entry
     /// for that pair of keys.
     /// </summary>
-    private readonly ResourceTracker<Entry> m_namespaceNameEntries = new ResourceTracker<Entry>();
+    private readonly ResourceTracker<Entry> m_namespaceEntries = new(ResourceTrackerOptions.None);
 
     /// <summary>
     /// Tracks a new entry, meaning the entry provided will be accessible
@@ -42,8 +41,8 @@ public class ArchiveCollectionEntries
         ResourceNamespace ns = entry.Namespace;
         // If this entry has no namespace and was previously defined with one, use that
         // e.g. RSKY1 in a PWAD
-        if (ns == ResourceNamespace.Global && m_nameToEntries.ContainsKey(entry.Path.Name))
-            ns = m_nameToEntries[entry.Path.Name].Namespace;
+        if (ns == ResourceNamespace.Global && m_nameToEntries.TryGetValue(entry.Path.Name, out var existingEntry))
+            ns = existingEntry.Namespace;
 
         string fullPath = entry.Path.FullPath;
         // Lookups for directory paths need to be relative to the directory
@@ -52,7 +51,7 @@ public class ArchiveCollectionEntries
 
         m_pathToEntry[fullPath] = entry;
         m_nameToEntries[entry.Path.Name] = entry;
-        m_namespaceNameEntries.Insert(entry.Path.Name, ns, entry);
+        m_namespaceEntries.Insert(entry.Path.Name, ns, entry);
     }
 
     /// <summary>
@@ -88,12 +87,17 @@ public class ArchiveCollectionEntries
     /// <returns>The entry if it exists, null if not.</returns>
     public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace)
     {
-        return m_namespaceNameEntries.Get(name, priorityNamespace);
+        var entry = m_namespaceEntries.Get(name, priorityNamespace);
+        if (entry != null)
+            return entry;
+
+        m_nameToEntries.TryGetValue(name, out entry);
+        return entry;
     }
 
     // WARNING: Should only be used sparingly on startup. Never at runtime. This list is allocated each time.
     public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
     {
-        return m_namespaceNameEntries.GetValues(resourceNamespace).OrderBy(x => x.Index).ToList();
+        return m_namespaceEntries.GetValues(resourceNamespace).OrderBy(x => x.Index).ToList();
     }
 }

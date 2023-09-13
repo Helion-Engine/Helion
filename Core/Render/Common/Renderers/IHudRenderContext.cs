@@ -63,25 +63,25 @@ public interface IHudRenderContext : IDisposable
     void FillBoxes(HudBox[] boxes, Color color, Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1.0f);
 
     void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-        Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
+        Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
         float scale = 1.0f, float alpha = 1.0f)
     {
         Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha);
     }
 
     void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-        Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
+        Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
         float scale = 1.0f, float alpha = 1.0f)
     {
         Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha);
     }
 
     void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
-        Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+        Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
     void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
-        Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
+        Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
         Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
     void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,

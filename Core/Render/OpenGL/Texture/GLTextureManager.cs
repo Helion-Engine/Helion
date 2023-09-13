@@ -85,7 +85,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
 
     public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Global, out GLTextureType texture))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture))
         {
             handle = texture;
             return true;

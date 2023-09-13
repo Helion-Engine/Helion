@@ -5,6 +5,7 @@ namespace Helion.Resources;
 /// </summary>
 public enum ResourceNamespace
 {
+    Undefined,
     Global,
     ACS,
     Flats,
