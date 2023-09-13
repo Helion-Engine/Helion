@@ -491,6 +491,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.FuzzFrac(timeFrac);
         m_program.LightLevelMix(mix);
+        m_program.UseSectorLightBuffer(true);
         m_program.ExtraLight(extraLight);
     }
 

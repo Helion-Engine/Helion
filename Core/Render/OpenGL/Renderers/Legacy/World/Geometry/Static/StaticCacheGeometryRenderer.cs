@@ -524,7 +524,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         vertices.AddRange(renderedVertices);
-        return;
     }
 
     public void Render()

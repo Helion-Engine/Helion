@@ -14,11 +14,13 @@ public class LegacyShader : RenderProgram
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
     public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, "sectorLightTexture");
+    
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
     public void FuzzFrac(float frac) => Uniforms.Set(frac, "fuzzFrac");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
+    public void UseSectorLightBuffer(bool use) => Uniforms.Set(use ? 1.0f : 0.0f, "useSectorLightBuffer");
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
 
@@ -47,18 +49,19 @@ public class LegacyShader : RenderProgram
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform float timeFrac;
+        uniform float useSectorLightBuffer;
         uniform samplerBuffer sectorLightTexture;
 
         void main() {
             uvFrag = uv;
             prevUVFrag = prevUV;
-            lightLevelFrag = clamp(lightLevel, 0.0, 256.0);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
             clearAlphaFrag = clearAlpha;
 
             int texBufferIndex = int(lightLevelBufferIndex);
             lightLevelBufferValueFrag = texelFetch(sectorLightTexture, texBufferIndex).r;
+            lightLevelFrag = mix(clamp(lightLevel, 0.0, 256.0), lightLevelBufferValueFrag, useSectorLightBuffer);
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
@@ -75,7 +78,6 @@ public class LegacyShader : RenderProgram
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float clearAlphaFrag;
-        flat in float lightLevelBufferValueFrag;
         in float dist;
 
         out vec4 fragColor;
@@ -113,7 +115,7 @@ public class LegacyShader : RenderProgram
         const int lightFadeStart = 56;
 
         void main() {
-            float lightLevel = lightLevelFrag + lightLevelBufferValueFrag;
+            float lightLevel = lightLevelFrag;
             float d = clamp(dist - lightFadeStart, 0, dist);
             int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
             int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
