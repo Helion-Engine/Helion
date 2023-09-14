@@ -180,9 +180,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public static int GetLightBufferIndex(int sectorId, LightBufferType type)
     {
-        int index = sectorId * 3;
+        int index = sectorId * 3 + 1;
         // Return index 0 to prevent overflow crash
-        if (index + 2 >= GeometryRenderer.LightBufferTextureSize)
+        if (index + 2 >= Constants.Render.LightBufferTextureSize)
             return 0;
 
         switch (type)
@@ -203,6 +203,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_sectorLights.Map(data =>
         {
             float* planeLights = (float*)data.ToPointer();
+            planeLights[0] = 255;
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];

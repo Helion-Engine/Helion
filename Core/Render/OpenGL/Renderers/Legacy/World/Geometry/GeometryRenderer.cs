@@ -32,8 +32,6 @@ public class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
 
-    public const int LightBufferTextureSize = 65536 * 2;
-
     public readonly List<IRenderObject> AlphaSides = new();
     public readonly PortalRenderer Portals;
     private readonly IConfig m_config;
@@ -50,7 +48,7 @@ public class GeometryRenderer : IDisposable
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly GLBufferTexture m_sectorLights = new("Sector lights texture buffer", LightBufferTextureSize);
+    private readonly GLBufferTexture m_sectorLights = new("Sector lights texture buffer", Constants.Render.LightBufferTextureSize);
     private double m_tickFraction;
     private bool m_skyOverride;
     private bool m_floorChanged;
