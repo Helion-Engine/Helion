@@ -180,7 +180,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public static int GetLightBufferIndex(int sectorId, LightBufferType type)
     {
-        int index = sectorId * 3 + 1;
+        int index = sectorId * Constants.LightBuffer.BufferSize + 1;
         // Return index 0 to prevent overflow crash
         if (index + Constants.LightBuffer.BufferSize >= Constants.LightBuffer.TextureSize)
             return 0;
