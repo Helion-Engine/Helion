@@ -56,7 +56,6 @@ public class GeometryRenderer : IDisposable
     private bool m_floorChanged;
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
-    private bool m_lightChangedLine;
     private bool m_cacheOverride;
     private Vec3D m_position;
     private Vec3D m_prevPosition;
@@ -545,7 +544,6 @@ public class GeometryRenderer : IDisposable
         {
             Side otherSide = side.PartnerSide!;
             m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha) || side.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha);
-            m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametickAlpha);
             Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
             Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
             RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out _);
@@ -565,7 +563,6 @@ public class GeometryRenderer : IDisposable
     public void RenderOneSided(Side side, out LegacyVertex[]? veticies, out SkyGeometryVertex[]? skyVerticies)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
-        m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
@@ -594,10 +591,6 @@ public class GeometryRenderer : IDisposable
             if (!m_cacheOverride)
                 m_vertexLookup[side.Id] = data;
         }
-        else if (m_lightChangedLine)
-        {
-            SetLightToVertices(data, GetRenderLightLevel(side));
-        }
 
         if (m_buffer)
         {
@@ -622,23 +615,15 @@ public class GeometryRenderer : IDisposable
         return lightLevel;
     }
 
-    private static void SetLightToVertices(LegacyVertex[] data, float lightLevel)
-    {
-        for (int i = 0; i < data.Length; i++)
-            data[i].LightLevel = lightLevel;
-    }
-
     public void SetRenderOneSided(Side side)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
-        m_lightChangedLine = side.Sector.LightingChanged(side.LastRenderGametick);
     }
 
     public void SetRenderTwoSided(Side facingSide)
     {
         Side otherSide = facingSide.PartnerSide!;
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
-        m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
     }
 
     public void SetRenderFloor(SectorPlane floor)
@@ -660,7 +645,6 @@ public class GeometryRenderer : IDisposable
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
-        m_lightChangedLine = facingSide.Sector.LightingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
 
         if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSector, otherSector))
@@ -785,10 +769,6 @@ public class GeometryRenderer : IDisposable
                 if (!m_cacheOverride)
                     m_vertexLowerLookup[facingSide.Id] = data;
             }
-            else if (m_lightChangedLine)
-            {
-                SetLightToVertices(data, GetRenderLightLevel(facingSide));
-            }
 
             // See RenderOneSided() for an ASCII image of why we do this.
             if (m_buffer)
@@ -879,10 +859,6 @@ public class GeometryRenderer : IDisposable
 
                 if (!m_cacheOverride)
                     m_vertexUpperLookup[facingSide.Id] = data;
-            }
-            else if (m_lightChangedLine)
-            {
-                SetLightToVertices(data, GetRenderLightLevel(facingSide));
             }
 
             // See RenderOneSided() for an ASCII image of why we do this.
@@ -981,10 +957,6 @@ public class GeometryRenderer : IDisposable
 
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
-        }
-        else if (m_lightChangedLine)
-        {
-            SetLightToVertices(data, GetRenderLightLevel(facingSide));
         }
 
         // See RenderOneSided() for an ASCII image of why we do this.
@@ -1112,7 +1084,6 @@ public class GeometryRenderer : IDisposable
         else
         {
             LegacyVertex[]? lookupData = GetSectorVerticies(subsectors, floor, id, out bool generate);
-            bool lightingChanged = flat.Sector.LightingChanged();
 
             if (generate || flatChanged)
             {
@@ -1136,10 +1107,6 @@ public class GeometryRenderer : IDisposable
                     Array.Copy(m_vertices.Data, 0, lookupData, indexStart, m_vertices.Length);
                     indexStart += m_vertices.Length;
                 }
-            }
-            else if (lightingChanged)
-            {
-                SetLightToVertices(lookupData, flat.RenderLightLevel);
             }
 
             skyVerticies = null;
