@@ -699,22 +699,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!lookup.TryGetValue(sectorId, out var sectors))
             return;
 
-        if (floor)
-        {
-            for (int i = 0; i < sectors.Count; i++)
-            {
-                int floorIndex = sectors[i].Id * 2;
-                planeLightsBuffer[floorIndex] = lightLevel;
-            }
-        }
-        else
-        {
-            for (int i = 0; i < sectors.Count; i++)
-            {
-                int floorIndex = sectors[i].Id * 2;
-                planeLightsBuffer[floorIndex + 1] = lightLevel;
-            }
-        }
+        var lightBufferType = floor ? LightBufferType.Floor : LightBufferType.Ceiling;
+        for (int i = 0; i < sectors.Count; i++)
+            planeLightsBuffer[GetLightBufferIndex(sectors[i].Id, lightBufferType)] = lightLevel;
     }
 
     public void RenderSkies(RenderInfo renderInfo)
