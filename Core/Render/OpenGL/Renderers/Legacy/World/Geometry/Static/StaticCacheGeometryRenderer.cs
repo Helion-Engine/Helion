@@ -186,28 +186,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];
-                int floorIndex = i * 2;
+                int floorIndex = sector.Id * 2;
                 planeLights[floorIndex] = sector.Floor.LightLevel;
                 planeLights[floorIndex + 1] = sector.Ceiling.LightLevel;
             } 
         });
-    }
-
-    private unsafe void UpdateSectorLightLevels(DynamicArray<(int sectorIndex, short floorLightLevel, short ceilingLightLevel)> sectorsToUpdate)
-    {
-        m_sectorLights.BindBuffer();
-        GLMappedBuffer<float> planeLightsBuffer = m_sectorLights.MapWithDisposable();
-        
-        for (int i = 0; i < sectorsToUpdate.Length; i++)
-        {
-            (int sectorIdx, float floorLight, float ceilingLight) = sectorsToUpdate[i];
-            int floorIndex = sectorIdx * 2;
-            planeLightsBuffer[floorIndex] = floorLight;
-            planeLightsBuffer[floorIndex + 1] = ceilingLight;
-        }
-        
-        planeLightsBuffer.Dispose();
-        m_sectorLights.UnbindBuffer();
     }
 
     private void SetSideDynamicIgnore()
@@ -663,43 +646,33 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_updateLightSectors.Length == 0)
             return;
 
+        m_sectorLights.BindBuffer();
+        GLMappedBuffer<float> planeLightsBuffer = m_sectorLights.MapWithDisposable();
+
         for (int i = 0; i < m_updateLightSectors.Length; i++)
         {
             Sector sector = m_updateLightSectors[i];
             short level = sector.LightLevel;
+            int floorIndex = sector.Id * 2;
 
             if (sector.TransferFloorLightSector == sector)
-                UpdateLightVertices(sector.Floor.Static, level);
+                planeLightsBuffer[floorIndex] = level;
 
             if (sector.TransferCeilingLightSector == sector)
-                UpdateLightVertices(sector.Ceiling.Static, level);
+                planeLightsBuffer[floorIndex + 1] = level;
 
-            UpdateTransferLightVertices(sector.Id, level, false, m_transferCeilingLightLookup);
-            UpdateTransferLightVertices(sector.Id, level, true, m_transferFloorLightLookup);
+            UpdateTransferLight(sector.Id, level, false, m_transferCeilingLightLookup, planeLightsBuffer);
+            UpdateTransferLight(sector.Id, level, true, m_transferFloorLightLookup, planeLightsBuffer);
+        }
 
-            for (int j = 0; j < sector.Lines.Count; j++)
-            {
-                var line = sector.Lines[j];
-                if (line.Front.Sector.Id == sector.Id)
-                {
-                    UpdateLightVertices(line.Front.Upper.Static, level);
-                    UpdateLightVertices(line.Front.Lower.Static, level);
-                    UpdateLightVertices(line.Front.Middle.Static, level);
-                }
-
-                if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                {
-                    UpdateLightVertices(line.Back.Upper.Static, level);
-                    UpdateLightVertices(line.Back.Lower.Static, level);
-                    UpdateLightVertices(line.Back.Middle.Static, level);
-                }
-            }
-        }  
+        planeLightsBuffer.Dispose();
+        m_sectorLights.UnbindBuffer();
 
         m_updateLightSectors.Clear();
     }
 
-    private void UpdateTransferLightVertices(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup)
+    private void UpdateTransferLight(int sectorId, short lightLevel, bool floor, Dictionary<int, List<Sector>> lookup,
+        GLMappedBuffer<float> planeLightsBuffer)
     {
         if (!lookup.TryGetValue(sectorId, out var sectors))
             return;
@@ -707,12 +680,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (floor)
         {
             for (int i = 0; i < sectors.Count; i++)
-                UpdateLightVertices(sectors[i].Floor.Static, lightLevel);
+            {
+                int floorIndex = sectors[i].Id * 2;
+                planeLightsBuffer[floorIndex] = lightLevel;
+            }
         }
         else
         {
             for (int i = 0; i < sectors.Count; i++)
-                UpdateLightVertices(sectors[i].Ceiling.Static, lightLevel);
+            {
+                int floorIndex = sectors[i].Id * 2;
+                planeLightsBuffer[floorIndex + 1] = lightLevel;
+            }
         }
     }
 
