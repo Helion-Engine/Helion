@@ -20,7 +20,6 @@ public class LegacyShader : RenderProgram
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
     public void FuzzFrac(float frac) => Uniforms.Set(frac, "fuzzFrac");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
-    public void UseSectorLightBuffer(bool use) => Uniforms.Set(use ? 1.0f : 0.0f, "useSectorLightBuffer");
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
 
@@ -49,7 +48,6 @@ public class LegacyShader : RenderProgram
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform float timeFrac;
-        uniform float useSectorLightBuffer;
         uniform samplerBuffer sectorLightTexture;
 
         void main() {
@@ -61,7 +59,7 @@ public class LegacyShader : RenderProgram
 
             int texBufferIndex = int(lightLevelBufferIndex);
             lightLevelBufferValueFrag = texelFetch(sectorLightTexture, texBufferIndex).r;
-            lightLevelFrag = mix(clamp(lightLevel, 0.0, 256.0), lightLevelBufferValueFrag, useSectorLightBuffer);
+            lightLevelFrag = clamp(lightLevelBufferValueFrag + lightLevel, 0.0, 256.0);
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;

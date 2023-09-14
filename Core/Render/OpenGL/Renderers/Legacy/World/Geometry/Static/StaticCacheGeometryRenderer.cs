@@ -971,22 +971,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void UpdateLightVertices(in StaticGeometryData data, short lightLevel)
-    {
-        if (data.GeometryData == null)
-            return;
-
-        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
-        list.Add(data);
-
-        var geometryData = data.GeometryData;
-        for (int i = 0; i < data.GeometryDataLength; i++)
-        {
-            int index = data.GeometryDataStartIndex + i;
-            geometryData.Vbo.Data.Data[index].LightLevel = lightLevel;
-        }
-    }
-
     private void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
     {
         if (data.GeometryData == null)
