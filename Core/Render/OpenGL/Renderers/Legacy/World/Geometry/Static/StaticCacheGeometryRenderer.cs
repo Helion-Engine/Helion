@@ -182,17 +182,17 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         int index = sectorId * 3 + 1;
         // Return index 0 to prevent overflow crash
-        if (index + 2 >= Constants.Render.LightBufferTextureSize)
+        if (index + Constants.LightBuffer.BufferSize >= Constants.LightBuffer.TextureSize)
             return 0;
 
         switch (type)
         {
             case LightBufferType.Floor:
-                return index;
+                return index + Constants.LightBuffer.FloorOffset;
             case LightBufferType.Ceiling:
-                return index + 1;
+                return index + Constants.LightBuffer.CeilingOffset;
             case LightBufferType.Wall:
-                return index + 2;
+                return index + Constants.LightBuffer.WallOffset;
         }
 
         return index;

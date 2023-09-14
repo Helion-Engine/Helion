@@ -168,7 +168,7 @@ public class EntityRenderer
         if (entity.Flags.Shadow)
             alpha = 0.99f;
 
-        int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? Constants.Render.FullBrightLightBufferIndex :
+        int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? Constants.LightBuffer.FullBrightIndex :
             StaticCacheGeometryRenderer.GetLightBufferIndex(entity.Sector.Id, LightBufferType.Wall);
         
         LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, 0, alpha, fuzz,

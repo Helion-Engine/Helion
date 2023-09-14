@@ -154,10 +154,14 @@ public static class Constants
         public const string Console = "Console";
     };
 
-    public static class Render
+    public static class LightBuffer
     {
-        public const int LightBufferTextureSize = 65536 * 2;
-        public const int FullBrightLightBufferIndex = 0;
+        public const int TextureSize = 65536 * 4;
+        public const int FullBrightIndex = 0;
+        public const int BufferSize = 3;
+        public const int FloorOffset = 0;
+        public const int CeilingOffset = 1;
+        public const int WallOffset = 2;
     }
 
     public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)

@@ -48,7 +48,7 @@ public class GeometryRenderer : IDisposable
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly GLBufferTexture m_sectorLights = new("Sector lights texture buffer", Constants.Render.LightBufferTextureSize);
+    private readonly GLBufferTexture m_sectorLights = new("Sector lights texture buffer", Constants.LightBuffer.TextureSize);
     private double m_tickFraction;
     private bool m_skyOverride;
     private bool m_floorChanged;
