@@ -15,6 +15,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
@@ -173,10 +174,15 @@ public class EntityRenderer
         if (entity.Flags.Shadow)
             alpha = 0.99f;
 
-        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, lightLevel, alpha, fuzz);
-        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, lightLevel, alpha, fuzz);
+        int lightBuffer = StaticCacheGeometryRenderer.GetLightBufferIndex(entity.Sector.Id, LightBufferType.Wall);
+        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz,
+            lightLevelBufferIndex: lightBuffer);
+        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz,
+            lightLevelBufferIndex: lightBuffer);
+        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, lightLevel, alpha, fuzz,
+            lightLevelBufferIndex: lightBuffer);
+        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, lightLevel, alpha, fuzz,
+            lightLevelBufferIndex: lightBuffer);
 
         RenderWorldData renderWorldData = alpha < 1 ?
             m_worldDataManager.GetAlphaRenderData(texture, m_program) :
