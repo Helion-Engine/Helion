@@ -143,7 +143,7 @@ public class EntityRenderer
         renderData.Vbo.Add(vertex);
     }
 
-    private void AddSpriteQuad(Entity entity, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
+    private void AddSpriteQuad(Entity entity, Sector sector, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
     {
         float offsetZ = GetOffsetZ(entity, texture);
         Vec3D position = entity.Position;
@@ -169,7 +169,7 @@ public class EntityRenderer
             alpha = 0.99f;
 
         int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? Constants.LightBuffer.FullBrightIndex :
-            StaticCacheGeometryRenderer.GetLightBufferIndex(entity.Sector.Id, LightBufferType.Wall);
+            StaticCacheGeometryRenderer.GetLightBufferIndex(sector.Id, LightBufferType.Wall);
         
         LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, 0, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
@@ -269,12 +269,13 @@ public class EntityRenderer
         SpriteRotation spriteRotation = m_textureManager.NullSpriteRotation;
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
-        GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture; 
+        GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        Sector sector = entity.Sector.GetRenderSector(viewSector, position.Z);
 
         if (m_singleVertex)
             AddSpriteQuadSingleVertex(entity, texture, 0, spriteRotation.Mirror, nudgeAmount);
         else
-            AddSpriteQuad(entity, texture, spriteRotation.Mirror, nudgeAmount);
+            AddSpriteQuad(entity, sector, texture, spriteRotation.Mirror, nudgeAmount);
         entity.RenderedCounter = m_renderCounter;
     }
 
