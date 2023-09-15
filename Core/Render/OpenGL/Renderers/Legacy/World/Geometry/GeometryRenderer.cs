@@ -48,7 +48,7 @@ public class GeometryRenderer : IDisposable
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
-    private GLBufferTexture m_lightBuffer;
+    private GLBufferTexture? m_lightBuffer;
     private double m_tickFraction;
     private bool m_skyOverride;
     private bool m_floorChanged;
@@ -135,6 +135,9 @@ public class GeometryRenderer : IDisposable
         CacheData(world);
 
         Portals.UpdateTo(world);
+
+        if (m_lightBuffer != null)
+            m_lightBuffer.Dispose();
 
         int bufferSize = world.Sectors.Count * Constants.LightBuffer.BufferSize * 4 + 1;
         m_lightBuffer = new("Sector lights texture buffer", bufferSize);
@@ -1528,6 +1531,7 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
         Portals.Dispose();
-        m_lightBuffer.Dispose();
+        if (m_lightBuffer != null)
+            m_lightBuffer.Dispose();
     }
 }
