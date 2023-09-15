@@ -27,7 +27,7 @@ public class Sector
 
     public const int NoTag = 0;
 
-    public readonly int Id;
+    public int Id;
     public readonly int Tag;
     public readonly SectorPlane Floor;
     public readonly SectorPlane Ceiling;

@@ -33,6 +33,7 @@ public class TransferHeights
         switch (view)
         {
             case TransferHeightView.Top:
+                sector.Id = ControlSector.Id;
                 sector.Ceiling.Plane = ParentSector.Ceiling.Plane;
                 sector.Ceiling.Z = ParentSector.Ceiling.Z;
                 sector.Ceiling.PrevZ = ParentSector.Ceiling.PrevZ;
@@ -51,6 +52,7 @@ public class TransferHeights
                 break;
 
             case TransferHeightView.Middle:
+                sector.Id = ParentSector.Id;
                 sector.Ceiling.Plane = ControlSector.Ceiling.Plane;
                 sector.Ceiling.Z = ControlSector.Ceiling.Z;
                 sector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
@@ -69,6 +71,7 @@ public class TransferHeights
                 break;
 
             default:
+                sector.Id = ControlSector.Id;
                 sector.Ceiling.Plane = ControlSector.Floor.Plane;
                 sector.Ceiling.Z = ControlSector.Floor.Z;
                 sector.Ceiling.PrevZ = ControlSector.Floor.PrevZ;

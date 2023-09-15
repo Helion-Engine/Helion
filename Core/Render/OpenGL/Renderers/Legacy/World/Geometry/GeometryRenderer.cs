@@ -749,8 +749,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
-                var renderSector = facingSector.GetRenderSector(m_viewSector, m_position.Z);
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Wall);
+                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector.Id, LightBufferType.Wall);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;                    
@@ -844,8 +843,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
-                var renderSector = facingSector.GetRenderSector(m_viewSector, m_position.Z);
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Wall);
+                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector.Id, LightBufferType.Wall);
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide);
                 if (m_cacheOverride)
                 {
@@ -1051,6 +1049,7 @@ public class GeometryRenderer : IDisposable
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
+        Sector renderSector = subsectors[0].Sector.GetRenderSector(m_viewSector, m_position.Z);
 
         if (isSky)
         {
@@ -1098,10 +1097,9 @@ public class GeometryRenderer : IDisposable
                     {
                         TriangulatedWorldVertex second = m_subsectorVertices[i];
                         TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
-                        int lightBufferIndex = id * 2;
                         GetFlatVertices(m_vertices, ref root, ref second, ref third, 
-                            floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(id, LightBufferType.Floor) : 
-                            StaticCacheGeometryRenderer.GetLightBufferIndex(id, LightBufferType.Ceiling));
+                            floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Floor) : 
+                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Ceiling));
                     }
 
                     Array.Copy(m_vertices.Data, 0, lookupData, indexStart, m_vertices.Length);
