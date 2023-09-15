@@ -36,7 +36,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly RenderProgram m_program;
     private readonly List<GeometryData> m_geometry = new();
-    private readonly GLBufferTexture m_sectorLights;
 
     private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
     private readonly TextureGeometryLookup m_textureToGeometryLookup = new();
@@ -66,18 +65,18 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_floodFill;
     private bool m_floodFillAlt;
     private IWorld? m_world;
+    private GLBufferTexture? m_lightBuffer;
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
     private SectorDynamic m_sideDynamicIgnore;
 
     public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        RenderProgram program, GeometryRenderer geometryRenderer, GLBufferTexture sectorLights)
+        RenderProgram program, GeometryRenderer geometryRenderer)
     {
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(config, archiveCollection, textureManager);
-        m_sectorLights = sectorLights;
     }
 
     static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -98,8 +97,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         Dispose(false);
     }
 
-    public void UpdateTo(IWorld world)
+    public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
+        m_lightBuffer = lightBuffer;
         ClearData();
         m_skyRenderer.Reset();
 
@@ -134,7 +134,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_staticScroll)
             m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
 
-        UploadAllSectorData(world);
+        UploadAllSectorData(world, lightBuffer);
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -181,10 +181,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     public static int GetLightBufferIndex(int sectorId, LightBufferType type)
     {
         int index = sectorId * Constants.LightBuffer.BufferSize + 1;
-        // Return index 0 to prevent overflow crash
-        if (index + Constants.LightBuffer.BufferSize >= Constants.LightBuffer.TextureSize)
-            return 0;
-
         switch (type)
         {
             case LightBufferType.Floor:
@@ -198,9 +194,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         return index;
     }
     
-    private unsafe void UploadAllSectorData(IWorld world)
+    private unsafe void UploadAllSectorData(IWorld world, GLBufferTexture lightBuffer)
     {
-        m_sectorLights.Map(data =>
+        lightBuffer.Map(data =>
         {
             float* planeLights = (float*)data.ToPointer();
             planeLights[0] = 255;
@@ -537,9 +533,12 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         UpdateRunTimeBuffers();
 
-        GL.ActiveTexture(TextureUnit.Texture1);
-        m_sectorLights.BindTexture();
-        m_sectorLights.BindTexBuffer();
+        if (m_lightBuffer != null)
+        {
+            GL.ActiveTexture(TextureUnit.Texture1);
+            m_lightBuffer.BindTexture();
+            m_lightBuffer.BindTexBuffer();
+        }
 
         for (int i = 0; i < m_geometry.Count; i++)
         {
@@ -664,11 +663,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void UpdateLights()
     {
-        if (m_updateLightSectors.Length == 0)
+        if (m_updateLightSectors.Length == 0 || m_lightBuffer == null)
             return;
 
-        m_sectorLights.BindBuffer();
-        GLMappedBuffer<float> planeLightsBuffer = m_sectorLights.MapWithDisposable();
+        m_lightBuffer.BindBuffer();
+        GLMappedBuffer<float> planeLightsBuffer = m_lightBuffer.MapWithDisposable();
 
         for (int i = 0; i < m_updateLightSectors.Length; i++)
         {
@@ -688,7 +687,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         planeLightsBuffer.Dispose();
-        m_sectorLights.UnbindBuffer();
+        m_lightBuffer.UnbindBuffer();
 
         m_updateLightSectors.Clear();
     }

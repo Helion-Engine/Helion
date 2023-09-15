@@ -10,7 +10,7 @@ namespace Helion.Render.OpenGL.Textures;
 public class GLBufferTexture : IDisposable
 {
     public readonly string Label;
-    private readonly DynamicArray<float> m_data = new();
+    private readonly float[] m_data;
     private readonly int m_name;
     private readonly int m_textureName;
     private bool m_disposed;
@@ -23,10 +23,10 @@ public class GLBufferTexture : IDisposable
         m_name = GL.GenBuffer();
         m_textureName = GL.GenTexture();
         
-        m_data.Resize(size);
+        m_data = new float[size];
 
         BindBuffer();
-        GL.BufferData(BufferTarget.TextureBuffer, size, m_data.Data, BufferUsageHint.DynamicDraw);
+        GL.BufferData(BufferTarget.TextureBuffer, size, m_data, BufferUsageHint.DynamicDraw);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
     }
@@ -42,7 +42,7 @@ public class GLBufferTexture : IDisposable
         
         BindBuffer();
         
-        GLMappedBuffer<float> buffer = new(m_data.Data, BufferTarget.TextureBuffer);
+        GLMappedBuffer<float> buffer = new(m_data, BufferTarget.TextureBuffer);
         action(buffer.Pointer);
         buffer.Dispose();
         
@@ -53,7 +53,7 @@ public class GLBufferTexture : IDisposable
     public GLMappedBuffer<float> MapWithDisposable()
     {
         Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
-        return new(m_data.Data, BufferTarget.TextureBuffer);
+        return new(m_data, BufferTarget.TextureBuffer);
     }
 
     public void BindBuffer()

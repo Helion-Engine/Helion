@@ -156,7 +156,6 @@ public static class Constants
 
     public static class LightBuffer
     {
-        public const int TextureSize = 65536 * 4;
         public const int FullBrightIndex = 0;
         public const int BufferSize = 3;
         public const int FloorOffset = 0;
