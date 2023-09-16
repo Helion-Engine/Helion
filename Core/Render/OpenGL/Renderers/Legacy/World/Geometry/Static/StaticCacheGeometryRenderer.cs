@@ -53,8 +53,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
-    private readonly LookupArray<List<Sector>?> m_transferFloorLightLookup = new();
-    private readonly LookupArray<List<Sector>?> m_transferCeilingLightLookup = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
@@ -134,7 +132,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_staticScroll)
             m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
 
-        UploadAllSectorData(world, lightBuffer);
+        SetLightBufferData(world, lightBuffer);
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetBuffer(false);
@@ -178,23 +176,23 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
     }
 
-    public static int GetLightBufferIndex(int sectorId, LightBufferType type)
+    public static int GetLightBufferIndex(Sector sector, LightBufferType type)
     {
-        int index = sectorId * Constants.LightBuffer.BufferSize + 1;
+        int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
         switch (type)
         {
             case LightBufferType.Floor:
-                return index + Constants.LightBuffer.FloorOffset;
+                return sector.TransferFloorLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.FloorOffset;
             case LightBufferType.Ceiling:
-                return index + Constants.LightBuffer.CeilingOffset;
+                return sector.TransferCeilingLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.CeilingOffset;
             case LightBufferType.Wall:
-                return index + Constants.LightBuffer.WallOffset;
+                return sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.WallOffset;
         }
 
         return index;
     }
     
-    private unsafe void UploadAllSectorData(IWorld world, GLBufferTexture lightBufferTexture)
+    private unsafe void SetLightBufferData(IWorld world, GLBufferTexture lightBufferTexture)
     {
         lightBufferTexture.Map(data =>
         {
@@ -231,12 +229,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (sector.TransferHeights != null)
             AddTransferSector(sector, sector.TransferHeights.ControlSector.Id, m_transferHeightsLookup);
-
-        if (sector.TransferFloorLightSector != sector)
-            AddTransferSector(sector, sector.TransferFloorLightSector.Id, m_transferFloorLightLookup);
-
-        if (sector.TransferCeilingLightSector != sector)
-            AddTransferSector(sector, sector.TransferCeilingLightSector.Id, m_transferCeilingLightLookup);
     }
 
     private static void AddTransferSector(Sector sector, int controlSectorId, LookupArray<List<Sector>> lookup)
@@ -469,8 +461,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateScrollPlanes.Clear();
 
         m_transferHeightsLookup.SetAll(null);
-        m_transferFloorLightLookup.SetAll(null);
-        m_transferCeilingLightLookup.SetAll(null);
 
         ClearBufferData(m_bufferData);
         ClearBufferData(m_bufferDataClamp);
@@ -676,17 +666,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             Sector sector = m_updateLightSectors[i];
             float level = sector.LightLevel;
             int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-
-            if (sector.TransferFloorLightSector == sector)
-                lightBuffer[index + Constants.LightBuffer.FloorOffset] = level;
-
-            if (sector.TransferCeilingLightSector == sector)
-                lightBuffer[index + Constants.LightBuffer.CeilingOffset] = level;
-
+            lightBuffer[index + Constants.LightBuffer.FloorOffset] = level;
+            lightBuffer[index + Constants.LightBuffer.CeilingOffset] = level;
             lightBuffer[index + Constants.LightBuffer.WallOffset] = level;
-
-            UpdateTransferLight(sector.Id, level, false, m_transferCeilingLightLookup, lightBuffer);
-            UpdateTransferLight(sector.Id, level, true, m_transferFloorLightLookup, lightBuffer);
         }
 
         lightBuffer.Dispose();
@@ -698,12 +680,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private unsafe void UpdateTransferLight(int sectorId, float lightLevel, bool floor, LookupArray<List<Sector>?> lookup,
         GLMappedBuffer<float> lightBuffer)
     {
+        return;
         if (!lookup.TryGetValue(sectorId, out var sectors))
             return;
 
         var lightBufferType = floor ? LightBufferType.Floor : LightBufferType.Ceiling;
         for (int i = 0; i < sectors.Count; i++)
-            lightBuffer[GetLightBufferIndex(sectors[i].Id, lightBufferType)] = lightLevel;
+            lightBuffer[GetLightBufferIndex(sectors[i], lightBufferType)] = lightLevel;
     }
 
     public void RenderSkies(RenderInfo renderInfo)

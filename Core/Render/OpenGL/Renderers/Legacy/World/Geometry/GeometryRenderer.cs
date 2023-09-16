@@ -582,7 +582,7 @@ public class GeometryRenderer : IDisposable
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Wall);
+            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
             WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse);
             if (m_cacheOverride)
             {
@@ -753,7 +753,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector.Id, LightBufferType.Wall);
+                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;                    
@@ -847,7 +847,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector.Id, LightBufferType.Wall);
+                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide);
                 if (m_cacheOverride)
                 {
@@ -942,7 +942,7 @@ public class GeometryRenderer : IDisposable
             if (offset != 0)
                 prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ, previous: true);
 
-            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector.Id, LightBufferType.Wall);
+            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
             // Not going to do anything with out nothingVisible for now
             WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, out _, offset, prevOffset);
@@ -1091,8 +1091,8 @@ public class GeometryRenderer : IDisposable
             if (generate || flatChanged)
             {
                 int indexStart = 0;
-                int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Floor) : 
-                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Ceiling);
+                int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) : 
+                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
