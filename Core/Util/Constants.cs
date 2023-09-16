@@ -156,9 +156,10 @@ public static class Constants
 
     public static class LightBuffer
     {
-        public const int FullBrightIndex = 0;
+        public const int DarkIndex = 0;
+        public const int FullBrightIndex = 1;
         public const int BufferSize = 3;
-        public const int SectorIndexStart = 1;
+        public const int SectorIndexStart = 2;
         public const int FloorOffset = 0;
         public const int CeilingOffset = 1;
         public const int WallOffset = 2;

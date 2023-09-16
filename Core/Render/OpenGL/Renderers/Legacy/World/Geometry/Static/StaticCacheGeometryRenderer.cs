@@ -199,7 +199,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         lightBufferTexture.Map(data =>
         {
             float* lightBuffer = (float*)data.ToPointer();
-            lightBuffer[0] = 255;
+            lightBuffer[Constants.LightBuffer.DarkIndex] = 0;
+            lightBuffer[Constants.LightBuffer.FullBrightIndex] = 255;
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];
