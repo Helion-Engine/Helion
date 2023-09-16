@@ -26,6 +26,7 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using MoreLinq;
 using static Helion.Render.Common.RenderDimensions;
@@ -323,10 +324,8 @@ public partial class WorldLayer
 
     private static short GetLightLevel(Player player)
     {
-        if (player.Sector.TransferHeights == null)
-            return player.Sector.LightLevel;
-
-        return player.Sector.GetRenderSector(player.Sector, player.GetViewPosition().Z).LightLevel;
+        Sector sector = player.Sector;
+        return (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
     }
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)

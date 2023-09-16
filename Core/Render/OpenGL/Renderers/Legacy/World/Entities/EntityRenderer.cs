@@ -143,7 +143,7 @@ public class EntityRenderer
         renderData.Vbo.Add(vertex);
     }
 
-    private void AddSpriteQuad(Entity entity, Sector sector, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
+    private void AddSpriteQuad(Entity entity, short lightLevel, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
     {
         float offsetZ = GetOffsetZ(entity, texture);
         Vec3D position = entity.Position;
@@ -168,16 +168,16 @@ public class EntityRenderer
         if (entity.Flags.Shadow)
             alpha = 0.99f;
 
-        int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? Constants.LightBuffer.FullBrightIndex :
-            StaticCacheGeometryRenderer.GetLightBufferIndex(sector.Id, LightBufferType.Wall);
+        int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? 
+            Constants.LightBuffer.FullBrightIndex : Constants.LightBuffer.DarkIndex;
         
-        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, 0, alpha, fuzz,
+        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, 0, alpha, fuzz,
+        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, 0, alpha, fuzz,
+        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, lightLevel, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, 0, alpha, fuzz,
+        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, lightLevel, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
 
         RenderWorldData renderWorldData = alpha < 1 ?
@@ -270,12 +270,13 @@ public class EntityRenderer
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
         GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        Sector sector = entity.Sector.GetRenderSector(viewSector, position.Z);
+        Sector sector = entity.Sector;
+        short lightLevel = (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
 
         if (m_singleVertex)
             AddSpriteQuadSingleVertex(entity, texture, 0, spriteRotation.Mirror, nudgeAmount);
         else
-            AddSpriteQuad(entity, sector, texture, spriteRotation.Mirror, nudgeAmount);
+            AddSpriteQuad(entity, lightLevel, texture, spriteRotation.Mirror, nudgeAmount);
         entity.RenderedCounter = m_renderCounter;
     }
 
