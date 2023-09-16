@@ -2481,6 +2481,18 @@ public abstract partial class WorldBase : IWorld
         SectorLightChanged?.Invoke(this, sector);
     }
 
+    public void SetSectorFloorLightLevel(Sector sector, short lightLevel)
+    {
+        sector.SetFloorLightLevel(lightLevel, Gametick);
+        SectorLightChanged?.Invoke(this, sector);
+    }
+
+    public void SetSectorCeilingLightLevel(Sector sector, short lightLevel)
+    {
+        sector.SetCeilingLightLevel(lightLevel, Gametick);
+        SectorLightChanged?.Invoke(this, sector);
+    }
+
     public void SetSideScroll(Side side, SideTexture textures)
     {
         SideScrollChanged?.Invoke(this, new SideScrollEvent(side, textures));

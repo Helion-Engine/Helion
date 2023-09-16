@@ -1372,14 +1372,20 @@ public class SpecialManager : ITickable, IDisposable
     {
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
-            sector.SetTransferCeilingLight(line.Front.Sector, m_world.Gametick);
+        {
+            sector.SetTransferCeilingLight(line.Front.Sector);
+            m_world.SetSectorCeilingLightLevel(sector, line.Front.Sector.Ceiling.LightLevel);
+        }
     }
 
     private void SetFloorLight(Line line)
     {
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
-            sector.SetTransferFloorLight(line.Front.Sector, m_world.Gametick);
+        {
+            sector.SetTransferFloorLight(line.Front.Sector);
+            m_world.SetSectorFloorLightLevel(sector, line.Front.Sector.Floor.LightLevel);
+        }
     }
 
     private ISpecial? CreatePlatToggleCeiling(Sector sector)

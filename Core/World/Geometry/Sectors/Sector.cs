@@ -119,16 +119,14 @@ public class Sector
         return TransferHeights.GetRenderSector(view);
     }
 
-    public void SetTransferFloorLight(Sector sector, int gametick)
+    public void SetTransferFloorLight(Sector sector)
     {
         m_transferFloorLightSector = sector;
-        SetFloorLightLevel(Floor.LightLevel, gametick);
     }
 
-    public void SetTransferCeilingLight(Sector sector, int gametick)
+    public void SetTransferCeilingLight(Sector sector)
     {
         m_transferCeilingLightSector = sector;
-        SetCeilingLightLevel(Floor.LightLevel, gametick);
     }
 
     public bool LightingChanged() => LightingChanged(LastRenderGametick);

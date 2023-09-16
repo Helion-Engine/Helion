@@ -150,6 +150,8 @@ public interface IWorld : IDisposable
     void SetSideTexture(Side side, WallLocation location, int textureHandle);
     void SetPlaneTexture(SectorPlane plane, int textureHandle);
     void SetSectorLightLevel(Sector sector, short lightLevel);
+    void SetSectorFloorLightLevel(Sector sector, short lightLevel);
+    void SetSectorCeilingLightLevel(Sector sector, short lightLevel);
     void SetSideScroll(Side side, SideTexture textures);
     void SetSectorPlaneScroll(SectorPlane plane);
     void SetEntityPosition(Entity entity, Vec3D pos);
