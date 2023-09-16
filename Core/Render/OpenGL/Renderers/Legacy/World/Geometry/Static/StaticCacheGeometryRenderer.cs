@@ -194,18 +194,19 @@ public class StaticCacheGeometryRenderer : IDisposable
         return index;
     }
     
-    private unsafe void UploadAllSectorData(IWorld world, GLBufferTexture lightBuffer)
+    private unsafe void UploadAllSectorData(IWorld world, GLBufferTexture lightBufferTexture)
     {
-        lightBuffer.Map(data =>
+        lightBufferTexture.Map(data =>
         {
-            float* planeLights = (float*)data.ToPointer();
-            planeLights[0] = 255;
+            float* lightBuffer = (float*)data.ToPointer();
+            lightBuffer[0] = 255;
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];
-                planeLights[GetLightBufferIndex(sector.Id, LightBufferType.Floor)] = sector.Floor.LightLevel;
-                planeLights[GetLightBufferIndex(sector.Id, LightBufferType.Ceiling)] = sector.Ceiling.LightLevel;
-                planeLights[GetLightBufferIndex(sector.Id, LightBufferType.Wall)] = sector.LightLevel;
+                int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
+                lightBuffer[index + Constants.LightBuffer.FloorOffset] = sector.Floor.LightLevel;
+                lightBuffer[index + Constants.LightBuffer.CeilingOffset] = sector.Ceiling.LightLevel;
+                lightBuffer[index + Constants.LightBuffer.WallOffset] = sector.LightLevel;
             } 
         });
     }
@@ -673,7 +674,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             Sector sector = m_updateLightSectors[i];
             float level = sector.LightLevel;
-            int index = sector.Id * Constants.LightBuffer.BufferSize + 1;
+            int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
 
             if (sector.TransferFloorLightSector == sector)
                 lightBuffer[index + Constants.LightBuffer.FloorOffset] = level;

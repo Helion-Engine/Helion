@@ -139,8 +139,9 @@ public class GeometryRenderer : IDisposable
         if (m_lightBuffer != null)
             m_lightBuffer.Dispose();
 
-        int bufferSize = world.Sectors.Count * Constants.LightBuffer.BufferSize * 4 + 1;
-        m_lightBuffer = new("Sector lights texture buffer", bufferSize);
+        const int FloatSize = 4;
+        m_lightBuffer = new("Sector lights texture buffer",
+            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize));
 
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
     }
@@ -1090,6 +1091,8 @@ public class GeometryRenderer : IDisposable
             if (generate || flatChanged)
             {
                 int indexStart = 0;
+                int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Floor) : 
+                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Ceiling);
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
@@ -1100,9 +1103,7 @@ public class GeometryRenderer : IDisposable
                     {
                         TriangulatedWorldVertex second = m_subsectorVertices[i];
                         TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
-                        GetFlatVertices(m_vertices, ref root, ref second, ref third, 
-                            floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Floor) : 
-                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector.Id, LightBufferType.Ceiling));
+                        GetFlatVertices(m_vertices, ref root, ref second, ref third, lightIndex);
                     }
 
                     Array.Copy(m_vertices.Data, 0, lookupData, indexStart, m_vertices.Length);

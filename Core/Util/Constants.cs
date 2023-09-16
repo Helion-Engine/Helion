@@ -158,6 +158,7 @@ public static class Constants
     {
         public const int FullBrightIndex = 0;
         public const int BufferSize = 3;
+        public const int SectorIndexStart = 1;
         public const int FloorOffset = 0;
         public const int CeilingOffset = 1;
         public const int WallOffset = 2;
