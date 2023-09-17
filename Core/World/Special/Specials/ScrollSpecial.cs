@@ -235,8 +235,17 @@ public class ScrollSpecial : ISpecial
             {
                 Entity entity = node.Value;
                 node = node.Next;
-                if (entity.Flags.NoBlockmap || entity.Flags.NoClip || !entity.OnGround ||
-                    !entity.OnSectorFloorZ(sectorPlane.Sector))
+                
+                // Boom would carry anything that was considered 'underwater'
+                double waterHeight = double.MinValue;
+                if (sectorPlane.Sector.TransferHeights != null)
+                    waterHeight = sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
+                        sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z : double.MinValue;
+
+                if (entity.Flags.NoClip)
+                    continue;
+                
+                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
                 entity.Velocity.X += speed.X;
