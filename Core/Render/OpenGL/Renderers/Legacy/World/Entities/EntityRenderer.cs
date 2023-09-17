@@ -127,20 +127,27 @@ public class EntityRenderer
         bool useAlpha = m_spriteAlpha && entity.Definition.Properties.Alpha < 1;
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
 
-        Vec3D position = entity.Position;
-        Vec3D prevPosition = entity.PrevPosition; position.X -= nudgeAmount.X;
-        position.Y -= nudgeAmount.Y;
-        prevPosition.X -= nudgeAmount.X;
-        prevPosition.Y -= nudgeAmount.Y;
-
-        float bottomZ = (float)position.Z;
+        var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
+        var prevPos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
         float offsetZ = GetOffsetZ(entity, texture);
-
-        Vec3F pos = position.Float;
-        Vec3F prevPos = prevPosition.Float;
         byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
         EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
+    }
+
+    private Vec3F GetSingleVertexCenter(Vec3D position, Vec2D nudgeAmount, GLLegacyTexture texture)
+    {
+        position.X -= nudgeAmount.X;
+        position.Y -= nudgeAmount.Y;
+
+        Vec2F rightNormal = m_viewRightNormal;
+        Vec2F entityCenterXY = position.XY.Float;
+        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
+        // Doom graphics are drawn left to right and not centered
+        entityCenterXY -= rightNormal * texture.Offset.X;
+        entityCenterXY += rightNormal * texture.Dimension.Width / 2;
+
+        return (entityCenterXY.X, entityCenterXY.Y, (float)position.Z);
     }
 
     private void AddSpriteQuad(Entity entity, short lightLevel, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
