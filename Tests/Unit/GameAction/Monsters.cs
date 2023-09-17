@@ -10,6 +10,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -51,7 +52,7 @@ namespace Helion.Tests.Unit.GameAction
                     MissileOffsetZ = 16;
             }
 
-            private static string GetMissileName(string name)
+            public static string GetMissileName(string name)
             {
                 return name switch
                 {
@@ -154,6 +155,63 @@ namespace Helion.Tests.Unit.GameAction
             entity.Flags.QuickToRetaliate = true;
             entity.Properties.MissileMovementSpeed = 0;
             entity.Properties.MonsterMovementSpeed = 0;
+        }
+
+        [Fact(DisplayName = "Monster projectile")]
+        public void MonsterProjectile()
+        {
+            var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
+            var monster = GameActions.CreateEntity(World, "Cacodemon", new Vec3D(-32, -416, 0), onCreated: EntityCreated);
+            monster.SetTarget(barrel);
+            monster.SetMissileState();
+
+            var missileName = MonsterData.GetMissileName("Cacodemon");
+            Entity? missile = null;
+            Vec3D missileVelocity = Vec3D.Zero;
+            Vec3D missilePos = Vec3D.Zero;
+            GameActions.TickWorld(World, () => missile == null, () =>
+            {
+                var findMissiles = GameActions.GetEntities(World, missileName);
+                if (findMissiles.Count > 0)
+                {
+                    missile = findMissiles[0];
+                    missileVelocity = missile.Velocity;
+                    missilePos = missile.Position;
+                }                
+            });
+
+            missile.Should().NotBeNull();
+            var speed = missile!.Definition.Properties.MissileMovementSpeed;
+            missile!.Position.Should().Be(new Vec3D(-32, -455, 32));
+            missile!.Velocity.Should().Be(new Vec3D(0, -10, 0));
+        }
+
+        [Fact(DisplayName = "Monster projectile different Z")]
+        public void MonsterProjectileDifferentZ()
+        {
+            var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
+            var monster = GameActions.CreateEntity(World, "Cacodemon", new Vec3D(-32, -416, 48), onCreated: EntityCreated);
+            monster.SetTarget(barrel);
+            monster.SetMissileState();
+
+            var missileName = MonsterData.GetMissileName("Cacodemon");
+            Entity? missile = null;
+            Vec3D missileVelocity = Vec3D.Zero;
+            Vec3D missilePos = Vec3D.Zero;
+            GameActions.TickWorld(World, () => missile == null, () =>
+            {
+                var findMissiles = GameActions.GetEntities(World, missileName);
+                if (findMissiles.Count > 0)
+                {
+                    missile = findMissiles[0];
+                    missileVelocity = missile.Velocity;
+                    missilePos = missile.Position;
+                }
+            });
+
+            missile.Should().NotBeNull();
+            missile!.Position.Should().Be(new Vec3D(-32, -447.2, 56.6));
+            missile!.Velocity.Should().Be(new Vec3D(0, -8, -6));
         }
 
         [Fact(DisplayName = "Barrel player damage source")]
