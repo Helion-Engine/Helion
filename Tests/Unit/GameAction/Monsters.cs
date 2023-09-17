@@ -26,6 +26,8 @@ namespace Helion.Tests.Unit.GameAction
             public readonly bool HasMissile;
             public readonly bool HasMelee;
             public readonly bool HasMissileLikeMelee;
+            public readonly string MissileName;
+            public readonly double MissileOffsetZ;
 
             private static readonly string[] MeleeMonsters = new[]
             {
@@ -43,6 +45,25 @@ namespace Helion.Tests.Unit.GameAction
                 HasMissile = !name.EqualsIgnoreCase("Demon");
                 HasMelee = MeleeMonsters.Any(x => x.EqualsIgnoreCase(name));
                 HasMissileLikeMelee = name.EqualsIgnoreCase("Cacodemon");
+                MissileName = GetMissileName(name);
+
+                if (name.EqualsIgnoreCase("Revenant"))
+                    MissileOffsetZ = 16;
+            }
+
+            private static string GetMissileName(string name)
+            {
+                return name switch
+                {
+                    "DoomImp" => "DoomImpBall",
+                    "HellKnight" or "BaronOfHell" => "BaronBall",
+                    "Arachnotron" => "ArachnotronPlasma",
+                    "Cyberdemon" => "Rocket",
+                    "Fatso" => "FatShot",
+                    "Cacodemon" => "CacodemonBall",
+                    "Revenant" => "RevenantTracer",
+                    _ => string.Empty,
+                };
             }
 
             public bool CanMissileDamage(string dest)
@@ -109,7 +130,6 @@ namespace Helion.Tests.Unit.GameAction
             new MonsterData("SpiderMastermind"),
             new MonsterData("Cyberdemon"),
         };
-
 
         public Monsters()
         {
@@ -271,12 +291,34 @@ namespace Helion.Tests.Unit.GameAction
 
             int startTicks = World.Gametick;
             bool timeout = false;
+
+            Entity? missile = null;
+            Vec3D missileVelocity = Vec3D.Zero;
+            Vec3D missilePos = Vec3D.Zero;
             GameActions.TickWorld(World, () => { return !CheckAttackState(dest) && !timeout; }, () =>
             {
                 // Needs to run long for archvile attack, lost soul skullfly etc
                 if (World.Gametick - startTicks > 35 * 6)
                     timeout = true;
+
+                if (!string.IsNullOrEmpty(sourceData.MissileName) && missile == null)
+                {
+                    missile = GameActions.CreatedEntities.FirstOrDefault(x => x.Definition != null && x.Definition.Name.Equals(sourceData.MissileName));
+                    if (missile != null)
+                    {
+                        missileVelocity = missile.Velocity;
+                        missilePos = missile.Position;
+                    }
+                }
             });
+
+            if (!isLikeMelee && !string.IsNullOrEmpty(sourceData.MissileName))
+            {
+                missile.Should().NotBeNull();
+                missilePos.Z.Should().Be(source.ProjectileAttackPos.Z + sourceData.MissileOffsetZ);
+                missileVelocity.Z.Should().Be(0);
+                missileVelocity.Y.Should().BeGreaterThan(0);
+            }
 
             if (sourceData.CanMissileDamage(dest.Definition.Name) || isLikeMelee)
             {

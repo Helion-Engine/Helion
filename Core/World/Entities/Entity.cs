@@ -305,7 +305,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Owner = WeakEntity.GetReference(entity);
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
-    public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.CenterPoint, Position.XY.Distance(entity.Position.XY));
+    public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
 
     public string GetBloodType()
     {
