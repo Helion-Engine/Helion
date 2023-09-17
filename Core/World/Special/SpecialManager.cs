@@ -1373,7 +1373,7 @@ public class SpecialManager : ITickable, IDisposable
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
         {
-            sector.SetTransferCeilingLight(line.Front.Sector);
+            sector.TransferCeilingLightSector = line.Front.Sector;
             m_world.SetSectorCeilingLightLevel(sector, line.Front.Sector.Ceiling.LightLevel);
         }
     }
@@ -1383,7 +1383,7 @@ public class SpecialManager : ITickable, IDisposable
         IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
         foreach (var sector in sectors)
         {
-            sector.SetTransferFloorLight(line.Front.Sector);
+            sector.TransferFloorLightSector = line.Front.Sector;
             m_world.SetSectorFloorLightLevel(sector, line.Front.Sector.Floor.LightLevel);
         }
     }

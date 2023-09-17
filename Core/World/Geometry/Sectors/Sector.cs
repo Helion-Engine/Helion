@@ -70,11 +70,9 @@ public class Sector
 
     public double Friction = Constants.DefaultFriction;
 
-    public Sector TransferFloorLightSector => m_transferFloorLightSector;
-    public Sector TransferCeilingLightSector => m_transferCeilingLightSector;
+    public Sector TransferFloorLightSector { get; set; }
+    public Sector TransferCeilingLightSector { get; set; }
 
-    private Sector m_transferFloorLightSector;
-    private Sector m_transferCeilingLightSector;
     private Box2D? m_boundingBox;
 
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
@@ -93,8 +91,8 @@ public class Sector
 
         floor.Sector = this;
         ceiling.Sector = this;
-        m_transferFloorLightSector = this;
-        m_transferCeilingLightSector = this;
+        TransferFloorLightSector = this;
+        TransferCeilingLightSector = this;
     }
 
     public static Sector CreateDefault() =>
@@ -119,16 +117,6 @@ public class Sector
         return TransferHeights.GetRenderSector(view);
     }
 
-    public void SetTransferFloorLight(Sector sector)
-    {
-        m_transferFloorLightSector = sector;
-    }
-
-    public void SetTransferCeilingLight(Sector sector)
-    {
-        m_transferCeilingLightSector = sector;
-    }
-
     public bool LightingChanged() => LightingChanged(LastRenderGametick);
 
     public bool LightingChanged(int gametick)
@@ -136,10 +124,10 @@ public class Sector
         if (RenderLightChangeGametick >= gametick - 1)
             return true;
 
-        if (m_transferFloorLightSector.Id != Id && m_transferFloorLightSector.RenderLightChangeGametick >= gametick - 1)
+        if (TransferFloorLightSector.Id != Id && TransferFloorLightSector.RenderLightChangeGametick >= gametick - 1)
             return true;
 
-        if (m_transferCeilingLightSector.Id != Id && m_transferCeilingLightSector.RenderLightChangeGametick >= gametick - 1)
+        if (TransferCeilingLightSector.Id != Id && TransferCeilingLightSector.RenderLightChangeGametick >= gametick - 1)
             return true;
 
         if (TransferHeights != null && TransferHeights.ParentSector.Id != TransferHeights.ControlSector.Id && TransferHeights.ControlSector.LightingChanged(gametick))
@@ -164,8 +152,8 @@ public class Sector
         return false;
     }
 
-    public short FloorRenderLightLevel => m_transferFloorLightSector.Floor.LightLevel;
-    public short CeilingRenderLightLevel => m_transferCeilingLightSector.Ceiling.LightLevel;
+    public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
+    public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
 
     public void SetFriction(double friction)
     {
@@ -241,8 +229,8 @@ public class Sector
             SectorSpecialType = (int)SectorSpecialType,
             SectorDataChanges = (int)DataChanges,
             SkyTexture = SkyTextureHandle,
-            TransferFloorLight = m_transferFloorLightSector?.Id,
-            TransferCeilingLight = m_transferCeilingLightSector?.Id,
+            TransferFloorLight = TransferFloorLightSector?.Id,
+            TransferCeilingLight = TransferCeilingLightSector?.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
         };
 
@@ -344,10 +332,10 @@ public class Sector
         }
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
-            m_transferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
+            TransferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
 
         if (sectorModel.TransferCeilingLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferCeilingLight.Value))
-            m_transferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
+            TransferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
             TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value]);

@@ -91,6 +91,8 @@ public class TransferHeights
         }
 
         sector.DataChanges = ParentSector.DataChanges | ControlSector.DataChanges;
+        sector.TransferFloorLightSector = ParentSector.TransferFloorLightSector;
+        sector.TransferCeilingLightSector = ParentSector.TransferCeilingLightSector;
         return sector;
     }
 
