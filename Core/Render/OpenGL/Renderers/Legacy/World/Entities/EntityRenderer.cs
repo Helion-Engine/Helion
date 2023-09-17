@@ -168,9 +168,7 @@ public class EntityRenderer
         if (entity.Flags.Shadow)
             alpha = 0.99f;
 
-        int lightBuffer = entity.Flags.Bright || entity.Frame.Properties.Bright ? 
-            Constants.LightBuffer.FullBrightIndex : Constants.LightBuffer.DarkIndex;
-        
+        int lightBuffer = Constants.LightBuffer.DarkIndex;        
         LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
         LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz,
@@ -271,10 +269,12 @@ public class EntityRenderer
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
         GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         Sector sector = entity.Sector;
-        short lightLevel = (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+
+        short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
+            (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
 
         if (m_singleVertex)
-            AddSpriteQuadSingleVertex(entity, texture, 0, spriteRotation.Mirror, nudgeAmount);
+            AddSpriteQuadSingleVertex(entity, texture, lightLevel, spriteRotation.Mirror, nudgeAmount);
         else
             AddSpriteQuad(entity, lightLevel, texture, spriteRotation.Mirror, nudgeAmount);
         entity.RenderedCounter = m_renderCounter;
