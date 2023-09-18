@@ -277,10 +277,11 @@ public class UniformGrid<T> where T : new()
         return false;
     }
 
-    public T? GetBlock(Vec2D position)
+    public T? GetBlock(Vec3D position)
     {
-        Vec2I blockUnit = ((position - Origin) / Dimension).Int;
-        int index = blockUnit.Y * Width + blockUnit.X;
+        int x = (int)((position.X - Origin.X) / Dimension);
+        int y = (int)((position.Y - Origin.Y) / Dimension);
+        int index = y * Width + x;
         if (index < 0 || index >= Blocks.Length)
             return default(T);
 

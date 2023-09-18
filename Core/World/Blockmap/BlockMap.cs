@@ -72,7 +72,7 @@ public class BlockMap
 
     public void LinkSimple(Entity entity)
     {
-        Block? block = m_blocks.GetBlock(entity.Position.XY);
+        Block? block = m_blocks.GetBlock(entity.Position);
         if (block == null)
             return;
 

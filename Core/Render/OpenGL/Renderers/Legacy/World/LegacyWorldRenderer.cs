@@ -224,7 +224,7 @@ public class LegacyWorldRenderer : WorldRenderer
         // Not in front 180 FOV
         if (m_renderData.OccludePos.HasValue)
         {
-            Vec2D entityToTarget = entity.Position.XY - m_renderData.OccludePos.Value;
+            Vec2D entityToTarget = new(entity.Position.X - m_renderData.OccludePos.Value.X, entity.Position.Y - m_renderData.OccludePos.Value.Y);
             if (entityToTarget.Dot(m_renderData.ViewDirection) < 0)
                 return;
         }

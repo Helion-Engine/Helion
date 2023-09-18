@@ -1438,7 +1438,7 @@ public abstract partial class WorldBase : IWorld
     public virtual bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians)
     {
         Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
-        Vec2D entityToTarget = to.Position.XY - from.Position.XY;
+        Vec2D entityToTarget = new(to.Position.X - from.Position.X, to.Position.Y - from.Position.Y);
         entityToTarget.Normalize();
         var angle = Math.Acos(entityToTarget.Dot(entityLookingVector));
         return angle < fieldOfViewRadians/2;
@@ -1448,7 +1448,7 @@ public abstract partial class WorldBase : IWorld
     {
         double distance = from.Position.ApproximateDistance2D(to.Position);
         Vec2D entityLookingVector = Vec2D.UnitCircle(from.AngleRadians);
-        Vec2D entityToTarget = to.Position.XY - from.Position.XY;
+        Vec2D entityToTarget = new(to.Position.X - from.Position.X, to.Position.Y - from.Position.Y);
 
         // Not in front 180 FOV
         if (entityToTarget.Dot(entityLookingVector) < 0 && distance > Constants.EntityMeleeDistance)
