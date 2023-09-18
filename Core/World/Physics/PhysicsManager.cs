@@ -1464,7 +1464,7 @@ doneIsPositionValid:
 
     private void MoveXY(Entity entity)
     {
-        if (entity.IsDisposed || entity.Velocity.XY == Vec2D.Zero)
+        if (entity.IsDisposed || (entity.Velocity.X == 0 && entity.Velocity.Y == 0))
             return;
 
         TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
@@ -1504,11 +1504,14 @@ doneIsPositionValid:
         // This means z velocity isn't applied until the next tick after moving off a ledge.
         // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
         bool noVelocity = entity.Velocity.Z == 0;
-        bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
+        bool shouldApplyGravity = entity.ShouldApplyGravity();
+        if (noVelocity && !shouldApplyGravity && !entity.Flags.Float && entity.OnEntity.Entity == null)
+            return;
 
+        bool stacked = entity.OnEntity.Entity != null || entity.OverEntity.Entity != null;
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
-        if (entity.ShouldApplyGravity())
+        if (shouldApplyGravity)
             entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
