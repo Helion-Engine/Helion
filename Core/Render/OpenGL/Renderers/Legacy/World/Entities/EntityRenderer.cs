@@ -128,7 +128,7 @@ public class EntityRenderer
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
 
         var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
-        var prevPos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
+        var prevPos = GetSingleVertexCenter(entity.PrevPosition, nudgeAmount, texture);
         float offsetZ = GetOffsetZ(entity, texture);
         byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
         EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
