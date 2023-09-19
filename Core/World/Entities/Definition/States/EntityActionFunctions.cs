@@ -2988,16 +2988,17 @@ public static class EntityActionFunctions
         createdEntity.AngleRadians = angle;
         createdEntity.Velocity = velocity;
 
-        if (!createdEntity.Flags.Missile)
+        if (!createdEntity.Flags.Missile && !createdEntity.Flags.MbfBouncer)
             return;
 
-        if (entity.Flags.Missile)
+        if (entity.Flags.Missile || entity.Flags.MbfBouncer)
         {
             createdEntity.SetOwner(entity.Owner.Entity);
             createdEntity.SetTracer(entity.Tracer.Entity);
         }
         else
         {
+            createdEntity.SetOwner(entity);
             createdEntity.SetTarget(entity);
             createdEntity.SetTracer(entity.Tracer.Entity);
         }
