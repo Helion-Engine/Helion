@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
@@ -15,15 +14,11 @@ using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
 using Helion.Util;
 using Helion.Util.Bytes;
-using Helion.Util.Container;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Maps.Doom;
 
-/// <summary>
-/// A map in the doom format.
-/// </summary>
 public class DoomMap : IMap
 {
     public const ushort NoSidedef = (ushort)0xFFFFU;
@@ -33,25 +28,24 @@ public class DoomMap : IMap
     private const int BytesPerThing = 10;
     private const int BytesPerVertex = 4;
     private const int BytesPerNode = 28;
-
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly DoomSector EmptySector = new(0, 0, 0, "", "", 0, 0, 0);
+    private static readonly DoomSide EmptySide = new(0, (0, 0), Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, EmptySector);
 
     public Archive Archive { get; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
-    public readonly ReadOnlyDictionary<int, DoomLine> Lines;
-    public readonly ReadOnlyDictionary<int, DoomSector> Sectors;
-    public readonly ReadOnlyDictionary<int, DoomSide> Sides;
-    public readonly ReadOnlyDictionary<int, DoomThing> Things;
-    public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
+    public readonly List<DoomLine> Lines;
+    public readonly List<DoomSector> Sectors;
+    public readonly List<DoomSide> Sides;
+    public readonly List<DoomThing> Things;
+    public readonly List<DoomVertex> Vertices;
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
     public byte[]? Reject { get; set; }
 
-    private DoomMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
-        ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomThing> things,
-        IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
+    private DoomMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides, 
+        List<DoomLine> lines,  List<DoomThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
     {
         Archive = archive;
         Name = name;
@@ -76,67 +70,66 @@ public class DoomMap : IMap
     /// missing or bad data.</returns>
     public static DoomMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
     {
-        ReadOnlyDictionary<int, DoomVertex>? vertices = CreateVertices(map.Vertices?.ReadData());
+        List<DoomVertex>? vertices = CreateVertices(map.Vertices?.ReadData());
         if (vertices == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomSector>? sectors = CreateSectors(map.Sectors?.ReadData());
+        List<DoomSector>? sectors = CreateSectors(map.Sectors?.ReadData());
         if (sectors == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomSide>? sides = CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
+        List<DoomSide>? sides = CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
         if (sides == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
+        List<DoomLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
         if (lines == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomThing>? things = CreateThings(map.Things?.ReadData());
+        List<DoomThing>? things = CreateThings(map.Things?.ReadData());
         if (things == null)
             return null;
 
         IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes?.ReadData());
-
         GLComponents? gl = GLComponents.Read(map);
-        return new DoomMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
+        return new(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
     }
 
-    public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
+    public IReadOnlyList<ILine> GetLines() => Lines;
     public IReadOnlyList<INode> GetNodes() => Nodes;
-    public ICovariantReadOnlyDictionary<int, ISector> GetSectors() => Sectors;
-    public ICovariantReadOnlyDictionary<int, ISide> GetSides() => Sides;
-    public ICovariantReadOnlyDictionary<int, IThing> GetThings() => Things;
-    public ICovariantReadOnlyDictionary<int, IVertex> GetVertices() => Vertices;
+    public IReadOnlyList<ISector> GetSectors() => Sectors;
+    public IReadOnlyList<ISide> GetSides() => Sides;
+    public IReadOnlyList<IThing> GetThings() => Things;
+    public IReadOnlyList<IVertex> GetVertices() => Vertices;
 
-    internal static ReadOnlyDictionary<int, DoomVertex>? CreateVertices(byte[]? vertexData)
+    internal static List<DoomVertex>? CreateVertices(byte[]? vertexData)
     {
         if (vertexData == null || vertexData.Length % BytesPerVertex != 0)
             return null;
 
         int numVertices = vertexData.Length / BytesPerVertex;
-        ByteReader reader = new ByteReader(vertexData);
-        Dictionary<int, DoomVertex> vertices = new Dictionary<int, DoomVertex>();
+        ByteReader reader = new(vertexData);
+        List<DoomVertex> vertices = new();
 
         for (int id = 0; id < numVertices; id++)
         {
-            Fixed x = new Fixed(reader.ReadInt16(), 0);
-            Fixed y = new Fixed(reader.ReadInt16(), 0);
-            DoomVertex vertex = new DoomVertex(id, new Vec2Fixed(x, y));
-            vertices[id] = vertex;
+            Fixed x = new(reader.ReadInt16(), 0);
+            Fixed y = new(reader.ReadInt16(), 0);
+            DoomVertex vertex = new(id, (x, y));
+            vertices.Add(vertex);
         }
 
-        return new ReadOnlyDictionary<int, DoomVertex>(vertices);
+        return vertices;
     }
 
-    internal static ReadOnlyDictionary<int, DoomSector>? CreateSectors(byte[]? sectorData)
+    internal static List<DoomSector>? CreateSectors(byte[]? sectorData)
     {
         if (sectorData == null || sectorData.Length % BytesPerSector != 0)
             return null;
 
         int numSectors = sectorData.Length / BytesPerSector;
-        ByteReader reader = new ByteReader(sectorData);
-        Dictionary<int, DoomSector> sectors = new Dictionary<int, DoomSector>();
+        ByteReader reader = new(sectorData);
+        List<DoomSector> sectors = new();
 
         for (int id = 0; id < numSectors; id++)
         {
@@ -148,26 +141,25 @@ public class DoomMap : IMap
             ushort special = reader.ReadUInt16();
             ushort tag = reader.ReadUInt16();
 
-            DoomSector sector = new DoomSector(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, special, tag);
-            sectors[id] = sector;
+            DoomSector sector = new(id, floorZ, ceilZ, floorTexture, ceilTexture, lightLevel, special, tag);
+            sectors.Add(sector);
         }
 
-        return new ReadOnlyDictionary<int, DoomSector>(sectors);
+        return sectors;
     }
 
-    internal static ReadOnlyDictionary<int, DoomSide>? CreateSides(byte[]? sideData,
-        ReadOnlyDictionary<int, DoomSector> sectors, CompatibilityMapDefinition? compatibility)
+    internal static List<DoomSide>? CreateSides(byte[]? sideData, List<DoomSector> sectors, CompatibilityMapDefinition? compatibility)
     {
         if (sideData == null || sideData.Length % BytesPerSide != 0)
             return null;
 
         int numSides = sideData.Length / BytesPerSide;
-        ByteReader reader = new ByteReader(sideData);
-        Dictionary<int, DoomSide> sides = new Dictionary<int, DoomSide>();
+        ByteReader reader = new(sideData);
+        List<DoomSide> sides = new();
 
         for (int id = 0; id < numSides; id++)
         {
-            Vec2I offset = new Vec2I(reader.ReadInt16(), reader.ReadInt16());
+            Vec2I offset = (reader.ReadInt16(), reader.ReadInt16());
             string upperTexture = string.Intern(reader.ReadEightByteString());
             string lowerTexture = string.Intern(reader.ReadEightByteString());
             string middleTexture = string.Intern(reader.ReadEightByteString());
@@ -176,17 +168,17 @@ public class DoomMap : IMap
             if (sectorIndex >= sectors.Count)
                 continue;
 
-            DoomSide side = new DoomSide(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
-            sides[id] = side;
+            DoomSide side = new(id, offset, upperTexture, middleTexture, lowerTexture, sectors[sectorIndex]);
+            sides.Add(side);
         }
 
         if (compatibility != null)
             ApplySideCompatibility(sides, compatibility);
 
-        return new ReadOnlyDictionary<int, DoomSide>(sides);
+        return sides;
     }
 
-    private static void ApplySideCompatibility(Dictionary<int, DoomSide> sides, CompatibilityMapDefinition compatibility)
+    private static void ApplySideCompatibility(List<DoomSide> sides, CompatibilityMapDefinition compatibility)
     {
         foreach (ISideDefinition sideCompatibility in compatibility.Sides)
         {
@@ -202,13 +194,15 @@ public class DoomMap : IMap
         }
     }
 
-    private static void HandleSideSet(Dictionary<int, DoomSide> sides, SideSetDefinition sideSetDefinition)
+    private static void HandleSideSet(List<DoomSide> sides, SideSetDefinition sideSetDefinition)
     {
-        if (!sides.TryGetValue(sideSetDefinition.Id, out DoomSide? side))
+        if (sideSetDefinition.Id >= sides.Count)
         {
             Log.Warn("Unable to set properties on nonexistent side ID {0} when applying compatibility settings", sideSetDefinition.Id);
             return;
         }
+
+        DoomSide side = sides[sideSetDefinition.Id];
 
         if (sideSetDefinition.Lower != null)
             side.LowerTexture = sideSetDefinition.Lower;
@@ -220,18 +214,15 @@ public class DoomMap : IMap
             side.Offset = sideSetDefinition.Offset.Value;
     }
 
-    private static ReadOnlyDictionary<int, DoomLine>? CreateLines(byte[]? lineData,
-        ReadOnlyDictionary<int, DoomVertex> vertices, ReadOnlyDictionary<int, DoomSide> sides,
+    private static List<DoomLine>? CreateLines(byte[]? lineData, List<DoomVertex> vertices, List<DoomSide> sides,
         CompatibilityMapDefinition? compatibility)
     {
         if (lineData == null || lineData.Length % BytesPerLine != 0)
             return null;
 
         int numLines = lineData.Length / BytesPerLine;
-        ByteReader lineReader = new ByteReader(lineData);
-        Dictionary<int, DoomLine> lines = new Dictionary<int, DoomLine>();
-        DoomSide emptySide = new(0, Vec2I.Zero, Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, 
-            new DoomSector(0, 0, 0, string.Empty, string.Empty, 0, 0, 0));
+        ByteReader lineReader = new(lineData);
+        List<DoomLine> lines = new();
 
         for (int id = 0; id < numLines; id++)
         {
@@ -252,7 +243,7 @@ public class DoomMap : IMap
 
             DoomVertex startVertex = vertices[startVertexId];
             DoomVertex endVertex = vertices[endVertexId];
-            DoomSide front = rightSidedef == NoSidedef ?  emptySide : sides[rightSidedef];
+            DoomSide front = rightSidedef == NoSidedef ? EmptySide : sides[rightSidedef];
             DoomSide? back = null;
             MapLineFlags lineFlags = MapLineFlags.Doom(flags);
             VanillaLineSpecialType lineType = (VanillaLineSpecialType)type;
@@ -260,29 +251,28 @@ public class DoomMap : IMap
             if (leftSidedef != NoSidedef)
                 back = sides[leftSidedef];
 
-            DoomLine line = new DoomLine(id, startVertex, endVertex, front, back, lineFlags, lineType, sectorTag);
-            lines[id] = line;
+            DoomLine line = new(id, startVertex, endVertex, front, back, lineFlags, lineType, sectorTag);
+            lines.Add(line);
         }
 
         if (compatibility != null)
             ApplyLineCompatibility(lines, sides, vertices, compatibility);
 
-        return new ReadOnlyDictionary<int, DoomLine>(lines);
+        return lines;
     }
 
-    private static void ApplyLineCompatibility(Dictionary<int, DoomLine> lines,
-        ReadOnlyDictionary<int, DoomSide> sides, ReadOnlyDictionary<int, DoomVertex> vertices,
+    private static void ApplyLineCompatibility(List<DoomLine> lines, List<DoomSide> sides, List<DoomVertex> vertices,
         CompatibilityMapDefinition compatibility)
     {
         foreach (ILineDefinition lineCompatibility in compatibility.Lines)
         {
             switch (lineCompatibility)
             {
-            case LineDeleteDefinition deleteDefinition:
-                PerformLineDeletion(lines, deleteDefinition);
+            case LineDeleteDefinition:
+                Fail("Line deletion compatibility type removed");
                 break;
-            case LineSplitDefinition splitDefinition:
-                PerformLineSplit(lines, sides, vertices, splitDefinition);
+            case LineSplitDefinition:
+                Fail("Line split compatibility type removed");
                 break;
             case LineSetDefinition setDefinition:
                 PerformLineSet(lines, sides, vertices, setDefinition);
@@ -294,73 +284,50 @@ public class DoomMap : IMap
         }
     }
 
-    private static void PerformLineDeletion(Dictionary<int, DoomLine> lines, LineDeleteDefinition deleteDefinition)
+    private static void PerformLineSet(List<DoomLine> lines, List<DoomSide> sides, List<DoomVertex> vertices, LineSetDefinition setDefinition)
     {
-        if (lines.ContainsKey(deleteDefinition.Id))
-            lines.Remove(deleteDefinition.Id);
-        else
-            Log.Warn("Unable to delete nonexistent line ID {0} when applying compatibility settings", deleteDefinition.Id);
-    }
-
-    private static void PerformLineSplit(Dictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, DoomVertex> vertices, LineSplitDefinition splitDefinition)
-    {
-        if (!lines.TryGetValue(splitDefinition.Id, out DoomLine? line))
-        {
-            Log.Warn("Unable to split nonexistent line ID {0} when applying compatibility settings", splitDefinition.Id);
-            return;
-        }
-
-        // TODO
-    }
-
-    private static void PerformLineSet(Dictionary<int, DoomLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, DoomVertex> vertices, LineSetDefinition setDefinition)
-    {
-        if (!lines.TryGetValue(setDefinition.Id, out DoomLine? line))
+        if (setDefinition.Id >= lines.Count)
         {
             Log.Warn("Unable to set properties on nonexistent line ID {0} when applying compatibility settings", setDefinition.Id);
             return;
         }
 
+        DoomLine line = lines[setDefinition.Id];
+
         if (setDefinition.Flip)
-        {
-            DoomVertex start = line.Start;
-            line.Start = line.End;
-            line.End = start;
-        }
+            (line.Start, line.End) = (line.End, line.Start);
 
         DoomVertex originalStart = line.Start;
         DoomVertex originalEnd = line.End;
 
         if (setDefinition.StartVertexId != null)
         {
-            if (vertices.TryGetValue(setDefinition.StartVertexId.Value, out DoomVertex? startVertex))
-                line.Start = startVertex;
+            if (setDefinition.StartVertexId.Value < vertices.Count)
+                line.Start = vertices[setDefinition.StartVertexId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing start vertex ID {1}", setDefinition.Id, setDefinition.StartVertexId.Value);
         }
 
         if (setDefinition.EndVertexId != null)
         {
-            if (vertices.TryGetValue(setDefinition.EndVertexId.Value, out DoomVertex? endVertex))
-                line.End = endVertex;
+            if (setDefinition.EndVertexId.Value < vertices.Count)
+                line.End = vertices[setDefinition.EndVertexId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing end vertex ID {1}", setDefinition.Id, setDefinition.EndVertexId.Value);
         }
 
         if (setDefinition.FrontSideId != null)
         {
-            if (sides.TryGetValue(setDefinition.FrontSideId.Value, out DoomSide? side))
-                line.Front = side;
+            if (setDefinition.FrontSideId.Value < sides.Count)
+                line.Front = sides[setDefinition.FrontSideId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing front side ID {1}", setDefinition.Id, setDefinition.FrontSideId.Value);
         }
 
         if (setDefinition.BackSideId != null)
         {
-            if (sides.TryGetValue(setDefinition.BackSideId.Value, out DoomSide? side))
-                line.Back = side;
+            if (setDefinition.BackSideId.Value < sides.Count)
+                line.Back = sides[setDefinition.BackSideId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing back side ID {1}", setDefinition.Id, setDefinition.BackSideId.Value);
         }
@@ -381,39 +348,40 @@ public class DoomMap : IMap
         }
     }
 
-    private static ReadOnlyDictionary<int, DoomThing>? CreateThings(byte[]? thingData)
+    private static List<DoomThing>? CreateThings(byte[]? thingData)
     {
         if (thingData == null || thingData.Length % BytesPerThing != 0)
             return null;
 
         int numThings = thingData.Length / BytesPerThing;
-        ByteReader reader = new ByteReader(thingData);
-        Dictionary<int, DoomThing> things = new Dictionary<int, DoomThing>();
+        ByteReader reader = new(thingData);
+        List<DoomThing> things = new();
 
         for (int id = 0; id < numThings; id++)
         {
-            Fixed x = new Fixed(reader.ReadInt16(), 0);
-            Fixed y = new Fixed(reader.ReadInt16(), 0);
-            Vec2Fixed position = new Vec2Fixed(x, y);
+            Fixed x = new(reader.ReadInt16(), 0);
+            Fixed y = new(reader.ReadInt16(), 0);
+            Vec2Fixed position = (x, y);
             ushort angle = reader.ReadUInt16();
             ushort editorNumber = reader.ReadUInt16();
             ThingFlags flags = ThingFlags.Doom(reader.ReadUInt16());
 
-            DoomThing thing = new DoomThing(id, position, angle, editorNumber, flags);
-            things[id] = thing;
+            DoomThing thing = new(id, position, angle, editorNumber, flags);
+            things.Add(thing);
         }
 
-        return new ReadOnlyDictionary<int, DoomThing>(things);
+        return things;
     }
 
     internal static IReadOnlyList<DoomNode> CreateNodes(byte[]? nodeData)
     {
+        List<DoomNode> nodes = new();
+
         if (nodeData == null || nodeData.Length % BytesPerNode != 0)
-            return new List<DoomNode>();
+            return nodes;
 
         int numNodes = nodeData.Length / BytesPerNode;
-        ByteReader reader = new ByteReader(nodeData);
-        List<DoomNode> nodes = new List<DoomNode>();
+        ByteReader reader = new(nodeData);
 
         for (int id = 0; id < numNodes; id++)
         {
@@ -432,11 +400,11 @@ public class DoomMap : IMap
             ushort rightChild = reader.ReadUInt16();
             ushort leftChild = reader.ReadUInt16();
 
-            Seg2D segment = new Seg2D(new Vec2D(x, y), new Vec2D(x + dx, y + dy));
-            Box2D rightBox = new Box2D(new Vec2D(rightBoxLeft, rightBoxBottom), new Vec2D(rightBoxRight, rightBoxTop));
-            Box2D leftBox = new Box2D(new Vec2D(leftBoxLeft, leftBoxBottom), new Vec2D(leftBoxRight, leftBoxTop));
+            Seg2D segment = new((x, y), (x + dx, y + dy));
+            Box2D rightBox = new((rightBoxLeft, rightBoxBottom), (rightBoxRight, rightBoxTop));
+            Box2D leftBox = new((leftBoxLeft, leftBoxBottom), (leftBoxRight, leftBoxTop));
 
-            DoomNode node = new DoomNode(segment, rightBox, leftBox, leftChild, rightChild);
+            DoomNode node = new(segment, rightBox, leftBox, leftChild, rightChild);
             nodes.Add(node);
         }
 

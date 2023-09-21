@@ -9,7 +9,6 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Util.Assertion;
-using Helion.Util.Container;
 using Helion.Util.Extensions;
 using NLog;
 using GLBspNode = Helion.Maps.Components.GL.GLNode;
@@ -79,8 +78,8 @@ public class GLBspBuilder : IBspBuilder
         m_glVertices.AddRange(vertices);
     }
 
-    private void CreateSegments(List<GLSegment> segments, ICovariantReadOnlyDictionary<int, IVertex> vertices,
-        ICovariantReadOnlyDictionary<int, ILine> lines)
+    private void CreateSegments(IReadOnlyList<GLSegment> segments, IReadOnlyList<IVertex> vertices,
+        IReadOnlyList<ILine> lines)
     {
         foreach (GLSegment glSegment in segments)
         {

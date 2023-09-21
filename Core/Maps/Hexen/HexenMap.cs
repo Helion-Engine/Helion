@@ -14,7 +14,6 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util.Bytes;
-using Helion.Util.Container;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -29,20 +28,18 @@ public class HexenMap : IMap
 
     public Archive Archive { get; }
     public string Name { get; }
-    public MapType MapType { get; } = MapType.Hexen;
-    public readonly ReadOnlyDictionary<int, HexenLine> Lines;
-    public readonly ReadOnlyDictionary<int, DoomSector> Sectors;
-    public readonly ReadOnlyDictionary<int, DoomSide> Sides;
-    public readonly ReadOnlyDictionary<int, HexenThing> Things;
-    public readonly ReadOnlyDictionary<int, DoomVertex> Vertices;
+    public MapType MapType => MapType.Hexen;
+    public readonly List<HexenLine> Lines;
+    public readonly List<DoomSector> Sectors;
+    public readonly List<DoomSide> Sides;
+    public readonly List<HexenThing> Things;
+    public readonly List<DoomVertex> Vertices;
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
     public byte[]? Reject { get; set; }
 
-    private HexenMap(Archive archive, string name, ReadOnlyDictionary<int, DoomVertex> vertices,
-        ReadOnlyDictionary<int, DoomSector> sectors, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, HexenLine> lines, ReadOnlyDictionary<int, HexenThing> things,
-        IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
+    private HexenMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides,
+        List<HexenLine> lines, List<HexenThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
     {
         Archive = archive;
         Name = name;
@@ -67,41 +64,39 @@ public class HexenMap : IMap
     /// missing or bad data.</returns>
     public static HexenMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
     {
-        ReadOnlyDictionary<int, DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices?.ReadData());
+        List<DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices?.ReadData());
         if (vertices == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomSector>? sectors = DoomMap.CreateSectors(map.Sectors?.ReadData());
+        List<DoomSector>? sectors = DoomMap.CreateSectors(map.Sectors?.ReadData());
         if (sectors == null)
             return null;
 
-        ReadOnlyDictionary<int, DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
+        List<DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
         if (sides == null)
             return null;
 
-        ReadOnlyDictionary<int, HexenLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
+        List<HexenLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
         if (lines == null)
             return null;
 
-        ReadOnlyDictionary<int, HexenThing>? things = CreateThings(map.Things?.ReadData());
+        List<HexenThing>? things = CreateThings(map.Things?.ReadData());
         if (things == null)
             return null;
 
         IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes?.ReadData());
-
         GLComponents? gl = GLComponents.Read(map);
         return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
     }
 
-    public ICovariantReadOnlyDictionary<int, ILine> GetLines() => Lines;
+    public IReadOnlyList<ILine> GetLines() => Lines;
     public IReadOnlyList<INode> GetNodes() => Nodes;
-    public ICovariantReadOnlyDictionary<int, ISector> GetSectors() => Sectors;
-    public ICovariantReadOnlyDictionary<int, ISide> GetSides() => Sides;
-    public ICovariantReadOnlyDictionary<int, IThing> GetThings() => Things;
-    public ICovariantReadOnlyDictionary<int, IVertex> GetVertices() => Vertices;
+    public IReadOnlyList<ISector> GetSectors() => Sectors;
+    public IReadOnlyList<ISide> GetSides() => Sides;
+    public IReadOnlyList<IThing> GetThings() => Things;
+    public IReadOnlyList<IVertex> GetVertices() => Vertices;
 
-    private static ReadOnlyDictionary<int, HexenLine>? CreateLines(byte[]? lineData,
-        ReadOnlyDictionary<int, DoomVertex> vertices, ReadOnlyDictionary<int, DoomSide> sides,
+    private static List<HexenLine>? CreateLines(byte[]? lineData, List<DoomVertex> vertices, List<DoomSide> sides,
         CompatibilityMapDefinition? compatibility)
     {
         if (lineData == null || lineData.Length % BytesPerLine != 0)
@@ -109,8 +104,8 @@ public class HexenMap : IMap
 
         int zdoomLineSpecialCount = Enum.GetNames(typeof(ZDoomLineSpecialType)).Length;
         int numLines = lineData.Length / BytesPerLine;
-        ByteReader reader = new ByteReader(lineData);
-        Dictionary<int, HexenLine> lines = new Dictionary<int, HexenLine>();
+        ByteReader reader = new(lineData);
+        List<HexenLine> lines = new();
 
         for (int id = 0; id < numLines; id++)
         {
@@ -118,7 +113,7 @@ public class HexenMap : IMap
             ushort endVertexId = reader.ReadUInt16();
             ushort flags = reader.ReadUInt16();
             ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.ReadByte();
-            SpecialArgs args = new SpecialArgs(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+            SpecialArgs args = new(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
             ushort rightSidedef = reader.ReadUInt16();
             ushort leftSidedef = reader.ReadUInt16();
 
@@ -151,30 +146,28 @@ public class HexenMap : IMap
                 specialType = ZDoomLineSpecialType.None;
             }
 
-            HexenLine line = new HexenLine(id, startVertex, endVertex, front, back, lineFlags, specialType, args);
-            lines[id] = line;
+            HexenLine line = new(id, startVertex, endVertex, front, back, lineFlags, specialType, args);
+            lines.Add(line);
         }
 
         if (compatibility != null)
             ApplyLineCompatibility(lines, sides, vertices, compatibility);
 
-        return new ReadOnlyDictionary<int, HexenLine>(lines);
+        return lines;
     }
-
-    // TODO: Would be good if it's possible to consolidate these with DoomMap (repetition!)
-    private static void ApplyLineCompatibility(Dictionary<int, HexenLine> lines,
-        ReadOnlyDictionary<int, DoomSide> sides, ReadOnlyDictionary<int, DoomVertex> vertices,
+    
+    private static void ApplyLineCompatibility(List<HexenLine> lines, List<DoomSide> sides, List<DoomVertex> vertices,
         CompatibilityMapDefinition compatibility)
     {
         foreach (ILineDefinition lineCompatibility in compatibility.Lines)
         {
             switch (lineCompatibility)
             {
-            case LineDeleteDefinition deleteDefinition:
-                PerformLineDeletion(lines, deleteDefinition);
+            case LineDeleteDefinition:
+                Fail("Line deletion compatibility no longer supported");
                 break;
-            case LineSplitDefinition splitDefinition:
-                PerformLineSplit(lines, sides, vertices, splitDefinition);
+            case LineSplitDefinition:
+                Fail("Line splitting compatibility no longer supported");
                 break;
             case LineSetDefinition setDefinition:
                 PerformLineSet(lines, sides, vertices, setDefinition);
@@ -186,73 +179,51 @@ public class HexenMap : IMap
         }
     }
 
-    private static void PerformLineDeletion(Dictionary<int, HexenLine> lines, LineDeleteDefinition deleteDefinition)
+    private static void PerformLineSet(List<HexenLine> lines, List<DoomSide> sides, List<DoomVertex> vertices, 
+        LineSetDefinition setDefinition)
     {
-        if (lines.ContainsKey(deleteDefinition.Id))
-            lines.Remove(deleteDefinition.Id);
-        else
-            Log.Warn("Unable to delete nonexistent line ID {0} when applying compatibility settings", deleteDefinition.Id);
-    }
-
-    private static void PerformLineSplit(Dictionary<int, HexenLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, DoomVertex> vertices, LineSplitDefinition splitDefinition)
-    {
-        if (!lines.TryGetValue(splitDefinition.Id, out HexenLine? line))
-        {
-            Log.Warn("Unable to split nonexistent line ID {0} when applying compatibility settings", splitDefinition.Id);
-            return;
-        }
-
-        // TODO
-    }
-
-    private static void PerformLineSet(Dictionary<int, HexenLine> lines, ReadOnlyDictionary<int, DoomSide> sides,
-        ReadOnlyDictionary<int, DoomVertex> vertices, LineSetDefinition setDefinition)
-    {
-        if (!lines.TryGetValue(setDefinition.Id, out HexenLine? line))
+        if (setDefinition.Id >= lines.Count)
         {
             Log.Warn("Unable to set properties on nonexistent line ID {0} when applying compatibility settings", setDefinition.Id);
             return;
         }
 
+        HexenLine line = lines[setDefinition.Id];
+
         if (setDefinition.Flip)
-        {
-            DoomVertex start = line.Start;
-            line.Start = line.End;
-            line.End = start;
-        }
+            (line.Start, line.End) = (line.End, line.Start);
 
         DoomVertex originalStart = line.Start;
         DoomVertex originalEnd = line.End;
 
         if (setDefinition.StartVertexId != null)
         {
-            if (vertices.TryGetValue(setDefinition.StartVertexId.Value, out DoomVertex? startVertex))
-                line.Start = startVertex;
+            if (setDefinition.StartVertexId.Value < vertices.Count)
+                line.Start = vertices[setDefinition.StartVertexId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing start vertex ID {1}", setDefinition.Id, setDefinition.StartVertexId.Value);
         }
 
         if (setDefinition.EndVertexId != null)
         {
-            if (vertices.TryGetValue(setDefinition.EndVertexId.Value, out DoomVertex? endVertex))
-                line.End = endVertex;
+            if (setDefinition.EndVertexId.Value < vertices.Count)
+                line.End = vertices[setDefinition.EndVertexId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing end vertex ID {1}", setDefinition.Id, setDefinition.EndVertexId.Value);
         }
 
         if (setDefinition.FrontSideId != null)
         {
-            if (sides.TryGetValue(setDefinition.FrontSideId.Value, out DoomSide? side))
-                line.Front = side;
+            if (setDefinition.FrontSideId.Value < sides.Count)
+                line.Front = sides[setDefinition.FrontSideId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing front side ID {1}", setDefinition.Id, setDefinition.FrontSideId.Value);
         }
 
         if (setDefinition.BackSideId != null)
         {
-            if (sides.TryGetValue(setDefinition.BackSideId.Value, out DoomSide? side))
-                line.Back = side;
+            if (setDefinition.BackSideId.Value < sides.Count)
+                line.Back = sides[setDefinition.BackSideId.Value];
             else
                 Log.Warn("Unable to set line ID {0} to missing back side ID {1}", setDefinition.Id, setDefinition.BackSideId.Value);
         }
@@ -273,27 +244,27 @@ public class HexenMap : IMap
         }
     }
 
-    private static ReadOnlyDictionary<int, HexenThing>? CreateThings(byte[]? thingData)
+    private static List<HexenThing>? CreateThings(byte[]? thingData)
     {
         if (thingData == null || thingData.Length % BytesPerThing != 0)
             return null;
 
         int numThings = thingData.Length / BytesPerThing;
-        ByteReader reader = new ByteReader(thingData);
-        Dictionary<int, HexenThing> things = new Dictionary<int, HexenThing>();
+        ByteReader reader = new(thingData);
+        List<HexenThing> things = new();
 
         for (int id = 0; id < numThings; id++)
         {
             ushort tid = reader.ReadUInt16();
-            Fixed x = new Fixed(reader.ReadInt16(), 0);
-            Fixed y = new Fixed(reader.ReadInt16(), 0);
-            Fixed z = new Fixed(reader.ReadInt16(), 0);
+            Fixed x = new(reader.ReadInt16(), 0);
+            Fixed y = new(reader.ReadInt16(), 0);
+            Fixed z = new(reader.ReadInt16(), 0);
             Vec3Fixed position = (x, y, z);
             ushort angle = reader.ReadUInt16();
             ushort editorNumber = reader.ReadUInt16();
             ThingFlags flags = ThingFlags.ZDoom(reader.ReadUInt16());
             ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.ReadByte();
-            SpecialArgs args = new SpecialArgs(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
+            SpecialArgs args = new(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
 
             if ((int)specialType >= Enum.GetNames(typeof(ZDoomLineSpecialType)).Length)
             {
@@ -301,10 +272,10 @@ public class HexenMap : IMap
                 specialType = ZDoomLineSpecialType.None;
             }
 
-            HexenThing thing = new HexenThing(id, tid, position, angle, editorNumber, flags, specialType, args);
-            things[id] = thing;
+            HexenThing thing = new(id, tid, position, angle, editorNumber, flags, specialType, args);
+            things.Add(thing);
         }
 
-        return new ReadOnlyDictionary<int, HexenThing>(things);
+        return things;
     }
 }
