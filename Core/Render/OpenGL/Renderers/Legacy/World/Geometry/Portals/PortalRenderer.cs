@@ -1,18 +1,15 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Configs;
 using Helion.World;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Static;
 using System;
 using System.Diagnostics;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
@@ -22,13 +19,12 @@ public class PortalRenderer : IDisposable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(0, SectorPlaneFace.Floor, 0, 0, 0);
-    // TODO: Skies go here later.
     private bool m_disposed;
 
-    public PortalRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
+    public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
         m_archiveCollection = archiveCollection;
-        m_floodFillRenderer = new(config, glTextureManager);
+        m_floodFillRenderer = new(glTextureManager);
     }
 
     ~PortalRenderer()
@@ -106,7 +102,7 @@ public class PortalRenderer : IDisposable
             if (side.UpperFloodGeometryKey2 > 0)
             {
                 m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey2);
-                side.UpperFloodGeometryKey = 0;
+                side.UpperFloodGeometryKey2 = 0;
             }
             return;
         }
@@ -126,7 +122,6 @@ public class PortalRenderer : IDisposable
     public void Render(RenderInfo renderInfo)
     {
         m_floodFillRenderer.Render(renderInfo);
-        // TODO: Skies go here later.
     }
 
     protected virtual void Dispose(bool disposing)
@@ -135,7 +130,6 @@ public class PortalRenderer : IDisposable
             return;
 
         m_floodFillRenderer.Dispose();
-        // TODO: Skies go here later.
 
         m_disposed = true;
     }

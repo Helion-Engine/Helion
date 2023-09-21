@@ -14,7 +14,7 @@ public class VertexArrayObject : IDisposable
         m_name = GL.GenVertexArray();
 
         Bind();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, label);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.VertexArray, m_name, $"VAO: {label}");
         Unbind();
     }
 
