@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer;
@@ -16,6 +17,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 
 public class FloodFillRenderer : IDisposable
 {
+    const int VerticesPerWall = 6;
+
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly FloodFillProgram m_program = new();
     private readonly List<FloodFillInfo> m_floodFillInfos = new();
@@ -55,6 +58,34 @@ public class FloodFillRenderer : IDisposable
         m_textureHandleToFloodFillInfoIndex[plane.TextureHandle] = m_floodFillInfos.Count;
         m_floodFillInfos.Add(floodInfo);
         return floodInfo;
+    }
+
+    public void UpdateStaticWall(int floodKey, SectorPlane sectorPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
+    {        
+        if (!m_uniqueKeyToLookupData.TryGetValue(floodKey, out (int TexHandle, int BufferOffset) data))
+            return;
+
+        if (!m_textureHandleToFloodFillInfoIndex.TryGetValue(sectorPlane.TextureHandle, out int index))
+            return;
+
+        FloodFillInfo floodInfo = m_floodFillInfos[index];
+        float minZ = (float)minPlaneZ;
+        float maxZ = (float)maxPlaneZ;
+        FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), (float)sectorPlane.Z, minZ, maxZ);
+        FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z), (float)sectorPlane.Z, minZ, maxZ);
+        FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z), (float)sectorPlane.Z, minZ, maxZ);
+        FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z), (float)sectorPlane.Z, minZ, maxZ);
+
+        var vbo = floodInfo.Vertices.Vbo;
+        vbo.Data[data.BufferOffset] = topLeft;
+        vbo.Data[data.BufferOffset + 1] = bottomLeft;
+        vbo.Data[data.BufferOffset + 2] = topRight;
+        vbo.Data[data.BufferOffset + 3] = topRight;
+        vbo.Data[data.BufferOffset + 4] = bottomLeft;
+        vbo.Data[data.BufferOffset + 5] = bottomRight;
+
+        vbo.Bind();
+        vbo.UploadSubData(data.BufferOffset, VerticesPerWall);
     }
     
     public int AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
@@ -101,8 +132,6 @@ public class FloodFillRenderer : IDisposable
 
     private static void OverwriteAndSubUploadVboWithZero(VertexBufferObject<FloodFillVertex> vbo, int bufferOffset)
     {
-        const int VerticesPerWall = 6;
-
         for (int i = 0; i < VerticesPerWall; i++)
         {
             int index = bufferOffset + i;

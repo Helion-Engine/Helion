@@ -716,6 +716,14 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
+        if (facingSide.LowerFloodGeometryKey > 0)
+        {
+            verticies = null;
+            skyVerticies = null;
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, true);
+            return;
+        }
+
         if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
         {
             verticies = null;

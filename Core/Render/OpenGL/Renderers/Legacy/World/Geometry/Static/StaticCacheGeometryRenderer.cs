@@ -313,7 +313,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
-            if (!skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
+            if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
                 AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper, update);
         }
 
@@ -324,7 +324,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
-            if (skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
+            if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
                 AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower, update);
         }
 
@@ -742,11 +742,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_skyGeometry.ClearGeometryVertices(plane);
 
-        // This can be optimized more, but handles the most common case of raising a monster floor sector that is flood filled.
-        bool clearFloodSides = false;
-        if (floor && plane.Sector.ActiveFloorMove != null && plane.Sector.ActiveFloorMove.MoveDirection == MoveDirection.Down)
-            clearFloodSides = true;
-
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
@@ -766,8 +761,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
 
-            if (clearFloodSides)
-                m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Front, floor);
+            m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Front, floor);
 
             if (line.Back == null)
                 continue;
@@ -788,8 +782,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
 
-            if (clearFloodSides)
-                m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Back, floor);
+            m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Back, floor);
         }
     }
 

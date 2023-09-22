@@ -42,7 +42,14 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.UpdateTo(world);
     }
 
-    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool alternateMethod)
+
+    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool alternateMethod) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, alternateMethod, false);
+
+    public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool alternateMethod) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, alternateMethod, true);
+
+    private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool alternateMethod, bool update)
     {
         const int FakeWallHeight = 8192;
         bool isFront = facingSide.Line.Front.Id == facingSide.Id;
@@ -53,7 +60,12 @@ public class PortalRenderer : IDisposable
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMaxZ = bottom.Z;
             if (!IsSky(floodSector.Ceiling))
-                facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+            {
+                if (update)
+                    m_floodFillRenderer.UpdateStaticWall(facingSide.UpperFloodGeometryKey, floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+                else
+                    facingSide.UpperFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
+            }
 
             if (!alternateMethod || IsSky(facingSide.Sector.Ceiling))
                 return;
@@ -64,7 +76,11 @@ public class PortalRenderer : IDisposable
             m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
             m_fakeCeiling.LightLevel = floodSector.LightLevel;
             wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront);
-            facingSide.UpperFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
+
+            if (update)
+                m_floodFillRenderer.UpdateStaticWall(facingSide.UpperFloodGeometryKey2, facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
+            else
+                facingSide.UpperFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Ceiling, wall, floodMaxZ, double.MaxValue);
         }
         else
         {
@@ -74,7 +90,12 @@ public class PortalRenderer : IDisposable
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMinZ = top.Z;
             if (!IsSky(floodSector.Floor))
-                facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
+            {
+                if (update)
+                    m_floodFillRenderer.UpdateStaticWall(facingSide.LowerFloodGeometryKey, floodSector.Floor, wall, floodMinZ, double.MaxValue);
+                else
+                    facingSide.LowerFloodGeometryKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
+            }
 
             if (!alternateMethod || IsSky(facingSide.Sector.Floor))
                 return;
@@ -86,7 +107,11 @@ public class PortalRenderer : IDisposable
             m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
             m_fakeFloor.LightLevel = floodSector.LightLevel;
             wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront);
-            facingSide.LowerFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
+
+            if (update)
+                m_floodFillRenderer.UpdateStaticWall(facingSide.LowerFloodGeometryKey2, facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
+            else
+                facingSide.LowerFloodGeometryKey2 = m_floodFillRenderer.AddStaticWall(facingSide.Sector.Floor, wall, double.MinValue, floodMinZ);
         }
     }
 
@@ -95,28 +120,16 @@ public class PortalRenderer : IDisposable
         if (!floor)
         {
             if (side.UpperFloodGeometryKey > 0)
-            {
                 m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey);
-                side.UpperFloodGeometryKey = 0;
-            }
             if (side.UpperFloodGeometryKey2 > 0)
-            {
                 m_floodFillRenderer.ClearStaticWall(side.UpperFloodGeometryKey2);
-                side.UpperFloodGeometryKey2 = 0;
-            }
             return;
         }
 
         if (side.LowerFloodGeometryKey > 0)
-        {
             m_floodFillRenderer.ClearStaticWall(side.LowerFloodGeometryKey);
-            side.LowerFloodGeometryKey = 0;
-        }
         if (side.LowerFloodGeometryKey2 > 0)
-        {
             m_floodFillRenderer.ClearStaticWall(side.LowerFloodGeometryKey2);
-            side.LowerFloodGeometryKey2 = 0;
-        }
     }
 
     public void Render(RenderInfo renderInfo)
