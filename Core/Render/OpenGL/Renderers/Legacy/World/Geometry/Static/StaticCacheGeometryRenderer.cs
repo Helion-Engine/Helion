@@ -315,7 +315,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper);
         }
 
-        bool lowerVisible = m_geometryRenderer.LowerIsVisible(facingSector, otherSector);
+        bool lowerVisible = m_geometryRenderer.LowerIsVisible(side, facingSector, otherSector);
         if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);

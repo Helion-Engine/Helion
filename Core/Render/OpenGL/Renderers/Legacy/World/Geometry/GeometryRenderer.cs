@@ -650,7 +650,7 @@ public class GeometryRenderer : IDisposable
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
-        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSector, otherSector))
+        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
@@ -659,14 +659,16 @@ public class GeometryRenderer : IDisposable
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
-    public bool LowerIsVisible(Sector facingSector, Sector otherSector)
+    public bool LowerIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
-        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ;
+        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ ||
+            facingSide.LowerFloodGeometryKey > 0;
     }
 
-    public bool UpperIsVisible(Side otherSide, Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
-        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ;
+        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ ||
+            facingSide.UpperFloodGeometryKey > 0;
     }
 
     public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
@@ -853,7 +855,7 @@ public class GeometryRenderer : IDisposable
         else
         {
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || 
-                !UpperIsVisible(otherSide, facingSector, otherSector))
+                !UpperIsVisible(facingSide, otherSide, facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;
