@@ -250,7 +250,7 @@ public partial class MapInfoDefinition
         { "needclustertext",        new MapOptionSet { Option = MapOptions.NeedClusterText, Value = true } },
         { "allowmonstertelefrags",  new MapOptionSet { Option = MapOptions.AllowMonsterTelefrags, Value = true } },
         { "compat_missileclip",     new MapOptionSet { Option = MapOptions.CompatMissileClip, Value = true } },
-        { "compat_shorttext",       new MapOptionSet { Option = MapOptions.CompatShortestTexture, Value = true } },
+        { "compat_shorttex",        new MapOptionSet { Option = MapOptions.CompatShortestTexture, Value = true } },
         { "compat_floormove",       new MapOptionSet { Option = MapOptions.CompatFloorMove, Value = true } },
         { "compat_nopassover",      new MapOptionSet { Option = MapOptions.CompatNoCrossOver, Value = true } },
         { "compat_limitpain",       new MapOptionSet { Option = MapOptions.CompatLimitPain, Value = true } },
