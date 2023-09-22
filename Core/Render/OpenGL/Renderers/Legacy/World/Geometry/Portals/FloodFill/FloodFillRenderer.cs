@@ -76,8 +76,8 @@ public class FloodFillRenderer : IDisposable
 
         float topZ = vertices.TopLeft.Z;
         float bottomZ = vertices.BottomLeft.Z;
-        float prevTopZ = vertices.TopLeft.Z;
-        float prevBottomZ = vertices.BottomLeft.Z;
+        float prevTopZ = vertices.PrevTopZ;
+        float prevBottomZ = vertices.PrevBottomZ;
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
             prevTopZ, planeZ, prevPlaneZ, minZ, maxZ);

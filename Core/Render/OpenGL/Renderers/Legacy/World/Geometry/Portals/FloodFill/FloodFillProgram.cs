@@ -45,13 +45,13 @@ public class FloodFillProgram : RenderProgram
         void main()
         {
             vec3 prevPos = vec3(pos.x, pos.y, prevZ);
-            planeZFrag = planeZ + (timeFrac * (planeZ - prevPlaneZ));
-            vertexPosFrag = pos + (timeFrac * (pos - prevPos));
+            planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
+            vertexPosFrag = mix(prevPos, pos, timeFrac);
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
             else
-                gl_Position = mvp * vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
+                gl_Position = mvp * vec4(vertexPosFrag, 1.0); 
         }
     ";
 
