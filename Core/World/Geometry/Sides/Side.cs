@@ -38,10 +38,10 @@ public class Side : IRenderObject
     public int LastRenderGametick;
     public int LastRenderGametickAlpha;
     public int BlockmapCount;
-    public int UpperFloodGeometryKey;
-    public int LowerFloodGeometryKey;
-    public int UpperFloodGeometryKey2;
-    public int LowerFloodGeometryKey2;
+    public int UpperFloodKey;
+    public int LowerFloodKey;
+    public int UpperFloodKey2;
+    public int LowerFloodKey2;
     public bool BlockmapLinked;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
