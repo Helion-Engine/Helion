@@ -80,6 +80,7 @@ public class FloodFillProgram : RenderProgram
         void main()
         {
             vec2 uv = calcPlaneUV();
+            uv.y = -uv.y; // Vanilla textures are drawn top-down.
             fragColor = texture(boundTexture, uv);
         }
     ";
