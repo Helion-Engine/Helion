@@ -23,7 +23,7 @@ public class FloodFillProgram : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
-    public void TimeFrac(float frac) => Uniforms.Set(frac, m_mvpLocation);
+    public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
 
     protected override string VertexShader() => @"
         #version 330
