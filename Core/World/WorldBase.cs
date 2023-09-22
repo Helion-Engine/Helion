@@ -1479,7 +1479,7 @@ public abstract partial class WorldBase : IWorld
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
     {
-        if (entity.Flags.NoRadiusDmg && !damageSource.Flags.ForceRadiusDmg)
+        if ((entity.Flags.Boss || entity.Flags.NoRadiusDmg) && !damageSource.Flags.ForceRadiusDmg)
             return false;
 
         if (!entity.CanApplyRadiusExplosionDamage(damageSource) || !CheckLineOfSight(entity, damageSource))
