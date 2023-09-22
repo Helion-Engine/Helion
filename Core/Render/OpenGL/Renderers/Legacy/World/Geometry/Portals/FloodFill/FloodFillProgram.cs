@@ -10,17 +10,20 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_boundTextureLocation;
     private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
+    private readonly int m_timeFracLocation;
 
     public FloodFillProgram() : base("Flood fill plane")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_timeFracLocation = Uniforms.GetLocation("timeFrac");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void TimeFrac(float frac) => Uniforms.Set(frac, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -29,22 +32,26 @@ public class FloodFillProgram : RenderProgram
         layout(location = 1) in float planeZ;
         layout(location = 2) in float minViewZ;
         layout(location = 3) in float maxViewZ;
+        layout(location = 4) in float prevZ;
+        layout(location = 5) in float prevPlaneZ;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
 
         uniform mat4 mvp;
         uniform vec3 camera;
+        uniform float timeFrac;
 
         void main()
         {
-            planeZFrag = planeZ;
-            vertexPosFrag = pos;
+            vec3 prevPos = vec3(pos.x, pos.y, prevZ);
+            planeZFrag = planeZ + (timeFrac * (planeZ - prevPlaneZ));
+            vertexPosFrag = pos + (timeFrac * (pos - prevPos));
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
             else
-                gl_Position = mvp * vec4(pos, 1.0);
+                gl_Position = mvp * vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
         }
     ";
 

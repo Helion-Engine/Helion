@@ -61,7 +61,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_disposed;
     private bool m_staticScroll;
     private bool m_floodFill;
-    private bool m_floodFillAlt;
     private IWorld? m_world;
     private GLBufferTexture? m_lightBuffer;
     private int m_counter;
@@ -116,7 +115,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
         m_floodFill = world.Config.Render.FloodFill;
-        m_floodFillAlt = world.Config.Render.FloodFillAlt;
         
         SetSideDynamicIgnore();
 
@@ -314,7 +312,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
-                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper, update);
+                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper);
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(facingSector, otherSector);
@@ -325,7 +323,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
-                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower, update);
+                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -336,12 +334,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
-        SectorPlane floodPlane, SideTexture texture, bool update)
+        SectorPlane floodPlane, SideTexture texture)
     {
         if (!m_floodFill)
             return;
 
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture, m_floodFillAlt);
+        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
@@ -478,7 +476,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool isFloodPlane = false)
+    private void AddSectorPlane(Sector sector, bool floor, bool update = false)
     {
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
@@ -501,18 +499,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vertices = GetTextureVertices(renderPlane.TextureHandle, true);
         if (m_textureToGeometryLookup.TryGetValue(renderPlane.TextureHandle, true, out var geometryData))
         {
-            if (isFloodPlane)
-            {
-                plane.StaticFlood.GeometryData = geometryData;
-                plane.StaticFlood.GeometryDataStartIndex = vertices.Length;
-                plane.StaticFlood.GeometryDataLength = renderedVertices.Length;
-            }
-            else
-            {
-                plane.Static.GeometryData = geometryData;
-                plane.Static.GeometryDataStartIndex = vertices.Length;
-                plane.Static.GeometryDataLength = renderedVertices.Length;
-            }
+            plane.Static.GeometryData = geometryData;
+            plane.Static.GeometryDataStartIndex = vertices.Length;
+            plane.Static.GeometryDataLength = renderedVertices.Length;
         }
 
         vertices.AddRange(renderedVertices);
@@ -738,7 +727,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
         ClearGeometryVertices(plane.Static);
-        ClearGeometryVertices(plane.StaticFlood);
 
         m_skyGeometry.ClearGeometryVertices(plane);
 
@@ -761,8 +749,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
 
-            m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Front, floor);
-
             if (line.Back == null)
                 continue;
 
@@ -781,8 +767,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 ClearGeometryVertices(line.Back.Middle.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
-
-            m_geometryRenderer.Portals.ClearStaticFloodFillSide(line.Back, floor);
         }
     }
 

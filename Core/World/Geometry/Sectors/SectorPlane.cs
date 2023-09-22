@@ -31,7 +31,6 @@ public class SectorPlane : ISoundSource
     public SectorScrollData? SectorScrollData { get; private set; }
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
-    public StaticGeometryData StaticFlood;
 
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;

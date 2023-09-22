@@ -650,7 +650,6 @@ public class GeometryRenderer : IDisposable
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
-
         if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
@@ -665,7 +664,7 @@ public class GeometryRenderer : IDisposable
         return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ;
     }
 
-    public bool UpperIsVisible(Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Side otherSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ;
     }
@@ -716,11 +715,11 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
-        if (facingSide.LowerFloodGeometryKey > 0)
+        if (facingSide.LowerFloodGeometryKey > 0 || facingSide.LowerFloodGeometryKey2 > 0)
         {
             verticies = null;
             skyVerticies = null;
-            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, true);
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower);
             return;
         }
 
@@ -796,6 +795,15 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
+        if (facingSide.LowerFloodGeometryKey > 0 || facingSide.LowerFloodGeometryKey2 > 0)
+        {
+            verticies = null;
+            skyVerticies = null;
+            skyVerticies2 = null;
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper);
+            return;
+        }
+
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
             upperWall.TextureHandle == Constants.NoTextureIndex)
         {
@@ -844,7 +852,8 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || !UpperIsVisible(facingSector, otherSector))
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || 
+                !UpperIsVisible(otherSide, facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;

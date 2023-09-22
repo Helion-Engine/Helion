@@ -19,10 +19,18 @@ public struct FloodFillVertex
     [VertexAttribute("maxViewZ", size: 1)]
     public float MaxViewZ;
 
-    public FloodFillVertex(Vec3F pos, float planeZ, float minPlaneZ, float maxPlaneZ)
+    [VertexAttribute("prevZ", size: 1)]
+    public float PrevZ;
+
+    [VertexAttribute("prevPlaneZ", size: 1)]
+    public float PrevPlaneZ;
+
+    public FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ)
     {
         Pos = pos;
+        PrevZ = prevZ;
         PlaneZ = planeZ;
+        PrevPlaneZ = prevPlaneZ;
         MinViewZ = minPlaneZ;
         MaxViewZ = maxPlaneZ;
     }
