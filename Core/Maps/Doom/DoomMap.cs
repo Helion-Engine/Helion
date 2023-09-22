@@ -268,11 +268,11 @@ public class DoomMap : IMap
         {
             switch (lineCompatibility)
             {
-            case LineDeleteDefinition:
-                Fail("Line deletion compatibility type removed");
+            case LineDeleteDefinition deleteDefinition:
+                // Not supported due to using ZDBSP now.
                 break;
             case LineSplitDefinition:
-                Fail("Line split compatibility type removed");
+                // Not supported due to using ZDBSP now.
                 break;
             case LineSetDefinition setDefinition:
                 PerformLineSet(lines, sides, vertices, setDefinition);

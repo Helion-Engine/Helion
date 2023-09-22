@@ -164,10 +164,10 @@ public class HexenMap : IMap
             switch (lineCompatibility)
             {
             case LineDeleteDefinition:
-                Fail("Line deletion compatibility no longer supported");
+                // Not supported due to using ZDBSP now.
                 break;
             case LineSplitDefinition:
-                Fail("Line splitting compatibility no longer supported");
+                // Not supported due to using ZDBSP now.
                 break;
             case LineSetDefinition setDefinition:
                 PerformLineSet(lines, sides, vertices, setDefinition);
