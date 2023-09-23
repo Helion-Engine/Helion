@@ -6,6 +6,7 @@ using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -92,14 +93,17 @@ public class FloodFillRenderer : IDisposable
         float prevTopZ = vertices.PrevTopZ;
         float prevBottomZ = vertices.PrevBottomZ;
 
+        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(floodPlane.Sector, 
+            floodPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
+
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
 
         var vbo = floodInfo.Vertices.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
@@ -137,14 +141,17 @@ public class FloodFillRenderer : IDisposable
         var vbo = floodFillInfo.Vertices.Vbo;
         m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, vbo.Count));
 
+        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
+            sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
+
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), 
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z), 
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z), 
-            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ);
+            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z),
-            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ);
+            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         vbo.Add(topLeft);
         vbo.Add(bottomLeft);
         vbo.Add(topRight);
@@ -179,7 +186,7 @@ public class FloodFillRenderer : IDisposable
         for (int i = 0; i < VerticesPerWall; i++)
         {
             int index = bufferOffset + i;
-            vbo.Data.Data[index] = new(Vec3F.Zero, 0, 0, 0, float.MaxValue, float.MinValue);
+            vbo.Data.Data[index] = new(Vec3F.Zero, 0, 0, 0, float.MaxValue, float.MinValue, 0);
         }
         
         vbo.Bind();
@@ -189,15 +196,34 @@ public class FloodFillRenderer : IDisposable
     public void Render(RenderInfo renderInfo)
     {
         mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
-        
+        bool drawInvulnerability = false;
+        int extraLight = 0;
+        float mix = 0.0f;
+
+        if (renderInfo.ViewerEntity.PlayerObj != null)
+        {
+            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
+                mix = 1.0f;
+            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
+                drawInvulnerability = true;
+
+            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
+        }
+
         m_program.Bind();
         
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.SectorLightTexture(TextureUnit.Texture1);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
         m_program.Mvp(mvp);
         m_program.TimeFrac(renderInfo.TickFraction);
-        
+        m_program.HasInvulnerability(drawInvulnerability);
+        m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
+        m_program.TimeFrac(renderInfo.TickFraction);
+        m_program.LightLevelMix(mix);
+        m_program.ExtraLight(extraLight);
+
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {
             FloodFillInfo info = m_floodFillInfos[i];
