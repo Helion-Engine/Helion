@@ -1,78 +1,100 @@
 ﻿using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shader;
-using Microsoft.FSharp.Core;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
-public class FloodFillPlaneProgram : RenderProgram
+public class FloodFillProgram : RenderProgram
 {
-    private readonly int m_zLocation;
     private readonly int m_boundTextureLocation;
-    private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
+    private readonly int m_timeFracLocation;
+    private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_mvpNoPitchLocation;
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
-    private readonly int m_lightLevelFragLocation;
 
-    public FloodFillPlaneProgram() : base("Flood fill plane")
+    public FloodFillProgram() : base("Flood fill plane")
     {
-        m_zLocation = Uniforms.GetLocation("z");
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
-        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_timeFracLocation = Uniforms.GetLocation("timeFrac"); 
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
-        m_lightLevelFragLocation = Uniforms.GetLocation("lightLevelFrag");
     }
 
-    public void SetZ(float z) => Uniforms.Set(z, m_zLocation);
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, "sectorLightTexture");
+
+    public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
-    public void LightLevelFrag(float lightLevelFrag) => Uniforms.Set(lightLevelFrag, m_lightLevelFragLocation);
 
     protected override string VertexShader() => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec2 uv;
+        layout(location = 1) in float planeZ;
+        layout(location = 2) in float minViewZ;
+        layout(location = 3) in float maxViewZ;
+        layout(location = 4) in float prevZ;
+        layout(location = 5) in float prevPlaneZ;
+        layout(location = 6) in float lightLevelBufferIndex;
 
-        out vec2 uvFrag;
+        flat out float planeZFrag;
+        flat out float lightLevelFrag;
+        out vec3 vertexPosFrag;
         out float dist;
 
-        uniform float z;
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
+        uniform vec3 camera;
+        uniform float timeFrac;
+        uniform samplerBuffer sectorLightTexture;
 
-        void main() {
-            uvFrag = uv;
+        void main()
+        {
+            vec3 prevPos = vec3(pos.x, pos.y, prevZ);
+            planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
+            vertexPosFrag = mix(prevPos, pos, timeFrac);
             dist = (mvpNoPitch * vec4(pos, 1.0)).z;
 
-            gl_Position = mvp * vec4(pos.xy, z, 1.0);
+            int texBufferIndex = int(lightLevelBufferIndex);
+            float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
+            lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);
+
+            if (camera.z <= minViewZ || camera.z >= maxViewZ)
+                gl_Position = vec4(0, 0, 0, 1);
+            else
+                gl_Position = mvp * vec4(vertexPosFrag, 1.0); 
         }
     ";
 
     protected override string FragmentShader() => @"
         #version 330
 
-        in vec2 uvFrag;
+        flat in float planeZFrag;
+        flat in float lightLevelFrag;
+        in vec3 vertexPosFrag;
         in float dist;
 
         out vec4 fragColor;
 
-        uniform int hasInvulnerability;
         uniform sampler2D boundTexture;
+        uniform vec3 camera;
+
+        uniform int hasInvulnerability;
         uniform float lightLevelMix;
         uniform int extraLight;
-        // Forgive me...
-        uniform float lightLevelFrag;
 
         // Defined in GLHelper as well
         const int colorMaps = 32;
@@ -82,8 +104,24 @@ public class FloodFillPlaneProgram : RenderProgram
         const int maxLightScale = 23;
         const int lightFadeStart = 56;
 
-        void main() {
-            float lightLevel = clamp(lightLevelFrag, 0.0, 256.0);
+        vec2 calcPlaneUV()
+        {
+            vec3 planeNormal = vec3(0, 0, 1);
+            vec3 pointOnPlane = vec3(0, 0, planeZFrag);
+            vec3 lookDir = normalize(vertexPosFrag - camera);
+            float d = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
+            vec3 planePos = camera + (lookDir * d);
+            vec2 texDim = textureSize(boundTexture, 0);
+            return vec2(planePos.x / texDim.x, planePos.y / texDim.y);
+        }
+
+        void main()
+        {
+            vec2 uv = calcPlaneUV();
+            uv.y = -uv.y; // Vanilla textures are drawn top-down.
+            fragColor = texture(boundTexture, uv);
+
+            float lightLevel = lightLevelFrag;
             float d = clamp(dist - lightFadeStart, 0, dist);
             int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
             int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
@@ -92,8 +130,6 @@ public class FloodFillPlaneProgram : RenderProgram
             lightLevel = float(colorMaps - index) / colorMaps;
 
             lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-            fragColor = texture(boundTexture, uvFrag.st);
-
             fragColor.xyz *= lightLevel;
 
             // If invulnerable, grayscale everything and crank the brightness.

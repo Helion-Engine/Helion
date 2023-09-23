@@ -25,6 +25,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -85,7 +86,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
-        Portals = new(config, archiveCollection, glTextureManager);
+        Portals = new(archiveCollection, glTextureManager);
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
@@ -455,11 +456,29 @@ public class GeometryRenderer : IDisposable
             bool onFront = line.Segment.OnRight(pos2D);
             bool onBothSides = onFront != line.Segment.OnRight(prevPos2D);
 
+            if (line.Back != null)
+                CheckFloodFillLine(line.Front, line.Back);
+
             if (onFront || onBothSides)
                 RenderSectorSideWall(sector, line.Front, pos2D, prevPos2D, true);
-            if (line.Back != null && (!onFront || onBothSides))
+            // Need to force render for alernative flood fill from the back side.
+            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKey2 > 0 || line.Back.UpperFloodKey2 > 0))
                 RenderSectorSideWall(sector, line.Back, pos2D, prevPos2D, false);
         }
+    }
+
+    private void CheckFloodFillLine(Side facing, Side other)
+    {
+        const RenderChangeOptions options = RenderChangeOptions.None;
+        if (facing.IsDynamic && m_drawnSides[facing.Id] != m_world.CheckCounter &&
+            (other.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
+            facing.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(facing, other, other.Sector);
+
+        if (other.IsDynamic && m_drawnSides[other.Id] != m_world.CheckCounter &&
+            (facing.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
+            other.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(other, facing, facing.Sector);
     }
 
     private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
@@ -650,8 +669,7 @@ public class GeometryRenderer : IDisposable
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
-
-        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSector, otherSector))
+        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             (m_dynamic || facingSide.Middle.IsDynamic))
@@ -660,14 +678,16 @@ public class GeometryRenderer : IDisposable
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
-    public bool LowerIsVisible(Sector facingSector, Sector otherSector)
+    public bool LowerIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
-        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ;
+        return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ ||
+            facingSide.LowerFloodKey > 0;
     }
 
-    public bool UpperIsVisible(Sector facingSector, Sector otherSector)
+    public bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
-        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ;
+        return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ ||
+            facingSide.UpperFloodKey > 0;
     }
 
     public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
@@ -715,6 +735,14 @@ public class GeometryRenderer : IDisposable
         Wall lowerWall = facingSide.Lower;
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
+
+        if (facingSide.LowerFloodKey > 0 || facingSide.LowerFloodKey2 > 0)
+        {
+            verticies = null;
+            skyVerticies = null;
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower);
+            return;
+        }
 
         if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
         {
@@ -788,6 +816,15 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
+        if (facingSide.UpperFloodKey > 0 || facingSide.UpperFloodKey2 > 0)
+        {
+            verticies = null;
+            skyVerticies = null;
+            skyVerticies2 = null;
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper);
+            return;
+        }
+
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
             upperWall.TextureHandle == Constants.NoTextureIndex)
         {
@@ -836,7 +873,8 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || !UpperIsVisible(facingSector, otherSector))
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || 
+                !UpperIsVisible(facingSide, otherSide, facingSector, otherSector))
             {
                 verticies = null;
                 skyVerticies = null;

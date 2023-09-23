@@ -16,7 +16,6 @@ namespace Helion.Render.OpenGL.Buffer;
 /// packed.</typeparam>
 public abstract class BufferObject<T> : IDisposable where T : struct
 {
-
     public const int DefaultCapacity = 128;
     public static readonly int BytesPerElement = Marshal.SizeOf<T>();
 
@@ -37,9 +36,9 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public bool NeedsUpload => !Uploaded && Count > 0;
     public int TotalBytes => Count * BytesPerElement;
 
-    protected BufferObject(string label, int capcity = DefaultCapacity)
+    protected BufferObject(string label, int capacity = DefaultCapacity)
     {
-        Data = new DynamicArray<T>(capcity);
+        Data = new DynamicArray<T>(capacity);
         Label = label;
         BufferId = GL.GenBuffer();
         m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);

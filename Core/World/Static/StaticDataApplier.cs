@@ -90,22 +90,26 @@ public class StaticDataApplier
         }
     }
 
-    private static void CheckFloodFill(WorldBase world, Line line)
+    public static void CheckFloodFill(IWorld world, Line line)
     {
         if (line.Back == null)
             return;
 
-        CheckFloodFillSide(world, line.Front, line.Back);
-        CheckFloodFillSide(world, line.Back, line.Front);
+        SetFloodFillSide(world, line.Front, line.Back);
+        SetFloodFillSide(world, line.Back, line.Front);
     }
 
-    private static void CheckFloodFillSide(WorldBase world, Side facingSide, Side otherSide)
+    public static void SetFloodFillSide(IWorld world, Side facingSide, Side otherSide)
     {
         if (facingSide.Lower.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Floor.Z < otherSide.Sector.Floor.Z)
             facingSide.FloodTextures |= SideTexture.Lower;
+        else
+            facingSide.FloodTextures &= ~SideTexture.Lower;
 
         if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z)
             facingSide.FloodTextures |= SideTexture.Upper;
+        else
+            facingSide.FloodTextures &= ~SideTexture.Upper;
     }
 
     public static void SetSectorsDynamic(WorldBase world, IEnumerable<Sector> sectors, bool floor, bool ceiling, SectorDynamic sectorDynamic,
