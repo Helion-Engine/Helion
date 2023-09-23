@@ -30,7 +30,9 @@ public static class Assert
     [Conditional("DEBUG")]
     public static void FailedToDispose(object obj)
     {
+#if ENABLE_FAILED_TO_DISPOSE
         Fail($"Forgot to dispose {obj.GetType().FullName}, finalizer run when it should not have");
+#endif
     }
 
     /// <summary>

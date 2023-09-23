@@ -1,4 +1,4 @@
-using Helion.Bsp.Geometry;
+using Helion.Maps.Bsp.Geometry;
 using Helion.Maps.Shared;
 
 namespace Helion.Maps.Components;

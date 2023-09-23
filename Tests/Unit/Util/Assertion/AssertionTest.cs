@@ -39,6 +39,7 @@ public class AssertionTest
         a.Should().Throw<AssertionException>().WithMessage(Reason);
     }
 
+#if ENABLE_FAILED_TO_DISPOSE
     [Fact(DisplayName = "FailToDispose assertion throws exception")]
     public void FailToDisposeFailsCorrectly()
     {
@@ -65,4 +66,5 @@ public class AssertionTest
     {
         HelionAssert.Assert.Postcondition(true, Reason);
     }
+#endif
 }

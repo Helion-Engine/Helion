@@ -27,7 +27,6 @@ using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Bytes;
-using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
@@ -161,7 +160,7 @@ public class ArchiveCollection : IResources
                 // confusing to the user in the case where they ask for the
                 // most recent map which is corrupt, but then get some
                 // earlier map in the pack which is not corrupt.
-                map = MapReader.Read(archive, mapEntryCollection, compat);
+                map = IMap.Read(archive, mapEntryCollection, compat);
                 if (map != null)
                 {
                     m_lastLoadedMapIsTemp = false;
@@ -211,7 +210,7 @@ public class ArchiveCollection : IResources
 
         var mapEntryCollection = mapIterator.First();
         CompatibilityMapDefinition? compat = Definitions.Compatibility.Find(mapArchive, mapName);
-        map = MapReader.Read(mapArchive, mapEntryCollection, compat);
+        map = IMap.Read(mapArchive, mapEntryCollection, compat);
         mapArchive.Dispose();
         return map != null;
     }

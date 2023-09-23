@@ -1,4 +1,3 @@
-using Helion.Bsp.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -14,6 +13,7 @@ using Helion.World.Special.Switches;
 using Helion.Resources;
 using Helion.World.Bsp;
 using System.Linq;
+using Helion.Maps.Bsp.Geometry;
 using Helion.World.Geometry.Islands;
 using Helion.Maps.Components.GL;
 using Helion.World.Blockmap;

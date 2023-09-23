@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Helion.Bsp;
 using Helion.Geometry.Segments;
+using Helion.Maps.Bsp;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen;
 using Helion.Maps.Hexen.Components;

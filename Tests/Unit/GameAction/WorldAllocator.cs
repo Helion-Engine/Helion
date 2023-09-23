@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Helion.Audio.Impl;
-using Helion.Bsp.Zdbsp;
 using Helion.Layer.Worlds;
 using Helion.Maps.Shared;
 using Helion.Models;
@@ -20,6 +19,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
+using Helion.Maps.Bsp.Zdbsp;
 
 namespace Helion.Tests.Unit.GameAction
 {
