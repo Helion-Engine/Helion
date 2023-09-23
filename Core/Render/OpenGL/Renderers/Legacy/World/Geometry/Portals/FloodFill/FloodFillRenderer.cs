@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
@@ -23,8 +24,8 @@ public class FloodFillRenderer : IDisposable
     private readonly FloodFillProgram m_program = new();
     private readonly List<FloodFillInfo> m_floodFillInfos = new();
     private readonly Dictionary<int, int> m_textureHandleToFloodFillInfoIndex = new();
-    private readonly Dictionary<int, (int TextureHandle, int VboOffset)> m_uniqueKeyToLookupData = new();
-    private int m_uniqueKey = 1; // Zero means "no handle" which the callers use to tell they don't have a handle.
+    private readonly DynamicArray<FloodGeometry> m_floodGeometry = new();
+    private readonly List<FloodGeometry> m_freeData = new();
     private bool m_disposed;
 
     public FloodFillRenderer(LegacyGLTextureManager textureManager)
@@ -49,7 +50,7 @@ public class FloodFillRenderer : IDisposable
         return new(plane.TextureHandle, plane.Z, vertices);
     }
     
-    private FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
+    private unsafe FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
     {
         if (m_textureHandleToFloodFillInfoIndex.TryGetValue(plane.TextureHandle, out int index)) 
             return m_floodFillInfos[index];
@@ -60,9 +61,21 @@ public class FloodFillRenderer : IDisposable
         return floodInfo;
     }
 
+    private bool TryGetFloodGeometry(int floodKey, out FloodGeometry geometry)
+    {
+        floodKey--;
+        if (floodKey < 0 || floodKey >= m_floodGeometry.Length)
+        {
+            geometry = default;
+            return false;
+        }
+        geometry = m_floodGeometry[floodKey];
+        return true;
+    }
+
     public void UpdateStaticWall(int floodKey, SectorPlane floodPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
-    {        
-        if (!m_uniqueKeyToLookupData.TryGetValue(floodKey, out (int TexHandle, int BufferOffset) data))
+    {
+        if (!TryGetFloodGeometry(floodKey, out var data))
             return;
 
         if (!m_textureHandleToFloodFillInfoIndex.TryGetValue(floodPlane.TextureHandle, out int index))
@@ -89,15 +102,15 @@ public class FloodFillRenderer : IDisposable
             prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ);
 
         var vbo = floodInfo.Vertices.Vbo;
-        vbo.Data[data.BufferOffset] = topLeft;
-        vbo.Data[data.BufferOffset + 1] = bottomLeft;
-        vbo.Data[data.BufferOffset + 2] = topRight;
-        vbo.Data[data.BufferOffset + 3] = topRight;
-        vbo.Data[data.BufferOffset + 4] = bottomLeft;
-        vbo.Data[data.BufferOffset + 5] = bottomRight;
+        vbo.Data[data.VboOffset] = topLeft;
+        vbo.Data[data.VboOffset + 1] = bottomLeft;
+        vbo.Data[data.VboOffset + 2] = topRight;
+        vbo.Data[data.VboOffset + 3] = topRight;
+        vbo.Data[data.VboOffset + 4] = bottomLeft;
+        vbo.Data[data.VboOffset + 5] = bottomRight;
 
         vbo.Bind();
-        vbo.UploadSubData(data.BufferOffset, VerticesPerWall);
+        vbo.UploadSubData(data.VboOffset, VerticesPerWall);
     }
     
     public int AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
@@ -108,9 +121,21 @@ public class FloodFillRenderer : IDisposable
         float prevPlaneZ = (float)sectorPlane.PrevZ;
         FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
 
-        int newKey = m_uniqueKey++;
+        for (int i = 0; i < m_freeData.Count; i++)
+        {
+            if (m_freeData[i].TextureHandle != sectorPlane.TextureHandle)
+                continue;
+
+            int key = m_freeData[i].Key;
+            m_freeData.RemoveAt(i);
+            UpdateStaticWall(key, sectorPlane, vertices, minPlaneZ, maxPlaneZ);
+            return key;
+        }
+
+        // Zero means "no handle" which the callers use to tell they don't have a handle.
+        int newKey = m_floodGeometry.Length + 1;
         var vbo = floodFillInfo.Vertices.Vbo;
-        m_uniqueKeyToLookupData[newKey] = (floodFillInfo.TextureHandle, vbo.Count);
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, vbo.Count));
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), 
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ);
@@ -130,17 +155,18 @@ public class FloodFillRenderer : IDisposable
         return newKey;
     }
 
-    public void ClearStaticWall(int uniqueKey)
+    public void ClearStaticWall(int floodKey)
     {
-        if (m_uniqueKeyToLookupData.TryGetValue(uniqueKey, out (int TexHandle, int BufferOffset) data))
+        if (TryGetFloodGeometry(floodKey, out var data))
         {
-            int listIndex = m_textureHandleToFloodFillInfoIndex[data.TexHandle];
+            int listIndex = m_textureHandleToFloodFillInfoIndex[data.TextureHandle];
             FloodFillInfo info = m_floodFillInfos[listIndex];
-            OverwriteAndSubUploadVboWithZero(info.Vertices.Vbo, data.BufferOffset);
+            OverwriteAndSubUploadVboWithZero(info.Vertices.Vbo, data.VboOffset);
             // Note: We do not delete it because we don't want to track
             // having to compact, re-upload, shuffle things around, etc.
             // This is not ideal since it is a bit wasteful for memory,
             // but the negligible gains are not worth the complexity.
+            m_freeData.Add(data);
         }
         else
         {
@@ -193,7 +219,7 @@ public class FloodFillRenderer : IDisposable
             info.Dispose();
         m_floodFillInfos.Clear();
         m_textureHandleToFloodFillInfoIndex.Clear();
-        m_uniqueKeyToLookupData.Clear();
+        m_floodGeometry.Clear();
     }
     
     protected void Dispose(bool disposing)

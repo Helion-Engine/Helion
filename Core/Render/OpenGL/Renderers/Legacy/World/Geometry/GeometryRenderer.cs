@@ -649,6 +649,9 @@ public class GeometryRenderer : IDisposable
         Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
 
+        if (facingSide.IsDynamic)
+            m_staticCacheGeometryRenderer.CheckForFloodFill(facingSide, otherSide, otherSector);
+
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
         if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
@@ -798,7 +801,7 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
-        if (facingSide.LowerFloodKey > 0 || facingSide.LowerFloodKey2 > 0)
+        if (facingSide.UpperFloodKey > 0 || facingSide.UpperFloodKey2 > 0)
         {
             verticies = null;
             skyVerticies = null;

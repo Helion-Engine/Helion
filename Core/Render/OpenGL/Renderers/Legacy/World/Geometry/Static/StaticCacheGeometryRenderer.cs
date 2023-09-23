@@ -174,6 +174,52 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
     }
 
+    public void CheckForFloodFill(Side facingSide, Side otherSide, Sector otherSector)
+    {
+        SideTexture previous = facingSide.FloodTextures;
+        StaticDataApplier.SetFloodFillSide(m_world, facingSide, otherSide);
+        if (previous == facingSide.FloodTextures)
+            return;
+
+        if ((previous & SideTexture.Lower) == 0)
+        {
+            if ((facingSide.FloodTextures & SideTexture.Lower) != 0 && facingSide.LowerFloodKey == 0)
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower);
+        }
+        else
+        {
+            if ((facingSide.FloodTextures & SideTexture.Lower) == 0 && facingSide.UpperFloodKey == 0)
+            {
+                if (facingSide.LowerFloodKey > 0)
+                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.LowerFloodKey);
+                if (facingSide.LowerFloodKey2 > 0)
+                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.LowerFloodKey2);
+
+                facingSide.LowerFloodKey = 0;
+                facingSide.LowerFloodKey2 = 0;
+            }
+        }
+
+        if ((previous & SideTexture.Upper) == 0 && facingSide.UpperFloodKey == 0)
+        {
+            if ((facingSide.FloodTextures & SideTexture.Upper) != 0)
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper);
+        }
+        else
+        {
+            if ((facingSide.FloodTextures & SideTexture.Upper) == 0)
+            {
+                if (facingSide.UpperFloodKey > 0)
+                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.UpperFloodKey);
+                if (facingSide.UpperFloodKey2 > 0)
+                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.UpperFloodKey2);
+
+                facingSide.UpperFloodKey = 0;
+                facingSide.UpperFloodKey2 = 0;
+            }
+        }
+    }
+
     public static int GetLightBufferIndex(Sector sector, LightBufferType type)
     {
         int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
@@ -312,7 +358,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
-                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Ceiling, SideTexture.Upper);
+                AddFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(side, facingSector, otherSector);
@@ -323,7 +369,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
-                AddFloodFillSide(side, otherSide, facingSector, otherSector, otherSector.Floor, SideTexture.Lower);
+                AddFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -333,8 +379,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddFloodFillSide(Side side, Side otherSide, Sector facingSector, Sector otherSector,
-        SectorPlane floodPlane, SideTexture texture)
+    private void AddFloodFillSide(Side side, Side otherSide, Sector otherSector, SideTexture texture)
     {
         if (!m_floodFill)
             return;
@@ -799,7 +844,16 @@ public class StaticCacheGeometryRenderer : IDisposable
         AddSectorPlane(plane.Sector, floor, true);
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
-            AddLine(plane.Sector.Lines[i], true);
+        {
+            var line = plane.Sector.Lines[i];
+            AddLine(line, true);
+
+            if (line.Back == null)
+                continue;
+
+            CheckForFloodFill(line.Front, line.Back, line.Back.Sector);
+            CheckForFloodFill(line.Back, line.Front, line.Front.Sector);
+        }
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)

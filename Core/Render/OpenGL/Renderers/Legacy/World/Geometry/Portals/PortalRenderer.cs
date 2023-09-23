@@ -42,6 +42,8 @@ public class PortalRenderer : IDisposable
         m_floodFillRenderer.UpdateTo(world);
     }
 
+    public void ClearStaticWall(int floodKey) =>
+        m_floodFillRenderer.ClearStaticWall(floodKey);
 
     public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture) =>
         HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, false);
