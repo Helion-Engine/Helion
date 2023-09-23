@@ -136,9 +136,13 @@ public class Sector
         return false;
     }
 
-    public bool CheckRenderingChanged() => CheckRenderingChanged(LastRenderGametick);
+    public enum RenderChangeOptions
+    {
+        None,
+        TransferHeightsOverride
+    }
 
-    public bool CheckRenderingChanged(int gametick)
+    public bool CheckRenderingChanged(int gametick, RenderChangeOptions options = RenderChangeOptions.TransferHeightsOverride)
     {
         if (Floor.LastRenderChangeGametick >= gametick - 1 || Floor.PrevZ != Floor.Z)
             return true;
@@ -146,7 +150,7 @@ public class Sector
         if (Ceiling.LastRenderChangeGametick >= gametick - 1 || Ceiling.PrevZ != Ceiling.Z)
             return true;
 
-        if (TransferHeights != null)
+        if (TransferHeights != null && (options & RenderChangeOptions.TransferHeightsOverride) != 0)
             return (TransferHeights.ControlSector.DataChanges & SectorDataTypes.FloorZ) != 0 || (TransferHeights.ControlSector.DataChanges & SectorDataTypes.CeilingZ) != 0;
 
         return false;

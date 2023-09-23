@@ -25,6 +25,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -455,12 +456,29 @@ public class GeometryRenderer : IDisposable
             bool onFront = line.Segment.OnRight(pos2D);
             bool onBothSides = onFront != line.Segment.OnRight(prevPos2D);
 
+            if (line.Back != null)
+                CheckFloodFillLine(line.Front, line.Back);
+
             if (onFront || onBothSides)
                 RenderSectorSideWall(sector, line.Front, pos2D, prevPos2D, true);
             // Need to force render for alernative flood fill from the back side.
             if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKey2 > 0 || line.Back.UpperFloodKey2 > 0))
                 RenderSectorSideWall(sector, line.Back, pos2D, prevPos2D, false);
         }
+    }
+
+    private void CheckFloodFillLine(Side facing, Side other)
+    {
+        const RenderChangeOptions options = RenderChangeOptions.None;
+        if (facing.IsDynamic && m_drawnSides[facing.Id] != m_world.CheckCounter &&
+            (other.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
+            facing.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(facing, other, other.Sector);
+
+        if (other.IsDynamic && m_drawnSides[other.Id] != m_world.CheckCounter &&
+            (facing.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
+            other.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(other, facing, facing.Sector);
     }
 
     private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
@@ -648,9 +666,6 @@ public class GeometryRenderer : IDisposable
         Side otherSide = facingSide.PartnerSide!;
         Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
         Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-
-        if (facingSide.IsDynamic)
-            m_staticCacheGeometryRenderer.CheckForFloodFill(facingSide, otherSide, otherSector);
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
