@@ -60,7 +60,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_staticMode;
     private bool m_disposed;
     private bool m_staticScroll;
-    private bool m_floodFill;
     private IWorld? m_world;
     private GLBufferTexture? m_lightBuffer;
     private int m_counter;
@@ -114,7 +113,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
         m_staticScroll = world.Config.Render.StaticScroll;
-        m_floodFill = world.Config.Render.FloodFill;
         
         SetSideDynamicIgnore();
 
@@ -358,7 +356,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
-                AddFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(side, facingSector, otherSector);
@@ -369,7 +367,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
-                AddFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -377,14 +375,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: false);
         }
-    }
-
-    private void AddFloodFillSide(Side side, Side otherSide, Sector otherSector, SideTexture texture)
-    {
-        if (!m_floodFill)
-            return;
-
-        m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, texture);
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
