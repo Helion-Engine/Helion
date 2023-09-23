@@ -220,6 +220,7 @@ public class FloodFillRenderer : IDisposable
         m_floodFillInfos.Clear();
         m_textureHandleToFloodFillInfoIndex.Clear();
         m_floodGeometry.Clear();
+        m_freeData.Clear();
     }
     
     protected void Dispose(bool disposing)
