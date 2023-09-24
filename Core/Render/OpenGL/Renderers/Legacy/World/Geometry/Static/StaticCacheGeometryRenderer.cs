@@ -412,21 +412,22 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices, index);
     }
 
-    private static StaticVertex[] ToStatic(LegacyVertex[] data)
+    private static void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
     {
-        StaticVertex[] newData = new StaticVertex[data.Length];
-        for (int i = 0; i < data.Length; i++)
+        for (int i = 0; i < vertices.Length; i++)
         {
-            newData[i].X = data[i].X;
-            newData[i].Y = data[i].Y;
-            newData[i].Z = data[i].Z;
-            newData[i].U = data[i].U;
-            newData[i].V = data[i].V;
-            newData[i].Alpha = data[i].Alpha;
-            newData[i].ClearAlpha = data[i].ClearAlpha;
-            newData[i].LightLevelBufferIndex = data[i].LightLevelBufferIndex;
+            var vertex = vertices[i];
+            staticVertices.Add(new StaticVertex(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, vertex.Alpha, vertex.ClearAlpha, vertex.LightLevelBufferIndex));
         }
-        return newData;
+    }
+
+    private static void CopyVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index)
+    {
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var vertex = vertices[i];
+            staticVertices[index + i] = new StaticVertex(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, vertex.Alpha, vertex.ClearAlpha, vertex.LightLevelBufferIndex);
+        }
     }
 
     private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible, bool repeatY)
@@ -443,7 +444,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         var vertices = GetTextureVertices(wall.TextureHandle, repeatY);
         SetSideData(wall, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
-        vertices.AddRange(ToStatic(sideVertices));
+        AddVertices(vertices, sideVertices);
     }
 
     private void SetSideData(Wall wall, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
@@ -556,7 +557,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.Static.GeometryDataLength = renderedVertices.Length;
         }
 
-        vertices.AddRange(ToStatic(renderedVertices));
+        AddVertices(vertices, renderedVertices);
     }
 
     public void Render()
@@ -940,7 +941,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        Array.Copy(ToStatic(vertices), 0, geometryData.Vbo.Data.Data, startIndex, vertices.Length);
+        CopyVertices(geometryData.Vbo.Data.Data, vertices, startIndex);
         geometryData.Vbo.Bind();
         geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
     }
@@ -963,7 +964,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_textureToGeometryLookup.TryGetValue(textureHandle, repeat, out GeometryData? data))
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-            data.Vbo.Add(ToStatic(vertices));
+            AddVertices(data.Vbo.Data, vertices);
             if (!m_runtimeGeometryTextures.Contains(textureHandle))
             {
                 m_runtimeGeometry.Add(data);
@@ -974,7 +975,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         AllocateGeometryData(textureHandle, repeat, out data);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-        data.Vbo.Add(ToStatic(vertices));
+        AddVertices(data.Vbo.Data, vertices);
         m_runtimeGeometry.Add(data);
     }
 
