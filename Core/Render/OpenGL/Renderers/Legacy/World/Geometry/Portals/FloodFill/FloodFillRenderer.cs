@@ -93,17 +93,14 @@ public class FloodFillRenderer : IDisposable
         float prevTopZ = vertices.PrevTopZ;
         float prevBottomZ = vertices.PrevBottomZ;
 
-        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(floodPlane.Sector, 
-            floodPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
-
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
 
         var vbo = floodInfo.Vertices.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
@@ -139,10 +136,10 @@ public class FloodFillRenderer : IDisposable
         // Zero means "no handle" which the callers use to tell they don't have a handle.
         int newKey = m_floodGeometry.Length + 1;
         var vbo = floodFillInfo.Vertices.Vbo;
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, vbo.Count));
 
         int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
             sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count));
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), 
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
