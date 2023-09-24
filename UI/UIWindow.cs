@@ -15,43 +15,40 @@ namespace Helion.UI;
 public class UIWindow : GameWindow
 {
     public Texture HelionTexture = null!;
+    public Texture BackgroundTexture = null!;
     private readonly IMap m_map;
-    private readonly int m_shaderType;
+    private readonly string m_backgroundPath;
     private IRenderPipeline m_pipeline = null!;
     
-    public UIWindow(string[] args) : base(GameWindowSettings.Default, new NativeWindowSettings { WindowState = WindowState.Fullscreen })
+    public UIWindow(string[] args) : 
+        base(GameWindowSettings.Default, new NativeWindowSettings { WindowState = WindowState.Fullscreen })
     {
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), new Config(), new DataCache());
-        if (!archiveCollection.Load(new[] { args[0] }, null, false))
-            throw new($"Cannot load {args[0]}");
+        if (!archiveCollection.Load(new[] { args[1] }, args[0]))
+            throw new($"Cannot load either {args[0]} or {args[1]}");
         
-        m_map = archiveCollection.FindMap(args[1]) ?? throw new($"Cannot find map {args[1]}");
+        m_map = archiveCollection.FindMap(args[2]) ?? throw new($"Cannot find map {args[1]}");
         
-        m_shaderType = int.Parse(args[2]);
+        m_backgroundPath = args[3];
     }
 
     protected override void OnLoad()
     {
         base.OnLoad();
 
-        LoadPipeline();
         LoadTextures();
+        LoadPipeline();
     }
 
     private void LoadTextures()
     {
         HelionTexture = new("Images/helion.png");
+        BackgroundTexture = new(m_backgroundPath);
     }
 
     private void LoadPipeline()
     {
-        m_pipeline = m_shaderType switch
-        {
-            1 => new GlowingMapPipeline(m_map),
-            2 => throw new("Shader type 2 not written yet"),
-            3 => throw new("Shader type 3 not written yet"),
-            _ => throw new($"Unexpected shader type index {m_shaderType}")
-        };
+        m_pipeline = new GlowingMapPipeline(this, m_map);
     }
 
     protected override void OnKeyDown(KeyboardKeyEventArgs e)
@@ -86,10 +83,8 @@ public class UIWindow : GameWindow
     {
         if (args.Length < 3)
         {
-            Console.Error.WriteLine("Usage: app.exe <wad> <map> <1-3>");
-            Console.Error.WriteLine("    The 1-3 argument is the shader demo to run");
-            Console.Error.WriteLine("    app.exe C:/DOOM.WAD E2M4 1");
-            Console.Error.WriteLine("    app.exe C:/something.wad MAP01 3");
+            Console.Error.WriteLine("Usage: app.exe <wad> <map> <background.png>");
+            Console.Error.WriteLine("    app.exe C:/DOOM.WAD E2M4 C:/background.png");
             Environment.Exit(1); 
         }
         
