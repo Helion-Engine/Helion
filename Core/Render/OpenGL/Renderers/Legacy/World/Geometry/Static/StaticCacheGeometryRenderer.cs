@@ -205,7 +205,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
         else
         {
-            if ((facingSide.FloodTextures & SideTexture.Upper) == 0)
+            if ((facingSide.FloodTextures & SideTexture.Upper) == 0 && facingSide.UpperFloodKey == 0)
             {
                 if (facingSide.UpperFloodKey > 0)
                     m_geometryRenderer.Portals.ClearStaticWall(facingSide.UpperFloodKey);
