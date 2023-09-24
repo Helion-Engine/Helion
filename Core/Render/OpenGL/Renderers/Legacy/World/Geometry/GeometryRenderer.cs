@@ -459,7 +459,8 @@ public class GeometryRenderer : IDisposable
             if (line.Back != null)
                 CheckFloodFillLine(line.Front, line.Back);
 
-            if (onFront || onBothSides)
+            // Need to force render for alernative flood fill from the front side.
+            if (onFront || onBothSides || line.Front.LowerFloodKey2 > 0 || line.Front.UpperFloodKey2 > 0)
                 RenderSectorSideWall(sector, line.Front, pos2D, prevPos2D, true);
             // Need to force render for alernative flood fill from the back side.
             if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKey2 > 0 || line.Back.UpperFloodKey2 > 0))
