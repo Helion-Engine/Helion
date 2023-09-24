@@ -3,8 +3,18 @@
 public static class LightLevel
 {
     public static string VertexVariables =
-@"flat out float lightLevelFrag;
+@"
+flat out float lightLevelFrag;
 out float dist;";
+
+    public static string VertexLightBufferVariables = "uniform samplerBuffer sectorLightTexture;";
+
+    public static string VertexLightBuffer(string addLightLevel) =>
+@"int texBufferIndex = int(lightLevelBufferIndex);
+float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
+lightLevelFrag = clamp(lightLevelBufferValue" + addLightLevel + ", 0.0, 256.0);";
+
+    public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).z;";
 
     public static string FragVariables =
 @"

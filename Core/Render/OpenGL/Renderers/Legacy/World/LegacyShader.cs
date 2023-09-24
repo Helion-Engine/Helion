@@ -44,11 +44,11 @@ public class LegacyShader : RenderProgram
         flat out float clearAlphaFrag;
 
         ${LightLevelVertexVariables}
+        ${VertexLightBufferVariables}
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform float timeFrac;
-        uniform samplerBuffer sectorLightTexture;
 
         void main() {
             uvFrag = uv;
@@ -57,16 +57,17 @@ public class LegacyShader : RenderProgram
             fuzzFrag = fuzz;
             clearAlphaFrag = clearAlpha;
 
-            int texBufferIndex = int(lightLevelBufferIndex);
-            float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-            lightLevelFrag = clamp(lightLevelBufferValue + lightLevel, 0.0, 256.0);
-
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
+            ${VertexLightBuffer}
+            ${LightLevelVertexDist}
+
             gl_Position = mvp * pos_;
-            dist = (mvpNoPitch * pos_).z;
         }
     "
-    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables);
+    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables)
+    .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(" + lightLevel"))
+    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("pos_"));
 
     protected override string FragmentShader() => @"
         #version 330

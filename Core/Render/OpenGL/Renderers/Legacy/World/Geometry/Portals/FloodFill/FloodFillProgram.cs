@@ -54,23 +54,21 @@ public class FloodFillProgram : RenderProgram
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
         ${LightLevelVertexVariables}
+        ${VertexLightBufferVariables}
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform vec3 camera;
         uniform float timeFrac;
-        uniform samplerBuffer sectorLightTexture;
 
         void main()
         {
             vec3 prevPos = vec3(pos.x, pos.y, prevZ);
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
             vertexPosFrag = mix(prevPos, pos, timeFrac);
-            dist = (mvpNoPitch * vec4(pos, 1.0)).z;
 
-            int texBufferIndex = int(lightLevelBufferIndex);
-            float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-            lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);
+            ${LightLevelVertexDist}
+            ${VertexLightBuffer}
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
@@ -78,7 +76,10 @@ public class FloodFillProgram : RenderProgram
                 gl_Position = mvp * vec4(vertexPosFrag, 1.0); 
         }
     "
-    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables);
+    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables)
+    .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(string.Empty))
+    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("vec4(pos, 1.0)"));
 
     protected override string FragmentShader() => @"
         #version 330
