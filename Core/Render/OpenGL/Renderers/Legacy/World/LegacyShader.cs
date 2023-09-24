@@ -38,7 +38,6 @@ public class LegacyShader : RenderProgram
         layout(location = 8) in float lightLevelBufferIndex;
 
         out vec2 uvFrag;
-        out vec2 prevUVFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float clearAlphaFrag;
@@ -50,29 +49,26 @@ public class LegacyShader : RenderProgram
         uniform float timeFrac;
 
         void main() {
-            uvFrag = uv;
-            prevUVFrag = prevUV;
+            uvFrag = mix(prevUV, uv, timeFrac);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
             clearAlphaFrag = clearAlpha;
-
-            vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
+            
+            vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
-
-            gl_Position = mvp * pos_;
+            gl_Position = mvp * mixPos;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables)
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(" + lightLevel"))
-    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("pos_"));
+    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
 
     protected override string FragmentShader() => @"
         #version 330
 
         in vec2 uvFrag;
-        in vec2 prevUVFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float clearAlphaFrag;
@@ -80,7 +76,6 @@ public class LegacyShader : RenderProgram
         out vec4 fragColor;
 
         uniform float fuzzFrac;
-        uniform float timeFrac;
         uniform sampler2D boundTexture;
 
         ${LightLevelFragVariables}
@@ -106,7 +101,7 @@ public class LegacyShader : RenderProgram
 
         void main() {
             ${LightLevelFragFunction}
-            fragColor = texture(boundTexture, prevUVFrag.st + (timeFrac * (uvFrag.st - prevUVFrag.st)));
+            fragColor = texture(boundTexture, uvFrag);
 
             if (fuzzFrag > 0) {
                 lightLevel = 0;
