@@ -51,6 +51,17 @@ public class FloodFillRenderer : IDisposable
         return new(plane.TextureHandle, plane.Z, vertices);
     }
 
+    private unsafe FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
+    {
+        if (m_textureHandleToFloodFillInfoIndex.TryGetValue(plane.TextureHandle, out int index))
+            return m_floodFillInfos[index];
+
+        FloodFillInfo floodInfo = CreateFloodFillInfo(plane);
+        m_textureHandleToFloodFillInfoIndex[plane.TextureHandle] = m_floodFillInfos.Count;
+        m_floodFillInfos.Add(floodInfo);
+        return floodInfo;
+    }
+
     private bool TryGetFloodGeometry(int floodKey, out FloodGeometry geometry)
     {
         floodKey--;
@@ -102,16 +113,14 @@ public class FloodFillRenderer : IDisposable
         vbo.Bind();
         vbo.UploadSubData(data.VboOffset, VerticesPerWall);
     }
-    
+
     public int AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
     {
         float minZ = (float)minPlaneZ;
         float maxZ = (float)maxPlaneZ;
         float planeZ = (float)sectorPlane.Z;
         float prevPlaneZ = (float)sectorPlane.PrevZ;
-        FloodFillInfo floodInfo = CreateFloodFillInfo(sectorPlane);
-        m_textureHandleToFloodFillInfoIndex[sectorPlane.TextureHandle] = m_floodFillInfos.Count;
-        m_floodFillInfos.Add(floodInfo);
+        FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
 
         for (int i = 0; i < m_freeData.Count; i++)
         {
@@ -126,17 +135,17 @@ public class FloodFillRenderer : IDisposable
 
         // Zero means "no handle" which the callers use to tell they don't have a handle.
         int newKey = m_floodGeometry.Length + 1;
-        var vbo = floodInfo.Vertices.Vbo;
+        var vbo = floodFillInfo.Vertices.Vbo;
 
         int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
             sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodInfo.TextureHandle, lightIndex, vbo.Count));
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count));
 
-        FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), 
+        FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-        FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z), 
+        FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-        FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z), 
+        FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z),
             vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z),
             vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
@@ -176,7 +185,7 @@ public class FloodFillRenderer : IDisposable
             int index = bufferOffset + i;
             vbo.Data.Data[index] = new(Vec3F.Zero, 0, 0, 0, float.MaxValue, float.MinValue, 0);
         }
-        
+
         vbo.Bind();
         vbo.UploadSubData(bufferOffset, VerticesPerWall);
     }
@@ -199,7 +208,7 @@ public class FloodFillRenderer : IDisposable
         }
 
         m_program.Bind();
-        
+
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.SectorLightTexture(TextureUnit.Texture1);
@@ -217,10 +226,10 @@ public class FloodFillRenderer : IDisposable
             FloodFillInfo info = m_floodFillInfos[i];
             if (info.Vertices.Vbo.Empty)
                 continue;
-            
+
             GLLegacyTexture texture = m_textureManager.GetTexture(info.TextureHandle);
             texture.Bind();
-            
+
             info.Vertices.Vbo.UploadIfNeeded();
             info.Vertices.Vao.Bind();
             info.Vertices.Vbo.DrawArrays();
@@ -236,14 +245,14 @@ public class FloodFillRenderer : IDisposable
         m_floodGeometry.Clear();
         m_freeData.Clear();
     }
-    
+
     protected void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
 
         DisposeAndClearData();
-        
+
         m_disposed = true;
     }
 
