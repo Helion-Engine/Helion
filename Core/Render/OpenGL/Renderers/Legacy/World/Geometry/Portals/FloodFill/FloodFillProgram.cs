@@ -57,7 +57,6 @@ public class FloodFillProgram : RenderProgram
         ${VertexLightBufferVariables}
 
         uniform mat4 mvp;
-        uniform mat4 mvpNoPitch;
         uniform vec3 camera;
         uniform float timeFrac;
 

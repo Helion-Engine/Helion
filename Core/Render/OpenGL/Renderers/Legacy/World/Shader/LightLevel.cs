@@ -5,7 +5,8 @@ public static class LightLevel
     public static string VertexVariables =
 @"
 flat out float lightLevelFrag;
-out float dist;";
+out float dist;
+uniform mat4 mvpNoPitch;";
 
     public static string VertexLightBufferVariables = "uniform samplerBuffer sectorLightTexture;";
 

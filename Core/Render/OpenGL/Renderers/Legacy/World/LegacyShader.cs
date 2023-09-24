@@ -47,7 +47,6 @@ public class LegacyShader : RenderProgram
         ${VertexLightBufferVariables}
 
         uniform mat4 mvp;
-        uniform mat4 mvpNoPitch;
         uniform float timeFrac;
 
         void main() {
