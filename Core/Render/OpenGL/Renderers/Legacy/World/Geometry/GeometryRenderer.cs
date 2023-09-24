@@ -300,46 +300,46 @@ public class GeometryRenderer : IDisposable
         m_ceilingChanged = set;
     }
 
-    public static void UpdateOffsetVertices(LegacyVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
+    public static void UpdateOffsetVertices(StaticVertex[] vertices, int index, GLLegacyTexture glTexture, Side side, SideTexture texture)
     {
         GetSideUV(glTexture, side, texture, out WallUV uv, out WallUV prevUV);
         //TopLeft
         vertices[index].U = uv.TopLeft.X;
         vertices[index].V = uv.TopLeft.Y;
-        vertices[index].PrevU = prevUV.TopLeft.X;
-        vertices[index].PrevV = prevUV.TopLeft.Y;
+        //vertices[index].PrevU = prevUV.TopLeft.X;
+        //vertices[index].PrevV = prevUV.TopLeft.Y;
         //BottomLeft
         vertices[index + 1].U = uv.TopLeft.X;
         vertices[index + 1].V = uv.BottomRight.Y;
-        vertices[index + 1].PrevU = prevUV.TopLeft.X;
-        vertices[index + 1].PrevV = prevUV.BottomRight.Y;
+        //vertices[index + 1].PrevU = prevUV.TopLeft.X;
+        //vertices[index + 1].PrevV = prevUV.BottomRight.Y;
         //TopRight
         vertices[index + 2].U = uv.BottomRight.X;
         vertices[index + 2].V = uv.TopLeft.Y;
-        vertices[index + 2].PrevU = prevUV.BottomRight.X;
-        vertices[index + 2].PrevV = prevUV.TopLeft.Y;
+        //vertices[index + 2].PrevU = prevUV.BottomRight.X;
+        //vertices[index + 2].PrevV = prevUV.TopLeft.Y;
         //TopRight
         vertices[index + 3].U = uv.BottomRight.X;
         vertices[index + 3].V = uv.TopLeft.Y;
-        vertices[index + 3].PrevU = prevUV.BottomRight.X;
-        vertices[index + 3].PrevV = prevUV.TopLeft.Y;
+        //vertices[index + 3].PrevU = prevUV.BottomRight.X;
+        //vertices[index + 3].PrevV = prevUV.TopLeft.Y;
         //BottomLeft
         vertices[index + 4].U = uv.TopLeft.X;
         vertices[index + 4].V = uv.BottomRight.Y;
-        vertices[index + 4].PrevU = prevUV.TopLeft.X;
-        vertices[index + 4].PrevV = prevUV.BottomRight.Y;
+        //vertices[index + 4].PrevU = prevUV.TopLeft.X;
+        //vertices[index + 4].PrevV = prevUV.BottomRight.Y;
         //BottomRight
         vertices[index + 5].U = uv.BottomRight.X;
         vertices[index + 5].V = uv.BottomRight.Y;
-        vertices[index + 5].PrevU = prevUV.BottomRight.X;
-        vertices[index + 5].PrevV = prevUV.BottomRight.Y;
+        //vertices[index + 5].PrevU = prevUV.BottomRight.X;
+        //vertices[index + 5].PrevV = prevUV.BottomRight.Y;
     }
 
-    public static unsafe void UpdatePlaneOffsetVertices(LegacyVertex[] vertices, int index, int length, GLLegacyTexture glTexture, SectorPlane sectorPlane)
+    public static unsafe void UpdatePlaneOffsetVertices(StaticVertex[] vertices, int index, int length, GLLegacyTexture glTexture, SectorPlane sectorPlane)
     {
         for (int i = 0; i < length; i++)
         {
-            fixed(LegacyVertex* vertex = &vertices[index + i])
+            fixed(StaticVertex* vertex = &vertices[index + i])
             {
                 Vec2D vec2d = new(vertex->X, vertex->Y);
                 Vec2F uv = WorldTriangulator.CalculateFlatUV(sectorPlane.SectorScrollData, vec2d, glTexture.Dimension, previous: false);
@@ -347,8 +347,8 @@ public class GeometryRenderer : IDisposable
 
                 vertex->U = uv.X;
                 vertex->V = uv.Y;
-                vertex->PrevU = prevUV.X;
-                vertex->PrevV = prevUV.Y;
+                //vertex->PrevU = prevUV.X;
+                //vertex->PrevV = prevUV.Y;
             }
         }
     }
