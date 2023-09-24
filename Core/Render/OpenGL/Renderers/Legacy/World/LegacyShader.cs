@@ -114,6 +114,8 @@ public class LegacyShader : RenderProgram
             fragColor.xyz *= lightLevel;
             fragColor.w *= alphaFrag;
 
+            // This is set by textures that might have alpha pixels and are set to a wall that would allow the player to see through them
+            // Doom would render these pixels black. E.g. set a one-sided wall to texture MIDSPACE
             if (clearAlphaFrag > 0)
                 fragColor.w = 1;
 
