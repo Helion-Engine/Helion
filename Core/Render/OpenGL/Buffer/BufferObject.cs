@@ -36,6 +36,8 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public bool NeedsUpload => !Uploaded && Count > 0;
     public int TotalBytes => Count * BytesPerElement;
 
+    public void SetNotUploaded() => Uploaded = false;
+
     protected BufferObject(string label, int capacity = DefaultCapacity)
     {
         Data = new DynamicArray<T>(capacity);

@@ -24,6 +24,7 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
+using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -412,21 +413,29 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices, index);
     }
 
-    private static void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
+    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
     {
-        for (int i = 0; i < vertices.Length; i++)
+        fixed(LegacyVertex* startVertex = &vertices[0])
         {
-            var vertex = vertices[i];
-            staticVertices.Add(new StaticVertex(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, vertex.Alpha, vertex.ClearAlpha, vertex.LightLevelBufferIndex));
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                LegacyVertex* v = startVertex + i;
+                staticVertices.Add(new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
+                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex));
+            }
         }
     }
 
-    private static void CopyVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index)
+    private static unsafe void CopyVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index)
     {
-        for (int i = 0; i < vertices.Length; i++)
+        fixed (LegacyVertex* startVertex = &vertices[0])
         {
-            var vertex = vertices[i];
-            staticVertices[index + i] = new StaticVertex(vertex.X, vertex.Y, vertex.Z, vertex.U, vertex.V, vertex.Alpha, vertex.ClearAlpha, vertex.LightLevelBufferIndex);
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                LegacyVertex* v = startVertex + i;
+                staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
+                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex);
+            }
         }
     }
 
@@ -965,6 +974,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
             AddVertices(data.Vbo.Data, vertices);
+            // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
+            data.Vbo.SetNotUploaded();
             if (!m_runtimeGeometryTextures.Contains(textureHandle))
             {
                 m_runtimeGeometry.Add(data);
@@ -976,6 +987,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         AllocateGeometryData(textureHandle, repeat, out data);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
         AddVertices(data.Vbo.Data, vertices);
+        data.Vbo.SetNotUploaded();
         m_runtimeGeometry.Add(data);
     }
 
