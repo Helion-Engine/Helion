@@ -79,7 +79,7 @@ public class GeometryRenderer : IDisposable
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
+        RenderProgram program, RenderProgram staticProgram, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
         m_program = program;
@@ -90,7 +90,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
         m_viewSector = Sector.CreateDefault();
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, m_program, this);
+        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, staticProgram, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {

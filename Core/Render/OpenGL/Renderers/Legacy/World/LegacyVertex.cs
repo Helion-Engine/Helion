@@ -10,11 +10,6 @@ public struct LegacyVertex
     public float X;
     public float Y;
     public float Z;
-    
-    [VertexAttribute("prevPos", size: 3)]
-    public float PrevX;
-    public float PrevY;
-    public float PrevZ;
 
     [VertexAttribute("uv", size: 2)]
     public float U;
@@ -27,17 +22,22 @@ public struct LegacyVertex
     public float Alpha;
 
     [VertexAttribute]
-    public float Fuzz;
+    public float ClearAlpha;
+    
+    [VertexAttribute]
+    public float LightLevelBufferIndex;
+
+    [VertexAttribute("prevPos", size: 3)]
+    public float PrevX;
+    public float PrevY;
+    public float PrevZ;
 
     [VertexAttribute("prevUV", size: 2)]
     public float PrevU;
     public float PrevV;
 
     [VertexAttribute]
-    public float ClearAlpha;
-    
-    [VertexAttribute]
-    public float LightLevelBufferIndex;
+    public float Fuzz;
 
     public LegacyVertex(float x, float y, float z, float prevX, float prevY, float prevZ, float u, float v, 
         short lightLevelAdd = 0, float alpha = 1.0f, float fuzz = 0.0f, float clearAlpha = 0.0f,

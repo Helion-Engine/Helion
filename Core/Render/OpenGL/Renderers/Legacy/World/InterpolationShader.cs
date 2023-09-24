@@ -7,9 +7,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-public class LegacyShader : RenderProgram
+public class InterpolationShader : RenderProgram
 {
-    public LegacyShader() : base("World")
+    public InterpolationShader() : base("World")
     {
     }
 
@@ -28,14 +28,14 @@ public class LegacyShader : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec3 prevPos;
-        layout(location = 2) in vec2 uv;
-        layout(location = 3) in float lightLevel;
-        layout(location = 4) in float alpha;
-        layout(location = 5) in float fuzz;
-        layout(location = 6) in vec2 prevUV;
-        layout(location = 7) in float clearAlpha;
-        layout(location = 8) in float lightLevelBufferIndex;
+        layout(location = 1) in vec2 uv;
+        layout(location = 2) in float lightLevel;
+        layout(location = 3) in float alpha;
+        layout(location = 4) in float clearAlpha;
+        layout(location = 5) in float lightLevelBufferIndex;
+        layout(location = 6) in vec3 prevPos;
+        layout(location = 7) in vec2 prevUV;
+        layout(location = 8) in float fuzz;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -112,12 +112,9 @@ public class LegacyShader : RenderProgram
             }
 
             fragColor.xyz *= lightLevel;
-            fragColor.w *= alphaFrag;
-
             // This is set by textures that might have alpha pixels and are set to a wall that would allow the player to see through them
             // Doom would render these pixels black. E.g. set a one-sided wall to texture MIDSPACE
-            if (clearAlphaFrag > 0)
-                fragColor.w = 1;
+            fragColor.w = fragColor.w * alphaFrag + clearAlphaFrag;
 
             if (fragColor.w <= 0.0)
                 discard;
