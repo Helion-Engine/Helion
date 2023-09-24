@@ -1,5 +1,6 @@
 using GlmSharp;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
@@ -38,12 +39,11 @@ public class LegacyShader : RenderProgram
 
         out vec2 uvFrag;
         out vec2 prevUVFrag;
-        flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float clearAlphaFrag;
-        flat out float lightLevelBufferValueFrag;
-        out float dist;
+
+        ${LightLevelVertexVariables}
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -58,34 +58,32 @@ public class LegacyShader : RenderProgram
             clearAlphaFrag = clearAlpha;
 
             int texBufferIndex = int(lightLevelBufferIndex);
-            lightLevelBufferValueFrag = texelFetch(sectorLightTexture, texBufferIndex).r;
-            lightLevelFrag = clamp(lightLevelBufferValueFrag + lightLevel, 0.0, 256.0);
+            float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
+            lightLevelFrag = clamp(lightLevelBufferValue + lightLevel, 0.0, 256.0);
 
             vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
             gl_Position = mvp * pos_;
             dist = (mvpNoPitch * pos_).z;
         }
-    ";
+    "
+    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables);
 
     protected override string FragmentShader() => @"
         #version 330
 
         in vec2 uvFrag;
         in vec2 prevUVFrag;
-        flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float clearAlphaFrag;
-        in float dist;
 
         out vec4 fragColor;
 
-        uniform int hasInvulnerability;
         uniform float fuzzFrac;
         uniform float timeFrac;
         uniform sampler2D boundTexture;
-        uniform float lightLevelMix;
-        uniform int extraLight;
+
+        ${LightLevelFragVariables}
 
         // These two functions are found here:
         // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -103,26 +101,11 @@ public class LegacyShader : RenderProgram
 	            mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x), u.y);
             return res * res;
         }
-
-        // Defined in GLHelper as well
-        const int colorMaps = 32;
-        const int colorMapClamp = 31;
-        const int scaleCount = 16;
-        const int scaleCountClamp = 15;
-        const int maxLightScale = 23;
-        const int lightFadeStart = 56;
+        
+        ${LightLevelConstants}
 
         void main() {
-            float lightLevel = lightLevelFrag;
-            float d = clamp(dist - lightFadeStart, 0, dist);
-            int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
-            int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
-            sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-            index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
-            lightLevel = float(colorMaps - index) / colorMaps;
-
-            lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-            //vec4 pos_ = vec4(prevPos + (timeFrac * (pos - prevPos)), 1.0);
+            ${LightLevelFragFunction}
             fragColor = texture(boundTexture, prevUVFrag.st + (timeFrac * (uvFrag.st - prevUVFrag.st)));
 
             if (fuzzFrag > 0) {
@@ -151,5 +134,8 @@ public class LegacyShader : RenderProgram
                 fragColor.xyz = vec3(maxColor, maxColor, maxColor);
             }
         }
-    ";
+    "
+    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+    .Replace("${LightLevelConstants}", LightLevel.Constants)
+    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables);
 }
