@@ -50,17 +50,6 @@ public class FloodFillRenderer : IDisposable
         RenderableStaticVertices<FloodFillVertex> vertices = new(label, m_program.Attributes);
         return new(plane.TextureHandle, plane.Z, vertices);
     }
-    
-    private unsafe FloodFillInfo GetOrCreateFloodFillInfo(SectorPlane plane)
-    {
-        if (m_textureHandleToFloodFillInfoIndex.TryGetValue(plane.TextureHandle, out int index)) 
-            return m_floodFillInfos[index];
-        
-        FloodFillInfo floodInfo = CreateFloodFillInfo(plane);
-        m_textureHandleToFloodFillInfoIndex[plane.TextureHandle] = m_floodFillInfos.Count;
-        m_floodFillInfos.Add(floodInfo);
-        return floodInfo;
-    }
 
     private bool TryGetFloodGeometry(int floodKey, out FloodGeometry geometry)
     {
@@ -79,7 +68,7 @@ public class FloodFillRenderer : IDisposable
         if (!TryGetFloodGeometry(floodKey, out var data))
             return;
 
-        if (!m_textureHandleToFloodFillInfoIndex.TryGetValue(floodPlane.TextureHandle, out int index))
+        if (!m_textureHandleToFloodFillInfoIndex.TryGetValue(data.TextureHandle, out int index))
             return;
 
         FloodFillInfo floodInfo = m_floodFillInfos[index];
@@ -120,7 +109,9 @@ public class FloodFillRenderer : IDisposable
         float maxZ = (float)maxPlaneZ;
         float planeZ = (float)sectorPlane.Z;
         float prevPlaneZ = (float)sectorPlane.PrevZ;
-        FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
+        FloodFillInfo floodInfo = CreateFloodFillInfo(sectorPlane);
+        m_textureHandleToFloodFillInfoIndex[sectorPlane.TextureHandle] = m_floodFillInfos.Count;
+        m_floodFillInfos.Add(floodInfo);
 
         for (int i = 0; i < m_freeData.Count; i++)
         {
@@ -135,11 +126,11 @@ public class FloodFillRenderer : IDisposable
 
         // Zero means "no handle" which the callers use to tell they don't have a handle.
         int newKey = m_floodGeometry.Length + 1;
-        var vbo = floodFillInfo.Vertices.Vbo;
+        var vbo = floodInfo.Vertices.Vbo;
 
         int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
             sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count));
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodInfo.TextureHandle, lightIndex, vbo.Count));
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z), 
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
