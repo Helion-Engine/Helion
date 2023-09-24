@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows7.0</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFramework>net7.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
     <RootNamespace>Helion.Client</RootNamespace>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>

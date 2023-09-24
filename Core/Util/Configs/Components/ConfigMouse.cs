@@ -17,9 +17,6 @@ public class ConfigMouse
     [ConfigInfo("A scaling divisor that allows other sensitivities to be reasonable values.")]
     public readonly ConfigValue<double> PixelDivisor = new(1024.0, Greater(0.0));
 
-    [ConfigInfo("If the mouse should use raw input.")]
-    public readonly ConfigValue<bool> RawInput = new(true);
-
     [ConfigInfo("A scale for both the pitch and yaw, meaning this affects both axes.")]
     public readonly ConfigValue<double> Sensitivity = new(1.0);
 

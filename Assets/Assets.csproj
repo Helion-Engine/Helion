@@ -127,8 +127,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Client/bin/$(ConfigurationName)/net6.0-windows7.0/assets.pk3"
-powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Tests/bin/$(ConfigurationName)/net6.0/assets.pk3"
+    <PostBuildEvent>powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Client/bin/$(ConfigurationName)/net7.0/assets.pk3"
+powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Scripts/ZipAssets.ps1" "$(ProjectDir)Assets/*" "$(SolutionDir)/Tests/bin/$(ConfigurationName)/net7.0/assets.pk3"
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

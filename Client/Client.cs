@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -28,6 +27,7 @@ using Helion.World.Save;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -43,7 +43,6 @@ public partial class Client : IDisposable, IInputManagement
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly GameLayerManager m_layerManager;
-    private readonly NativeWinMouse? m_nativeWinMouse;
     private readonly SoundManager m_soundManager;
     private readonly SaveGameManager m_saveGameManager;
     private readonly Window m_window;
@@ -74,10 +73,16 @@ public partial class Client : IDisposable, IInputManagement
         m_consoleCommands.RegisterMethodsOrThrow(this);
         m_console.OnConsoleCommandEvent += Console_OnCommand;
         m_window.RenderFrame += Window_MainLoop;
-        m_nativeWinMouse = new NativeWinMouse(HandleWinMouseMove);
 
+        SetMouseRawInput();
         RegisterConfigChanges();
         m_ticker.Start();
+    }
+
+    private unsafe void SetMouseRawInput()
+    {
+        if (GLFW.RawMouseMotionSupported())
+            GLFW.SetInputMode(m_window.WindowPtr, RawMouseMotionAttribute.RawMouseMotion, true);
     }
 
     private void GameLayerManager_GameLayerAdded(object? sender, IGameLayer e)
@@ -145,7 +150,7 @@ public partial class Client : IDisposable, IInputManagement
             offset += 3;
         }
 
-        Image image = new Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        var image = new Graphics.Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
         image.SavePng(path);
     }
 
@@ -198,14 +203,10 @@ public partial class Client : IDisposable, IInputManagement
 
     private void HandleWinMouseMove(int deltaX, int deltaY)
     {
-        if (m_disposed || !m_config.Mouse.RawInput || !ShouldHandleMouseMovement())
+        if (m_disposed || !ShouldHandleMouseMovement())
             return;
 
         m_window.HandleRawMouseMovement(-deltaX, -deltaY);
-
-        int x = m_window.Location.X + (m_window.Size.X / 2);
-        int y = m_window.Location.Y + (m_window.Size.Y / 2);
-        NativeMethods.SetMousePosition(x, y);
     }
 
     public bool ShouldHandleMouseMovement()
@@ -330,10 +331,8 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void ShowFatalError(string msg)
     {
-        // TODO verify this doesn't prevent from loading on other platforms...
         Log.Error(msg);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            MessageBox.Show(msg, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        // TODO would be nice to have UI component here...
     }
 
     private static FileConfig ReadConfigFileOrTerminate(string path)

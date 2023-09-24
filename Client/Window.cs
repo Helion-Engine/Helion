@@ -187,7 +187,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        if (m_config.Mouse.RawInput || !m_inputManagement.ShouldHandleMouseMovement())
+        if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
 
         Vec2F movement = (-args.Delta.X, -args.Delta.Y);
