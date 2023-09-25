@@ -245,7 +245,7 @@ public class ScrollSpecial : ISpecial
                 if (entity.Flags.NoClip)
                     continue;
                 
-                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
+                if (entity.Position.Z >= waterHeight && (entity.Flags.NoBlockmap || entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
                 entity.Velocity.X += speed.X;
