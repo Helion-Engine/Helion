@@ -78,7 +78,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
     {
-        return x.GeometryDataStartIndex.CompareTo(y.GeometryDataStartIndex);
+        return x.Index.CompareTo(y.Index);
     }
 
     static int TransparentGeometryCompare(GeometryData x, GeometryData y)
@@ -308,7 +308,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (sideVertices != null)
             {
                 var wall = line.Front.Middle;
-                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, sideVertices,
+                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
                     null, line.Front, wall, true);
             }
 
@@ -446,7 +446,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         
         if (update)
         {
-            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.GeometryDataStartIndex, sideVertices,
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
                 null, side, wall, repeatY);
             return;
         }
@@ -462,8 +462,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         wall.Static.GeometryData = geometryData;
-        wall.Static.GeometryDataStartIndex = vboIndex;
-        wall.Static.GeometryDataLength = vertexCount;
+        wall.Static.Index = vboIndex;
+        wall.Static.Length = vertexCount;
     }
 
     private DynamicArray<StaticVertex> GetTextureVertices(int textureHandle, bool repeatY)
@@ -553,7 +553,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (update)
         {
-            UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.GeometryDataStartIndex,
+            UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.Index,
                 renderedVertices, renderPlane, null, null, true);
             return;
         }
@@ -562,8 +562,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_textureToGeometryLookup.TryGetValue(renderPlane.TextureHandle, true, out var geometryData))
         {
             plane.Static.GeometryData = geometryData;
-            plane.Static.GeometryDataStartIndex = vertices.Length;
-            plane.Static.GeometryDataLength = renderedVertices.Length;
+            plane.Static.Index = vertices.Length;
+            plane.Static.Length = renderedVertices.Length;
         }
 
         AddVertices(vertices, renderedVertices);
@@ -635,20 +635,20 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             list.Sort(GeometryIndexCompare);
 
-            int startIndex = list[0].GeometryDataStartIndex;
-            int lastIndex = startIndex + list[0].GeometryDataLength;
+            int startIndex = list[0].Index;
+            int lastIndex = startIndex + list[0].Length;
             for (int i = 1; i < list.Length; i++)
             {
-                if (lastIndex != list[i].GeometryDataStartIndex)
+                if (lastIndex != list[i].Index)
                 {
                     geometryData.Vbo.Bind();
                     geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
-                    startIndex = list[i].GeometryDataStartIndex;
-                    lastIndex = startIndex + list[i].GeometryDataLength;
+                    startIndex = list[i].Index;
+                    lastIndex = startIndex + list[i].Length;
                     continue;
                 }
 
-                lastIndex += list[i].GeometryDataLength;
+                lastIndex += list[i].Length;
             }
 
             geometryData.Vbo.Bind();
@@ -698,7 +698,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
             list.Add(data);
 
-            GeometryRenderer.UpdatePlaneOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryDataLength, data.GeometryData.Texture, plane);
+            GeometryRenderer.UpdatePlaneOffsetVertices(data.GeometryData.Vbo.Data.Data, data.Index, data.Length, data.GeometryData.Texture, plane);
         }
 
         m_updateScrollPlanes.Clear();
@@ -938,7 +938,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data.GeometryData == null)
             return;
 
-        ClearGeometryVertices(data.GeometryData, data.GeometryDataStartIndex, data.GeometryDataLength);
+        ClearGeometryVertices(data.GeometryData, data.Index, data.Length);
     }
 
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, LegacyVertex[] vertices,
@@ -964,7 +964,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             else if (wall != null)
                 wall.Static = existing.Value;
 
-            UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.GeometryDataStartIndex,
+            UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.Index,
                 vertices, plane, side, wall, repeat);
             return;
         }
@@ -1002,8 +1002,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (plane != null)
         {
             plane.Static.GeometryData = geometryData;
-            plane.Static.GeometryDataStartIndex = geometryData.Vbo.Count;
-            plane.Static.GeometryDataLength = vertices.Length;
+            plane.Static.Index = geometryData.Vbo.Count;
+            plane.Static.Length = vertices.Length;
         }
     }
 
@@ -1015,7 +1015,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
         list.Add(data);
 
-        GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.GeometryDataStartIndex, data.GeometryData.Texture, side, texture);
+        GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.Index, data.GeometryData.Texture, side, texture);
     }
 
     private DynamicArray<StaticGeometryData> GetOrCreateBufferList(GeometryData geometryData)

@@ -19,7 +19,7 @@ public class FreeGeometryManager
         int minIndex = -1;
         for (int i = 0; i < m_data.Count; i++)
         {
-            int geometryLength = m_data[i].GeometryData.GeometryDataLength;
+            int geometryLength = m_data[i].GeometryData.Length;
             if (m_data[i].TextureHandle == textureHandle && geometryLength >= vertexLength && geometryLength < minLength)
             {
                 minLength = geometryLength;
@@ -29,7 +29,7 @@ public class FreeGeometryManager
 
         if (minIndex != -1)
         {
-            data = new StaticGeometryData(m_data[minIndex].GeometryData.GeometryData, m_data[minIndex].GeometryData.GeometryDataStartIndex, vertexLength);
+            data = new StaticGeometryData(m_data[minIndex].GeometryData.GeometryData, m_data[minIndex].GeometryData.Index, vertexLength);
             m_data.RemoveAt(minIndex);
             return true;
         }

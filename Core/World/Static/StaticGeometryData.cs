@@ -10,13 +10,13 @@ namespace Helion.World.Static;
 public struct StaticGeometryData
 {
     public GeometryData? GeometryData;
-    public int GeometryDataStartIndex;
-    public int GeometryDataLength;
+    public int Index;
+    public int Length;
 
-    public StaticGeometryData(GeometryData? geometryData, int geometryDataStartIndex, int geometryDataLength)
+    public StaticGeometryData(GeometryData? geometryData, int index, int length)
     {
         GeometryData = geometryData;
-        GeometryDataStartIndex = geometryDataStartIndex;
-        GeometryDataLength = geometryDataLength;
+        Index = index;
+        Length = length;
     }
 }
