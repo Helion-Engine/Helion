@@ -21,7 +21,7 @@ lightLevelFrag = clamp(lightLevelBufferValue" + addLightLevel + ", 0.0, 256.0);"
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).z;";
 
     public static string FragVariables(LightLevelOptions options) =>
-$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")};uniform int hasInvulnerability;uniform float lightLevelMix;uniform int extraLight;";
+$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform int hasInvulnerability;uniform float lightLevelMix;uniform int extraLight;";
 
     public static string Constants =
 @"// Defined in GLHelper as well
