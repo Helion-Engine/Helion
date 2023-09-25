@@ -35,7 +35,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
     private readonly PrimitiveWorldRenderer m_primitiveRenderer;
-    private readonly InterpolationShader m_program = new();
+    private readonly InterpolationShader m_interpolationProgram = new();
     private readonly StaticShader m_staticProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
@@ -63,7 +63,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_program, m_staticProgram, m_viewClipper, m_worldDataManager);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
     }
@@ -271,15 +271,17 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
         m_entityRenderer.RenderNonAlpha(renderInfo);
 
-        m_program.Bind();
+        var uniforms = GetShaderUniforms(renderInfo);
+
+        m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(renderInfo);
+        SetInterpolationUniforms(renderInfo, uniforms);
         m_worldDataManager.DrawNonAlpha();
-        m_program.Unbind();
+        m_interpolationProgram.Unbind();
 
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetStaticUniforms(renderInfo);
+        SetStaticUniforms(renderInfo, uniforms);
         m_geometryRenderer.RenderStaticGeometry();
         m_staticProgram.Unbind();
 
@@ -287,11 +289,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_config.Render.TextureTransparency)
         {
-            m_program.Bind();
+            m_interpolationProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
-            SetInterpolationUniforms(renderInfo);
+            SetInterpolationUniforms(renderInfo, uniforms);
             m_worldDataManager.DrawAlpha();
-            m_program.Unbind();
+            m_interpolationProgram.Unbind();
         }
         
         m_primitiveRenderer.Render(renderInfo);
@@ -461,46 +463,31 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer.AddSegment(seg, color, alpha);
     }
 
-    private void SetInterpolationUniforms(RenderInfo renderInfo)
+    private void SetInterpolationUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
     {
-        // We divide by 4 to make it so the noise changes every four ticks.
-        // We then mod by 8 so that the number stays small (or else when it
-        // is multiplied in the shader it will overflow very quickly if we
-        // don't do this). This could be any number, I just arbitrarily
-        // chose 8. This means there are 8 different versions that are to
-        // be rendered if the person stares at an unmoving body long enough.
-        // Then we add 1 because if the value is 0, then the noise formula
-        // outputs zero uniformly which makes it look invisible.
-        const int TicksPerFrame = 4;
-        const int DifferentFrames = 8;
-        
-        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
-        bool drawInvulnerability = false;
-        int extraLight = 0;
-        float mix = 0.0f;
-
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-        {
-            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
-                mix = 1.0f;
-            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
-                drawInvulnerability = true;
-
-            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
-        }
-
-        m_program.BoundTexture(TextureUnit.Texture0);
-        m_program.SectorLightTexture(TextureUnit.Texture1);
-        m_program.HasInvulnerability(drawInvulnerability);
-        m_program.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
-        m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
-        m_program.TimeFrac(renderInfo.TickFraction);
-        m_program.FuzzFrac(timeFrac);
-        m_program.LightLevelMix(mix);
-        m_program.ExtraLight(extraLight);
+        m_interpolationProgram.BoundTexture(TextureUnit.Texture0);
+        m_interpolationProgram.SectorLightTexture(TextureUnit.Texture1);
+        m_interpolationProgram.HasInvulnerability(uniforms.DrawInvulnerability);
+        m_interpolationProgram.Mvp(uniforms.Mvp);
+        m_interpolationProgram.MvpNoPitch(uniforms.MvpNoPitch);
+        m_interpolationProgram.TimeFrac(renderInfo.TickFraction);
+        m_interpolationProgram.FuzzFrac(uniforms.TimeFrac);
+        m_interpolationProgram.LightLevelMix(uniforms.Mix);
+        m_interpolationProgram.ExtraLight(uniforms.ExtraLight);
     }
 
-    private void SetStaticUniforms(RenderInfo renderInfo)
+    private void SetStaticUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
+    {
+        m_staticProgram.BoundTexture(TextureUnit.Texture0);
+        m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
+        m_staticProgram.HasInvulnerability(uniforms.DrawInvulnerability);
+        m_staticProgram.Mvp(uniforms.Mvp);
+        m_staticProgram.MvpNoPitch(uniforms.MvpNoPitch);
+        m_staticProgram.LightLevelMix(uniforms.Mix);
+        m_staticProgram.ExtraLight(uniforms.ExtraLight);
+    }
+
+    private ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
     {
         // We divide by 4 to make it so the noise changes every four ticks.
         // We then mod by 8 so that the number stays small (or else when it
@@ -528,18 +515,15 @@ public class LegacyWorldRenderer : WorldRenderer
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        m_staticProgram.BoundTexture(TextureUnit.Texture0);
-        m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
-        m_staticProgram.HasInvulnerability(drawInvulnerability);
-        m_staticProgram.Mvp(Renderer.CalculateMvpMatrix(renderInfo));
-        m_staticProgram.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
-        m_staticProgram.LightLevelMix(mix);
-        m_staticProgram.ExtraLight(extraLight);
+        return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
+            Renderer.CalculateMvpMatrix(renderInfo, true),
+            timeFrac, drawInvulnerability, mix, extraLight);
     }
 
     private void ReleaseUnmanagedResources()
     {
-        m_program.Dispose();
+        m_interpolationProgram.Dispose();
+        m_staticProgram.Dispose();
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
         m_automapRenderer.Dispose();
