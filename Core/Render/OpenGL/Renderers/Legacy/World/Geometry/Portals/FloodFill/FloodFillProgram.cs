@@ -90,6 +90,7 @@ public class FloodFillProgram : RenderProgram
         uniform sampler2D boundTexture;
         uniform vec3 camera;
         uniform mat4 mvpNoPitch;
+        uniform int hasInvulnerability;
 
         ${LightLevelFragVariables}
         ${LightLevelConstants}

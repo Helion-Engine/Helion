@@ -76,6 +76,7 @@ public class InterpolationShader : RenderProgram
         out vec4 fragColor;
 
         uniform float fuzzFrac;
+        uniform int hasInvulnerability;
         uniform sampler2D boundTexture;
 
         ${LightLevelFragVariables}
