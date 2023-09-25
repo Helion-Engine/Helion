@@ -60,7 +60,7 @@ public class InterpolationShader : RenderProgram
             gl_Position = mvp * mixPos;
         }
     "
-    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables)
+    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(" + lightLevel"))
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
@@ -131,5 +131,5 @@ public class InterpolationShader : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelConstants}", LightLevel.Constants)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables);
+    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default));
 }

@@ -1,5 +1,6 @@
 ﻿using GlmSharp;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 
@@ -51,14 +52,14 @@ public class FloodFillProgram : RenderProgram
         layout(location = 6) in float lightLevelBufferIndex;
 
         flat out float planeZFrag;
-        flat out float lightLevelFrag;
         out vec3 vertexPosFrag;
 
+        ${LightLevelVertexVariables}
+        ${VertexLightBufferVariables}
+
         uniform mat4 mvp;
-        uniform mat4 mvpNoPitch;
         uniform vec3 camera;
         uniform float timeFrac;
-        uniform samplerBuffer sectorLightTexture;
 
         void main()
         {
@@ -66,22 +67,22 @@ public class FloodFillProgram : RenderProgram
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
             vertexPosFrag = mix(prevPos, pos, timeFrac);            
 
-            int texBufferIndex = int(lightLevelBufferIndex);
-            float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-            lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);
+            ${VertexLightBuffer}
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
             else
                 gl_Position = mvp * vec4(vertexPosFrag, 1.0); 
         }
-    ";
+    "
+    .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
+    .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(string.Empty));
 
     protected override string FragmentShader() => @"
         #version 330
 
         flat in float planeZFrag;
-        flat in float lightLevelFrag;
         in vec3 vertexPosFrag;
 
         out vec4 fragColor;
@@ -90,17 +91,8 @@ public class FloodFillProgram : RenderProgram
         uniform vec3 camera;
         uniform mat4 mvpNoPitch;
 
-        uniform int hasInvulnerability;
-        uniform float lightLevelMix;
-        uniform int extraLight;
-
-        // Defined in GLHelper as well
-        const int colorMaps = 32;
-        const int colorMapClamp = 31;
-        const int scaleCount = 16;
-        const int scaleCountClamp = 15;
-        const int maxLightScale = 23;
-        const int lightFadeStart = 56;
+        ${LightLevelFragVariables}
+        ${LightLevelConstants}
 
         void main()
         {
@@ -116,15 +108,7 @@ public class FloodFillProgram : RenderProgram
             fragColor = texture(boundTexture, uv);
 
             float dist = (mvpNoPitch * vec4(planePos, 1.0)).z;
-            float lightLevel = lightLevelFrag;
-            float distCalc = clamp(dist - lightFadeStart, 0, dist);
-            int sub = int(21.53536 - 21.63471881/(1 + pow((distCalc/48.46036), 0.9737408)));
-            int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
-            sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-            index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
-            lightLevel = float(colorMaps - index) / colorMaps;
-
-            lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
+            ${LightLevelFragFunction}
             fragColor.xyz *= lightLevel;
 
             // If invulnerable, grayscale everything and crank the brightness.
@@ -136,5 +120,8 @@ public class FloodFillProgram : RenderProgram
                 fragColor.xyz = vec3(maxColor, maxColor, maxColor);
             }
         }
-    ";
+    "
+    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+    .Replace("${LightLevelConstants}", LightLevel.Constants)
+    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist));
 }
