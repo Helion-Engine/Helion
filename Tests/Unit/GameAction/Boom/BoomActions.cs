@@ -478,6 +478,6 @@ public class BoomActions
         GameActions.TickWorld(World, 1);
 
         teleportDest.Velocity.Should().Be(Vec3D.Zero);
-        barrel.Velocity.Should().NotBe(Vec3D.Zero);
+        barrel.Velocity.Should().Be(new Vec3D(0.1875, 0, 0));
     }
 }
