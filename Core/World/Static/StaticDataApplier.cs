@@ -101,12 +101,14 @@ public class StaticDataApplier
 
     public static void SetFloodFillSide(IWorld world, Side facingSide, Side otherSide)
     {
-        if (facingSide.Lower.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Floor.Z < otherSide.Sector.Floor.Z)
+        if (facingSide.Lower.TextureHandle == Constants.NoTextureIndex && 
+            (facingSide.Sector.Floor.Z < otherSide.Sector.Floor.Z || facingSide.Sector.Floor.PrevZ < otherSide.Sector.Floor.PrevZ))
             facingSide.FloodTextures |= SideTexture.Lower;
         else
             facingSide.FloodTextures &= ~SideTexture.Lower;
 
-        if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z)
+        if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && 
+            (facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z || facingSide.Sector.Ceiling.PrevZ > otherSide.Sector.Ceiling.PrevZ))
             facingSide.FloodTextures |= SideTexture.Upper;
         else
             facingSide.FloodTextures &= ~SideTexture.Upper;
