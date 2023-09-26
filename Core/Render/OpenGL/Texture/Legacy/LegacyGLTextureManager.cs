@@ -32,8 +32,6 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
-        Precondition(image.Dimension.Width > 0 && image.Dimension.Height > 0, $"Image {name} ({resourceNamespace}) has at least one dimension that is zero");
-
         GL.BindTexture(texture.Target, texture.TextureId);
 
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
