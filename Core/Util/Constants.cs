@@ -29,6 +29,8 @@ public static class Constants
     /// </summary>
     public static readonly int NoTextureIndex = 0;
 
+    public static readonly int NullCompatibilityTextureIndex = 1;
+
     /// <summary>
     /// The name of the decorate player class.
     /// </summary>

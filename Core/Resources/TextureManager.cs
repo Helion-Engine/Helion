@@ -32,7 +32,6 @@ public class TextureManager : ITickable
     public DynamicArray<SpriteDefinition> SpriteDefinitions => m_spriteDefinitions;
 
     public string SkyTextureName { get; set; }
-    public int NullCompatibilityTextureIndex { get; set; } = 1;
 
     public event EventHandler<AnimationEvent>? AnimationChanged;
 
@@ -250,8 +249,8 @@ public class TextureManager : ITickable
     {
         if (index == Constants.NoTextureIndex)
         {
-            Util.Assertion.Assert.Invariant(m_textures.Count > NullCompatibilityTextureIndex, "Invalid textures count");
-            return m_textures[m_translations[NullCompatibilityTextureIndex]];
+            Util.Assertion.Assert.Invariant(m_textures.Count > Constants.NullCompatibilityTextureIndex, "Invalid textures count");
+            return m_textures[m_translations[Constants.NullCompatibilityTextureIndex]];
         }
 
         return m_textures[m_translations[index]];
