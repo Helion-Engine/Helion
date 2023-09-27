@@ -10,12 +10,14 @@ public readonly struct FloodGeometry
 {
     public readonly int Key;
     public readonly int TextureHandle;
+    public readonly int LightIndex;
     public readonly int VboOffset;
 
-    public FloodGeometry(int key, int textureHandle, int vboOffset)
+    public FloodGeometry(int key, int textureHandle, int lightIndex, int vboOffset)
     {
         Key = key;
         TextureHandle = textureHandle;
+        LightIndex = lightIndex;
         VboOffset = vboOffset;
     }
 }

@@ -93,15 +93,14 @@ public class FloodFillRenderer : IDisposable
         float prevTopZ = vertices.PrevTopZ;
         float prevBottomZ = vertices.PrevBottomZ;
 
-        int lightIndex = GetSectorLightIndex(floodPlane);
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
 
         var vbo = floodInfo.Vertices.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
@@ -123,24 +122,28 @@ public class FloodFillRenderer : IDisposable
         float prevPlaneZ = (float)sectorPlane.PrevZ;
         FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
 
+        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
+            sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
+
         for (int i = 0; i < m_freeData.Count; i++)
         {
             if (m_freeData[i].TextureHandle != sectorPlane.TextureHandle)
                 continue;
 
-            int key = m_freeData[i].Key;
+            var data = m_freeData[i];
             m_freeData.RemoveAt(i);
-            UpdateStaticWall(key, sectorPlane, vertices, minPlaneZ, maxPlaneZ);
-            return key;
+
+            m_floodGeometry[data.Key - 1] = new(data.Key, data.TextureHandle, lightIndex, data.VboOffset);
+            UpdateStaticWall(data.Key, sectorPlane, vertices, minPlaneZ, maxPlaneZ);
+            return data.Key;
         }
 
         // Zero means "no handle" which the callers use to tell they don't have a handle.
         int newKey = m_floodGeometry.Length + 1;
         var vbo = floodFillInfo.Vertices.Vbo;
 
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, vbo.Count));
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count));
 
-        int lightIndex = GetSectorLightIndex(sectorPlane);
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z),
@@ -158,9 +161,6 @@ public class FloodFillRenderer : IDisposable
 
         return newKey;
     }
-
-    private static int GetSectorLightIndex(SectorPlane plane) => StaticCacheGeometryRenderer.GetLightBufferIndex(plane.Sector,
-            plane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
 
     public void ClearStaticWall(int floodKey)
     {
