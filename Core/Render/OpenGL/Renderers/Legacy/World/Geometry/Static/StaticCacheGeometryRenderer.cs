@@ -173,7 +173,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
     }
 
-    public void CheckForFloodFill(Side facingSide, Side otherSide, Sector otherSector)
+    public void CheckForFloodFill(Side facingSide, Side otherSide, Sector otherSector, bool isFront)
     {
         SideTexture previous = facingSide.FloodTextures;
         StaticDataApplier.SetFloodFillSide(m_world, facingSide, otherSide);
@@ -183,7 +183,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if ((previous & SideTexture.Lower) == 0)
         {
             if ((facingSide.FloodTextures & SideTexture.Lower) != 0 && facingSide.LowerFloodKey == 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFront);
         }
         else
         {
@@ -202,7 +202,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if ((previous & SideTexture.Upper) == 0 && facingSide.UpperFloodKey == 0)
         {
             if ((facingSide.FloodTextures & SideTexture.Upper) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper, isFront);
         }
         else
         {
@@ -357,7 +357,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
             if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
         }
 
         bool lowerVisible = m_geometryRenderer.LowerIsVisible(side, facingSector, otherSector);
@@ -368,7 +368,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
             if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower);
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -868,8 +868,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            CheckForFloodFill(line.Front, line.Back, line.Back.Sector);
-            CheckForFloodFill(line.Back, line.Front, line.Front.Sector);
+            CheckForFloodFill(line.Front, line.Back, line.Back.Sector, true);
+            CheckForFloodFill(line.Back, line.Front, line.Front.Sector, false);
         }
     }
 

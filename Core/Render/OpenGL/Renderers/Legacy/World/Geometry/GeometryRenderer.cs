@@ -468,18 +468,18 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void CheckFloodFillLine(Side facing, Side other)
+    private void CheckFloodFillLine(Side front, Side back)
     {
         const RenderChangeOptions options = RenderChangeOptions.None;
-        if (facing.IsDynamic && m_drawnSides[facing.Id] != m_world.CheckCounter &&
-            (other.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
-            facing.Sector.CheckRenderingChanged(m_world.Gametick, options)))
-            m_staticCacheGeometryRenderer.CheckForFloodFill(facing, other, other.Sector);
+        if (front.IsDynamic && m_drawnSides[front.Id] != m_world.CheckCounter &&
+            (back.Sector.CheckRenderingChanged(m_world.Gametick, options) ||
+            front.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(front, back, back.Sector, true);
 
-        if (other.IsDynamic && m_drawnSides[other.Id] != m_world.CheckCounter &&
-            (facing.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
-            other.Sector.CheckRenderingChanged(m_world.Gametick, options)))
-            m_staticCacheGeometryRenderer.CheckForFloodFill(other, facing, facing.Sector);
+        if (back.IsDynamic && m_drawnSides[back.Id] != m_world.CheckCounter &&
+            (front.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
+            back.Sector.CheckRenderingChanged(m_world.Gametick, options)))
+            m_staticCacheGeometryRenderer.CheckForFloodFill(back, front, front.Sector, false);
     }
 
     private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
@@ -741,7 +741,7 @@ public class GeometryRenderer : IDisposable
         {
             verticies = null;
             skyVerticies = null;
-            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower);
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFrontSide);
             return;
         }
 
@@ -822,7 +822,7 @@ public class GeometryRenderer : IDisposable
             verticies = null;
             skyVerticies = null;
             skyVerticies2 = null;
-            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper);
+            Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             return;
         }
 

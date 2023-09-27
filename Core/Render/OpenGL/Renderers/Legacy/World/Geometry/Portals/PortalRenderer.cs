@@ -45,16 +45,15 @@ public class PortalRenderer : IDisposable
     public void ClearStaticWall(int floodKey) =>
         m_floodFillRenderer.ClearStaticWall(floodKey);
 
-    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture) =>
-        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, false);
+    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, false);
 
-    public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture) =>
-        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, true);
+    public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, true);
 
-    private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool update)
+    private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
     {
         const int FakeWallHeight = 8192;
-        bool isFront = facingSide.Line.Front.Id == facingSide.Id;
         if (sideTexture == SideTexture.Upper)
         {
             SectorPlane top = facingSide.Sector.Ceiling;
