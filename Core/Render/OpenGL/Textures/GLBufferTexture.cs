@@ -33,7 +33,7 @@ public class GLBufferTexture : IDisposable
 
     ~GLBufferTexture()
     {
-        Dispose(false);
+        ReleaseUnmanagedResources();
     }
     
     public void Map(Action<IntPtr> action)
@@ -81,7 +81,7 @@ public class GLBufferTexture : IDisposable
         GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void ReleaseUnmanagedResources()
     {
         if (m_disposed)
             return;
@@ -94,7 +94,7 @@ public class GLBufferTexture : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
+        ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
     }
 }
