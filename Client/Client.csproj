@@ -36,7 +36,6 @@
     <PackageReference Include="nfluidsynth" Version="0.3.1" />
     <PackageReference Include="NLog" Version="5.0.1" />
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
-    <PackageReference Include="OpenTK" Version="4.7.4" />
   </ItemGroup>
 
   <ItemGroup>
