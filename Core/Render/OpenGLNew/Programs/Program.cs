@@ -15,7 +15,7 @@ public abstract class Program : IBindable, IDisposable
 
     protected Program(string label)
     {
-        IEnumerable<Shader> shaders = CreateShaders();
+        IReadOnlyList<Shader> shaders = CreateShaders().ToArray();
         Debug.Assert(shaders.Any(), "Program needs at least one shader");
         Debug.Assert(HasValidShaderCombination(shaders), "Program should be either only compute, or only graphics with at least a vertex shader");
         
@@ -37,7 +37,7 @@ public abstract class Program : IBindable, IDisposable
     
     protected abstract IEnumerable<Shader> CreateShaders();
 
-    private bool HasValidShaderCombination(IEnumerable<Shader> shaders)
+    private bool HasValidShaderCombination(IReadOnlyList<Shader> shaders)
     {
         if (shaders.Empty())
             return false;
@@ -57,7 +57,7 @@ public abstract class Program : IBindable, IDisposable
         return shaders.Select(s => s.ShaderType).Distinct().Count() == shaderCount;
     }
 
-    private void CompileProgramOrThrow(IEnumerable<Shader> shaders)
+    private void CompileProgramOrThrow(IReadOnlyList<Shader> shaders)
     {
         foreach (Shader shader in shaders)
             shader.Attach(m_programId);
