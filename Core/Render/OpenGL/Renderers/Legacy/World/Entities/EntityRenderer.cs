@@ -161,7 +161,7 @@ public class EntityRenderer
         prevPosition.Y -= nudgeAmount.Y;
 
         SpriteQuad pos = CalculateQuad(position, offsetZ, entity, texture);
-        SpriteQuad prevPos = CalculateQuad(prevPosition, offsetZ, entity, texture);
+        SpriteQuad prevPos = prevPosition == position ? pos : CalculateQuad(prevPosition, offsetZ, entity, texture);
         float alpha = m_spriteAlpha ? (float)entity.Definition.Properties.Alpha : 1.0f;
         float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
         float leftU = 0.0f;
