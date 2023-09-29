@@ -35,6 +35,8 @@ public class TextureManager : ITickable
 
     public event EventHandler<AnimationEvent>? AnimationChanged;
 
+    public int NullCompatibilityTextureIndex { get; set; } = Constants.NullCompatibilityTextureIndex;
+
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
@@ -249,8 +251,8 @@ public class TextureManager : ITickable
     {
         if (index == Constants.NoTextureIndex)
         {
-            Util.Assertion.Assert.Invariant(m_textures.Count > Constants.NullCompatibilityTextureIndex, "Invalid textures count");
-            return m_textures[m_translations[Constants.NullCompatibilityTextureIndex]];
+            Util.Assertion.Assert.Invariant(m_textures.Count > NullCompatibilityTextureIndex, "Invalid textures count");
+            return m_textures[m_translations[NullCompatibilityTextureIndex]];
         }
 
         return m_textures[m_translations[index]];
