@@ -189,12 +189,16 @@ public class EntityRenderer
             m_worldDataManager.GetAlphaRenderData(texture, m_program) :
             m_worldDataManager.GetRenderData(texture, m_program);
 
-        renderWorldData.Vbo.Add(topLeft);
-        renderWorldData.Vbo.Add(bottomLeft);
-        renderWorldData.Vbo.Add(topRight);
-        renderWorldData.Vbo.Add(topRight);
-        renderWorldData.Vbo.Add(bottomLeft);
-        renderWorldData.Vbo.Add(bottomRight);
+        int startIndex = renderWorldData.Vbo.Count;
+        int vertexCount = startIndex + 6;
+        renderWorldData.Vbo.Data.EnsureCapacity(vertexCount);
+        renderWorldData.Vbo.Data.Data[startIndex] = topLeft;
+        renderWorldData.Vbo.Data.Data[startIndex + 1] = bottomLeft;
+        renderWorldData.Vbo.Data.Data[startIndex + 2] = topRight;
+        renderWorldData.Vbo.Data.Data[startIndex + 3] = topRight;
+        renderWorldData.Vbo.Data.Data[startIndex + 4] = bottomLeft;
+        renderWorldData.Vbo.Data.Data[startIndex + 5] = bottomRight;
+        renderWorldData.Vbo.Data.SetLength(vertexCount);
     }
 
     private SpriteQuad CalculateQuad(in Vec3D entityCenterBottom, float offsetZ, Entity entity, GLLegacyTexture texture)
