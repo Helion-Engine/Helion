@@ -77,6 +77,13 @@ namespace Helion.Tests.Unit.GameAction
             return entities;
         }
 
+        public static Entity GetSectorEntity(WorldBase world, int sectorId, string type)
+        {
+            var entities = GetSectorEntities(world, sectorId, type);
+            entities.Count.Should().Be(1);
+            return entities[0];
+        }
+
         public static List<Entity> GetSectorEntities(WorldBase world, int sectorId, string? type = null)
         {
             List<Entity> entities = new();

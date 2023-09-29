@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
@@ -12,7 +13,7 @@ using Xunit;
 namespace Helion.Tests.Unit.GameAction.Boom;
 
 [Collection("GameActions")]
-public class BoomActions
+public partial class BoomActions
 {
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
@@ -463,21 +464,5 @@ public class BoomActions
         var angle = MathHelper.GetPositiveAngle(Player.AngleRadians);
         var teleportAngle = MathHelper.GetPositiveAngle(GameActions.GetEntity(World, 7).AngleRadians + Math.PI);
         angle.Should().Be(teleportAngle);
-    }
-
-    [Fact(DisplayName = "Scrolling floor moves barrel")]
-    public void ScrollingFloorMovesBarrel()
-    {
-        var scrollSector = GameActions.GetSectorByTag(World, 9);
-        var teleportDest = GameActions.GetEntity(World, 8);
-        var barrel = GameActions.GetEntity(World, 9);
-
-        teleportDest.Sector.Should().Be(scrollSector);
-        barrel.Sector.Should().Be(scrollSector);
-
-        GameActions.TickWorld(World, 1);
-
-        teleportDest.Velocity.Should().Be(Vec3D.Zero);
-        barrel.Velocity.Should().Be(new Vec3D(0.1875, 0, 0));
     }
 }
