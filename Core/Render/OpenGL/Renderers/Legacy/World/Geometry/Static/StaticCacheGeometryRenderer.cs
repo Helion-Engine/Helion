@@ -415,14 +415,18 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
     {
+        int staticStartIndex = staticVertices.Length;
         fixed(LegacyVertex* startVertex = &vertices[0])
         {
             for (int i = 0; i < vertices.Length; i++)
             {
                 LegacyVertex* v = startVertex + i;
-                staticVertices.Add(new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex));
+                staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
+                staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
+                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex);
             }
+
+            staticVertices.SetLength(staticVertices.Length + vertices.Length);
         }
     }
 
