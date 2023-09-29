@@ -423,7 +423,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 LegacyVertex* v = startVertex + i;
                 staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex);
+                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -438,7 +438,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 LegacyVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Alpha, v->ClearAlpha, v->LightLevelBufferIndex);
+                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex);
             }
         }
     }
@@ -1054,7 +1054,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             fixed (StaticVertex* vertex = &geometryData.Vbo.Data.Data[index])
             {
                 vertex->Alpha = 0;
-                vertex->ClearAlpha = 0;
+                vertex->AddAlpha = 0;
                 vertex->X = 0;
                 vertex->Y = 0;
                 vertex->Z = 0;

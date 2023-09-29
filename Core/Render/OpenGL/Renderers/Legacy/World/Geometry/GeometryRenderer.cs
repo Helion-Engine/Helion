@@ -989,12 +989,12 @@ public class GeometryRenderer : IDisposable
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, clearAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
             }
             else if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, alpha, clearAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, clearAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
 
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
@@ -1312,7 +1312,7 @@ public class GeometryRenderer : IDisposable
     }
 
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
-        float alpha = 1.0f, float clearAlpha = 1.0f)
+        float alpha = 1.0f, float addAlpha = 1.0f)
     {
         data[0].LightLevel = lightLevelAdd;
         data[0].X = wv.TopLeft.X;
@@ -1326,7 +1326,7 @@ public class GeometryRenderer : IDisposable
         data[0].PrevU = wv.TopLeft.PrevU;
         data[0].PrevV = wv.TopLeft.PrevV;
         data[0].Alpha = alpha;
-        data[0].ClearAlpha = clearAlpha;
+        data[0].AddAlpha = addAlpha;
         data[0].LightLevelBufferIndex = lightBufferIndex;
 
         data[1].LightLevel = lightLevelAdd;
@@ -1341,7 +1341,7 @@ public class GeometryRenderer : IDisposable
         data[1].PrevU = wv.BottomLeft.PrevU;
         data[1].PrevV = wv.BottomLeft.PrevV;
         data[1].Alpha = alpha;
-        data[1].ClearAlpha = clearAlpha;
+        data[1].AddAlpha = addAlpha;
         data[1].LightLevelBufferIndex = lightBufferIndex;
 
         data[2].LightLevel = lightLevelAdd;
@@ -1356,7 +1356,7 @@ public class GeometryRenderer : IDisposable
         data[2].PrevU = wv.TopRight.PrevU;
         data[2].PrevV = wv.TopRight.PrevV;
         data[2].Alpha = alpha;
-        data[2].ClearAlpha = clearAlpha;
+        data[2].AddAlpha = addAlpha;
         data[2].LightLevelBufferIndex = lightBufferIndex;
 
         data[3].LightLevel = lightLevelAdd;
@@ -1371,7 +1371,7 @@ public class GeometryRenderer : IDisposable
         data[3].PrevU = wv.TopRight.PrevU;
         data[3].PrevV = wv.TopRight.PrevV;
         data[3].Alpha = alpha;
-        data[3].ClearAlpha = clearAlpha;
+        data[3].AddAlpha = addAlpha;
         data[3].LightLevelBufferIndex = lightBufferIndex;
 
         data[4].LightLevel = lightLevelAdd;
@@ -1386,7 +1386,7 @@ public class GeometryRenderer : IDisposable
         data[4].PrevU = wv.BottomLeft.PrevU;
         data[4].PrevV = wv.BottomLeft.PrevV;
         data[4].Alpha = alpha;
-        data[4].ClearAlpha = clearAlpha;
+        data[4].AddAlpha = addAlpha;
         data[4].LightLevelBufferIndex = lightBufferIndex;
 
         data[5].LightLevel = lightLevelAdd;
@@ -1401,12 +1401,12 @@ public class GeometryRenderer : IDisposable
         data[5].PrevU = wv.BottomRight.PrevU;
         data[5].PrevV = wv.BottomRight.PrevV;
         data[5].Alpha = alpha;
-        data[5].ClearAlpha = clearAlpha;
+        data[5].AddAlpha = addAlpha;
         data[5].LightLevelBufferIndex = lightBufferIndex;
     }
 
     private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
-        float alpha = 1.0f, float clearAlpha = 1.0f)
+        float alpha = 1.0f, float addAlpha = 1.0f)
     {
         LegacyVertex[] data = new LegacyVertex[6];
         // Our triangle is added like:
@@ -1427,7 +1427,7 @@ public class GeometryRenderer : IDisposable
         data[0].PrevU = wv.TopLeft.PrevU;
         data[0].PrevV = wv.TopLeft.PrevV;
         data[0].Alpha = alpha;
-        data[0].ClearAlpha = clearAlpha;
+        data[0].AddAlpha = addAlpha;
         data[0].LightLevelBufferIndex = lightBufferIndex;
 
         data[1].LightLevel = lightLevelAdd;
@@ -1442,7 +1442,7 @@ public class GeometryRenderer : IDisposable
         data[1].PrevU = wv.BottomLeft.PrevU;
         data[1].PrevV = wv.BottomLeft.PrevV;
         data[1].Alpha = alpha;
-        data[1].ClearAlpha = clearAlpha;
+        data[1].AddAlpha = addAlpha;
         data[1].LightLevelBufferIndex = lightBufferIndex;
 
         data[2].LightLevel = lightLevelAdd;
@@ -1457,7 +1457,7 @@ public class GeometryRenderer : IDisposable
         data[2].PrevU = wv.TopRight.PrevU;
         data[2].PrevV = wv.TopRight.PrevV;
         data[2].Alpha = alpha;
-        data[2].ClearAlpha = clearAlpha;
+        data[2].AddAlpha = addAlpha;
         data[2].LightLevelBufferIndex = lightBufferIndex;
 
         data[3].LightLevel = lightLevelAdd;
@@ -1472,7 +1472,7 @@ public class GeometryRenderer : IDisposable
         data[3].PrevU = wv.TopRight.PrevU;
         data[3].PrevV = wv.TopRight.PrevV;
         data[3].Alpha = alpha;
-        data[3].ClearAlpha = clearAlpha;
+        data[3].AddAlpha = addAlpha;
         data[3].LightLevelBufferIndex = lightBufferIndex;
 
         data[4].LightLevel = lightLevelAdd;
@@ -1487,7 +1487,7 @@ public class GeometryRenderer : IDisposable
         data[4].PrevU = wv.BottomLeft.PrevU;
         data[4].PrevV = wv.BottomLeft.PrevV;
         data[4].Alpha = alpha;
-        data[4].ClearAlpha = clearAlpha;
+        data[4].AddAlpha = addAlpha;
         data[4].LightLevelBufferIndex = lightBufferIndex;
 
         data[5].LightLevel = lightLevelAdd;
@@ -1502,7 +1502,7 @@ public class GeometryRenderer : IDisposable
         data[5].PrevU = wv.BottomRight.PrevU;
         data[5].PrevV = wv.BottomRight.PrevV;
         data[5].Alpha = alpha;
-        data[5].ClearAlpha = clearAlpha;
+        data[5].AddAlpha = addAlpha;
         data[5].LightLevelBufferIndex = lightBufferIndex;
 
         return data;

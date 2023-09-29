@@ -19,12 +19,12 @@ public struct StaticVertex
     public float Alpha;
 
     [VertexAttribute]
-    public float ClearAlpha;
+    public float AddAlpha;
 
     [VertexAttribute]
     public float LightLevelBufferIndex;
 
-    public StaticVertex(float x, float y, float z, float u, float v, float alpha, float clearAlpha, float lightLevelBufferIndex)
+    public StaticVertex(float x, float y, float z, float u, float v, float alpha, float addAlpha, float lightLevelBufferIndex)
     {
         X = x;
         Y = y;
@@ -32,7 +32,7 @@ public struct StaticVertex
         U = u;
         V = v;
         Alpha = alpha;
-        ClearAlpha = clearAlpha;
+        AddAlpha = addAlpha;
         LightLevelBufferIndex = lightLevelBufferIndex;
     }
 }

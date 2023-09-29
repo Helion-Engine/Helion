@@ -28,12 +28,12 @@ public class StaticShader : RenderProgram
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
         layout(location = 2) in float alpha;        
-        layout(location = 3) in float clearAlpha;
+        layout(location = 3) in float addAlpha;
         layout(location = 4) in float lightLevelBufferIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
-        flat out float clearAlphaFrag;
+        flat out float addAlphaFrag;
 
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
@@ -44,7 +44,7 @@ public class StaticShader : RenderProgram
         void main() {
             uvFrag = uv;
             alphaFrag = alpha;
-            clearAlphaFrag = clearAlpha;
+            addAlphaFrag = addAlpha;
             
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexLightBuffer}
@@ -62,12 +62,10 @@ public class StaticShader : RenderProgram
 
         in vec2 uvFrag;
         flat in float alphaFrag;
-        flat in float fuzzFrag;
-        flat in float clearAlphaFrag;
+        flat in float addAlphaFrag;
 
         out vec4 fragColor;
 
-        uniform float fuzzFrac;
         uniform int hasInvulnerability;
         uniform sampler2D boundTexture;
 
@@ -81,7 +79,7 @@ public class StaticShader : RenderProgram
             fragColor.xyz *= lightLevel;
             // This is set by textures that might have alpha pixels and are set to a wall that would allow the player to see through them
             // Doom would render these pixels black. E.g. set a one-sided wall to texture MIDSPACE
-            fragColor.w = fragColor.w * alphaFrag + clearAlphaFrag;
+            fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;
 
             if (fragColor.w <= 0.0)
                 discard;

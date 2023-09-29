@@ -31,7 +31,7 @@ public class InterpolationShader : RenderProgram
         layout(location = 1) in vec2 uv;
         layout(location = 2) in float lightLevel;
         layout(location = 3) in float alpha;
-        layout(location = 4) in float clearAlpha;
+        layout(location = 4) in float addAlpha;
         layout(location = 5) in float lightLevelBufferIndex;
         layout(location = 6) in vec3 prevPos;
         layout(location = 7) in vec2 prevUV;
@@ -40,7 +40,7 @@ public class InterpolationShader : RenderProgram
         out vec2 uvFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
-        flat out float clearAlphaFrag;
+        flat out float addAlphaFrag;
 
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
@@ -52,7 +52,7 @@ public class InterpolationShader : RenderProgram
             uvFrag = mix(prevUV, uv, timeFrac);
             alphaFrag = alpha;
             fuzzFrag = fuzz;
-            clearAlphaFrag = clearAlpha;
+            addAlphaFrag = addAlpha;
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
@@ -71,7 +71,7 @@ public class InterpolationShader : RenderProgram
         in vec2 uvFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
-        flat in float clearAlphaFrag;
+        flat in float addAlphaFrag;
 
         out vec4 fragColor;
 
@@ -115,7 +115,7 @@ public class InterpolationShader : RenderProgram
             fragColor.xyz *= lightLevel;
             // This is set by textures that might have alpha pixels and are set to a wall that would allow the player to see through them
             // Doom would render these pixels black. E.g. set a one-sided wall to texture MIDSPACE
-            fragColor.w = fragColor.w * alphaFrag + clearAlphaFrag;
+            fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;
 
             if (fragColor.w <= 0.0)
                 discard;
