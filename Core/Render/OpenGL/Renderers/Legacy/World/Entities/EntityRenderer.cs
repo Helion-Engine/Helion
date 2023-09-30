@@ -279,7 +279,7 @@ public class EntityRenderer
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
         GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        Sector sector = entity.Sector;
+        Sector sector = entity.Sector.GetRenderSector(viewSector, position.Z);
 
         short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
             (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
