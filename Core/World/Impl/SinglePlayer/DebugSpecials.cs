@@ -35,8 +35,9 @@ public class DebugSpecials
         if (line.HasSpecial)
         {
             var sectors = world.SpecialManager.GetSectorsFromSpecialLine(line);
-            foreach (Sector sector in sectors)
+            for (int i = 0; i < sectors.Count; i++)
             {
+                var sector = sectors.GetSector(i);
                 sector.MarkAutomap = true;
                 m_developerMarkedSectors.Add(sector);
                 world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetLineSpecialDescritpion(line)}");

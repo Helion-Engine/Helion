@@ -684,7 +684,7 @@ public abstract partial class WorldBase : IWorld
         m_bossBrainTargets = targets.ToArray();
     }
 
-    public IEnumerable<Sector> FindBySectorTag(int tag) =>
+    public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
     public IEnumerable<Entity> FindByTid(int tid) =>

@@ -619,18 +619,22 @@ public class SpecialManager : ITickable, IDisposable
 
     private void SetTransferHeights(Line line)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
-        foreach (var sector in sectors)
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
             sector.SetTransferHeights(line.Front.Sector);
+        }
     }
 
     // Constants and logic from WinMBF.
     // Credit to Lee Killough et al.
     private void SetSectorFriction(Line line)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
-        foreach (var sector in sectors)
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             double length = line.GetLength();
             sector.SetFriction(Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0));
         }
@@ -638,9 +642,10 @@ public class SpecialManager : ITickable, IDisposable
 
     private void CreatePushSpecial(PushType type, Line line)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
-        foreach (var sector in sectors)
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             Entity? pusher = null;
             if (type == PushType.Push)
                 pusher = GetPusher(sector);
@@ -742,7 +747,7 @@ public class SpecialManager : ITickable, IDisposable
 
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
         ZDoomScroll flags = (ZDoomScroll)line.Args.Arg1;
         ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
         if (planeType == SectorPlaneFace.Floor)
@@ -754,8 +759,9 @@ public class SpecialManager : ITickable, IDisposable
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = line.Front.Sector;
 
-        foreach (Sector sector in sectors)
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             SectorPlane sectorPlane = sector.GetSectorPlane(planeType);
             if (speeds.ScrollSpeed.HasValue)
             {
@@ -885,10 +891,11 @@ public class SpecialManager : ITickable, IDisposable
     {
         bool success = false;
 
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
+        var sectors = GetSectorsFromSpecialLine(args.ActivateLineSpecial);
         var lineSpecial = args.ActivateLineSpecial.Special;
-        foreach (var sector in sectors)
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             if (lineSpecial.IsSectorStopLight())
             {
                 if (StopSectorLightSpecials(sector))
@@ -1370,9 +1377,10 @@ public class SpecialManager : ITickable, IDisposable
 
     private void SetCeilingLight(Line line)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
-        foreach (var sector in sectors)
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             sector.TransferCeilingLightSector = line.Front.Sector;
             m_world.SetSectorCeilingLightLevel(sector, line.Front.Sector.Ceiling.LightLevel);
         }
@@ -1380,9 +1388,10 @@ public class SpecialManager : ITickable, IDisposable
 
     private void SetFloorLight(Line line)
     {
-        IEnumerable<Sector> sectors = GetSectorsFromSpecialLine(line);
-        foreach (var sector in sectors)
+        var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
+        for (int i = 0; i < sectors.Count; i++)
         {
+            var sector = sectors.GetSector(i);
             sector.TransferFloorLightSector = line.Front.Sector;
             m_world.SetSectorFloorLightLevel(sector, line.Front.Sector.Floor.LightLevel);
         }
@@ -1579,14 +1588,14 @@ public class SpecialManager : ITickable, IDisposable
             floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
     }
 
-    public IEnumerable<Sector> GetSectorsFromSpecialLine(Line line)
+    public SectorList GetSectorsFromSpecialLine(Line line, SectorTagOptions options = SectorTagOptions.Default)
     {
-        if (line.Special.CanActivateByTag && line.HasSectorTag)
-            return m_world.FindBySectorTag(line.SectorTag);
+        if (line.Special.CanActivateByTag && ((options & SectorTagOptions.IncludeZero) != 0 || line.HasSectorTag))
+            return new(m_world.FindBySectorTag(line.SectorTag));
         if (line.Special.CanActivateByBackSide && line.Back != null)
-            return new List<Sector> { line.Back.Sector };
+            return new (line.Back.Sector);
 
-        return Enumerable.Empty<Sector>();
+        return new(Array.Empty<Sector>());
     }
 
     private double GetDestZ(Sector sector, SectorPlaneFace planeType, SectorDest destination, MoveDirection start = MoveDirection.None,

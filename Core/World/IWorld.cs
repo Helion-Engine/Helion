@@ -98,7 +98,7 @@ public interface IWorld : IDisposable
     void Tick();
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
-    IEnumerable<Sector> FindBySectorTag(int tag);
+    IList<Sector> FindBySectorTag(int tag);
     IEnumerable<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);

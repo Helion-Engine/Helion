@@ -44,9 +44,9 @@ public class MapGeometry
         AttachIslandsToGeometry(Islands);
     }
 
-    public IEnumerable<Sector> FindBySectorTag(int tag)
+    public IList<Sector> FindBySectorTag(int tag)
     {
-        return m_tagToSector.TryGetValue(tag, out IList<Sector>? sectors) ? sectors : Enumerable.Empty<Sector>();
+        return m_tagToSector.TryGetValue(tag, out IList<Sector>? sectors) ? sectors : Array.Empty<Sector>();
     }
 
     public IEnumerable<Line> FindByLineId(int lineId)
