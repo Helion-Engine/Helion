@@ -141,11 +141,10 @@ public class FramebufferRenderer : IDisposable
     public void Render()
     {
         mat4 mvp = CalculateMvp();
-
-        (byte clearR, byte clearG, byte clearB, byte clearA) = Color.Black;
+        (float a, float r, float g, float b) = Color.Black.Normalized;
 
         GL.Viewport(0, 0, m_window.Dimension.Width, m_window.Dimension.Height);
-        GL.ClearColor(clearR, clearG, clearB, clearA);
+        GL.ClearColor(r, g, b, a);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
         m_program.Bind();
