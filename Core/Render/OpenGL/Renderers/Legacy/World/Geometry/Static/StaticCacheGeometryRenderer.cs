@@ -242,6 +242,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             float* lightBuffer = (float*)data.ToPointer();
             lightBuffer[Constants.LightBuffer.DarkIndex] = 0;
             lightBuffer[Constants.LightBuffer.FullBrightIndex] = 255;
+
+            for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
+                lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] = 
+                    256 - ((Constants.LightBuffer.ColorMapCount - i) * 256/ Constants.LightBuffer.ColorMapCount);
+
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];

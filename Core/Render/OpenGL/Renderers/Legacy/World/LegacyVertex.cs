@@ -16,9 +16,6 @@ public struct LegacyVertex
     public float V;
 
     [VertexAttribute]
-    public float LightLevel;
-
-    [VertexAttribute]
     public float Alpha;
 
     [VertexAttribute]
@@ -40,7 +37,7 @@ public struct LegacyVertex
     public float Fuzz;
 
     public LegacyVertex(float x, float y, float z, float prevX, float prevY, float prevZ, float u, float v, 
-        short lightLevelAdd = 0, float alpha = 1.0f, float fuzz = 0.0f, float addAlpha = 0.0f,
+        float alpha = 1.0f, float fuzz = 0.0f, float addAlpha = 0.0f,
         int lightLevelBufferIndex = 0)
     {
         X = x;
@@ -53,7 +50,6 @@ public struct LegacyVertex
         V = v;
         PrevU = u;
         PrevV = v;
-        LightLevel = lightLevelAdd;
         Alpha = alpha;
         Fuzz = fuzz;
         AddAlpha = addAlpha;

@@ -1314,7 +1314,6 @@ public class GeometryRenderer : IDisposable
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
-        data[0].LightLevel = lightLevelAdd;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1329,7 +1328,6 @@ public class GeometryRenderer : IDisposable
         data[0].AddAlpha = addAlpha;
         data[0].LightLevelBufferIndex = lightBufferIndex;
 
-        data[1].LightLevel = lightLevelAdd;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1344,7 +1342,6 @@ public class GeometryRenderer : IDisposable
         data[1].AddAlpha = addAlpha;
         data[1].LightLevelBufferIndex = lightBufferIndex;
 
-        data[2].LightLevel = lightLevelAdd;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1359,7 +1356,6 @@ public class GeometryRenderer : IDisposable
         data[2].AddAlpha = addAlpha;
         data[2].LightLevelBufferIndex = lightBufferIndex;
 
-        data[3].LightLevel = lightLevelAdd;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1374,7 +1370,6 @@ public class GeometryRenderer : IDisposable
         data[3].AddAlpha = addAlpha;
         data[3].LightLevelBufferIndex = lightBufferIndex;
 
-        data[4].LightLevel = lightLevelAdd;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1389,7 +1384,6 @@ public class GeometryRenderer : IDisposable
         data[4].AddAlpha = addAlpha;
         data[4].LightLevelBufferIndex = lightBufferIndex;
 
-        data[5].LightLevel = lightLevelAdd;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1415,7 +1409,6 @@ public class GeometryRenderer : IDisposable
         //    |/  /|
         //    1  / |
         //      4--5
-        data[0].LightLevel = lightLevelAdd;
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1430,7 +1423,6 @@ public class GeometryRenderer : IDisposable
         data[0].AddAlpha = addAlpha;
         data[0].LightLevelBufferIndex = lightBufferIndex;
 
-        data[1].LightLevel = lightLevelAdd;
         data[1].X = wv.BottomLeft.X;
         data[1].Y = wv.BottomLeft.Y;
         data[1].Z = wv.BottomLeft.Z;
@@ -1445,7 +1437,6 @@ public class GeometryRenderer : IDisposable
         data[1].AddAlpha = addAlpha;
         data[1].LightLevelBufferIndex = lightBufferIndex;
 
-        data[2].LightLevel = lightLevelAdd;
         data[2].X = wv.TopRight.X;
         data[2].Y = wv.TopRight.Y;
         data[2].Z = wv.TopRight.Z;
@@ -1460,7 +1451,6 @@ public class GeometryRenderer : IDisposable
         data[2].AddAlpha = addAlpha;
         data[2].LightLevelBufferIndex = lightBufferIndex;
 
-        data[3].LightLevel = lightLevelAdd;
         data[3].X = wv.TopRight.X;
         data[3].Y = wv.TopRight.Y;
         data[3].Z = wv.TopRight.Z;
@@ -1475,7 +1465,6 @@ public class GeometryRenderer : IDisposable
         data[3].AddAlpha = addAlpha;
         data[3].LightLevelBufferIndex = lightBufferIndex;
 
-        data[4].LightLevel = lightLevelAdd;
         data[4].X = wv.BottomLeft.X;
         data[4].Y = wv.BottomLeft.Y;
         data[4].Z = wv.BottomLeft.Z;
@@ -1490,7 +1479,6 @@ public class GeometryRenderer : IDisposable
         data[4].AddAlpha = addAlpha;
         data[4].LightLevelBufferIndex = lightBufferIndex;
 
-        data[5].LightLevel = lightLevelAdd;
         data[5].X = wv.BottomRight.X;
         data[5].Y = wv.BottomRight.Y;
         data[5].Z = wv.BottomRight.Z;
@@ -1513,7 +1501,6 @@ public class GeometryRenderer : IDisposable
     {
         vertices.Add(new LegacyVertex()
         {
-            LightLevel = 0,
             X = root.X,
             Y = root.Y,
             Z = root.Z,
@@ -1531,7 +1518,6 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevel = 0,
             X = second.X,
             Y = second.Y,
             Z = second.Z,
@@ -1549,7 +1535,6 @@ public class GeometryRenderer : IDisposable
 
         vertices.Add(new LegacyVertex()
         {
-            LightLevel = 0,
             X = third.X,
             Y = third.Y,
             Z = third.Z,

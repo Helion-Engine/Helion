@@ -54,7 +54,7 @@ public class StaticShader : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(""))
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
 
     protected override string FragmentShader() => @"

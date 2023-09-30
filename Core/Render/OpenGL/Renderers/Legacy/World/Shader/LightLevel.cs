@@ -13,10 +13,10 @@ public static class LightLevel
 
     public static string VertexLightBufferVariables = "uniform samplerBuffer sectorLightTexture;";
 
-    public static string VertexLightBuffer(string addLightLevel) =>
+    public static string VertexLightBuffer =
 @"int texBufferIndex = int(lightLevelBufferIndex);
 float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-lightLevelFrag = clamp(lightLevelBufferValue" + addLightLevel + ", 0.0, 256.0);";
+lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).z;";
 

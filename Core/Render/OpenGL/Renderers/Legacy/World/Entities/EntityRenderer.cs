@@ -175,14 +175,14 @@ public class EntityRenderer
         if (entity.Flags.Shadow)
             alpha = 0.99f;
 
-        int lightBuffer = Constants.LightBuffer.DarkIndex;        
-        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, lightLevel, alpha, fuzz,
+        int lightBuffer = Constants.LightBuffer.ColorMapStartIndex + (lightLevel / (256 / Constants.LightBuffer.ColorMapCount));
+        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, lightLevel, alpha, fuzz,
+        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, lightLevel, alpha, fuzz,
+        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, lightLevel, alpha, fuzz,
+        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, alpha, fuzz,
             lightLevelBufferIndex: lightBuffer);
 
         RenderWorldData renderWorldData = alpha < 1 ?

@@ -29,13 +29,12 @@ public class InterpolationShader : RenderProgram
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
-        layout(location = 2) in float lightLevel;
-        layout(location = 3) in float alpha;
-        layout(location = 4) in float addAlpha;
-        layout(location = 5) in float lightLevelBufferIndex;
-        layout(location = 6) in vec3 prevPos;
-        layout(location = 7) in vec2 prevUV;
-        layout(location = 8) in float fuzz;
+        layout(location = 2) in float alpha;
+        layout(location = 3) in float addAlpha;
+        layout(location = 4) in float lightLevelBufferIndex;
+        layout(location = 5) in vec3 prevPos;
+        layout(location = 6) in vec2 prevUV;
+        layout(location = 7) in float fuzz;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -62,7 +61,7 @@ public class InterpolationShader : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(" + lightLevel"))
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
 
     protected override string FragmentShader() => @"
