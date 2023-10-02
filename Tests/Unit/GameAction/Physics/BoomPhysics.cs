@@ -85,8 +85,8 @@ namespace Helion.Tests.Unit.GameAction
         public void LiftAndCeilingMoveBlock()
         {
             var sector = GameActions.GetSectorByTag(World, 3);
-            GameActions.ActivateLine(World, Player, 6, ActivationContext.UseLine).Should().BeTrue();
             GameActions.ActivateLine(World, Player, 24, ActivationContext.UseLine).Should().BeTrue();
+            GameActions.ActivateLine(World, Player, 6, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveCeilingMove.Should().NotBeNull();
             sector.ActiveFloorMove.Should().NotBeNull();
 
@@ -110,8 +110,8 @@ namespace Helion.Tests.Unit.GameAction
             sector.ActiveFloorMove.Should().NotBeNull();
 
             GameActions.RunSectorPlaneSpecial(World, sector);
-            sector.Floor.Z.Should().Be(112);
-            sector.Ceiling.Z.Should().Be(112);
+            sector.Floor.Z.Should().Be(113);
+            sector.Ceiling.Z.Should().Be(113);
         }
 
         [Fact(DisplayName = "Activate two lines with use through flag")]

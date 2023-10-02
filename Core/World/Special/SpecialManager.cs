@@ -259,13 +259,13 @@ public class SpecialManager : ITickable, IDisposable
     public ISpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
     {
         special.SetDelayTics(delayTics);
-        m_specials.AddLast(special);
+        m_specials.AddFirst(special);
         return special;
     }
 
     public void AddSpecial(ISpecial special)
     {
-        m_specials.AddLast(special);
+        m_specials.AddFirst(special);
     }
 
     public ISpecial? FindSpecialBySector(Sector sector)
@@ -318,7 +318,7 @@ public class SpecialManager : ITickable, IDisposable
         {
             ISpecial? special = specialModels[i].ToWorldSpecial(m_world);
             if (special != null)
-                m_specials.AddLast(special);
+                m_specials.AddFirst(special);
         }
     }
 
@@ -1415,9 +1415,9 @@ public class SpecialManager : ITickable, IDisposable
             floor = CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, floorSpeed);
 
         if (floor != null)
-            m_specials.AddLast(floor);
+            m_specials.AddFirst(floor);
         if (ceiling != null)
-            m_specials.AddLast(ceiling);
+            m_specials.AddFirst(ceiling);
 
         return floor != null || ceiling != null;
     }

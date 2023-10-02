@@ -37,7 +37,8 @@ public class ZeroTag
         sector.TransferHeights.Should().NotBeNull();
         sector.TransferHeights!.ControlSector.Id.Should().Be(1);
         sector.TransferFloorLightSector.Id.Should().Be(2);
-        var scroll = World.SpecialManager.GetSpecials().FirstOrDefault(x => x is ScrollSpecial) as ScrollSpecial;
+        var scroll = World.SpecialManager.GetSpecials().FirstOrDefault(x => x is ScrollSpecial scrollSpecial &&
+            scrollSpecial.SectorPlane != null && scrollSpecial.SectorPlane.Sector.Id == sector.Id) as ScrollSpecial;
         scroll.Should().NotBeNull();
         scroll!.SectorPlane.Should().NotBeNull();
         scroll!.SectorPlane.Should().Be(sector.Floor);
