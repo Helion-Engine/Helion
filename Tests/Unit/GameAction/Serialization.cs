@@ -238,9 +238,9 @@ public class Serialization : IDisposable
 
             first.Offset.Should().Be(second.Offset);
             first.DataChanges.Should().Be(second.DataChanges);
-            first.ScrollData?.Offset[0].Should().Be(second.ScrollData?.Offset[0]);
-            first.ScrollData?.Offset[1].Should().Be(second.ScrollData?.Offset[1]);
-            first.ScrollData?.Offset[2].Should().Be(second.ScrollData?.Offset[2]);
+            first.ScrollData?.OffsetUpper.Should().Be(second.ScrollData?.OffsetUpper);
+            first.ScrollData?.OffsetMiddle.Should().Be(second.ScrollData?.OffsetMiddle);
+            first.ScrollData?.OffsetLower.Should().Be(second.ScrollData?.OffsetLower);
 
             first.LastRenderGametick.Should().Be(second.LastRenderGametick);
         }

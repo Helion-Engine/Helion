@@ -713,6 +713,8 @@ public class SpecialManager : ITickable, IDisposable
         if (!speeds.ScrollSpeed.HasValue)
             return;
 
+        speeds.ScrollSpeed = (speeds.ScrollSpeed.Value.Y, speeds.ScrollSpeed.Value.X);
+
         Sector? changeScroll = null;
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = setLine.Front.Sector;

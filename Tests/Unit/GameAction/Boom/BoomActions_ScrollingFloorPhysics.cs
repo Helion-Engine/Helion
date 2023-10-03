@@ -27,7 +27,7 @@ public partial class BoomActions
     public void ScrollingFloorEntityInAir()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 9);
-        var clip = GameActions.CreateEntity(World, "Clip", (-192, 672, 32));
+        var clip = GameActions.CreateEntity(World, "Clip", (-192, 928, 32));
         clip.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);
@@ -35,7 +35,7 @@ public partial class BoomActions
         clip.Velocity.XY.Should().Be(Vec2D.Zero);
 
         clip.UnlinkFromWorld();
-        clip.Position = (-192, 672, 0);
+        clip.Position = (-192, 928, 0);
         World.Link(clip);
 
         GameActions.TickWorld(World, 1);
@@ -48,7 +48,7 @@ public partial class BoomActions
     public void ScrollingFloorRocket()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 9);
-        var rocket = GameActions.CreateEntity(World, "Rocket", (-192, 672, 0));
+        var rocket = GameActions.CreateEntity(World, "Rocket", (-192, 928, 0));
         rocket.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);
@@ -61,7 +61,7 @@ public partial class BoomActions
     public void ScrollingFloorUnderwater()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 10);
-        var rocket = GameActions.CreateEntity(World, "Rocket", (-192, 896, 0));
+        var rocket = GameActions.CreateEntity(World, "Rocket", (-192, 736, 0));
         rocket.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);
@@ -69,7 +69,7 @@ public partial class BoomActions
         rocket.Velocity.Should().Be(Vec3D.Zero);
 
         rocket.UnlinkFromWorld();
-        rocket.Position = (-192, 896, -48);
+        rocket.Position = (-192, 736, -48);
         World.Link(rocket);
 
         GameActions.TickWorld(World, 1);
