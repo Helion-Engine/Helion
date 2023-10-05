@@ -86,10 +86,14 @@ public struct TeleportSpecial
         if (Teleport(entity, pos, angle, offsetZ))
         {
             if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
-                m_world.CreateTeleportFog(oldPosition + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
+                m_world.CreateTeleportFog(oldPosition);
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
-                m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(entity.AngleRadians, 0.0) * Constants.TeleportOffsetDist));
+            {
+                var velocityAngle = Math.Atan2(entity.Velocity.Y, entity.Velocity.X);
+                m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(velocityAngle, 0.0) * Constants.TeleportOffsetDist));
+            }
+
             return true;
         }
 
