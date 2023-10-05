@@ -32,6 +32,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 {
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly Sector DefaultSector = Sector.CreateDefault();
 
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
@@ -121,6 +122,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         SetLightBufferData(world, lightBuffer);
 
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+        m_geometryRenderer.SetViewSector(DefaultSector);
         m_geometryRenderer.SetBuffer(false);
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -289,10 +291,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
-            // Geometry renderer calculate the view position based on the position Z so it needs to be forced to the middle
-            if (line.Front.Sector.TransferHeights != null)
-                m_geometryRenderer.SetRenderPosition(new Vec3D(0, 0, line.Front.Sector.TransferHeights.ControlSector.Floor.Z + 1));
-
             m_geometryRenderer.SetRenderOneSided(line.Front);
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
             AddSkyGeometry(line.Front, WallLocation.Middle, null, skyVertices, line.Front.Sector, update);
@@ -317,9 +315,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         Side otherSide = side.PartnerSide!;
         if (update && (side.Sector.IsMoving || otherSide.Sector.IsMoving))
             return;
-
-        if (side.Sector.TransferHeights != null)
-            m_geometryRenderer.SetRenderPosition(new Vec3D(0, 0, side.Sector.TransferHeights.ControlSector.Floor.Z + 1));
 
         Sector facingSector = side.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
@@ -798,6 +793,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         StaticDataApplier.ClearSectorDynamicMovement(world, plane);
         bool floor = plane.Facing == SectorPlaneFace.Floor;
         m_geometryRenderer.SetBuffer(false);
+        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+        m_geometryRenderer.SetViewSector(DefaultSector);
 
         if (floor)
             m_geometryRenderer.SetRenderFloor(plane);
@@ -824,6 +821,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearGeometryVertices(e.Wall.Static);
         m_freeManager.Add(e.PreviousTextureHandle, e.Wall.Static);
         e.Wall.Static.GeometryData = null;
+        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+        m_geometryRenderer.SetViewSector(DefaultSector);
         AddLine(e.Side.Line, update: true);
     }
 
@@ -832,6 +831,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearGeometryVertices(e.Plane.Static);
         m_freeManager.Add(e.PreviousTextureHandle, e.Plane.Static);
         e.Plane.Static.GeometryData = null;
+        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
+        m_geometryRenderer.SetViewSector(DefaultSector);
         AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 

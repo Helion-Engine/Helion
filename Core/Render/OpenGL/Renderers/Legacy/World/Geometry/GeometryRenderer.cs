@@ -32,6 +32,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 public class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
+    private static readonly Sector DefaultSector = Sector.CreateDefault();
 
     public readonly List<IRenderObject> AlphaSides = new();
     public readonly PortalRenderer Portals;
@@ -88,7 +89,7 @@ public class GeometryRenderer : IDisposable
         m_viewClipper = viewClipper;
         Portals = new(archiveCollection, glTextureManager);
         m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
-        m_viewSector = Sector.CreateDefault();
+        m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, staticProgram, this);
 
@@ -112,6 +113,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
         m_dynamic = !m_world.Config.Render.StaticMode;
+        m_viewSector = DefaultSector;
         PreloadAllTextures(world);
 
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];
@@ -978,7 +980,7 @@ public class GeometryRenderer : IDisposable
 
     public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;
     public void SetBuffer(bool set) => m_buffer = set;
-    public void SetRenderPosition(Vec3D position) => m_position = position;
+    public void SetViewSector(Sector sector) => m_viewSector = sector;
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? verticies, out SkyGeometryVertex[]? skyVerticies)
     {
