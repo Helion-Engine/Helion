@@ -80,9 +80,6 @@ public class ConfigRender
     [ConfigInfo("Static rendering mode.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> StaticMode = new(true);
 
-    [ConfigInfo("Update scrolling walls for static rendering.", mapRestartRequired: true)]
-    public readonly ConfigValue<bool> StaticScroll = new(false);
-
     [ConfigInfo("Use blockmap rendering. Static mode required.")]
     public readonly ConfigValue<bool> Blockmap = new(true);
 

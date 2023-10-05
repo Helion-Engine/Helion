@@ -45,8 +45,6 @@ public interface IWorld : IDisposable
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
-    event EventHandler<SideScrollEvent>? SideScrollChanged;
-    event EventHandler<SectorPlane> SectorPlaneScrollChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
@@ -152,8 +150,6 @@ public interface IWorld : IDisposable
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSectorFloorLightLevel(Sector sector, short lightLevel);
     void SetSectorCeilingLightLevel(Sector sector, short lightLevel);
-    void SetSideScroll(Side side, SideTexture textures);
-    void SetSectorPlaneScroll(SectorPlane plane);
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);

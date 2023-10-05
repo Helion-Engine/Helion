@@ -21,12 +21,10 @@ public class StaticDataApplier
     const SideTexture MiddleUpper = SideTexture.Middle | SideTexture.Upper;
 
     private static bool IsLoading;
-    private static bool StaticScroll;
 
     public static void DetermineStaticData(WorldBase world)
     {
         IsLoading = true;
-        StaticScroll = world.Config.Render.StaticScroll;
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
@@ -36,7 +34,7 @@ public class StaticDataApplier
             {
                 SetSectorDynamic(world, sectorSpecial.Sector, true, true, SectorDynamic.Light);
             }
-            else if (!StaticScroll && special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
+            else if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
             {
                 bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
                 SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
@@ -73,9 +71,6 @@ public class StaticDataApplier
                 world.RenderBlockmap.LinkDynamicSide(world, line.Back);
             return;
         }
-
-        if (StaticScroll)
-            return;
 
         if (line.Front.ScrollData != null)
         {

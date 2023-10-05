@@ -47,10 +47,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private readonly DynamicArray<Sector> m_updateLightSectors = new();
     private readonly DynamicArray<int> m_updatelightSectorsLookup = new();
-    private readonly DynamicArray<SideScrollEvent> m_updateScrollSides = new();
-    private readonly DynamicArray<int> m_updateScrollSidesLookup = new();
-    private readonly DynamicArray<SectorPlane> m_updateScrollPlanes = new();
-    private readonly DynamicArray<int> m_updateScrollPlanesLookup = new();
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
@@ -60,7 +56,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private bool m_staticMode;
     private bool m_disposed;
-    private bool m_staticScroll;
     private IWorld? m_world;
     private GLBufferTexture? m_lightBuffer;
     private int m_counter;
@@ -102,8 +97,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
-        m_updateScrollSides.FlushStruct();
-        m_updateScrollPlanes.FlushReferences();
         for (int i = 0; i < m_bufferData.Length; i++)
         {
             var list = m_bufferData.Data[i];
@@ -113,7 +106,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_world = world;
         m_staticMode = world.Config.Render.StaticMode;
-        m_staticScroll = world.Config.Render.StaticScroll;
         
         SetSideDynamicIgnore();
 
@@ -125,9 +117,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
-        m_world.SideScrollChanged += World_SideScrollChanged;
-        if (m_staticScroll)
-            m_world.SectorPlaneScrollChanged += World_SectorPlaneScrollChanged;
 
         SetLightBufferData(world, lightBuffer);
 
@@ -169,8 +158,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
-        UpdateLookup(m_updateScrollSidesLookup, world.Sides.Count);
-        UpdateLookup(m_updateScrollPlanesLookup, world.Sectors.Count * 2);
     }
 
     public void CheckForFloodFill(Side facingSide, Side otherSide, Sector otherSector, bool isFront)
@@ -508,8 +495,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorLightChanged -= World_SectorLightChanged;
-            m_world.SideScrollChanged -= World_SideScrollChanged;
-            m_world.SectorPlaneScrollChanged -= World_SectorPlaneScrollChanged;
             m_world = null;
         }
 
@@ -526,8 +511,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.Clear();
         m_runtimeGeometry.Clear();
         m_updateLightSectors.Clear();
-        m_updateScrollSides.Clear();
-        m_updateScrollPlanes.Clear();
 
         m_transferHeightsLookup.SetAll(null);
 
@@ -625,8 +608,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLights();
-        UpdateScrollSides();
-        UpdateScrollPlanes();
         UpdateBufferData();
     }
 
@@ -667,50 +648,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_bufferLists.Clear();
-    }
-
-    private void UpdateScrollSides()
-    {
-        if (m_updateScrollSides.Length == 0)
-            return;
-
-        for (int i = 0; i < m_updateScrollSides.Length; i++)
-        {
-            var scroll = m_updateScrollSides[i];
-            var side = scroll.Side;
-            if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
-                continue;
-
-            if ((scroll.Textures & SideTexture.Upper) != 0)
-                UpdateOffsetVertices(side.Upper.Static, side, SideTexture.Upper);
-            if ((scroll.Textures & SideTexture.Lower) != 0)
-                UpdateOffsetVertices(side.Lower.Static, side, SideTexture.Lower);
-            if ((scroll.Textures & SideTexture.Middle) != 0)
-                UpdateOffsetVertices(side.Middle.Static, side, SideTexture.Middle);
-        }
-
-        m_updateScrollSides.Clear();
-    }
-
-    private void UpdateScrollPlanes()
-    {
-        if (m_updateScrollPlanes.Length == 0)
-            return;
-
-        for (int i = 0; i < m_updateScrollPlanes.Length; i++)
-        {
-            var plane = m_updateScrollPlanes[i];
-            var data = plane.Static;
-            if (plane.Sector.IsMoving || data.GeometryData == null)
-                continue;
-
-            DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
-            list.Add(data);
-
-            GeometryRenderer.UpdatePlaneOffsetVertices(data.GeometryData.Vbo.Data.Data, data.Index, data.Length, data.GeometryData.Texture, plane);
-        }
-
-        m_updateScrollPlanes.Clear();
     }
 
     private unsafe void UpdateLights()
@@ -907,41 +844,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Add(e);
     }
 
-    private void World_SideScrollChanged(object? sender, SideScrollEvent e)
-    {
-        if (!m_staticScroll)
-        {
-            if (m_updateScrollSidesLookup[e.Side.Id] > 0)
-                return;
-
-            // Remove if the texture has transparent pixels.
-            // Overlapping on top of the static texture creates rendering issues in OpenGL. 
-            m_updateScrollSidesLookup[e.Side.Id] = 1;
-            if ((e.Textures & SideTexture.Middle) != 0 &&
-                m_textureManager.GetTexture(e.Side.Middle.TextureHandle, false).TransparentPixelCount > 0)
-                ClearGeometryVertices(e.Side.Middle.Static);
-            return;
-        }
-
-        if (m_updateScrollSidesLookup[e.Side.Id] == m_counter)
-            return;
-
-        m_updateScrollSidesLookup[e.Side.Id] = m_counter;
-        m_updateScrollSides.Add(e);
-    }
-
-    private void World_SectorPlaneScrollChanged(object? sender, SectorPlane e)
-    {
-        if (!m_staticScroll || m_world == null)
-            return;
-
-        if (m_updateScrollPlanesLookup[e.Id] == m_world.Gametick)
-            return;
-
-        m_updateScrollPlanesLookup[e.Id] = m_world.Gametick;
-        m_updateScrollPlanes.Add(e);
-    }
-
     private static void ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
@@ -1014,17 +916,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.Static.Index = geometryData.Vbo.Count;
             plane.Static.Length = vertices.Length;
         }
-    }
-
-    private void UpdateOffsetVertices(in StaticGeometryData data, Side side, SideTexture texture)
-    {
-        if (data.GeometryData == null)
-            return;
-
-        DynamicArray<StaticGeometryData> list = GetOrCreateBufferList(data.GeometryData);
-        list.Add(data);
-
-        GeometryRenderer.UpdateOffsetVertices(data.GeometryData.Vbo.Data.Data, data.Index, data.GeometryData.Texture, side, texture);
     }
 
     private DynamicArray<StaticGeometryData> GetOrCreateBufferList(GeometryData geometryData)

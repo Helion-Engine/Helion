@@ -190,17 +190,9 @@ public class ScrollSpecial : ISpecial
     private void ScrollLine(Line line, in Vec2D speed)
     {
         if (m_frontScroll != null)
-        {
             Scroll(m_frontScroll, speed);
-            line.Front.OffsetChanged = true;
-            m_world.SetSideScroll(line.Front, m_sideTextures);
-        }
         else if (m_backScroll != null)
-        {
             Scroll(m_backScroll, speed);
-            line.Back.OffsetChanged = true;
-            m_world.SetSideScroll(line.Back, m_sideTextures);
-        }
     }
 
     private void Scroll(SideScrollData scrollData, in Vec2D speed)
@@ -237,7 +229,6 @@ public class ScrollSpecial : ISpecial
             scroll.LastOffset = scroll.Offset;
             scroll.Offset += speed;
             sectorPlane.Sector.DataChanges |= SectorDataTypes.Offset;
-            m_world.SetSectorPlaneScroll(sectorPlane);
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {

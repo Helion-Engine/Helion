@@ -22,7 +22,7 @@ public class Side : IRenderObject
     public SideDataTypes DataChanges { get; set; }
     public bool DataChanged => DataChanges > 0;
     // This is currently just for the renderer to know for scrolling lines to not cache
-    public bool OffsetChanged { get; set; }
+    public bool OffsetChanged => ScrollData != null;
     public bool IsStatic => Upper.Dynamic == SectorDynamic.None && Middle.Dynamic == SectorDynamic.None && Lower.Dynamic == SectorDynamic.None;
     public bool IsDynamic => Upper.Dynamic != SectorDynamic.None || Middle.Dynamic != SectorDynamic.None || Lower.Dynamic != SectorDynamic.None;
     public SideTexture FloodTextures;
