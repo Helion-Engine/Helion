@@ -714,20 +714,21 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_Chase(Entity entity)
+    public static void A_Chase(Entity entity)
     {
         if (entity.ReactionTime > 0)
-            entity.ReactionTime--;
+            entity.ReactionTime -= entity.SlowTickMultiplier;
 
         if (entity.Threshold > 0)
         {
             if (entity.Target.Entity == null || entity.Target.Entity.IsDead)
                 entity.Threshold = 0;
             else
-                entity.Threshold--;
+                entity.Threshold -= entity.SlowTickMultiplier;
         }
 
-        entity.TurnTowardsMovementDirection();
+        if (entity.SlowTickMultiplier <= 1)
+            entity.TurnTowardsMovementDirection();
 
         if (entity.Target.Entity == null || entity.Target.Entity.IsDead)
         {
@@ -742,7 +743,7 @@ public static class EntityActionFunctions
         if (entity.Flags.JustAttacked)
         {
             entity.Flags.JustAttacked = false;
-            if (!entity.World.IsFastMonsters)
+            if (!EntityStatic.IsFastMonsters)
                 entity.SetNewChaseDirection();
             return;
         }
@@ -756,7 +757,11 @@ public static class EntityActionFunctions
         if (entity.IsDisposed)
             return;
 
-        if ((entity.MoveCount == 0 || entity.World.IsFastMonsters) &&
+        // Set the Move Count to 1 so that the attack happens on the next A_Chase call. Otherwise the monster will attack more often than normal.
+        if (entity.MoveCount > 1 && entity.SlowTickMultiplier > 1)
+            entity.MoveCount = Math.Clamp(entity.MoveCount - entity.SlowTickMultiplier, 1, int.MaxValue);
+
+        if ((entity.MoveCount == 0 || EntityStatic.IsFastMonsters) &&
             entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
             entity.Flags.JustAttacked = true;
@@ -773,7 +778,12 @@ public static class EntityActionFunctions
         entity.MoveCount--;
 
         if (entity.MoveCount < 0 || !entity.MoveEnemy(out TryMoveData? _))
+        {
             entity.SetNewChaseDirection();
+            // Need to turn here if slow ticking, otherwise monsters will slide in directions they aren't facing.
+            if (entity.SlowTickMultiplier > 1)
+                entity.TurnTowardsMovementDirection();
+        }
     }
 
     private static void A_CheckBlock(Entity entity)
@@ -1041,7 +1051,7 @@ public static class EntityActionFunctions
 
         entity.AngleRadians = entity.Position.Angle(entity.Target.Entity.Position);
         if (entity.Target.Entity.Flags.Shadow)
-            entity.AngleRadians += entity.World.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
+            entity.AngleRadians += EntityStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
     }
 
     private static void A_FaceTracer(Entity entity)
@@ -1518,7 +1528,7 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_Look(Entity entity)
+    public static void A_Look(Entity entity)
     {
         if (entity.InMonsterCloset)
         {
@@ -2457,7 +2467,7 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_Tracer(Entity entity)
+    public static void A_Tracer(Entity entity)
     {
         if ((entity.World.Gametick & 3) != 0)
             return;
@@ -2587,7 +2597,7 @@ public static class EntityActionFunctions
         entity.World.RadiusExplosion(fire, entity, 70, 70);
     }
 
-    private static void A_VileChase(Entity entity)
+    public static void A_VileChase(Entity entity)
     {
         EntityFrame? healState = entity.FrameState.GetStateFrame(Constants.FrameStates.Heal);
         // Doom just used VILE_HEAL1 state. With dehacked this means you can give a random thing A_VileChase and it will use this state.
@@ -3072,7 +3082,7 @@ public static class EntityActionFunctions
         entity.World.NoiseAlert(entity.Target.Entity, entity);
     }
 
-    private static void A_HealChase(Entity entity)
+    public static void A_HealChase(Entity entity)
     {
         int state = entity.Frame.DehackedArgs1;
         int sound = entity.Frame.DehackedArgs2;
@@ -3089,7 +3099,7 @@ public static class EntityActionFunctions
             A_Chase(entity);
     }
 
-    private static void A_SeekTracer(Entity entity)
+    public static void A_SeekTracer(Entity entity)
     {
         double threshold = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
         double maxTurnAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));

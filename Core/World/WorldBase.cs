@@ -175,6 +175,20 @@ public abstract partial class WorldBase : IWorld
         m_defaultDamageAction = DefaultDamage;
         SetCompatibilityOptions(mapInfoDef);
 
+        Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
+        Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
+        Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
+        Config.SlowTick.MissileMultiplier.OnChanged += SlowTickMissileMultiplier_OnChanged;
+
+        EntityStatic.Random = Random;
+        EntityStatic.SlowTickDistance = Config.SlowTick.Distance;
+        EntityStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
+        EntityStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
+        EntityStatic.SlowTickMissileMultiplier = Config.SlowTick.MissileMultiplier;
+        EntityStatic.IsFastMonsters = IsFastMonsters;
+        EntityStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
+        EntityStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+
         if (worldModel != null)
         {
             WorldState = worldModel.WorldState;
@@ -194,6 +208,15 @@ public abstract partial class WorldBase : IWorld
             LevelStats.SecretCount = worldModel.SecretCount;
         }
     }
+
+    private void SlowTickDistance_OnChanged(object? sender, int distance) =>
+        EntityStatic.SlowTickDistance = distance;
+    private void SlowTickChaseMultiplier_OnChanged(object? sender, int value) =>
+        EntityStatic.SlowTickChaseMultiplier = value;
+    private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>
+        EntityStatic.SlowTickLookMultiplier = value;
+    private void SlowTickMissileMultiplier_OnChanged(object? sender, int value) =>
+        EntityStatic.SlowTickMissileMultiplier = value;
 
     private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
     {
@@ -427,6 +450,7 @@ public abstract partial class WorldBase : IWorld
 
     private void TickEntities()
     {
+
         Profiler.World.TickEntity.Start();
         LinkableNode<Entity>? node = EntityManager.Entities.Head;
         LinkableNode<Entity>? nextNode = node;

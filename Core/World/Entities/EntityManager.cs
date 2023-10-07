@@ -115,7 +115,7 @@ public class EntityManager : IDisposable
         position.Z = GetPositionZ(sector, in position, zHeight);
         Entity entity = World.DataCache.GetEntity(id, tid, definition, position, angle, sector, World);
 
-        if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
+        if (entity.Definition.Properties.FastSpeed > 0 && EntityStatic.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
 
         // This only needs to happen on map population

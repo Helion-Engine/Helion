@@ -99,6 +99,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public double RenderDistance { get; set; }
     public int RenderedCounter; // Used by the renderer only.
+    public int LastRenderGametick;
+    public double LastRenderDistanceSquared = double.MaxValue;
+    public int SlowTickMultiplier = 1;
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
@@ -410,18 +413,18 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (Flags.CountKill && IsDeathStateFinished)
         {
-            if (World.SkillDefinition.RespawnTime.Seconds == 0)
+            if (EntityStatic.RespawnTimeSeconds == 0)
                 return;
 
             MoveCount++;
 
-            if (MoveCount < World.SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond)
+            if (MoveCount < EntityStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
                 return;
 
             if ((World.LevelTime & 31) != 0)
                 return;
 
-            if (World.Random.NextByte() > 4)
+            if (EntityStatic.Random.NextByte() > 4)
                 return;
 
             Respawn = true;
@@ -685,7 +688,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public void SetRandomizeTicks(int opAnd = 3) =>
-        FrameState.SetTics(FrameState.CurrentTick - (World.Random.NextByte() & opAnd));
+        FrameState.SetTics(FrameState.CurrentTick - (EntityStatic.Random.NextByte() & opAnd));
 
     private int ApplyArmorDamage(int damage)
     {
@@ -867,7 +870,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (BlockingEntity != null)
             {
-                int damage = Properties.Damage.Get(World.Random);
+                int damage = Properties.Damage.Get(EntityStatic.Random);
                 EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 

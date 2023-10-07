@@ -15,6 +15,10 @@ public struct FrameState
     private const int InfiniteLoopLimit = 10000;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    private static int SlowTickOffsetChase = 0;
+    private static int SlowTickOffsetLook = 0;
+    private static int SlowTickOffsetMissile = 0;
+
     public EntityFrame Frame;
     private Entity m_entity;
     private EntityDefinition m_definition;
@@ -156,12 +160,13 @@ public struct FrameState
             SetFrameIndexMember(index);
             m_tics = Frame.Ticks;
 
-            if (m_entity.World.IsFastMonsters && Frame.Properties.Fast)
+            if (EntityStatic.IsFastMonsters && Frame.Properties.Fast)
                 m_tics /= 2;
 
-            if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
+            if (EntityStatic.IsSlowMonsters && Frame.Properties.Slow)
                 m_tics *= 2;
 
+            CheckSlowTickDistance();
             onSet?.Invoke(Frame);
 
             if (m_destroyOnStop && Frame.IsNullFrame)
@@ -192,6 +197,49 @@ public struct FrameState
                 break;
 
             index = Frame.NextFrameIndex;
+        }
+    }
+
+    private void CheckSlowTickDistance()
+    {
+        m_entity.SlowTickMultiplier = 1;
+        if (EntityStatic.SlowTickDistance <= 0)
+            return;
+
+        if (m_entity.InMonsterCloset)
+            return;
+
+        if (m_tics > 0 &&
+            ((m_entity.Flags.Missile && (Frame.ActionFunction == EntityActionFunctions.A_Tracer || Frame.ActionFunction == EntityActionFunctions.A_SeekTracer)) ||
+            Frame.ActionFunction == EntityActionFunctions.A_Chase || 
+            Frame.ActionFunction == EntityActionFunctions.A_VileChase ||
+            Frame.ActionFunction == EntityActionFunctions.A_HealChase ||
+            Frame.ActionFunction == EntityActionFunctions.A_Look) &&
+            (m_entity.LastRenderDistanceSquared > EntityStatic.SlowTickDistance * EntityStatic.SlowTickDistance ||
+            m_entity.LastRenderGametick != m_entity.World.Gametick))
+        {
+            // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
+            // Sets to a range of -1 to +2
+            int offset = 0;
+            if (m_entity.Flags.Missile)
+            {
+                m_entity.SlowTickMultiplier = EntityStatic.SlowTickMissileMultiplier;
+                offset = (SlowTickOffsetMissile++ & 3) - 1;
+            }
+            else if (Frame.ActionFunction == EntityActionFunctions.A_Chase || 
+                Frame.ActionFunction == EntityActionFunctions.A_VileChase || 
+                Frame.ActionFunction == EntityActionFunctions.A_HealChase)
+            {
+                m_entity.SlowTickMultiplier = EntityStatic.SlowTickChaseMultiplier;
+                offset = (SlowTickOffsetChase++ & 3) - 1;
+            }
+            else if (Frame.ActionFunction == EntityActionFunctions.A_Look)
+            {
+                m_entity.SlowTickMultiplier = EntityStatic.SlowTickLookMultiplier;
+                offset = (SlowTickOffsetLook++ & 3) - 1;
+            }
+
+            m_tics *= m_entity.SlowTickMultiplier + offset;
         }
     }
 

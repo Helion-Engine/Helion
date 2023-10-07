@@ -179,6 +179,9 @@ public partial class Entity
         return newTarget;
     }
 
+    private static int ChaseLoop;
+    private bool m_partialMoveSuccess;
+
     public void SetNewChaseDirection()
     {
         // All monsters normally have CanPass set.
@@ -222,7 +225,7 @@ public partial class Entity
                 return;
         }
 
-        if (EntityManager.World.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
+        if (EntityStatic.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
         {
             tdir = dir0;
             dir0 = dir1;
@@ -256,29 +259,68 @@ public partial class Entity
                 return;
         }
 
-        // randomly determine direction of search
-        if ((EntityManager.World.Random.NextByte() & 1) != 0)
+        if (SlowTickMultiplier <= 1)
         {
-            for (tdir = MoveDir.East; tdir <= MoveDir.SouthEast; tdir++)
+            // randomly determine direction of search
+            if ((EntityStatic.Random.NextByte() & 1) != 0)
             {
-                if (tdir != oppositeDirection)
+                for (tdir = MoveDir.East; tdir <= MoveDir.SouthEast; tdir++)
                 {
-                    m_direction = tdir;
-                    if (TryWalk())
-                        return;
+                    if (tdir != oppositeDirection)
+                    {
+                        m_direction = tdir;
+                        if (TryWalk())
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                for (tdir = MoveDir.SouthEast; tdir != (MoveDir.East - 1); tdir--)
+                {
+                    if (tdir != oppositeDirection)
+                    {
+                        m_direction = tdir;
+                        if (TryWalk())
+                            return;
+                    }
                 }
             }
         }
-        else
+        else if ((ChaseLoop++ % 4) > 0)
         {
-            for (tdir = MoveDir.SouthEast; tdir != (MoveDir.East - 1); tdir--)
+            // Do not run this nearly as often, randomize start search directions and limit to 3
+            int random = EntityStatic.Random.NextByte();
+            int addDir = -1;
+            tdir = MoveDir.SouthEast - (random % 4);
+
+            if ((random & 1) != 0)
             {
-                if (tdir != oppositeDirection)
-                {
-                    m_direction = tdir;
-                    if (TryWalk())
-                        return;
-                }
+                tdir = MoveDir.East + (random % 4);
+                addDir = 1;
+            }
+
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
+            }
+
+            tdir += addDir;
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
+            }
+
+            tdir += addDir;
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
             }
         }
 
@@ -289,6 +331,9 @@ public partial class Entity
                 return;
         }
 
+        if (MoveCount < 0 && SlowTickMultiplier > 1)
+            MoveCount = EntityStatic.Random.NextByte() & 15;
+
         m_direction = MoveDir.None;
     }
 
@@ -297,7 +342,7 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speed = IsClosetChase ? 64 : Properties.MonsterMovementSpeed;
+        double speed = IsClosetChase ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
         double speedX = SpeedX[(int)m_direction] * speed;
         double speedY = SpeedY[(int)m_direction] * speed;
 
@@ -332,7 +377,9 @@ public partial class Entity
         if (tryMove.Success && !Flags.Float && isMoving)
             Position.Z = tryMove.HighestFloorZ;
 
-        return tryMove.Success;
+        // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
+        // A partial success needs be considered true in this case.
+        return Position.X != PrevPosition.X || Position.Y != PrevPosition.Y || tryMove.Success;
     }
 
     public void TurnTowardsMovementDirection()
@@ -424,8 +471,11 @@ public partial class Entity
         if (Definition.Properties.MaxTargetRange > 0 && distance > Definition.Properties.MaxTargetRange)
             return false;
 
+        if (SlowTickMultiplier > 0)
+            distance /= SlowTickMultiplier;
+
         distance = Math.Min(distance, Definition.Properties.MinMissileChance);
-        return World.Random.NextByte() >= distance;
+        return EntityStatic.Random.NextByte() >= distance;
     }
 
     private bool TryWalk()
@@ -441,7 +491,7 @@ public partial class Entity
             return false;
         }
 
-        MoveCount = EntityManager.World.Random.NextByte() & 15;
+        MoveCount = EntityStatic.Random.NextByte() & 15;
         return true;
     }
 }

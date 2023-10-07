@@ -57,6 +57,7 @@ public static class ConfigFilters
     public static Func<double, double> LessOrEqual(double max) => value => Math.Min(value, max);
 
     public static Func<double, double> Clamp(double min, double max) => value => Math.Clamp(value, min, max);
+    public static Func<int, int> Clamp(int min, int max) => value => Math.Clamp(value, min, max);
 
     public static readonly Func<double, double> ClampNormalized = Clamp(0.0, 1.0);
 }

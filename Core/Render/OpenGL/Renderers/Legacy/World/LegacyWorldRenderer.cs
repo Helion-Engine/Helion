@@ -232,9 +232,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
         double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
-        if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
+        entity.LastRenderDistanceSquared = dx * dx + dy * dy;
+        if (entity.LastRenderDistanceSquared > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
+        entity.LastRenderGametick = World.Gametick;
         if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPosInterpolated);
@@ -242,7 +244,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
         }
 
-        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);
+        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);     
     }
 
     void RenderSector(Sector sector)
