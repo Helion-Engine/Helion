@@ -178,13 +178,13 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
-        Config.SlowTick.MissileMultiplier.OnChanged += SlowTickMissileMultiplier_OnChanged;
+        Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
 
         EntityStatic.Random = Random;
         EntityStatic.SlowTickDistance = Config.SlowTick.Distance;
         EntityStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
         EntityStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
-        EntityStatic.SlowTickMissileMultiplier = Config.SlowTick.MissileMultiplier;
+        EntityStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
         EntityStatic.IsFastMonsters = IsFastMonsters;
         EntityStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
         EntityStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
@@ -215,8 +215,8 @@ public abstract partial class WorldBase : IWorld
         EntityStatic.SlowTickChaseMultiplier = value;
     private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>
         EntityStatic.SlowTickLookMultiplier = value;
-    private void SlowTickMissileMultiplier_OnChanged(object? sender, int value) =>
-        EntityStatic.SlowTickMissileMultiplier = value;
+    private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
+        EntityStatic.SlowTickTracerMultiplier = value;
 
     private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
     {

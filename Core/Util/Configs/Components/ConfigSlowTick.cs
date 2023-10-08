@@ -16,6 +16,6 @@ public class ConfigSlowTick
     [ConfigInfo("How much to multiply the ticks for look with SlowTickDistance.", demo: true)]
     public readonly ConfigValue<int> LookMultiplier = new(2, Clamp(0, SlowTickMultiplierMax));
 
-    [ConfigInfo("How much to multiply the ticks for missiles with SlowTickDistance.", demo: true)]
-    public readonly ConfigValue<int> MissileMultiplier = new(4, Clamp(0, SlowTickMultiplierMax));
+    [ConfigInfo("How much to multiply the ticks for tracers with SlowTickDistance.", demo: true)]
+    public readonly ConfigValue<int> TracerMultiplier = new(4, Clamp(0, SlowTickMultiplierMax));
 }

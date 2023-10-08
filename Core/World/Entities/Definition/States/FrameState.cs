@@ -17,7 +17,7 @@ public struct FrameState
 
     private static int SlowTickOffsetChase = 0;
     private static int SlowTickOffsetLook = 0;
-    private static int SlowTickOffsetMissile = 0;
+    private static int SlowTickOffsetTracer = 0;
 
     public EntityFrame Frame;
     private Entity m_entity;
@@ -210,30 +210,24 @@ public struct FrameState
             return;
 
         if (m_tics > 0 &&
-            ((m_entity.Flags.Missile && (Frame.ActionFunction == EntityActionFunctions.A_Tracer || Frame.ActionFunction == EntityActionFunctions.A_SeekTracer)) ||
-            Frame.ActionFunction == EntityActionFunctions.A_Chase || 
-            Frame.ActionFunction == EntityActionFunctions.A_VileChase ||
-            Frame.ActionFunction == EntityActionFunctions.A_HealChase ||
-            Frame.ActionFunction == EntityActionFunctions.A_Look) &&
+            (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
             (m_entity.LastRenderDistanceSquared > EntityStatic.SlowTickDistance * EntityStatic.SlowTickDistance ||
             m_entity.LastRenderGametick != m_entity.World.Gametick))
         {
             // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
             // Sets to a range of -1 to +2
             int offset = 0;
-            if (m_entity.Flags.Missile)
+            if (Frame.IsSlowTickTracer)
             {
-                m_entity.SlowTickMultiplier = EntityStatic.SlowTickMissileMultiplier;
-                offset = (SlowTickOffsetMissile++ & 3) - 1;
+                m_entity.SlowTickMultiplier = EntityStatic.SlowTickTracerMultiplier;
+                offset = (SlowTickOffsetTracer++ & 3) - 1;
             }
-            else if (Frame.ActionFunction == EntityActionFunctions.A_Chase || 
-                Frame.ActionFunction == EntityActionFunctions.A_VileChase || 
-                Frame.ActionFunction == EntityActionFunctions.A_HealChase)
+            else if (Frame.IsSlowTickChase)
             {
                 m_entity.SlowTickMultiplier = EntityStatic.SlowTickChaseMultiplier;
                 offset = (SlowTickOffsetChase++ & 3) - 1;
             }
-            else if (Frame.ActionFunction == EntityActionFunctions.A_Look)
+            else if (Frame.IsSlowTickLook)
             {
                 m_entity.SlowTickMultiplier = EntityStatic.SlowTickLookMultiplier;
                 offset = (SlowTickOffsetLook++ & 3) - 1;

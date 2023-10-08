@@ -36,6 +36,9 @@ public class EntityFrame
     public FrameArgs Args { get; set; } = FrameArgs.Default;
     public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
     public bool IsNullFrame => MasterFrameIndex == Constants.NullFrameIndex;
+    public bool IsSlowTickChase;
+    public bool IsSlowTickLook;
+    public bool IsSlowTickTracer;
 
     private readonly EntityFrameTable m_table;
 
@@ -56,6 +59,11 @@ public class EntityFrame
 
         if (frameArgs != null)
             Args = new FrameArgs(frameArgs);
+
+        IsSlowTickChase = ActionFunction == EntityActionFunctions.A_Chase || ActionFunction == EntityActionFunctions.A_VileChase ||
+            ActionFunction == EntityActionFunctions.A_HealChase;
+        IsSlowTickLook = ActionFunction == EntityActionFunctions.A_Look;
+        IsSlowTickTracer = ActionFunction == EntityActionFunctions.A_Tracer || ActionFunction == EntityActionFunctions.A_SeekTracer;
 
         CheckSetInvisible();
     }
