@@ -1690,7 +1690,7 @@ public abstract partial class WorldBase : IWorld
     {
         if (this is SinglePlayerWorld singlePlayerWorld)
         {
-            if (!MapWarp.GetMap(number, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
+            if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
                 return false;
 
             SinglePlayerWorld.PlayLevelMusic(singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);

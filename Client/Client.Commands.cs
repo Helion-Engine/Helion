@@ -845,8 +845,7 @@ public partial class Client
 
     private void ChangeLevel(LevelChangeEvent e)
     {
-        if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
-            out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+        if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection, out MapInfoDef? mapInfoDef))
             LoadMap(mapInfoDef, null, null, e);
     }
 

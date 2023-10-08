@@ -80,8 +80,7 @@ public partial class Client
             LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
         }
         else if (m_commandLineArgs.Warp != null &&
-            MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
-                out MapInfoDef? mapInfoDef) && mapInfoDef != null)
+            MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
             LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
