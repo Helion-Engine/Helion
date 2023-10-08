@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Helion.Dehacked;
 
@@ -40,7 +41,7 @@ public partial class DehackedDefinition
 
     public void Parse(string data)
     {
-        data = data.Replace('\0', ' ');
+        data = data.Replace('\0', ' ').StripNonUtf8Chars();
         SimpleParser parser = new();
         parser.SetSpecialChars(new char[] { '=' });
         parser.SetCommentCallback(IsComment);

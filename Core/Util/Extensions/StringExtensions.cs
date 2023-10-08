@@ -9,6 +9,7 @@ namespace Helion.Util.Extensions;
 public static class StringExtensions
 {
     private static readonly Regex MD5Regex = new(@"[0-9a-fA-F]{32}", RegexOptions.Compiled);
+    private static readonly Regex NonUtf8Regex = new(@"[^\u0000-\u00FF]+", RegexOptions.Compiled);
 
     /// <summary>
     /// Checks if the string has no characters.
@@ -67,6 +68,9 @@ public static class StringExtensions
         folder = path.AsSpan(startIndex + 1, endIndex - startIndex - 1);
         return true;
     }
+
+    public static string StripNonUtf8Chars(this string str) =>
+        NonUtf8Regex.Replace(str, string.Empty);
 
     private static int LastIndexOf(string text, int start, char value, char alt)
     {
