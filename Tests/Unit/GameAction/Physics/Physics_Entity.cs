@@ -272,7 +272,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
-            monster.BlockmapNodes.Length.Should().Be(2);
+            monster.BlockmapNodes.Length.Should().Be(1);
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 

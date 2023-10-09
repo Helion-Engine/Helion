@@ -108,22 +108,18 @@ namespace Helion.Tests.Unit.GameAction
 
         private Entity FindEntity(string name, IList<Entity> except)
         {
-            Entity? entity = null;
-            var node = World.Entities.Head;
-            while (node != null)
+            Entity? findEntity = null;
+            for (var entity = World.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (except.Contains(node.Value) || !node.Value.Definition.Name.EqualsIgnoreCase(name))
-                {
-                    node = node.Next;
+                if (except.Contains(entity) || !entity.Definition.Name.EqualsIgnoreCase(name))
                     continue;
-                }
 
-                entity = node.Value;
+                findEntity = entity;
                 break;
             }
 
-            entity.Should().NotBeNull();
-            return entity!;
+            findEntity.Should().NotBeNull();
+            return findEntity!;
         }
     }
 }
