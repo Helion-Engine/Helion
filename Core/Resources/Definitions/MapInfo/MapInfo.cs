@@ -115,7 +115,7 @@ public class MapInfo
             if (newItem.Equals(item))
             {
                 items[i] = newItem;
-                break;
+                return;
             }
         }
 
