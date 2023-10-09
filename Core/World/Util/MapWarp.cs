@@ -71,17 +71,18 @@ public static class MapWarp
 
     private static bool GetMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string mapName)
     {
+        string startMap = "map01";
         if (mapInfo.Episodes.Count > 0)
+            startMap = mapInfo.Episodes[0].StartMap;
+
+        Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");
+        var match = mapRegex.Match(startMap);
+        if (match.Success)
         {
-            Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");
-            var episodeDef = mapInfo.Episodes[0];
-            var match = mapRegex.Match(episodeDef.StartMap);
-            if (match.Success)
-            {
-                mapName = match.Groups["map"] + episode.ToString() + level.ToString();
-                return true;
-            }
+            mapName = match.Groups["map"] + episode.ToString() + level.ToString();
+            return true;
         }
+        
 
         mapName = null;
         return false;
@@ -103,18 +104,19 @@ public static class MapWarp
     {
         episode = Math.Clamp(episode, 1, int.MaxValue);
         int episodeIndex = episode - 1;
+        string startMap = "e1m1";
+
         if (episodeIndex >= 0 && episodeIndex < mapInfo.Episodes.Count)
+            startMap = mapInfo.Episodes[episodeIndex].StartMap;
+        
+        Regex epRegex = new Regex(@"(?<episode>[^\s\d]+)\d+(?<map>[^\s\d]+)\d+");
+        var match = epRegex.Match(startMap);
+        if (match.Success)
         {
-            Regex epRegex = new Regex(@"(?<episode>[^\s\d]+)\d+(?<map>[^\s\d]+)\d+");
-            var episodeDef = mapInfo.Episodes[episodeIndex];
-            var match = epRegex.Match(episodeDef.StartMap);
-            if (match.Success)
-            {
-                mapName = match.Groups["episode"].Value + episode.ToString() +
-                    match.Groups["map"].Value + level.ToString();
-                return true;
-            }
-        }
+            mapName = match.Groups["episode"].Value + episode.ToString() +
+                match.Groups["map"].Value + level.ToString();
+            return true;
+        }    
 
         mapName = null;
         return false;
