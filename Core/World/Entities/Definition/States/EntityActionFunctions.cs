@@ -782,7 +782,7 @@ public static class EntityActionFunctions
             entity.SetNewChaseDirection();
             // Need to turn here if slow ticking, otherwise monsters will slide in directions they aren't facing.
             if (entity.SlowTickMultiplier > 1)
-                entity.TurnTowardsMovementDirection();
+                entity.SetToMovementDirection();
         }
     }
 

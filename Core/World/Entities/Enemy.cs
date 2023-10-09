@@ -400,6 +400,12 @@ public partial class Entity
         }
     }
 
+    public void SetToMovementDirection()
+    {
+        if (m_direction != MoveDir.None)
+            AngleRadians = MoveAngles[(int)m_direction];
+    }
+
     public double GetEnemyFloatMove()
     {
         if (IsPlayer || IsDead || Target.Entity == null || !Flags.Float || Flags.Skullfly || BlockFloating || OnGround)
