@@ -101,12 +101,8 @@ public class SinglePlayerWorld : WorldBase
             ApplyLineModels(worldModel);
             CreateDamageSpecials(worldModel);
 
-            LinkableNode<Entity>? node = EntityManager.Entities.Head;
-            while (node != null)
-            {
-                EntityManager.FinalizeFromWorldLoad(result, node.Value);
-                node = node.Next;
-            }
+            for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+                EntityManager.FinalizeFromWorldLoad(result, entity);
 
             SpecialManager.AddSpecialModels(worldModel.Specials);
         }

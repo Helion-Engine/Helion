@@ -23,6 +23,7 @@ using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
+using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
@@ -174,12 +175,10 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
-        var node = world.EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker && node.Value.Overlaps2D(box))
-                world.EntityManager.Destroy(node.Value);
-            node = node.Next;
+            if (entity.Definition.EditorId == (int)EditorId.MapMarker && entity.Overlaps2D(box))
+                world.EntityManager.Destroy(entity);
         }
     }
 
@@ -190,12 +189,10 @@ public partial class Client
             return;
 
         var world = m_layerManager.WorldLayer.World;
-        var node = world.EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker)
-                world.EntityManager.Destroy(node.Value);
-            node = node.Next;
+            if (entity.Definition.EditorId == (int)EditorId.MapMarker)
+                world.EntityManager.Destroy(entity);
         }
     }
 

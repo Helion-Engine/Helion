@@ -52,7 +52,7 @@ public class EntityManager : IDisposable
     public const int NoTid = 0;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly LinkableList<Entity> Entities = new();
+    public Entity? Head;
     public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
@@ -89,12 +89,12 @@ public class EntityManager : IDisposable
 
     public Entity? FindById(int id)
     {
-        LinkableNode<Entity>? node = Entities.Head;
-        while (node != null)
+        var entity = Head;
+        while (entity != null)
         {
-            if (node.Value.Id == id)
-                return node.Value;
-            node = node.Next;
+            if (entity.Id == id)
+                return entity;
+            entity = entity.Next;
         }
         return null;
     }
@@ -115,7 +115,7 @@ public class EntityManager : IDisposable
         position.Z = GetPositionZ(sector, in position, zHeight);
         Entity entity = World.DataCache.GetEntity(id, tid, definition, position, angle, sector, World);
 
-        if (entity.Definition.Properties.FastSpeed > 0 && EntityStatic.IsFastMonsters)
+        if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
 
         // This only needs to happen on map population
@@ -189,7 +189,7 @@ public class EntityManager : IDisposable
         Vec3D position = spawnSpot.Position;
         Sector sector = World.BspTree.ToSector(position);
         CameraPlayer player = new(short.MaxValue, 0, playerDefinition, position, spawnSpot.AngleRadians, sector, World);
-        player.EntityListNode.Previous = player.EntityListNode;
+        //player.EntityListNode.Previous = player.EntityListNode;
         return player;
     }
 
@@ -266,7 +266,7 @@ public class EntityManager : IDisposable
             }
 
             var entity = World.DataCache.GetEntity(entityModel, definition, World);
-            Entities.Add(entity.EntityListNode);
+            AddEntityToList(entity);
 
             entities.Add(entityModel.Id, new(entityModel, entity));
         }
@@ -315,6 +315,19 @@ public class EntityManager : IDisposable
         }
 
         return new WorldModelPopulateResult(players, entities);
+    }
+
+    private void AddEntityToList(Entity entity)
+    {
+        if (Head == null)
+        {
+            Head = entity;
+            return;
+        }
+
+        entity.Next = Head;
+        Head.Previous = entity;
+        Head = entity;
     }
 
     public void FinalizeFromWorldLoad(WorldModelPopulateResult result, Entity entity)
@@ -370,7 +383,7 @@ public class EntityManager : IDisposable
             Player player = new(playerModel, entities, playerDefinition, World);
             player.IsVooDooDoll = isVoodooDoll;
 
-            Entities.Add(player.EntityListNode);
+            AddEntityToList(player);
             entities.Add(player.Id, new(playerModel, player));
 
             if (isVoodooDoll)
@@ -427,7 +440,7 @@ public class EntityManager : IDisposable
 
     private void FinishCreatingEntity(Entity entity, double zHeight, bool executeStateFunctions)
     {
-        Entities.Add(entity.EntityListNode);
+        AddEntityToList(entity);
 
         World.Link(entity);
         FinalizeEntity(entity, zHeight);
@@ -476,13 +489,13 @@ public class EntityManager : IDisposable
 
     public void Dispose()
     {
-        LinkableNode<Entity>? node = Entities.Head;
-        LinkableNode<Entity>? nextNode;
-        while (node != null)
+        var entity = Head;
+        Entity? nextEntity;
+        while (entity != null)
         {
-            nextNode = node.Next;
-            node.Value.Dispose();
-            node = nextNode;
+            nextEntity = entity.Next;
+            entity.Dispose();
+            entity = nextEntity;
         }
 
         GC.SuppressFinalize(this);

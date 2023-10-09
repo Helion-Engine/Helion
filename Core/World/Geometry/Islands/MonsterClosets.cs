@@ -39,7 +39,7 @@ public static class MonsterClosets
         foreach (Island island in world.Geometry.Islands)
             result[island] = new();
 
-        foreach (Entity entity in world.Entities.Enumerate())
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
             List<Entity> entities = result[subsector.Island];
@@ -63,8 +63,7 @@ public static class MonsterClosets
 
         HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
         int monsterCount = 0;
-
-        foreach (Entity entity in world.Entities.Enumerate())
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
             if (!subsectors.Contains(subsector))

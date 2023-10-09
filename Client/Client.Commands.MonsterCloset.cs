@@ -51,7 +51,7 @@ public partial class Client
             int count = 0;
             HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
 
-            foreach (Entity entity in world.Entities.Enumerate())
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
                 BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
                 if (subsectors.Contains(subsector))

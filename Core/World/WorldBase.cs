@@ -93,7 +93,6 @@ public abstract partial class WorldBase : IWorld
     public IList<Wall> Walls => Geometry.Walls;
     public IList<Sector> Sectors => Geometry.Sectors;
     public CompactBspTree BspTree => Geometry.CompactBspTree;
-    public LinkableList<Entity> Entities => EntityManager.Entities;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
@@ -450,18 +449,15 @@ public abstract partial class WorldBase : IWorld
 
     private void TickEntities()
     {
-
         Profiler.World.TickEntity.Start();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        LinkableNode<Entity>? nextNode = node;
-        while (node != null)
+        var entity = EntityManager.Head;
+        var nextEntity = entity;
+        while (entity != null)
         {
-            nextNode = node.Next;
-
-            Entity entity = node.Value;
+            nextEntity = entity.Next;
             if (entity.PlayerObj != null && entity.PlayerObj.PlayerNumber == short.MaxValue)
             {
-                node = nextNode;
+                entity = nextEntity;
                 continue;
             }
 
@@ -482,7 +478,7 @@ public abstract partial class WorldBase : IWorld
                     entity.Sector.SectorDamageSpecial.Tick(entity);
             }
 
-            node = nextNode;
+            entity = nextEntity;
         }
 
         Profiler.World.TickEntity.Stop();
@@ -492,11 +488,12 @@ public abstract partial class WorldBase : IWorld
     {
         Profiler.World.TickPlayer.Start();
 
-        foreach (Player player in EntityManager.Players)
+        for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             if (WorldState == WorldState.Exit)
                 break;
 
+            var player = EntityManager.Players[i];
             // Doom did not apply sector damage to voodoo dolls
             if (player.IsVooDooDoll || player.IsDisposed)
                 continue;
@@ -572,12 +569,9 @@ public abstract partial class WorldBase : IWorld
 
     public void ResetInterpolation()
     {
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
-        {
-            node.Value.ResetInterpolation();
-            node = node.Next;
-        }
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+            entity.ResetInterpolation();
+
         SpecialManager.ResetInterpolation();
         OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
@@ -693,12 +687,10 @@ public abstract partial class WorldBase : IWorld
     private void InitBossBrainTargets()
     {
         List<Entity> targets = new();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (node.Value.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
-                targets.Add(node.Value);
-            node = node.Next;
+            if (entity.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
+                targets.Add(entity);
         }
 
         // Doom chose for some reason to iterate in reverse order.
@@ -2088,17 +2080,13 @@ public abstract partial class WorldBase : IWorld
     private int KillAllMonsters()
     {
         int killCount = 0;
-        var node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            var entity = node.Value;
             if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
-                node.Value.ForceGib();
+                entity.ForceGib();
                 killCount++;
             }
-
-            node = node.Next;
         }
 
         return killCount;
@@ -2126,13 +2114,10 @@ public abstract partial class WorldBase : IWorld
     private int EntityCount(int entityDefinitionId, bool checkAlive)
     {
         int count = 0;
-        LinkableNode<Entity>? node = Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            Entity entity = node.Value;
             if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
                 count++;
-            node = node.Next;
         }
         return count;
     }
@@ -2616,13 +2601,10 @@ public abstract partial class WorldBase : IWorld
     private List<EntityModel> GetEntityModels()
     {
         List<EntityModel> entityModels = new();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            Entity entity = node.Value;
             if (!entity.IsPlayer)
                 entityModels.Add(entity.ToEntityModel(new EntityModel()));
-            node = node.Next;
         }
         return entityModels;
     }

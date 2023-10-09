@@ -38,6 +38,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public const double FloatSpeed = 4.0;
     public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
+    public Entity? Next;
+    public Entity? Previous;
+
     public int Id;
     public int ThingId;
     public EntityDefinition Definition;
@@ -111,7 +114,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
     public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
-    public readonly LinkableNode<Entity> EntityListNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -138,7 +140,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public Entity()
     {
-        EntityListNode = new(this);
         Definition = null!;
         EntityManager = null!;
         HighestFloorObject = null!;
@@ -928,7 +929,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-        EntityListNode?.Unlink();
+        Unlink();
 
         FrameState.SetFrameIndex(Constants.NullFrameIndex);
 
@@ -980,6 +981,24 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector.Default;
         HighestFloorSector = Sector.Default;
         LowestCeilingSector = Sector.Default;
+    }
+
+    private void Unlink()
+    {
+        if (this == EntityManager.Head)
+        {
+            EntityManager.Head = Next;
+            Previous = null;
+            return;
+        }
+
+        if (Next != null)
+            Next.Previous = Previous;
+        if (Previous != null)
+            Previous.Next = Next;
+
+        Next = null;
+        Previous = null;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

@@ -62,7 +62,6 @@ public interface IWorld : IDisposable
     IList<Wall> Walls { get; }
     IList<Sector> Sectors { get; }
     CompactBspTree BspTree { get; }
-    LinkableList<Entity> Entities { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
