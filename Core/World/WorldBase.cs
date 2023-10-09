@@ -51,6 +51,7 @@ using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
 using Helion.World.Static;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helion.World;
 
@@ -1681,11 +1682,6 @@ public abstract partial class WorldBase : IWorld
         source.SetOwner(originalOwner);
     }
 
-    protected void ChangeToLevel(int number)
-    {
-        LevelExit?.Invoke(this, new LevelChangeEvent(number));
-    }
-
     protected bool ChangeToMusic(int number)
     {
         if (this is SinglePlayerWorld singlePlayerWorld)
@@ -1995,7 +1991,7 @@ public abstract partial class WorldBase : IWorld
         {
             if (levelCheat.CheatType == CheatType.ChangeLevel)
             {
-                ChangeToLevel(levelCheat.LevelNumber);
+                LevelExit?.Invoke(this, new LevelChangeEvent(levelCheat.LevelNumber, isCheat: true));
                 return;
             }
             else if (levelCheat.CheatType == CheatType.ChangeMusic && !ChangeToMusic(levelCheat.LevelNumber))

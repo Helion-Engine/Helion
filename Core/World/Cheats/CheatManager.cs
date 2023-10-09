@@ -15,7 +15,7 @@ public class CheatManager
 
     public static readonly ICheat[] Cheats =
     {
-        new LevelCheat("$STSTR_CLEV", "idclev", CheatType.ChangeLevel),
+        new LevelCheat(string.Empty, "idclev", CheatType.ChangeLevel),
         new LevelCheat("$STSTR_MUS", "idmus", CheatType.ChangeMusic),
         new MultiCodeCheat("$STSTR_NCON", "$STSTR_NCOFF", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
         new ExactMatchCheat(string.Empty, string.Empty, "idmypos", "showposition", CheatType.ShowPosition),
