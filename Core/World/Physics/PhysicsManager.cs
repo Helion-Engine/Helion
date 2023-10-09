@@ -94,7 +94,7 @@ public class PhysicsManager
         if (!entity.Flags.NoBlockmap)
             m_blockmap.Link(entity);
 
-        m_world.RenderBlockmap.LinkSimple(entity);
+        m_world.RenderBlockmap.RenderLink(entity);
 
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.

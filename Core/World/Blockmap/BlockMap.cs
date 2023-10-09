@@ -70,16 +70,14 @@ public class BlockMap
         }
     }
 
-    public void LinkSimple(Entity entity)
+    public void RenderLink(Entity entity)
     {
-        Block? block = m_blocks.GetBlock(entity.Position);
-        if (block == null)
+        Assert.Precondition(entity.RenderBlock == null, "Forgot to unlink entity from render blockmap");
+        entity.RenderBlock = m_blocks.GetBlock(entity.Position);
+        if (entity.RenderBlock == null)
             return;
 
-        LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
-        block.Entities.Add(blockEntityNode);
-
-        entity.BlockmapNodes.Add(blockEntityNode);
+        entity.RenderBlock.AddLink(entity);
     }
 
     public void Link(IWorld world, Sector sector)

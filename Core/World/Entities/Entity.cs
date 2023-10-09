@@ -24,6 +24,7 @@ using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using NLog;
+using Helion.World.Blockmap;
 
 namespace Helion.World.Entities;
 
@@ -40,6 +41,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public Entity? Next;
     public Entity? Previous;
+
+    public Entity? RenderBlockNext;
+    public Entity? RenderBlockPrevious;
+    public Block? RenderBlock;
 
     public int Id;
     public int ThingId;
@@ -385,6 +390,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             BlockmapNodes.Data[i] = null!;
         }
         BlockmapNodes.Clear();
+
+        if (RenderBlock != null)
+        {
+            RenderBlock.RemoveLink(this);
+            RenderBlock = null;
+        }
 
         IntersectSectors.Clear();
         IntersectMovementSectors.Clear();
@@ -988,6 +999,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (this == EntityManager.Head)
         {
             EntityManager.Head = Next;
+            if (EntityManager.Head != null)
+                EntityManager.Head.Previous = null;
             Previous = null;
             return;
         }

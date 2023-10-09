@@ -201,14 +201,8 @@ public class LegacyWorldRenderer : WorldRenderer
                     m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
             }
 
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                if (entityNode.Value.BlockmapCount == m_renderData.CheckCount)
-                    continue;
-
-                entityNode.Value.BlockmapCount = m_renderData.CheckCount;
-                RenderEntity(entityNode.Value);
-            }
+            for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
+                RenderEntity(entity);
         }
 
         m_lastTicker = world.GameTicker;
