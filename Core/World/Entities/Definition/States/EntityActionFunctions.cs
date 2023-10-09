@@ -2599,10 +2599,12 @@ public static class EntityActionFunctions
 
     public static void A_VileChase(Entity entity)
     {
-        EntityFrame? healState = entity.FrameState.GetStateFrame(Constants.FrameStates.Heal);
         // Doom just used VILE_HEAL1 state. With dehacked this means you can give a random thing A_VileChase and it will use this state.
-        if (healState == null)
-            entity.World.ArchiveCollection.EntityFrameTable.VanillaFrameMap.TryGetValue((int)ThingState.VILE_HEAL1, out healState);
+        EntityFrame? healState = null;
+        if (entity.Definition.HealFrame != null)
+            healState = entity.Definition.HealFrame;
+        else
+            healState = entity.World.ArchiveCollection.EntityFrameTable.GetVileHealFrame();
 
         if (healState == null)
         {

@@ -112,6 +112,10 @@ public class DefinitionStateApplier
         definition.RaiseState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Raise);
         definition.SeeState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.See);
         definition.PainState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Pain);
+        definition.HealState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Heal);
+
+        if (definition.HealState.HasValue)
+            definition.HealFrame = entityFrameTable.Frames[definition.HealState.Value];
     }
 
     private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)

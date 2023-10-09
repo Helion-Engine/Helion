@@ -28,8 +28,11 @@ public class EntityDefinition
     public int? RaiseState;
     public int? SeeState;
     public int? PainState;
+    public int? HealState;
     public string? BaseInventoryName;
     public string DehackedName = string.Empty;
+
+    public EntityFrame? HealFrame;
 
     public EntityDefinition? MonsterSpeciesDefinition { get; set; }
 
