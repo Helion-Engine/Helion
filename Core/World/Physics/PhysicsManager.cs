@@ -59,7 +59,8 @@ public class PhysicsManager
     private readonly int[] m_checkedBlockLines;
 
     private MoveLinkData m_moveLinkData;
-    private Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
+    private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
+    private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
 
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
@@ -72,6 +73,7 @@ public class PhysicsManager
         BlockmapTraverser = new BlockmapTraverser(world, m_blockmap);
         m_checkedBlockLines = new int[m_world.Lines.Count];
         m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
+        m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
@@ -997,17 +999,17 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        var entities = m_world.DataCache.GetEntityList();
-        m_world.BlockmapTraverser.GetSolidNonCorpseEntities(previousBox, entities);
+        m_world.BlockmapTraverser.EntityTraverse(previousBox, m_stackEntityTraverseAction);
+    }
 
-        for (int i = 0; i < entities.Length; i++)
-        {
-            var clampEntity = entities[i];
-            ClampBetweenFloorAndCeiling(clampEntity, clampEntity.IntersectSectors,
-                smoothZ: false, clampToLinkedSectors: clampEntity.MoveLinked);
-        }
+    private GridIterationStatus HandleStackEntityTraverse(Entity entity)
+    {
+        if (!entity.Flags.Solid || entity.Flags.Corpse)
+            return GridIterationStatus.Continue;
 
-        m_world.DataCache.FreeEntityList(entities);
+        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
+                smoothZ: false, clampToLinkedSectors: entity.MoveLinked);
+        return GridIterationStatus.Continue;
     }
 
     private void StackedEntityMoveZ(Entity entity)
