@@ -226,6 +226,35 @@ sightTraverseEndOfLoop:
         }
     }
 
+    public void HealTraverse(Box2D box, Action<Entity> action)
+    {
+        int checkCounter = ++m_world.CheckCounter;
+        var it = m_blockmap.Iterate(box);
+        while (it.HasNext())
+        {
+            Block block = it.Next();
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == checkCounter)
+                    continue;
+                if (!entity.Flags.Corpse)
+                    continue;
+                if (entity.Definition.RaiseState == null || entity.FrameState.Frame.Ticks != -1 || entity.IsPlayer)
+                    continue;
+                if (entity.World.IsPositionBlockedByEntity(entity, entity.Position))
+                    continue;
+
+                entity.BlockmapCount = checkCounter;
+                if (entity.Overlaps2D(box))
+                {
+                    action(entity);
+                    return;
+                }
+            }
+        }
+    }
+
     public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
         int checkCounter = ++m_world.CheckCounter;

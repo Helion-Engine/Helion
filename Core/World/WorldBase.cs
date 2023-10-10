@@ -142,6 +142,9 @@ public abstract partial class WorldBase : IWorld
     private RadiusExplosionData m_radiusExplosion;
     private Action<Entity> m_radiusExplosionAction;
 
+    private HealChaseData m_healChaseData;
+    private Action<Entity> m_healChaseAction;
+
     private readonly TryMoveData EmtpyTryMove = new();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
@@ -180,6 +183,7 @@ public abstract partial class WorldBase : IWorld
 
         m_defaultDamageAction = DefaultDamage;
         m_radiusExplosionAction = new(HandleRadiusExplosion);
+        m_healChaseAction = new(HandleHealChase);
         SetCompatibilityOptions(mapInfoDef);
 
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
@@ -2136,41 +2140,34 @@ public abstract partial class WorldBase : IWorld
 
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)
     {
+        m_healChaseData.HealEntity = entity;
+        m_healChaseData.HealState = healState;
+        m_healChaseData.HealSound = healSound;
+        m_healChaseData.Healed = false;
         Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
-            BlockmapTraverseFlags.Entities, intersections, BlockmapTraverseEntityFlags.Corpse);
+        BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            BlockmapIntersect bi = intersections[i];
+        return m_healChaseData.Healed;
+    }
 
-            if (bi.Entity == null || bi.Entity.Definition.RaiseState == null || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
-                continue;
+    private void HandleHealChase(Entity entity)
+    {
+        var healChaseEntity = m_healChaseData.HealEntity;
+        m_healChaseData.Healed = true;
+        entity.Flags.Solid = true;
+        entity.Height = entity.Definition.Properties.Height;
 
-            if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
-                continue;
+        Entity? saveTarget = healChaseEntity.Target.Entity;
+        healChaseEntity.SetTarget(entity);
+        EntityActionFunctions.A_FaceTarget(healChaseEntity);
+        healChaseEntity.SetTarget(saveTarget);
+        healChaseEntity.FrameState.SetState(m_healChaseData.HealState);
 
-            bi.Entity.Flags.Solid = true;
-            bi.Entity.Height = entity.Definition.Properties.Height;
+        if (m_healChaseData.HealSound.Length > 0)
+            entity.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-            Entity? saveTarget = entity.Target.Entity;
-            entity.SetTarget(bi.Entity);
-            EntityActionFunctions.A_FaceTarget(entity);
-            entity.SetTarget(saveTarget);
-            entity.FrameState.SetState(healState);
-
-            if (healSound.Length > 0)
-                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, new SoundParams(entity));
-
-            bi.Entity.SetRaiseState();
-            bi.Entity.Flags.Friendly = entity.Flags.Friendly;
-
-            return true;
-        }
-
-        return false;
+        entity.SetRaiseState();
+        entity.Flags.Friendly = healChaseEntity.Flags.Friendly;
     }
 
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
