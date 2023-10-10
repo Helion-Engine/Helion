@@ -58,7 +58,7 @@ namespace Helion.Tests.Unit.GameAction
             top.Velocity.Z.Should().NotBe(0);
         }
 
-        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity pves")]
+        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity moves")]
         public void StackEntityChangeMove()
         {
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));

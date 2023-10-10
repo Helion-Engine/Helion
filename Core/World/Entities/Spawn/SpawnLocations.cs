@@ -110,7 +110,7 @@ public class SpawnLocations
     private static bool PlayerBlock(Entity spawn)
     {
         DynamicArray<Entity> entities = spawn.World.DataCache.GetEntityList();
-        spawn.World.BlockmapTraverser.GetSolidEntityIntersections(spawn, entities);
+        spawn.World.BlockmapTraverser.GetSolidEntityIntersections2D(spawn, entities);
         bool blocked = false;
         for (int i= 0; i < entities.Length; i++)
         {

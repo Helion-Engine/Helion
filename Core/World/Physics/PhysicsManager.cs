@@ -58,6 +58,9 @@ public class PhysicsManager
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly int[] m_checkedBlockLines;
 
+    private MoveLinkData m_moveLinkData;
+    private Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
+
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
@@ -68,6 +71,7 @@ public class PhysicsManager
         m_random = random;
         BlockmapTraverser = new BlockmapTraverser(world, m_blockmap);
         m_checkedBlockLines = new int[m_world.Lines.Count];
+        m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
@@ -293,26 +297,29 @@ public class PhysicsManager
             return true;
 
         GetEntityClampValues(entity, entity.IntersectMovementSectors, true, out Sector highestFloor, out _, out _, out _);
-        
+
         if (highestFloor == entity.HighestFloorSector)
             return true;
 
-        double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D(), intersections);
+        m_moveLinkData.Entity = entity;
+        m_moveLinkData.Success = true;
+        m_moveLinkData.Height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
 
-        for (int i = 0; i < intersections.Length; i++)
+        m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_sectorMoveLinkClampAction);
+        return m_moveLinkData.Success;
+    }
+
+    private GridIterationStatus HandleSectorMoveLinkClamp(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Solid || checkEntity.Flags.Corpse || checkEntity.Flags.NoClip || m_moveLinkData.Entity.Id == checkEntity.Id)
+            return GridIterationStatus.Continue;
+
+        if (m_moveLinkData.Height > checkEntity.Position.Z)
         {
-            Entity? intersectEntity = intersections[i].Entity;
-            if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
-                continue;
-
-            if (height > intersectEntity.Position.Z)
-                return false;
+            m_moveLinkData.Success = false;
+            return GridIterationStatus.Stop;
         }
-
-        return true;
+        return GridIterationStatus.Continue;
     }
 
     private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, Sector sector)
@@ -697,14 +704,13 @@ public class PhysicsManager
         {
             double entityTopZ = entity.TopZ;
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            var intersections = BlockmapTraverser.Intersections;
-            intersections.Clear();
-            BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D(), intersections);
+            var entities = m_world.DataCache.GetEntityList();
+            m_world.BlockmapTraverser.GetSolidNonCorpseEntities(entity.GetBox2D(), entities);
 
-            for (int i = 0; i < intersections.Length; i++)
+            for (int i = 0; i < entities.Length; i++)
             {
-                Entity? intersectEntity = intersections[i].Entity;
-                if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
+                var intersectEntity = entities[i];
+                if (entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
                     continue;
 
                 double intersectTopZ = intersectEntity.TopZ;
@@ -761,6 +767,8 @@ public class PhysicsManager
                     onEntities.Add(highestFloorEntity);
                 }
             }
+
+            m_world.DataCache.FreeEntityList(entities);
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -989,13 +997,17 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox, intersections);
+        var entities = m_world.DataCache.GetEntityList();
+        m_world.BlockmapTraverser.GetSolidNonCorpseEntities(previousBox, entities);
 
-        for (int i = 0; i < intersections.Length; i++)
-            ClampBetweenFloorAndCeiling(intersections[i].Entity!, intersections[i].Entity!.IntersectSectors, 
-                smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
+        for (int i = 0; i < entities.Length; i++)
+        {
+            var clampEntity = entities[i];
+            ClampBetweenFloorAndCeiling(clampEntity, clampEntity.IntersectSectors,
+                smoothZ: false, clampToLinkedSectors: clampEntity.MoveLinked);
+        }
+
+        m_world.DataCache.FreeEntityList(entities);
     }
 
     private void StackedEntityMoveZ(Entity entity)

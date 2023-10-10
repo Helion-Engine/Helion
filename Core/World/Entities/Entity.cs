@@ -786,7 +786,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return false;
 
         DynamicArray<Entity> entities = World.DataCache.GetEntityList();
-        World.BlockmapTraverser.GetSolidEntityIntersections(this, entities);
+        World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
         for (int i = 0; i < entities.Length; i++)
         {
             if (entities[i].OverlapsZ(this))
