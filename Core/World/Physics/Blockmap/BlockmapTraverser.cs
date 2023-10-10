@@ -41,12 +41,6 @@ public class BlockmapTraverser
         Traverse(box, null, flags, entityFlags, intersections, out _);
     }
 
-    public void GetBlockmapIntersections(Seg2D seg, BlockmapTraverseFlags flags, DynamicArray<BlockmapIntersect> intersections, 
-        BlockmapTraverseEntityFlags entityFlags = BlockmapTraverseEntityFlags.None)
-    {
-        Traverse(null, seg, flags, entityFlags, intersections,  out _);
-    }
-
     // Gets all entity intersections regardless of flags
     public void GetEntityIntersections(Box2D box, DynamicArray<BlockmapIntersect> intersections)
     {
@@ -210,7 +204,7 @@ sightTraverseEndOfLoop:
         intersections.Sort();
     }
 
-    public unsafe void ExplosionTraverse(Box2D box, Action<Entity> action)
+    public void ExplosionTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++m_world.CheckCounter;
         var it = m_blockmap.Iterate(box);
@@ -230,6 +224,32 @@ sightTraverseEndOfLoop:
                     action(entity);
             }
         }
+    }
+
+    public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
+    {
+        int checkCounter = ++m_world.CheckCounter;
+        var it = m_blockmap.Iterate(seg);
+        while (it.HasNext())
+        {
+            Block block = it.Next();
+            for (int i = 0; i < block.BlockLines.Length; i++)
+            {
+                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                {
+                    if (m_checkedLines[line->LineId] == checkCounter)
+                        continue;
+
+                    if (line->Segment.Intersection(seg, out double t))
+                    {
+                        m_checkedLines[line->LineId] = checkCounter;
+                        Vec2D intersect = line->Segment.FromTime(t);
+                        intersections.Add(new BlockmapIntersect(line->Line, line->Segment.FromTime(t), intersect.Distance(seg.Start)));
+                    }
+                }
+            }
+        }
+        intersections.Sort();
     }
 
     public unsafe void Traverse(Box2D? box, Seg2D? seg, BlockmapTraverseFlags flags, BlockmapTraverseEntityFlags entityFlags, 

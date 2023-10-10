@@ -783,7 +783,7 @@ public abstract partial class WorldBase : IWorld
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
         var intersections = BlockmapTraverser.Intersections;
         intersections.Clear();
-        BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines, intersections);
+        BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -844,7 +844,7 @@ public abstract partial class WorldBase : IWorld
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
         var intersections = BlockmapTraverser.Intersections;
         intersections.Clear();
-        BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines, intersections);
+        BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
