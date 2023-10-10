@@ -32,7 +32,6 @@ public class DataCache
     private readonly DynamicArray<Entity> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
-    private readonly DynamicArray<DynamicArray<BlockmapIntersect>> m_blockmapLists = new();
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
@@ -57,17 +56,6 @@ public class DataCache
                 continue;
             entity.IntersectSectors.FlushReferences();
             entity.IntersectMovementSectors.FlushReferences();
-        }
-
-        for (int i = 0; i < m_blockmapLists.Capacity; i++)
-        {
-            if (m_blockmapLists[i] == null!)
-                continue;
-            for (int j = 0; j < m_blockmapLists[i].Capacity; j++)
-            {
-                m_blockmapLists[i].Data[j].Entity = null;
-                m_blockmapLists[i].Data[j].Line = null;
-            }
         }
 
         for (int i = 0; i < m_entityLists.Capacity; i++)
@@ -155,20 +143,6 @@ public class DataCache
         node.Next = null;
         node.Value = null!;
         m_sectorNodes.Add(node);
-    }
-
-    public DynamicArray<BlockmapIntersect> GetBlockmapIntersectList()
-    {
-        if (m_blockmapLists.Length > 0)
-            return m_blockmapLists.RemoveLast();
-
-        return new DynamicArray<BlockmapIntersect>(256);
-    }
-
-    public void FreeBlockmapIntersectList(DynamicArray<BlockmapIntersect> list)
-    {
-        list.Clear();
-        m_blockmapLists.Add(list);
     }
 
     public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)

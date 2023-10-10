@@ -649,21 +649,17 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (damage <= 0 || Flags.Invulnerable)
             return false;
 
+        Entity? damageSource = source;
+        bool willRetaliate = false;
         if (source != null)
         {
-            Entity damageSource = source.Owner.Entity ?? source;
+            damageSource = source.Owner.Entity ?? source;
+            willRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this;
             if (!CanDamage(source, damageType))
                 return false;
 
-            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this)
-            {
-                if (!Flags.QuickToRetaliate)
-                    Threshold = Properties.DefThreshold;
-                if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
-                    SetTarget(damageSource);
-                if (Definition.SeeState != null && FrameState.IsState(Constants.FrameStates.Spawn))
-                    SetSeeState();
-            }
+            if (willRetaliate && !damageSource.Flags.NoTarget && !IsFriend(damageSource))
+                SetTarget(damageSource);
         }
 
         if (damage == ForceGibDamage)
@@ -685,6 +681,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Health <= 0)
         {
             KillInternal(source);
+            return true;
         }
         else if (setPainState && !Flags.Skullfly && Definition.PainState != null)
         {
@@ -695,6 +692,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         // Skullfly is not turned off here as the original game did not do this
         if (Flags.Skullfly)
             Velocity = Vec3D.Zero;
+
+        if (damageSource != null && willRetaliate)
+        {
+            if (!Flags.QuickToRetaliate)
+                Threshold = Properties.DefThreshold;
+            if (Definition.SeeState != null && FrameState.IsState(Constants.FrameStates.Spawn))
+                SetSeeState();
+        }
 
         return true;
     }
@@ -735,7 +740,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public DynamicArray<Entity> GetIntersectingEntities2D()
     {
         DynamicArray<Entity> entities = World.DataCache.GetEntityList();
-        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D());
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D(), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -747,7 +754,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                 entities.Add(entity);
         }
 
-        World.DataCache.FreeBlockmapIntersectList(intersections);
         return entities;
     }
 
@@ -756,7 +762,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Box3D box = new(position, Radius, Height);
         Box2D box2D = new(position.XY, Radius);
         bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
-        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, entityTraverseFlags);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, intersections, entityTraverseFlags);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -775,8 +783,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
             entities.Add(entity);
         }
-
-        World.DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     public bool CanBlockEntity(Entity other)
@@ -1001,6 +1007,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             EntityManager.Head = Next;
             if (EntityManager.Head != null)
                 EntityManager.Head.Previous = null;
+            Next = null;
             Previous = null;
             return;
         }

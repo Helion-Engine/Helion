@@ -139,6 +139,11 @@ public abstract partial class WorldBase : IWorld
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
 
+    private RadiusExplosionData m_radiusExplosion;
+    private Action<Entity> m_radiusExplosionAction;
+
+    private readonly TryMoveData EmtpyTryMove = new();
+
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
@@ -169,9 +174,12 @@ public abstract partial class WorldBase : IWorld
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
+
+        BlockmapTraverser.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
+        m_radiusExplosionAction = new(HandleRadiusExplosion);
         SetCompatibilityOptions(mapInfoDef);
 
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
@@ -300,7 +308,9 @@ public abstract partial class WorldBase : IWorld
     public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
     {
         Box2D box = new(entity.Position.XY, 1280);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, intersections,
             BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -771,7 +781,9 @@ public abstract partial class WorldBase : IWorld
         bool activateSuccess = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines, intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -811,8 +823,6 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
-
         if (!activateSuccess && hitBlockLine && entity.PlayerObj != null)
             entity.PlayerObj.PlayUseFailSound();
 
@@ -832,7 +842,9 @@ public abstract partial class WorldBase : IWorld
         bool shouldUse = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines, intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -860,8 +872,6 @@ public abstract partial class WorldBase : IWorld
             EntityUse(entity);
             m_lastBumpActivateGametick = Gametick;
         }
-
-        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
@@ -1040,7 +1050,9 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.ShootTraverse(seg, intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -1118,7 +1130,6 @@ public abstract partial class WorldBase : IWorld
             CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
         }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
         return returnValue;
     }
 
@@ -1411,12 +1422,11 @@ public abstract partial class WorldBase : IWorld
             return false;
 
         Seg2D seg = new(start, end);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.SightTraverse(seg, intersections, out bool hitOneSidedLine);
         if (hitOneSidedLine)
-        {
-            DataCache.FreeBlockmapIntersectList(intersections);
             return false;
-        }
 
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
         double distance2D = start.Distance(end);
@@ -1424,7 +1434,6 @@ public abstract partial class WorldBase : IWorld
         double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
-        DataCache.FreeBlockmapIntersectList(intersections);
         return status != TraversalPitchStatus.Blocked;
     }
 
@@ -1473,22 +1482,26 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage)
     {
-        Thrust thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+        m_radiusExplosion.DamageSource = damageSource;
+        m_radiusExplosion.AttackSource = attackSource;
+        m_radiusExplosion.Radius = radius;
+        m_radiusExplosion.MaxDamage = maxDamage;
+        m_radiusExplosion.Thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
         Vec2D pos2D = damageSource.Position.XY;
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
-            BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            BlockmapIntersect bi = intersections[i];
-            if (bi.Entity != null && ShouldApplyExplosionDamage(bi.Entity, damageSource))
-                ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, maxDamage, thrust,
-                    damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
-        }
+        BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionAction);
+    }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
+    private void HandleRadiusExplosion(Entity entity)
+    {
+        if (!ShouldApplyExplosionDamage(entity, m_radiusExplosion.DamageSource))
+            return;
+
+        ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
+            m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
+            m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -1642,8 +1655,6 @@ public abstract partial class WorldBase : IWorld
         DataCache.FreeEntityList(entities);
         return blocked;
     }
-
-    private readonly TryMoveData EmtpyTryMove = new();
 
     public bool IsPositionBlocked(Entity entity)
     {
@@ -1842,10 +1853,11 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < iterateTracers; i++)
         {
             Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
-            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+            var intersections = BlockmapTraverser.Intersections;
+            intersections.Clear();
+            BlockmapTraverser.ShootTraverse(seg, intersections);
 
             TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
-            DataCache.FreeBlockmapIntersectList(intersections);
 
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
@@ -2125,8 +2137,10 @@ public abstract partial class WorldBase : IWorld
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)
     {
         Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
-        DynamicArray<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
+            BlockmapTraverseFlags.Entities, intersections, BlockmapTraverseEntityFlags.Corpse);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -2153,11 +2167,9 @@ public abstract partial class WorldBase : IWorld
             bi.Entity.SetRaiseState();
             bi.Entity.Flags.Friendly = entity.Flags.Friendly;
 
-            DataCache.FreeBlockmapIntersectList(intersections);
             return true;
         }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
         return false;
     }
 
@@ -2178,8 +2190,10 @@ public abstract partial class WorldBase : IWorld
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
         Entity owner = entity.Owner.Entity ?? entity;
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Shootable);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
+            BlockmapTraverseFlags.Entities, intersections, BlockmapTraverseEntityFlags.Shootable);
 
         for (int i= 0; i < intersections.Length; i++)
         {
@@ -2196,8 +2210,6 @@ public abstract partial class WorldBase : IWorld
             entity.SetTracer(checkEntity);
             break;
         }
-
-        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
 

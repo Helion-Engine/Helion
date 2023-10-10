@@ -66,7 +66,7 @@ public class PhysicsManager
         m_soundManager = world.SoundManager;
         m_entityManager = world.EntityManager;
         m_random = random;
-        BlockmapTraverser = new BlockmapTraverser(world, m_blockmap, world.DataCache);
+        BlockmapTraverser = new BlockmapTraverser(world, m_blockmap);
         m_checkedBlockLines = new int[m_world.Lines.Count];
     }
 
@@ -298,7 +298,9 @@ public class PhysicsManager
             return true;
 
         double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D(), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -307,13 +309,9 @@ public class PhysicsManager
                 continue;
 
             if (height > intersectEntity.Position.Z)
-            {
-                m_world.DataCache.FreeBlockmapIntersectList(intersections);
                 return false;
-            }
         }
 
-        m_world.DataCache.FreeBlockmapIntersectList(intersections);
         return true;
     }
 
@@ -699,7 +697,9 @@ public class PhysicsManager
         {
             double entityTopZ = entity.TopZ;
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+            var intersections = BlockmapTraverser.Intersections;
+            intersections.Clear();
+            BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D(), intersections);
 
             for (int i = 0; i < intersections.Length; i++)
             {
@@ -761,8 +761,6 @@ public class PhysicsManager
                     onEntities.Add(highestFloorEntity);
                 }
             }
-
-            m_world.DataCache.FreeBlockmapIntersectList(intersections);
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -991,7 +989,9 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
+        var intersections = BlockmapTraverser.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox, intersections);
 
         for (int i = 0; i < intersections.Length; i++)
             ClampBetweenFloorAndCeiling(intersections[i].Entity!, intersections[i].Entity!.IntersectSectors, 

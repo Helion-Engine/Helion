@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -299,7 +301,8 @@ namespace Helion.Tests.Unit.GameAction
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
 
-            var intersections = World.BlockmapTraverser.GetEntityIntersections(monster.GetBox2D());
+            var intersections = new DynamicArray<BlockmapIntersect>();
+            World.BlockmapTraverser.GetEntityIntersections(monster.GetBox2D(), intersections);
             intersections.Length.Should().Be(0);
 
             monster.SectorNodes.Length.Should().Be(1);
