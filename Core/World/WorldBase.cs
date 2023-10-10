@@ -51,6 +51,8 @@ using System.Diagnostics;
 using Helion.World.Special.Specials;
 using System.Diagnostics.CodeAnalysis;
 using Helion.World.Static;
+using Helion.Resources.Archives.Entries;
+using Helion.Geometry.Grids;
 
 namespace Helion.World;
 
@@ -145,6 +147,12 @@ public abstract partial class WorldBase : IWorld
     private HealChaseData m_healChaseData;
     private Action<Entity> m_healChaseAction;
 
+    private NewTracerTargetData m_newTracerTargetData;
+    private Func<Entity, GridIterationStatus> m_setNewTracerTargetAction;
+
+    private LineOfSightEnemyData m_lineOfSightEnemyData;
+    private Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
+
     private readonly TryMoveData EmtpyTryMove = new();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
@@ -184,6 +192,8 @@ public abstract partial class WorldBase : IWorld
         m_defaultDamageAction = DefaultDamage;
         m_radiusExplosionAction = new(HandleRadiusExplosion);
         m_healChaseAction = new(HandleHealChase);
+        m_setNewTracerTargetAction = new(HandleSetNewTracerTarget);
+        m_lineOfSightEnemyAction = new(HandleLineOfSightEnemy);
         SetCompatibilityOptions(mapInfoDef);
 
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
@@ -311,28 +321,29 @@ public abstract partial class WorldBase : IWorld
 
     public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
     {
+        m_lineOfSightEnemyData.Entity = entity;
+        m_lineOfSightEnemyData.AllAround = allaround;
+        m_lineOfSightEnemyData.SightEntity = null;
         Box2D box = new(entity.Position.XY, 1280);
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, intersections,
-            BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
-        for (int i = 0; i < intersections.Length; i++)
+        BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
+        return m_lineOfSightEnemyData.SightEntity;
+    }
+
+    private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
+    {
+        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
+            return GridIterationStatus.Continue;
+
+        if (!m_lineOfSightEnemyData.AllAround && !InFieldOfViewOrInMeleeDistance(m_lineOfSightEnemyData.Entity, checkEntity))
+            return GridIterationStatus.Continue;
+
+        if (CheckLineOfSight(m_lineOfSightEnemyData.Entity, checkEntity))
         {
-            Entity? checkEntity = intersections[i].Entity;
-            if (checkEntity == null)
-                continue;
-
-            if (entity.Id == checkEntity.Id || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
-                continue;
-
-            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, checkEntity))
-                continue;
-
-            if (CheckLineOfSight(entity, checkEntity))
-                return checkEntity;
+            m_lineOfSightEnemyData.SightEntity = checkEntity;
+            return GridIterationStatus.Stop;
         }
 
-        return null;
+        return GridIterationStatus.Continue;
     }
 
     public double GetMoveFactor(Entity entity) => 
@@ -2186,29 +2197,30 @@ public abstract partial class WorldBase : IWorld
 
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
-        Entity owner = entity.Owner.Entity ?? entity;
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
-            BlockmapTraverseFlags.Entities, intersections, BlockmapTraverseEntityFlags.Shootable);
-
-        for (int i= 0; i < intersections.Length; i++)
-        {
-            Entity? checkEntity = intersections[i].Entity;
-            if (checkEntity == null || !owner.ValidEnemyTarget(checkEntity))
-                continue;
-
-            if (fieldOfViewRadians > 0 && !InFieldOfView(entity, checkEntity, fieldOfViewRadians))
-                continue;
-
-            if (!CheckLineOfSight(entity, checkEntity))
-                continue;
-
-            entity.SetTracer(checkEntity);
-            break;
-        }
+        m_newTracerTargetData.Entity = entity;
+        m_newTracerTargetData.Owner = entity.Owner.Entity ?? entity;
+        m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
+        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.XY, radius), m_setNewTracerTargetAction);
     }
 
+    private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Shootable)
+            return GridIterationStatus.Continue;
+
+        if (!m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
+            return GridIterationStatus.Continue;
+
+        if (m_newTracerTargetData.FieldOfViewRadians > 0 && 
+            !InFieldOfView(m_newTracerTargetData.Entity, checkEntity, m_newTracerTargetData.FieldOfViewRadians))
+            return GridIterationStatus.Continue;
+
+        if (!CheckLineOfSight(m_newTracerTargetData.Entity, checkEntity))
+            return GridIterationStatus.Continue;
+
+        m_newTracerTargetData.Entity.SetTracer(checkEntity);
+        return GridIterationStatus.Stop;
+    }
 
     public void SetEntityPosition(Entity entity, Vec3D pos)
     {

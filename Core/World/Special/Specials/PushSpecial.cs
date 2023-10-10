@@ -68,7 +68,7 @@ public class PushSpecial : ISpecial
             Box2D box = new(m_pusher.Position.XY, m_magnitude * 2);
             var intersections = BlockmapTraverser.Intersections;
             intersections.Clear();
-            m_world.BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities, intersections);
+            m_world.BlockmapTraverser.GetBlockmapIntersections(box, intersections);
             PushEntities(intersections);
         }
         else

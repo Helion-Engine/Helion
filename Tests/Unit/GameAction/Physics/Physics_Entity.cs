@@ -1,8 +1,11 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
+using Helion.World.Entities;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -301,9 +304,13 @@ namespace Helion.Tests.Unit.GameAction
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
 
-            var intersections = new DynamicArray<BlockmapIntersect>();
-            World.BlockmapTraverser.GetEntityIntersections(monster.GetBox2D(), intersections);
-            intersections.Length.Should().Be(0);
+            List<Entity> entities = new();
+            World.BlockmapTraverser.EntityTraverse(monster.GetBox2D(), (Entity checkEntity) =>
+            {
+                entities.Add(checkEntity);
+                return GridIterationStatus.Continue;
+            });
+            entities.Count.Should().Be(0);
 
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
