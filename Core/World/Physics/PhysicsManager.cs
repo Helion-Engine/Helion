@@ -6,6 +6,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -59,6 +60,8 @@ public class PhysicsManager
     private readonly int[] m_checkedBlockLines;
 
     private MoveLinkData m_moveLinkData;
+    private CanPassData m_canPassData;
+    private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
 
@@ -74,6 +77,7 @@ public class PhysicsManager
         m_checkedBlockLines = new int[m_world.Lines.Count];
         m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
         m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
+        m_canPassTraverseFunc = new(CanPassTraverse);
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
@@ -632,7 +636,7 @@ public class PhysicsManager
 
         double prevHighestFloorZ = entity.HighestFloorZ;
         Entity? prevOnEntity = entity.OnEntity.Entity;
-        SetEntityBoundsZ(entity, intersectSectors, clampToLinkedSectors, m_onEntities);
+        SetEntityBoundsZ(entity, intersectSectors, clampToLinkedSectors);
         entity.SetOnEntity(null);
 
         double lowestCeil = entity.LowestCeilingZ;
@@ -679,7 +683,7 @@ public class PhysicsManager
         m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors, DynamicArray<Entity> onEntities)
+    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
@@ -704,73 +708,22 @@ public class PhysicsManager
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
-            double entityTopZ = entity.TopZ;
+            m_canPassData.Entity = entity;
+            m_canPassData.HighestFloorEntity = highestFloorEntity;
+            m_canPassData.LowestCeilingEntity = lowestCeilingEntity;
+            m_canPassData.EntityTopZ = entity.TopZ;
+            m_canPassData.HighestFloorZ = highestFloorZ;
+            m_canPassData.LowestCeilZ = lowestCeilZ;
+            m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
+
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            var entities = m_world.DataCache.GetEntityList();
-            m_world.BlockmapTraverser.GetSolidNonCorpseEntities(entity.GetBox2D(), entities);
+            //m_world.BlockmapTraverser.GetSolidNonCorpseEntities(entity.GetBox2D(), entities);
+            m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
-            for (int i = 0; i < entities.Length; i++)
-            {
-                var intersectEntity = entities[i];
-                if (entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
-                    continue;
-
-                double intersectTopZ = intersectEntity.TopZ;
-                if (entity.Flags.Missile && m_world.Config.Compatibility.MissileClip)
-                    intersectTopZ = intersectEntity.GetMissileClipHeight(true);
-                bool above = entity.PrevPosition.Z >= intersectTopZ;
-                bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
-                bool clipped = false;
-                bool addedOnEntity = false;
-                if (above && entity.Position.Z < intersectTopZ)
-                    clipped = true;
-                else if (below && entityTopZ > intersectEntity.Position.Z)
-                    clipped = true;
-
-                if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
-                {
-                    entity.ClippedWithEntity = true;
-                    continue;
-                }
-
-                if (above)
-                {
-                    // Need to check clipping coming from above, if we're above
-                    // or clipped through then this is our floor.
-                    if ((clipped || entity.Position.Z >= intersectTopZ) && intersectTopZ >= highestFloorZ)
-                    {
-                        addedOnEntity = true;
-                        if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
-                            onEntities.Clear();
-
-                        highestFloorEntity = intersectEntity;
-                        highestFloorZ = intersectTopZ;
-                        onEntities.Add(highestFloorEntity);
-                    }
-                }
-                else if (below)
-                {
-                    // Same check as above but checking clipping the ceiling.
-                    if ((clipped || entityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < lowestCeilZ)
-                    {
-                        lowestCeilingEntity = intersectEntity;
-                        lowestCeilZ = intersectEntity.Position.Z;
-                    }
-                }
-
-                // Need to check if we can step up to this floor.
-                if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectTopZ && intersectTopZ >= highestFloorZ && !addedOnEntity)
-                {
-                    if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
-                        onEntities.Clear();
-
-                    highestFloorEntity = intersectEntity;
-                    highestFloorZ = intersectTopZ;
-                    onEntities.Add(highestFloorEntity);
-                }
-            }
-
-            m_world.DataCache.FreeEntityList(entities);
+            highestFloorEntity = m_canPassData.HighestFloorEntity;
+            lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
+            highestFloorZ = m_canPassData.HighestFloorZ;
+            lowestCeilZ = m_canPassData.LowestCeilZ;
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -787,6 +740,69 @@ public class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
+    }
+
+    private GridIterationStatus CanPassTraverse(Entity intersectEntity)
+    {
+        var entity = m_canPassData.Entity;
+        if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity.Id == intersectEntity.Id)
+            return GridIterationStatus.Continue;
+
+        double intersectTopZ = intersectEntity.TopZ;
+        if (entity.Flags.Missile && m_world.Config.Compatibility.MissileClip)
+            intersectTopZ = intersectEntity.GetMissileClipHeight(true);
+        bool above = entity.PrevPosition.Z >= intersectTopZ;
+        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
+        bool clipped = false;
+        bool addedOnEntity = false;
+        if (above && entity.Position.Z < intersectTopZ)
+            clipped = true;
+        else if (below && m_canPassData.EntityTopZ > intersectEntity.Position.Z)
+            clipped = true;
+
+        if (!above && !below && !m_canPassData.ClampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
+        {
+            entity.ClippedWithEntity = true;
+            return GridIterationStatus.Continue;
+        }
+
+        if (above)
+        {
+            // Need to check clipping coming from above, if we're above
+            // or clipped through then this is our floor.
+            if ((clipped || entity.Position.Z >= intersectTopZ) && intersectTopZ >= m_canPassData.HighestFloorZ)
+            {
+                addedOnEntity = true;
+                if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.TopZ < m_canPassData.HighestFloorZ)
+                    m_onEntities.Clear();
+
+                m_canPassData.HighestFloorEntity = intersectEntity;
+                m_canPassData.HighestFloorZ = intersectTopZ;
+                m_onEntities.Add(m_canPassData.HighestFloorEntity);
+            }
+        }
+        else if (below)
+        {
+            // Same check as above but checking clipping the ceiling.
+            if ((clipped || m_canPassData.EntityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < m_canPassData.LowestCeilZ)
+            {
+                m_canPassData.LowestCeilingEntity = intersectEntity;
+                m_canPassData.LowestCeilZ = intersectEntity.Position.Z;
+            }
+        }
+
+        // Need to check if we can step up to this floor.
+        if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectTopZ && intersectTopZ >= m_canPassData.HighestFloorZ && !addedOnEntity)
+        {
+            if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.TopZ < m_canPassData.HighestFloorZ)
+                m_onEntities.Clear();
+
+            m_canPassData.HighestFloorEntity = intersectEntity;
+            m_canPassData.HighestFloorZ = intersectTopZ;
+            m_onEntities.Add(m_canPassData.HighestFloorEntity);
+        }
+
+        return GridIterationStatus.Continue;
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector> intersectSectors,

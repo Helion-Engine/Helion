@@ -6,7 +6,6 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
-using OpenTK.Mathematics;
 using System;
 
 namespace Helion.World.Physics.Blockmap;
@@ -94,28 +93,6 @@ public class BlockmapTraverser
 sightTraverseEndOfLoop:
         
         intersections.Sort();
-    }
-
-    // Gets all intersecting entities that are solid and not a corpse
-    public void GetSolidNonCorpseEntities(Box2D box, DynamicArray<Entity> entities)
-    {
-        int checkCounter = ++m_world.CheckCounter;
-        
-        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
-        while (it.HasNext())
-        {
-            Block block = it.Next();            
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter || !entity.Flags.Solid || entity.Flags.Corpse)
-                    continue;
-
-                entity.BlockmapCount = checkCounter;
-                if (entity.Overlaps2D(box))
-                    entities.Add(entity);
-            }
-        }
     }
 
     public unsafe void ShootTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
