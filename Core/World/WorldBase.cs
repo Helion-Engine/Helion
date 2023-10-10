@@ -767,7 +767,7 @@ public abstract partial class WorldBase : IWorld
     public void TelefragBlockingEntities(Entity entity)
     {
         DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable, blockingEntities);
+        entity.GetIntersectingEntities3D(entity.Position, blockingEntities, true);
         for (int i = 0; i < blockingEntities.Length; i++)
             blockingEntities[i].ForceGib();
         DataCache.FreeEntityList(blockingEntities);
@@ -1661,23 +1661,16 @@ public abstract partial class WorldBase : IWorld
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
-        DynamicArray<Entity> entities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !Config.Compatibility.InfinitelyTallThings);
+
         entity.Flags.Solid = false;
         entity.Height = oldHeight;
-
-        bool blocked = entities.Length > 0;
-        DataCache.FreeEntityList(entities);
         return blocked;
     }
 
     public bool IsPositionBlocked(Entity entity)
     {
-        DynamicArray<Entity> entities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid, entities);
-        bool blocked = entities.Length > 0;
-        DataCache.FreeEntityList(entities);
-
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !Config.Compatibility.InfinitelyTallThings);
         if (blocked)
             return true;
 

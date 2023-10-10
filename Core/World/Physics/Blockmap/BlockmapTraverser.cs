@@ -299,6 +299,43 @@ sightTraverseEndOfLoop:
         return true;
     }
 
+    public void SolidBlockTraverse(Entity sourceEntity, Vec3D position, bool checkZ, DynamicArray<Entity> entities, bool shootable)
+    {
+        int checkCounter = ++m_world.CheckCounter;
+        Box3D box = new(position, sourceEntity.Radius, sourceEntity.Height);
+        Box2D box2D = new(position.XY, sourceEntity.Radius);
+        var it = m_blockmap.Iterate(box2D);
+        while (it.HasNext())
+        {
+            Block block = it.Next();
+            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            {
+                Entity entity = entityNode.Value;
+                if (entity.BlockmapCount == checkCounter)
+                    continue;
+                if (!entity.Flags.Solid)
+                    continue;
+                if (shootable && !entity.Flags.Shootable)
+                    continue;
+
+                entity.BlockmapCount = checkCounter;
+                if (!entity.Overlaps2D(box2D))
+                    continue;
+
+                if (!sourceEntity.CanBlockEntity(entity))
+                    continue;
+
+                if (checkZ && !entity.Overlaps(box))
+                    continue;
+
+                if (!checkZ && !entity.Overlaps2D(box2D))
+                    continue;
+
+                entities.Add(entity);
+            }
+        }
+    }
+
     public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
         int checkCounter = ++m_world.CheckCounter;

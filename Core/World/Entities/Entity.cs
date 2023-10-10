@@ -734,32 +734,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
     public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
 
-    public void GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags, DynamicArray<Entity> entities)
+    public void GetIntersectingEntities3D(in Vec3D position, DynamicArray<Entity> entities, bool shootable)
     {
-        Box3D box = new(position, Radius, Height);
-        Box2D box2D = new(position.XY, Radius);
-        bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
-        var intersections = BlockmapTraverser.Intersections;
-        intersections.Clear();
-        World.BlockmapTraverser.GetBlockmapIntersections(box2D, intersections, entityTraverseFlags);
-
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            Entity? entity = intersections[i].Entity;
-            if (entity == null)
-                continue;
-
-            if (!CanBlockEntity(entity))
-                continue;
-
-            if (checkZ && !entity.Overlaps(box))
-                continue;
-
-            if (!checkZ && !entity.Overlaps2D(box2D))
-                continue;
-
-            entities.Add(entity);
-        }
+        World.BlockmapTraverser.SolidBlockTraverse(this, position, !World.Config.Compatibility.InfinitelyTallThings, entities, shootable);
     }
 
     public bool CanBlockEntity(Entity other)
