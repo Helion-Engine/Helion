@@ -1,5 +1,4 @@
 using Helion.Audio;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -18,12 +17,10 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
-using NLog;
 using Helion.World.Blockmap;
 
 namespace Helion.World.Entities;
@@ -77,8 +74,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors = new();
-    public DynamicArray<Sector> IntersectMovementSectors = new();
+    public readonly DynamicArray<Sector> IntersectSectors = new();
+    public readonly DynamicArray<Sector> IntersectMovementSectors = new();
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -116,8 +113,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
-    public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
+    public readonly DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
+    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
     public bool IsDisposed { get; private set; }
 
@@ -141,7 +138,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
+    public readonly IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
@@ -314,7 +311,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Owner = WeakEntity.GetReference(entity);
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
-    public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
+    public double PitchTo(Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
 
     public string GetBloodType()
     {

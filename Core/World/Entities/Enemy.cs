@@ -1,12 +1,8 @@
 using System;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.World.Entities.Definition.States;
-using Helion.World.Geometry.Lines;
 using Helion.World.Physics;
-using Helion.World.Special;
 
 namespace Helion.World.Entities;
 

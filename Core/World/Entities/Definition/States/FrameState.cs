@@ -16,16 +16,16 @@ public struct FrameState
     private const int InfiniteLoopLimit = 10000;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private static int SlowTickOffsetChase = 0;
-    private static int SlowTickOffsetLook = 0;
-    private static int SlowTickOffsetTracer = 0;
+    private static int SlowTickOffsetChase;
+    private static int SlowTickOffsetLook;
+    private static int SlowTickOffsetTracer;
 
     public EntityFrame Frame;
-    private Entity m_entity;
-    private Dictionary<string, int> m_stateLabels;
-    private EntityManager m_entityManager;
-    private List<EntityFrame> m_frames;
-    private bool m_destroyOnStop;
+    private readonly Entity m_entity;
+    private readonly Dictionary<string, int> m_stateLabels;
+    private readonly EntityManager m_entityManager;
+    private readonly List<EntityFrame> m_frames;
+    private readonly bool m_destroyOnStop;
 
     public int CurrentTick;
     public int FrameIndex;
@@ -217,20 +217,20 @@ public struct FrameState
             // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
             // Sets to a range of -1 to +2
             int offset = 0;
-            if (Frame.IsSlowTickTracer)
-            {
-                m_entity.SlowTickMultiplier = EntityStatic.SlowTickTracerMultiplier;
-                offset = (SlowTickOffsetTracer++ & 3) - 1;
-            }
-            else if (Frame.IsSlowTickChase)
+            if (Frame.IsSlowTickChase && EntityStatic.SlowTickChaseMultiplier > 0)
             {
                 m_entity.SlowTickMultiplier = EntityStatic.SlowTickChaseMultiplier;
                 offset = (SlowTickOffsetChase++ & 3) - 1;
             }
-            else if (Frame.IsSlowTickLook)
+            else if (Frame.IsSlowTickLook && EntityStatic.SlowTickLookMultiplier > 0)
             {
                 m_entity.SlowTickMultiplier = EntityStatic.SlowTickLookMultiplier;
                 offset = (SlowTickOffsetLook++ & 3) - 1;
+            }
+            else if (Frame.IsSlowTickTracer && EntityStatic.SlowTickTracerMultiplier > 0)
+            {
+                m_entity.SlowTickMultiplier = EntityStatic.SlowTickTracerMultiplier;
+                offset = (SlowTickOffsetTracer++ & 3) - 1;
             }
 
             CurrentTick *= m_entity.SlowTickMultiplier + offset;

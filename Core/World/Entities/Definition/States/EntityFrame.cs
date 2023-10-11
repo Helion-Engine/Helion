@@ -9,36 +9,36 @@ namespace Helion.World.Entities.Definition.States;
 
 public class EntityFrame
 {
-    public string VanillaActorName { get; private set; }
-    public string Sprite { get; private set; }
-    public int SpriteIndex { get; set; }
-    public string OriginalSprite { get; private set; }
-    public int Frame { get; set; }
-    public int Ticks { get; set; }
-    public bool IsInvisible { get; private set; }
+    public string VanillaActorName;
+    public string Sprite;
+    public int SpriteIndex;
+    public string OriginalSprite;
+    public int Frame;
+    public int Ticks;
+    public bool IsInvisible;
     public EntityFrameProperties Properties;
-    public ActionFunction? ActionFunction { get; set; }
-    public int NextFrameIndex { get; set; }
-    public ActorStateBranch BranchType { get; set; }
+    public ActionFunction? ActionFunction;
+    public int NextFrameIndex;
+    public ActorStateBranch BranchType;
 
-    public int DehackedMisc1 { get; set; }
-    public int DehackedMisc2 { get; set; }
-    public int DehackedArgs1 { get; set; }
-    public int DehackedArgs2 { get; set; }
-    public int DehackedArgs3 { get; set; }
-    public int DehackedArgs4 { get; set; }
-    public int DehackedArgs5 { get; set; }
-    public int DehackedArgs6 { get; set; }
-    public int DehackedArgs7 { get; set; }
-    public int DehackedArgs8 { get; set; }
-    public int MasterFrameIndex { get; set; }
-    public int VanillaIndex { get; set; }
-    public FrameArgs Args { get; set; } = FrameArgs.Default;
+    public int DehackedMisc1;
+    public int DehackedMisc2;
+    public int DehackedArgs1;
+    public int DehackedArgs2;
+    public int DehackedArgs3;
+    public int DehackedArgs4;
+    public int DehackedArgs5;
+    public int DehackedArgs6;
+    public int DehackedArgs7;
+    public int DehackedArgs8;
+    public int MasterFrameIndex;
+    public int VanillaIndex;
+    public FrameArgs Args = FrameArgs.Default;
     public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
     public bool IsNullFrame => MasterFrameIndex == Constants.NullFrameIndex;
-    public bool IsSlowTickChase;
-    public bool IsSlowTickLook;
-    public bool IsSlowTickTracer;
+    public readonly bool IsSlowTickChase;
+    public readonly bool IsSlowTickLook;
+    public readonly bool IsSlowTickTracer;
 
     private readonly EntityFrameTable m_table;
 
@@ -75,12 +75,10 @@ public class EntityFrame
         CheckSetInvisible();
     }
 
-    public void SetTicks(int tics) => Ticks = tics;
-
     public override string ToString() => $"{Sprite} {Frame} {Ticks} action={ActionString} flow={BranchType} next={NextFrameIndex}]";
 
     private string ActionString =>
-        ActionFunction == null ? "none" : ActionFunction.Method.Name.ToString();
+        ActionFunction == null ? "none" : ActionFunction.Method.Name;
 
     private void CheckSetInvisible() =>
         IsInvisible = Sprite.Equals(Constants.InvisibleSprite, StringComparison.OrdinalIgnoreCase);

@@ -22,8 +22,6 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special;
 using NLog;
-using NLog.Targets;
-using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -2601,7 +2599,7 @@ public static class EntityActionFunctions
     public static void A_VileChase(Entity entity)
     {
         // Doom just used VILE_HEAL1 state. With dehacked this means you can give a random thing A_VileChase and it will use this state.
-        EntityFrame? healState = null;
+        EntityFrame? healState;
         if (entity.Definition.HealFrame != null)
             healState = entity.Definition.HealFrame;
         else

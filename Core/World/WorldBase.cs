@@ -47,16 +47,15 @@ using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
-using System.Diagnostics;
 using Helion.World.Special.Specials;
-using System.Diagnostics.CodeAnalysis;
 using Helion.World.Static;
-using Helion.Resources.Archives.Entries;
 using Helion.Geometry.Grids;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World;
 
-public abstract partial class WorldBase : IWorld
+public abstract class WorldBase : IWorld
 {
     private const double MaxPitch = 80.0 * Math.PI / 180.0;
     private const double MinPitch = -80.0 * Math.PI / 180.0;
@@ -142,16 +141,16 @@ public abstract partial class WorldBase : IWorld
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
 
     private RadiusExplosionData m_radiusExplosion;
-    private Action<Entity> m_radiusExplosionAction;
+    private readonly Action<Entity> m_radiusExplosionAction;
 
     private HealChaseData m_healChaseData;
-    private Action<Entity> m_healChaseAction;
+    private readonly Action<Entity> m_healChaseAction;
 
     private NewTracerTargetData m_newTracerTargetData;
-    private Func<Entity, GridIterationStatus> m_setNewTracerTargetAction;
+    private readonly Func<Entity, GridIterationStatus> m_setNewTracerTargetAction;
 
     private LineOfSightEnemyData m_lineOfSightEnemyData;
-    private Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
+    private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
 
     private readonly TryMoveData EmtpyTryMove = new();
 
@@ -956,7 +955,7 @@ public abstract partial class WorldBase : IWorld
         if (projectileDef == null)
             return null;
 
-        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0, executeStateFunctions: false);
+        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
 
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
@@ -1636,18 +1635,15 @@ public abstract partial class WorldBase : IWorld
         if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
-        Entity? newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
-        if (newEntity != null)
-        {
-            CreateTeleportFog(entity.Position);
-            CreateTeleportFog(entity.SpawnPoint);
+        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
+        CreateTeleportFog(entity.Position);
+        CreateTeleportFog(entity.SpawnPoint);
 
-            newEntity.Flags.Friendly = entity.Flags.Friendly;
-            newEntity.AngleRadians = entity.AngleRadians;
-            newEntity.ReactionTime = 18;
+        newEntity.Flags.Friendly = entity.Flags.Friendly;
+        newEntity.AngleRadians = entity.AngleRadians;
+        newEntity.ReactionTime = 18;
 
-            entity.Dispose();
-        }
+        entity.Dispose();
     }
 
     public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position)
@@ -2245,14 +2241,6 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private static double GetTracerSlope(double z, double distance, double speed)
-    {
-        distance /= speed;
-        if (distance < 1)
-            distance = 1;
-        return z / distance;
-    }
-
     private void GiveCheatArmor(Player player, CheatType cheatType)
     {
         bool autoGive = true;
@@ -2522,7 +2510,7 @@ public abstract partial class WorldBase : IWorld
         {
             ConfigValues = GetConfigValuesModel(),
             Files = GetGameFilesModel(),
-            MapName = MapName.ToString(),
+            MapName = MapName,
             WorldState = WorldState,
             Gametick = Gametick,
             LevelTime = LevelTime,

@@ -6,7 +6,6 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
-using Helion.Resources.Archives.Collection;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -16,10 +15,8 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Sound;
 using NLog;
 using Helion.World.Stats;
-using Helion.Resources.Archives.Entries;
 
 namespace Helion.World.Entities;
 
@@ -56,8 +53,7 @@ public class EntityManager : IDisposable
     public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
     public readonly IWorld World;
-
-    private readonly WorldSoundManager m_soundManager;
+    
     private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
 
     public readonly EntityDefinitionComposer DefinitionComposer;
@@ -72,12 +68,11 @@ public class EntityManager : IDisposable
     public EntityManager(IWorld world)
     {
         World = world;
-        m_soundManager = world.SoundManager;
         SpawnLocations = new SpawnLocations(world);
         DefinitionComposer = world.ArchiveCollection.EntityDefinitionComposer;
     }
 
-    public static bool ZHeightSet(double z)
+    private static bool ZHeightSet(double z)
     {
         return z != Fixed.Lowest().ToDouble() && z != 0.0;
     }
@@ -107,8 +102,7 @@ public class EntityManager : IDisposable
         return null;
     }
 
-    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false,
-        bool executeStateFunctions = true)
+    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
     {
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
@@ -125,7 +119,7 @@ public class EntityManager : IDisposable
             entity.PrevPosition = entity.Position;
         }
 
-        FinishCreatingEntity(entity, zHeight, executeStateFunctions);
+        FinishCreatingEntity(entity, zHeight);
         return entity;
     }
 
@@ -229,7 +223,7 @@ public class EntityManager : IDisposable
             double angleRadians = MathHelper.ToRadians(mapThing.Angle);
             Vec3D position = mapThing.Position.Double;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, init: true, executeStateFunctions: false);
+            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, init: true);
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
 
@@ -438,7 +432,7 @@ public class EntityManager : IDisposable
         entity.ResetInterpolation();
     }
 
-    private void FinishCreatingEntity(Entity entity, double zHeight, bool executeStateFunctions)
+    private void FinishCreatingEntity(Entity entity, double zHeight)
     {
         AddEntityToList(entity);
 
@@ -482,7 +476,7 @@ public class EntityManager : IDisposable
         if (armor != null)
             player.Inventory.Add(armor, 0);
 
-        FinishCreatingEntity(player, zHeight, false);
+        FinishCreatingEntity(player, zHeight);
 
         return player;
     }
