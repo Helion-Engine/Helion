@@ -50,8 +50,9 @@ public partial class Entity
     private static readonly double[] SpeedX = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed };
     private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
-    private static int ClosetChaseCount;
-    private static int ClosetLookCount;
+    private static ushort ClosetChaseCount;
+    private static ushort ClosetLookCount;
+    private static ushort ChaseLoop;
 
     private MoveDir m_direction = MoveDir.None;
 
@@ -145,23 +146,6 @@ public partial class Entity
             SetSpawnState();
     }
 
-    public void ClosetLook()
-    {
-        if (Sector.SoundTarget.Entity != null && ValidEnemyTarget(Sector.SoundTarget.Entity))
-        {
-            SetTarget(Sector.SoundTarget.Entity);
-            SetClosetChase();
-        }
-    }
-
-    public void ClosetChase()
-    {
-        if (Target.Entity != null && Target.Entity.IsDead)
-            return;
-
-        SetNewChaseDirection();
-    }
-
     private Entity? GetNewTarget(bool allaround)
     {
         Entity? newTarget;
@@ -178,9 +162,6 @@ public partial class Entity
 
         return newTarget;
     }
-
-    private static int ChaseLoop;
-    private bool m_partialMoveSuccess;
 
     public void SetNewChaseDirection()
     {

@@ -22,6 +22,7 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special;
 using NLog;
+using NLog.Targets;
 using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.World.Entities.Definition.States;
@@ -3225,12 +3226,19 @@ public static class EntityActionFunctions
 
     public static void A_ClosetLook(Entity entity)
     {
-        entity.ClosetLook();
+        if (entity.Sector.SoundTarget.Entity != null && entity.ValidEnemyTarget(entity.Sector.SoundTarget.Entity))
+        {
+            entity.SetTarget(entity.Sector.SoundTarget.Entity);
+            entity.SetClosetChase();
+        }
     }
 
     public static void A_ClosetChase(Entity entity)
     {
-        entity.ClosetChase();
+        if (entity.Target.Entity != null && entity.Target.Entity.IsDead)
+            return;
+
+        entity.SetNewChaseDirection();
     }
 
     private static void JumpToStateIfInSight(Entity from, Entity to, int state, double fov)
