@@ -56,6 +56,17 @@ namespace Helion.Tests.Unit.GameAction
             throw new NullReferenceException();
         }
 
+        public static Entity? FindEntity(WorldBase world, string name)
+        {
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            {
+                if (entity.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return entity;
+            }
+
+            return null;
+        }
+
         public static List<Entity> GetEntities(WorldBase world, string name)
         {
             List<Entity> entities = new();
