@@ -28,6 +28,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
 using Helion.World.Util;
+using NLog;
 
 namespace Helion.Client;
 
@@ -727,7 +728,7 @@ public partial class Client
                 break;
 
             case LevelChangeType.SpecificLevel:
-                ChangeLevel(e);
+                ChangeLevel(world, e);
                 break;
 
             case LevelChangeType.Reset:
@@ -840,11 +841,18 @@ public partial class Client
             LoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World);
     }
 
-    private void ChangeLevel(LevelChangeEvent e)
+    private void ChangeLevel(IWorld world, LevelChangeEvent e)
     {
-        if (MapWarp.GetMap(e.LevelNumber, m_archiveCollection.Definitions.MapInfoDefinition.MapInfo,
-            out MapInfoDef? mapInfoDef) && mapInfoDef != null)
-            LoadMap(mapInfoDef, null, null, e);
+        if (!MapWarp.GetMap(e.LevelNumber, m_archiveCollection, out MapInfoDef? mapInfoDef))
+        {
+            Log.Error($"Could not find map for {e.LevelNumber}");
+            return;
+        }
+
+        if (e.IsCheat)
+            world.DisplayMessage("$STSTR_CLEV");
+
+        LoadMap(mapInfoDef, null, null, e);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>

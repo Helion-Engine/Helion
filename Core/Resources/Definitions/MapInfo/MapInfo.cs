@@ -90,6 +90,9 @@ public class MapInfo
         if (mapInfoDef != null)
             return mapInfoDef;
 
+        if (DefaultMap == null)
+            return new MapInfoDef() { MapName = mapName.ToUpperInvariant() };
+
         mapInfoDef =  (MapInfoDef)DefaultMap.Clone();
         mapInfoDef.MapName = mapName.ToUpperInvariant();
         return mapInfoDef;
@@ -112,7 +115,7 @@ public class MapInfo
             if (newItem.Equals(item))
             {
                 items[i] = newItem;
-                break;
+                return;
             }
         }
 

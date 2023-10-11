@@ -1976,7 +1976,7 @@ public static class EntityActionFunctions
         if (player == null)
             return;
 
-        int damage = ((2 * entity.World.Random.NextByte()) % 10) + 1;
+        int damage = 2 * ((entity.World.Random.NextByte()) % 10) + 1;
         double range = Constants.EntityMeleeDistance + 1;
         double angle = player.AngleRadians + (entity.World.Random.NextDiff() * Constants.MeleeAngle / 255);
         double pitch = player.PitchRadians;

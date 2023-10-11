@@ -1716,16 +1716,11 @@ public abstract partial class WorldBase : IWorld
         source.SetOwner(originalOwner);
     }
 
-    protected void ChangeToLevel(int number)
-    {
-        LevelExit?.Invoke(this, new LevelChangeEvent(number));
-    }
-
     protected bool ChangeToMusic(int number)
     {
         if (this is SinglePlayerWorld singlePlayerWorld)
         {
-            if (!MapWarp.GetMap(number, ArchiveCollection.Definitions.MapInfoDefinition.MapInfo, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
+            if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
                 return false;
 
             SinglePlayerWorld.PlayLevelMusic(singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);
@@ -2031,7 +2026,7 @@ public abstract partial class WorldBase : IWorld
         {
             if (levelCheat.CheatType == CheatType.ChangeLevel)
             {
-                ChangeToLevel(levelCheat.LevelNumber);
+                LevelExit?.Invoke(this, new LevelChangeEvent(levelCheat.LevelNumber, isCheat: true));
                 return;
             }
             else if (levelCheat.CheatType == CheatType.ChangeMusic && !ChangeToMusic(levelCheat.LevelNumber))
