@@ -161,6 +161,10 @@ public partial class Entity
 
     public void SetNewChaseDirection()
     {
+        if (--ChaseFailureSkipCount > 0)
+            return;
+
+        ChaseFailureSkipCount = 0;
         // All monsters normally have CanPass set.
         // Dehacked can modify things into enemies that can move but this flag doesn't exist in the original game.
         // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
@@ -311,6 +315,8 @@ public partial class Entity
         if (MoveCount < 0 && SlowTickMultiplier > 1)
             MoveCount = EntityStatic.Random.NextByte() & 15;
 
+        if (EntityStatic.SlowTickEnabled)
+            ChaseFailureSkipCount = EntityStatic.SlowTickChaseFailureSkipCount;
         m_direction = MoveDir.None;
     }
 

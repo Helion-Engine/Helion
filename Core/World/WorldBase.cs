@@ -195,12 +195,16 @@ public abstract class WorldBase : IWorld
         m_lineOfSightEnemyAction = new(HandleLineOfSightEnemy);
         SetCompatibilityOptions(mapInfoDef);
 
+        Config.SlowTick.Enabled.OnChanged += SlowTickEnabled_OnChanged;
+        Config.SlowTick.ChaseFailureSkipCount.OnChanged += SlowTickChaseFailureSkipCount_OnChanged;
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
 
         EntityStatic.Random = Random;
+        EntityStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
+        EntityStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
         EntityStatic.SlowTickDistance = Config.SlowTick.Distance;
         EntityStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
         EntityStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
@@ -229,8 +233,12 @@ public abstract class WorldBase : IWorld
         }
     }
 
+    private void SlowTickEnabled_OnChanged(object? sender, bool enabled) =>
+        EntityStatic.SlowTickEnabled = enabled;
     private void SlowTickDistance_OnChanged(object? sender, int distance) =>
         EntityStatic.SlowTickDistance = distance;
+    private void SlowTickChaseFailureSkipCount_OnChanged(object? sender, int value) =>
+        EntityStatic.SlowTickChaseFailureSkipCount = value;
     private void SlowTickChaseMultiplier_OnChanged(object? sender, int value) =>
         EntityStatic.SlowTickChaseMultiplier = value;
     private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>

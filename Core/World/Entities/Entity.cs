@@ -107,6 +107,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int LastRenderGametick;
     public double LastRenderDistanceSquared = double.MaxValue;
     public int SlowTickMultiplier = 1;
+    public int ChaseFailureSkipCount = 0;
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
@@ -950,6 +951,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector.Default;
         HighestFloorSector = Sector.Default;
         LowestCeilingSector = Sector.Default;
+        SlowTickMultiplier = 1;
+        ChaseFailureSkipCount = 0;
     }
 
     private void Unlink()
