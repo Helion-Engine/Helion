@@ -4,6 +4,7 @@ using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using System;
+using System.Collections.Generic;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -21,43 +22,42 @@ public struct FrameState
 
     public EntityFrame Frame;
     private Entity m_entity;
-    private EntityDefinition m_definition;
+    private Dictionary<string, int> m_stateLabels;
     private EntityManager m_entityManager;
-    private EntityFrameTable m_frameTable;
+    private List<EntityFrame> m_frames;
     private bool m_destroyOnStop;
-    private int m_frameIndex;
-    private int m_tics;
 
-    public int CurrentTick => m_tics;
+    public int CurrentTick;
+    public int FrameIndex;
 
     public FrameState(Entity entity, EntityDefinition definition,
         EntityManager entityManager, bool destroyOnStop = true)
     {
         m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
+        m_stateLabels = definition.States.Labels;
+        m_frames = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames;
         m_entityManager = entityManager;
         m_destroyOnStop = destroyOnStop;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        Frame = m_frames[FrameIndex];
     }
 
     public FrameState(Entity entity, EntityDefinition definition,
         EntityManager entityManager, FrameStateModel frameStateModel)
     {
         m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
+        m_stateLabels = definition.States.Labels;
+        m_frames = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames;
         m_entityManager = entityManager;
-        m_frameIndex = frameStateModel.FrameIndex;
-        m_tics = frameStateModel.Tics;
+        FrameIndex = frameStateModel.FrameIndex;
+        CurrentTick = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        Frame = m_frames[FrameIndex];
     }
 
     public EntityFrame? GetStateFrame(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
-            return m_frameTable.Frames[index];
+        if (m_stateLabels.TryGetValue(label, out int index))
+            return m_frames[index];
 
         return null;
     }
@@ -65,13 +65,13 @@ public struct FrameState
     // Only for end game cast - really shouldn't be used.
     public void SetFrameIndexByLabel(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
             SetFrameIndexMember(index);
     }
 
     public void SetFrameIndex(int index)
     {
-        if (index < 0 || index >= m_frameTable.Frames.Count)
+        if (index < 0 || index >= m_frames.Count)
             return;
 
         SetFrameIndexMember(index);
@@ -80,11 +80,11 @@ public struct FrameState
 
     public void SetFrameIndexNoAction(int index)
     {
-        if (index < 0 || index >= m_frameTable.Frames.Count)
+        if (index < 0 || index >= m_frames.Count)
             return;
 
         SetFrameIndexMember(index);
-        m_tics = Frame.Ticks;
+        CurrentTick = Frame.Ticks;
     }
 
     public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
@@ -92,9 +92,9 @@ public struct FrameState
         if (!executeStateFunctions)
             return SetStateNoAction(label, offset, warn);
 
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
+            if (index + offset >= 0 && index + offset < m_frames.Count)
                 SetFrameIndexInternal(index + offset, onSet);
             else
                 SetFrameIndexInternal(index, onSet);
@@ -103,26 +103,26 @@ public struct FrameState
         }
 
         if (warn)
-            Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
+            Log.Warn("Unable to find state label {0} for actor {1}", label, m_entity.Definition.Name);
 
         return false;
     }
 
     public bool SetStateNoAction(string label, int offset = 0, bool warn = true)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
+            if (index + offset >= 0 && index + offset < m_frames.Count)
                 SetFrameIndexMember(index + offset);
             else
-                SetFrameIndexMember(m_frameIndex = index);
+                SetFrameIndexMember(FrameIndex = index);
 
-            m_tics = Frame.Ticks;
+            CurrentTick = Frame.Ticks;
             return true;
         }
 
         if (warn)
-            Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
+            Log.Warn("Unable to find state label {0} for actor {1}", label, m_entity.Definition.Name);
 
         return false;
     }
@@ -132,8 +132,8 @@ public struct FrameState
 
     public bool IsState(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
-            return m_frameIndex == index;
+        if (m_stateLabels.TryGetValue(label, out int index))
+            return FrameIndex == index;
 
         return false;
     }
@@ -142,13 +142,13 @@ public struct FrameState
     {
         if (tics < 1)
             tics = 1;
-        m_tics = tics;
+        CurrentTick = tics;
     }
 
     private void SetFrameIndexMember(int index)
     {
-        m_frameIndex = index;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        FrameIndex = index;
+        Frame = m_frames[FrameIndex];
     }
 
     private void SetFrameIndexInternal(int index, Action<EntityFrame>? onSet)
@@ -158,13 +158,13 @@ public struct FrameState
         while (true)
         {
             SetFrameIndexMember(index);
-            m_tics = Frame.Ticks;
+            CurrentTick = Frame.Ticks;
 
             if (EntityStatic.IsFastMonsters && Frame.Properties.Fast)
-                m_tics /= 2;
+                CurrentTick /= 2;
 
             if (EntityStatic.IsSlowMonsters && Frame.Properties.Slow)
-                m_tics *= 2;
+                CurrentTick *= 2;
 
             CheckSlowTickDistance();
             onSet?.Invoke(Frame);
@@ -183,7 +183,7 @@ public struct FrameState
             }
 
             Frame.ActionFunction?.Invoke(m_entity);
-            if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
+            if (m_entity == null || FrameIndex == Constants.NullFrameIndex)
                 return;
 
             if (Frame.BranchType == ActorStateBranch.Stop && Frame.Ticks >= 0)
@@ -209,7 +209,7 @@ public struct FrameState
         if (m_entity.InMonsterCloset)
             return;
 
-        if (m_tics > 0 &&
+        if (CurrentTick > 0 &&
             (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
             (m_entity.LastRenderDistanceSquared > EntityStatic.SlowTickDistance * EntityStatic.SlowTickDistance ||
             m_entity.LastRenderGametick != m_entity.World.Gametick))
@@ -233,7 +233,7 @@ public struct FrameState
                 offset = (SlowTickOffsetLook++ & 3) - 1;
             }
 
-            m_tics *= m_entity.SlowTickMultiplier + offset;
+            CurrentTick *= m_entity.SlowTickMultiplier + offset;
         }
     }
 
@@ -248,12 +248,12 @@ public struct FrameState
 
     public void Tick()
     {
-        Precondition(m_frameIndex >= 0 && m_frameIndex < m_frameTable.Frames.Count, "Out of range frame index for entity");
-        if (m_tics == -1)
+        Precondition(FrameIndex >= 0 && FrameIndex < m_frames.Count, "Out of range frame index for entity");
+        if (CurrentTick == -1)
             return;
 
-        m_tics--;
-        if (m_tics <= 0)
+        CurrentTick--;
+        if (CurrentTick <= 0)
         {
             if (Frame.BranchType == ActorStateBranch.Stop && m_destroyOnStop)
             {
@@ -269,8 +269,8 @@ public struct FrameState
     {
         return new FrameStateModel()
         {
-            FrameIndex = m_frameIndex,
-            Tics = m_tics,
+            FrameIndex = FrameIndex,
+            Tics = CurrentTick,
             Destroy = m_destroyOnStop
         };
     }
@@ -281,8 +281,8 @@ public struct FrameState
             return false;
 
         return frameState.m_entity.Id == m_entity.Id &&
-            frameState.m_frameIndex == m_frameIndex &&
-            frameState.m_tics == m_tics &&
+            frameState.FrameIndex == FrameIndex &&
+            frameState.CurrentTick == CurrentTick &&
             frameState.m_destroyOnStop == m_destroyOnStop;
     }
 

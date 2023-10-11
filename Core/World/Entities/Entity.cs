@@ -697,7 +697,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (!Flags.QuickToRetaliate)
                 Threshold = Properties.DefThreshold;
-            if (Definition.SeeState != null && FrameState.IsState(Constants.FrameStates.Spawn))
+            if (Definition.SeeState != null && Definition.SpawnState != null && FrameState.FrameIndex == Definition.SpawnState.Value)
                 SetSeeState();
         }
 
