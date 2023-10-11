@@ -75,7 +75,7 @@ public struct FrameState
             return;
 
         SetFrameIndexMember(index);
-        SetFrameIndexInternal(index, null);
+        SetFrameIndexInternal(index);
     }
 
     public void SetFrameIndexNoAction(int index)
@@ -87,7 +87,7 @@ public struct FrameState
         CurrentTick = Frame.Ticks;
     }
 
-    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
+    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true)
     {
         if (!executeStateFunctions)
             return SetStateNoAction(label, offset, warn);
@@ -95,9 +95,9 @@ public struct FrameState
         if (m_stateLabels.TryGetValue(label, out int index))
         {
             if (index + offset >= 0 && index + offset < m_frames.Count)
-                SetFrameIndexInternal(index + offset, onSet);
+                SetFrameIndexInternal(index + offset);
             else
-                SetFrameIndexInternal(index, onSet);
+                SetFrameIndexInternal(index);
 
             return true;
         }
@@ -128,7 +128,7 @@ public struct FrameState
     }
 
     public void SetState(EntityFrame entityFrame) =>
-        SetFrameIndexInternal(entityFrame.MasterFrameIndex, null);
+        SetFrameIndexInternal(entityFrame.MasterFrameIndex);
 
     public bool IsState(string label)
     {
@@ -151,7 +151,7 @@ public struct FrameState
         Frame = m_frames[FrameIndex];
     }
 
-    private void SetFrameIndexInternal(int index, Action<EntityFrame>? onSet)
+    private void SetFrameIndexInternal(int index)
     {
         int loopCount = 0;
 
@@ -167,7 +167,12 @@ public struct FrameState
                 CurrentTick *= 2;
 
             CheckSlowTickDistance();
-            onSet?.Invoke(Frame);
+            // Doom set the offsets only if misc1 wasn't zero. Only was applied through the player sprite code.
+            if (Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null)
+            {
+                m_entity.PlayerObj.WeaponOffset.X = Frame.DehackedMisc1;
+                m_entity.PlayerObj.WeaponOffset.Y = Frame.DehackedMisc2;
+            }
 
             if (m_destroyOnStop && Frame.IsNullFrame)
             {
@@ -203,7 +208,7 @@ public struct FrameState
     private void CheckSlowTickDistance()
     {
         m_entity.SlowTickMultiplier = 1;
-        if (EntityStatic.SlowTickDistance <= 0)
+        if (!EntityStatic.SlowTickEnabled || EntityStatic.SlowTickDistance <= 0)
             return;
 
         if (m_entity.InMonsterCloset)
@@ -261,7 +266,7 @@ public struct FrameState
                 return;
             }
 
-            SetFrameIndexInternal(Frame.NextFrameIndex, null);
+            SetFrameIndexInternal(Frame.NextFrameIndex);
         }
     }
 
