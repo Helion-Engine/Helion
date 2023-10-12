@@ -22,35 +22,15 @@ public partial class Entity
         None
     }
 
-    private static readonly double[] MoveAngles = new[]
-    {
-        0.0,
-        MathHelper.QuarterPi,
-        MathHelper.HalfPi,
-        MathHelper.HalfPi + MathHelper.QuarterPi,
-        MathHelper.Pi,
-        MathHelper.Pi + MathHelper.QuarterPi,
-        MathHelper.Pi + MathHelper.HalfPi,
-        MathHelper.Pi + MathHelper.HalfPi + MathHelper.QuarterPi,
-        0.0
-    };
-
-    private static readonly MoveDir[] OppositeDirections = new[]
-    {
-        MoveDir.West, MoveDir.SouthWest, MoveDir.South, MoveDir.SouthEast,
-        MoveDir.East, MoveDir.NorthEast, MoveDir.North, MoveDir.NorthWest, MoveDir.None
-    };
-
-    private static readonly MoveDir[] Diagnals = new[] { MoveDir.NorthWest, MoveDir.NorthEast, MoveDir.SouthWest, MoveDir.SouthEast };
-
-    private static readonly double[] SpeedX = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed };
-    private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
+    private static readonly double[] Speeds = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed, 
+        0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
     private static ushort ClosetChaseCount;
     private static ushort ClosetLookCount;
     private static ushort ChaseLoop;
 
     private MoveDir m_direction = MoveDir.None;
+    private MoveDir m_lastDirection = MoveDir.None;
 
     public bool BlockFloating;
     public bool IsClosetLook => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
@@ -161,6 +141,7 @@ public partial class Entity
 
     public void SetNewChaseDirection()
     {
+        m_lastDirection = m_direction;
         if (--ChaseFailureSkipCount > 0)
             return;
 
@@ -174,8 +155,11 @@ public partial class Entity
         MoveDir dir0;
         MoveDir dir1;
         MoveDir oldDirection = m_direction;
-        MoveDir oppositeDirection = OppositeDirections[(int)m_direction];
+        MoveDir oppositeDirection = oldDirection;
         MoveDir tdir;
+
+        if (oppositeDirection != MoveDir.None)
+            oppositeDirection = (MoveDir)(((int)oppositeDirection) ^ 4);
 
         double dx = Target.Entity!.Position.X - Position.X;
         double dy = Target.Entity!.Position.Y - Position.Y;
@@ -196,12 +180,11 @@ public partial class Entity
 
         if (dir0 != MoveDir.None && dir1 != MoveDir.None)
         {
-            int index = 0;
             if (dy < 0)
-                index += 2;
-            if (dx > 0)
-                index++;
-            m_direction = Diagnals[index];
+                m_direction = dx > 0 ? MoveDir.SouthEast : MoveDir.SouthWest;
+            else
+                m_direction = dx > 0 ? MoveDir.NorthEast : MoveDir.NorthWest;
+
             if (m_direction != oppositeDirection && TryWalk())
                 return;
         }
@@ -326,8 +309,8 @@ public partial class Entity
             return Position.XY;
 
         double speed = IsClosetChase ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
-        double speedX = SpeedX[(int)m_direction] * speed;
-        double speedY = SpeedY[(int)m_direction] * speed;
+        double speedX = Speeds[(int)m_direction] * speed;
+        double speedY = Speeds[(int)m_direction + 8] * speed;
 
         return (Position.X + speedX, Position.Y + speedY);
     }
@@ -370,8 +353,10 @@ public partial class Entity
         if (m_direction == MoveDir.None)
             return;
 
-        AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
-        double delta = AngleRadians - MoveAngles[(int)m_direction];
+        AngleRadians = AngleRadians - (AngleRadians % MathHelper.QuarterPi);
+        if (AngleRadians < 0 || AngleRadians > MathHelper.TwoPi)
+            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians);
+        double delta = AngleRadians - ((int)m_direction * MathHelper.QuarterPi);
         if (delta != 0)
         {
             if (Math.Abs(delta) > MathHelper.Pi)
@@ -386,7 +371,7 @@ public partial class Entity
     public void SetToMovementDirection()
     {
         if (m_direction != MoveDir.None)
-            AngleRadians = MoveAngles[(int)m_direction];
+            AngleRadians = (int)m_direction * MathHelper.QuarterPi;
     }
 
     public double GetEnemyFloatMove()
