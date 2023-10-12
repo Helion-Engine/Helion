@@ -34,6 +34,9 @@ public static class HudExtensions
             return false;
 
         float statusBarRatio = handle.Dimension.Width * 2 / 480f;
+        if (hud.Dimension.Width < 480)
+            statusBarRatio = handle.Dimension.Width * hud.Dimension.AspectRatio / (float)hud.Dimension.Width;
+
         hud.VirtualDimension((handle.Dimension.Width, 200), ResolutionScale.Center, statusBarRatio, HudVirtualStatusBar,
             new HudImage(hud, image, handle, Align.Center, Align.Center));
         return true;
