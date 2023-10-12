@@ -149,6 +149,8 @@ public struct FrameState
     {
         FrameIndex = index;
         Frame = m_frames[FrameIndex];
+        m_entity.IsClosetLook = Frame.MasterFrameIndex == EntityStatic.ClosetLookFrameIndex;
+        m_entity.IsClosetChase = Frame.MasterFrameIndex == EntityStatic.ClosetChaseFrameIndex;
     }
 
     private void SetFrameIndexInternal(int index)

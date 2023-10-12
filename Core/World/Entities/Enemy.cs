@@ -30,11 +30,10 @@ public partial class Entity
     private static ushort ChaseLoop;
 
     private MoveDir m_direction = MoveDir.None;
-    private MoveDir m_lastDirection = MoveDir.None;
 
     public bool BlockFloating;
-    public bool IsClosetLook => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
-    public bool IsClosetChase => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+    public bool IsClosetLook;
+    public bool IsClosetChase;
 
     public void SetEnemyDirection(MoveDir direction) =>
         m_direction = direction;
@@ -141,7 +140,6 @@ public partial class Entity
 
     public void SetNewChaseDirection()
     {
-        m_lastDirection = m_direction;
         if (--ChaseFailureSkipCount > 0)
             return;
 

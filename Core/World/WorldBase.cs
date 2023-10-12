@@ -212,6 +212,8 @@ public abstract class WorldBase : IWorld
         EntityStatic.IsFastMonsters = IsFastMonsters;
         EntityStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
         EntityStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+        EntityStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
+        EntityStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
         if (worldModel != null)
         {

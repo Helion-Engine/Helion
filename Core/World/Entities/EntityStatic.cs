@@ -14,4 +14,6 @@ public static class EntityStatic
     public static bool IsFastMonsters;
     public static bool IsSlowMonsters;
     public static int RespawnTimeSeconds;
+    public static int ClosetLookFrameIndex;
+    public static int ClosetChaseFrameIndex;
 }
