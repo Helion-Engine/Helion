@@ -28,6 +28,7 @@ public partial class Entity
     private static ushort ClosetChaseCount;
     private static ushort ClosetLookCount;
     private static ushort ChaseLoop;
+    private static ushort ChaseFailureCount;
 
     private MoveDir m_direction = MoveDir.None;
 
@@ -297,7 +298,7 @@ public partial class Entity
             MoveCount = EntityStatic.Random.NextByte() & 15;
 
         if (EntityStatic.SlowTickEnabled)
-            ChaseFailureSkipCount = EntityStatic.SlowTickChaseFailureSkipCount;
+            ChaseFailureSkipCount = EntityStatic.SlowTickChaseFailureSkipCount + (ChaseFailureCount++ & 1);
         m_direction = MoveDir.None;
     }
 
