@@ -1753,22 +1753,24 @@ public abstract class WorldBase : IWorld
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)
     {
         bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
-        string className;
+        EntityDefinition? def;
         if (bulletPuff)
         {
-            className = "BulletPuff";
+            def = EntityManager.DefinitionComposer.BulletPuffDefinition;
             intersect.Z += Random.NextDiff() * Constants.PuffRandZ;
         }
         else
         {
-            className = entity!.GetBloodType();
+            def = entity!.GetBloodDefinition();
         }
 
-        Entity? create = EntityManager.Create(className, intersect);
+        if (def == null)
+            return;
+
+        Entity? create = EntityManager.Create(def, intersect, 0, angle, 0);
         if (create == null)
             return;
 
-        create.AngleRadians = angle;
         if (bulletPuff)
         {
             create.Velocity.Z = 1;

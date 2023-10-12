@@ -34,7 +34,8 @@ public class EntityDefinition
 
     public EntityFrame? HealFrame;
 
-    public EntityDefinition? MonsterSpeciesDefinition { get; set; }
+    public EntityDefinition? MonsterSpeciesDefinition;
+    public EntityDefinition? BloodDefinition;
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

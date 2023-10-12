@@ -314,11 +314,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
     public double PitchTo(Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
 
-    public string GetBloodType()
+    public EntityDefinition GetBloodDefinition()
     {
+        if (Definition.BloodDefinition != null)
+            return Definition.BloodDefinition;
+
         if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
-            return Definition.Properties.BloodType;
-        return "BLOOD";
+        {
+            Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName(Definition.Properties.BloodType);
+            return Definition.BloodDefinition;
+        }
+
+        Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName("BLOOD");
+        return Definition.BloodDefinition;
     }
 
     /// <summary>
