@@ -1348,8 +1348,8 @@ public static class EntityActionFunctions
             return;
         }
 
-        if (WorldStatic.ArachnotronPlasma != null)
-            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.ArachnotronPlasma);
+        if (WorldStatic.CacodemonBall != null)
+            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.CacodemonBall);
     }
 
     private static void A_HideThing(Entity entity)
