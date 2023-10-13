@@ -52,6 +52,8 @@ using Helion.World.Static;
 using Helion.Geometry.Grids;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Helion.World;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.World;
 
@@ -122,8 +124,8 @@ public abstract class WorldBase : IWorld
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
     public readonly MapGeometry Geometry;
+    public PhysicsManager PhysicsManager { get; private set; }
     protected readonly IAudioSystem AudioSystem;
-    protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
     private readonly IRandom m_saveRandom;
@@ -185,7 +187,10 @@ public abstract class WorldBase : IWorld
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
 
-        BlockmapTraverser.FlushIntersectionReferences();
+        WorldStatic.EntityManager = EntityManager;
+        WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
+
+        WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
@@ -201,19 +206,27 @@ public abstract class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
+        Config.Compatibility.MissileClip.OnChanged += MissileClip_OnChanged;
+        Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
+        Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
+        Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
 
-        EntityStatic.Random = Random;
-        EntityStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
-        EntityStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
-        EntityStatic.SlowTickDistance = Config.SlowTick.Distance;
-        EntityStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
-        EntityStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
-        EntityStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
-        EntityStatic.IsFastMonsters = IsFastMonsters;
-        EntityStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
-        EntityStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
-        EntityStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
-        EntityStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+        WorldStatic.Random = Random;
+        WorldStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
+        WorldStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
+        WorldStatic.SlowTickDistance = Config.SlowTick.Distance;
+        WorldStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
+        WorldStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
+        WorldStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
+        WorldStatic.IsFastMonsters = IsFastMonsters;
+        WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
+        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
+        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
+        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
+        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
+        WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+        WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
+        WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
         if (worldModel != null)
         {
@@ -235,18 +248,26 @@ public abstract class WorldBase : IWorld
         }
     }
 
+    private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.NoTossDrops = enabled;
+    private void InfinitelyTallThings_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.InfinitelyTallThings = enabled;
+    private void AllowItemDropoff_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.AllowItemDropoff = enabled;
+    private void MissileClip_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.MissileClip = enabled;
     private void SlowTickEnabled_OnChanged(object? sender, bool enabled) =>
-        EntityStatic.SlowTickEnabled = enabled;
+        WorldStatic.SlowTickEnabled = enabled;
     private void SlowTickDistance_OnChanged(object? sender, int distance) =>
-        EntityStatic.SlowTickDistance = distance;
+        WorldStatic.SlowTickDistance = distance;
     private void SlowTickChaseFailureSkipCount_OnChanged(object? sender, int value) =>
-        EntityStatic.SlowTickChaseFailureSkipCount = value;
+        WorldStatic.SlowTickChaseFailureSkipCount = value;
     private void SlowTickChaseMultiplier_OnChanged(object? sender, int value) =>
-        EntityStatic.SlowTickChaseMultiplier = value;
+        WorldStatic.SlowTickChaseMultiplier = value;
     private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>
-        EntityStatic.SlowTickLookMultiplier = value;
+        WorldStatic.SlowTickLookMultiplier = value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
-        EntityStatic.SlowTickTracerMultiplier = value;
+        WorldStatic.SlowTickTracerMultiplier = value;
 
     private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
     {
@@ -354,9 +375,6 @@ public abstract class WorldBase : IWorld
 
         return GridIterationStatus.Continue;
     }
-
-    public double GetMoveFactor(Entity entity) => 
-        PhysicsManager.GetMoveFactor(entity);
 
     public void NoiseAlert(Entity target, Entity source)
     {
@@ -805,7 +823,7 @@ public abstract class WorldBase : IWorld
         bool activateSuccess = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        var intersections = BlockmapTraverser.Intersections;
+        var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
@@ -866,7 +884,7 @@ public abstract class WorldBase : IWorld
         bool shouldUse = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        var intersections = BlockmapTraverser.Intersections;
+        var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
@@ -1015,7 +1033,7 @@ public abstract class WorldBase : IWorld
             }
         }
 
-        if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
+        if (shooter.PlayerObj != null && Config.Developer.Render.Tracers)
         {
             shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
@@ -1051,7 +1069,7 @@ public abstract class WorldBase : IWorld
             ref intersect, out Sector? hitSector);
 
         if (bi != null || hitSector != null)
-            if (Config.Developer.Render.Tracers && shooter.PlayerObj != null && damage > 0)
+            if (shooter.PlayerObj != null && damage > 0 && Config.Developer.Render.Tracers)
                 shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick, PlayerTracers.TracerColor);
 
         if ((options & HitScanOptions.DrawRail) != 0)
@@ -1074,7 +1092,7 @@ public abstract class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        var intersections = BlockmapTraverser.Intersections;
+        var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
 
@@ -1446,7 +1464,7 @@ public abstract class WorldBase : IWorld
             return false;
 
         Seg2D seg = new(start, end);
-        var intersections = BlockmapTraverser.Intersections;
+        var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.SightTraverse(seg, intersections, out bool hitOneSidedLine);
         if (hitOneSidedLine)
@@ -1543,7 +1561,7 @@ public abstract class WorldBase : IWorld
         => PhysicsManager.TryMoveXY(entity, position);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
-        PhysicsManager.IsPositionValid(entity, position);
+        PhysicsManager.IsPositionValid(entity, position, PhysicsManager.TryMoveData);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
@@ -1582,7 +1600,7 @@ public abstract class WorldBase : IWorld
                 Vec3D pos = deathEntity.Position;
                 pos.Z = deathEntity.Sector.Floor.Z;
                 double addVelocity = 0;
-                if (!Config.Compatibility.NoTossDrops)
+                if (!WorldStatic.NoTossDrops)
                 {
                     spawnInit = false;
                     pos.Z = deathEntity.Position.Z + deathEntity.Definition.Properties.Height / 2;
@@ -1667,7 +1685,7 @@ public abstract class WorldBase : IWorld
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
-        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !Config.Compatibility.InfinitelyTallThings);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
 
         entity.Flags.Solid = false;
         entity.Height = oldHeight;
@@ -1676,7 +1694,7 @@ public abstract class WorldBase : IWorld
 
     public bool IsPositionBlocked(Entity entity)
     {
-        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !Config.Compatibility.InfinitelyTallThings);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
         if (blocked)
             return true;
 
@@ -1864,7 +1882,7 @@ public abstract class WorldBase : IWorld
         for (int i = 0; i < iterateTracers; i++)
         {
             Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
-            var intersections = BlockmapTraverser.Intersections;
+            var intersections = WorldStatic.Intersections;
             intersections.Clear();
             BlockmapTraverser.ShootTraverse(seg, intersections);
 

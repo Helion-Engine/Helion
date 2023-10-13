@@ -12,6 +12,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
+using Helion.World;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
@@ -742,7 +743,7 @@ public static class EntityActionFunctions
         if (entity.Flags.JustAttacked)
         {
             entity.Flags.JustAttacked = false;
-            if (!EntityStatic.IsFastMonsters)
+            if (!WorldStatic.IsFastMonsters)
                 entity.SetNewChaseDirection();
             return;
         }
@@ -760,7 +761,7 @@ public static class EntityActionFunctions
         if (entity.MoveCount > 1 && entity.SlowTickMultiplier > 1)
             entity.MoveCount = Math.Clamp(entity.MoveCount - entity.SlowTickMultiplier, 1, int.MaxValue);
 
-        if ((entity.MoveCount == 0 || EntityStatic.IsFastMonsters) &&
+        if ((entity.MoveCount == 0 || WorldStatic.IsFastMonsters) &&
             entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
             entity.Flags.JustAttacked = true;
@@ -1050,7 +1051,7 @@ public static class EntityActionFunctions
 
         entity.AngleRadians = entity.Position.Angle(entity.Target.Entity.Position);
         if (entity.Target.Entity.Flags.Shadow)
-            entity.AngleRadians += EntityStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
+            entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
     }
 
     private static void A_FaceTracer(Entity entity)
@@ -1681,7 +1682,8 @@ public static class EntityActionFunctions
         // Add some better checking from the original
         // Set the skull barely clipped into the parent
         // Then check if it can move to it's final position (TryMoveXY does step checking and won't skip lines/entities)
-        if (!entity.World.IsPositionValid(skull, startPos.XY) || !entity.World.TryMoveXY(skull, skullPos.XY).Success)
+        if (!entity.World.PhysicsManager.IsPositionValid(skull, startPos.XY, entity.World.PhysicsManager.TryMoveData) || 
+            !entity.World.PhysicsManager.TryMoveXY(skull, skullPos.XY).Success)
         {
             skull.Kill(null);
             entity.Flags.Solid = wasSolid;

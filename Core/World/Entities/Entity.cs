@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
+using Helion.World;
 
 namespace Helion.World.Entities;
 
@@ -431,18 +432,18 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (Flags.CountKill && IsDeathStateFinished)
         {
-            if (EntityStatic.RespawnTimeSeconds == 0)
+            if (WorldStatic.RespawnTimeSeconds == 0)
                 return;
 
             MoveCount++;
 
-            if (MoveCount < EntityStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
+            if (MoveCount < WorldStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
                 return;
 
             if ((World.LevelTime & 31) != 0)
                 return;
 
-            if (EntityStatic.Random.NextByte() > 4)
+            if (WorldStatic.Random.NextByte() > 4)
                 return;
 
             Respawn = true;
@@ -660,10 +661,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (source != null)
         {
             damageSource = source.Owner.Entity ?? source;
-            willRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this;
             if (!CanDamage(source, damageType))
                 return false;
 
+            willRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this;
             if (willRetaliate && !damageSource.Flags.NoTarget && !IsFriend(damageSource))
                 SetTarget(damageSource);
         }
@@ -711,7 +712,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public void SetRandomizeTicks(int opAnd = 3) =>
-        FrameState.SetTics(FrameState.CurrentTick - (EntityStatic.Random.NextByte() & opAnd));
+        FrameState.SetTics(FrameState.CurrentTick - (WorldStatic.Random.NextByte() & opAnd));
 
     private int ApplyArmorDamage(int damage)
     {
@@ -813,8 +814,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         // Only allow for non-monster things. Currently the physics code allows monsters to easily get stuck.
         // There are boom maps that require item movement like this (e.g. Fractured Worlds MAP03 red key BFG)
-        if (World.Config.Compatibility.AllowItemDropoff)
-            return Definition.Properties.Health > 0 && Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+        if (WorldStatic.AllowItemDropoff)
+            return Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
 
         return true;
     }
@@ -849,7 +850,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (BlockingEntity != null)
             {
-                int damage = Properties.Damage.Get(EntityStatic.Random);
+                int damage = Properties.Damage.Get(WorldStatic.Random);
                 EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 

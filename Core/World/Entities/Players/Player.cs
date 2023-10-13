@@ -13,6 +13,7 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Physics;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
 using NLog;
@@ -647,7 +648,7 @@ public class Player : Entity
 
         if (TickCommand.ForwardMoveSpeed != 0 || TickCommand.SideMoveSpeed != 0)
         {
-            double moveFactor = World.GetMoveFactor(this);
+            double moveFactor = PhysicsManager.GetMoveFactor(this);
             movement.X *= moveFactor;
             movement.Y *= moveFactor;
         }

@@ -2,6 +2,7 @@ using System;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
+using Helion.World;
 using Helion.World.Physics;
 
 namespace Helion.World.Entities;
@@ -188,7 +189,7 @@ public partial class Entity
                 return;
         }
 
-        if (EntityStatic.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
+        if (WorldStatic.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
         {
             tdir = dir0;
             dir0 = dir1;
@@ -225,7 +226,7 @@ public partial class Entity
         if (SlowTickMultiplier <= 1)
         {
             // randomly determine direction of search
-            if ((EntityStatic.Random.NextByte() & 1) != 0)
+            if ((WorldStatic.Random.NextByte() & 1) != 0)
             {
                 for (tdir = MoveDir.East; tdir <= MoveDir.SouthEast; tdir++)
                 {
@@ -253,7 +254,7 @@ public partial class Entity
         else if ((ChaseLoop++ % 4) > 0)
         {
             // Do not run this nearly as often, randomize start search directions and limit to 3
-            int random = EntityStatic.Random.NextByte();
+            int random = WorldStatic.Random.NextByte();
             int addDir = -1;
             tdir = MoveDir.SouthEast - (random % 4);
 
@@ -295,10 +296,10 @@ public partial class Entity
         }
 
         if (MoveCount < 0 && SlowTickMultiplier > 1)
-            MoveCount = EntityStatic.Random.NextByte() & 15;
+            MoveCount = WorldStatic.Random.NextByte() & 15;
 
-        if (EntityStatic.SlowTickEnabled)
-            ChaseFailureSkipCount = EntityStatic.SlowTickChaseFailureSkipCount + (ChaseFailureCount++ & 1);
+        if (WorldStatic.SlowTickEnabled)
+            ChaseFailureSkipCount = WorldStatic.SlowTickChaseFailureSkipCount + (ChaseFailureCount++ & 1);
         m_direction = MoveDir.None;
     }
 
@@ -324,7 +325,7 @@ public partial class Entity
 
         Vec2D nextPos = GetNextEnemyPos();
         bool isMoving = Position.XY != nextPos;
-        tryMove = World.TryMoveXY(this, nextPos);
+        tryMove = World.PhysicsManager.TryMoveXY(this, nextPos);
         if (Flags.Teleport)
             return true;
 
@@ -448,7 +449,7 @@ public partial class Entity
             distance /= SlowTickMultiplier;
 
         distance = Math.Min(distance, Definition.Properties.MinMissileChance);
-        return EntityStatic.Random.NextByte() >= distance;
+        return WorldStatic.Random.NextByte() >= distance;
     }
 
     private bool TryWalk()
@@ -464,7 +465,7 @@ public partial class Entity
             return false;
         }
 
-        MoveCount = EntityStatic.Random.NextByte() & 15;
+        MoveCount = WorldStatic.Random.NextByte() & 15;
         return true;
     }
 }

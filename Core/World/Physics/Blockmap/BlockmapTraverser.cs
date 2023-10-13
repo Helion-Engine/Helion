@@ -16,22 +16,11 @@ public class BlockmapTraverser
     private readonly BlockMap m_blockmap;
     private readonly int[] m_checkedLines;
 
-    public static readonly DynamicArray<BlockmapIntersect> Intersections = new(1024);
-
     public BlockmapTraverser(IWorld world, BlockMap blockmap)
     {
         m_world = world;
         m_blockmap = blockmap;
         m_checkedLines = new int[m_world.Lines.Count];
-    }
-
-    public void FlushIntersectionReferences()
-    {
-        for (int i = 0; i < Intersections.Capacity; i++)
-        {
-            Intersections.Data[i].Entity = null;
-            Intersections.Data[i].Line = null;
-        }
     }
 
     public void GetSolidEntityIntersections2D(Entity sourceEntity, DynamicArray<Entity> entities)

@@ -65,6 +65,7 @@ public interface IWorld : IDisposable
     IRandom Random { get; }
     // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
+    PhysicsManager PhysicsManager { get; }
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
@@ -121,8 +122,6 @@ public interface IWorld : IDisposable
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
-    TryMoveData TryMoveXY(Entity entity, Vec2D position);
-    bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
     void DisplayMessage(string message);
@@ -140,7 +139,6 @@ public interface IWorld : IDisposable
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
-    double GetMoveFactor(Entity entity);
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
     void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);

@@ -5,6 +5,7 @@ using NLog;
 using static Helion.Util.Assertion.Assert;
 using System;
 using System.Collections.Generic;
+using Helion.World;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -23,8 +24,6 @@ public struct FrameState
     public EntityFrame Frame;
     private readonly Entity m_entity;
     private readonly Dictionary<string, int> m_stateLabels;
-    private readonly EntityManager m_entityManager;
-    private readonly List<EntityFrame> m_frames;
     private readonly bool m_destroyOnStop;
 
     public int CurrentTick;
@@ -35,10 +34,8 @@ public struct FrameState
     {
         m_entity = entity;
         m_stateLabels = definition.States.Labels;
-        m_frames = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames;
-        m_entityManager = entityManager;
         m_destroyOnStop = destroyOnStop;
-        Frame = m_frames[FrameIndex];
+        Frame = WorldStatic.Frames[FrameIndex];
     }
 
     public FrameState(Entity entity, EntityDefinition definition,
@@ -46,18 +43,16 @@ public struct FrameState
     {
         m_entity = entity;
         m_stateLabels = definition.States.Labels;
-        m_frames = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames;
-        m_entityManager = entityManager;
         FrameIndex = frameStateModel.FrameIndex;
         CurrentTick = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
-        Frame = m_frames[FrameIndex];
+        Frame = WorldStatic.Frames[FrameIndex];
     }
 
     public EntityFrame? GetStateFrame(string label)
     {
         if (m_stateLabels.TryGetValue(label, out int index))
-            return m_frames[index];
+            return WorldStatic.Frames[index];
 
         return null;
     }
@@ -71,7 +66,7 @@ public struct FrameState
 
     public void SetFrameIndex(int index)
     {
-        if (index < 0 || index >= m_frames.Count)
+        if (index < 0 || index >= WorldStatic.Frames.Count)
             return;
 
         SetFrameIndexMember(index);
@@ -80,7 +75,7 @@ public struct FrameState
 
     public void SetFrameIndexNoAction(int index)
     {
-        if (index < 0 || index >= m_frames.Count)
+        if (index < 0 || index >= WorldStatic.Frames.Count)
             return;
 
         SetFrameIndexMember(index);
@@ -94,7 +89,7 @@ public struct FrameState
 
         if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frames.Count)
+            if (index + offset >= 0 && index + offset < WorldStatic.Frames.Count)
                 SetFrameIndexInternal(index + offset);
             else
                 SetFrameIndexInternal(index);
@@ -112,7 +107,7 @@ public struct FrameState
     {
         if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frames.Count)
+            if (index + offset >= 0 && index + offset < WorldStatic.Frames.Count)
                 SetFrameIndexMember(index + offset);
             else
                 SetFrameIndexMember(FrameIndex = index);
@@ -148,9 +143,9 @@ public struct FrameState
     private void SetFrameIndexMember(int index)
     {
         FrameIndex = index;
-        Frame = m_frames[FrameIndex];
-        m_entity.IsClosetLook = Frame.MasterFrameIndex == EntityStatic.ClosetLookFrameIndex;
-        m_entity.IsClosetChase = Frame.MasterFrameIndex == EntityStatic.ClosetChaseFrameIndex;
+        Frame = WorldStatic.Frames[FrameIndex];
+        m_entity.IsClosetLook = Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex;
+        m_entity.IsClosetChase = Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex;
     }
 
     private void SetFrameIndexInternal(int index)
@@ -162,10 +157,10 @@ public struct FrameState
             SetFrameIndexMember(index);
             CurrentTick = Frame.Ticks;
 
-            if (EntityStatic.IsFastMonsters && Frame.Properties.Fast)
+            if (WorldStatic.IsFastMonsters && Frame.Properties.Fast)
                 CurrentTick /= 2;
 
-            if (EntityStatic.IsSlowMonsters && Frame.Properties.Slow)
+            if (WorldStatic.IsSlowMonsters && Frame.Properties.Slow)
                 CurrentTick *= 2;
 
             CheckSlowTickDistance();
@@ -178,7 +173,7 @@ public struct FrameState
 
             if (m_destroyOnStop && Frame.IsNullFrame)
             {
-                m_entityManager.Destroy(m_entity);
+                WorldStatic.EntityManager.Destroy(m_entity);
                 return;
             }
 
@@ -210,7 +205,7 @@ public struct FrameState
     private void CheckSlowTickDistance()
     {
         m_entity.SlowTickMultiplier = 1;
-        if (!EntityStatic.SlowTickEnabled || EntityStatic.SlowTickDistance <= 0)
+        if (!WorldStatic.SlowTickEnabled || WorldStatic.SlowTickDistance <= 0)
             return;
 
         if (m_entity.InMonsterCloset)
@@ -218,25 +213,25 @@ public struct FrameState
 
         if (CurrentTick > 0 &&
             (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
-            (m_entity.LastRenderDistanceSquared > EntityStatic.SlowTickDistance * EntityStatic.SlowTickDistance ||
+            (m_entity.LastRenderDistanceSquared > WorldStatic.SlowTickDistance * WorldStatic.SlowTickDistance ||
             m_entity.LastRenderGametick != m_entity.World.Gametick))
         {
             // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
             // Sets to a range of -1 to +2
             int offset = 0;
-            if (Frame.IsSlowTickChase && EntityStatic.SlowTickChaseMultiplier > 0)
+            if (Frame.IsSlowTickChase && WorldStatic.SlowTickChaseMultiplier > 0)
             {
-                m_entity.SlowTickMultiplier = EntityStatic.SlowTickChaseMultiplier;
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickChaseMultiplier;
                 offset = (SlowTickOffsetChase++ & 3) - 1;
             }
-            else if (Frame.IsSlowTickLook && EntityStatic.SlowTickLookMultiplier > 0)
+            else if (Frame.IsSlowTickLook && WorldStatic.SlowTickLookMultiplier > 0)
             {
-                m_entity.SlowTickMultiplier = EntityStatic.SlowTickLookMultiplier;
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickLookMultiplier;
                 offset = (SlowTickOffsetLook++ & 3) - 1;
             }
-            else if (Frame.IsSlowTickTracer && EntityStatic.SlowTickTracerMultiplier > 0)
+            else if (Frame.IsSlowTickTracer && WorldStatic.SlowTickTracerMultiplier > 0)
             {
-                m_entity.SlowTickMultiplier = EntityStatic.SlowTickTracerMultiplier;
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickTracerMultiplier;
                 offset = (SlowTickOffsetTracer++ & 3) - 1;
             }
 
@@ -255,7 +250,7 @@ public struct FrameState
 
     public void Tick()
     {
-        Precondition(FrameIndex >= 0 && FrameIndex < m_frames.Count, "Out of range frame index for entity");
+        Precondition(FrameIndex >= 0 && FrameIndex < WorldStatic.Frames.Count, "Out of range frame index for entity");
         if (CurrentTick == -1)
             return;
 
@@ -264,7 +259,7 @@ public struct FrameState
         {
             if (Frame.BranchType == ActorStateBranch.Stop && m_destroyOnStop)
             {
-                m_entityManager.Destroy(m_entity);
+                WorldStatic.EntityManager.Destroy(m_entity);
                 return;
             }
 
