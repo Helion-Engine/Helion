@@ -228,6 +228,17 @@ public abstract class WorldBase : IWorld
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
+        WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByName("DoomImpBall");
+        WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByName("ArachnotronPlasma");
+        WorldStatic.Rocket = EntityManager.DefinitionComposer.GetByName("Rocket");
+        WorldStatic.FatShot = EntityManager.DefinitionComposer.GetByName("FatShot");
+        WorldStatic.CacodemonBall = EntityManager.DefinitionComposer.GetByName("CacodemonBall");
+        WorldStatic.RevenantTracer = EntityManager.DefinitionComposer.GetByName("RevenantTracer");
+        WorldStatic.BaronBall = EntityManager.DefinitionComposer.GetByName("BaronBall");
+        WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByName("SpawnShot");
+        WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
+        WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
+
         if (worldModel != null)
         {
             WorldState = worldModel.WorldState;
@@ -960,7 +971,7 @@ public abstract class WorldBase : IWorld
     public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
-    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
+    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0)
     {
         autoAimEntity = null;
@@ -979,12 +990,7 @@ public abstract class WorldBase : IWorld
         pitch += addPitch;
         angle += addAngle;
 
-        var projectileDef = EntityManager.DefinitionComposer.GetByName(projectClassName);
-        if (projectileDef == null)
-            return null;
-
         Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
-
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);

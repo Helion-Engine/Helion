@@ -4,6 +4,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Physics.Blockmap;
 using System.Collections.Generic;
@@ -31,6 +32,17 @@ public static class WorldStatic
     public static int ClosetChaseFrameIndex;
     public static EntityManager EntityManager;
     public static List<EntityFrame> Frames;
+
+    public static EntityDefinition? DoomImpBall;
+    public static EntityDefinition? ArachnotronPlasma;
+    public static EntityDefinition? Rocket;
+    public static EntityDefinition? FatShot;
+    public static EntityDefinition? CacodemonBall;
+    public static EntityDefinition? RevenantTracer;
+    public static EntityDefinition? BaronBall;
+    public static EntityDefinition? SpawnShot;
+    public static EntityDefinition? BFGBall;
+    public static EntityDefinition? PlasmaBall;
 
     public static void FlushIntersectionReferences()
     {
