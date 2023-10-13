@@ -15,6 +15,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Blockmap;
@@ -50,6 +51,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_spriteTransparency;
     private int m_lastTicker = -1;
     private int m_renderCount;
+    private int m_maxDistance;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
 
@@ -66,6 +68,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
+        m_maxDistance = config.Render.MaxDistance;
     }
 
     static int RenderObjectCompare(IRenderObject? x, IRenderObject? y)
@@ -231,7 +234,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
 
         entity.LastRenderGametick = World.Gametick;
-        if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
+        if ((m_spriteTransparency && entity.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPosInterpolated);
             m_alphaEntities.Add(entity);
@@ -253,6 +256,7 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
         m_spriteTransparency = m_config.Render.SpriteTransparency;
+        m_maxDistance = m_config.Render.MaxDistance;
         Clear(world, renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
@@ -376,12 +380,11 @@ public class LegacyWorldRenderer : WorldRenderer
         if (box.Contains(position))
             return false;
 
-        if (m_config.Render.MaxDistance > 0)
+        if (m_maxDistance > 0)
         {
-            int max = m_config.Render.MaxDistance;
             double dx = Math.Max(box.Min.X - position.X, Math.Max(0, position.X - box.Max.X));
             double dy = Math.Max(box.Min.Y - position.Y, Math.Max(0, position.Y - box.Max.Y));
-            if (dx * dx + dy * dy > max * max)
+            if (dx * dx + dy * dy > m_maxDistance * m_maxDistance)
                 return true;
         }
 

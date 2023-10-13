@@ -46,6 +46,10 @@ public class EntityRenderer
     private Vec2F m_viewRightNormal;
     private bool m_singleVertex;
     private bool m_spriteAlpha;
+    private bool m_spriteClip;
+    private bool m_spriteZCheck;
+    private int m_spriteClipMin;
+    private float m_spriteClipFactorMax;
     private int m_viewerEntityId;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
@@ -56,6 +60,10 @@ public class EntityRenderer
         m_worldDataManager = worldDataManager;
         m_singleVertex = m_config.Render.SingleVertexSprites;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
+        m_spriteClip = m_config.Render.SpriteClip;
+        m_spriteZCheck = m_config.Render.SpriteZCheck;
+        m_spriteClipMin = m_config.Render.SpriteClipMin;
+        m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
     
     public void Clear(IWorld world)
@@ -65,6 +73,10 @@ public class EntityRenderer
         m_renderCounter++;
         m_singleVertex = m_config.Render.SingleVertexSprites;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
+        m_spriteClip = m_config.Render.SpriteClip;
+        m_spriteZCheck = m_config.Render.SpriteZCheck;
+        m_spriteClipMin = m_config.Render.SpriteClipMin;
+        m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
 
     public void SetTickFraction(double tickFraction) =>
@@ -124,13 +136,13 @@ public class EntityRenderer
     {
         const byte MaxAlpha = 255;
 
-        bool useAlpha = m_spriteAlpha && entity.Definition.Properties.Alpha < 1;
+        bool useAlpha = m_spriteAlpha && entity.Alpha < 1;
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
 
         var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
         var prevPos = GetSingleVertexCenter(entity.PrevPosition, nudgeAmount, texture);
         float offsetZ = GetOffsetZ(entity, texture);
-        byte alpha = useAlpha ? (byte)(entity.Definition.Properties.Alpha * MaxAlpha) : MaxAlpha;
+        byte alpha = useAlpha ? (byte)(entity.Alpha * MaxAlpha) : MaxAlpha;
         EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
         renderData.Vbo.Add(vertex);
     }
@@ -162,7 +174,7 @@ public class EntityRenderer
 
         SpriteQuad pos = CalculateQuad(position, offsetZ, entity, texture);
         SpriteQuad prevPos = prevPosition == position ? pos : CalculateQuad(prevPosition, offsetZ, entity, texture);
-        float alpha = m_spriteAlpha ? (float)entity.Definition.Properties.Alpha : 1.0f;
+        float alpha = m_spriteAlpha ? entity.Alpha : 1.0f;
         float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
         float leftU = 0.0f;
         float rightU = 1.0f;
@@ -226,16 +238,17 @@ public class EntityRenderer
         if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
             return offsetAmount;
 
-        if (!m_config.Render.SpriteClip)
+        if (!m_spriteClip)
             return 0;
 
-        if (texture.Height < m_config.Render.SpriteClipMin || entity.Definition.IsInventory)
+        if (texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
             return 0;
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            if (-offsetAmount > texture.Height * m_config.Render.SpriteClipFactorMax)
-                offsetAmount = -texture.Height * (float)m_config.Render.SpriteClipFactorMax;
+            float maxHeight = texture.Height * m_spriteClipFactorMax;
+            if (-offsetAmount > maxHeight)
+                offsetAmount = -maxHeight;
             return offsetAmount;
         }
 
@@ -260,7 +273,7 @@ public class EntityRenderer
             rotation = CalculateRotation(viewAngle, entityAngle);
         }
 
-        if (m_config.Render.SpriteZCheck)
+        if (m_spriteZCheck)
         {
             Vec2D positionLookup = centerBottom.XY;
             if (m_renderPositions.TryGetValue(positionLookup, out int count))

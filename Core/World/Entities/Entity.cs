@@ -102,6 +102,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool Respawn;
     public int BlockmapCount;
     public int PhysicsCount;
+    public float Alpha;
 
     public double RenderDistance { get; set; }
     public int RenderedCounter; // Used by the renderer only.
@@ -189,6 +190,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         CheckOnGround();
 
         Properties.Threshold = 0;
+
+        Alpha = (float)Properties.Alpha;
 
         FrameState = new(this, definition, world.EntityManager);
     }
