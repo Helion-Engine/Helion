@@ -287,14 +287,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderAlpha(renderInfo);
 
-        if (m_config.Render.TextureTransparency)
-        {
-            m_interpolationProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetInterpolationUniforms(renderInfo, uniforms);
-            m_worldDataManager.DrawAlpha();
-            m_interpolationProgram.Unbind();
-        }
+        m_interpolationProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(renderInfo, uniforms);
+        m_worldDataManager.DrawAlpha();
+        m_interpolationProgram.Unbind();
         
         m_primitiveRenderer.Render(renderInfo);
     }
