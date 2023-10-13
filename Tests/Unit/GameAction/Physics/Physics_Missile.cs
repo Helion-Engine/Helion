@@ -109,8 +109,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.SetEntityPosition(World, Player, new Vec3D(1920, 1004, 0));
             Player.Velocity = Vec3D.Zero;
-            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-            World.FireProjectile(Player, Player.AngleRadians, 0, 0, false, "Rocket", out _).Should().BeNull();
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);            
+            World.FireProjectile(Player, Player.AngleRadians, 0, 0, false, World.EntityManager.DefinitionComposer.GetByName("Rocket"), out _).Should().BeNull();
             Player.Velocity.ApproxEquals(new(0, -13.875, 0));
         }
 
@@ -120,7 +120,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, MissileCenterPlayerPos);
             Player.Velocity = Vec3D.Zero;
             Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-            var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.5697963267948967, 0, false, "Rocket", out _);
+            var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.5697963267948967, 0, false, World.EntityManager.DefinitionComposer.GetByName("Rocket"), out _);
             rocket.Should().NotBeNull();
             RunMissileExplode(rocket!);
             Player.Velocity.ApproxEquals(new(0, 0, 16));
@@ -132,7 +132,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, MissileCenterPlayerPos.XY.To3D(64));
             Player.Velocity = Vec3D.Zero;
             Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-            var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.4555555968545377, 0, false, "Rocket", out _);
+            var rocket = World.FireProjectile(Player, Player.AngleRadians, -1.4555555968545377, 0, false, World.EntityManager.DefinitionComposer.GetByName("Rocket"), out _);
             rocket.Should().NotBeNull();
             RunMissileExplode(rocket!);
             Player.Velocity.ApproxEquals(new(0, -10.875, 5.532654554741212));
