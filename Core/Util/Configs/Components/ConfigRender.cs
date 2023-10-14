@@ -77,12 +77,6 @@ public class ConfigRender
     [ConfigInfo("Max render distance.")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
-    [ConfigInfo("Static rendering mode.", mapRestartRequired: true)]
-    public readonly ConfigValue<bool> StaticMode = new(true);
-
-    [ConfigInfo("Use blockmap rendering. Static mode required.")]
-    public readonly ConfigValue<bool> Blockmap = new(true);
-
     [ConfigInfo("Traverses the BSP in a separate thread to mark lines seen for automap. Ignored if using BSP rendering.")]
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
 

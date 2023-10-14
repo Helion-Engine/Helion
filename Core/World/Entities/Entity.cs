@@ -118,7 +118,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
-    public LinkableNode<Entity>? SubsectorNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -385,14 +384,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             World.DataCache.FreeLinkableNodeEntity(node);
             SectorNodes.Data[i] = null!;
         }
-
-        if (SubsectorNode != null)
-        {
-            SubsectorNode.Unlink();
-            World.DataCache.FreeLinkableNodeEntity(SubsectorNode);
-        }
         SectorNodes.Clear();
-        SubsectorNode = null;
 
         for (int i = 0; i < BlockmapNodes.Length; i++)
         {

@@ -62,7 +62,6 @@ public class GeometryRenderer : IDisposable
     private Sector m_viewSector;
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
-    private bool m_dynamic;
     private bool m_buffer = true;
     private LegacyVertex[][] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[][] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
@@ -112,7 +111,6 @@ public class GeometryRenderer : IDisposable
         m_world = world;
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
-        m_dynamic = !m_world.Config.Render.StaticMode;
         m_viewSector = DefaultSector;
         PreloadAllTextures(world);
 
@@ -158,7 +156,7 @@ public class GeometryRenderer : IDisposable
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
 
-            if (subsector.Sector.TransferHeights != null || !m_dynamic)
+            if (subsector.Sector.TransferHeights != null)
                 continue;
 
             m_viewSector = subsector.Sector;
@@ -179,9 +177,6 @@ public class GeometryRenderer : IDisposable
                 RenderSide(edge.Side, true);
             }
         }
-
-        if (!m_dynamic)
-            return;
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -231,13 +226,13 @@ public class GeometryRenderer : IDisposable
         if (subsector.Sector.TransferHeights != null)
         {
             RenderWalls(subsector, position, position.XY);
-            if (!hasRenderedSector && (m_dynamic || !subsector.Sector.AreFlatsStatic))
+            if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
                 RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
             return;
         }
 
         RenderWalls(subsector, position, position.XY);
-        if (!hasRenderedSector && (m_dynamic || !subsector.Sector.AreFlatsStatic))
+        if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
             RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
     }
 
@@ -253,7 +248,7 @@ public class GeometryRenderer : IDisposable
         if (sector.TransferHeights != null)
         {
             RenderSectorWalls(sector, position.XY, prevPos.XY);
-            if ((m_dynamic || !sector.AreFlatsStatic))
+            if (!sector.AreFlatsStatic)
                 RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
             return;
         }
@@ -262,7 +257,7 @@ public class GeometryRenderer : IDisposable
         m_transferHeightsView = TransferHeightView.Middle;
 
         RenderSectorWalls(sector, position.XY, prevPos.XY);
-        if ((m_dynamic || !sector.AreFlatsStatic))
+        if (!sector.AreFlatsStatic)
             RenderSectorFlats(sector, sector, sector);
     }
 
@@ -314,13 +309,13 @@ public class GeometryRenderer : IDisposable
 
         bool floorVisible = m_position.Z >= floorZ || m_prevPosition.Z >= floorZ;
         bool ceilingVisible = m_position.Z <= ceilingZ || m_prevPosition.Z <= ceilingZ;
-        if (floorVisible && (m_dynamic || !sector.IsFloorStatic))
+        if (floorVisible && !sector.IsFloorStatic)
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
             set.Floor.LastRenderGametick = m_world.Gametick;
             RenderFlat(subsectors, renderSector.Floor, true, out _, out _);
         }
-        if (ceilingVisible && (m_dynamic || !sector.IsCeilingStatic))
+        if (ceilingVisible && !sector.IsCeilingStatic)
         {
             sector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
@@ -412,7 +407,7 @@ public class GeometryRenderer : IDisposable
             transferHeights = true;
         }
 
-        if (m_dynamic || !side.IsStatic)
+        if (!side.IsStatic)
             RenderSide(side, onFrontSide);
 
         // Restore to original sector
@@ -453,7 +448,7 @@ public class GeometryRenderer : IDisposable
                 AlphaSides.Add(side);
             }
 
-            if (m_dynamic || !side.IsStatic)
+            if (!side.IsStatic)
                 RenderSide(side, onFrontSide);
             m_lineDrawnTracker.MarkDrawn(line);
 
@@ -580,12 +575,12 @@ public class GeometryRenderer : IDisposable
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
-        if (m_dynamic || facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
+        if (facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
-            (m_dynamic || facingSide.Middle.IsDynamic))
+            facingSide.Middle.IsDynamic)
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if ((m_dynamic || facingSide.Upper.IsDynamic) && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
+        if (facingSide.Upper.IsDynamic && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 

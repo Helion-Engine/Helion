@@ -55,7 +55,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
 
-    private bool m_staticMode;
     private bool m_disposed;
     private IWorld? m_world;
     private GLBufferTexture? m_lightBuffer;
@@ -106,12 +105,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_world = world;
-        m_staticMode = world.Config.Render.StaticMode;
         
         SetSideDynamicIgnore();
-
-        if (!m_staticMode)
-            return;
         
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
@@ -558,9 +553,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void Render()
     {
-        if (!m_staticMode)
-            return;
-
         UpdateRunTimeBuffers();
 
         if (m_lightBuffer != null)

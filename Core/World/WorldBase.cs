@@ -328,9 +328,7 @@ public abstract class WorldBase : IWorld
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
 
-        if (Config.Render.StaticMode)
-            StaticDataApplier.DetermineStaticData(this);
-
+        StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
     }
 

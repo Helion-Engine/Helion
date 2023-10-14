@@ -104,7 +104,7 @@ public class PhysicsManager
 
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.
-        LinkToSectors(entity, !entity.Flags.NoSector, tryMove);
+        LinkToSectors(entity, tryMove);
 
         ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, clampToLinkedSectors);
     }
@@ -831,7 +831,7 @@ public class PhysicsManager
         }
     }
 
-    private unsafe void LinkToSectors(Entity entity, bool linkSubsector, TryMoveData? tryMove)
+    private unsafe void LinkToSectors(Entity entity, TryMoveData? tryMove)
     {
         Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
 
@@ -896,9 +896,6 @@ public class PhysicsManager
         entity.IntersectSectors.Add(centerSector);
         entity.IntersectMovementSectors.Add(centerSector);
         entity.SectorNodes.Add(centerSector.Link(entity));
-
-        if (linkSubsector)
-            entity.SubsectorNode = centerSubsector.Link(entity);
     }
 
     private static void ClearVelocityXY(Entity entity)

@@ -146,7 +146,7 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Tick()
     {
-        if (Config.Render.Blockmap && Config.Render.AutomapBspThread)
+        if (Config.Render.AutomapBspThread)
         {
             var camera = Player.GetCamera(0);
             m_automapMarker.AddPosition(camera.PositionInterpolated.Double, camera.Direction.Double, Player.AngleRadians, Player.PitchRadians);
@@ -250,12 +250,6 @@ public class SinglePlayerWorld : WorldBase
 
     public override void Start(WorldModel? worldModel)
     {
-        if (Config.Render.Blockmap && !Config.Render.StaticMode)
-        {
-            Config.Render.Blockmap.Set(false);
-            Log.Warn("Render.blockmap disabled. Render.staticmode required.");
-        }
-
         base.Start(worldModel);
         if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
             AudioSystem.Music.Stop();

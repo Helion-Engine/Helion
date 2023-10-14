@@ -122,9 +122,6 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
     {
         Clear(world, renderInfo);
-        if (!m_config.Render.Blockmap)
-            TraverseBsp(world, renderInfo);
-
         m_automapRenderer.Render(world, renderInfo);
     }
 
@@ -261,11 +258,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
-        if (m_config.Render.Blockmap)
-            IterateBlockmap(world, renderInfo);
-        else
-            TraverseBsp(world, renderInfo);
-
+        IterateBlockmap(world, renderInfo);
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
