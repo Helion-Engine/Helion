@@ -54,18 +54,18 @@ public class BlockmapTraverser
         while (it.HasNext())
         {
             Block block = it.Next();
-            
-            for (int i = 0; i < block.BlockLines.Length; i++)
+            fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
             {
-                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                for (int i = 0; i < block.BlockLines.Length; i++)
                 {
-                    if (m_checkedLines[line->LineId] == checkCounter)
-                        continue;
-
-                    m_checkedLines[line->LineId] = checkCounter;
-
+                    BlockLine* line = lineStart + i;
                     if (line->Segment.Intersection(seg, out double t))
                     {
+                        if (m_checkedLines[line->LineId] == checkCounter)
+                            continue;
+
+                        m_checkedLines[line->LineId] = checkCounter;
+
                         if (line->OneSided)
                         {
                             hitOneSidedLine = true;
@@ -93,16 +93,16 @@ sightTraverseEndOfLoop:
         while (it.HasNext())
         {
             Block block = it.Next();
-            
-            for (int i = 0; i < block.BlockLines.Length; i++)
+            fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
             {
-                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                for (int i = 0; i < block.BlockLines.Length; i++)
                 {
-                    if (m_checkedLines[line->LineId] == checkCounter)
-                        continue;
-
+                    BlockLine* line = lineStart + i;
                     if (line->Segment.Intersection(seg, out double t))
                     {
+                        if (m_checkedLines[line->LineId] == checkCounter)
+                            continue;
+
                         m_checkedLines[line->LineId] = checkCounter;
                         intersect = line->Segment.FromTime(t);
 
