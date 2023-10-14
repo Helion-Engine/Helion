@@ -87,7 +87,7 @@ public class ConfigRender
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
 
     [ConfigInfo("Field of view. Default = 90")]
-    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60, 120));
+    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 
     [ConfigInfo("Enable sprite rendering with single vertex using the geometry shader.")]
     public readonly ConfigValue<bool> SingleVertexSprites = new(false);

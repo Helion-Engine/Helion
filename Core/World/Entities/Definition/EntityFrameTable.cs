@@ -2,6 +2,8 @@ using Helion.Util;
 using Helion.World.Entities.Definition.States;
 using System;
 using System.Collections.Generic;
+using static Helion.Dehacked.DehackedDefinition;
+using System.Xml;
 
 namespace Helion.World.Entities.Definition;
 
@@ -12,6 +14,8 @@ public class EntityFrameTable
     private readonly Dictionary<int, EntityFrame> m_vanillaFrameMap = new();
     private readonly Dictionary<string, int> m_spriteNameToIndex = new(StringComparer.OrdinalIgnoreCase);
     private int m_spriteIndex;
+    private bool m_vileHealFrameSet;
+    private EntityFrame? m_vileHealFrame;
 
     // Lookup for dehacked
     // e.g. key = "zombieman::spawn", "shotgunguy:missile"
@@ -23,6 +27,16 @@ public class EntityFrameTable
 
     public int ClosetLookFrameIndex { get; set; }
     public int ClosetChaseFrameIndex { get; set; }
+
+    public EntityFrame? GetVileHealFrame()
+    {
+        if (m_vileHealFrameSet)
+            return m_vileHealFrame;
+
+        m_vileHealFrameSet = true;
+        VanillaFrameMap.TryGetValue((int)ThingState.VILE_HEAL1, out m_vileHealFrame);
+        return m_vileHealFrame;
+    }
 
     public int GetSpriteIndex(string spriteName)
     {

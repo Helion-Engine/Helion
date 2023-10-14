@@ -62,10 +62,10 @@ public interface IWorld : IDisposable
     IList<Wall> Walls { get; }
     IList<Sector> Sectors { get; }
     CompactBspTree BspTree { get; }
-    LinkableList<Entity> Entities { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
     IRandom SecondaryRandom { get; }
+    PhysicsManager PhysicsManager { get; }
     EntityManager EntityManager { get; }
     WorldSoundManager SoundManager { get; }
     BlockmapTraverser BlockmapTraverser { get; }
@@ -109,7 +109,7 @@ public interface IWorld : IDisposable
     bool CanActivate(Entity entity, Line line, ActivationContext context);
     bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
-    Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
+    Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0);
     void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default);
@@ -122,8 +122,6 @@ public interface IWorld : IDisposable
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
-    TryMoveData TryMoveXY(Entity entity, Vec2D position);
-    bool IsPositionValid(Entity entity, Vec2D position);
     SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial);
     void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed);
     void DisplayMessage(string message);
@@ -141,7 +139,6 @@ public interface IWorld : IDisposable
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allaround);
     Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
-    double GetMoveFactor(Entity entity);
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
     void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);

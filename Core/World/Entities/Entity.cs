@@ -1,5 +1,4 @@
 using Helion.Audio;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -18,12 +17,12 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
-using NLog;
+using Helion.World.Blockmap;
+using Helion.World;
 
 namespace Helion.World.Entities;
 
@@ -37,6 +36,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const int KillDamage = ushort.MaxValue - 1;
     public const double FloatSpeed = 4.0;
     public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
+
+    public Entity? Next;
+    public Entity? Previous;
+
+    public Entity? RenderBlockNext;
+    public Entity? RenderBlockPrevious;
+    public Block? RenderBlock;
 
     public int Id;
     public int ThingId;
@@ -69,8 +75,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public DynamicArray<Sector> IntersectSectors = new();
-    public DynamicArray<Sector> IntersectMovementSectors = new();
+    public readonly DynamicArray<Sector> IntersectSectors = new();
+    public readonly DynamicArray<Sector> IntersectMovementSectors = new();
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -96,19 +102,23 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool Respawn;
     public int BlockmapCount;
     public int PhysicsCount;
+    public float Alpha;
 
     public double RenderDistance { get; set; }
     public int RenderedCounter; // Used by the renderer only.
+    public int LastRenderGametick;
+    public double LastRenderDistanceSquared = double.MaxValue;
+    public int SlowTickMultiplier = 1;
+    public int ChaseFailureSkipCount = 0;
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
     public virtual int ProjectileKickBack => Properties.ProjectileKickBack;
 
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
-    public DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
-    public DynamicArray<LinkableNode<Entity>> SectorNodes = new();
+    public readonly DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
+    public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public LinkableNode<Entity>? SubsectorNode;
-    public readonly LinkableNode<Entity> EntityListNode;
     public bool IsDisposed { get; private set; }
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
@@ -131,11 +141,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
+    public readonly IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
-        EntityListNode = new(this);
         Definition = null!;
         EntityManager = null!;
         HighestFloorObject = null!;
@@ -181,6 +190,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         CheckOnGround();
 
         Properties.Threshold = 0;
+
+        Alpha = (float)Properties.Alpha;
 
         FrameState = new(this, definition, world.EntityManager);
     }
@@ -230,6 +241,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (entityModel.ArmorDefinition != null)
             ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+
+        Alpha = (float)Properties.Alpha;
 
         FrameState = new(this, definition, world.EntityManager, entityModel.Frame);
         InMonsterCloset = IsClosetChase || IsClosetLook;
@@ -305,13 +318,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Owner = WeakEntity.GetReference(entity);
 
     public double PitchTo(Entity entity) => Position.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
-    public double PitchTo(in Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
+    public double PitchTo(Vec3D start, Entity entity) => start.Pitch(entity.Position, Position.XY.Distance(entity.Position.XY));
 
-    public string GetBloodType()
+    public EntityDefinition GetBloodDefinition()
     {
+        if (Definition.BloodDefinition != null)
+            return Definition.BloodDefinition;
+
         if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
-            return Definition.Properties.BloodType;
-        return "BLOOD";
+        {
+            Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName(Definition.Properties.BloodType);
+            return Definition.BloodDefinition;
+        }
+
+        Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName("BLOOD");
+        return Definition.BloodDefinition;
     }
 
     /// <summary>
@@ -382,6 +403,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
         BlockmapNodes.Clear();
 
+        if (RenderBlock != null)
+        {
+            RenderBlock.RemoveLink(this);
+            RenderBlock = null;
+        }
+
         IntersectSectors.Clear();
         IntersectMovementSectors.Clear();
         BlockingLine = null;
@@ -410,18 +437,18 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (Flags.CountKill && IsDeathStateFinished)
         {
-            if (World.SkillDefinition.RespawnTime.Seconds == 0)
+            if (WorldStatic.RespawnTimeSeconds == 0)
                 return;
 
             MoveCount++;
 
-            if (MoveCount < World.SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond)
+            if (MoveCount < WorldStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
                 return;
 
             if ((World.LevelTime & 31) != 0)
                 return;
 
-            if (World.Random.NextByte() > 4)
+            if (WorldStatic.Random.NextByte() > 4)
                 return;
 
             Respawn = true;
@@ -634,21 +661,17 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (damage <= 0 || Flags.Invulnerable)
             return false;
 
+        Entity? damageSource = source;
+        bool willRetaliate = false;
         if (source != null)
         {
-            Entity damageSource = source.Owner.Entity ?? source;
+            damageSource = source.Owner.Entity ?? source;
             if (!CanDamage(source, damageType))
                 return false;
 
-            if (WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this)
-            {
-                if (!Flags.QuickToRetaliate)
-                    Threshold = Properties.DefThreshold;
-                if (!damageSource.Flags.NoTarget && !IsFriend(damageSource))
-                    SetTarget(damageSource);
-                if (Definition.SeeState != null && FrameState.IsState(Constants.FrameStates.Spawn))
-                    SetSeeState();
-            }
+            willRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this;
+            if (willRetaliate && !damageSource.Flags.NoTarget && !IsFriend(damageSource))
+                SetTarget(damageSource);
         }
 
         if (damage == ForceGibDamage)
@@ -670,6 +693,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Health <= 0)
         {
             KillInternal(source);
+            return true;
         }
         else if (setPainState && !Flags.Skullfly && Definition.PainState != null)
         {
@@ -681,11 +705,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Flags.Skullfly)
             Velocity = Vec3D.Zero;
 
+        if (damageSource != null && willRetaliate)
+        {
+            if (!Flags.QuickToRetaliate)
+                Threshold = Properties.DefThreshold;
+            if (Definition.SeeState != null && Definition.SpawnState != null && FrameState.FrameIndex == Definition.SpawnState.Value)
+                SetSeeState();
+        }
+
         return true;
     }
 
     public void SetRandomizeTicks(int opAnd = 3) =>
-        FrameState.SetTics(FrameState.CurrentTick - (World.Random.NextByte() & opAnd));
+        FrameState.SetTics(FrameState.CurrentTick - (WorldStatic.Random.NextByte() & opAnd));
 
     private int ApplyArmorDamage(int damage)
     {
@@ -714,54 +746,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
     public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
 
-    /// <summary>
-    /// Returns a list of all entities that are able to block this entity (using CanBlockEntity) in a 2D space from IntersectSectors.
-    /// </summary>
-    public DynamicArray<Entity> GetIntersectingEntities2D()
+    public void GetIntersectingEntities3D(in Vec3D position, DynamicArray<Entity> entities, bool shootable)
     {
-        DynamicArray<Entity> entities = World.DataCache.GetEntityList();
-        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetSolidEntityIntersections(GetBox2D());
-
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            Entity? entity = intersections[i].Entity;
-            if (entity == null)
-                continue;
-
-            if (CanBlockEntity(entity) && entity.Overlaps2D(this))
-                entities.Add(entity);
-        }
-
-        World.DataCache.FreeBlockmapIntersectList(intersections);
-        return entities;
-    }
-
-    public void GetIntersectingEntities3D(in Vec3D position, BlockmapTraverseEntityFlags entityTraverseFlags, DynamicArray<Entity> entities)
-    {
-        Box3D box = new(position, Radius, Height);
-        Box2D box2D = new(position.XY, Radius);
-        bool checkZ = !World.Config.Compatibility.InfinitelyTallThings;
-        DynamicArray<BlockmapIntersect> intersections = World.BlockmapTraverser.GetBlockmapIntersections(box2D, BlockmapTraverseFlags.Entities, entityTraverseFlags);
-
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            Entity? entity = intersections[i].Entity;
-            if (entity == null)
-                continue;
-
-            if (!CanBlockEntity(entity))
-                continue;
-
-            if (checkZ && !entity.Overlaps(box))
-                continue;
-
-            if (!checkZ && !entity.Overlaps2D(box2D))
-                continue;
-
-            entities.Add(entity);
-        }
-
-        World.DataCache.FreeBlockmapIntersectList(intersections);
+        World.BlockmapTraverser.SolidBlockTraverse(this, position, !World.Config.Compatibility.InfinitelyTallThings, entities, shootable);
     }
 
     public bool CanBlockEntity(Entity other)
@@ -810,7 +797,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!Flags.Solid)
             return false;
 
-        DynamicArray<Entity> entities = GetIntersectingEntities2D();
+        DynamicArray<Entity> entities = World.DataCache.GetEntityList();
+        World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
         for (int i = 0; i < entities.Length; i++)
         {
             if (entities[i].OverlapsZ(this))
@@ -831,8 +819,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         // Only allow for non-monster things. Currently the physics code allows monsters to easily get stuck.
         // There are boom maps that require item movement like this (e.g. Fractured Worlds MAP03 red key BFG)
-        if (World.Config.Compatibility.AllowItemDropoff)
-            return Definition.Properties.Health > 0 && Definition.States.Labels.ContainsKey(Constants.FrameStates.See);
+        if (WorldStatic.AllowItemDropoff)
+            return Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
 
         return true;
     }
@@ -867,7 +855,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (BlockingEntity != null)
             {
-                int damage = Properties.Damage.Get(World.Random);
+                int damage = Properties.Damage.Get(WorldStatic.Random);
                 EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 
@@ -925,7 +913,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         IsDisposed = true;
         UnlinkFromWorld();
-        EntityListNode?.Unlink();
+        Unlink();
 
         FrameState.SetFrameIndex(Constants.NullFrameIndex);
 
@@ -977,6 +965,29 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector.Default;
         HighestFloorSector = Sector.Default;
         LowestCeilingSector = Sector.Default;
+        SlowTickMultiplier = 1;
+        ChaseFailureSkipCount = 0;
+    }
+
+    private void Unlink()
+    {
+        if (this == EntityManager.Head)
+        {
+            EntityManager.Head = Next;
+            if (EntityManager.Head != null)
+                EntityManager.Head.Previous = null;
+            Next = null;
+            Previous = null;
+            return;
+        }
+
+        if (Next != null)
+            Next.Previous = Previous;
+        if (Previous != null)
+            Previous.Next = Next;
+
+        Next = null;
+        Previous = null;
     }
 
     protected virtual void SetDeath(Entity? source, bool gibbed)

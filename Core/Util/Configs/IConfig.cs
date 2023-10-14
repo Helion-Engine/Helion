@@ -23,6 +23,7 @@ public interface IConfig
     ConfigRender Render { get; }
     ConfigWindow Window { get; }
     ConfigDemo Demo { get; }
+    ConfigSlowTick SlowTick { get; }
     IConfigKeyMapping Keys { get; }
     IConfigAliasMapping Aliases { get; }
 

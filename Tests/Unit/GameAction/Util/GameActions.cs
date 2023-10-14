@@ -36,13 +36,10 @@ namespace Helion.Tests.Unit.GameAction
 
         public static Entity GetEntity(WorldBase world, int id)
         {
-            var node = world.Entities.Head;
-            while (node != null)
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (node.Value.Id == id)
-                    return node.Value;
-
-                node = node.Next;
+                if (entity.Id == id)
+                    return entity;
             }
 
             throw new NullReferenceException();
@@ -50,28 +47,33 @@ namespace Helion.Tests.Unit.GameAction
 
         public static Entity GetEntity(WorldBase world, string name)
         {
-            var node = world.Entities.Head;
-            while (node != null)
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (node.Value.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                    return node.Value;
-
-                node = node.Next;
+                if (entity.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return entity;
             }
 
             throw new NullReferenceException();
         }
 
+        public static Entity? FindEntity(WorldBase world, string name)
+        {
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            {
+                if (entity.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return entity;
+            }
+
+            return null;
+        }
+
         public static List<Entity> GetEntities(WorldBase world, string name)
         {
             List<Entity> entities = new();
-            var node = world.Entities.Head;
-            while (node != null)
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (node.Value.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                    entities.Add(node.Value);
-
-                node = node.Next;
+                if (entity.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    entities.Add(entity);
             }
 
             return entities;
@@ -136,13 +138,10 @@ namespace Helion.Tests.Unit.GameAction
         public static void DestroyEntities(WorldBase world, string name)
         {
             List<Entity> destroyEntities = new();
-            var node = world.EntityManager.Entities.Head;
-
-            while (node != null)
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (node.Value.Definition.Name.EqualsIgnoreCase(name))
-                    destroyEntities.Add(node.Value);
-                node = node.Next;
+                if (entity.Definition.Name.EqualsIgnoreCase(name))
+                    destroyEntities.Add(entity);
             }
 
             destroyEntities.ForEach(x => world.EntityManager.Destroy(x));

@@ -285,10 +285,8 @@ public class Serialization : IDisposable
     {
         EntitiesCount(PreviousWorld).Should().Be(EntitiesCount(world));
 
-        var node = PreviousWorld.Entities.Head;
-        while (node != null)
+        for (var entity = PreviousWorld.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            var entity = node.Value;
             var newEntity = GameActions.GetEntity(world, entity.Id);
 
             Player? player = entity as Player;
@@ -337,8 +335,6 @@ public class Serialization : IDisposable
             entity.ClippedWithEntity.Should().Be(newEntity.ClippedWithEntity);
             entity.MoveLinked.Should().Be(newEntity.MoveLinked);
             entity.Respawn.Should().Be(newEntity.Respawn);
-
-            node = node.Next;
         }
     }
 
@@ -355,12 +351,8 @@ public class Serialization : IDisposable
     private static int EntitiesCount(SinglePlayerWorld world)
     {
         int count = 0;
-        var node = world.Entities.Head;
-        while (node != null)
-        {
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             count++;
-            node = node.Next;
-        }
         return count;
     }
 }

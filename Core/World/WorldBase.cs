@@ -47,15 +47,17 @@ using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
-using System.Diagnostics;
 using Helion.World.Special.Specials;
-using System.Diagnostics.CodeAnalysis;
 using Helion.World.Static;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Helion.Geometry.Grids;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Helion.World;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.World;
 
-public abstract partial class WorldBase : IWorld
+public abstract class WorldBase : IWorld
 {
     private const double MaxPitch = 80.0 * Math.PI / 180.0;
     private const double MinPitch = -80.0 * Math.PI / 180.0;
@@ -94,7 +96,6 @@ public abstract partial class WorldBase : IWorld
     public IList<Wall> Walls => Geometry.Walls;
     public IList<Sector> Sectors => Geometry.Sectors;
     public CompactBspTree BspTree => Geometry.CompactBspTree;
-    public LinkableList<Entity> Entities => EntityManager.Entities;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
     public BlockmapTraverser BlockmapTraverser => PhysicsManager.BlockmapTraverser;
@@ -123,8 +124,8 @@ public abstract partial class WorldBase : IWorld
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
     public readonly MapGeometry Geometry;
+    public PhysicsManager PhysicsManager { get; private set; }
     protected readonly IAudioSystem AudioSystem;
-    protected readonly PhysicsManager PhysicsManager;
     protected readonly IMap Map;
     protected readonly Profiler Profiler;
     private readonly IRandom m_saveRandom;
@@ -140,6 +141,20 @@ public abstract partial class WorldBase : IWorld
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
+
+    private RadiusExplosionData m_radiusExplosion;
+    private readonly Action<Entity> m_radiusExplosionAction;
+
+    private HealChaseData m_healChaseData;
+    private readonly Action<Entity> m_healChaseAction;
+
+    private NewTracerTargetData m_newTracerTargetData;
+    private readonly Func<Entity, GridIterationStatus> m_setNewTracerTargetAction;
+
+    private LineOfSightEnemyData m_lineOfSightEnemyData;
+    private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
+
+    private readonly TryMoveData EmtpyTryMove = new();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -171,10 +186,58 @@ public abstract partial class WorldBase : IWorld
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
+
+        WorldStatic.EntityManager = EntityManager;
+        WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
+
+        WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
+        m_radiusExplosionAction = new(HandleRadiusExplosion);
+        m_healChaseAction = new(HandleHealChase);
+        m_setNewTracerTargetAction = new(HandleSetNewTracerTarget);
+        m_lineOfSightEnemyAction = new(HandleLineOfSightEnemy);
         SetCompatibilityOptions(mapInfoDef);
+
+        Config.SlowTick.Enabled.OnChanged += SlowTickEnabled_OnChanged;
+        Config.SlowTick.ChaseFailureSkipCount.OnChanged += SlowTickChaseFailureSkipCount_OnChanged;
+        Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
+        Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
+        Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
+        Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
+        Config.Compatibility.MissileClip.OnChanged += MissileClip_OnChanged;
+        Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
+        Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
+        Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
+
+        WorldStatic.Random = Random;
+        WorldStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
+        WorldStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
+        WorldStatic.SlowTickDistance = Config.SlowTick.Distance;
+        WorldStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
+        WorldStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
+        WorldStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
+        WorldStatic.IsFastMonsters = IsFastMonsters;
+        WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
+        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
+        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
+        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
+        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
+        WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+        WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
+        WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+
+        WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByName("DoomImpBall");
+        WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByName("ArachnotronPlasma");
+        WorldStatic.Rocket = EntityManager.DefinitionComposer.GetByName("Rocket");
+        WorldStatic.FatShot = EntityManager.DefinitionComposer.GetByName("FatShot");
+        WorldStatic.CacodemonBall = EntityManager.DefinitionComposer.GetByName("CacodemonBall");
+        WorldStatic.RevenantTracer = EntityManager.DefinitionComposer.GetByName("RevenantTracer");
+        WorldStatic.BaronBall = EntityManager.DefinitionComposer.GetByName("BaronBall");
+        WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByName("SpawnShot");
+        WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
+        WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
 
         if (worldModel != null)
         {
@@ -195,6 +258,27 @@ public abstract partial class WorldBase : IWorld
             LevelStats.SecretCount = worldModel.SecretCount;
         }
     }
+
+    private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.NoTossDrops = enabled;
+    private void InfinitelyTallThings_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.InfinitelyTallThings = enabled;
+    private void AllowItemDropoff_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.AllowItemDropoff = enabled;
+    private void MissileClip_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.MissileClip = enabled;
+    private void SlowTickEnabled_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.SlowTickEnabled = enabled;
+    private void SlowTickDistance_OnChanged(object? sender, int distance) =>
+        WorldStatic.SlowTickDistance = distance;
+    private void SlowTickChaseFailureSkipCount_OnChanged(object? sender, int value) =>
+        WorldStatic.SlowTickChaseFailureSkipCount = value;
+    private void SlowTickChaseMultiplier_OnChanged(object? sender, int value) =>
+        WorldStatic.SlowTickChaseMultiplier = value;
+    private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>
+        WorldStatic.SlowTickLookMultiplier = value;
+    private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
+        WorldStatic.SlowTickTracerMultiplier = value;
 
     private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
     {
@@ -278,30 +362,30 @@ public abstract partial class WorldBase : IWorld
 
     public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
     {
+        m_lineOfSightEnemyData.Entity = entity;
+        m_lineOfSightEnemyData.AllAround = allaround;
+        m_lineOfSightEnemyData.SightEntity = null;
         Box2D box = new(entity.Position.XY, 1280);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities,
-            BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable);
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            Entity? checkEntity = intersections[i].Entity;
-            if (checkEntity == null)
-                continue;
-
-            if (entity.Id == checkEntity.Id || checkEntity.IsDead || entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
-                continue;
-
-            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, checkEntity))
-                continue;
-
-            if (CheckLineOfSight(entity, checkEntity))
-                return checkEntity;
-        }
-
-        return null;
+        BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
+        return m_lineOfSightEnemyData.SightEntity;
     }
 
-    public double GetMoveFactor(Entity entity) => 
-        PhysicsManager.GetMoveFactor(entity);
+    private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
+    {
+        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
+            return GridIterationStatus.Continue;
+
+        if (!m_lineOfSightEnemyData.AllAround && !InFieldOfViewOrInMeleeDistance(m_lineOfSightEnemyData.Entity, checkEntity))
+            return GridIterationStatus.Continue;
+
+        if (CheckLineOfSight(m_lineOfSightEnemyData.Entity, checkEntity))
+        {
+            m_lineOfSightEnemyData.SightEntity = checkEntity;
+            return GridIterationStatus.Stop;
+        }
+
+        return GridIterationStatus.Continue;
+    }
 
     public void NoiseAlert(Entity target, Entity source)
     {
@@ -429,16 +513,14 @@ public abstract partial class WorldBase : IWorld
     private void TickEntities()
     {
         Profiler.World.TickEntity.Start();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        LinkableNode<Entity>? nextNode = node;
-        while (node != null)
+        var entity = EntityManager.Head;
+        var nextEntity = entity;
+        while (entity != null)
         {
-            nextNode = node.Next;
-
-            Entity entity = node.Value;
+            nextEntity = entity.Next;
             if (entity.PlayerObj != null && entity.PlayerObj.PlayerNumber == short.MaxValue)
             {
-                node = nextNode;
+                entity = nextEntity;
                 continue;
             }
 
@@ -459,7 +541,7 @@ public abstract partial class WorldBase : IWorld
                     entity.Sector.SectorDamageSpecial.Tick(entity);
             }
 
-            node = nextNode;
+            entity = nextEntity;
         }
 
         Profiler.World.TickEntity.Stop();
@@ -469,11 +551,12 @@ public abstract partial class WorldBase : IWorld
     {
         Profiler.World.TickPlayer.Start();
 
-        foreach (Player player in EntityManager.Players)
+        for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             if (WorldState == WorldState.Exit)
                 break;
 
+            var player = EntityManager.Players[i];
             // Doom did not apply sector damage to voodoo dolls
             if (player.IsVooDooDoll || player.IsDisposed)
                 continue;
@@ -549,12 +632,9 @@ public abstract partial class WorldBase : IWorld
 
     public void ResetInterpolation()
     {
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
-        {
-            node.Value.ResetInterpolation();
-            node = node.Next;
-        }
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+            entity.ResetInterpolation();
+
         SpecialManager.ResetInterpolation();
         OnResetInterpolation?.Invoke(this, EventArgs.Empty);
     }
@@ -670,12 +750,10 @@ public abstract partial class WorldBase : IWorld
     private void InitBossBrainTargets()
     {
         List<Entity> targets = new();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (node.Value.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
-                targets.Add(node.Value);
-            node = node.Next;
+            if (entity.Definition.Name.Equals("BOSSTARGET", StringComparison.OrdinalIgnoreCase))
+                targets.Add(entity);
         }
 
         // Doom chose for some reason to iterate in reverse order.
@@ -727,7 +805,7 @@ public abstract partial class WorldBase : IWorld
     public void TelefragBlockingEntities(Entity entity)
     {
         DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid | BlockmapTraverseEntityFlags.Shootable, blockingEntities);
+        entity.GetIntersectingEntities3D(entity.Position, blockingEntities, true);
         for (int i = 0; i < blockingEntities.Length; i++)
             blockingEntities[i].ForceGib();
         DataCache.FreeEntityList(blockingEntities);
@@ -756,7 +834,9 @@ public abstract partial class WorldBase : IWorld
         bool activateSuccess = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        var intersections = WorldStatic.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -796,8 +876,6 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
-
         if (!activateSuccess && hitBlockLine && entity.PlayerObj != null)
             entity.PlayerObj.PlayUseFailSound();
 
@@ -817,7 +895,9 @@ public abstract partial class WorldBase : IWorld
         bool shouldUse = false;
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Seg2D(start, end), BlockmapTraverseFlags.Lines);
+        var intersections = WorldStatic.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -845,8 +925,6 @@ public abstract partial class WorldBase : IWorld
             EntityUse(entity);
             m_lastBumpActivateGametick = Gametick;
         }
-
-        DataCache.FreeBlockmapIntersectList(intersections);
     }
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
@@ -893,7 +971,7 @@ public abstract partial class WorldBase : IWorld
     public bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity) =>
         GetAutoAimAngle(startEntity, start, angle, distance, out pitch, out _, out entity, 1, 0);
 
-    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, string projectClassName, out Entity? autoAimEntity,
+    public virtual Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0)
     {
         autoAimEntity = null;
@@ -912,12 +990,7 @@ public abstract partial class WorldBase : IWorld
         pitch += addPitch;
         angle += addAngle;
 
-        var projectileDef = EntityManager.DefinitionComposer.GetByName(projectClassName);
-        if (projectileDef == null)
-            return null;
-
-        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0, executeStateFunctions: false);
-
+        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
@@ -966,7 +1039,7 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
+        if (shooter.PlayerObj != null && Config.Developer.Render.Tracers)
         {
             shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
@@ -1002,7 +1075,7 @@ public abstract partial class WorldBase : IWorld
             ref intersect, out Sector? hitSector);
 
         if (bi != null || hitSector != null)
-            if (Config.Developer.Render.Tracers && shooter.PlayerObj != null && damage > 0)
+            if (shooter.PlayerObj != null && damage > 0 && Config.Developer.Render.Tracers)
                 shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick, PlayerTracers.TracerColor);
 
         if ((options & HitScanOptions.DrawRail) != 0)
@@ -1025,7 +1098,9 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+        var intersections = WorldStatic.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.ShootTraverse(seg, intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
@@ -1103,7 +1178,6 @@ public abstract partial class WorldBase : IWorld
             CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
         }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
         return returnValue;
     }
 
@@ -1396,12 +1470,11 @@ public abstract partial class WorldBase : IWorld
             return false;
 
         Seg2D seg = new(start, end);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.SightTraverse(seg, out bool hitOneSidedLine);
+        var intersections = WorldStatic.Intersections;
+        intersections.Clear();
+        BlockmapTraverser.SightTraverse(seg, intersections, out bool hitOneSidedLine);
         if (hitOneSidedLine)
-        {
-            DataCache.FreeBlockmapIntersectList(intersections);
             return false;
-        }
 
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
         double distance2D = start.Distance(end);
@@ -1409,7 +1482,6 @@ public abstract partial class WorldBase : IWorld
         double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
         TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
-        DataCache.FreeBlockmapIntersectList(intersections);
         return status != TraversalPitchStatus.Blocked;
     }
 
@@ -1458,22 +1530,26 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage)
     {
-        Thrust thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+        m_radiusExplosion.DamageSource = damageSource;
+        m_radiusExplosion.AttackSource = attackSource;
+        m_radiusExplosion.Radius = radius;
+        m_radiusExplosion.MaxDamage = maxDamage;
+        m_radiusExplosion.Thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
         Vec2D pos2D = damageSource.Position.XY;
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(explosionBox, BlockmapTraverseFlags.Entities,
-            BlockmapTraverseEntityFlags.Shootable | BlockmapTraverseEntityFlags.Solid);
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            BlockmapIntersect bi = intersections[i];
-            if (bi.Entity != null && ShouldApplyExplosionDamage(bi.Entity, damageSource))
-                ApplyExplosionDamageAndThrust(damageSource, attackSource, bi.Entity, radius, maxDamage, thrust,
-                    damageSource.Flags.OldRadiusDmg || bi.Entity.Flags.OldRadiusDmg);
-        }
+        BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionAction);
+    }
 
-        DataCache.FreeBlockmapIntersectList(intersections);
+    private void HandleRadiusExplosion(Entity entity)
+    {
+        if (!ShouldApplyExplosionDamage(entity, m_radiusExplosion.DamageSource))
+            return;
+
+        ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
+            m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
+            m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -1491,7 +1567,7 @@ public abstract partial class WorldBase : IWorld
         => PhysicsManager.TryMoveXY(entity, position);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
-        PhysicsManager.IsPositionValid(entity, position);
+        PhysicsManager.IsPositionValid(entity, position, PhysicsManager.TryMoveData);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
@@ -1530,7 +1606,7 @@ public abstract partial class WorldBase : IWorld
                 Vec3D pos = deathEntity.Position;
                 pos.Z = deathEntity.Sector.Floor.Z;
                 double addVelocity = 0;
-                if (!Config.Compatibility.NoTossDrops)
+                if (!WorldStatic.NoTossDrops)
                 {
                     spawnInit = false;
                     pos.Z = deathEntity.Position.Z + deathEntity.Definition.Properties.Height / 2;
@@ -1593,18 +1669,15 @@ public abstract partial class WorldBase : IWorld
         if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
-        Entity? newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
-        if (newEntity != null)
-        {
-            CreateTeleportFog(entity.Position);
-            CreateTeleportFog(entity.SpawnPoint);
+        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
+        CreateTeleportFog(entity.Position);
+        CreateTeleportFog(entity.SpawnPoint);
 
-            newEntity.Flags.Friendly = entity.Flags.Friendly;
-            newEntity.AngleRadians = entity.AngleRadians;
-            newEntity.ReactionTime = 18;
+        newEntity.Flags.Friendly = entity.Flags.Friendly;
+        newEntity.AngleRadians = entity.AngleRadians;
+        newEntity.ReactionTime = 18;
 
-            entity.Dispose();
-        }
+        entity.Dispose();
     }
 
     public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position)
@@ -1618,25 +1691,16 @@ public abstract partial class WorldBase : IWorld
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
-        DynamicArray<Entity> entities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(position, BlockmapTraverseEntityFlags.Solid, entities);
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
+
         entity.Flags.Solid = false;
         entity.Height = oldHeight;
-
-        bool blocked = entities.Length > 0;
-        DataCache.FreeEntityList(entities);
         return blocked;
     }
 
-    private readonly TryMoveData EmtpyTryMove = new();
-
     public bool IsPositionBlocked(Entity entity)
     {
-        DynamicArray<Entity> entities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(entity.Position, BlockmapTraverseEntityFlags.Solid, entities);
-        bool blocked = entities.Length > 0;
-        DataCache.FreeEntityList(entities);
-
+        bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
         if (blocked)
             return true;
 
@@ -1713,22 +1777,24 @@ public abstract partial class WorldBase : IWorld
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)
     {
         bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
-        string className;
+        EntityDefinition? def;
         if (bulletPuff)
         {
-            className = "BulletPuff";
+            def = EntityManager.DefinitionComposer.BulletPuffDefinition;
             intersect.Z += Random.NextDiff() * Constants.PuffRandZ;
         }
         else
         {
-            className = entity!.GetBloodType();
+            def = entity!.GetBloodDefinition();
         }
 
-        Entity? create = EntityManager.Create(className, intersect);
+        if (def == null)
+            return;
+
+        Entity? create = EntityManager.Create(def, intersect, 0, angle, 0);
         if (create == null)
             return;
 
-        create.AngleRadians = angle;
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
@@ -1822,10 +1888,11 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < iterateTracers; i++)
         {
             Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
-            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.ShootTraverse(seg);
+            var intersections = WorldStatic.Intersections;
+            intersections.Clear();
+            BlockmapTraverser.ShootTraverse(seg, intersections);
 
             TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
-            DataCache.FreeBlockmapIntersectList(intersections);
 
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
@@ -2060,17 +2127,13 @@ public abstract partial class WorldBase : IWorld
     private int KillAllMonsters()
     {
         int killCount = 0;
-        var node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            var entity = node.Value;
             if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
-                node.Value.ForceGib();
+                entity.ForceGib();
                 killCount++;
             }
-
-            node = node.Next;
         }
 
         return killCount;
@@ -2098,54 +2161,44 @@ public abstract partial class WorldBase : IWorld
     private int EntityCount(int entityDefinitionId, bool checkAlive)
     {
         int count = 0;
-        LinkableNode<Entity>? node = Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            Entity entity = node.Value;
             if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
                 count++;
-            node = node.Next;
         }
         return count;
     }
 
     public bool HealChase(Entity entity, EntityFrame healState, string healSound)
     {
+        m_healChaseData.HealEntity = entity;
+        m_healChaseData.HealState = healState;
+        m_healChaseData.HealSound = healSound;
+        m_healChaseData.Healed = false;
         Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
-        DynamicArray<BlockmapIntersect> intersections = entity.World.BlockmapTraverser.GetBlockmapIntersections(nextBox,
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Corpse);
+        BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            BlockmapIntersect bi = intersections[i];
+        return m_healChaseData.Healed;
+    }
 
-            if (bi.Entity == null || bi.Entity.Definition.RaiseState == null || bi.Entity.FrameState.Frame.Ticks != -1 || bi.Entity.IsPlayer)
-                continue;
+    private void HandleHealChase(Entity entity)
+    {
+        var healChaseEntity = m_healChaseData.HealEntity;
+        m_healChaseData.Healed = true;
+        entity.Flags.Solid = true;
+        entity.Height = entity.Definition.Properties.Height;
 
-            if (bi.Entity.World.IsPositionBlockedByEntity(bi.Entity, bi.Entity.Position))
-                continue;
+        Entity? saveTarget = healChaseEntity.Target.Entity;
+        healChaseEntity.SetTarget(entity);
+        EntityActionFunctions.A_FaceTarget(healChaseEntity);
+        healChaseEntity.SetTarget(saveTarget);
+        healChaseEntity.FrameState.SetState(m_healChaseData.HealState);
 
-            bi.Entity.Flags.Solid = true;
-            bi.Entity.Height = entity.Definition.Properties.Height;
+        if (m_healChaseData.HealSound.Length > 0)
+            entity.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-            Entity? saveTarget = entity.Target.Entity;
-            entity.SetTarget(bi.Entity);
-            EntityActionFunctions.A_FaceTarget(entity);
-            entity.SetTarget(saveTarget);
-            entity.FrameState.SetState(healState);
-
-            if (healSound.Length > 0)
-                entity.SoundManager.CreateSoundOn(bi.Entity, healSound, new SoundParams(entity));
-
-            bi.Entity.SetRaiseState();
-            bi.Entity.Flags.Friendly = entity.Flags.Friendly;
-
-            DataCache.FreeBlockmapIntersectList(intersections);
-            return true;
-        }
-
-        DataCache.FreeBlockmapIntersectList(intersections);
-        return false;
+        entity.SetRaiseState();
+        entity.Flags.Friendly = healChaseEntity.Flags.Friendly;
     }
 
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
@@ -2164,29 +2217,30 @@ public abstract partial class WorldBase : IWorld
 
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
-        Entity owner = entity.Owner.Entity ?? entity;
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetBlockmapIntersections(new Box2D(entity.Position.XY, radius), 
-            BlockmapTraverseFlags.Entities, BlockmapTraverseEntityFlags.Shootable);
-
-        for (int i= 0; i < intersections.Length; i++)
-        {
-            Entity? checkEntity = intersections[i].Entity;
-            if (checkEntity == null || !owner.ValidEnemyTarget(checkEntity))
-                continue;
-
-            if (fieldOfViewRadians > 0 && !InFieldOfView(entity, checkEntity, fieldOfViewRadians))
-                continue;
-
-            if (!CheckLineOfSight(entity, checkEntity))
-                continue;
-
-            entity.SetTracer(checkEntity);
-            break;
-        }
-
-        DataCache.FreeBlockmapIntersectList(intersections);
+        m_newTracerTargetData.Entity = entity;
+        m_newTracerTargetData.Owner = entity.Owner.Entity ?? entity;
+        m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
+        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.XY, radius), m_setNewTracerTargetAction);
     }
 
+    private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Shootable)
+            return GridIterationStatus.Continue;
+
+        if (!m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
+            return GridIterationStatus.Continue;
+
+        if (m_newTracerTargetData.FieldOfViewRadians > 0 && 
+            !InFieldOfView(m_newTracerTargetData.Entity, checkEntity, m_newTracerTargetData.FieldOfViewRadians))
+            return GridIterationStatus.Continue;
+
+        if (!CheckLineOfSight(m_newTracerTargetData.Entity, checkEntity))
+            return GridIterationStatus.Continue;
+
+        m_newTracerTargetData.Entity.SetTracer(checkEntity);
+        return GridIterationStatus.Stop;
+    }
 
     public void SetEntityPosition(Entity entity, Vec3D pos)
     {
@@ -2221,14 +2275,6 @@ public abstract partial class WorldBase : IWorld
                     entity.AngleRadians = exact;
             }
         }
-    }
-
-    private static double GetTracerSlope(double z, double distance, double speed)
-    {
-        distance /= speed;
-        if (distance < 1)
-            distance = 1;
-        return z / distance;
     }
 
     private void GiveCheatArmor(Player player, CheatType cheatType)
@@ -2500,7 +2546,7 @@ public abstract partial class WorldBase : IWorld
         {
             ConfigValues = GetConfigValuesModel(),
             Files = GetGameFilesModel(),
-            MapName = MapName.ToString(),
+            MapName = MapName,
             WorldState = WorldState,
             Gametick = Gametick,
             LevelTime = LevelTime,
@@ -2588,13 +2634,10 @@ public abstract partial class WorldBase : IWorld
     private List<EntityModel> GetEntityModels()
     {
         List<EntityModel> entityModels = new();
-        LinkableNode<Entity>? node = EntityManager.Entities.Head;
-        while (node != null)
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
-            Entity entity = node.Value;
             if (!entity.IsPlayer)
                 entityModels.Add(entity.ToEntityModel(new EntityModel()));
-            node = node.Next;
         }
         return entityModels;
     }

@@ -1,6 +1,11 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
+using Helion.Util.Container;
+using Helion.World.Entities;
 using Helion.World.Physics;
+using Helion.World.Physics.Blockmap;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -53,7 +58,7 @@ namespace Helion.Tests.Unit.GameAction
             top.Velocity.Z.Should().NotBe(0);
         }
 
-        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity pves")]
+        [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity moves")]
         public void StackEntityChangeMove()
         {
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
@@ -272,7 +277,7 @@ namespace Helion.Tests.Unit.GameAction
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
-            monster.BlockmapNodes.Length.Should().Be(2);
+            monster.BlockmapNodes.Length.Should().Be(1);
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 
@@ -299,8 +304,13 @@ namespace Helion.Tests.Unit.GameAction
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             monster.SubsectorNode.Should().BeNull();
 
-            var intersections = World.BlockmapTraverser.GetEntityIntersections(monster.GetBox2D());
-            intersections.Length.Should().Be(0);
+            List<Entity> entities = new();
+            World.BlockmapTraverser.EntityTraverse(monster.GetBox2D(), (Entity checkEntity) =>
+            {
+                entities.Add(checkEntity);
+                return GridIterationStatus.Continue;
+            });
+            entities.Count.Should().Be(0);
 
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();

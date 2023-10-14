@@ -1,12 +1,9 @@
 using System;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.World.Entities.Definition.States;
-using Helion.World.Geometry.Lines;
+using Helion.World;
 using Helion.World.Physics;
-using Helion.World.Special;
 
 namespace Helion.World.Entities;
 
@@ -26,38 +23,19 @@ public partial class Entity
         None
     }
 
-    private static readonly double[] MoveAngles = new[]
-    {
-        0.0,
-        MathHelper.QuarterPi,
-        MathHelper.HalfPi,
-        MathHelper.HalfPi + MathHelper.QuarterPi,
-        MathHelper.Pi,
-        MathHelper.Pi + MathHelper.QuarterPi,
-        MathHelper.Pi + MathHelper.HalfPi,
-        MathHelper.Pi + MathHelper.HalfPi + MathHelper.QuarterPi,
-        0.0
-    };
+    private static readonly double[] Speeds = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed, 
+        0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
-    private static readonly MoveDir[] OppositeDirections = new[]
-    {
-        MoveDir.West, MoveDir.SouthWest, MoveDir.South, MoveDir.SouthEast,
-        MoveDir.East, MoveDir.NorthEast, MoveDir.North, MoveDir.NorthWest, MoveDir.None
-    };
-
-    private static readonly MoveDir[] Diagnals = new[] { MoveDir.NorthWest, MoveDir.NorthEast, MoveDir.SouthWest, MoveDir.SouthEast };
-
-    private static readonly double[] SpeedX = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed };
-    private static readonly double[] SpeedY = new[] { 0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
-
-    private static int ClosetChaseCount;
-    private static int ClosetLookCount;
+    private static ushort ClosetChaseCount;
+    private static ushort ClosetLookCount;
+    private static ushort ChaseLoop;
+    private static ushort ChaseFailureCount;
 
     private MoveDir m_direction = MoveDir.None;
 
     public bool BlockFloating;
-    public bool IsClosetLook => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
-    public bool IsClosetChase => FrameState.Frame.MasterFrameIndex == World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+    public bool IsClosetLook;
+    public bool IsClosetChase;
 
     public void SetEnemyDirection(MoveDir direction) =>
         m_direction = direction;
@@ -145,23 +123,6 @@ public partial class Entity
             SetSpawnState();
     }
 
-    public void ClosetLook()
-    {
-        if (Sector.SoundTarget.Entity != null && ValidEnemyTarget(Sector.SoundTarget.Entity))
-        {
-            SetTarget(Sector.SoundTarget.Entity);
-            SetClosetChase();
-        }
-    }
-
-    public void ClosetChase()
-    {
-        if (Target.Entity != null && Target.Entity.IsDead)
-            return;
-
-        SetNewChaseDirection();
-    }
-
     private Entity? GetNewTarget(bool allaround)
     {
         Entity? newTarget;
@@ -181,6 +142,10 @@ public partial class Entity
 
     public void SetNewChaseDirection()
     {
+        if (--ChaseFailureSkipCount > 0)
+            return;
+
+        ChaseFailureSkipCount = 0;
         // All monsters normally have CanPass set.
         // Dehacked can modify things into enemies that can move but this flag doesn't exist in the original game.
         // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
@@ -190,8 +155,11 @@ public partial class Entity
         MoveDir dir0;
         MoveDir dir1;
         MoveDir oldDirection = m_direction;
-        MoveDir oppositeDirection = OppositeDirections[(int)m_direction];
+        MoveDir oppositeDirection = oldDirection;
         MoveDir tdir;
+
+        if (oppositeDirection != MoveDir.None)
+            oppositeDirection = (MoveDir)(((int)oppositeDirection) ^ 4);
 
         double dx = Target.Entity!.Position.X - Position.X;
         double dy = Target.Entity!.Position.Y - Position.Y;
@@ -212,17 +180,16 @@ public partial class Entity
 
         if (dir0 != MoveDir.None && dir1 != MoveDir.None)
         {
-            int index = 0;
             if (dy < 0)
-                index += 2;
-            if (dx > 0)
-                index++;
-            m_direction = Diagnals[index];
+                m_direction = dx > 0 ? MoveDir.SouthEast : MoveDir.SouthWest;
+            else
+                m_direction = dx > 0 ? MoveDir.NorthEast : MoveDir.NorthWest;
+
             if (m_direction != oppositeDirection && TryWalk())
                 return;
         }
 
-        if (EntityManager.World.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
+        if (WorldStatic.Random.NextByte() > 200 || Math.Abs(dy) > Math.Abs(dx))
         {
             tdir = dir0;
             dir0 = dir1;
@@ -256,29 +223,68 @@ public partial class Entity
                 return;
         }
 
-        // randomly determine direction of search
-        if ((EntityManager.World.Random.NextByte() & 1) != 0)
+        if (SlowTickMultiplier <= 1)
         {
-            for (tdir = MoveDir.East; tdir <= MoveDir.SouthEast; tdir++)
+            // randomly determine direction of search
+            if ((WorldStatic.Random.NextByte() & 1) != 0)
             {
-                if (tdir != oppositeDirection)
+                for (tdir = MoveDir.East; tdir <= MoveDir.SouthEast; tdir++)
                 {
-                    m_direction = tdir;
-                    if (TryWalk())
-                        return;
+                    if (tdir != oppositeDirection)
+                    {
+                        m_direction = tdir;
+                        if (TryWalk())
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                for (tdir = MoveDir.SouthEast; tdir != (MoveDir.East - 1); tdir--)
+                {
+                    if (tdir != oppositeDirection)
+                    {
+                        m_direction = tdir;
+                        if (TryWalk())
+                            return;
+                    }
                 }
             }
         }
-        else
+        else if ((ChaseLoop++ % 4) > 0)
         {
-            for (tdir = MoveDir.SouthEast; tdir != (MoveDir.East - 1); tdir--)
+            // Do not run this nearly as often, randomize start search directions and limit to 3
+            int random = WorldStatic.Random.NextByte();
+            int addDir = -1;
+            tdir = MoveDir.SouthEast - (random % 4);
+
+            if ((random & 1) != 0)
             {
-                if (tdir != oppositeDirection)
-                {
-                    m_direction = tdir;
-                    if (TryWalk())
-                        return;
-                }
+                tdir = MoveDir.East + (random % 4);
+                addDir = 1;
+            }
+
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
+            }
+
+            tdir += addDir;
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
+            }
+
+            tdir += addDir;
+            if (tdir != oppositeDirection && tdir >= MoveDir.East && tdir <= MoveDir.SouthEast)
+            {
+                m_direction = tdir;
+                if (TryWalk())
+                    return;
             }
         }
 
@@ -289,6 +295,11 @@ public partial class Entity
                 return;
         }
 
+        if (MoveCount < 0 && SlowTickMultiplier > 1)
+            MoveCount = WorldStatic.Random.NextByte() & 15;
+
+        if (WorldStatic.SlowTickEnabled)
+            ChaseFailureSkipCount = WorldStatic.SlowTickChaseFailureSkipCount + (ChaseFailureCount++ & 1);
         m_direction = MoveDir.None;
     }
 
@@ -297,9 +308,9 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speed = IsClosetChase ? 64 : Properties.MonsterMovementSpeed;
-        double speedX = SpeedX[(int)m_direction] * speed;
-        double speedY = SpeedY[(int)m_direction] * speed;
+        double speed = IsClosetChase ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
+        double speedX = Speeds[(int)m_direction] * speed;
+        double speedY = Speeds[(int)m_direction + 8] * speed;
 
         return (Position.X + speedX, Position.Y + speedY);
     }
@@ -314,7 +325,7 @@ public partial class Entity
 
         Vec2D nextPos = GetNextEnemyPos();
         bool isMoving = Position.XY != nextPos;
-        tryMove = World.TryMoveXY(this, nextPos);
+        tryMove = World.PhysicsManager.TryMoveXY(this, nextPos);
         if (Flags.Teleport)
             return true;
 
@@ -332,7 +343,9 @@ public partial class Entity
         if (tryMove.Success && !Flags.Float && isMoving)
             Position.Z = tryMove.HighestFloorZ;
 
-        return tryMove.Success;
+        // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
+        // A partial success needs be considered true in this case.
+        return Position.X != PrevPosition.X || Position.Y != PrevPosition.Y || tryMove.Success;
     }
 
     public void TurnTowardsMovementDirection()
@@ -340,8 +353,10 @@ public partial class Entity
         if (m_direction == MoveDir.None)
             return;
 
-        AngleRadians = MathHelper.GetPositiveAngle(AngleRadians - (AngleRadians % MathHelper.QuarterPi));
-        double delta = AngleRadians - MoveAngles[(int)m_direction];
+        AngleRadians = AngleRadians - (AngleRadians % MathHelper.QuarterPi);
+        if (AngleRadians < 0 || AngleRadians > MathHelper.TwoPi)
+            AngleRadians = MathHelper.GetPositiveAngle(AngleRadians);
+        double delta = AngleRadians - ((int)m_direction * MathHelper.QuarterPi);
         if (delta != 0)
         {
             if (Math.Abs(delta) > MathHelper.Pi)
@@ -351,6 +366,12 @@ public partial class Entity
             else if (delta < 0)
                 AngleRadians += MathHelper.QuarterPi;
         }
+    }
+
+    public void SetToMovementDirection()
+    {
+        if (m_direction != MoveDir.None)
+            AngleRadians = (int)m_direction * MathHelper.QuarterPi;
     }
 
     public double GetEnemyFloatMove()
@@ -424,8 +445,11 @@ public partial class Entity
         if (Definition.Properties.MaxTargetRange > 0 && distance > Definition.Properties.MaxTargetRange)
             return false;
 
+        if (SlowTickMultiplier > 0)
+            distance /= SlowTickMultiplier;
+
         distance = Math.Min(distance, Definition.Properties.MinMissileChance);
-        return World.Random.NextByte() >= distance;
+        return WorldStatic.Random.NextByte() >= distance;
     }
 
     private bool TryWalk()
@@ -441,7 +465,7 @@ public partial class Entity
             return false;
         }
 
-        MoveCount = EntityManager.World.Random.NextByte() & 15;
+        MoveCount = WorldStatic.Random.NextByte() & 15;
         return true;
     }
 }

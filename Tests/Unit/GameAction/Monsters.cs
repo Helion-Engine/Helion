@@ -10,7 +10,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
 using System.Linq;
-using System.Threading;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -286,6 +285,42 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityOutOfBounds(World, Player);
         }
 
+        [Fact(DisplayName = "Monster set to see state from spawn state after damage")]
+        public void SetSeeStateAfterDamage()
+        {
+            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
+            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
+
+            int savePainChance = dest.Definition.Properties.PainChance;
+            dest.Definition.Properties.PainChance = 0;
+            source.SetTarget(dest);
+            RunMissileState(source, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
+
+            dest.Target.Entity.Should().NotBeNull();
+            dest.Target.Entity.Should().Be(source);
+            dest.FrameState.FrameIndex.Should().Be(dest.Definition.SeeState);
+            dest.Definition.Properties.PainChance = savePainChance;
+        }
+
+        [Fact(DisplayName = "Monster fails to set to see state because it was set to pain state")]
+        public void FailsToSetSeeStateAfterDamage()
+        {
+            // This is a mistake where the pain state is set first. Then the game checked if the monsters was in the spawn state to move to the see state.
+            // If the monster hits the pain chance then it would never advance to the see state.
+            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
+            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
+
+            int savePainChance = dest.Definition.Properties.PainChance;
+            dest.Definition.Properties.PainChance = 255;
+            source.SetTarget(dest);
+            RunMissileState(source, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
+
+            dest.Target.Entity.Should().NotBeNull();
+            dest.Target.Entity.Should().Be(source);
+            dest.FrameState.FrameIndex.Should().Be(dest.Definition.PainState);
+            dest.Definition.Properties.PainChance = savePainChance;
+        }
+
         [Fact(DisplayName = "Monster infighting tests")]
         public void MonsterInfight()
         {
@@ -361,7 +396,7 @@ namespace Helion.Tests.Unit.GameAction
 
                 if (!string.IsNullOrEmpty(sourceData.MissileName) && missile == null)
                 {
-                    missile = GameActions.CreatedEntities.FirstOrDefault(x => x.Definition != null && x.Definition.Name.Equals(sourceData.MissileName));
+                    missile = GameActions.FindEntity(World, sourceData.MissileName);
                     if (missile != null)
                     {
                         missileVelocity = missile.Velocity;

@@ -15,6 +15,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Blockmap;
@@ -50,6 +51,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_spriteTransparency;
     private int m_lastTicker = -1;
     private int m_renderCount;
+    private int m_maxDistance;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
 
@@ -66,6 +68,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_viewClipper, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
+        m_maxDistance = config.Render.MaxDistance;
     }
 
     static int RenderObjectCompare(IRenderObject? x, IRenderObject? y)
@@ -201,14 +204,8 @@ public class LegacyWorldRenderer : WorldRenderer
                     m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
             }
 
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                if (entityNode.Value.BlockmapCount == m_renderData.CheckCount)
-                    continue;
-
-                entityNode.Value.BlockmapCount = m_renderData.CheckCount;
-                RenderEntity(entityNode.Value);
-            }
+            for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
+                RenderEntity(entity);
         }
 
         m_lastTicker = world.GameTicker;
@@ -232,17 +229,19 @@ public class LegacyWorldRenderer : WorldRenderer
 
         double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
         double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
-        if (dx * dx + dy * dy > m_renderData.MaxDistance * m_renderData.MaxDistance)
+        entity.LastRenderDistanceSquared = dx * dx + dy * dy;
+        if (entity.LastRenderDistanceSquared > m_renderData.MaxDistance * m_renderData.MaxDistance)
             return;
 
-        if ((m_spriteTransparency && entity.Definition.Properties.Alpha < 1) || entity.Definition.Flags.Shadow)
+        entity.LastRenderGametick = World.Gametick;
+        if ((m_spriteTransparency && entity.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPosInterpolated);
             m_alphaEntities.Add(entity);
             return;
         }
 
-        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);
+        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);     
     }
 
     void RenderSector(Sector sector)
@@ -257,6 +256,7 @@ public class LegacyWorldRenderer : WorldRenderer
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
         m_spriteTransparency = m_config.Render.SpriteTransparency;
+        m_maxDistance = m_config.Render.MaxDistance;
         Clear(world, renderInfo);
 
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
@@ -287,14 +287,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderAlpha(renderInfo);
 
-        if (m_config.Render.TextureTransparency)
-        {
-            m_interpolationProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetInterpolationUniforms(renderInfo, uniforms);
-            m_worldDataManager.DrawAlpha();
-            m_interpolationProgram.Unbind();
-        }
+        m_interpolationProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(renderInfo, uniforms);
+        m_worldDataManager.DrawAlpha();
+        m_interpolationProgram.Unbind();
         
         m_primitiveRenderer.Render(renderInfo);
     }
@@ -380,12 +377,11 @@ public class LegacyWorldRenderer : WorldRenderer
         if (box.Contains(position))
             return false;
 
-        if (m_config.Render.MaxDistance > 0)
+        if (m_maxDistance > 0)
         {
-            int max = m_config.Render.MaxDistance;
             double dx = Math.Max(box.Min.X - position.X, Math.Max(0, position.X - box.Max.X));
             double dy = Math.Max(box.Min.Y - position.Y, Math.Max(0, position.Y - box.Max.Y));
-            if (dx * dx + dy * dy > max * max)
+            if (dx * dx + dy * dy > m_maxDistance * m_maxDistance)
                 return true;
         }
 

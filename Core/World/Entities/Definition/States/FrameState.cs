@@ -4,6 +4,8 @@ using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using System;
+using System.Collections.Generic;
+using Helion.World;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -15,45 +17,42 @@ public struct FrameState
     private const int InfiniteLoopLimit = 10000;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public EntityFrame Frame;
-    private Entity m_entity;
-    private EntityDefinition m_definition;
-    private EntityManager m_entityManager;
-    private EntityFrameTable m_frameTable;
-    private bool m_destroyOnStop;
-    private int m_frameIndex;
-    private int m_tics;
+    private static int SlowTickOffsetChase;
+    private static int SlowTickOffsetLook;
+    private static int SlowTickOffsetTracer;
 
-    public int CurrentTick => m_tics;
+    public EntityFrame Frame;
+    private readonly Entity m_entity;
+    private readonly Dictionary<string, int> m_stateLabels;
+    private readonly bool m_destroyOnStop;
+
+    public int CurrentTick;
+    public int FrameIndex;
 
     public FrameState(Entity entity, EntityDefinition definition,
         EntityManager entityManager, bool destroyOnStop = true)
     {
         m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
-        m_entityManager = entityManager;
+        m_stateLabels = definition.States.Labels;
         m_destroyOnStop = destroyOnStop;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        Frame = WorldStatic.Frames[FrameIndex];
     }
 
     public FrameState(Entity entity, EntityDefinition definition,
         EntityManager entityManager, FrameStateModel frameStateModel)
     {
         m_entity = entity;
-        m_definition = definition;
-        m_frameTable = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
-        m_entityManager = entityManager;
-        m_frameIndex = frameStateModel.FrameIndex;
-        m_tics = frameStateModel.Tics;
+        m_stateLabels = definition.States.Labels;
+        FrameIndex = frameStateModel.FrameIndex;
+        CurrentTick = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        Frame = WorldStatic.Frames[FrameIndex];
     }
 
     public EntityFrame? GetStateFrame(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
-            return m_frameTable.Frames[index];
+        if (m_stateLabels.TryGetValue(label, out int index))
+            return WorldStatic.Frames[index];
 
         return null;
     }
@@ -61,75 +60,75 @@ public struct FrameState
     // Only for end game cast - really shouldn't be used.
     public void SetFrameIndexByLabel(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
             SetFrameIndexMember(index);
     }
 
     public void SetFrameIndex(int index)
     {
-        if (index < 0 || index >= m_frameTable.Frames.Count)
+        if (index < 0 || index >= WorldStatic.Frames.Count)
             return;
 
         SetFrameIndexMember(index);
-        SetFrameIndexInternal(index, null);
+        SetFrameIndexInternal(index);
     }
 
     public void SetFrameIndexNoAction(int index)
     {
-        if (index < 0 || index >= m_frameTable.Frames.Count)
+        if (index < 0 || index >= WorldStatic.Frames.Count)
             return;
 
         SetFrameIndexMember(index);
-        m_tics = Frame.Ticks;
+        CurrentTick = Frame.Ticks;
     }
 
-    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true, Action<EntityFrame>? onSet = null)
+    public bool SetState(string label, int offset = 0, bool warn = true, bool executeStateFunctions = true)
     {
         if (!executeStateFunctions)
             return SetStateNoAction(label, offset, warn);
 
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
-                SetFrameIndexInternal(index + offset, onSet);
+            if (index + offset >= 0 && index + offset < WorldStatic.Frames.Count)
+                SetFrameIndexInternal(index + offset);
             else
-                SetFrameIndexInternal(index, onSet);
+                SetFrameIndexInternal(index);
 
             return true;
         }
 
         if (warn)
-            Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
+            Log.Warn("Unable to find state label {0} for actor {1}", label, m_entity.Definition.Name);
 
         return false;
     }
 
     public bool SetStateNoAction(string label, int offset = 0, bool warn = true)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
+        if (m_stateLabels.TryGetValue(label, out int index))
         {
-            if (index + offset >= 0 && index + offset < m_frameTable.Frames.Count)
+            if (index + offset >= 0 && index + offset < WorldStatic.Frames.Count)
                 SetFrameIndexMember(index + offset);
             else
-                SetFrameIndexMember(m_frameIndex = index);
+                SetFrameIndexMember(FrameIndex = index);
 
-            m_tics = Frame.Ticks;
+            CurrentTick = Frame.Ticks;
             return true;
         }
 
         if (warn)
-            Log.Warn("Unable to find state label {0} for actor {1}", label, m_definition.Name);
+            Log.Warn("Unable to find state label {0} for actor {1}", label, m_entity.Definition.Name);
 
         return false;
     }
 
     public void SetState(EntityFrame entityFrame) =>
-        SetFrameIndexInternal(entityFrame.MasterFrameIndex, null);
+        SetFrameIndexInternal(entityFrame.MasterFrameIndex);
 
     public bool IsState(string label)
     {
-        if (m_definition.States.Labels.TryGetValue(label, out int index))
-            return m_frameIndex == index;
+        if (m_stateLabels.TryGetValue(label, out int index))
+            return FrameIndex == index;
 
         return false;
     }
@@ -138,35 +137,43 @@ public struct FrameState
     {
         if (tics < 1)
             tics = 1;
-        m_tics = tics;
+        CurrentTick = tics;
     }
 
     private void SetFrameIndexMember(int index)
     {
-        m_frameIndex = index;
-        Frame = m_frameTable.Frames[m_frameIndex];
+        FrameIndex = index;
+        Frame = WorldStatic.Frames[FrameIndex];
+        m_entity.IsClosetLook = Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex;
+        m_entity.IsClosetChase = Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex;
     }
 
-    private void SetFrameIndexInternal(int index, Action<EntityFrame>? onSet)
+    private void SetFrameIndexInternal(int index)
     {
         int loopCount = 0;
 
         while (true)
         {
             SetFrameIndexMember(index);
-            m_tics = Frame.Ticks;
+            CurrentTick = Frame.Ticks;
 
-            if (m_entity.World.IsFastMonsters && Frame.Properties.Fast)
-                m_tics /= 2;
+            if (WorldStatic.IsFastMonsters && Frame.Properties.Fast)
+                CurrentTick /= 2;
 
-            if (m_entity.World.SkillDefinition.SlowMonsters && Frame.Properties.Slow)
-                m_tics *= 2;
+            if (WorldStatic.IsSlowMonsters && Frame.Properties.Slow)
+                CurrentTick *= 2;
 
-            onSet?.Invoke(Frame);
+            CheckSlowTickDistance();
+            // Doom set the offsets only if misc1 wasn't zero. Only was applied through the player sprite code.
+            if (Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null)
+            {
+                m_entity.PlayerObj.WeaponOffset.X = Frame.DehackedMisc1;
+                m_entity.PlayerObj.WeaponOffset.Y = Frame.DehackedMisc2;
+            }
 
             if (m_destroyOnStop && Frame.IsNullFrame)
             {
-                m_entityManager.Destroy(m_entity);
+                WorldStatic.EntityManager.Destroy(m_entity);
                 return;
             }
 
@@ -178,7 +185,7 @@ public struct FrameState
             }
 
             Frame.ActionFunction?.Invoke(m_entity);
-            if (m_entity == null || m_frameIndex == Constants.NullFrameIndex)
+            if (m_entity == null || FrameIndex == Constants.NullFrameIndex)
                 return;
 
             if (Frame.BranchType == ActorStateBranch.Stop && Frame.Ticks >= 0)
@@ -195,6 +202,43 @@ public struct FrameState
         }
     }
 
+    private void CheckSlowTickDistance()
+    {
+        m_entity.SlowTickMultiplier = 1;
+        if (!WorldStatic.SlowTickEnabled || WorldStatic.SlowTickDistance <= 0)
+            return;
+
+        if (m_entity.InMonsterCloset)
+            return;
+
+        if (CurrentTick > 0 &&
+            (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
+            (m_entity.LastRenderDistanceSquared > WorldStatic.SlowTickDistance * WorldStatic.SlowTickDistance ||
+            m_entity.LastRenderGametick != m_entity.World.Gametick))
+        {
+            // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
+            // Sets to a range of -1 to +2
+            int offset = 0;
+            if (Frame.IsSlowTickChase && WorldStatic.SlowTickChaseMultiplier > 0)
+            {
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickChaseMultiplier;
+                offset = (SlowTickOffsetChase++ & 3) - 1;
+            }
+            else if (Frame.IsSlowTickLook && WorldStatic.SlowTickLookMultiplier > 0)
+            {
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickLookMultiplier;
+                offset = (SlowTickOffsetLook++ & 3) - 1;
+            }
+            else if (Frame.IsSlowTickTracer && WorldStatic.SlowTickTracerMultiplier > 0)
+            {
+                m_entity.SlowTickMultiplier = WorldStatic.SlowTickTracerMultiplier;
+                offset = (SlowTickOffsetTracer++ & 3) - 1;
+            }
+
+            CurrentTick *= m_entity.SlowTickMultiplier + offset;
+        }
+    }
+
     private void LogStackError()
     {
         string method = string.Empty;
@@ -206,20 +250,20 @@ public struct FrameState
 
     public void Tick()
     {
-        Precondition(m_frameIndex >= 0 && m_frameIndex < m_frameTable.Frames.Count, "Out of range frame index for entity");
-        if (m_tics == -1)
+        Precondition(FrameIndex >= 0 && FrameIndex < WorldStatic.Frames.Count, "Out of range frame index for entity");
+        if (CurrentTick == -1)
             return;
 
-        m_tics--;
-        if (m_tics <= 0)
+        CurrentTick--;
+        if (CurrentTick <= 0)
         {
             if (Frame.BranchType == ActorStateBranch.Stop && m_destroyOnStop)
             {
-                m_entityManager.Destroy(m_entity);
+                WorldStatic.EntityManager.Destroy(m_entity);
                 return;
             }
 
-            SetFrameIndexInternal(Frame.NextFrameIndex, null);
+            SetFrameIndexInternal(Frame.NextFrameIndex);
         }
     }
 
@@ -227,8 +271,8 @@ public struct FrameState
     {
         return new FrameStateModel()
         {
-            FrameIndex = m_frameIndex,
-            Tics = m_tics,
+            FrameIndex = FrameIndex,
+            Tics = CurrentTick,
             Destroy = m_destroyOnStop
         };
     }
@@ -239,8 +283,8 @@ public struct FrameState
             return false;
 
         return frameState.m_entity.Id == m_entity.Id &&
-            frameState.m_frameIndex == m_frameIndex &&
-            frameState.m_tics == m_tics &&
+            frameState.FrameIndex == FrameIndex &&
+            frameState.CurrentTick == CurrentTick &&
             frameState.m_destroyOnStop == m_destroyOnStop;
     }
 

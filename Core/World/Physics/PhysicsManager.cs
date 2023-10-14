@@ -16,7 +16,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
-using Helion.World.Sound;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
@@ -41,16 +40,15 @@ public class PhysicsManager
 
     public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
-    public BlockmapTraverser BlockmapTraverser { get; private set; }
+    public BlockmapTraverser BlockmapTraverser;
+    public TryMoveData TryMoveData = new();
 
     private readonly IWorld m_world;
     private readonly CompactBspTree m_bspTree;
     private readonly BlockMap m_blockmap;
     private readonly EntityManager m_entityManager;
-    private readonly WorldSoundManager m_soundManager;
     private readonly IRandom m_random;
     private readonly LineOpening m_lineOpening = new();
-    private readonly TryMoveData m_tryMoveData = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<Entity> m_onEntities = new();
@@ -58,16 +56,24 @@ public class PhysicsManager
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly int[] m_checkedBlockLines;
 
+    private MoveLinkData m_moveLinkData;
+    private CanPassData m_canPassData;
+    private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
+    private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
+    private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
+
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
     {
         m_world = world;
         m_bspTree = bspTree;
         m_blockmap = blockmap;
-        m_soundManager = world.SoundManager;
         m_entityManager = world.EntityManager;
         m_random = random;
-        BlockmapTraverser = new BlockmapTraverser(world, m_blockmap, world.DataCache);
+        BlockmapTraverser = new BlockmapTraverser(world, m_blockmap);
         m_checkedBlockLines = new int[m_world.Lines.Count];
+        m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
+        m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
+        m_canPassTraverseFunc = new(CanPassTraverse);
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
@@ -94,7 +100,7 @@ public class PhysicsManager
         if (!entity.Flags.NoBlockmap)
             m_blockmap.Link(entity);
 
-        m_world.RenderBlockmap.LinkSimple(entity);
+        m_world.RenderBlockmap.RenderLink(entity);
 
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.
@@ -189,7 +195,7 @@ public class PhysicsManager
             entity.PrevPosition.Z = entity.PrevSaveZ;
             // This allows the player to pickup items like the original
             if (entity.IsPlayer && !entity.Flags.NoClip)
-                IsPositionValid(entity, entity.Position.XY, m_tryMoveData);
+                IsPositionValid(entity, entity.Position.XY, TryMoveData);
 
             if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
                 (moveType == SectorPlaneFace.Floor && startZ > destZ))
@@ -293,28 +299,29 @@ public class PhysicsManager
             return true;
 
         GetEntityClampValues(entity, entity.IntersectMovementSectors, true, out Sector highestFloor, out _, out _, out _);
-        
+
         if (highestFloor == entity.HighestFloorSector)
             return true;
 
-        double height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+        m_moveLinkData.Entity = entity;
+        m_moveLinkData.Success = true;
+        m_moveLinkData.Height = highestFloor.ToFloorZ(entity.Position) + entity.Height;
 
-        for (int i = 0; i < intersections.Length; i++)
+        m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_sectorMoveLinkClampAction);
+        return m_moveLinkData.Success;
+    }
+
+    private GridIterationStatus HandleSectorMoveLinkClamp(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Solid || checkEntity.Flags.Corpse || checkEntity.Flags.NoClip || m_moveLinkData.Entity.Id == checkEntity.Id)
+            return GridIterationStatus.Continue;
+
+        if (m_moveLinkData.Height > checkEntity.Position.Z)
         {
-            Entity? intersectEntity = intersections[i].Entity;
-            if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
-                continue;
-
-            if (height > intersectEntity.Position.Z)
-            {
-                m_world.DataCache.FreeBlockmapIntersectList(intersections);
-                return false;
-            }
+            m_moveLinkData.Success = false;
+            return GridIterationStatus.Stop;
         }
-
-        m_world.DataCache.FreeBlockmapIntersectList(intersections);
-        return true;
+        return GridIterationStatus.Continue;
     }
 
     private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, Sector sector)
@@ -442,7 +449,7 @@ public class PhysicsManager
             {
                 Vec3D pos = crushEntity.Position;
                 pos.Z += crushEntity.Height / 2;
-                Entity? blood = m_entityManager.Create(crushEntity.GetBloodType(), pos);
+                Entity? blood = m_entityManager.Create(crushEntity.GetBloodDefinition(), pos, 0, 0, 0);
                 if (blood != null)
                 {
                     blood.Velocity.X += m_random.NextDiff() / 16.0;
@@ -625,7 +632,7 @@ public class PhysicsManager
 
         double prevHighestFloorZ = entity.HighestFloorZ;
         Entity? prevOnEntity = entity.OnEntity.Entity;
-        SetEntityBoundsZ(entity, intersectSectors, clampToLinkedSectors, m_onEntities);
+        SetEntityBoundsZ(entity, intersectSectors, clampToLinkedSectors);
         entity.SetOnEntity(null);
 
         double lowestCeil = entity.LowestCeilingZ;
@@ -672,7 +679,7 @@ public class PhysicsManager
         m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors, DynamicArray<Entity> onEntities)
+    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
@@ -683,7 +690,7 @@ public class PhysicsManager
         GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
-        if (m_world.Config.Compatibility.InfinitelyTallThings)
+        if (WorldStatic.InfinitelyTallThings)
         {
             entity.HighestFloorZ = highestFloorZ;
             entity.LowestCeilingZ = lowestCeilZ;
@@ -697,72 +704,22 @@ public class PhysicsManager
         // Only check against other entities if CanPass is set (height sensitive clip detection)
         if (entity.Flags.CanPass && !entity.Flags.NoClip)
         {
-            double entityTopZ = entity.TopZ;
+            m_canPassData.Entity = entity;
+            m_canPassData.HighestFloorEntity = highestFloorEntity;
+            m_canPassData.LowestCeilingEntity = lowestCeilingEntity;
+            m_canPassData.EntityTopZ = entity.TopZ;
+            m_canPassData.HighestFloorZ = highestFloorZ;
+            m_canPassData.LowestCeilZ = lowestCeilZ;
+            m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
+
             // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-            DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(entity.GetBox2D());
+            //m_world.BlockmapTraverser.GetSolidNonCorpseEntities(entity.GetBox2D(), entities);
+            m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
-            for (int i = 0; i < intersections.Length; i++)
-            {
-                Entity? intersectEntity = intersections[i].Entity;
-                if (intersectEntity == null || entity.Id == intersectEntity.Id || intersectEntity.Flags.NoClip)
-                    continue;
-
-                double intersectTopZ = intersectEntity.TopZ;
-                if (entity.Flags.Missile && m_world.Config.Compatibility.MissileClip)
-                    intersectTopZ = intersectEntity.GetMissileClipHeight(true);
-                bool above = entity.PrevPosition.Z >= intersectTopZ;
-                bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
-                bool clipped = false;
-                bool addedOnEntity = false;
-                if (above && entity.Position.Z < intersectTopZ)
-                    clipped = true;
-                else if (below && entityTopZ > intersectEntity.Position.Z)
-                    clipped = true;
-
-                if (!above && !below && !clampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
-                {
-                    entity.ClippedWithEntity = true;
-                    continue;
-                }
-
-                if (above)
-                {
-                    // Need to check clipping coming from above, if we're above
-                    // or clipped through then this is our floor.
-                    if ((clipped || entity.Position.Z >= intersectTopZ) && intersectTopZ >= highestFloorZ)
-                    {
-                        addedOnEntity = true;
-                        if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
-                            onEntities.Clear();
-
-                        highestFloorEntity = intersectEntity;
-                        highestFloorZ = intersectTopZ;
-                        onEntities.Add(highestFloorEntity);
-                    }
-                }
-                else if (below)
-                {
-                    // Same check as above but checking clipping the ceiling.
-                    if ((clipped || entityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < lowestCeilZ)
-                    {
-                        lowestCeilingEntity = intersectEntity;
-                        lowestCeilZ = intersectEntity.Position.Z;
-                    }
-                }
-
-                // Need to check if we can step up to this floor.
-                if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectTopZ && intersectTopZ >= highestFloorZ && !addedOnEntity)
-                {
-                    if (highestFloorEntity != null && highestFloorEntity.TopZ < highestFloorZ)
-                        onEntities.Clear();
-
-                    highestFloorEntity = intersectEntity;
-                    highestFloorZ = intersectTopZ;
-                    onEntities.Add(highestFloorEntity);
-                }
-            }
-
-            m_world.DataCache.FreeBlockmapIntersectList(intersections);
+            highestFloorEntity = m_canPassData.HighestFloorEntity;
+            lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
+            highestFloorZ = m_canPassData.HighestFloorZ;
+            lowestCeilZ = m_canPassData.LowestCeilZ;
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -779,6 +736,69 @@ public class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
+    }
+
+    private GridIterationStatus CanPassTraverse(Entity intersectEntity)
+    {
+        var entity = m_canPassData.Entity;
+        if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity.Id == intersectEntity.Id)
+            return GridIterationStatus.Continue;
+
+        double intersectTopZ = intersectEntity.TopZ;
+        if (entity.Flags.Missile && WorldStatic.MissileClip)
+            intersectTopZ = intersectEntity.GetMissileClipHeight(true);
+        bool above = entity.PrevPosition.Z >= intersectTopZ;
+        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
+        bool clipped = false;
+        bool addedOnEntity = false;
+        if (above && entity.Position.Z < intersectTopZ)
+            clipped = true;
+        else if (below && m_canPassData.EntityTopZ > intersectEntity.Position.Z)
+            clipped = true;
+
+        if (!above && !below && !m_canPassData.ClampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
+        {
+            entity.ClippedWithEntity = true;
+            return GridIterationStatus.Continue;
+        }
+
+        if (above)
+        {
+            // Need to check clipping coming from above, if we're above
+            // or clipped through then this is our floor.
+            if ((clipped || entity.Position.Z >= intersectTopZ) && intersectTopZ >= m_canPassData.HighestFloorZ)
+            {
+                addedOnEntity = true;
+                if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.TopZ < m_canPassData.HighestFloorZ)
+                    m_onEntities.Clear();
+
+                m_canPassData.HighestFloorEntity = intersectEntity;
+                m_canPassData.HighestFloorZ = intersectTopZ;
+                m_onEntities.Add(m_canPassData.HighestFloorEntity);
+            }
+        }
+        else if (below)
+        {
+            // Same check as above but checking clipping the ceiling.
+            if ((clipped || m_canPassData.EntityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < m_canPassData.LowestCeilZ)
+            {
+                m_canPassData.LowestCeilingEntity = intersectEntity;
+                m_canPassData.LowestCeilZ = intersectEntity.Position.Z;
+            }
+        }
+
+        // Need to check if we can step up to this floor.
+        if (entity.Position.Z + entity.GetMaxStepHeight() >= intersectTopZ && intersectTopZ >= m_canPassData.HighestFloorZ && !addedOnEntity)
+        {
+            if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.TopZ < m_canPassData.HighestFloorZ)
+                m_onEntities.Clear();
+
+            m_canPassData.HighestFloorEntity = intersectEntity;
+            m_canPassData.HighestFloorZ = intersectTopZ;
+            m_onEntities.Add(m_canPassData.HighestFloorEntity);
+        }
+
+        return GridIterationStatus.Continue;
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector> intersectSectors,
@@ -889,32 +909,32 @@ public class PhysicsManager
 
     public TryMoveData TryMoveXY(Entity entity, Vec2D position)
     {
-        m_tryMoveData.SetPosition(position);
+        TryMoveData.SetPosition(position);
         if (entity.Flags.NoClip)
         {
             HandleNoClip(entity, position);
-            m_tryMoveData.Success = true;
-            return m_tryMoveData;
+            TryMoveData.Success = true;
+            return TryMoveData;
         }
 
         Vec2D velocity = position - entity.Position.XY;
         if (velocity == Vec2D.Zero)
         {
-            m_tryMoveData.Success = true;
-            return m_tryMoveData;
+            TryMoveData.Success = true;
+            return TryMoveData;
         }
 
         if (entity.ClippedWithEntity && !entity.OnGround && entity.IsClippedWithEntity())
         {
-            m_tryMoveData.Success = false;
+            TryMoveData.Success = false;
             entity.Velocity = Vec3D.Zero;
-            return m_tryMoveData;
+            return TryMoveData;
         }
 
         if (entity.IsCrushing())
         {
-            m_tryMoveData.Success = false;
-            return m_tryMoveData;
+            TryMoveData.Success = false;
+            return TryMoveData;
         }
 
         // We advance in small steps that are smaller than the radius of
@@ -935,14 +955,14 @@ public class PhysicsManager
                 break;
 
             Vec2D nextPosition = entity.Position.XY + stepDelta;
-            if (IsPositionValid(entity, nextPosition, m_tryMoveData))
+            if (IsPositionValid(entity, nextPosition, TryMoveData))
             {
                 entity.MoveLinked = true;
-                MoveTo(entity, nextPosition, m_tryMoveData);
+                MoveTo(entity, nextPosition, TryMoveData);
                 if (entity.Flags.Teleport)
-                    return m_tryMoveData;
+                    return TryMoveData;
 
-                m_world.HandleEntityIntersections(entity, saveVelocity, m_tryMoveData);
+                m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
                 continue;
             }
 
@@ -952,7 +972,7 @@ public class PhysicsManager
                 // Carry them over so other functions after TryMoveXY can use them for verification.
                 var blockingLine = entity.BlockingLine;
                 var blockingEntity = entity.BlockingEntity;
-                HandleSlide(entity, ref stepDelta, ref movesLeft, m_tryMoveData);
+                HandleSlide(entity, ref stepDelta, ref movesLeft, TryMoveData);
                 entity.BlockingLine = blockingLine;
                 entity.BlockingEntity = blockingEntity;
                 if (slideBlockLine == null && blockingLine != null)
@@ -978,11 +998,11 @@ public class PhysicsManager
                 entity.BlockingEntity = slideBlockEntity;
             if (slideBlockLine != null && entity.BlockingLine == null)
                 entity.BlockingLine = slideBlockLine;
-            m_world.HandleEntityHit(entity, saveVelocity, m_tryMoveData);
+            m_world.HandleEntityHit(entity, saveVelocity, TryMoveData);
         }
 
-        m_tryMoveData.Success = success;
-        return m_tryMoveData;
+        TryMoveData.Success = success;
+        return TryMoveData;
     }
 
     private void StackedEntityMoveXY(Entity entity)
@@ -991,11 +1011,17 @@ public class PhysicsManager
             return;
 
         Box2D previousBox = new(entity.PrevPosition.XY, entity.Properties.Radius);
-        DynamicArray<BlockmapIntersect> intersections = BlockmapTraverser.GetSolidNonCorpseEntityIntersections(previousBox);
+        m_world.BlockmapTraverser.EntityTraverse(previousBox, m_stackEntityTraverseAction);
+    }
 
-        for (int i = 0; i < intersections.Length; i++)
-            ClampBetweenFloorAndCeiling(intersections[i].Entity!, intersections[i].Entity!.IntersectSectors, 
-                smoothZ: false, clampToLinkedSectors: intersections[i].Entity!.MoveLinked);
+    private GridIterationStatus HandleStackEntityTraverse(Entity entity)
+    {
+        if (!entity.Flags.Solid || entity.Flags.Corpse)
+            return GridIterationStatus.Continue;
+
+        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
+                smoothZ: false, clampToLinkedSectors: entity.MoveLinked);
+        return GridIterationStatus.Continue;
     }
 
     private void StackedEntityMoveZ(Entity entity)
@@ -1037,9 +1063,6 @@ public class PhysicsManager
         entity.SetXY(position);
         LinkToWorld(entity);
     }
-
-    public bool IsPositionValid(Entity entity, Vec2D position) =>
-        IsPositionValid(entity, position, m_tryMoveData);
 
     public unsafe bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
     {
@@ -1093,7 +1116,7 @@ public class PhysicsManager
                     {
                         tryMove.IntersectEntities2D.Add(nextEntity);
                         bool overlapsZ = entity.Flags.Missile ? 
-                            entity.OverlapsMissileClipZ(nextEntity, m_world.Config.Compatibility.MissileClip) : entity.OverlapsZ(nextEntity);
+                            entity.OverlapsMissileClipZ(nextEntity, WorldStatic.MissileClip) : entity.OverlapsZ(nextEntity);
 
                         // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
                         // This flag can be modified by dehacked
@@ -1190,13 +1213,13 @@ doneIsPositionValid:
         if (entity.Id == other.Id)
             return false;
 
-        if (m_world.Config.Compatibility.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
+        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
             return true;
 
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
             // This entity is higher than the other entity and requires step up checking
-            m_lineOpening.SetTop(tryMove, other, entity.Flags.Missile && m_world.Config.Compatibility.MissileClip);
+            m_lineOpening.SetTop(tryMove, other, entity.Flags.Missile && WorldStatic.MissileClip);
         }
         else
         {

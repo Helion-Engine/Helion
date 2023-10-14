@@ -339,16 +339,17 @@ public ref struct BlockmapBoxIterator<T>  where T : new()
 
     internal BlockmapBoxIterator(UniformGrid<T> grid, in Box2D box)
     {
-        m_blocks = grid.Blocks;
         m_blockUnitStart = ((box.Min - grid.Origin) / grid.Dimension).Int;
-        m_blockUnitEnd = ((box.Max - grid.Origin) / grid.Dimension).Ceiling().Int;
-        m_width = grid.Width;
+        m_blockUnitStart.X = Math.Max(0, m_blockUnitStart.X);
+        m_blockUnitStart.Y = Math.Max(0, m_blockUnitStart.Y);
 
+        m_blockUnitEnd = ((box.Max - grid.Origin) / grid.Dimension).Ceiling().Int;
+        m_blockUnitEnd.X = Math.Min(grid.Width, m_blockUnitEnd.X);
+        m_blockUnitEnd.Y = Math.Min(grid.Height, m_blockUnitEnd.Y);
+
+        m_blocks = grid.Blocks;
+        m_width = grid.Width;
         m_baseIndex = m_blockUnitStart.Y * m_width + m_blockUnitStart.X;
-        if (m_baseIndex < 0)
-            m_baseIndex += Math.Abs(m_baseIndex) / m_width * m_width;
-        if (m_baseIndex < 0)
-            m_baseIndex += m_width;
 
         m_y = m_blockUnitStart.Y;
         m_x = m_blockUnitStart.X;

@@ -175,20 +175,15 @@ public class LegacyAutomapRenderer : IDisposable
         if (player == null)
             return;
 
-        LinkableNode<Entity>? node = world.Entities.Head;
-        while (node != null)
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            if (node.Value.Definition.EditorId == (int)EditorId.MapMarker)
-                DrawEntity(node.Value, renderInfo.TickFraction);
+            if (entity.Definition.EditorId == (int)EditorId.MapMarker)
+                DrawEntity(entity, renderInfo.TickFraction);
 
             if (!player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
-            {
-                node = node.Next;
                 continue;
-            }
 
-            DrawEntity(node.Value, renderInfo.TickFraction);
-            node = node.Next;
+            DrawEntity(entity, renderInfo.TickFraction);
         }
     }
 

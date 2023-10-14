@@ -34,6 +34,8 @@ public class EntityDefinitionComposer
     private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new();
     private readonly DefinitionStateApplier m_definitionStateApplier = new();
 
+    public EntityDefinition? BulletPuffDefinition;
+
     public EntityDefinitionComposer(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
@@ -50,6 +52,8 @@ public class EntityDefinitionComposer
 
         foreach (ActorDefinition definition in replaceDefinitions)
             GetByName(definition.Name);
+
+        BulletPuffDefinition = GetByName("BulletPuff");
     }
 
     public EntityDefinition? GetByName(string name)

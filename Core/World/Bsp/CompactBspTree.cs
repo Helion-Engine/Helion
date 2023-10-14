@@ -138,10 +138,11 @@ public class CompactBspTree
     {
         uint nodeIndex = (uint)Nodes.Length - 1;
 
-        while (true)
+        fixed (BspNodeCompact* startNode = &Nodes[0])
         {
-            fixed (BspNodeCompact* node = &Nodes[nodeIndex])
+            while (true)
             {
+                BspNodeCompact* node = startNode + nodeIndex;
                 int next = Convert.ToInt32(node->Splitter.OnRight(point));
                 nodeIndex = node->Children[next];
 

@@ -13,6 +13,7 @@ using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Physics;
 using Helion.World.Sound;
 using Helion.World.StatusBar;
 using NLog;
@@ -647,7 +648,7 @@ public class Player : Entity
 
         if (TickCommand.ForwardMoveSpeed != 0 || TickCommand.SideMoveSpeed != 0)
         {
-            double moveFactor = World.GetMoveFactor(this);
+            double moveFactor = PhysicsManager.GetMoveFactor(this);
             movement.X *= moveFactor;
             movement.Y *= moveFactor;
         }
@@ -1215,16 +1216,7 @@ public class Player : Entity
 
     private void SetWeaponFrameState(Weapon weapon, string label)
     {
-        weapon.FrameState.SetState(label, onSet: OnSetWeaponFrameState);
-    }
-
-    private void OnSetWeaponFrameState(EntityFrame frame)
-    {
-        if (frame.DehackedMisc1 == 0)
-            return;
-
-        WeaponOffset.X = PrevWeaponOffset.X = frame.DehackedMisc1;
-        WeaponOffset.Y = PrevWeaponOffset.Y = frame.DehackedMisc2;
+        weapon.FrameState.SetState(label);
     }
 
     public void SetWeaponUp()

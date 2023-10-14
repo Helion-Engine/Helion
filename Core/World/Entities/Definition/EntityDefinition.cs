@@ -28,10 +28,14 @@ public class EntityDefinition
     public int? RaiseState;
     public int? SeeState;
     public int? PainState;
+    public int? HealState;
     public string? BaseInventoryName;
     public string DehackedName = string.Empty;
 
-    public EntityDefinition? MonsterSpeciesDefinition { get; set; }
+    public EntityFrame? HealFrame;
+
+    public EntityDefinition? MonsterSpeciesDefinition;
+    public EntityDefinition? BloodDefinition;
 
     private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

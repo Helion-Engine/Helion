@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Boxes;
+using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Models;
@@ -31,6 +32,7 @@ public class PushSpecial : ISpecial
     private readonly Vec3D m_pushFactor;
     private readonly double m_magnitude;
     private readonly Entity? m_pusher;
+    private readonly Func<Entity, GridIterationStatus> m_pushEntityAction;
 
     public bool OverrideEquals => true;
 
@@ -42,6 +44,7 @@ public class PushSpecial : ISpecial
         m_pushFactor = pushFactor.To3D(0);
         m_magnitude = pushFactor.Length();
         m_pusher = pusher;
+        m_pushEntityAction = new(PushEntity);
     }
 
     public ISpecialModel ToSpecialModel()
@@ -66,9 +69,7 @@ public class PushSpecial : ISpecial
         if (m_type == PushType.Push && m_pusher != null)
         {
             Box2D box = new(m_pusher.Position.XY, m_magnitude * 2);
-            var intersections = m_world.BlockmapTraverser.GetBlockmapIntersections(box, BlockmapTraverseFlags.Entities);
-            PushEntities(intersections);
-            m_world.DataCache.FreeBlockmapIntersectList(intersections);
+            m_world.BlockmapTraverser.EntityTraverse(box, m_pushEntityAction);
         }
         else
         {
@@ -103,29 +104,23 @@ public class PushSpecial : ISpecial
         return SpecialTickStatus.Continue;
     }
 
-    private void PushEntities(DynamicArray<BlockmapIntersect> intersections)
+    private GridIterationStatus PushEntity(Entity entity)
     {
-        if (m_pusher == null)
-            return;
+        if (ShouldNotPush(entity) || !m_world.CheckLineOfSight(entity, m_pusher))
+            return GridIterationStatus.Continue;
 
-        for (int i = 0; i < intersections.Length; i++)
-        {
-            BlockmapIntersect bi = intersections[i];
-            if (bi.Entity == null || ShouldNotPush(bi.Entity) || !m_world.CheckLineOfSight(bi.Entity, m_pusher))
-                continue;
+        double distance = entity.Position.XY.Distance(m_pusher.Position.XY);
+        double speed = (m_magnitude - (distance / 2)) * WindFactor;
 
-            double distance = bi.Entity.Position.XY.Distance(m_pusher.Position.XY);
-            double speed = (m_magnitude - (distance / 2)) * WindFactor;
+        if (speed <= 0)
+            return GridIterationStatus.Continue;
 
-            if (speed <= 0)
-                continue;
+        double angle = entity.Position.Angle(m_pusher.Position);
+        if (m_pusher.Definition.EditorId == (int)EditorId.PointPusher)
+            angle += Math.PI;
 
-            double angle = bi.Entity.Position.Angle(m_pusher.Position);
-            if (m_pusher.Definition.EditorId == (int)EditorId.PointPusher)
-                angle += Math.PI;
-
-            bi.Entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
-        }
+        entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
+        return GridIterationStatus.Continue;
     }
 
     private static bool ShouldNotPush(Entity entity) => !entity.IsPlayer || entity.Flags.NoClip || entity.Flags.NoGravity;
