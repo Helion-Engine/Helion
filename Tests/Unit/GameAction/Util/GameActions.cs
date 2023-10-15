@@ -393,7 +393,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public static bool GiveItem(Player player, string item)
         {
-            var def = player.World.EntityManager.DefinitionComposer.GetByName(item);
+            var def = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(item);
             if (def == null)
                 return false;
 

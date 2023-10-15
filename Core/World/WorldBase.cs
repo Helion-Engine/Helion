@@ -329,7 +329,11 @@ public abstract class WorldBase : IWorld
         PerformDispose();
     }
 
-    public void SetRandom(IRandom random) => m_random = random;
+    public void SetRandom(IRandom random)
+    {
+        WorldStatic.Random = random;
+        m_random = random;
+    }
 
     public virtual void Start(WorldModel? worldModel)
     {

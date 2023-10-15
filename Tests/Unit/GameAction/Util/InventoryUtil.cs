@@ -53,7 +53,7 @@ public static class InventoryUtil
 
     public static void AssertInventoryContains(Player player, string name)
     {
-        var def = player.World.EntityManager.DefinitionComposer.GetByName(name)!;
+        var def = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(name)!;
         def.Should().NotBeNull();
         player.Inventory.HasItem(name).Should().BeTrue();
         player.Inventory.HasItem(def).Should().BeTrue();
@@ -61,7 +61,7 @@ public static class InventoryUtil
 
     public static void AssertInventoryDoesNotContain(Player player, string name)
     {
-        var def = player.World.EntityManager.DefinitionComposer.GetByName(name)!;
+        var def = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(name)!;
         def.Should().NotBeNull();
         player.Inventory.HasItem(name).Should().BeFalse();
         player.Inventory.HasItem(def).Should().BeFalse();
@@ -69,7 +69,7 @@ public static class InventoryUtil
 
     public static void AssertAmount(Player player, string name, int amount)
     {
-        var def = player.World.EntityManager.DefinitionComposer.GetByName(name)!;
+        var def = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(name)!;
         def.Should().NotBeNull();
         player.Inventory.Amount(name).Should().Be(amount);
         player.Inventory.Amount(def).Should().Be(amount);
