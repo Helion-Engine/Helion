@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Audio.Sounds;
+using Helion.Menus.New.LoadSave;
 using Helion.Menus.New.NewGame;
 using Helion.Menus.New.Options;
+using Helion.Render.Common;
+using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.IWad;
@@ -15,18 +18,28 @@ namespace Helion.Menus.New;
 
 public class MainMenu : Menu
 {
-    private readonly List<Menu> m_children;
-    private int m_currentChildIndex; 
+    private readonly bool m_hasEpisodes;
+    private readonly bool m_hasReadThis;
+    private int m_currentChildIndex;
+    private int m_ticksAccumulated;
+    private readonly List<Menu> m_children = new();
 
     public MainMenu(IConfig config, ArchiveCollection archiveCollection, SoundManager soundManager) : 
         base(soundManager)
     {
-        m_children = new()
-        {
-            archiveCollection.IWadType.HasEpisodes() ? new NewGameEpisodeMenu(soundManager) : new NewGameSkillMenu(soundManager),
-            new OptionsMenu(config, soundManager),
-            new ExitMenu(soundManager)
-        };
+        m_hasEpisodes = archiveCollection.IWadType.HasEpisodes();
+        m_hasReadThis = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis;
+        
+        if (m_hasEpisodes)
+            m_children.Add(new NewGameEpisodeMenu(soundManager));
+        else
+            m_children.Add(new NewGameSkillMenu(soundManager));
+        m_children.Add(new OptionsMenu(config, soundManager));
+        m_children.Add(new LoadGameMenu(soundManager));
+        m_children.Add(new SaveGameMenu(soundManager));
+        if (m_hasReadThis)
+            m_children.Add(new ReadThisMenu(soundManager));
+        m_children.Add(new ExitMenu(soundManager));
     }
 
     public override bool HandleInput(IConsumableInput input, [NotNullWhen(true)] out Menu? newMenu)
@@ -58,11 +71,39 @@ public class MainMenu : Menu
 
     public override void RunLogic(TickerInfo tickerInfo)
     {
-        // TODO: Change skull icon if enough time has elapsed.
+        m_ticksAccumulated += tickerInfo.Ticks;
     }
 
     public override void Render(IHudRenderContext ctx)
     {
-        // TODO
+        const int SkullTickPeriod = 35;
+        const int PaddingY = 1;
+
+        ctx.DoomVirtualResolution(_ =>
+        {
+            ctx.Image("M_DOOM", (97, 2));
+            int y = m_hasEpisodes ? 64 : 72;
+
+            DrawRow("M_NGAME", 0, ref y);
+            DrawRow("M_OPTION", 1, ref y);
+            DrawRow("M_LOADG", 2, ref y);
+            DrawRow("M_SAVEG", 3, ref y);
+            if (m_hasReadThis)
+                DrawRow("M_RDTHIS", 4, ref y);
+            DrawRow("M_QUITG", m_hasReadThis ? 5 : 4, ref y);
+
+            void DrawRow(string imageName, int childIndex, ref int offsetY)
+            {
+                ctx.Image(imageName, (97, offsetY), out HudBox area);
+                
+                if (m_currentChildIndex == childIndex)
+                {
+                    string skullImage = m_ticksAccumulated % SkullTickPeriod < SkullTickPeriod / 2 ? "M_SKULL1" : "M_SKULL2";
+                    ctx.Image(skullImage, (87, offsetY), anchor: Align.TopRight);    
+                }
+                
+                offsetY += area.Height + PaddingY;
+            }
+        }, ctx);
     }
 }
