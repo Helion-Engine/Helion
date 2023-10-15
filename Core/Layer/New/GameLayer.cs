@@ -18,7 +18,7 @@ public abstract class GameLayer : IComparable<GameLayer>, IDisposable
     
     public int CompareTo(GameLayer? other)
     {
-        return Priority.CompareTo(other?.Priority ?? double.MaxValue);
+        return Priority.CompareTo(other?.Priority ?? int.MaxValue);
     }
 
     public virtual void Dispose()

@@ -12,7 +12,7 @@ namespace Helion.Layer.New.Menus;
 
 public class MenuLayer : GameLayer
 {
-    protected override double Priority => 0.3;
+    protected override double Priority => (double)LayerPriority.Menu;
     private readonly SoundManager m_soundManager;
     private readonly Stack<Menu> m_menus = new();
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);

@@ -10,11 +10,6 @@ public class GameLayerManager
 {
     private readonly List<GameLayer> m_layers = new();
 
-    private void ClearDisposedLayers()
-    {
-        m_layers.RemoveAll(l => l.IsDisposed);
-    }
-
     public void Add<TLayer>(TLayer layer) where TLayer : GameLayer
     {
         foreach (GameLayer existingLayer in m_layers.Where(l => l is TLayer))
@@ -25,11 +20,29 @@ public class GameLayerManager
 
         ClearDisposedLayers();
     }
-    
+
     public bool TryGet<TLayer>([NotNullWhen(true)] out TLayer? layer) where TLayer : GameLayer
     {
         layer = m_layers.FirstOrDefault(l => l is TLayer) as TLayer;
         return layer != null;
+    }
+
+    public bool HasLayer<TLayer>() where TLayer : GameLayer
+    {
+        return TryGet<TLayer>(out _);
+    }
+
+    public void Clear()
+    {
+        foreach (GameLayer layer in m_layers)
+            layer.Dispose();
+
+        m_layers.Clear();
+    }
+
+    private void ClearDisposedLayers()
+    {
+        m_layers.RemoveAll(l => l.IsDisposed);
     }
 
     public bool ShouldFocus()
