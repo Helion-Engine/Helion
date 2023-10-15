@@ -31,7 +31,7 @@ public class ConfirmMenu(SoundManager soundManager, Action<bool> confirmCallback
         for (int i = 0; i < messages.Length; i++)
         {
             string message = messages[i];
-            // TODO
+            // TODO: Draw the message
         }
     }
 }

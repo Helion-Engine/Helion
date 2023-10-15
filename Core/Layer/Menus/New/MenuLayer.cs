@@ -35,6 +35,7 @@ public class MenuLayer : IGameLayer
         if (menu.HandleInput(input, out Menu? newMenu))
             m_menus.Push(newMenu);
 
+        // This is after handling input from any menus in case the menu consumes Escape.
         if (input.ConsumeKeyPressed(Key.Escape))
         {
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
