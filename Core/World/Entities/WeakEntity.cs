@@ -24,7 +24,7 @@ public class WeakEntity
         if (entity == null)
             return Default;
 
-        var dataCache = entity.World.DataCache;
+        var dataCache = WorldStatic.DataCache;
         if (entity.Id >= dataCache.WeakEntities.Length)
         {
             WeakEntity?[] newEntities = new WeakEntity?[Math.Max(dataCache.WeakEntities.Length * 2, entity.Id * 2)];
@@ -49,10 +49,10 @@ public class WeakEntity
 
     public static void DisposeEntity(Entity entity)
     {
-        if (entity.Id >= entity.World.DataCache.WeakEntities.Length)
+        if (entity.Id >= WorldStatic.DataCache.WeakEntities.Length)
             return;
 
-        var weakEntity = entity.World.DataCache.WeakEntities[entity.Id];
+        var weakEntity = WorldStatic.DataCache.WeakEntities[entity.Id];
         if (weakEntity == null)
             return;
 

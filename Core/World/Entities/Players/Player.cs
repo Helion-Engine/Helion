@@ -102,12 +102,12 @@ public class Player : Entity
     public double ViewHeight;
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
-    public override int ProjectileKickBack => Weapon == null ? World.GameInfo.DefKickBack : Weapon.KickBack;
+    public override int ProjectileKickBack => Weapon == null ? WorldStatic.World.GameInfo.DefKickBack : Weapon.KickBack;
     public virtual bool IsCamera => false;
 
     public virtual bool DrawFullBright()
     {
-        if (World.Config.Render.Fullbright)
+        if (WorldStatic.World.Config.Render.Fullbright)
             return true;
 
         foreach (PowerupType powerupType in PowerupsWithBrightness)
@@ -121,7 +121,7 @@ public class Player : Entity
     }
 
     public bool DrawInvulnerableColorMap() => Inventory.PowerupEffectColorMap != null && Inventory.PowerupEffectColorMap.DrawPowerupEffect;
-    public int GetExtraLightRender() => World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
+    public int GetExtraLightRender() => WorldStatic.World.Config.Render.ExtraLight + (ExtraLight * Constants.ExtraLightFactor);
 
     public override double ViewZ => m_viewZ;
     public override SoundChannel WeaponSoundChannel => SoundChannel.Weapon;
@@ -243,8 +243,8 @@ public class Player : Entity
 
     private void SetPlayerInfo()
     {
-        Info.Name = World.Config.Player.Name;
-        Info.Gender = World.Config.Player.Gender;
+        Info.Name = WorldStatic.World.Config.Player.Name;
+        Info.Gender = WorldStatic.World.Config.Player.Gender;
     }
 
     public PlayerModel ToPlayerModel()
@@ -361,7 +361,7 @@ public class Player : Entity
 
     private void GiveItem(string name, int amount, out EntityDefinition? definition)
     {
-        definition = World.EntityManager.DefinitionComposer.GetByName(name);
+        definition = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
         if (definition == null)
             return;
 
@@ -409,7 +409,7 @@ public class Player : Entity
                 m_jumpTics = JumpDelayTicks;
 
             // Check if the player is landing where they started. Otherwise a normal jump would play the oof sound.
-            bool hardHit = (World.Gravity > 1 || Position.Z != m_jumpStartZ) && velocity.Z < -(World.Gravity * 8);
+            bool hardHit = (WorldStatic.World.Gravity > 1 || Position.Z != m_jumpStartZ) && velocity.Z < -(WorldStatic.World.Gravity * 8);
             if (hardHit && !Flags.NoGravity && !IsDead)
             {
                 PlayLandSound();
@@ -511,7 +511,7 @@ public class Player : Entity
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
-        if (!m_strafeCommand && !World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
+        if (!m_strafeCommand && !WorldStatic.World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
             playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -NotQuiteVertical, NotQuiteVertical);
@@ -620,24 +620,24 @@ public class Player : Entity
     }
 
     private bool IsMaxFpsTickRate() =>
-        World.Config.Render.MaxFPS != 0 && World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
+        WorldStatic.World.Config.Render.MaxFPS != 0 && WorldStatic.World.Config.Render.MaxFPS <= Constants.TicksPerSecond;
 
     protected bool ShouldInterpolate()
     {
         if (IsMaxFpsTickRate())
             return false;
 
-        if (World.Config.Mouse.Interpolate)
+        if (WorldStatic.World.Config.Mouse.Interpolate)
             return true;
 
-        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || World.PlayingDemo;
+        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || WorldStatic.World.PlayingDemo;
     }
 
     public void HandleTickCommand()
     {
         m_strafeCommand = TickCommand.Has(TickCommands.Strafe);
         if (TickCommand.Has(TickCommands.Use))
-            World.EntityUse(this);
+            WorldStatic.World.EntityUse(this);
 
         if (IsDead || IsFrozen)
             return;
@@ -825,15 +825,15 @@ public class Player : Entity
 
     private void SetBob()
     {
-        m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * World.Config.Hud.MoveBob;
+        m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * WorldStatic.World.Config.Hud.MoveBob;
         if (Weapon != null && Weapon.ReadyToFire)
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
-            double value = WeaponSwayMultiplier * World.LevelTime;
+            double value = WeaponSwayMultiplier * WorldStatic.World.LevelTime;
             BobOffset = (m_bob * Math.Cos(value % MathHelper.TwoPi), m_bob * Math.Sin(value % MathHelper.Pi));
         }
 
-        double angle = MathHelper.TwoPi / 20 * World.LevelTime % MathHelper.TwoPi;
+        double angle = MathHelper.TwoPi / 20 * WorldStatic.World.LevelTime % MathHelper.TwoPi;
         m_bob = m_bob / 2 * Math.Sin(angle);
     }
 
@@ -878,7 +878,7 @@ public class Player : Entity
 
         if (IsWeapon(definition))
         {
-            EntityDefinition? ammoDef = EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+            EntityDefinition? ammoDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
             if (ammoDef != null)
                 return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags, autoSwitchWeapon);
 
@@ -887,7 +887,7 @@ public class Player : Entity
 
         if (definition.IsType(Inventory.BackPackBaseClassName))
         {
-            Inventory.AddBackPackAmmo(EntityManager.DefinitionComposer);
+            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer);
             Inventory.Add(definition, invData.Amount, flags);
             return true;
         }
@@ -901,7 +901,7 @@ public class Player : Entity
     private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
     {
         int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
-        bool success = Inventory.Add(ammoDef, World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
+        bool success = Inventory.Add(ammoDef, WorldStatic.World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
         if (success && autoSwitchWeapon)
             CheckAutoSwitchAmmo(ammoDef, oldCount);
         return success;
@@ -909,7 +909,7 @@ public class Player : Entity
 
     public double GetForwardMovementSpeed()
     {
-        if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
+        if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
             return ForwardMovementSpeedRun;
 
         return ForwardMovementSpeedWalk;
@@ -917,7 +917,7 @@ public class Player : Entity
 
     public double GetSideMovementSpeed()
     {
-        if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
+        if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
             return SideMovementSpeedRun;
 
         return SideMovementSpeedWalk;
@@ -927,7 +927,7 @@ public class Player : Entity
     {
         if (TurnTics < SlowTurnTicks)
             return SlowTurnSpeed;
-        if (TickCommand.IsFastSpeed(World.Config.Game.AlwaysRun))
+        if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
             return FastTurnSpeed;
 
         return NormalTurnSpeed;
@@ -944,7 +944,7 @@ public class Player : Entity
         // Find matching armor definition when picking up armor bonus with no armor
         if (ArmorDefinition == null && isArmorBonus)
         {
-            IList<EntityDefinition> definitions = World.EntityManager.DefinitionComposer.GetEntityDefinitions();
+            IList<EntityDefinition> definitions = WorldStatic.EntityManager.DefinitionComposer.GetEntityDefinitions();
             EntityDefinition? armorDef = definitions.FirstOrDefault(x => x.Properties.Armor.SavePercent == definition.Properties.Armor.SavePercent &&
                 x.IsType(Inventory.BasicArmorPickupClassName));
 
@@ -1055,7 +1055,7 @@ public class Player : Entity
     {
         if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
         {
-            Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, EntityManager);
+            Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, WorldStatic.EntityManager);
             if (giveDefaultAmmo)
                 GiveItemBase(definition, flags, autoSwitch);
 
@@ -1111,7 +1111,7 @@ public class Player : Entity
         SetFireState();
 
         if (!Weapon.Definition.Flags.WeaponNoAlert)
-            World.NoiseAlert(this, this);
+            WorldStatic.World.NoiseAlert(this, this);
 
         return true;
     }
@@ -1211,7 +1211,7 @@ public class Player : Entity
         }
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
-            World.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, new SoundParams(this, channel: SoundChannel.Weapon));
+            WorldStatic.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, new SoundParams(this, channel: SoundChannel.Weapon));
 
         AnimationWeapon = PendingWeapon;
         Weapon = PendingWeapon;
@@ -1267,7 +1267,7 @@ public class Player : Entity
         if (Sector.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd && damage >= Health)
             damage = Health - 1;
 
-        damage = World.SkillDefinition.GetDamage(damage);
+        damage = WorldStatic.World.SkillDefinition.GetDamage(damage);
 
         bool damageApplied = base.Damage(source, damage, setPainState, damageType);
         if (damageApplied)
@@ -1287,29 +1287,29 @@ public class Player : Entity
         if (!IsDead)
         {
             if (Health < 26)
-                SoundManager.CreateSoundOn(this, "*pain25", new SoundParams(this));
+                WorldStatic.SoundManager.CreateSoundOn(this, "*pain25", new SoundParams(this));
             else if (Health < 51)
-                SoundManager.CreateSoundOn(this, "*pain50", new SoundParams(this));
+                WorldStatic.SoundManager.CreateSoundOn(this, "*pain50", new SoundParams(this));
             else if (Health < 76)
-                SoundManager.CreateSoundOn(this, "*pain75", new SoundParams(this));
+                WorldStatic.SoundManager.CreateSoundOn(this, "*pain75", new SoundParams(this));
             else
-                SoundManager.CreateSoundOn(this, "*pain100", new SoundParams(this));
+                WorldStatic.SoundManager.CreateSoundOn(this, "*pain100", new SoundParams(this));
         }
     }
 
     public void PlayGruntSound()
     {
-        SoundManager.CreateSoundOn(this, "*grunt", new SoundParams(this));
+        WorldStatic.SoundManager.CreateSoundOn(this, "*grunt", new SoundParams(this));
     }
 
     public void PlayUseFailSound()
     {
-        SoundManager.CreateSoundOn(this, "*usefail", new SoundParams(this));
+        WorldStatic.SoundManager.CreateSoundOn(this, "*usefail", new SoundParams(this));
     }
 
     public void PlayLandSound()
     {
-        SoundManager.CreateSoundOn(this, "*land", new SoundParams(this));
+        WorldStatic.SoundManager.CreateSoundOn(this, "*land", new SoundParams(this));
     }
 
     protected override void SetDeath(Entity? source, bool gibbed)
@@ -1362,7 +1362,7 @@ public class Player : Entity
         m_viewZ = MathHelper.Clamp(ViewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
     }
 
-    private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
+    private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
 
     public override bool Equals(object? obj)
     {

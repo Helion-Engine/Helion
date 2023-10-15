@@ -29,8 +29,7 @@ public struct FrameState
     public int CurrentTick;
     public int FrameIndex;
 
-    public FrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, bool destroyOnStop = true)
+    public FrameState(Entity entity, EntityDefinition definition,bool destroyOnStop = true)
     {
         m_entity = entity;
         m_stateLabels = definition.States.Labels;
@@ -38,8 +37,7 @@ public struct FrameState
         Frame = WorldStatic.Frames[FrameIndex];
     }
 
-    public FrameState(Entity entity, EntityDefinition definition,
-        EntityManager entityManager, FrameStateModel frameStateModel)
+    public FrameState(Entity entity, EntityDefinition definition, FrameStateModel frameStateModel)
     {
         m_entity = entity;
         m_stateLabels = definition.States.Labels;
@@ -214,7 +212,7 @@ public struct FrameState
         if (CurrentTick > 0 &&
             (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
             (m_entity.LastRenderDistanceSquared > WorldStatic.SlowTickDistance * WorldStatic.SlowTickDistance ||
-            m_entity.LastRenderGametick != m_entity.World.Gametick))
+            m_entity.LastRenderGametick != WorldStatic.World.Gametick))
         {
             // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick
             // Sets to a range of -1 to +2

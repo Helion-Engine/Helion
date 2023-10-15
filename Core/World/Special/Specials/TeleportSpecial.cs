@@ -183,11 +183,11 @@ public struct TeleportSpecial
         if (teleportEntity.IsPlayer)
             return true;
 
-        if (teleportEntity.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
+        if (WorldStatic.World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags))
             return true;
 
-        return teleportEntity.World.BlockmapTraverser.SolidBlockTraverse(teleportEntity, pos,
-            !teleportEntity.World.Config.Compatibility.InfinitelyTallThings);
+        return WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(teleportEntity, pos,
+            !WorldStatic.World.Config.Compatibility.InfinitelyTallThings);
     }
 
     public bool Use(Entity entity)

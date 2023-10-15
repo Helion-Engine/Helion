@@ -20,7 +20,7 @@ public class CameraPlayer : Player
 
     }
 
-    public override bool DrawFullBright() => World.Config.Render.Fullbright;
+    public override bool DrawFullBright() => WorldStatic.World.Config.Render.Fullbright;
 
     public override void Tick()
     {

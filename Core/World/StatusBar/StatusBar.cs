@@ -62,7 +62,7 @@ public class PlayerStatusBar
     {
         // Don't use the primary random for the status bar.
         // The status bar can run while the world is paused and would cause a demo desync.
-        m_random = m_player.World.SecondaryRandom.NextByte();
+        m_random = WorldStatic.World.SecondaryRandom.NextByte();
         UpdateFace();
     }
 

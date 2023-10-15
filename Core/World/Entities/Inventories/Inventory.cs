@@ -61,14 +61,14 @@ public class Inventory
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(owner.World.GameInfo.WeaponSlots);
+        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots);
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(owner.World.GameInfo.WeaponSlots);
+        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots);
 
         for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {
@@ -88,9 +88,9 @@ public class Inventory
             if (definition != null)
             {
                 if (weaponName.Equals(playerModel.AnimationWeapon, StringComparison.OrdinalIgnoreCase))
-                    Weapons.Add(definition, owner, owner.World.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
+                    Weapons.Add(definition, owner, WorldStatic.EntityManager, playerModel.AnimationWeaponFrame, playerModel.WeaponFlashFrame);
                 else
-                    Weapons.Add(definition, owner, owner.World.EntityManager);
+                    Weapons.Add(definition, owner, WorldStatic.EntityManager);
             }
         }
 

@@ -30,7 +30,7 @@ public class Subsector
     {
         Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
 
-        LinkableNode<Entity> node = entity.World.DataCache.GetLinkableNodeEntity(entity);
+        LinkableNode<Entity> node = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
         Entities.Add(node);
         return node;
     }

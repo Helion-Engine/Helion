@@ -24,7 +24,7 @@ public class Weapon : InventoryItem, ITickable
 
     private bool m_tryingToFire;
 
-    public int KickBack => Definition.Properties.Weapons.DefaultKickBack ? Owner.World.GameInfo.DefKickBack : 
+    public int KickBack => Definition.Properties.Weapons.DefaultKickBack ? WorldStatic.World.GameInfo.DefKickBack : 
         Definition.Properties.Weapons.KickBack;
 
     public Weapon(EntityDefinition definition, Player owner, EntityManager entityManager,
@@ -36,16 +36,16 @@ public class Weapon : InventoryItem, ITickable
         Owner = owner;
 
         if (frameStateModel == null)
-            FrameState = new FrameState(owner, definition, entityManager, false);
+            FrameState = new FrameState(owner, definition, false);
         else
-            FrameState = new FrameState(owner, definition, entityManager, frameStateModel);
+            FrameState = new FrameState(owner, definition, frameStateModel);
 
         if (flashStateModel == null)
-            FlashState = new FrameState(owner, definition, entityManager, false);
+            FlashState = new FrameState(owner, definition, false);
         else
-            FlashState = new FrameState(owner, definition, entityManager, flashStateModel);
+            FlashState = new FrameState(owner, definition, flashStateModel);
 
-        AmmoDefinition = owner.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+        AmmoDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
         if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))
             AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
         else

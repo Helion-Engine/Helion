@@ -429,7 +429,7 @@ public class SinglePlayerWorld : WorldBase
     {
         Player player = GetCameraPlayer();
 
-        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (player.World.PlayingDemo && !player.IsCamera))
+        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (WorldStatic.World.PlayingDemo && !player.IsCamera))
             return;
 
         Vec2I pixelsMoved = input.ConsumeMouseMove();

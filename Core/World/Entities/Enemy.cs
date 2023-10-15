@@ -54,7 +54,7 @@ public partial class Entity
             if (Flags.Ambush)
             {
                 // Ambush enemies will set target based on SoundTarget reguardless of FOV.
-                if (EntityManager.World.CheckLineOfSight(this, Sector.SoundTarget.Entity))
+                if (WorldStatic.World.CheckLineOfSight(this, Sector.SoundTarget.Entity))
                     newTarget = Sector.SoundTarget.Entity;
             }
             else
@@ -88,7 +88,7 @@ public partial class Entity
 
     public void SetClosetLook()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex);
+        FrameState.SetFrameIndex(WorldStatic.World.ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex);
         AddFrameTicks(ClosetLookCount);
         ClosetLookCount++;
     }
@@ -100,7 +100,7 @@ public partial class Entity
 
     public void SetClosetChase()
     {
-        FrameState.SetFrameIndex(World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex);
+        FrameState.SetFrameIndex(WorldStatic.World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex);
         AddFrameTicks(ClosetChaseCount);
         ClosetChaseCount++;
     }
@@ -128,13 +128,13 @@ public partial class Entity
         Entity? newTarget;
         if (Flags.Friendly)
         {
-            newTarget = EntityManager.World.GetLineOfSightEnemy(this, allaround);
+            newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allaround);
             if (newTarget == null)
-                newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+                newTarget = WorldStatic.World.GetLineOfSightPlayer(this, allaround);
         }
         else
         {
-            newTarget = EntityManager.World.GetLineOfSightPlayer(this, allaround);
+            newTarget = WorldStatic.World.GetLineOfSightPlayer(this, allaround);
         }
 
         return newTarget;
@@ -325,7 +325,7 @@ public partial class Entity
 
         Vec2D nextPos = GetNextEnemyPos();
         bool isMoving = Position.XY != nextPos;
-        tryMove = World.PhysicsManager.TryMoveXY(this, nextPos);
+        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, nextPos);
         if (Flags.Teleport)
             return true;
 
@@ -409,7 +409,7 @@ public partial class Entity
         if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
             return false;
 
-        if (!EntityManager.World.CheckLineOfSight(this, entity))
+        if (!WorldStatic.World.CheckLineOfSight(this, entity))
             return false;
 
         return true;
@@ -417,7 +417,7 @@ public partial class Entity
 
     public bool CheckMissileRange()
     {
-        if (Target.Entity == null || IsFriend(Target.Entity) || !EntityManager.World.CheckLineOfSight(this, Target.Entity))
+        if (Target.Entity == null || IsFriend(Target.Entity) || !WorldStatic.World.CheckLineOfSight(this, Target.Entity))
             return false;
 
         if (Flags.JustHit)
@@ -459,7 +459,7 @@ public partial class Entity
             if (tryMove != null && tryMove.ImpactSpecialLines.Length > 0)
             {
                 for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                    World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
+                    WorldStatic.World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
             }
 
             return false;

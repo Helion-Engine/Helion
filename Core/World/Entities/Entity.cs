@@ -50,10 +50,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public EntityFlags Flags;
     public EntityDefinition Definition;
     public EntityProperties Properties;
-    public EntityManager EntityManager;
     public FrameState FrameState;
-    public IWorld World;
-    public WorldSoundManager SoundManager;
     public double AngleRadians;
     public Vec3D PrevPosition;
     public Vec3D Position;
@@ -83,11 +80,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public SectorPlane? BlockingSectorPlane;
     // Possible line with middle texture clipping player's view.
     public bool ViewLineClip;
-    public WeakEntity Target { get; private set; } = WeakEntity.Default;
-    public WeakEntity Tracer { get; private set; } = WeakEntity.Default;
-    public WeakEntity OnEntity { get; private set; } = WeakEntity.Default;
-    public WeakEntity OverEntity { get; private set; } = WeakEntity.Default;
-    public WeakEntity Owner { get; private set; } = WeakEntity.Default;
+    public WeakEntity Target = WeakEntity.Default;
+    public WeakEntity Tracer = WeakEntity.Default;
+    public WeakEntity OnEntity = WeakEntity.Default;
+    public WeakEntity OverEntity  = WeakEntity.Default;
+    public WeakEntity Owner = WeakEntity.Default;
     public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
@@ -141,15 +138,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Entity()
     {
         Definition = null!;
-        EntityManager = null!;
         HighestFloorObject = null!;
         HighestFloorSector = null!;
         LowestCeilingObject = null!;
         LowestCeilingSector = null!;
         Sector = null!;
         Properties = null!;
-        SoundManager = null!;
-        World = null!;
     }
 
     public void Set(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
@@ -165,10 +159,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Properties = definition.Properties;
         Threshold = Properties.Threshold;
         ReactionTime = Properties.ReactionTime;
-
-        World = world;
-        EntityManager = world.EntityManager;
-        SoundManager = world.SoundManager;
 
         AngleRadians = angleRadians;
         Height = definition.Properties.Height;
@@ -188,7 +178,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Alpha = (float)Properties.Alpha;
 
-        FrameState = new(this, definition, world.EntityManager);
+        FrameState = new(this, definition);
     }
 
     public void Set(EntityModel entityModel, EntityDefinition definition, IWorld world)
@@ -204,10 +194,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Health = entityModel.Health;
         Armor = entityModel.Armor;
-
-        World = world;
-        EntityManager = world.EntityManager;
-        SoundManager = world.SoundManager;
 
         AngleRadians = entityModel.AngleRadians;
 
@@ -234,11 +220,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector;
 
         if (entityModel.ArmorDefinition != null)
-            ArmorDefinition = EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+            ArmorDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
         Alpha = (float)Properties.Alpha;
 
-        FrameState = new(this, definition, EntityManager, entityModel.Frame);
+        FrameState = new(this, definition, entityModel.Frame);
         InMonsterCloset = IsClosetChase || IsClosetLook;
     }
 
@@ -320,11 +306,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
         {
-            Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName(Definition.Properties.BloodType);
+            Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(Definition.Properties.BloodType);
             return Definition.BloodDefinition;
         }
 
-        Definition.BloodDefinition = World.EntityManager.DefinitionComposer.GetByName("BLOOD");
+        Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName("BLOOD");
         return Definition.BloodDefinition;
     }
 
@@ -375,7 +361,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             LinkableNode<Entity> node = SectorNodes[i];
             node.Unlink();
-            World.DataCache.FreeLinkableNodeEntity(node);
+            WorldStatic.DataCache.FreeLinkableNodeEntity(node);
             SectorNodes.Data[i] = null!;
         }
         SectorNodes.Clear();
@@ -384,7 +370,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             LinkableNode<Entity> node = BlockmapNodes[i];
             node.Unlink();
-            World.DataCache.FreeLinkableNodeEntity(node);
+            WorldStatic.DataCache.FreeLinkableNodeEntity(node);
             BlockmapNodes.Data[i] = null!;
         }
         BlockmapNodes.Clear();
@@ -431,7 +417,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (MoveCount < WorldStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
                 return;
 
-            if ((World.LevelTime & 31) != 0)
+            if ((WorldStatic.World.LevelTime & 31) != 0)
                 return;
 
             if (WorldStatic.Random.NextByte() > 4)
@@ -560,7 +546,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound,
+        WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound,
             new SoundParams(this, attenuation: attenuation, type: SoundType.See));
     }
 
@@ -570,20 +556,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return;
 
         Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
-        SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound,
+        WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound,
             new SoundParams(this, attenuation: attenuation));
     }
 
     public void PlayAttackSound()
     {
         if (Properties.AttackSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, new SoundParams(this));
+            WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.AttackSound, new SoundParams(this));
     }
 
     public void PlayActiveSound()
     {
         if (Properties.ActiveSound.Length > 0)
-            SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound,
+            WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.ActiveSound,
                 new SoundParams(this, type: SoundType.Active));
     }
 
@@ -596,7 +582,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         EntityDefinition speciesDef = Definition;
         for (int i = 0; i < Definition.ParentClassNames.Count; i++)
         {
-            var def = EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
+            var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
             if (def == null || !def.Flags.IsMonster)
                 continue;
 
@@ -614,9 +600,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (damageSource.IsPlayer)
             return true;
 
-        if (World.MapInfo.HasOption(MapOptions.TotalInfighting))
+        if (WorldStatic.World.MapInfo.HasOption(MapOptions.TotalInfighting))
             return true;
-        if (World.MapInfo.HasOption(MapOptions.NoInfighting))
+        if (WorldStatic.World.MapInfo.HasOption(MapOptions.NoInfighting))
             return false;
 
         if (damageType == DamageType.AlwaysApply)
@@ -734,7 +720,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void GetIntersectingEntities3D(in Vec3D position, DynamicArray<Entity> entities, bool shootable)
     {
-        World.BlockmapTraverser.SolidBlockTraverse(this, position, !World.Config.Compatibility.InfinitelyTallThings, entities, shootable);
+        WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(this, position, !WorldStatic.World.Config.Compatibility.InfinitelyTallThings, entities, shootable);
     }
 
     public bool CanBlockEntity(Entity other)
@@ -783,18 +769,18 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!Flags.Solid)
             return false;
 
-        DynamicArray<Entity> entities = World.DataCache.GetEntityList();
-        World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
+        DynamicArray<Entity> entities = WorldStatic.DataCache.GetEntityList();
+        WorldStatic.World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
         for (int i = 0; i < entities.Length; i++)
         {
             if (entities[i].OverlapsZ(this))
             {
-                World.DataCache.FreeEntityList(entities);
+                WorldStatic.DataCache.FreeEntityList(entities);
                 return true;
             }
         }
 
-        World.DataCache.FreeEntityList(entities);
+        WorldStatic.DataCache.FreeEntityList(entities);
         return false;
     }
 
@@ -842,7 +828,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (BlockingEntity != null)
             {
                 int damage = Properties.Damage.Get(WorldStatic.Random);
-                World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                WorldStatic.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 
             // Bounce off plane if it's the only thing blocking
@@ -920,13 +906,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         WeakEntity.DisposeEntity(this);
 
-        if (World.DataCache.FreeEntity(this))
-        {
-            World = null!;
-            EntityManager = null!;
-            SoundManager = null!;
+        if (WorldStatic.DataCache.FreeEntity(this))
             Definition = null!;
-        }
 
         Velocity = Vec3D.Zero;
 
@@ -955,11 +936,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     private void Unlink()
     {
-        if (this == EntityManager.Head)
+        if (this == WorldStatic.EntityManager.Head)
         {
-            EntityManager.Head = Next;
-            if (EntityManager.Head != null)
-                EntityManager.Head.Previous = null;
+            WorldStatic.EntityManager.Head = Next;
+            if (WorldStatic.EntityManager.Head != null)
+                WorldStatic.EntityManager.Head.Previous = null;
             Next = null;
             Previous = null;
             return;
@@ -991,7 +972,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
                 Flags.NoGravity = false;
         }
 
-        World.HandleEntityDeath(this, source, gibbed);
+        WorldStatic.World.HandleEntityDeath(this, source, gibbed);
     }
 
     [Conditional("DEBUG")]

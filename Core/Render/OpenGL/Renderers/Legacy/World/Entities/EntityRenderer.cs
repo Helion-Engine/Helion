@@ -308,7 +308,7 @@ public class EntityRenderer
         
         mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
         mat4 mvpNoPitch = Renderer.CalculateMvpMatrix(renderInfo, true);
-        float fuzzFrac = (((renderInfo.ViewerEntity.World.GameTicker / TicksPerFrame) % DifferentFrames)) + 1;
+        float fuzzFrac = (((WorldStatic.World.GameTicker / TicksPerFrame) % DifferentFrames)) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;

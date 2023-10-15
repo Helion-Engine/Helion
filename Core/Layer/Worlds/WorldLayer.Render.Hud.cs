@@ -131,7 +131,7 @@ public partial class WorldLayer
 
     private void DrawPause(IHudRenderContext hud)
     {
-        if (!Player.World.DrawPause)
+        if (!WorldStatic.World.DrawPause)
             return;
 
         hud.DoomVirtualResolution(m_virtualDrawPauseAction, hud);
@@ -227,7 +227,7 @@ public partial class WorldLayer
 
     private void DrawHudEffects(IHudRenderContext hud)
     {
-        if (!Player.World.DrawHud)
+        if (!WorldStatic.World.DrawHud)
             return;
 
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
@@ -292,7 +292,7 @@ public partial class WorldLayer
 
     private void DrawBottomHud(IHudRenderContext hud, int topRightY, HudRenderContext hudContext)
     {
-        if (!Player.World.DrawHud)
+        if (!WorldStatic.World.DrawHud)
             return;
 
         if (Player.AnimationWeapon != null && !m_drawAutomap)

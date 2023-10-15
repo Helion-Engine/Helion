@@ -427,7 +427,7 @@ public class LegacyWorldRenderer : WorldRenderer
         const int TicksPerFrame = 4;
         const int DifferentFrames = 8;
 
-        float timeFrac = ((renderInfo.ViewerEntity.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
+        float timeFrac = ((WorldStatic.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;

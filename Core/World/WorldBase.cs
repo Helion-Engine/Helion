@@ -186,9 +186,6 @@ public abstract class WorldBase : IWorld
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
         SpecialManager = new SpecialManager(this, m_random);
 
-        WorldStatic.EntityManager = EntityManager;
-        WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
-
         WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
@@ -199,6 +196,31 @@ public abstract class WorldBase : IWorld
         m_lineOfSightEnemyAction = new(HandleLineOfSightEnemy);
         SetCompatibilityOptions(mapInfoDef);
 
+        RegisterConfigChanges();
+        SetWorldStatic();
+
+        if (worldModel != null)
+        {
+            WorldState = worldModel.WorldState;
+            Gametick = worldModel.Gametick;
+            LevelTime = worldModel.LevelTime;
+            m_soundCount = worldModel.SoundCount;
+            Gravity = worldModel.Gravity;
+            Random.Clone(worldModel.RandomIndex);
+            CurrentBossTarget = worldModel.CurrentBossTarget;
+            GlobalData.VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps);
+            GlobalData.TotalTime = worldModel.TotalTime;
+            LevelStats.TotalMonsters = worldModel.TotalMonsters;
+            LevelStats.TotalItems = worldModel.TotalItems;
+            LevelStats.TotalSecrets = worldModel.TotalSecrets;
+            LevelStats.KillCount = worldModel.KillCount;
+            LevelStats.ItemCount = worldModel.ItemCount;
+            LevelStats.SecretCount = worldModel.SecretCount;
+        }
+    }
+
+    private void RegisterConfigChanges()
+    {
         Config.SlowTick.Enabled.OnChanged += SlowTickEnabled_OnChanged;
         Config.SlowTick.ChaseFailureSkipCount.OnChanged += SlowTickChaseFailureSkipCount_OnChanged;
         Config.SlowTick.Distance.OnChanged += SlowTickDistance_OnChanged;
@@ -209,7 +231,16 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
+    }
 
+    private void SetWorldStatic()
+    {
+        WorldStatic.World = this;
+        WorldStatic.DataCache = DataCache;
+        WorldStatic.EntityManager = EntityManager;
+        WorldStatic.SoundManager = SoundManager;
+        WorldStatic.EntityManager = EntityManager;
+        WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
         WorldStatic.Random = Random;
         WorldStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
         WorldStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
@@ -237,25 +268,6 @@ public abstract class WorldBase : IWorld
         WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByName("SpawnShot");
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
-
-        if (worldModel != null)
-        {
-            WorldState = worldModel.WorldState;
-            Gametick = worldModel.Gametick;
-            LevelTime = worldModel.LevelTime;
-            m_soundCount = worldModel.SoundCount;
-            Gravity = worldModel.Gravity;
-            Random.Clone(worldModel.RandomIndex);
-            CurrentBossTarget = worldModel.CurrentBossTarget;
-            GlobalData.VisitedMaps = GetVisitedMaps(worldModel.VisitedMaps);
-            GlobalData.TotalTime = worldModel.TotalTime;
-            LevelStats.TotalMonsters = worldModel.TotalMonsters;
-            LevelStats.TotalItems = worldModel.TotalItems;
-            LevelStats.TotalSecrets = worldModel.TotalSecrets;
-            LevelStats.KillCount = worldModel.KillCount;
-            LevelStats.ItemCount = worldModel.ItemCount;
-            LevelStats.SecretCount = worldModel.SecretCount;
-        }
     }
 
     private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
@@ -2191,7 +2203,7 @@ public abstract class WorldBase : IWorld
         healChaseEntity.FrameState.SetState(m_healChaseData.HealState);
 
         if (m_healChaseData.HealSound.Length > 0)
-            entity.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
+            WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
         entity.SetRaiseState();
         entity.Flags.Friendly = healChaseEntity.Flags.Friendly;

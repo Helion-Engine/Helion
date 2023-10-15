@@ -204,7 +204,7 @@ sightTraverseEndOfLoop:
                         continue;
                     if (entity.Definition.RaiseState == null || entity.FrameState.Frame.Ticks != -1 || entity.IsPlayer)
                         continue;
-                    if (entity.World.IsPositionBlockedByEntity(entity, entity.Position))
+                    if (WorldStatic.World.IsPositionBlockedByEntity(entity, entity.Position))
                         continue;
 
                     entity.BlockmapCount = checkCounter;

@@ -376,7 +376,7 @@ public class LegacyAutomapRenderer : IDisposable
         else if (flash)
         {
             // Draw a square for keys, make it flash
-            if (entity.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            if (WorldStatic.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
                 AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
         }
         else if (entity.IsPlayer)

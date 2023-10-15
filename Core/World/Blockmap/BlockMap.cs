@@ -63,7 +63,7 @@ public class BlockMap
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
                 Block block = m_blocks[by * it.Width + bx];
-                LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
+                LinkableNode<Entity> blockEntityNode = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
                 block.Entities.Add(blockEntityNode);
                 entity.BlockmapNodes.Add(blockEntityNode);
             }
