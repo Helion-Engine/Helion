@@ -3,21 +3,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Helion.Audio.Sounds;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
-using Helion.Layer.Menus.New;
+using Helion.Layer.Menus;
 using Helion.Layer.Worlds;
 using Helion.Menus.Impl;
-using Helion.Menus.New.LoadSave;
-using Helion.Menus.New.Misc;
+using Helion.Models;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
@@ -318,7 +321,7 @@ public class GameLayerManager : IGameLayerManager
     {
         m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
 
-        MenuLayer menuLayer = new(this, m_config, m_archiveCollection, m_soundManager);
+        MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
         Add(menuLayer);
     }
 
@@ -327,15 +330,12 @@ public class GameLayerManager : IGameLayerManager
         if (MenuLayer == null)
             CreateMenuLayer();
 
-        if (isSave)
-            MenuLayer?.ClearAndUse(new SaveGameMenu(m_soundManager));
-        else
-            MenuLayer?.ClearAndUse(new LoadGameMenu(m_soundManager));
+        MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave, true);
     }
 
     public void QuickSave()
     {
-        if (WorldLayer == null || !LastSave.HasValue)
+        if (WorldLayer == null  || !LastSave.HasValue)
         {
             GoToSaveOrLoadMenu(true);
             return;
@@ -343,22 +343,22 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Game.QuickSaveConfirm)
         {
-            if (MenuLayer == null)
-                CreateMenuLayer();
+            MessageMenu confirm = new MessageMenu(m_config, m_console, m_soundManager, m_archiveCollection,
+                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save",  "Press Y to confirm." },
+                isYesNoConfirm: true, clearMenus: true);
+            confirm.Cleared += Confirm_Cleared;
 
-            ConfirmMenu confirmMenu = new(m_soundManager, Confirm_Cleared,
-                $"Are you sure you want to overwrite: {LastSave.Value.SaveGame.Model?.Text ?? "Save"}", 
-                "Press Y to confirm.");
-            MenuLayer?.ClearAndUse(confirmMenu);
+            CreateMenuLayer();
+            MenuLayer?.ShowMessage(confirm);
             return;
         }
 
         WriteQuickSave();
     }
 
-    private void Confirm_Cleared(bool result)
+    private void Confirm_Cleared(object? sender, bool e)
     {
-        if (!result || !LastSave.HasValue)
+        if (!e || !LastSave.HasValue)
             return;
 
         WriteQuickSave();
