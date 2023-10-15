@@ -86,7 +86,6 @@ public interface IWorld : IDisposable
     DataCache DataCache { get; }
     Player Player { get; }
     bool IsFastMonsters { get; }
-    int CheckCounter { get; set; }
     bool IsChaseCamMode { get; }
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }

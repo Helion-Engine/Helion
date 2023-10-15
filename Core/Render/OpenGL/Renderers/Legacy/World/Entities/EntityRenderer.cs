@@ -41,7 +41,6 @@ public class EntityRenderer
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
-    private int m_renderCounter;
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
     private bool m_singleVertex;
@@ -70,7 +69,6 @@ public class EntityRenderer
     {
         m_dataManager.Clear();
         m_renderPositions.Clear();
-        m_renderCounter++;
         m_singleVertex = m_config.Render.SingleVertexSprites;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
@@ -129,7 +127,7 @@ public class EntityRenderer
 
     public bool ShouldNotDraw(Entity entity)
     {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.RenderedCounter == m_renderCounter || entity.Id == m_viewerEntityId;
+        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId;
     }
 
     private void AddSpriteQuadSingleVertex(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
@@ -301,7 +299,6 @@ public class EntityRenderer
             AddSpriteQuadSingleVertex(entity, texture, lightLevel, spriteRotation.Mirror, nudgeAmount);
         else
             AddSpriteQuad(entity, lightLevel, texture, spriteRotation.Mirror, nudgeAmount);
-        entity.RenderedCounter = m_renderCounter;
     }
 
     private void SetUniforms(RenderInfo renderInfo)

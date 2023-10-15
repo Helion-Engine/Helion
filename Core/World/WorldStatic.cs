@@ -15,6 +15,7 @@ public static class WorldStatic
 {
     public static DynamicArray<BlockmapIntersect> Intersections = new(1024);
     public static IRandom Random;
+    public static int CheckCounter;
     public static bool SlowTickEnabled;
     public static int SlowTickChaseFailureSkipCount;
     public static int SlowTickDistance;

@@ -376,12 +376,12 @@ public class GeometryRenderer : IDisposable
     private void CheckFloodFillLine(Side front, Side back)
     {
         const RenderChangeOptions options = RenderChangeOptions.None;
-        if (front.IsDynamic && m_drawnSides[front.Id] != m_world.CheckCounter &&
+        if (front.IsDynamic && m_drawnSides[front.Id] != WorldStatic.CheckCounter &&
             (back.Sector.CheckRenderingChanged(m_world.Gametick, options) ||
             front.Sector.CheckRenderingChanged(m_world.Gametick, options)))
             m_staticCacheGeometryRenderer.CheckForFloodFill(front, back, back.Sector, true);
 
-        if (back.IsDynamic && m_drawnSides[back.Id] != m_world.CheckCounter &&
+        if (back.IsDynamic && m_drawnSides[back.Id] != WorldStatic.CheckCounter &&
             (front.Sector.CheckRenderingChanged(m_world.Gametick, options) || 
             back.Sector.CheckRenderingChanged(m_world.Gametick, options)))
             m_staticCacheGeometryRenderer.CheckForFloodFill(back, front, front.Sector, false);
@@ -389,10 +389,10 @@ public class GeometryRenderer : IDisposable
 
     private void RenderSectorSideWall(Sector sector, Side side, Vec2D pos2D, Vec2D prevPos2D, bool onFrontSide)
     {
-        if (m_drawnSides[side.Id] == m_world.CheckCounter)
+        if (m_drawnSides[side.Id] == WorldStatic.CheckCounter)
             return;
 
-        m_drawnSides[side.Id] = m_world.CheckCounter;
+        m_drawnSides[side.Id] = WorldStatic.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
             side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);

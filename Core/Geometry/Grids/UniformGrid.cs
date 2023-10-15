@@ -318,64 +318,35 @@ public class UniformGrid<T> where T : new()
         return new Box2D(origin, topRight);
     }
 
-    internal int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
+    public BlockmapBoxIteration CreateBoxIteration(in Box2D box)
+    {
+        Vec2I start = new((int)((box.Min.X - Origin.X) / Dimension), (int)((box.Min.Y - Origin.Y) / Dimension));
+        start.X = Math.Max(0, start.X);
+        start.Y = Math.Max(0, start.Y);
 
-    public BlockmapBoxIterator<T> Iterate(in Box2D box) => new(this, box);
+        Vec2I end = new((int)((box.Max.X - Origin.X) / Dimension), (int)((box.Max.Y - Origin.Y) / Dimension));
+        end.X = Math.Min(Width, end.X);
+        end.Y = Math.Min(Height, end.Y);
+
+        return new(start, end, Width);
+    }
+
+    internal int IndexFromBlockCoordinate(Vec2I coordinate) => coordinate.X + (coordinate.Y * Width);
     
     public BlockmapSegIterator<T> Iterate(in Seg2D seg) => new(this, seg);
 }
 
-public ref struct BlockmapBoxIterator<T>  where T : new()
+public readonly struct BlockmapBoxIteration
 {
-    private T[] m_blocks;
-    private Vec2I m_blockUnitStart;
-    private Vec2I m_blockUnitEnd;
-    private int m_width;
-    private int m_baseIndex;
-    private int m_currentIndex;
-    private int m_x;
-    private int m_y;
-    private bool m_hasNext;
+    public readonly Vec2I BlockStart;
+    public readonly Vec2I BlockEnd;
+    public readonly int Width;
 
-    internal BlockmapBoxIterator(UniformGrid<T> grid, in Box2D box)
+    public BlockmapBoxIteration(Vec2I blockStart, Vec2I blockEnd, int width)
     {
-        m_blockUnitStart = ((box.Min - grid.Origin) / grid.Dimension).Int;
-        m_blockUnitStart.X = Math.Max(0, m_blockUnitStart.X);
-        m_blockUnitStart.Y = Math.Max(0, m_blockUnitStart.Y);
-
-        m_blockUnitEnd = ((box.Max - grid.Origin) / grid.Dimension).Ceiling().Int;
-        m_blockUnitEnd.X = Math.Min(grid.Width, m_blockUnitEnd.X);
-        m_blockUnitEnd.Y = Math.Min(grid.Height, m_blockUnitEnd.Y);
-
-        m_blocks = grid.Blocks;
-        m_width = grid.Width;
-        m_baseIndex = m_blockUnitStart.Y * m_width + m_blockUnitStart.X;
-
-        m_y = m_blockUnitStart.Y;
-        m_x = m_blockUnitStart.X;
-        m_currentIndex = m_baseIndex - 1;
-        m_hasNext = m_baseIndex < m_blocks.Length;
-    }
-
-    public bool HasNext() => m_hasNext && m_currentIndex + 1 < m_blocks.Length;
-
-    public T Next()
-    {
-        m_currentIndex++;
-
-        if (m_x >= m_blockUnitEnd.X)
-        {
-            m_y++;
-            m_x = m_blockUnitStart.X;
-            m_baseIndex += m_width;
-            m_currentIndex = m_baseIndex;
-        }
-
-        m_x++;
-        if (m_x >= m_blockUnitEnd.X)
-            m_hasNext = m_y + 1 < m_blockUnitEnd.Y && m_baseIndex + m_width < m_blocks.Length;
-
-        return m_blocks[m_currentIndex];
+        BlockStart = blockStart;
+        BlockEnd = blockEnd;
+        Width = width;
     }
 }
 

@@ -112,7 +112,6 @@ public abstract class WorldBase : IWorld
     public abstract Player Player { get; protected set; }
     public List<IMonsterCounterSpecial> BossDeathSpecials => m_bossDeathSpecials;
     public bool IsFastMonsters { get; private set; }
-    public int CheckCounter { get; set; }
     public virtual bool IsChaseCamMode => false;
     public bool DrawHud { get; protected set; } = true;
     public bool AnyLayerObscuring { get; set; }

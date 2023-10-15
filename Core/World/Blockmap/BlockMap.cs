@@ -5,6 +5,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -12,6 +13,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using zdbspSharp;
 
 namespace Helion.World.Blockmap;
 
@@ -41,11 +43,6 @@ public class BlockMap
         SetBlockCoordinates();
     }
     
-    public BlockmapBoxIterator<Block> Iterate(in Box2D box)
-    {
-        return m_blocks.Iterate(box);
-    }
-    
     public BlockmapSegIterator<Block> Iterate(in Seg2D seg)
     {
         return m_blocks.Iterate(seg);
@@ -60,13 +57,16 @@ public class BlockMap
     {
         Assert.Precondition(entity.BlockmapNodes.Empty(), "Forgot to unlink entity from blockmap");
 
-        BlockmapBoxIterator<Block> it = m_blocks.Iterate(entity.GetBox2D());
-        while (it.HasNext())
+        var it = m_blocks.CreateBoxIteration(entity.GetBox2D());
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
-            block.Entities.Add(blockEntityNode);
-            entity.BlockmapNodes.Add(blockEntityNode);
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+            {
+                Block block = m_blocks[by * it.Width + bx];
+                LinkableNode<Entity> blockEntityNode = entity.World.DataCache.GetLinkableNodeEntity(entity);
+                block.Entities.Add(blockEntityNode);
+                entity.BlockmapNodes.Add(blockEntityNode);
+            }
         }
     }
 
@@ -85,13 +85,16 @@ public class BlockMap
         Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
 
         Box2D box = sector.GetBoundingBox();
-        BlockmapBoxIterator<Block> it = m_blocks.Iterate(box);
-        while (it.HasNext())
+        var it = m_blocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
-            block.DynamicSectors.Add(sectorNode);
-            sector.BlockmapNodes.Add(sectorNode);
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+            {
+                Block block = m_blocks[by * it.Width + bx];
+                LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
+                block.DynamicSectors.Add(sectorNode);
+                sector.BlockmapNodes.Add(sectorNode);
+            }
         }
     }
 

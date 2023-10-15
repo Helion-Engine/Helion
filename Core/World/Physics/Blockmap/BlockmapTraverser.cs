@@ -2,6 +2,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
@@ -25,29 +26,32 @@ public class BlockmapTraverser
 
     public void GetSolidEntityIntersections2D(Entity sourceEntity, DynamicArray<Entity> entities)
     {
-        int m_checkCounter = ++m_world.CheckCounter;
+        int m_checkCounter = ++WorldStatic.CheckCounter;
         var box = sourceEntity.GetBox2D();
-        BlockmapBoxIterator<Block> it = m_blockmap.Iterate(box);
-        while (it.HasNext())
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)
-                    continue;
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)
+                        continue;
 
-                entity.BlockmapCount = m_checkCounter;
-                if (sourceEntity.CanBlockEntity(entity) && entity.Overlaps2D(box))
-                    entities.Add(entity);
+                    entity.BlockmapCount = m_checkCounter;
+                    if (sourceEntity.CanBlockEntity(entity) && entity.Overlaps2D(box))
+                        entities.Add(entity);
+                }
             }
         }
     }
 
     public unsafe void SightTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections, out bool hitOneSidedLine)
     {
-        int checkCounter = ++m_world.CheckCounter;
+        int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
 
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
@@ -87,7 +91,7 @@ sightTraverseEndOfLoop:
     public unsafe void ShootTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
         Vec2D intersect = Vec2D.Zero;
-        int checkCounter = ++m_world.CheckCounter;
+        int checkCounter = ++WorldStatic.CheckCounter;
         
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
         while (it.HasNext())
@@ -132,73 +136,85 @@ sightTraverseEndOfLoop:
 
     public void ExplosionTraverse(Box2D box, Action<Entity> action)
     {
-        int checkCounter = ++m_world.CheckCounter;
-        var it = m_blockmap.Iterate(box);
-        while (it.HasNext())
+        int checkCounter = ++WorldStatic.CheckCounter;
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Shootable || !entity.Flags.Solid)
-                    continue;
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Shootable || !entity.Flags.Solid)
+                        continue;
 
-                entity.BlockmapCount = checkCounter;
-                if (entity.Overlaps2D(box))
-                    action(entity);
+                    entity.BlockmapCount = checkCounter;
+                    if (entity.Overlaps2D(box))
+                        action(entity);
+                }
             }
         }
     }
 
     public void EntityTraverse(Box2D box, Func<Entity, GridIterationStatus> action)
     {
-        int checkCounter = ++m_world.CheckCounter;
-        var it = m_blockmap.Iterate(box);
-        while (it.HasNext())
+        int checkCounter = ++WorldStatic.CheckCounter;
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
 
-                entity.BlockmapCount = checkCounter;
-                if (!entity.Overlaps2D(box))
-                    continue;
+                    entity.BlockmapCount = checkCounter;
+                    if (!entity.Overlaps2D(box))
+                        continue;
 
-                if (action(entity) == GridIterationStatus.Stop)
-                    return;
+                    if (action(entity) == GridIterationStatus.Stop)
+                        return;
+                }
             }
         }
     }
 
     public void HealTraverse(Box2D box, Action<Entity> action)
     {
-        int checkCounter = ++m_world.CheckCounter;
-        var it = m_blockmap.Iterate(box);
-        while (it.HasNext())
+        int checkCounter = ++WorldStatic.CheckCounter;
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Corpse)
-                    continue;
-                if (entity.Definition.RaiseState == null || entity.FrameState.Frame.Ticks != -1 || entity.IsPlayer)
-                    continue;
-                if (entity.World.IsPositionBlockedByEntity(entity, entity.Position))
-                    continue;
-
-                entity.BlockmapCount = checkCounter;
-                if (entity.Overlaps2D(box))
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
-                    action(entity);
-                    return;
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Corpse)
+                        continue;
+                    if (entity.Definition.RaiseState == null || entity.FrameState.Frame.Ticks != -1 || entity.IsPlayer)
+                        continue;
+                    if (entity.World.IsPositionBlockedByEntity(entity, entity.Position))
+                        continue;
+
+                    entity.BlockmapCount = checkCounter;
+                    if (entity.Overlaps2D(box))
+                    {
+                        action(entity);
+                        return;
+                    }
                 }
             }
         }
@@ -206,26 +222,30 @@ sightTraverseEndOfLoop:
 
     public bool SolidBlockTraverse(Entity sourceEntity, Vec3D position, bool checkZ)
     {
-        int checkCounter = ++m_world.CheckCounter;
+        int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
         Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var it = m_blockmap.Iterate(box2D);
-        while (it.HasNext())
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box2D);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Solid)
-                    continue;
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Solid)
+                        continue;
 
-                entity.BlockmapCount = checkCounter;
-                if (!EntityOverlap(sourceEntity, entity, box3D, box2D, checkZ))
-                    continue;
+                    entity.BlockmapCount = checkCounter;
+                    if (!EntityOverlap(sourceEntity, entity, box3D, box2D, checkZ))
+                        continue;
 
-                return false;
+                    return false;
+                }
             }
         }
 
@@ -234,28 +254,32 @@ sightTraverseEndOfLoop:
 
     public void SolidBlockTraverse(Entity sourceEntity, Vec3D position, bool checkZ, DynamicArray<Entity> entities, bool shootable)
     {
-        int checkCounter = ++m_world.CheckCounter;
+        int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
         Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var it = m_blockmap.Iterate(box2D);
-        while (it.HasNext())
+        var blocks = m_blockmap.Blocks;
+        var it = blocks.CreateBoxIteration(box2D);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Solid)
-                    continue;
-                if (shootable && !entity.Flags.Shootable)
-                    continue;
+                Block block = blocks[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Solid)
+                        continue;
+                    if (shootable && !entity.Flags.Shootable)
+                        continue;
 
-                entity.BlockmapCount = checkCounter;
-                if (!EntityOverlap(sourceEntity, entity, box3D, box2D, checkZ))
-                    continue;
+                    entity.BlockmapCount = checkCounter;
+                    if (!EntityOverlap(sourceEntity, entity, box3D, box2D, checkZ))
+                        continue;
 
-                entities.Add(entity);
+                    entities.Add(entity);
+                }
             }
         }
     }
@@ -279,7 +303,7 @@ sightTraverseEndOfLoop:
 
     public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
-        int checkCounter = ++m_world.CheckCounter;
+        int checkCounter = ++WorldStatic.CheckCounter;
         var it = m_blockmap.Iterate(seg);
         while (it.HasNext())
         {

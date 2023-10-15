@@ -131,7 +131,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!shouldRender)
             return;
 
-        m_renderCount = ++world.CheckCounter;
+        m_renderCount = ++WorldStatic.CheckCounter;
         m_renderData.ViewerEntity = renderInfo.ViewerEntity;
         m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
@@ -144,7 +144,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
         m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
-        m_renderData.CheckCount = ++world.CheckCounter;
+        m_renderData.CheckCount = ++WorldStatic.CheckCounter;
 
         m_renderData.MaxDistance = world.Config.Render.MaxDistance;
         if (m_renderData.MaxDistance <= 0)
@@ -157,52 +157,55 @@ public class LegacyWorldRenderer : WorldRenderer
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
         bool occlude = m_renderData.OccludePos.HasValue;
 
-        BlockmapBoxIterator<Block> it = world.RenderBlockmap.Iterate(box);
-        while (it.HasNext())
+        var renderBlocks = world.RenderBlockmap.Blocks;
+        var it = renderBlocks.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            Block block = it.Next();
-
-            if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
-                continue;
-
-            for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount)
+                Block block = renderBlocks[by * it.Width + bx];
+                if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
                     continue;
 
-                Sector sector = sectorNode.Value;
-                TransferHeights? transfer = sector.TransferHeights;
-                sector.BlockmapCount = m_renderData.CheckCount;
+                for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+                {
+                    if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount)
+                        continue;
 
-                // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
-                if (transfer != null && transferHeightsView == TransferHeightView.Middle &&
-                    (sector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
-                    (sector.Ceiling.Dynamic & SectorDynamic.Movement) == 0 &&
-                    (transfer.ControlSector.Floor.Dynamic & SectorDynamic.Movement) == 0 && 
-                    (transfer.ControlSector.Ceiling.Dynamic & SectorDynamic.Movement) == 0)
-                    continue;
+                    Sector sector = sectorNode.Value;
+                    TransferHeights? transfer = sector.TransferHeights;
+                    sector.BlockmapCount = m_renderData.CheckCount;
 
-                Box2D sectorBox = sector.GetBoundingBox();
-                double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorBox.Max.X));
-                double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorBox.Max.Y));
-                if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
-                    RenderSector(sector);
+                    // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
+                    if (transfer != null && transferHeightsView == TransferHeightView.Middle &&
+                        (sector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
+                        (sector.Ceiling.Dynamic & SectorDynamic.Movement) == 0 &&
+                        (transfer.ControlSector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
+                        (transfer.ControlSector.Ceiling.Dynamic & SectorDynamic.Movement) == 0)
+                        continue;
+
+                    Box2D sectorBox = sector.GetBoundingBox();
+                    double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorBox.Max.X));
+                    double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorBox.Max.Y));
+                    if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
+                        RenderSector(sector);
+                }
+
+                for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
+                {
+                    if (sideNode.Value.BlockmapCount == m_renderData.CheckCount)
+                        continue;
+                    if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
+                        continue;
+
+                    sideNode.Value.BlockmapCount = m_renderData.CheckCount;
+                    m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line,
+                        m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
+                }
+
+                for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
+                    RenderEntity(entity);
             }
-
-            for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
-            {
-                if (sideNode.Value.BlockmapCount == m_renderData.CheckCount)
-                    continue;
-                if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
-                    continue;
-
-                sideNode.Value.BlockmapCount = m_renderData.CheckCount;
-                m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line, 
-                    m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
-            }
-
-            for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
-                RenderEntity(entity);
         }
 
         m_lastTicker = world.GameTicker;
@@ -324,19 +327,6 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private void TraverseBsp(IWorld world, RenderInfo renderInfo)
-    {
-        Vec2D position = renderInfo.Camera.PositionInterpolated.XY.Double;
-        Vec3D position3D = renderInfo.Camera.PositionInterpolated.Double;
-        Vec2D viewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_viewSector = world.BspTree.ToSector(position3D);
-
-        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, viewDirection);
-        m_viewClipper.Center = position;
-        m_renderCount = ++world.CheckCounter;
-        RecursivelyRenderBsp((uint)world.BspTree.Nodes.Length - 1, position3D, viewDirection, world);
-    }
-
     private void RenderAlphaObjects(DynamicArray<IRenderObject> alphaEntities)
     {
         // This will just render based on distance from their center point.
@@ -363,58 +353,6 @@ public class LegacyWorldRenderer : WorldRenderer
                     m_geometryRenderer.RenderAlphaSide(side, onFront);
             }
         }
-    }
-
-    private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
-    {
-        if (box.Contains(position))
-            return false;
-
-        if (m_maxDistance > 0)
-        {
-            double dx = Math.Max(box.Min.X - position.X, Math.Max(0, position.X - box.Max.X));
-            double dy = Math.Max(box.Min.Y - position.Y, Math.Max(0, position.Y - box.Max.Y));
-            if (dx * dx + dy * dy > m_maxDistance * m_maxDistance)
-                return true;
-        }
-
-        if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
-            return true;
-
-        (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
-        return m_viewClipper.InsideAnyRange(first, second);
-    }
-
-    private unsafe void RecursivelyRenderBsp(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world)
-    {
-        Vec2D pos2D = position.XY;
-        while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
-        {
-            fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
-            {
-                if (Occluded(node->BoundingBox, pos2D, viewDirection))
-                    return;
-
-                int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
-                int back = front ^ 1;
-
-                RecursivelyRenderBsp(node->Children[front], position, viewDirection, world);
-                nodeIndex = node->Children[back];
-            }
-        }
-
-        Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
-            return;
-
-        bool hasRenderedSector = subsector.Sector.CheckCount == m_renderCount;
-        m_geometryRenderer.RenderSubsector(m_viewSector, subsector, position, hasRenderedSector);
-
-        // Entities are rendered by the sector
-        if (hasRenderedSector)
-            return;
-        subsector.Sector.CheckCount = m_renderCount;
-        m_entityRenderer.RenderSubsector(m_viewSector, subsector, position);
     }
 
     private void PopulatePrimitives(IWorld world)

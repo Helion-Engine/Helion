@@ -45,9 +45,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Block? RenderBlock;
 
     public int Id;
+    public int BlockmapCount;
     public int ThingId;
-    public EntityDefinition Definition;
     public EntityFlags Flags;
+    public EntityDefinition Definition;
     public EntityProperties Properties;
     public EntityManager EntityManager;
     public FrameState FrameState;
@@ -100,12 +101,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool ClippedWithEntity;
     public bool MoveLinked;
     public bool Respawn;
-    public int BlockmapCount;
-    public int PhysicsCount;
     public float Alpha;
 
     public double RenderDistance { get; set; }
-    public int RenderedCounter; // Used by the renderer only.
     public int LastRenderGametick;
     public double LastRenderDistanceSquared = double.MaxValue;
     public int SlowTickMultiplier = 1;
