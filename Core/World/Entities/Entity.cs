@@ -95,8 +95,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int ReactionTime;
 
     public bool OnGround;
-    public bool Refire;
-    public bool AttackDown;
     // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
     public bool ClippedWithEntity;
     public bool MoveLinked;
@@ -221,8 +219,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Velocity = entityModel.GetVelocity();
         SpawnPoint = entityModel.GetSpawnPoint();
         Sector = world.Sectors[entityModel.Sector];
-
-        Refire = entityModel.Refire;
+                
         MoveLinked = entityModel.MoveLinked;
         Respawn = entityModel.Respawn;
 
@@ -237,11 +234,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingObject = Sector;
 
         if (entityModel.ArmorDefinition != null)
-            ArmorDefinition = world.EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
+            ArmorDefinition = EntityManager.DefinitionComposer.GetByName(entityModel.ArmorDefinition);
 
         Alpha = (float)Properties.Alpha;
 
-        FrameState = new(this, definition, world.EntityManager, entityModel.Frame);
+        FrameState = new(this, definition, EntityManager, entityModel.Frame);
         InMonsterCloset = IsClosetChase || IsClosetLook;
     }
 
@@ -265,7 +262,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.Owner = Owner.Entity?.Id;
         entityModel.Target = Target.Entity?.Id;
         entityModel.Tracer = Tracer.Entity?.Id;
-        entityModel.Refire = Refire;
         entityModel.MoveLinked = MoveLinked;
         entityModel.Respawn = Respawn;
         entityModel.Sector = Sector.Id;
@@ -600,7 +596,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         EntityDefinition speciesDef = Definition;
         for (int i = 0; i < Definition.ParentClassNames.Count; i++)
         {
-            var def = World.EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
+            var def = EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
             if (def == null || !def.Flags.IsMonster)
                 continue;
 
@@ -846,7 +842,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (BlockingEntity != null)
             {
                 int damage = Properties.Damage.Get(WorldStatic.Random);
-                EntityManager.World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                World.DamageEntity(BlockingEntity, this, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             }
 
             // Bounce off plane if it's the only thing blocking
@@ -935,8 +931,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Velocity = Vec3D.Zero;
 
         OnGround = false;
-        Refire = false;
-        AttackDown = false;
         ClippedWithEntity = false;
         SaveZ = 0;
         PrevSaveZ = 0;

@@ -683,7 +683,16 @@ public static class EntityActionFunctions
 
     private static void A_CPosAttack(Entity entity)
     {
-        PosessedAttack(entity, 1, true);
+        if (entity.Target.Entity == null)
+            return;
+
+        entity.PlayAttackSound();
+        A_FaceTarget(entity);
+
+        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+
+        entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
+        entity.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
     }
 
     private static void A_CPosRefire(Entity entity)
@@ -1175,7 +1184,7 @@ public static class EntityActionFunctions
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
         int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
         entity.PlayerObj.Weapon?.SetFlashState(offset);
-        entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+        entity.World.FirePlayerHitscanBullets(entity.PlayerObj, 1, Constants.DefaultSpreadAngle, 0,
             entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
     }
 
@@ -1217,7 +1226,7 @@ public static class EntityActionFunctions
         entity.PlayerObj.DecreaseAmmoCompatibility(1);
         entity.World.SoundManager.CreateSoundOn(entity, "weapons/pistol", new SoundParams(entity, channel: entity.WeaponSoundChannel));
         entity.PlayerObj.Weapon?.SetFlashState();
-        entity.World.FireHitscanBullets(entity, 1, Constants.DefaultSpreadAngle, 0,
+        entity.World.FirePlayerHitscanBullets(entity.PlayerObj, 1, Constants.DefaultSpreadAngle, 0,
             entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
     }
 
@@ -1249,7 +1258,7 @@ public static class EntityActionFunctions
             entity.PlayerObj.DecreaseAmmoCompatibility(1);
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/shotgf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
-            entity.World.FireHitscanBullets(entity, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
+            entity.World.FirePlayerHitscanBullets(entity.PlayerObj, Constants.ShotgunBullets, Constants.DefaultSpreadAngle, 0.0,
                 entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
         }
     }
@@ -1261,7 +1270,7 @@ public static class EntityActionFunctions
             entity.PlayerObj.DecreaseAmmoCompatibility(2);
             entity.World.SoundManager.CreateSoundOn(entity, "weapons/sshotf", new SoundParams(entity, channel: entity.WeaponSoundChannel));
             entity.PlayerObj.Weapon?.SetFlashState();
-            entity.World.FireHitscanBullets(entity, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
+            entity.World.FirePlayerHitscanBullets(entity.PlayerObj, Constants.SuperShotgunBullets, Constants.SuperShotgunSpreadAngle, Constants.SuperShotgunSpreadPitch,
                 entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, entity.World.Config.Game.AutoAim);
         }
     }
@@ -1715,24 +1724,17 @@ public static class EntityActionFunctions
 
     private static void A_PosAttack(Entity entity)
     {
-        PosessedAttack(entity, 1, true);
-    }
-
-    private static void PosessedAttack(Entity entity, int bullets, bool attackSound)
-    {
         if (entity.Target.Entity == null)
             return;
 
-        if (attackSound)
-            entity.PlayAttackSound();
-
+        entity.PlayAttackSound();
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
         entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+
         entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
-        entity.World.FireHitscanBullets(entity, bullets, Constants.DefaultSpreadAngle, 0,
-            pitch, Constants.EntityShootDistance, false);
+        entity.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
     }
 
     private static void A_Print(Entity entity)
@@ -1957,7 +1959,20 @@ public static class EntityActionFunctions
 
     private static void A_SPosAttack(Entity entity)
     {
-        PosessedAttack(entity, 3, false);
+        if (entity.Target.Entity == null)
+            return;
+
+        A_FaceTarget(entity);
+
+        // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
+        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+
+        double angle = entity.AngleRadians;
+        for (int i = 0; i < 3; i++)
+        {
+            entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
+            entity.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
+        }
     }
 
     private static void A_SargAttack(Entity entity)
@@ -2403,7 +2418,21 @@ public static class EntityActionFunctions
 
     private static void A_SPosAttackUseAtkSound(Entity entity)
     {
-        PosessedAttack(entity, 3, true);
+        if (entity.Target.Entity == null)
+            return;
+
+        entity.PlayAttackSound();
+        A_FaceTarget(entity);
+
+        // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
+        entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+
+        double angle = entity.AngleRadians;
+        for (int i = 0; i < 3; i++)
+        {
+            entity.AngleRadians += entity.World.Random.NextDiff() * Constants.PosRandomSpread / 255;
+            entity.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
+        }
     }
 
     private static void A_SprayDecal(Entity entity)
@@ -2863,7 +2892,7 @@ public static class EntityActionFunctions
         int damage = frame.DehackedArgs4;
         int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
-        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
+        entity.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
             new DamageFuncParams(entity, damage, mod));
     }
 
@@ -3061,8 +3090,18 @@ public static class EntityActionFunctions
         entity.PlayAttackSound();
         entity.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
 
-        entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageAttackFunction,
-            new DamageFuncParams(entity, damage, mod));
+        for (int i = 0; i < bullets; i++)
+        {
+            //Entity entity = (Entity)damageParams.Object!;
+            //return damageParams.Arg0 * ((entity.World.Random.NextByte() % damageParams.Arg1) + 1);
+            double angle = entity.AngleRadians + (WorldStatic.Random.NextDiff() * spreadAngle / 255);
+            double newPitch = pitch + (WorldStatic.Random.NextDiff() * spreadPitch / 255);
+            entity.World.FireHitscan(entity, angle, newPitch, Constants.EntityShootDistance,
+               damage * ((entity.World.Random.NextByte() % mod) + 1));
+        }
+
+        //entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageAttackFunction,
+        //    new DamageFuncParams(entity, damage, mod));
     }
 
     private static void A_MonsterMeleeAttack(Entity entity)

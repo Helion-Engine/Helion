@@ -94,8 +94,10 @@ public class Player : Entity
     public PlayerCheats Cheats { get; } = new PlayerCheats();
     public PlayerInfo Info { get; set; } = new PlayerInfo();
     public PlayerTracers Tracers = new();
-    public bool IsVooDooDoll { get; set; }
-    public bool IsSyncVooDoo { get; set; }
+    public bool IsVooDooDoll;
+    public bool IsSyncVooDoo;
+    public bool Refire;
+    public bool AttackDown;
     public double DeltaViewHeight;
     public double ViewHeight;
     public override Player? PlayerObj => this;
@@ -175,6 +177,8 @@ public class Player : Entity
         KillCount = playerModel.KillCount;
         ItemCount = playerModel.ItemCount;
         SecretsFound = playerModel.SecretsFound;
+        AttackDown = playerModel.AttackDown;
+        Refire = playerModel.Refire;
 
         Inventory = new Inventory(playerModel, this, world.EntityManager.DefinitionComposer);
 
@@ -274,7 +278,9 @@ public class Player : Entity
             Inventory = Inventory.ToInventoryModel(),
             AnimationWeaponFrame = AnimationWeapon?.FrameState.ToFrameStateModel(),
             WeaponFlashFrame = AnimationWeapon?.FlashState.ToFrameStateModel(),
-            Cheats = Cheats.GetActiveCheats().Cast<int>().ToList()
+            Cheats = Cheats.GetActiveCheats().Cast<int>().ToList(),
+            AttackDown = AttackDown,
+            Refire = Refire
         };
 
         ToEntityModel(playerModel);

@@ -1018,7 +1018,7 @@ public abstract class WorldBase : IWorld
         return null;
     }
 
-    public virtual void FireHitscanBullets(Entity shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
+    public virtual void FirePlayerHitscanBullets(Player shooter, int bulletCount, double spreadAngleRadians, double spreadPitchRadians, double pitch, double distance, bool autoAim,
         Func<DamageFuncParams, int>? damageFunc = null, DamageFuncParams damageParams = default)
     {
         double originalPitch = pitch;
@@ -1036,26 +1036,25 @@ public abstract class WorldBase : IWorld
             }
         }
 
-        if (shooter.PlayerObj != null && Config.Developer.Render.Tracers)
+        if (Config.Developer.Render.Tracers)
         {
             shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
-        }
+        }        
 
         if (!shooter.Refire && bulletCount == 1)
         {
             int damage = damageFunc(damageParams);
             FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);
+            return;
         }
-        else
+
+        for (int i = 0; i < bulletCount; i++)
         {
-            for (int i = 0; i < bulletCount; i++)
-            {
-                int damage = damageFunc(damageParams);
-                double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
-                double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
-                FireHitscan(shooter, angle, newPitch, distance, damage);
-            }
+            int damage = damageFunc(damageParams);
+            double angle = shooter.AngleRadians + (m_random.NextDiff() * spreadAngleRadians / 255);
+            double newPitch = pitch + (m_random.NextDiff() * spreadPitchRadians / 255);
+            FireHitscan(shooter, angle, newPitch, distance, damage);
         }
     }
 
