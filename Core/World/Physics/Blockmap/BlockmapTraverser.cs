@@ -14,13 +14,15 @@ namespace Helion.World.Physics.Blockmap;
 public class BlockmapTraverser
 {
     private readonly IWorld m_world;
-    private readonly BlockMap m_blockmap;
+    private readonly UniformGrid<Block> m_blockmapGrid;
+    private readonly Block[] m_blocks;
     private readonly int[] m_checkedLines;
 
     public BlockmapTraverser(IWorld world, BlockMap blockmap)
     {
         m_world = world;
-        m_blockmap = blockmap;
+        m_blockmapGrid = blockmap.Blocks;
+        m_blocks = blockmap.Blocks.Blocks;
         m_checkedLines = new int[m_world.Lines.Count];
     }
 
@@ -28,13 +30,12 @@ public class BlockmapTraverser
     {
         int m_checkCounter = ++WorldStatic.CheckCounter;
         var box = sourceEntity.GetBox2D();
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box);
+        var it = m_blockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -54,7 +55,7 @@ public class BlockmapTraverser
         int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
 
-        BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
+        BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
         while (it.HasNext())
         {
             Block block = it.Next();
@@ -93,7 +94,7 @@ sightTraverseEndOfLoop:
         Vec2D intersect = Vec2D.Zero;
         int checkCounter = ++WorldStatic.CheckCounter;
         
-        BlockmapSegIterator<Block> it = m_blockmap.Iterate(seg);
+        BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
         while (it.HasNext())
         {
             Block block = it.Next();
@@ -137,13 +138,12 @@ sightTraverseEndOfLoop:
     public void ExplosionTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box);
+        var it = m_blockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -163,13 +163,12 @@ sightTraverseEndOfLoop:
     public void EntityTraverse(Box2D box, Func<Entity, GridIterationStatus> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box);
+        var it = m_blockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -190,13 +189,12 @@ sightTraverseEndOfLoop:
     public void HealTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box);
+        var it = m_blockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -225,13 +223,12 @@ sightTraverseEndOfLoop:
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
         Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box2D);
+        var it = m_blockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -257,13 +254,12 @@ sightTraverseEndOfLoop:
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
         Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var blocks = m_blockmap.Blocks;
-        var it = blocks.CreateBoxIteration(box2D);
+        var it = m_blockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = blocks[by * it.Width + bx];
+                Block block = m_blocks[by * it.Width + bx];
                 for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
@@ -304,7 +300,7 @@ sightTraverseEndOfLoop:
     public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var it = m_blockmap.Iterate(seg);
+        var it = m_blockmapGrid.Iterate(seg);
         while (it.HasNext())
         {
             Block block = it.Next();

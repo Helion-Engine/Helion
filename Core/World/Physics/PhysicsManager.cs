@@ -46,7 +46,8 @@ public class PhysicsManager
     private readonly IWorld m_world;
     private readonly CompactBspTree m_bspTree;
     private readonly BlockMap m_blockmap;
-    private readonly UniformGrid<Block> m_blockmapBlocks;
+    private readonly UniformGrid<Block> m_blockmapGrid;
+    private readonly Block[] m_blockmapBlocks;
     private readonly EntityManager m_entityManager;
     private readonly IRandom m_random;
     private readonly LineOpening m_lineOpening = new();
@@ -68,7 +69,8 @@ public class PhysicsManager
         m_world = world;
         m_bspTree = bspTree;
         m_blockmap = blockmap;
-        m_blockmapBlocks = blockmap.Blocks;
+        m_blockmapGrid = blockmap.Blocks;
+        m_blockmapBlocks = m_blockmapGrid.Blocks;
         m_entityManager = world.EntityManager;
         m_random = random;
         BlockmapTraverser = new BlockmapTraverser(world, m_blockmap);
@@ -849,7 +851,7 @@ public class PhysicsManager
         centerSector.CheckCount = checkCounter;
 
         Box2D box = entity.GetBox2D();
-        var it = m_blockmapBlocks.CreateBoxIteration(box);
+        var it = m_blockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -1091,7 +1093,7 @@ public class PhysicsManager
         entity.ViewLineClip = false;
         int checkCounter = ++WorldStatic.CheckCounter;
         
-        var it = m_blockmapBlocks.CreateBoxIteration(nextBox);
+        var it = m_blockmapGrid.CreateBoxIteration(nextBox);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
