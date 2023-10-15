@@ -109,9 +109,9 @@ public partial class ConsoleLayer
         m_bestOptions.Clear();
         m_bestOptionIndex = 0;
 
-        foreach ((string command, _) in Enumerable.OrderBy<(string command, ConsoleCommandData data), string>(m_consoleCommands, x => x.command))
+        foreach ((string command, _) in m_consoleCommands.OrderBy<(string command, ConsoleCommandData data), string>(x => x.command))
             AssignIfBest(command);
-        foreach (string path in Enumerable.OrderBy<string, string>(m_config.GetComponents().Keys, x => x))
+        foreach (string path in m_config.GetComponents().Keys.OrderBy<string, string>(x => x))
             AssignIfBestPath(path);
         foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
             if (cheat.ConsoleCommand != null)
@@ -165,7 +165,7 @@ public partial class ConsoleLayer
 
         void SearchConsoleCommands()
         {
-            foreach ((string command, ConsoleCommandData data) in Enumerable.OrderBy<(string command, ConsoleCommandData data), string>(m_consoleCommands, x => x.command))
+            foreach ((string command, ConsoleCommandData data) in m_consoleCommands.OrderBy<(string command, ConsoleCommandData data), string>(x => x.command))
             {
                 if (command.EqualsIgnoreCase(input))
                 {

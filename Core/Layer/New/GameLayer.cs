@@ -6,8 +6,8 @@ namespace Helion.Layer.New;
 
 public abstract class GameLayer : IComparable<GameLayer>, IDisposable
 {
-    public abstract double Priority { get; }
     public bool IsDisposed { get; private set; }
+    protected abstract double Priority { get; }
 
     // True means it should focus, false means it should not focus, null means this
     // layer doesn't care and the caller should continue evaluating other layers.

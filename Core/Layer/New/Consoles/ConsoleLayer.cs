@@ -9,7 +9,7 @@ public partial class ConsoleLayer : GameLayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public override double Priority => 0.1;
+    protected override double Priority => 0.1;
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly ConsoleCommands m_consoleCommands;

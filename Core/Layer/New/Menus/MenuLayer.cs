@@ -2,9 +2,7 @@
 using Helion.Audio.Sounds;
 using Helion.Menus.New;
 using Helion.Render.Common.Renderers;
-using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -14,16 +12,16 @@ namespace Helion.Layer.New.Menus;
 
 public class MenuLayer : GameLayer
 {
-    public override double Priority => 0.3;
+    protected override double Priority => 0.3;
     private readonly SoundManager m_soundManager;
     private readonly Stack<Menu> m_menus = new();
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     
-    public MenuLayer(IConfig config, ArchiveCollection archiveCollection, SoundManager soundManager)
+    public MenuLayer(SoundManager soundManager, Menu initialMenu)
     {
         m_soundManager = soundManager;
         
-        m_menus.Push(new MainMenu(config, archiveCollection, soundManager));
+        m_menus.Push(initialMenu);
     }
     
     public void ClearAndUse(Menu menu)
