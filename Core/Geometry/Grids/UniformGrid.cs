@@ -325,8 +325,8 @@ public class UniformGrid<T> where T : new()
         start.Y = Math.Max(0, start.Y);
 
         Vec2I end = new((int)((box.Max.X - Origin.X) / Dimension), (int)((box.Max.Y - Origin.Y) / Dimension));
-        end.X = Math.Min(Width, end.X);
-        end.Y = Math.Min(Height, end.Y);
+        end.X = Math.Min(Width - 1, end.X);
+        end.Y = Math.Min(Height - 1, end.Y);
 
         return new(start, end, Width);
     }
@@ -352,7 +352,7 @@ public readonly struct BlockmapBoxIteration
 
 public ref struct BlockmapSegIterator<T>  where T : new()
 {
-    private readonly UniformGrid<T> m_grid;
+    private readonly T[] m_blocks;
     private readonly int m_totalBlocks;
     private readonly int m_numBlocks = 1;
     private readonly int m_verticalStep;
@@ -364,13 +364,13 @@ public ref struct BlockmapSegIterator<T>  where T : new()
 
     internal BlockmapSegIterator(UniformGrid<T> grid, in Seg2D seg)
     {
-        m_grid = grid;
+        m_blocks = grid.Blocks;
         m_totalBlocks = grid.TotalBlocks;
-        
-        Vec2D blockUnitStart = (seg.Start - grid.Origin) / grid.Dimension;
-        Vec2D blockUnitEnd = (seg.End - grid.Origin) / grid.Dimension;
+
+        Vec2D blockUnitStart = new((seg.Start.X - grid.Origin.X) / grid.Dimension, (seg.Start.Y - grid.Origin.Y) / grid.Dimension);
+        Vec2D blockUnitEnd = new((seg.End.X - grid.Origin.X) / grid.Dimension, (seg.End.Y - grid.Origin.Y) / grid.Dimension);
         Vec2I startingBlock = blockUnitStart.Int;
-        m_absDelta = (blockUnitEnd - blockUnitStart).Abs();
+        m_absDelta = new(Math.Abs(blockUnitEnd.X - blockUnitStart.X), Math.Abs(blockUnitEnd.Y - blockUnitStart.Y));
         m_blockIndex = grid.IndexFromBlockCoordinate(startingBlock);
 
         if (MathHelper.IsZero(m_absDelta.X))
@@ -432,6 +432,6 @@ public ref struct BlockmapSegIterator<T>  where T : new()
             m_error += m_absDelta.Y;
         }
 
-        return m_grid.Blocks[currentBlockIndex];
+        return m_blocks[currentBlockIndex];
     }
 }
