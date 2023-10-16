@@ -13,14 +13,17 @@ public struct EntityVertex
     [VertexAttribute]
     public Vec3F Pos;
 
-    [VertexAttribute(isIntegral: true)]
-    public short LightLevel;
+    [VertexAttribute]
+    public float LightLevel;
 
     [VertexAttribute]
-    public byte Alpha;
-    
-    [VertexAttribute(isIntegral: true)]
-    public byte Flags;
+    public float Alpha;
+
+    [VertexAttribute]
+    public float Fuzz;
+
+    [VertexAttribute]
+    public float FlipU;
 
     [VertexAttribute]
     public Vec3F PrevPos;
@@ -28,12 +31,13 @@ public struct EntityVertex
     [VertexAttribute]
     public float OffsetZ;
 
-    public EntityVertex(Vec3F pos, Vec3F prevPos, float offsetZ, short lightLevel, byte alpha, bool isFuzz, bool flipU)
+    public EntityVertex(Vec3F pos, Vec3F prevPos, float offsetZ, short lightLevel, float alpha, float isFuzz, float flipU)
     {
         Pos = pos;
         LightLevel = lightLevel;
         Alpha = alpha;
-        Flags = (byte)((flipU ? FlipUBit : 0) | (isFuzz ? FuzzBit : 0));
+        Fuzz = isFuzz;
+        FlipU = flipU;
         PrevPos = prevPos;
         OffsetZ = offsetZ;
     }

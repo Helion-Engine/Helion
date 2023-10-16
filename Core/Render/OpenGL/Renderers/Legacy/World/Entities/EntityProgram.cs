@@ -25,23 +25,26 @@ public class EntityProgram : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in int lightLevel;
+        layout(location = 1) in float lightLevel;
         layout(location = 2) in float alpha;
-        layout(location = 3) in int flags;
-        layout(location = 4) in vec3 prevPos;
-        layout(location = 5) in float offsetZ;
+        layout(location = 3) in float fuzz;
+        layout(location = 4) in float flipU;
+        layout(location = 5) in vec3 prevPos;
+        layout(location = 6) in float offsetZ;
 
         out float lightLevelOut;
         out float alphaOut;
-        out int flagsOut;
+        out float fuzzOut;
+        out float flipUOut;
 
         uniform float timeFrac;
 
         void main()
         {
             lightLevelOut = lightLevel;
-            alphaOut = alpha / 255;
-            flagsOut = flags;
+            alphaOut = alpha;
+            fuzzOut = fuzz;
+            flipUOut = flipU;
             gl_Position = vec4(prevPos + (timeFrac * (pos - prevPos)), 1);
             gl_Position.z += offsetZ;
         }
@@ -53,18 +56,16 @@ public class EntityProgram : RenderProgram
         layout(points) in;
         layout(triangle_strip, max_vertices = 4) out;
 
-        const int FuzzBit = 1;
-        const int FlipUBit = 2;
-
         in float lightLevelOut[];
-        in float alphaOut[]; 
-        in int flagsOut[];
+        in float alphaOut[];
+        in float fuzzOut[];
+        in float flipUOut[];
 
         out vec2 uvFrag;
         out float distFrag;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
-        flat out int fuzzFrag;
+        flat out float fuzzFrag;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -74,9 +75,8 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            int isFuzzValue = clamp((flagsOut[0] & FuzzBit), 0, 1);
-            float leftU = clamp((flagsOut[0] & FlipUBit), 0, 1);
-            float rightU = 1 - clamp((flagsOut[0] & FlipUBit), 0, 1);
+            float leftU = clamp(flipUOut[0], 0, 1);
+            float rightU = 1 - clamp(flipUOut[0], 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
             ivec2 textureDim = textureSize(boundTexture, 0);
@@ -94,7 +94,7 @@ public class EntityProgram : RenderProgram
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
-            fuzzFrag = isFuzzValue;
+            fuzzFrag = fuzzOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
@@ -102,7 +102,7 @@ public class EntityProgram : RenderProgram
             uvFrag = vec2(rightU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
-            fuzzFrag = isFuzzValue;
+            fuzzFrag = fuzzOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
@@ -110,7 +110,7 @@ public class EntityProgram : RenderProgram
             uvFrag = vec2(leftU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
-            fuzzFrag = isFuzzValue;
+            fuzzFrag = fuzzOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
@@ -118,7 +118,7 @@ public class EntityProgram : RenderProgram
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
-            fuzzFrag = isFuzzValue;
+            fuzzFrag = fuzzOut[0];
             EmitVertex();
     
             EndPrimitive();
@@ -132,7 +132,7 @@ public class EntityProgram : RenderProgram
         in float distFrag;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
-        flat in int fuzzFrag;
+        flat in float fuzzFrag;
 
         out vec4 fragColor;
 
@@ -144,13 +144,11 @@ public class EntityProgram : RenderProgram
 
         // These two functions are found here:
         // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-        float rand(vec2 n)
-        {
+        float rand(vec2 n) {
             return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
         }
 
-        float noise(vec2 p)
-        {
+        float noise(vec2 p) {
             vec2 ip = floor(p);
             vec2 u = fract(p);
             u = u * u * (3.0 - 2.0 * u);
@@ -160,7 +158,6 @@ public class EntityProgram : RenderProgram
 	            mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x), u.y);
             return res * res;
         }
-
         // Defined in GLHelper as well
         const int colorMaps = 32;
         const int colorMapClamp = 31;
@@ -188,7 +185,8 @@ public class EntityProgram : RenderProgram
                 // The division/floor is to chunk pixels together to make
                 // blocks. A larger denominator makes it more blocky.
                 vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
+                //fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
+                fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
             }
 
             fragColor.xyz *= lightLevel;

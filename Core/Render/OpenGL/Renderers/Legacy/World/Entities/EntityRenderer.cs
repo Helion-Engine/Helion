@@ -132,16 +132,20 @@ public class EntityRenderer
 
     private void AddSpriteQuadSingleVertex(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
     {
-        const byte MaxAlpha = 255;
-
-        bool useAlpha = m_spriteAlpha && entity.Alpha < 1;
+        bool useAlpha = entity.Flags.Shadow || (m_spriteAlpha && entity.Alpha < 1.0f);
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
 
         var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
         var prevPos = GetSingleVertexCenter(entity.PrevPosition, nudgeAmount, texture);
         float offsetZ = GetOffsetZ(entity, texture);
-        byte alpha = useAlpha ? (byte)(entity.Alpha * MaxAlpha) : MaxAlpha;
-        EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, entity.Flags.Shadow, mirror);
+        float alpha = useAlpha ? entity.Alpha : 1.0f;
+        float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
+        float flipU = mirror ? 1.0f : 0.0f;
+
+        if (entity.Flags.Shadow)
+            alpha = 0.99f;
+
+        EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, fuzz, flipU);
         renderData.Vbo.Add(vertex);
     }
 
