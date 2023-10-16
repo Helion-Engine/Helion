@@ -4,6 +4,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
@@ -12,6 +13,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
@@ -1068,6 +1070,8 @@ public class PhysicsManager
         LinkToWorld(entity);
     }
 
+    private static readonly int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag;
+
     public unsafe bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
     {
         if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity.Entity != null && !entity.OnEntity.Entity.Flags.ActLikeBridge)
@@ -1092,54 +1096,71 @@ public class PhysicsManager
         entity.BlockingEntity = null;
         entity.ViewLineClip = false;
         int checkCounter = ++WorldStatic.CheckCounter;
-        
+        bool isMissile = entity.Flags.Missile;
+        bool checkEntities = entity.Flags.Solid || entity.Flags.Missile;
+        bool canPickup = entity.Flags.Pickup;
+        Entity? nextEntity;
+
         var it = m_blockmapGrid.CreateBoxIteration(nextBox);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
                 Block block = m_blockmapBlocks[by * it.Width + bx];
-                if (entity.Flags.Solid || entity.Flags.Missile)
+                if (checkEntities)
                 {
-                    for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null;)
+                    var entityNode = block.Entities.Head;
+                    while (entityNode != null)
                     {
-                        Entity nextEntity = entityNode.Value;
+                        nextEntity = entityNode.Value;
                         if (nextEntity.BlockmapCount == checkCounter)
                         {
                             entityNode = entityNode.Next;
                             continue;
                         }
-
                         nextEntity.BlockmapCount = checkCounter;
-                        if (nextEntity.Overlaps2D(nextBox))
+
+                        if ((nextEntity.Flags.Flags1 & PositionValidFlags) == 0)
                         {
-                            if (entity.Id == nextEntity.Id)
-                            {
-                                entityNode = entityNode.Next;
-                                continue;
-                            }
-
-                            tryMove.IntersectEntities2D.Add(nextEntity);
-                            bool overlapsZ = entity.Flags.Missile ?
-                                entity.OverlapsMissileClipZ(nextEntity, WorldStatic.MissileClip) : entity.OverlapsZ(nextEntity);
-
-                            // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
-                            // This flag can be modified by dehacked
-                            if (overlapsZ && entity.Flags.Pickup && nextEntity.Flags.Special)
-                            {
-                                // Set the next node - this pickup can be removed from the list
-                                entityNode = entityNode.Next;
-                                m_world.PerformItemPickup(entity, nextEntity);
-                                continue;
-                            }
-
-                            if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
-                            {
-                                tryMove.Success = false;
-                                entity.BlockingEntity = nextEntity;
-                                goto doneIsPositionValid;
-                            }
+                            entityNode = entityNode.Next;
+                            continue;
                         }
+
+                        double radius = nextEntity.Radius;
+                        if (nextEntity.Position.X - radius >= nextBox.Max.X || nextEntity.Position.X + radius <= nextBox.Min.X ||
+                            nextEntity.Position.Y - radius >= nextBox.Max.Y || nextEntity.Position.Y + radius <= nextBox.Min.Y)
+                        {
+                            entityNode = entityNode.Next;
+                            continue;
+                        }
+
+                        if (entity.Id == nextEntity.Id)
+                        {
+                            entityNode = entityNode.Next;
+                            continue;
+                        }
+
+                        tryMove.IntersectEntities2D.Add(nextEntity);
+                        bool overlapsZ = isMissile ?
+                            entity.OverlapsMissileClipZ(nextEntity, WorldStatic.MissileClip) : entity.OverlapsZ(nextEntity);
+
+                        // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
+                        // This flag can be modified by dehacked
+                        if (overlapsZ && canPickup && nextEntity.Flags.Special)
+                        {
+                            // Set the next node - this pickup can be removed from the list
+                            entityNode = entityNode.Next;
+                            m_world.PerformItemPickup(entity, nextEntity);
+                            continue;
+                        }
+
+                        if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
+                        {
+                            tryMove.Success = false;
+                            entity.BlockingEntity = nextEntity;
+                            goto doneIsPositionValid;
+                        }
+                        
 
                         entityNode = entityNode.Next;
                     }
