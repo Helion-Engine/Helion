@@ -114,16 +114,12 @@ public class EntityRenderer
 
     private Vec3F GetSingleVertexCenter(Vec3D position, Vec2D nudgeAmount, GLLegacyTexture texture, float offsetZ)
     {
-        position.X -= nudgeAmount.X;
-        position.Y -= nudgeAmount.Y;
-
-        Vec2F rightNormal = m_viewRightNormal;
-        Vec2F entityCenterXY = ((float)position.X, (float)position.Y);
+        Vec2F entityCenterXY = ((float)(position.X - nudgeAmount.X), (float)(position.Y - nudgeAmount.Y));
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
         int halfTexWidth = texture.Dimension.Width / 2;
-        entityCenterXY = (entityCenterXY.X - (rightNormal.X * texture.Offset.X) + (rightNormal.X * halfTexWidth), 
-            entityCenterXY.Y - (rightNormal.Y * texture.Offset.X) + (rightNormal.Y * halfTexWidth));
+        entityCenterXY = (entityCenterXY.X - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth), 
+            entityCenterXY.Y - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth));
 
         return (entityCenterXY.X, entityCenterXY.Y, (float)position.Z + offsetZ);
     }   
@@ -193,14 +189,19 @@ public class EntityRenderer
         short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
             (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
 
+        int halfTexWidth = texture.Dimension.Width / 2;
+        float offsetZ = GetOffsetZ(entity, texture);
+        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
+        // Doom graphics are drawn left to right and not centered
+        var pos = new Vec3F((float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth), 
+            (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth), (float)entity.Position.Z + offsetZ);
+
+        var prevPos = new Vec3F(pos.X - (float)(entity.Position.X - entity.PrevPosition.X), 
+            pos.Y - (float)(entity.Position.Y - entity.PrevPosition.Y),
+            pos.Z - (float)(entity.Position.Z - entity.PrevPosition.Z));
+
         bool useAlpha = entity.Flags.Shadow || (m_spriteAlpha && entity.Alpha < 1.0f);
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
-
-        var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture, GetOffsetZ(entity, texture));
-        var prevPos = pos;
-        prevPos.X -= (float)(entity.Position.X - entity.PrevPosition.X);
-        prevPos.Y -= (float)(entity.Position.Y - entity.PrevPosition.Y);
-        prevPos.Z -= (float)(entity.Position.Z - entity.PrevPosition.Z);
         float alpha = useAlpha ? entity.Alpha : 1.0f;
         float flipU = spriteRotation.Mirror ? 1.0f : 0.0f;
         float fuzz = 0.0f;
