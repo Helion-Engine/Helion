@@ -28,10 +28,7 @@ public struct EntityVertex
     [VertexAttribute]
     public Vec3F PrevPos;
 
-    [VertexAttribute]
-    public float OffsetZ;
-
-    public EntityVertex(Vec3F pos, Vec3F prevPos, float offsetZ, short lightLevel, float alpha, float isFuzz, float flipU)
+    public EntityVertex(Vec3F pos, Vec3F prevPos, short lightLevel, float alpha, float isFuzz, float flipU)
     {
         Pos = pos;
         LightLevel = lightLevel;
@@ -39,6 +36,5 @@ public struct EntityVertex
         Fuzz = isFuzz;
         FlipU = flipU;
         PrevPos = prevPos;
-        OffsetZ = offsetZ;
     }
 }

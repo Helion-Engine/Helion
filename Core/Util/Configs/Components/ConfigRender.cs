@@ -83,9 +83,6 @@ public class ConfigRender
     [ConfigInfo("Field of view. Default = 90")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 
-    [ConfigInfo("Enable sprite rendering with single vertex using the geometry shader.")]
-    public readonly ConfigValue<bool> SingleVertexSprites = new(false);
-
     [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     public readonly ConfigValue<bool> NullTexture = new(false);
 }

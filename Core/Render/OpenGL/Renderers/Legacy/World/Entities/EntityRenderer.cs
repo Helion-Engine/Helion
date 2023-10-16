@@ -43,7 +43,6 @@ public class EntityRenderer
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
-    private bool m_singleVertex;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
     private bool m_spriteZCheck;
@@ -57,7 +56,6 @@ public class EntityRenderer
         m_textureManager = textureManager;
         m_dataManager = new(m_program);
         m_worldDataManager = worldDataManager;
-        m_singleVertex = m_config.Render.SingleVertexSprites;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
@@ -69,7 +67,6 @@ public class EntityRenderer
     {
         m_dataManager.Clear();
         m_renderPositions.Clear();
-        m_singleVertex = m_config.Render.SingleVertexSprites;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
@@ -84,21 +81,6 @@ public class EntityRenderer
     {
         m_viewerEntityId = viewerEntity.Id;
         m_viewRightNormal = viewDirection.RotateRight90().Unit().Float;
-    }
-
-    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position)
-    {
-        LinkableNode<Entity>? node = subsector.Sector.Entities.Head;
-        while (node != null)
-        {
-            Entity entity = node.Value;
-            node = node.Next;
-
-            if (ShouldNotDraw(entity))
-                continue;
-
-            RenderEntity(viewSector, entity, position);
-        }
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -130,109 +112,21 @@ public class EntityRenderer
         return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId;
     }
 
-    private void AddSpriteQuadSingleVertex(Entity entity, GLLegacyTexture texture, short lightLevel, bool mirror, in Vec2D nudgeAmount)
-    {
-        bool useAlpha = entity.Flags.Shadow || (m_spriteAlpha && entity.Alpha < 1.0f);
-        RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
-
-        var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture);
-        var prevPos = GetSingleVertexCenter(entity.PrevPosition, nudgeAmount, texture);
-        float offsetZ = GetOffsetZ(entity, texture);
-        float alpha = useAlpha ? entity.Alpha : 1.0f;
-        float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
-        float flipU = mirror ? 1.0f : 0.0f;
-
-        if (entity.Flags.Shadow)
-            alpha = 0.99f;
-
-        EntityVertex vertex = new(pos, prevPos, offsetZ, lightLevel, alpha, fuzz, flipU);
-        renderData.Vbo.Add(vertex);
-    }
-
-    private Vec3F GetSingleVertexCenter(Vec3D position, Vec2D nudgeAmount, GLLegacyTexture texture)
+    private Vec3F GetSingleVertexCenter(Vec3D position, Vec2D nudgeAmount, GLLegacyTexture texture, float offsetZ)
     {
         position.X -= nudgeAmount.X;
         position.Y -= nudgeAmount.Y;
 
         Vec2F rightNormal = m_viewRightNormal;
-        Vec2F entityCenterXY = position.XY.Float;
+        Vec2F entityCenterXY = ((float)position.X, (float)position.Y);
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
-        entityCenterXY -= rightNormal * texture.Offset.X;
-        entityCenterXY += rightNormal * texture.Dimension.Width / 2;
+        int halfTexWidth = texture.Dimension.Width / 2;
+        entityCenterXY = (entityCenterXY.X - (rightNormal.X * texture.Offset.X) + (rightNormal.X * halfTexWidth), 
+            entityCenterXY.Y - (rightNormal.Y * texture.Offset.X) + (rightNormal.Y * halfTexWidth));
 
-        return (entityCenterXY.X, entityCenterXY.Y, (float)position.Z);
-    }
-
-    private void AddSpriteQuad(Entity entity, short lightLevel, GLLegacyTexture texture, bool mirror, in Vec2D nudgeAmount)
-    {
-        float offsetZ = GetOffsetZ(entity, texture);
-        Vec3D position = entity.Position;
-        Vec3D prevPosition = entity.PrevPosition;
-        position.X -= nudgeAmount.X;
-        position.Y -= nudgeAmount.Y;
-        prevPosition.X -= nudgeAmount.X;
-        prevPosition.Y -= nudgeAmount.Y;
-
-        SpriteQuad pos = CalculateQuad(position, offsetZ, entity, texture);
-        SpriteQuad prevPos = prevPosition == position ? pos : CalculateQuad(prevPosition, offsetZ, entity, texture);
-        float alpha = m_spriteAlpha ? entity.Alpha : 1.0f;
-        float fuzz = entity.Flags.Shadow ? 1.0f : 0.0f;
-        float leftU = 0.0f;
-        float rightU = 1.0f;
-        if (mirror)
-        {
-            leftU = 1.0f;
-            rightU = 0.0f;
-        }
-
-        if (entity.Flags.Shadow)
-            alpha = 0.99f;
-
-        int lightBuffer = Constants.LightBuffer.ColorMapStartIndex + (lightLevel / (256 / Constants.LightBuffer.ColorMapCount));
-        LegacyVertex topLeft = new(pos.Left.X, pos.Left.Y, pos.TopZ, prevPos.Left.X, prevPos.Left.Y, prevPos.TopZ, leftU, 0.0f, alpha, fuzz,
-            lightLevelBufferIndex: lightBuffer);
-        LegacyVertex topRight = new(pos.Right.X, pos.Right.Y, pos.TopZ, prevPos.Right.X, prevPos.Right.Y, prevPos.TopZ, rightU, 0.0f, alpha, fuzz,
-            lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomLeft = new(pos.Left.X, pos.Left.Y, pos.BottomZ, prevPos.Left.X, prevPos.Left.Y, prevPos.BottomZ, leftU, 1.0f, alpha, fuzz,
-            lightLevelBufferIndex: lightBuffer);
-        LegacyVertex bottomRight = new(pos.Right.X, pos.Right.Y, pos.BottomZ, prevPos.Right.X, prevPos.Right.Y, prevPos.BottomZ, rightU, 1.0f, alpha, fuzz,
-            lightLevelBufferIndex: lightBuffer);
-
-        RenderWorldData renderWorldData = alpha < 1 ?
-            m_worldDataManager.GetAlphaRenderData(texture, m_program) :
-            m_worldDataManager.GetRenderData(texture, m_program);
-
-        int startIndex = renderWorldData.Vbo.Count;
-        int vertexCount = startIndex + 6;
-        renderWorldData.Vbo.Data.EnsureCapacity(vertexCount);
-        renderWorldData.Vbo.Data.Data[startIndex] = topLeft;
-        renderWorldData.Vbo.Data.Data[startIndex + 1] = bottomLeft;
-        renderWorldData.Vbo.Data.Data[startIndex + 2] = topRight;
-        renderWorldData.Vbo.Data.Data[startIndex + 3] = topRight;
-        renderWorldData.Vbo.Data.Data[startIndex + 4] = bottomLeft;
-        renderWorldData.Vbo.Data.Data[startIndex + 5] = bottomRight;
-        renderWorldData.Vbo.Data.SetLength(vertexCount);
-    }
-
-    private SpriteQuad CalculateQuad(in Vec3D entityCenterBottom, float offsetZ, Entity entity, GLLegacyTexture texture)
-    {
-        SpriteQuad spriteQuad = new();
-        // We need to find the perpendicular vector from the entity so we
-        // know where to place the quad vertices.
-        Vec2F rightNormal = m_viewRightNormal;
-        Vec2F entityCenterXY = entityCenterBottom.XY.Float;
-        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        // Doom graphics are drawn left to right and not centered
-        entityCenterXY -= rightNormal * texture.Offset.X;
-
-        spriteQuad.Left = entityCenterXY;
-        spriteQuad.Right = entityCenterXY + (rightNormal * texture.Dimension.Width);
-
-        spriteQuad.BottomZ = (float)entityCenterBottom.Z + offsetZ;
-        spriteQuad.TopZ = spriteQuad.BottomZ + texture.Height;
-        return spriteQuad;
-    }
+        return (entityCenterXY.X, entityCenterXY.Y, (float)position.Z + offsetZ);
+    }   
 
     private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
@@ -257,7 +151,7 @@ public class EntityRenderer
         return 0;
     }
 
-    public void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
+    public unsafe void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
     {
         const double NudgeFactor = 0.0001;
         
@@ -299,10 +193,35 @@ public class EntityRenderer
         short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
             (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
 
-        if (m_singleVertex)
-            AddSpriteQuadSingleVertex(entity, texture, lightLevel, spriteRotation.Mirror, nudgeAmount);
-        else
-            AddSpriteQuad(entity, lightLevel, texture, spriteRotation.Mirror, nudgeAmount);
+        bool useAlpha = entity.Flags.Shadow || (m_spriteAlpha && entity.Alpha < 1.0f);
+        RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
+
+        var pos = GetSingleVertexCenter(entity.Position, nudgeAmount, texture, GetOffsetZ(entity, texture));
+        var prevPos = pos;
+        prevPos.X -= (float)(entity.Position.X - entity.PrevPosition.X);
+        prevPos.Y -= (float)(entity.Position.Y - entity.PrevPosition.Y);
+        prevPos.Z -= (float)(entity.Position.Z - entity.PrevPosition.Z);
+        float alpha = useAlpha ? entity.Alpha : 1.0f;
+        float flipU = spriteRotation.Mirror ? 1.0f : 0.0f;
+        float fuzz = 0.0f;
+        if (entity.Flags.Shadow)
+        {
+            fuzz = 1.0f;
+            alpha = 0.99f;
+        }
+
+        int newLength = renderData.Vbo.Data.Length + 1;
+        renderData.Vbo.Data.EnsureCapacity(newLength);
+        fixed (EntityVertex* vertex = &renderData.Vbo.Data.Data[renderData.Vbo.Data.Length])
+        {
+            vertex->Pos = pos;
+            vertex->PrevPos = prevPos;
+            vertex->LightLevel = lightLevel;
+            vertex->Alpha = alpha;
+            vertex->Fuzz = fuzz;
+            vertex->FlipU = flipU;
+        }
+        renderData.Vbo.Data.SetLength(newLength);
     }
 
     private void SetUniforms(RenderInfo renderInfo)
