@@ -48,7 +48,6 @@ public class EntityRenderer
     private bool m_spriteZCheck;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
-    private int m_viewerEntityId;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
     {
@@ -77,9 +76,8 @@ public class EntityRenderer
     public void SetTickFraction(double tickFraction) =>
         m_tickFraction = tickFraction;
 
-    public void SetViewDirection(Entity viewerEntity, Vec2D viewDirection)
+    public void SetViewDirection(Vec2D viewDirection)
     {
-        m_viewerEntityId = viewerEntity.Id;
         m_viewRightNormal = viewDirection.RotateRight90().Unit().Float;
     }
 
@@ -105,11 +103,6 @@ public class EntityRenderer
         // Then we can do a bit shift trick which converts the higher order
         // three bits into the angle rotation between 0 - 7.
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
-    }
-
-    public bool ShouldNotDraw(Entity entity)
-    {
-        return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId;
     }
 
     private float GetOffsetZ(Entity entity, GLLegacyTexture texture)

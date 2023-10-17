@@ -18,5 +18,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public Vec3D ViewPos3D;
         public int CheckCount;
         public int MaxDistance;
+        public int MaxDistanceSquared;
     }
 }

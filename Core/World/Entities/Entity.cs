@@ -98,9 +98,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool Respawn;
     public float Alpha;
 
-    public double RenderDistance { get; set; }
     public int LastRenderGametick;
-    public double LastRenderDistanceSquared = double.MaxValue;
+    public double RenderDistanceSquared { get; set; } = double.MaxValue;
     public int SlowTickMultiplier = 1;
     public int ChaseFailureSkipCount = 0;
     public RenderObjectType Type => RenderObjectType.Entity;

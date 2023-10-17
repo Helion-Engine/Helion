@@ -33,7 +33,7 @@ public class Side : IRenderObject
 
     public SideScrollData? ScrollData { get; set; }
 
-    public double RenderDistance { get; set; }
+    public double RenderDistanceSquared { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
     public int LastRenderGametick;
     public int LastRenderGametickAlpha;

@@ -16,8 +16,10 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -75,6 +77,7 @@ public class GeometryRenderer : IDisposable
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
     private int[] m_drawnSides = Array.Empty<int>();
+    private int m_maxDistanceSquared;
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -91,6 +94,7 @@ public class GeometryRenderer : IDisposable
         m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, staticProgram, this);
+        m_maxDistanceSquared = config.Render.MaxDistance * config.Render.MaxDistance;
 
         for (int i = 0; i < m_wallVertices.Length; i++)
         {
@@ -203,8 +207,8 @@ public class GeometryRenderer : IDisposable
         Portals.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
+        m_maxDistanceSquared = m_config.Render.MaxDistance * m_config.Render.MaxDistance;
     }
-
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
 
@@ -395,7 +399,10 @@ public class GeometryRenderer : IDisposable
         m_drawnSides[side.Id] = WorldStatic.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
-            side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(pos2D);
+            var lineCenter = side.Line.Segment.FromTime(0.5);
+            double dx = Math.Max(lineCenter.X - pos2D.X, Math.Max(0, pos2D.X - lineCenter.X));
+            double dy = Math.Max(lineCenter.Y - pos2D.Y, Math.Max(0, pos2D.Y - lineCenter.Y));
+            side.RenderDistanceSquared = dx * dx + dy * dy;
             AlphaSides.Add(side);
         }
 
@@ -444,7 +451,10 @@ public class GeometryRenderer : IDisposable
 
             if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
             {
-                side.RenderDistance = side.Line.Segment.FromTime(0.5).Distance(position.XY);
+                var lineCenter = side.Line.Segment.FromTime(0.5);
+                double dx = Math.Max(lineCenter.X - position.X, Math.Max(0, position.X - lineCenter.X));
+                double dy = Math.Max(lineCenter.Y - position.Y, Math.Max(0, position.Y - lineCenter.Y));
+                side.RenderDistanceSquared = dx * dx + dy * dy;
                 AlphaSides.Add(side);
             }
 

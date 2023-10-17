@@ -52,6 +52,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_lastTicker = -1;
     private int m_renderCount;
     private int m_maxDistance;
+    private int m_viewerEntityId;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
 
@@ -77,7 +78,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return 1;
 
         // Reverse distance order
-        return y.RenderDistance.CompareTo(x.RenderDistance);
+        return y.RenderDistanceSquared.CompareTo(x.RenderDistanceSquared);
     }
 
     ~LegacyWorldRenderer()
@@ -141,8 +142,9 @@ public class LegacyWorldRenderer : WorldRenderer
 
         TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.PositionInterpolated.Z);
 
+        m_viewerEntityId = renderInfo.ViewerEntity.Id;
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
-        m_entityRenderer.SetViewDirection(renderInfo.ViewerEntity, m_renderData.ViewDirection);
+        m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
         m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderData.CheckCount = ++WorldStatic.CheckCounter;
 
@@ -150,10 +152,10 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_renderData.MaxDistance <= 0)
             m_renderData.MaxDistance = 6000;
 
+        m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
         Box2D box = new(m_renderData.ViewPosInterpolated, m_renderData.MaxDistance);
 
-        double maxDistSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
         bool occlude = m_renderData.OccludePos.HasValue;
 
@@ -187,7 +189,7 @@ public class LegacyWorldRenderer : WorldRenderer
                     Box2D sectorBox = sector.GetBoundingBox();
                     double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorBox.Max.X));
                     double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorBox.Max.Y));
-                    if (dx1 * dx1 + dy1 * dy1 <= maxDistSquared)
+                    if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
                         RenderSector(sector);
                 }
 
@@ -216,7 +218,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     void RenderEntity(Entity entity)
     {
-        if (m_entityRenderer.ShouldNotDraw(entity))
+        if (entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId)
             return;
 
         // Not in front 180 FOV
@@ -229,14 +231,13 @@ public class LegacyWorldRenderer : WorldRenderer
 
         double dx = Math.Max(entity.Position.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - entity.Position.X));
         double dy = Math.Max(entity.Position.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - entity.Position.Y));
-        entity.LastRenderDistanceSquared = dx * dx + dy * dy;
-        if (entity.LastRenderDistanceSquared > m_renderData.MaxDistance * m_renderData.MaxDistance)
+        entity.RenderDistanceSquared = dx * dx + dy * dy;
+        if (entity.RenderDistanceSquared > m_renderData.MaxDistanceSquared)
             return;
 
         entity.LastRenderGametick = World.Gametick;
         if ((m_spriteTransparency && entity.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
-            entity.RenderDistance = entity.Position.XY.Distance(m_renderData.ViewPosInterpolated);
             m_alphaEntities.Add(entity);
             return;
         }

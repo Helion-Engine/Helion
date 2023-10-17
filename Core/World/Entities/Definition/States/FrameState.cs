@@ -211,7 +211,7 @@ public struct FrameState
 
         if (CurrentTick > 0 &&
             (Frame.IsSlowTickTracer || Frame.IsSlowTickChase || Frame.IsSlowTickLook) &&
-            (m_entity.LastRenderDistanceSquared > WorldStatic.SlowTickDistance * WorldStatic.SlowTickDistance ||
+            (m_entity.RenderDistanceSquared > WorldStatic.SlowTickDistance * WorldStatic.SlowTickDistance ||
             m_entity.LastRenderGametick != WorldStatic.World.Gametick))
         {
             // Stagger the frame ticks using SlowTickOffset so they don't all run on the same gametick

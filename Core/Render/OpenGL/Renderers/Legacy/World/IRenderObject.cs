@@ -8,6 +8,6 @@ public enum RenderObjectType
 
 public interface IRenderObject
 {
-    double RenderDistance { get; set; }
+    double RenderDistanceSquared { get; set; }
     RenderObjectType Type { get; }
 }
