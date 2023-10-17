@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Graphics;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
@@ -9,12 +10,14 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 
 namespace Helion.Resources;
 
 public class TextureManager : ITickable
 {
     public const int NoTextureIndex = 0;
+    const string ShittyTextureName = "AASHITTY";
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures;
@@ -27,14 +30,11 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
-    private readonly DynamicArray<SpriteDefinition> m_spriteDefinitions = new();
-
-    public DynamicArray<SpriteDefinition> SpriteDefinitions => m_spriteDefinitions;
-
-    public string SkyTextureName { get; set; }
 
     public event EventHandler<AnimationEvent>? AnimationChanged;
+    public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
+    public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = Constants.NullCompatibilityTextureIndex;
 
     public TextureManager(ArchiveCollection archiveCollection)
@@ -55,9 +55,6 @@ public class TextureManager : ITickable
         var flatEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Flats);
         int count = m_archiveCollection.Definitions.Textures.CountAll() + flatEntries.Count + 1;
         m_textures = new List<Texture>(count);
-        m_translations = new List<int>(count);
-        for (int i = 0; i < count; i++)
-            m_translations.Add(i);
 
         var spriteEntries = m_archiveCollection.Entries.GetAllByNamespace(ResourceNamespace.Sprites);
         var spriteNames = spriteEntries.Where(entry => entry.Path.Name.Length > 3)
@@ -66,6 +63,11 @@ public class TextureManager : ITickable
             .ToList();
 
         InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
+
+        m_translations = new List<int>(m_textures.Count);
+        for (int i = 0; i < m_textures.Count; i++)
+            m_translations.Add(i);
+
         InitAnimations();
         InitSwitches();
         InitSprites(spriteNames, spriteEntries);
@@ -83,10 +85,6 @@ public class TextureManager : ITickable
         return m_defaultSkyTexture;
     }
 
-    /// <summary>
-    /// Loads the texture images.
-    /// </summary>
-    /// <param name="textures">List of texture indices to load.</param>
     public void LoadTextureImages(HashSet<int> textures)
     {
         foreach (int texture in textures)
@@ -261,10 +259,10 @@ public class TextureManager : ITickable
 
     public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
     {
-        if (spriteIndex >= m_spriteDefinitions.Length)
+        if (spriteIndex >= SpriteDefinitions.Length)
             return null;
 
-        return m_spriteDefinitions.Data[spriteIndex];
+        return SpriteDefinitions.Data[spriteIndex];
     }
 
     public void Tick()
@@ -300,15 +298,15 @@ public class TextureManager : ITickable
 
     private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
     {
-        m_spriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
+        SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
             var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
-            if (spriteIndex >= m_spriteDefinitions.Capacity)
-                m_spriteDefinitions.Resize(spriteIndex + 32);
+            if (spriteIndex >= SpriteDefinitions.Capacity)
+                SpriteDefinitions.Resize(spriteIndex + 32);
 
-            m_spriteDefinitions.Data[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
+            SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
         }
     }
 
@@ -444,19 +442,19 @@ public class TextureManager : ITickable
         m_textures.Add(new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex));
         m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
 
-        int index = Constants.NoTextureIndex + 1;
+        // Need to force AASHITTY at NullCompatibilityTextureIndex (1)
+        m_textures.Add(GetShittyTexture(textures));
+        m_textureLookup[ShittyTextureName] = m_textures[Constants.NoTextureIndex];
+
+        int index = Constants.NullCompatibilityTextureIndex + 1;
         foreach (TextureDefinition texture in textures.OrderBy(x => x.Index))
         {
+            if (texture.Name.EqualsIgnoreCase(ShittyTextureName))
+                continue;
+
             m_textures.Add(new Texture(texture.Name, texture.Namespace, index));
             m_textureLookup[texture.Name] = m_textures[index];
             index++;
-        }
-
-        // Load AASHITTY for information purposes - FloorRaiseByTexture needs it to emulate vanilla bug
-        if (m_textures.Count > 1)
-        {
-            Texture shitty = m_textures[1];
-            shitty.Image = m_archiveCollection.ImageRetriever.GetOnly(shitty.Name, shitty.Namespace);
         }
 
         // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
@@ -472,6 +470,16 @@ public class TextureManager : ITickable
 
             index++;
         }
+    }
+
+    private Texture GetShittyTexture(List<TextureDefinition> textures)
+    {
+        // Load AASHITTY for information purposes - FloorRaiseByTexture needs it to emulate vanilla bug
+        var texture = textures.FirstOrDefault(x => x.Name.EqualsIgnoreCase(ShittyTextureName));
+        var ns = ResourceNamespace.Textures;
+        var shittyTexture = new Texture(ShittyTextureName, ns, Constants.NullCompatibilityTextureIndex);
+        shittyTexture.Image = texture == null ? Image.NullImage : m_archiveCollection.ImageRetriever.GetOnly(ShittyTextureName, ns);
+        return shittyTexture;
     }
 
     private void LoadTextureImage(int textureIndex)
