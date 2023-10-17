@@ -112,18 +112,6 @@ public class EntityRenderer
         return entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId;
     }
 
-    private Vec3F GetSingleVertexCenter(Vec3D position, Vec2D nudgeAmount, GLLegacyTexture texture, float offsetZ)
-    {
-        Vec2F entityCenterXY = ((float)(position.X - nudgeAmount.X), (float)(position.Y - nudgeAmount.Y));
-        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        // Doom graphics are drawn left to right and not centered
-        int halfTexWidth = texture.Dimension.Width / 2;
-        entityCenterXY = (entityCenterXY.X - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth), 
-            entityCenterXY.Y - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth));
-
-        return (entityCenterXY.X, entityCenterXY.Y, (float)position.Z + offsetZ);
-    }   
-
     private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
         float offsetAmount = texture.Offset.Y - texture.Height;
