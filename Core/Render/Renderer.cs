@@ -68,7 +68,6 @@ public class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
-        WarnForInvalidStates(config);
     }
 
     ~Renderer()
@@ -95,12 +94,6 @@ public class Renderer : IDisposable
         zNear = MathHelper.Clamp(zNear, 0.2f, 7.9f);
         mat4 projection = mat4.PerspectiveFov(fovY, w, h, zNear, 65536.0f);
         return projection * view * model;
-    }
-
-    private static void WarnForInvalidStates(IConfig config)
-    {
-        if (config.Render.Anisotropy > 1 && config.Render.Filter.Texture.Value != FilterType.Trilinear)
-            Log.Warn($"Anisotropic filter should be paired with trilinear filtering (you have {config.Render.Filter.Texture.Value}), you will not get the best results!");
     }
 
     public void Render(RenderCommands renderCommands)
