@@ -11,7 +11,7 @@ public interface IRandom
     /// Gets a random byte.
     /// </summary>
     /// <returns>A random byte.</returns>
-    byte NextByte();
+    int NextByte();
 
     /// <summary>
     /// Gets a random byte in the range of [-255, 255].

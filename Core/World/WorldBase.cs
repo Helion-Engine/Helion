@@ -1086,20 +1086,13 @@ public abstract class WorldBase : IWorld
         BlockmapIntersect? bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
             ref intersect, out Sector? hitSector);
 
-        if (bi != null || hitSector != null)
-            if (shooter.PlayerObj != null && damage > 0 && Config.Developer.Render.Tracers)
-                shooter.PlayerObj.Tracers.AddTracer((start, intersect), Gametick, PlayerTracers.TracerColor);
-
-        if ((options & HitScanOptions.DrawRail) != 0)
+        if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
             Vec3D railEnd = bi != null && bi.Value.Line != null ? intersect : end;
             shooter.PlayerObj.Tracers.AddTracer((start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
-        if (bi == null || bi.Value.Entity == null)
-            return null;
-        
-        return bi.Value.Entity;
+        return bi == null ? null : bi.Value.Entity;
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,

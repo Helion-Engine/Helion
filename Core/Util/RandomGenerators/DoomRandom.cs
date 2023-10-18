@@ -5,7 +5,7 @@ namespace Helion.Util.RandomGenerators;
 /// </summary>
 public class DoomRandom : IRandom
 {
-    private static readonly byte[] Random =
+    private static readonly int[] Random =
     {
         0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74,
         21, 211, 47, 80, 242, 154, 27, 205, 128, 161, 89, 77, 36, 95, 110,
@@ -27,15 +27,28 @@ public class DoomRandom : IRandom
         84, 118, 222, 187, 136, 120, 163, 236, 249
     };
 
-    private byte m_randomIndex;
+    private int m_randomIndex;
 
     public DoomRandom(int index = 0)
     {
-        m_randomIndex = (byte)index;
+        m_randomIndex = index;
     }
 
-    public byte NextByte() => Random[++m_randomIndex];
-    public int NextDiff() => Random[++m_randomIndex] - Random[++m_randomIndex];
+    public int NextByte()
+    {
+        m_randomIndex = ++m_randomIndex & 0xFF;
+        return Random[m_randomIndex];
+    }
+
+    public int NextDiff()
+    {
+        m_randomIndex = ++m_randomIndex & 0xFF;
+        int value1 = Random[m_randomIndex];
+        m_randomIndex = ++m_randomIndex & 0xFF;
+        int value2 = Random[m_randomIndex];
+        return value1 - value2;
+    }
+
     public int RandomIndex => m_randomIndex;
 
     public IRandom Clone() => new DoomRandom();

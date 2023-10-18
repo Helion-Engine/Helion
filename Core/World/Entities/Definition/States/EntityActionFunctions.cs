@@ -619,7 +619,7 @@ public static class EntityActionFunctions
 
     private static string GetRandomBossSpawn(IRandom random)
     {
-        byte value = random.NextByte();
+        int value = random.NextByte();
         if (value < 50)
             return "DoomImp";
         else if (value < 90)
@@ -691,8 +691,8 @@ public static class EntityActionFunctions
 
         WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
 
-        entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
-        WorldStatic.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
+        double angle = entity.AngleRadians + WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
+        WorldStatic.World.FireHitscan(entity, angle, pitch, Constants.EntityShootDistance, 3 * ((WorldStatic.Random.NextByte() % 5) + 1));
     }
 
     private static void A_CPosRefire(Entity entity)
@@ -1734,7 +1734,7 @@ public static class EntityActionFunctions
         WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
 
         entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
-        WorldStatic.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
+        WorldStatic.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 3 * ((WorldStatic.Random.NextByte() % 5) + 1));
     }
 
     private static void A_Print(Entity entity)
@@ -1969,10 +1969,8 @@ public static class EntityActionFunctions
 
         double angle = entity.AngleRadians;
         for (int i = 0; i < 3; i++)
-        {
-            entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            WorldStatic.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
-        }
+            WorldStatic.World.FireHitscan(entity, angle + (WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255), 
+                pitch, Constants.EntityShootDistance, 3 * ((WorldStatic.Random.NextByte() % 5) + 1));
     }
 
     private static void A_SargAttack(Entity entity)
@@ -2427,11 +2425,10 @@ public static class EntityActionFunctions
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
         WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
 
-        double angle = entity.AngleRadians;
         for (int i = 0; i < 3; i++)
         {
-            entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
-            WorldStatic.World.FireHitscan(entity, entity.AngleRadians, pitch, Constants.EntityShootDistance, 5 * ((WorldStatic.Random.NextByte() % 3) + 1));
+            double angle = entity.AngleRadians + WorldStatic.Random.NextDiff() * Constants.PosRandomSpread / 255;
+            WorldStatic.World.FireHitscan(entity, angle, pitch, Constants.EntityShootDistance, 3 * ((WorldStatic.Random.NextByte() % 5) + 1));
         }
     }
 

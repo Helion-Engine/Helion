@@ -10,7 +10,7 @@ public class TrueRandom : IRandom
 {
     private readonly Random m_random = new();
 
-    public byte NextByte() => (byte)m_random.Next(256);
+    public int NextByte() => m_random.Next(256) & 0xFF;
 
     public int NextDiff() => m_random.Next(256) - m_random.Next(256);
 
