@@ -56,9 +56,9 @@ public class BlockmapTraverser
         hitOneSidedLine = false;
 
         BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
-        while (it.HasNext())
+        var block = it.Next();
+        while (block != null)
         {
-            Block block = it.Next();
             fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
             {
                 for (int i = 0; i < block.BlockLines.Length; i++)
@@ -82,6 +82,7 @@ public class BlockmapTraverser
                     }
                 }
             }
+            block = it.Next();
         }
 
 sightTraverseEndOfLoop:
@@ -95,9 +96,9 @@ sightTraverseEndOfLoop:
         int checkCounter = ++WorldStatic.CheckCounter;
         
         BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
-        while (it.HasNext())
+        var block = it.Next();
+        while (block != null)
         {
-            Block block = it.Next();
             fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
             {
                 for (int i = 0; i < block.BlockLines.Length; i++)
@@ -130,6 +131,7 @@ sightTraverseEndOfLoop:
                 if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
                     intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
             }
+            block = it.Next();
         }
 
         intersections.Sort();
@@ -301,9 +303,9 @@ sightTraverseEndOfLoop:
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         var it = m_blockmapGrid.Iterate(seg);
-        while (it.HasNext())
+        var block = it.Next();
+        while (block != null)
         {
-            Block block = it.Next();
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -319,6 +321,7 @@ sightTraverseEndOfLoop:
                     }
                 }
             }
+            block = it.Next();
         }
         intersections.Sort();
     }

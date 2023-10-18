@@ -1366,10 +1366,9 @@ doneIsPositionValid:
         Vec2D position = entity.Position.XY;
         
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(cornerTracer);
-        while (it.HasNext())
+        var block = it.Next();
+        while (block != null)
         {
-            Block block = it.Next();
-            
             for (int i = 0; i < block.BlockLines.Length; i++)
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
@@ -1384,6 +1383,7 @@ doneIsPositionValid:
                     }
                 }
             }
+            block = it.Next();
         }
 
         if (hit && hitTime < moveInfo.LineIntersectionTime)

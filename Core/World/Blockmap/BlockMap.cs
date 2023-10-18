@@ -106,10 +106,11 @@ public class BlockMap
         side.BlockmapLinked = true;
         
         BlockmapSegIterator<Block> it = m_blocks.Iterate(side.Line.Segment);
-        while (it.HasNext())
+        var block = it.Next();
+        while (block != null)
         {
-            Block block = it.Next();
             block.DynamicSides.Add(new LinkableNode<Side>() { Value = side });
+            block = it.Next();
         }
     }
 

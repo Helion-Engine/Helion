@@ -411,16 +411,14 @@ public ref struct BlockmapSegIterator<T>  where T : new()
             m_numBlocks = grid.Blocks.Length;
     }
 
-    public bool HasNext()
+    public T? Next()
     {
-        return m_blocksVisited < m_numBlocks && m_blockIndex >= 0 && m_blockIndex < m_totalBlocks;
-    }
+        if (m_blocksVisited >= m_numBlocks || m_blockIndex < 0 || m_blockIndex >= m_totalBlocks)
+            return default;
 
-    public T Next()
-    {
         int currentBlockIndex = m_blockIndex;
         m_blocksVisited++;
-        
+
         if (m_error > 0)
         {
             m_blockIndex += m_verticalStep;
