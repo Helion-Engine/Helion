@@ -471,7 +471,7 @@ public class DehackedApplier
             if (thing.MisileDamage.HasValue)
                 properties.Damage.Value = thing.MisileDamage.Value;
             if (thing.MeleeRange.HasValue)
-                properties.MeleeRange = thing.MeleeRange.Value;
+                properties.MeleeRange = GetDouble(thing.MeleeRange.Value);
             if (thing.FastSpeed.HasValue)
                 properties.FastSpeed = thing.FastSpeed.Value;
             if (thing.GibHealth.HasValue)
