@@ -399,7 +399,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.Mvp(uniforms.Mvp);
         m_interpolationProgram.MvpNoPitch(uniforms.MvpNoPitch);
         m_interpolationProgram.TimeFrac(renderInfo.TickFraction);
-        m_interpolationProgram.FuzzFrac(uniforms.TimeFrac);
         m_interpolationProgram.LightLevelMix(uniforms.Mix);
         m_interpolationProgram.ExtraLight(uniforms.ExtraLight);
     }

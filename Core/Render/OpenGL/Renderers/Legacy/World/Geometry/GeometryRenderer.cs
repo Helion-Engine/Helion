@@ -97,10 +97,7 @@ public class GeometryRenderer : IDisposable
         m_maxDistanceSquared = config.Render.MaxDistance * config.Render.MaxDistance;
 
         for (int i = 0; i < m_wallVertices.Length; i++)
-        {
-            m_wallVertices[i].Fuzz = 0;
             m_wallVertices[i].Alpha = 1.0f;
-        }
 
         m_world = null!;
     }
@@ -1427,7 +1424,6 @@ public class GeometryRenderer : IDisposable
             PrevU = root.PrevU,
             PrevV = root.PrevV,
             Alpha = 1.0f,
-            Fuzz = 0,
             LightLevelBufferIndex = lightLevelBufferIndex,
         });
 
@@ -1444,7 +1440,6 @@ public class GeometryRenderer : IDisposable
             PrevU = second.PrevU,
             PrevV = second.PrevV,
             Alpha = 1.0f,
-            Fuzz = 0,
             LightLevelBufferIndex = lightLevelBufferIndex,
         });
 
@@ -1461,7 +1456,6 @@ public class GeometryRenderer : IDisposable
             PrevU = third.PrevU,
             PrevV = third.PrevV,
             Alpha = 1.0f,
-            Fuzz = 0,
             LightLevelBufferIndex = lightLevelBufferIndex,
         });
     }
