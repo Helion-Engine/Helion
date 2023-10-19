@@ -4,6 +4,7 @@ using Helion.Window;
 
 namespace Helion.Layer.New;
 
+// Disposable is not for resources, but rather signals cleanup for the GameLayerManager.
 public abstract class GameLayer : IComparable<GameLayer>, IDisposable
 {
     public bool IsDisposed { get; private set; }

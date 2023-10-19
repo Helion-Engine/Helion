@@ -29,6 +29,8 @@ using Helion.World.Entities.Players;
 using Helion.World.Save;
 using Helion.World.Util;
 using NLog;
+using IntermissionLayer = Helion.Layer.New.Levels.Intermission.IntermissionLayer;
+using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
 
 namespace Helion.Client;
 

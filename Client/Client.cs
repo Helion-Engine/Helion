@@ -29,6 +29,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
+using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
 
 namespace Helion.Client;
 

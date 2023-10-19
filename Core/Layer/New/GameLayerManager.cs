@@ -32,24 +32,24 @@ public class GameLayerManager
         return TryGet<TLayer>(out _);
     }
 
-    public void Clear()
-    {
-        foreach (GameLayer layer in m_layers)
-            layer.Dispose();
-
-        m_layers.Clear();
-    }
-
     private void ClearDisposedLayers()
     {
-        m_layers.RemoveAll(l => l.IsDisposed);
+        // Avoid GC and LINQ unless we are disposing.
+        for (int i = 0; i < m_layers.Count; i++)
+        {
+            if (!m_layers[i].IsDisposed) 
+                continue;
+            
+            m_layers.RemoveAll(l => l.IsDisposed);
+            break;
+        }
     }
 
     public bool ShouldFocus()
     {
-        foreach (GameLayer layer in m_layers)
+        for (int i = 0; i < m_layers.Count; i++)
         {
-            bool? focus = layer.ShouldFocus();
+            bool? focus = m_layers[i].ShouldFocus();
             if (focus.HasValue)
                 return focus.Value;
         }
@@ -59,21 +59,23 @@ public class GameLayerManager
 
     public void HandleInput(IConsumableInput input)
     {
-        foreach (GameLayer layer in m_layers)
-            layer.HandleInput(input);
+        for (int i = 0; i < m_layers.Count; i++)
+            m_layers[i].HandleInput(input);
+
+        ClearDisposedLayers();
     }
 
     public void RunLogic()
     {
-        foreach (GameLayer layer in m_layers)
-            layer.RunLogic();
-        
+        for (int i = 0; i < m_layers.Count; i++)
+            m_layers[i].RunLogic();
+
         ClearDisposedLayers();
     }
 
     public void Render(IHudRenderContext ctx)
     {
-        foreach (GameLayer layer in m_layers)
-            layer.Render(ctx);
+        for (int i = m_layers.Count - 1; i >= 0; i--)
+            m_layers[i].Render(ctx);
     }
 }

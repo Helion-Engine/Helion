@@ -1,4 +1,5 @@
-﻿using Helion.Util.Configs;
+﻿using Helion.Layer.New.Util;
+using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using NLog;

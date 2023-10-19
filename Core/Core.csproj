@@ -71,6 +71,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Layer\New\EndGame\" />
+    <Folder Include="Layer\New\Levels\Intermission\" />
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@ using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Fonts;
+using Helion.Layer.New.Levels.Intermission;
 using Helion.Maps;
 using Helion.Models;
 using Helion.Render.Common.Enums;
@@ -10,7 +11,6 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
@@ -24,21 +24,20 @@ using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
 using Helion.World.Impl.SinglePlayer;
 using NLog;
-using static Helion.Util.Assertion.Assert;
 
-namespace Helion.Layer.Worlds;
+namespace Helion.Layer.New.Levels;
 
 public partial class WorldLayer : IGameLayerParent
 {
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public New.Levels.Intermission.IntermissionLayer? Intermission { get; private set; }
+    public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
-    private readonly GameLayerManager m_parent;
+    private readonly Layer.GameLayerManager m_parent;
     private readonly FpsTracker m_fpsTracker;
     private readonly Profiler m_profiler;
     private readonly TickCommand m_tickCommand = new();
@@ -58,7 +57,7 @@ public partial class WorldLayer : IGameLayerParent
     public bool ShouldFocus => !World.Paused || (World.IsChaseCamMode && !AnyLayerObscuring);
     private readonly Font DefaultFont;
 
-    public WorldLayer(GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker, 
+    public WorldLayer(Layer.GameLayerManager parent, IConfig config, HelionConsole console, FpsTracker fpsTracker, 
         SinglePlayerWorld world, MapInfoDef mapInfoDef, Profiler profiler)
     {
         m_worldContext = new(m_camera, 0);
@@ -72,12 +71,12 @@ public partial class WorldLayer : IGameLayerParent
         World = world;
         CurrentMap = mapInfoDef;
 
-        m_drawAutomapAndHudAction = new(DrawAutomapAndHudContext);
-        m_virtualDrawHudWeaponAction = new(VirtualDrawHudWeapon);
-        m_renderWorldAction = new(RenderWorld);
-        m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
-        m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
-        m_virtualDrawPauseAction = new(VirtualDrawPause);
+        m_drawAutomapAndHudAction = DrawAutomapAndHudContext;
+        m_virtualDrawHudWeaponAction = VirtualDrawHudWeapon;
+        m_renderWorldAction = RenderWorld;
+        m_virtualDrawFullStatusBarAction = VirtualDrawFullStatusBar;
+        m_virtualStatusBarBackgroundAction = VirtualStatusBarBackground;
+        m_virtualDrawPauseAction = VirtualDrawPause;
 
         var font = World.ArchiveCollection.GetFont(LargeHudFont);
         font ??= new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
@@ -97,9 +96,9 @@ public partial class WorldLayer : IGameLayerParent
         m_renderItemLabel = InitRenderableString(TextAlign.Right);
         m_renderSecretLabel = InitRenderableString(TextAlign.Right);        
 
-        StatValues = new SpanString[] { m_killString, m_itemString, m_secretString };
-        RenderableStatLabels = new RenderableString[] { m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel };
-        RenderableStatValues = new RenderableString[] { m_renderKillString, m_renderItemString, m_renderSecretString };
+        StatValues = new[] { m_killString, m_itemString, m_secretString };
+        RenderableStatLabels = new[] { m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel };
+        RenderableStatValues = new[] { m_renderKillString, m_renderItemString, m_renderSecretString };
     }
 
     private RenderableString InitRenderableString(TextAlign align = TextAlign.Left) => 
@@ -107,19 +106,15 @@ public partial class WorldLayer : IGameLayerParent
 
     private Font GetFontOrDefault(string name)
     {
-        var font = World.ArchiveCollection.GetFont(name);
-        if (font == null)
-            return DefaultFont;
-        return font;
+        return World.ArchiveCollection.GetFont(name) ?? DefaultFont;
     }
 
     ~WorldLayer()
     {
-        FailedToDispose(this);
         PerformDispose();
     }
 
-    public static New.Levels.WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config,
+    public static WorldLayer? Create(Layer.GameLayerManager parent, GlobalData globalData, IConfig config,
         HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection,
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
         Player? existingPlayer, WorldModel? worldModel, IRandom? random)
@@ -134,7 +129,7 @@ public partial class WorldLayer : IGameLayerParent
 
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        return new New.Levels.WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
+        return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
     }
 
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)

@@ -9,7 +9,6 @@ using Helion.Graphics.Geometry;
 using Helion.Render.Common.Enums;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 
 namespace Helion.Render.OpenGL.Texture.Fonts;
 
@@ -25,7 +24,7 @@ public class RenderableString
     /// <summary>
     /// The font used when rendering this.
     /// </summary>
-    public Graphics.Fonts.Font Font;
+    public Font Font;
 
     /// <summary>
     /// The area that encapsulates all the glyphs.
@@ -52,7 +51,7 @@ public class RenderableString
     /// <param name="align">Alignment (only needed if there are multiple
     /// lines, otherwise it does not matter).</param>
     /// <param name="maxWidth">How wide before wrapping around.</param>
-    public RenderableString(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public RenderableString(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null, bool shouldFree = true)
     {
         ShouldFree = shouldFree;
@@ -63,7 +62,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public void Set(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize, TextAlign align = TextAlign.Left,
+    public void Set(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize, TextAlign align = TextAlign.Left,
         int maxWidth = int.MaxValue, Color? drawColor = null)
     {
         // This is kind of a hack. If reusing this string the underlying data needs to freed.
@@ -77,7 +76,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Graphics.Fonts.Font font, int fontSize,
+    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
         double scale = (double)fontSize / font.MaxHeight;

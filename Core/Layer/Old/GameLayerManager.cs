@@ -29,6 +29,8 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
+using IntermissionLayer = Helion.Layer.New.Levels.Intermission.IntermissionLayer;
+using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
 
 namespace Helion.Layer;
 

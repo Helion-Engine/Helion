@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using Helion.Maps.Bsp.Zdbsp;
+using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
 
 namespace Helion.Tests.Unit.GameAction
 {
