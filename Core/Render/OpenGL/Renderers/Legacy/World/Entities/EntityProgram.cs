@@ -1,5 +1,6 @@
 ﻿using GlmSharp;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 
@@ -44,7 +45,7 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha;
             fuzzOut = fuzz;
             flipUOut = flipU;
-            gl_Position = vec4(prevPos + (timeFrac * (pos - prevPos)), 1);
+            gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
     ";
 
@@ -60,7 +61,7 @@ public class EntityProgram : RenderProgram
         in float flipUOut[];
 
         out vec2 uvFrag;
-        out float distFrag;
+        out float dist;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
@@ -88,7 +89,7 @@ public class EntityProgram : RenderProgram
             // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
-            distFrag = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -96,7 +97,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            distFrag = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).z;
             uvFrag = vec2(rightU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -104,7 +105,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
-            distFrag = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).z;
             uvFrag = vec2(leftU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -112,7 +113,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            distFrag = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -127,7 +128,7 @@ public class EntityProgram : RenderProgram
         #version 330
 
         in vec2 uvFrag;
-        in float distFrag;
+        in float dist;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
@@ -156,25 +157,12 @@ public class EntityProgram : RenderProgram
 	            mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x), u.y);
             return res * res;
         }
-        // Defined in GLHelper as well
-        const int colorMaps = 32;
-        const int colorMapClamp = 31;
-        const int scaleCount = 16;
-        const int scaleCountClamp = 15;
-        const int maxLightScale = 23;
-        const int lightFadeStart = 56;
+        
+        ${LightLevelConstants}
 
         void main()
         {
-            float lightLevel = lightLevelFrag;
-            float d = clamp(distFrag - lightFadeStart, 0, distFrag);
-            int sub = int(21.53536 - 21.63471881/(1 + pow((d/48.46036), 0.9737408)));
-            int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
-            sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-            index = clamp(((scaleCount - index - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
-            lightLevel = float(colorMaps - index) / colorMaps;
-
-            lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
+            ${LightLevelFragFunction}
             fragColor = texture(boundTexture, uvFrag.st);
 
             if (fuzzFrag > 0)
@@ -183,7 +171,6 @@ public class EntityProgram : RenderProgram
                 // The division/floor is to chunk pixels together to make
                 // blocks. A larger denominator makes it more blocky.
                 vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                //fragColor.w *= step(0.25, noise(blockCoordinate * fuzzFrac));
                 fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
             }
 
@@ -202,5 +189,7 @@ public class EntityProgram : RenderProgram
                 fragColor.xyz = vec3(maxColor, maxColor, maxColor);
             }
         }
-    ";
+    "
+    .Replace("${LightLevelConstants}", LightLevel.Constants)
+    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction);
 }
