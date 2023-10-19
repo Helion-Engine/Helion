@@ -176,10 +176,10 @@ public static class Attributes
 
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
-            if (attr.PointerType.TryPickT0(out var attrF, out var attrI))
-                GL.VertexAttribPointer(attr.Index, attr.Size, attrF, attr.Normalized, attr.Stride, attr.Offset);
-            else
-                GL.VertexAttribIPointer(attr.Index, attr.Size, attrI, attr.Stride, new(attr.Offset));
+            if (attr.PointerType.HasValue)
+                GL.VertexAttribPointer(attr.Index, attr.Size, attr.PointerType.Value, attr.Normalized, attr.Stride, attr.Offset);
+            else if (attr.IntegerType.HasValue)
+                GL.VertexAttribIPointer(attr.Index, attr.Size, attr.IntegerType.Value, attr.Stride, new(attr.Offset));
 
             GL.EnableVertexAttribArray(attr.Index);
         }

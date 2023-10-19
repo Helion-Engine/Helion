@@ -1,5 +1,4 @@
-﻿using OneOf;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Vertex;
 
@@ -8,12 +7,13 @@ public class VaoAttribute
     public readonly string Name;
     public readonly int Index;
     public readonly int Size;
-    public readonly OneOf<VertexAttribPointerType, VertexAttribIntegerType> PointerType;
+    public readonly VertexAttribPointerType? PointerType;
+    public readonly VertexAttribIntegerType? IntegerType;
     public readonly int Offset;
     public readonly bool Normalized;
     public int Stride;
 
-    private string PointerTypeToString => PointerType.Match(f => f.ToString(), i => i.ToString());
+    private string PointerTypeToString => PointerType != null ? PointerType.ToString() : IntegerType?.ToString();
 
     public VaoAttribute(string name, int index, int size, VertexAttribPointerType type, int offset, bool normalized, int stride)
     {
@@ -31,7 +31,7 @@ public class VaoAttribute
         Name = name;
         Index = index;
         Size = size;
-        PointerType = type;
+        IntegerType = type;
         Offset = offset;
         Stride = stride;
     }

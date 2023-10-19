@@ -7,7 +7,6 @@ using Helion.Util.Extensions;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using OneOf;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -57,8 +56,8 @@ public class BspNodeNew
 {
     public readonly int Id;
     public readonly Seg2D Splitter;
-    public OneOf<BspNodeNew, BspSubsector> Left { get; internal set; } = default;
-    public OneOf<BspNodeNew, BspSubsector> Right { get; internal set; } = default;
+    public (BspNodeNew?, BspSubsector) Left { get; internal set; } = default;
+    public (BspNodeNew?, BspSubsector) Right { get; internal set; } = default;
 
     public BspNodeNew(int id, Seg2D splitter)
     {
@@ -196,9 +195,9 @@ public class BspTreeNew
             node.Right = GetChild(glNode.RightChild, glNode.IsRightSubsector);
         }
 
-        OneOf<BspNodeNew, BspSubsector> GetChild(uint index, bool isSubsector) 
+        (BspNodeNew?, BspSubsector?) GetChild(uint index, bool isSubsector) 
         {
-            return isSubsector ? Subsectors[(int)index] : Nodes[(int)index];
+            return isSubsector ? (null, Subsectors[(int)index]) : (Nodes[(int)index], null);
         }
     }
 
@@ -208,8 +207,8 @@ public class BspTreeNew
         BspSubsector child = Subsectors[0];
         BspNodeNew root = new(0, splitter)
         {
-            Left = child,
-            Right = child
+            Left = (null, child),
+            Right = (null, child)
         };
         Nodes.Add(root);
     }
@@ -223,17 +222,17 @@ public class BspTreeNew
         {
             if (node.Splitter.OnRight(point))
             {
-                if (node.Right.IsT0)
-                    node = node.Right.AsT0;
+                if (node.Right.Item1 != null)
+                    node = node.Right.Item1;
                 else
-                    return node.Right.AsT1;
+                    return node.Right.Item2;
             }
             else
             {
-                if (node.Left.IsT0)
-                    node = node.Left.AsT0;
+                if (node.Left.Item1 != null)
+                    node = node.Left.Item1;
                 else
-                    return node.Left.AsT1;
+                    return node.Left.Item2;
             }
         }
     }
