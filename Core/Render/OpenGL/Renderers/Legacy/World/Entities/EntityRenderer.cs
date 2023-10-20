@@ -177,7 +177,8 @@ public class EntityRenderer
         var pos = new Vec3F((float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth), 
             (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth), (float)entity.Position.Z + offsetZ);
 
-        var prevPos = new Vec3F(pos.X - (float)(entity.Position.X - entity.PrevPosition.X), 
+        var prevPos = entity.Position == entity.PrevPosition ? pos : 
+            new Vec3F(pos.X - (float)(entity.Position.X - entity.PrevPosition.X), 
             pos.Y - (float)(entity.Position.Y - entity.PrevPosition.Y),
             pos.Z - (float)(entity.Position.Z - entity.PrevPosition.Z));
 
