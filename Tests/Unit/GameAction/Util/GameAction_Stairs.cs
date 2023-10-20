@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
-using MoreLinq;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,7 +13,8 @@ namespace Helion.Tests.Unit.GameAction
             world.Tick();
 
             List<Sector> sectors = new();
-            sectorIds.ForEach(x => sectors.Add(GetSector(world, x)));
+            foreach (int sectorId in sectorIds)
+                sectors.Add(GetSector(world, sectorId));
             foreach (var sector in sectors)
                 sector.ActiveFloorMove.Should().NotBeNull();
 

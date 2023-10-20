@@ -3,7 +3,6 @@ using System.Linq;
 using FluentAssertions;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
-using MoreLinq;
 using Xunit;
 
 namespace Helion.Tests.Unit.Util.Configs.Impl;

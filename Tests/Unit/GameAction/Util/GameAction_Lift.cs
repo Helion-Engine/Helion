@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
-using MoreLinq;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.Tests.Unit.GameAction
 {

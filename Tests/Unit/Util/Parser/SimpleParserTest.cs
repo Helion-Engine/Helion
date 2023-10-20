@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Helion.Util.Parser;
-using MoreLinq;
 using Xunit;
 
 namespace Helion.Tests.Unit.Util.Parser;
@@ -112,7 +111,8 @@ Line2 Data2";
         SimpleParser parser = new();
         parser.Parse(data);
 
-        "TeSt".ForEach(c => parser.Consume(c));
+        foreach (char c in "TeSt")
+            parser.Consume(c);
 
         bool success = false;
         try

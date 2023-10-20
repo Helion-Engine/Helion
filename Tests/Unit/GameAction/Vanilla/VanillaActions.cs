@@ -14,7 +14,6 @@ using Helion.World.Sound;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
-using MoreLinq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -571,7 +570,8 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.GetSector(World, 833),
             };
 
-            sectors.ForEach(x => x.ActiveFloorMove.Should().NotBeNull());
+            foreach (Sector sector in sectors)
+                sector.ActiveFloorMove.Should().NotBeNull();
 
             GameActions.RunSectorPlaneSpecials(World, sectors);
 
@@ -581,8 +581,12 @@ namespace Helion.Tests.Unit.GameAction
             sectors[3].Floor.Z.Should().Be(128);
 
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
-            sectors.ForEach(x => x.ActiveFloorMove.Should().BeNull());
-            sectors.ForEach(x => x.Floor.SetZ(0));
+
+            foreach (Sector sector in sectors)
+            {
+                sector.ActiveFloorMove.Should().BeNull();
+                sector.Floor.SetZ(0);   
+            }
         }
 
         [Fact(DisplayName = "Doom Action 30 (S1) Raise floor by shortest lower (vanilla compatbility)")]
@@ -599,7 +603,8 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.GetSector(World, 833),
             };
 
-            sectors.ForEach(x => x.ActiveFloorMove.Should().NotBeNull());
+            foreach (Sector sector in sectors)
+                sector.ActiveFloorMove.Should().NotBeNull();
 
             GameActions.RunSectorPlaneSpecials(World, sectors);
 
@@ -609,8 +614,11 @@ namespace Helion.Tests.Unit.GameAction
             sectors[3].Floor.Z.Should().Be(64);
 
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
-            sectors.ForEach(x => x.ActiveFloorMove.Should().BeNull());
-            sectors.ForEach(x => x.Floor.SetZ(0));
+            foreach (Sector sector in sectors)
+            {
+                sector.ActiveFloorMove.Should().BeNull();
+                sector.Floor.SetZ(0);
+            }
         }
 
         [Fact(DisplayName = "Doom Action 31 (D1) Open door stay")]
@@ -1689,14 +1697,18 @@ namespace Helion.Tests.Unit.GameAction
             for (int i = 0; i < 2; i++)
             {
                 GameActions.EntityCrossLine(World, Player, Line, forceActivation: true).Should().BeTrue();
-                sectors.ForEach(x => x.ActiveFloorMove.Should().NotBeNull());
+                
+                foreach (Sector sector in sectors)
+                    sector.ActiveFloorMove.Should().NotBeNull();
 
                 GameActions.RunSectorPlaneSpecials(World, sectors);
 
                 sectors[0].Floor.Z.Should().Be(24);
                 sectors[1].Floor.Z.Should().Be(32);
                 sectors[2].Floor.Z.Should().Be(72);
-                sectors.ForEach(x => x.Floor.SetZ(0));
+                
+                foreach (Sector sector in sectors)
+                    sector.Floor.SetZ(0);
             }
         }
 

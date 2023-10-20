@@ -4,7 +4,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
-using MoreLinq;
 using System.Linq;
 using Xunit;
 
@@ -53,10 +52,14 @@ namespace Helion.Tests.Unit.GameAction
                 GameActions.CreateEntity(World, "Zombieman", TeleportDestination),
             };
 
-            monsters.ForEach(x => x.IsDead.Should().BeFalse());
+            foreach (Entity monster in monsters)
+                monster.IsDead.Should().BeFalse();
+                    
             GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
-            monsters.ForEach(x => x.IsDead.Should().BeTrue());
+            
+            foreach (Entity monster in monsters)
+                monster.IsDead.Should().BeTrue();
         }
 
         [Fact(DisplayName = "Monster teleport fail")]
