@@ -12,7 +12,6 @@ using Helion.Util.Parser;
 using Helion.Util.Sounds.Mus;
 using Helion.World;
 using Helion.World.Stats;
-using MoreLinq.Extensions;
 using NLog;
 
 namespace Helion.Layer.Worlds;
@@ -97,7 +96,8 @@ public partial class IntermissionLayer : IGameLayer
             IntermissionDef = IntermissionParser.Parse(entry.ReadDataAsString());
             IntermissionPic = IntermissionDef.Background;
 
-            IntermissionDef.Animations.ForEach(x => x.ShouldDraw = x.Type == IntermissionAnimationType.Normal);
+            foreach (var def in IntermissionDef.Animations)
+                def.ShouldDraw = def.Type == IntermissionAnimationType.Normal;
         }
         catch (ParserException e)
         {

@@ -28,7 +28,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
-using MoreLinq;
 using static Helion.Render.Common.RenderDimensions;
 using static Helion.Util.Constants;
 

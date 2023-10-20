@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Extensions;
-using MoreLinq;
-using MoreLinq.Extensions;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -106,15 +104,15 @@ public class SegmentChainPruner
         // This is a very annoying workaround for the library's resolution
         // issues. Is there not a way to make it 'just work' the normal way
         // at all?
-        MoreEnumerable.ForEach(m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1),
-            intToListPair => m_terminalChainTails.Add(intToListPair.Key));
+        foreach (var intToListPair in (m_vertexAdjacencyList.Where(intToListPair => intToListPair.Value.Count == 1)))
+            m_terminalChainTails.Add(intToListPair.Key);
     }
 
     private void RemoveAllTerminalChains()
     {
         // We can't remove while iterating so we have to do this annoying
         // stuff unfortunately.
-        HashSet<int> indicesToRemove = ToHashSetExtension.ToHashSet(m_terminalChainTails);
+        HashSet<int> indicesToRemove = m_terminalChainTails.ToHashSet();
 
         foreach (int index in indicesToRemove)
         {

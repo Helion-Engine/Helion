@@ -14,7 +14,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Physics;
-using MoreLinq;
 using NLog;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
@@ -202,7 +201,8 @@ public class SinglePlayerWorld : WorldBase
             if (player == null)
                 continue;
 
-            playerModel.Cheats.ForEach(x => player.Cheats.SetCheatActive((CheatType)x));
+            foreach (var cheat in playerModel.Cheats)
+                player.Cheats.SetCheatActive((CheatType)cheat);
         }
     }
 

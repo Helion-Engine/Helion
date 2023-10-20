@@ -12,7 +12,6 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using MoreLinq;
 using Font = Helion.Graphics.Fonts.Font;
 using Image = Helion.Graphics.Image;
 
@@ -316,7 +315,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
         m_textureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
 
         NullFont.Dispose();
-        m_fonts.ForEach(pair => pair.Value.Dispose());
+        foreach (var pair in m_fonts)
+            pair.Value.Dispose();
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);

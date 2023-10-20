@@ -1,4 +1,3 @@
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -52,7 +51,8 @@ public class SimpleParser
     public void SetSpecialChars(IEnumerable<char> special)
     {
         m_special.Clear();
-        special.ForEach(x => m_special.Add(x));
+        foreach (char c in special)
+            m_special.Add(c);
     }
 
     public void SetCommentCallback(Func<string, int, bool> callback) =>

@@ -6,7 +6,6 @@ using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.States;
-using MoreLinq.Extensions;
 using NLog;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
 
@@ -73,17 +72,17 @@ public class DefinitionStateApplier
             lastActorDef = current;
         }
 
-        actorDefinitions.Window(2).ForEach(list =>
+        for (int i = 0; i < actorDefinitions.Count - 1; i++)
         {
-            ActorDefinition parent = list[0];
-            ActorDefinition current = list[1];
+            ActorDefinition parent = actorDefinitions[i];
+            ActorDefinition current = actorDefinitions[i+1];
             bool includeGenericLabels = !skipActors.Contains(current);
 
             ApplyActorDefinition(entityFrameTable, definition, current, parent, masterLabelTable, offset, vanillaActorName,
                 includeGenericLabels);
 
             offset += current.States.Frames.Count;
-        });
+        }
 
         // Now that all the labels have been handled/added/pruned/linked,
         // we can add them in safely at the end.
@@ -120,7 +119,8 @@ public class DefinitionStateApplier
 
     private static void ApplyAllLabels(EntityFrameTable entityFrameTable, EntityDefinition definition, Dictionary<string, FrameLabel> masterLabelTable)
     {
-        masterLabelTable.ForEach(pair => definition.States.Labels[pair.Key] = pair.Value.Index);
+        foreach (var pair in masterLabelTable)
+            definition.States.Labels[pair.Key] = pair.Value.Index;
         SetDefinitionStateIndicies(entityFrameTable, definition);
     }
 
@@ -143,7 +143,8 @@ public class DefinitionStateApplier
         // encounter the `loop` control flow.
         int lastLabelIndex = 0;
         HashSet<int> indicesWithLabels = new HashSet<int>();
-        current.States.Labels.Values.ForEach(index => indicesWithLabels.Add(index + offset));
+        foreach (var index in current.States.Labels.Values)
+            indicesWithLabels.Add(index + offset);
 
         int startingFrameOffset = entityFrameTable.Frames.Count;
         FrameSet? currentFrameSet = null;
@@ -250,11 +251,11 @@ public class DefinitionStateApplier
 
     private static void PurgeAnyControlFlowStopOverride(ActorDefinition current, IDictionary<string, FrameLabel> masterLabelTable)
     {
-        current.States.FlowOverrides.ForEach(pair =>
+        foreach (var pair in current.States.FlowOverrides)
         {
             if (pair.Value.BranchType == ActorStateBranch.Stop)
                 RemoveAllEndingMatchKeys(pair.Value.Label);
-        });
+        }
 
         void RemoveAllEndingMatchKeys(string? suffix)
         {
@@ -262,13 +263,14 @@ public class DefinitionStateApplier
                 return;
 
             HashSet<string> keysToRemove = new(StringComparer.OrdinalIgnoreCase);
-            masterLabelTable.ForEach(pair =>
+            foreach (var pair in masterLabelTable)
             {
                 if (pair.Key.EndsWith(suffix))
                     keysToRemove.Add(pair.Key);
-            });
+            }
 
-            keysToRemove.ForEach(key => masterLabelTable.Remove(key));
+            foreach (var key in keysToRemove)
+                masterLabelTable.Remove(key);
         }
     }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Helion.Resources.Definitions.Decorate.States;
 using Helion.Util;
 using Helion.Util.Parser;
-using MoreLinq;
 using NLog;
 
 namespace Helion.Resources.Definitions.Decorate.Parser;
@@ -58,8 +57,10 @@ public partial class DecorateParser : ParserBase
 
     private void MergeWithParsedData(DecorateParser parser)
     {
-        parser.ActorDefinitions.ForEach(ActorDefinitions.Add);
-        parser.Variables.ForEach(pair => Variables[pair.Key] = pair.Value);
+        foreach (var def in parser.ActorDefinitions)
+            ActorDefinitions.Add(def);
+        foreach (var pair in parser.Variables)
+            Variables[pair.Key] = pair.Value;
     }
 
     private void ConsumeInclude()

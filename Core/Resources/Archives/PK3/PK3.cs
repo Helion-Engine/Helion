@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using Helion.Resources.Archives.Entries;
-using MoreLinq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Archives;
@@ -60,7 +59,8 @@ public class PK3 : Archive, IDisposable
     {
         try
         {
-            m_zipArchive.Entries.ForEach(ZipDataToEntry);
+            foreach (var entry in m_zipArchive.Entries)
+                ZipDataToEntry(entry);
         }
         catch (Exception e)
         {

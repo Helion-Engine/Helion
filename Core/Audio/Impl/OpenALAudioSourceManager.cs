@@ -9,7 +9,6 @@ using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using MoreLinq.Extensions;
 using NLog;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
@@ -157,6 +156,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         m_sources.ToList().ForEach(src => src.Dispose());
         Invariant(m_sources.Empty(), "Disposal of AL audio source children should empty out of the context container");
 
-        m_nameToBuffer.ForEach(pair => pair.Value.Dispose());
+        foreach (var item in m_nameToBuffer)
+            item.Value.Dispose();
     }
 }

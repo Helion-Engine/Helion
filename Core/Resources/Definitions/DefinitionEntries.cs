@@ -14,7 +14,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util.Extensions;
-using MoreLinq;
 using NLog;
 using Helion.Util.Parser;
 using Helion.Resources.Definitions.Boom;
@@ -239,7 +238,8 @@ public class DefinitionEntries
         // handled, it might be 'one pnames to textureX' when more than one
         // pnames exist. If so, the logic will need to change here a bit.
         Pnames pnames = collection.Pnames.First();
-        collection.TextureX.SelectMany(textureX => textureX.ToTextureDefinitions(pnames))
-                           .ForEach(def => Textures.Insert(def.Name, def.Namespace, def));
+        var textureDefs = collection.TextureX.SelectMany(textureX => textureX.ToTextureDefinitions(pnames));
+        foreach (var def in textureDefs)
+            Textures.Insert(def.Name, def.Namespace, def);
     }
 }

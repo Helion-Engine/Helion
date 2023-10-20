@@ -5,7 +5,6 @@ using System.Text;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Parser;
-using MoreLinq;
 
 namespace Helion.Resources.Definitions.Decorate;
 
@@ -29,7 +28,10 @@ public class DecorateDefinitions
     {
         DecorateParser parser = new DecorateParser(entry.Path.FullPath, MakeIncludeLocator());
         if (parser.Parse(entry))
-            parser.ActorDefinitions.ForEach(AddDefinition);
+        {
+            foreach (var def in parser.ActorDefinitions)
+                AddDefinition(def);
+        }
     }
 
     private Func<string, string?> MakeIncludeLocator()
