@@ -144,6 +144,13 @@ public class HelionConsole : Target
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
     }
 
+    public void ClearAndSubmitText(string command)
+    {
+        ClearInputText();
+        AddInput(command);
+        SubmitInputText();
+    }
+
     public void AddMessage(string message) => AddMessage(Color.White, message);
 
     /// <summary>

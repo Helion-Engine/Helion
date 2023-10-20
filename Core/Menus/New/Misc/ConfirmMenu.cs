@@ -26,7 +26,7 @@ public class ConfirmMenu(SoundManager soundManager, Action<bool> confirmCallback
         // Nothing to do here.
     }
 
-    public override void Render(IHudRenderContext ctx)
+    public override void Render(IRenderableSurfaceContext surface, IHudRenderContext ctx)
     {
         for (int i = 0; i < messages.Length; i++)
         {

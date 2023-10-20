@@ -14,7 +14,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Xunit;
-using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
+using WorldLayer = Helion.Layer.Levels.WorldLayer;
 
 namespace Helion.Tests.Unit.GameLayer;
 

@@ -29,7 +29,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
-using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
+using WorldLayer = Helion.Layer.Levels.WorldLayer;
 
 namespace Helion.Client;
 
@@ -50,7 +50,6 @@ public partial class Client : IDisposable, IInputManagement
     private readonly FpsTracker m_fpsTracker = new();
     private readonly ConsoleCommands m_consoleCommands = new();
     private readonly Profiler m_profiler = new();
-    private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private bool m_disposed;
     private bool m_takeScreenshot;
 
@@ -96,7 +95,6 @@ public partial class Client : IDisposable, IInputManagement
     {
         FailedToDispose(this);
         PerformDispose();
-
     }
 
     [Conditional("DEBUG")]

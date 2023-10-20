@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using WorldLayer = Helion.Layer.New.Levels.WorldLayer;
+using WorldLayer = Helion.Layer.Levels.WorldLayer;
 
 namespace Helion.Client;
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer.Images;
+using Helion.Layer.Levels;
+using Helion.Layer.Levels.EndGame;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Render.Common.Enums;
@@ -60,7 +62,7 @@ public class MainMenu : Menu
     {
         return () =>
         {
-            bool hasWorld = m_parent.Manager.WorldLayer != null && m_parent.Manager.EndGameLayer == null;
+            bool hasWorld = m_parent.Manager.HasAnyLayers<WorldLayer, EndGameLayer>();
             return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager,
                 hasWorld, true, false);
         };
@@ -86,10 +88,10 @@ public class MainMenu : Menu
     {
         return () =>
         {
-            if (m_parent.Manager.ReadThisLayer == null)
+            if (!m_parent.Manager.HasLayer<ReadThisLayer>())
             {
-                if (ReadThisLayer.TryCreate(m_parent.Manager, m_soundManager, ArchiveCollection, out var layer))
-                    m_parent.Manager.Add(layer);
+                ReadThisLayer readThisLayer = new(ArchiveCollection, m_soundManager);
+                m_parent.Manager.Add(readThisLayer);
             }
 
             return null;

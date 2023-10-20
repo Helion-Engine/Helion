@@ -21,7 +21,7 @@ public class OptionsMenu(IConfig config, SoundManager soundManager) : Menu(sound
         // TODO
     }
 
-    public override void Render(IHudRenderContext ctx)
+    public override void Render(IRenderableSurfaceContext surface, IHudRenderContext ctx)
     {
         // TODO
     }

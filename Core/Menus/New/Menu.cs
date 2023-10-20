@@ -15,7 +15,7 @@ public abstract class Menu(SoundManager soundManager)
     // function, in case the Escape key was consumed.
     public abstract bool HandleInput(IConsumableInput input, [NotNullWhen(true)] out Menu? newMenu);
     public abstract void RunLogic(TickerInfo tickerInfo);
-    public abstract void Render(IHudRenderContext ctx);
+    public abstract void Render(IRenderableSurfaceContext surface, IHudRenderContext ctx);
 
     private void PlayOptionSound(string soundName)
     {

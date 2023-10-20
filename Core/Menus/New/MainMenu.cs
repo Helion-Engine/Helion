@@ -74,7 +74,7 @@ public class MainMenu : Menu
         m_ticksAccumulated += tickerInfo.Ticks;
     }
 
-    public override void Render(IHudRenderContext ctx)
+    public override void Render(IRenderableSurfaceContext surface, IHudRenderContext ctx)
     {
         const int SkullTickPeriod = 35;
         const int PaddingY = 1;

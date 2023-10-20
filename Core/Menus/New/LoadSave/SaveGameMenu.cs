@@ -20,7 +20,7 @@ public class SaveGameMenu(SoundManager soundManager) : Menu(soundManager)
         // TODO
     }
 
-    public override void Render(IHudRenderContext ctx)
+    public override void Render(IRenderableSurfaceContext surface, IHudRenderContext ctx)
     {
         // TODO
     }

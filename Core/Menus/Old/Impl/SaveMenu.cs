@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Audio.Sounds;
+using Helion.Layer.Levels;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
@@ -27,13 +28,11 @@ public class SaveMenu : Menu
     private const string LoadHeaderImage = "M_LGTTL";
     public const string SaveMessage = "Game saved.";
 
-    public bool IsTypingName { get; private set; }
-
+    public bool IsTypingName { get; }
     private readonly MenuLayer m_parent;
     private readonly SaveGameManager m_saveGameManager;
     private readonly bool m_isSave;
     private readonly bool m_canSave;
-
     private SaveGame? m_deleteSave;
 
     public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
@@ -156,8 +155,7 @@ public class SaveMenu : Menu
             if (GetWorld(out IWorld? world) && world != null)
             {
                 SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection));
-                m_parent.Manager.Remove(m_parent);
-
+                m_parent.Dispose();
                 HandleSaveEvent(world, saveGameEvent);
             }
             else
@@ -184,7 +182,7 @@ public class SaveMenu : Menu
 
     private bool GetWorld(out IWorld? world)
     {
-        world = m_parent.Manager.WorldLayer?.World;
+        world = m_parent.Manager.TryGet(out WorldLayer? worldLayer) ? worldLayer.World : null;
         return world != null;
     }
 
