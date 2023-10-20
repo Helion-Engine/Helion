@@ -67,17 +67,17 @@ public class DataCache
     }
 
     public Entity GetEntity(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, IWorld world)
+        Sector sector)
     {
         if (m_entities.Length > 0)
         {
             var entity = m_entities.RemoveLast();
-            entity.Set(id, thingId, definition, position, angleRadians, sector, world);
+            entity.Set(id, thingId, definition, position, angleRadians, sector);
             return entity;
         }
 
         Entity newEnity = new();
-        newEnity.Set(id, thingId, definition, position, angleRadians, sector, world);
+        newEnity.Set(id, thingId, definition, position, angleRadians, sector);
         return newEnity;
     }
 

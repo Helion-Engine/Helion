@@ -2,7 +2,6 @@ using System;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Assertion;
-using Helion.World;
 using Helion.World.Physics;
 
 namespace Helion.World.Entities;
@@ -23,13 +22,13 @@ public partial class Entity
         None
     }
 
-    private static readonly double[] Speeds = new[] { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed, 
+    private static readonly double[] Speeds = { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed, 
         0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
 
-    private static ushort ClosetChaseCount;
-    private static ushort ClosetLookCount;
-    private static ushort ChaseLoop;
-    private static ushort ChaseFailureCount;
+    public static ushort ClosetChaseCount;
+    public static ushort ClosetLookCount;
+    public static ushort ChaseLoop;
+    public static ushort ChaseFailureCount;
 
     private MoveDir m_direction = MoveDir.None;
 
@@ -129,8 +128,7 @@ public partial class Entity
         if (Flags.Friendly)
         {
             newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allaround);
-            if (newTarget == null)
-                newTarget = WorldStatic.World.GetLineOfSightPlayer(this, allaround);
+            newTarget ??= WorldStatic.World.GetLineOfSightPlayer(this, allaround);
         }
         else
         {
@@ -353,10 +351,10 @@ public partial class Entity
         if (m_direction == MoveDir.None)
             return;
 
-        AngleRadians = AngleRadians - (AngleRadians % MathHelper.QuarterPi);
+        AngleRadians -= AngleRadians % MathHelper.QuarterPi;
         if (AngleRadians < 0 || AngleRadians > MathHelper.TwoPi)
             AngleRadians = MathHelper.GetPositiveAngle(AngleRadians);
-        double delta = AngleRadians - ((int)m_direction * MathHelper.QuarterPi);
+        double delta = AngleRadians - (int)m_direction * MathHelper.QuarterPi;
         if (delta != 0)
         {
             if (Math.Abs(delta) > MathHelper.Pi)
@@ -402,17 +400,13 @@ public partial class Entity
             return false;
 
         double distance = Position.ApproximateDistance2D(entity.Position);
-
         if (distance >= range + entity.Radius)
             return false;
 
         if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
             return false;
 
-        if (!WorldStatic.World.CheckLineOfSight(this, entity))
-            return false;
-
-        return true;
+        return WorldStatic.World.CheckLineOfSight(this, entity);
     }
 
     public bool CheckMissileRange()

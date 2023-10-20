@@ -101,7 +101,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int LastRenderGametick;
     public double RenderDistanceSquared { get; set; } = double.MaxValue;
     public int SlowTickMultiplier = 1;
-    public int ChaseFailureSkipCount = 0;
+    public int ChaseFailureSkipCount;
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
@@ -146,7 +146,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     }
 
     public void Set(int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, IWorld world)
+        Sector sector)
     {
         IsDisposed = false;
         Health = definition.Properties.Health;
@@ -871,10 +871,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Flags.MbfBouncer && Flags.Missile)
             return BlockingEntity != null || BlockingLine != null;
 
-        if (Flags.Missile)
-            return true;
-
-        return false;
+        return Flags.Missile;
     }
 
     public void Dispose()

@@ -8,7 +8,6 @@ using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Lines;
@@ -132,7 +131,7 @@ public class Player : Entity
         Sector sector, IWorld world, int playerNumber)
     {
         Precondition(playerNumber >= 0, "Player number should not be negative");
-        Set(id, thingId, definition, position, angleRadians, sector, world);
+        Set(id, thingId, definition, position, angleRadians, sector);
 
         PlayerNumber = playerNumber;
         // Going to default to true for players, otherwise jumping without moving X/Y can allow for clipping through ceilings

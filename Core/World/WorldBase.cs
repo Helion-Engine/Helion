@@ -52,8 +52,6 @@ using Helion.World.Static;
 using Helion.Geometry.Grids;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Helion.World;
-using Helion.Util.Configs.Impl;
 
 namespace Helion.World;
 
@@ -132,14 +130,15 @@ public abstract class WorldBase : IWorld
     private int m_exitTicks;
     private int m_easyBossBrain;
     private int m_soundCount;
-    private int m_lastBumpActivateGametick = 0;
-    private int m_exitGametick = 0;
+    private int m_lastBumpActivateGametick;
+    private int m_exitGametick;
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
+    private readonly EntityDefinition? m_teleportFogDef;
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionAction;
@@ -190,10 +189,13 @@ public abstract class WorldBase : IWorld
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
-        m_radiusExplosionAction = new(HandleRadiusExplosion);
-        m_healChaseAction = new(HandleHealChase);
-        m_setNewTracerTargetAction = new(HandleSetNewTracerTarget);
-        m_lineOfSightEnemyAction = new(HandleLineOfSightEnemy);
+        m_radiusExplosionAction = HandleRadiusExplosion;
+        m_healChaseAction = HandleHealChase;
+        m_setNewTracerTargetAction = HandleSetNewTracerTarget;
+        m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
+        
+        m_teleportFogDef = EntityManager.DefinitionComposer.GetByName("TeleportFog");
+        
         SetCompatibilityOptions(mapInfoDef);
 
         RegisterConfigChanges();
@@ -235,6 +237,11 @@ public abstract class WorldBase : IWorld
 
     private void SetWorldStatic()
     {
+        Entity.ClosetChaseCount = 0;
+        Entity.ClosetLookCount = 0;
+        Entity.ChaseLoop = 0;
+        Entity.ChaseFailureCount = 0;
+
         WorldStatic.World = this;
         WorldStatic.DataCache = DataCache;
         WorldStatic.EntityManager = EntityManager;
@@ -303,11 +310,6 @@ public abstract class WorldBase : IWorld
             Config.Compatibility.InfinitelyTallThings.SetWithNoWriteConfig(true);
         if (mapInfoDef.HasOption(MapOptions.CompatLimitPain))
             Config.Compatibility.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
-    }
-
-    private void DemoPlaybackEnded(object? sender, EventArgs e)
-    {
-        Paused = true;
     }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
@@ -1084,7 +1086,7 @@ public abstract class WorldBase : IWorld
         Vec3D intersect = Vec3D.Zero;
 
         BlockmapIntersect? bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
-            ref intersect, out Sector? hitSector);
+            ref intersect, out _);
 
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
@@ -1092,7 +1094,7 @@ public abstract class WorldBase : IWorld
             shooter.PlayerObj.Tracers.AddTracer((start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
-        return bi == null ? null : bi.Value.Entity;
+        return bi?.Entity;
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
@@ -1796,10 +1798,7 @@ public abstract class WorldBase : IWorld
         if (def == null)
             return;
 
-        Entity? create = EntityManager.Create(def, intersect, 0, angle, 0);
-        if (create == null)
-            return;
-
+        var create = EntityManager.Create(def, intersect, 0, angle, 0);
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
@@ -2037,13 +2036,11 @@ public abstract class WorldBase : IWorld
 
     public void CreateTeleportFog(in Vec3D pos, bool playSound = true)
     {
-        EntityDefinition? teleportFog = EntityManager.DefinitionComposer.GetByName("TeleportFog");
-        if (teleportFog != null)
-        {
-            var teleport = EntityManager.Create(teleportFog, pos, 0.0, 0.0, 0);
-            if (teleport != null)
-                SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
-        }
+        if (m_teleportFogDef == null)
+            return;
+
+        var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0);
+        SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
     public void ActivateCheat(Player player, ICheat cheat)
@@ -2123,8 +2120,6 @@ public abstract class WorldBase : IWorld
             case CheatType.ExitSecret:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
                 ExitLevel(cheat.CheatType == CheatType.ExitSecret ? LevelChangeType.SecretNext : LevelChangeType.Next);
-                break;
-            default:
                 break;
         }
     }
@@ -2362,8 +2357,6 @@ public abstract class WorldBase : IWorld
                 return "Infrared";
             case CheatType.BeholdBerserk:
                 return "Berserk";
-            default:
-                break;
         }
 
         return string.Empty;
@@ -2387,8 +2380,6 @@ public abstract class WorldBase : IWorld
                 return PowerupType.Strength;
             case CheatType.Automap:
                 return PowerupType.ComputerAreaMap;
-            default:
-                break;
         }
 
         return PowerupType.None;

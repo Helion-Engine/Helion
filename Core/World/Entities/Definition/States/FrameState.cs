@@ -149,7 +149,6 @@ public struct FrameState
     private void SetFrameIndexInternal(int index)
     {
         int loopCount = 0;
-
         while (true)
         {
             SetFrameIndexMember(index);
@@ -187,11 +186,7 @@ public struct FrameState
                 return;
 
             if (Frame.BranchType == ActorStateBranch.Stop && Frame.Ticks >= 0)
-            {
-                if (m_destroyOnStop)
-                    return;
                 break;
-            }
 
             if (Frame.Ticks != 0)
                 break;

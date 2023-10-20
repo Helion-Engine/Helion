@@ -97,9 +97,7 @@ public class EntityManager : IDisposable
     public Entity? Create(string className, in Vec3D pos, bool init = false)
     {
         var def = DefinitionComposer.GetByName(className);
-        if (def != null)
-            return Create(def, pos, 0.0, 0.0, 0, init: init);
-        return null;
+        return def != null ? Create(def, pos, 0.0, 0.0, 0, init: init) : null;
     }
 
     public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool init = false)
@@ -107,7 +105,7 @@ public class EntityManager : IDisposable
         int id = m_id++;
         Sector sector = World.BspTree.ToSector(position);
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = World.DataCache.GetEntity(id, tid, definition, position, angle, sector, World);
+        Entity entity = World.DataCache.GetEntity(id, tid, definition, position, angle, sector);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
