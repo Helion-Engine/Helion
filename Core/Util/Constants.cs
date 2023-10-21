@@ -152,6 +152,7 @@ public static class Constants
     public static class Fonts
     {
         public const string Small = "SmallFont";
+        public const string SmallGray = "SmallFontGrayscale";
         public const string LargeHud = "LargeHudFont";
         public const string Console = "Console";
     };

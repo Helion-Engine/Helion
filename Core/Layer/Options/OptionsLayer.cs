@@ -10,11 +10,14 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.World;
+using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
 
@@ -27,6 +30,9 @@ public class OptionsLayer : IGameLayer
     private readonly SoundManager m_soundManager;
     private readonly List<IOptionSection> m_sections;
     private int m_currentSectionIndex;
+    private int m_scrollOffset;
+    private int m_ticks;
+    private int m_windowHeight;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
     {
@@ -89,13 +95,13 @@ public class OptionsLayer : IGameLayer
         }
     }
 
-    private static ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap, 
+    private ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap, 
         OptionSectionType section)
     {
         if (sectionMap.TryGetValue(section, out IOptionSection optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
-        ListedConfigSection listedConfigSection = new(section);
+        ListedConfigSection listedConfigSection = new(m_config, section);
         sectionMap[section] = listedConfigSection;
         return listedConfigSection;
     }
@@ -138,14 +144,36 @@ public class OptionsLayer : IGameLayer
             m_manager.Remove(this);
             return;
         }
-        
+
+        int scrollAmount = (int)(16 * m_config.Hud.Scale);
         // Switch pages if needed.
         if (m_sections.Count > 0)
         {
-            if (input.ConsumeKeyPressed(Key.PageUp))
+            m_scrollOffset += input.ConsumeScroll() * scrollAmount;
+
+            if (input.ConsumePressOrContinuousHold(Key.Up))
+                m_scrollOffset += scrollAmount;
+            if (input.ConsumePressOrContinuousHold(Key.Down))
+                m_scrollOffset -= scrollAmount;
+
+            if (input.ConsumeKeyPressed(Key.Left))
+            {
+                m_scrollOffset = 0;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
-            if (input.ConsumeKeyPressed(Key.PageDown))
+            }
+
+            if (input.ConsumeKeyPressed(Key.Right))
+            {
+                m_scrollOffset = 0;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
+            }
+
+            if (input.ConsumeKeyPressed(Key.Home))
+                m_scrollOffset = 0;
+            if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
+                m_scrollOffset = -m_sections[m_currentSectionIndex].GetBottomY() + m_windowHeight - scrollAmount;
+
+            m_scrollOffset = Math.Min(0, m_scrollOffset);
         }
 
         // We don't want any input leaking into the layers below this.
@@ -154,7 +182,7 @@ public class OptionsLayer : IGameLayer
 
     public void RunLogic(TickerInfo tickerInfo)
     {
-        // Nothing right now.
+        m_ticks += tickerInfo.Ticks;
     }
 
     private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -175,19 +203,45 @@ public class OptionsLayer : IGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
         FillBackgroundRepeatingImages(ctx, hud);
+        int fontSize = m_config.Hud.GetMediumFontSize();
 
-        hud.Image("M_OPTION", (0, 0), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
-        int y = titleArea.Height + 10;
+        m_windowHeight = hud.Dimension.Height;
 
-        hud.Text("Press \"page up\" or \"page down\" to change pages", "SmallFont", 16, (0, y),
+        int y = m_scrollOffset;
+        hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
+        y += titleArea.Height + m_config.Hud.GetScaled(5);
+
+        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.Small, fontSize, (0, y),
             out Dimension pageInstrArea, both: Align.TopMiddle);
-        y += pageInstrArea.Height + 32;
+        y += pageInstrArea.Height + m_config.Hud.GetScaled(16);
 
         if (m_currentSectionIndex < m_sections.Count)
-            m_sections[m_currentSectionIndex].Render(ctx, hud, y);
+        {
+            var section = m_sections[m_currentSectionIndex];
+            section.Render(ctx, hud, y);
+
+            if (m_scrollOffset != 0)
+                RenderIndicator(hud, fontSize, true);
+            if (section.GetBottomY() > hud.Dimension.Height)
+                RenderIndicator(hud, fontSize, false);
+        }
         else
-            hud.Text("Unexpected error: no config or keys", "SmallFont", 16, (0, y), out _, both: Align.TopMiddle);
+            hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
     }
+
+    private void RenderIndicator(IHudRenderContext hud, int fontSize, bool top)
+    {
+        if (!Flash())
+            return;
+
+        const string MoreIndicator = "*";
+        var textDimension = hud.MeasureText(MoreIndicator, Fonts.Small, fontSize);
+        int y = top ? m_config.Hud.GetScaled(4) : hud.Dimension.Height - textDimension.Height - m_config.Hud.GetScaled(4);
+        hud.Text(MoreIndicator, Fonts.Small, fontSize,
+            (hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4), y));
+    }
+
+    private bool Flash() => m_ticks / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
 
     public void Dispose()
     {
