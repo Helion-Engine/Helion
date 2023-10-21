@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -295,7 +294,7 @@ public class ListedConfigSection : IOptionSection
 
         for (int i = 0; i < m_configValues.Count; i++)
         {
-            (IConfigValue cfgValue, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) = m_configValues[i];
+            (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[i];
             (Color attrColor, Color valueColor) = attr.Disabled ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
             
             if (i == m_currentRowIndex && m_rowIsSelected)
