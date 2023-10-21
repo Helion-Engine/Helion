@@ -33,6 +33,7 @@ public class OptionsLayer : IGameLayer
     private int m_scrollOffset;
     private int m_ticks;
     private int m_windowHeight;
+    private int m_headerHeight;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
     {
@@ -136,7 +137,8 @@ public class OptionsLayer : IGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        m_sections[m_currentSectionIndex].HandleInput(input);
+        var section = m_sections[m_currentSectionIndex];
+        section.HandleInput(input);
         
         if (input.ConsumeKeyPressed(Key.Escape))
         {
@@ -145,16 +147,24 @@ public class OptionsLayer : IGameLayer
             return;
         }
 
-        int scrollAmount = (int)(16 * m_config.Hud.Scale);
         // Switch pages if needed.
         if (m_sections.Count > 0)
         {
-            m_scrollOffset += input.ConsumeScroll() * scrollAmount;
+            if (ScrollRequired(m_windowHeight, section))
+            {
+                int scrollAmount = GetScrollAmount();
+                m_scrollOffset += input.ConsumeScroll() * scrollAmount;
 
-            if (input.ConsumePressOrContinuousHold(Key.Up))
-                m_scrollOffset += scrollAmount;
-            if (input.ConsumePressOrContinuousHold(Key.Down))
-                m_scrollOffset -= scrollAmount;
+                if (input.ConsumePressOrContinuousHold(Key.Up))
+                    m_scrollOffset += scrollAmount;
+                if (input.ConsumePressOrContinuousHold(Key.Down))
+                    m_scrollOffset -= scrollAmount;
+
+                if (input.ConsumeKeyPressed(Key.Home))
+                    m_scrollOffset = 0;
+                if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
+                    m_scrollOffset = -section.GetRenderHeight() + m_windowHeight + m_headerHeight - scrollAmount;
+            }
 
             if (input.ConsumeKeyPressed(Key.Left))
             {
@@ -168,17 +178,14 @@ public class OptionsLayer : IGameLayer
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
             }
 
-            if (input.ConsumeKeyPressed(Key.Home))
-                m_scrollOffset = 0;
-            if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
-                m_scrollOffset = -m_sections[m_currentSectionIndex].GetBottomY() + m_windowHeight - scrollAmount;
-
             m_scrollOffset = Math.Min(0, m_scrollOffset);
         }
 
         // We don't want any input leaking into the layers below this.
         input.ConsumeAll();
     }
+
+    private int GetScrollAmount() => (int)(16 * m_config.Hud.Scale);
 
     public void RunLogic(TickerInfo tickerInfo)
     {
@@ -207,39 +214,61 @@ public class OptionsLayer : IGameLayer
 
         m_windowHeight = hud.Dimension.Height;
 
+        m_headerHeight = 0;
         int y = m_scrollOffset;
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
-        y += titleArea.Height + m_config.Hud.GetScaled(5);
+        m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
-        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.Small, fontSize, (0, y),
+        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.Small, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle);
-        y += pageInstrArea.Height + m_config.Hud.GetScaled(16);
+        m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
+        y += m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
         {
             var section = m_sections[m_currentSectionIndex];
             section.Render(ctx, hud, y);
 
-            if (m_scrollOffset != 0)
-                RenderIndicator(hud, fontSize, true);
-            if (section.GetBottomY() > hud.Dimension.Height)
-                RenderIndicator(hud, fontSize, false);
+            RenderScrollBar(hud, fontSize, section);
+
         }
         else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
     }
 
-    private void RenderIndicator(IHudRenderContext hud, int fontSize, bool top)
+    private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)
     {
-        if (!Flash())
+        if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        const string MoreIndicator = "*";
-        var textDimension = hud.MeasureText(MoreIndicator, Fonts.Small, fontSize);
-        int y = top ? m_config.Hud.GetScaled(4) : hud.Dimension.Height - textDimension.Height - m_config.Hud.GetScaled(4);
-        hud.Text(MoreIndicator, Fonts.Small, fontSize,
+        int scrollHeight = section.GetRenderHeight();
+        if (scrollHeight <= hud.Dimension.Height)
+            return;
+
+        const string Bar = "|";
+        var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
+
+        int scrollAmount = GetScrollAmount();
+        int scrollDiff = scrollHeight - (hud.Dimension.Height - m_headerHeight);
+        int total = scrollDiff / scrollAmount;
+        if (scrollDiff % scrollAmount != 0)
+            total++;
+
+        if (total == 0)
+            return;
+
+        int screenScrollAmount = hud.Dimension.Height / total;
+
+        int y = -(total - (total - (m_scrollOffset / scrollAmount))) * screenScrollAmount;
+        if (y + textDimension.Height > hud.Dimension.Height)
+            y = hud.Dimension.Height - textDimension.Height;
+
+        hud.Text(Bar, Fonts.Small, fontSize,
             (hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4), y));
     }
+
+    private bool ScrollRequired(int windowHeight, IOptionSection section) =>
+        section.GetRenderHeight() - (windowHeight - m_headerHeight) > 0;
 
     private bool Flash() => m_ticks / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
 

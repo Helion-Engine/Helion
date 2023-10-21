@@ -17,7 +17,7 @@ public class KeyBindingSection : IOptionSection
     public OptionSectionType OptionType => OptionSectionType.Keys;
 
     private readonly IConfig m_config;
-    private int m_bottomY;
+    private int m_renderHeight;
 
     public KeyBindingSection(IConfig config)
     {
@@ -43,8 +43,8 @@ public class KeyBindingSection : IOptionSection
             y += Math.Max(keyArea.Height, commandArea.Height);
         }
 
-        m_bottomY = y;
+        m_renderHeight = y - startY;
     }
 
-    public int GetBottomY() => m_bottomY;
+    public int GetRenderHeight() => m_renderHeight;
 }

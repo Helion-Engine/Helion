@@ -17,7 +17,7 @@ public class ListedConfigSection : IOptionSection
     public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue, OptionMenuAttribute)> m_configValues = new();
     private readonly IConfig m_config;
-    private int m_bottomY;
+    private int m_renderHeight;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType)
     {
@@ -53,8 +53,8 @@ public class ListedConfigSection : IOptionSection
             y += drawArea.Height + m_config.Hud.GetScaled(3);
         }
 
-        m_bottomY = y;
+        m_renderHeight = y - startY;
     }
 
-    public int GetBottomY() => m_bottomY;
+    public int GetRenderHeight() => m_renderHeight;
 }
