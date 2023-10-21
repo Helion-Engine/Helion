@@ -8,10 +8,8 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
-using Helion.World.Entities.Definition.States;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Layer.EndGame;

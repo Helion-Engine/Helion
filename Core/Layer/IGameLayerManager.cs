@@ -1,5 +1,4 @@
-﻿using Helion.Window;
-using System;
+﻿using System;
 
 namespace Helion.Layer;
 

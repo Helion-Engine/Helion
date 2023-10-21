@@ -18,7 +18,6 @@ public class ConfigKeyMapping : IConfigKeyMapping
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public bool Changed { get; private set; }
-
     private readonly List<KeyCommandItem> m_commands = new();
 
     public void AddDefaultsIfMissing()
@@ -165,7 +164,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
-    public bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input, out int scrollAmount)
+    public bool ConsumeCommandKeyPressOrContinuousHold(string command, IConsumableInput input, out int scrollAmount)
     {
         scrollAmount = 0;
         for (int i = 0; i < m_commands.Count; i++)

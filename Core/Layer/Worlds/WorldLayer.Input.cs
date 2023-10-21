@@ -47,7 +47,7 @@ public partial class WorldLayer
 
     private bool IsCommandContinuousHold(string command, IConsumableInput input, out int scrollAmount)
     {
-        return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input, out scrollAmount);
+        return m_config.Keys.ConsumeCommandKeyPressOrContinuousHold(command, input, out scrollAmount);
     }
 
     private bool IsCommandPressed(string command, IConsumableInput input) =>

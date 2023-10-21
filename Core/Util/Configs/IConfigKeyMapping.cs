@@ -58,7 +58,7 @@ public interface IConfigKeyMapping
     /// <param name="command">The command, which is not case sensitive.</param>
     /// <param name="input">The consumable input.</param>
     /// <returns>True if it was pressed and consumed or continously held down.</returns>
-    bool ConsumeCommandKeyPressOrContinousHold(string command, IConsumableInput input, out int scrollAmount);
+    bool ConsumeCommandKeyPressOrContinuousHold(string command, IConsumableInput input, out int scrollAmount);
 
     /// <summary>
     /// Unbinds all commands and keys that match this key. This means the
