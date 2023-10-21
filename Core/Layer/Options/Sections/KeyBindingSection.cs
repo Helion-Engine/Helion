@@ -1,5 +1,6 @@
 ﻿using System;
 using Helion.Geometry;
+using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util.Configs;
@@ -38,7 +39,7 @@ public class KeyBindingSection : IOptionSection
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             hud.Text(command, Fonts.Small, fontSize, (-xOffset, y), out Dimension commandArea, window: Align.TopMiddle, anchor: Align.TopRight);
-            hud.Text(key.ToString(), Fonts.Small, fontSize, (xOffset, y), out Dimension keyArea, window: Align.TopMiddle, anchor: Align.TopLeft);
+            hud.Text(key.ToString(), Fonts.SmallGray, fontSize, (xOffset, y), out Dimension keyArea, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
             y += Math.Max(keyArea.Height, commandArea.Height);
         }
 

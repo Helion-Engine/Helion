@@ -48,7 +48,7 @@ public class ListedConfigSection : IOptionSection
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr) = m_configValues[i];
             hud.Text(attr.Name, Fonts.Small, fontSize, (-8, y), out Dimension drawArea, window: Align.TopMiddle, anchor: Align.TopRight);
-            hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (8, y), window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gold);
+            hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (8, y), window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
 
             y += drawArea.Height + m_config.Hud.GetScaled(3);
         }
