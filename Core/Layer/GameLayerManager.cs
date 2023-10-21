@@ -146,7 +146,7 @@ public class GameLayerManager : IGameLayerManager
             IntermissionLayer = layer;
             break;
         case OptionsLayer layer:
-            Remove(WorldLayer);
+            Remove(OptionsLayer);
             OptionsLayer = layer;
             break;
         case WorldLayer layer:
