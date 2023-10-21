@@ -31,7 +31,6 @@ public class OptionsLayer : IGameLayer
     private int m_scrollOffset;
     private int m_windowHeight;
     private int m_headerHeight;
-
     private int m_messageTicks;
     private string m_message = string.Empty;
 
