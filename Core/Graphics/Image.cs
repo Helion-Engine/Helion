@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
@@ -229,7 +228,9 @@ public class Image
         if (ImageType == ImageType.Palette)
             throw new("Cannot convert palette image to grayscale, only ARGB");
 
+        uint minGrayscale = 255;
         uint maxGrayscale = 0;
+        
         for (int i = 0; i < m_pixels.Length; i++)
         {
             uint argb = m_pixels[i];
@@ -241,21 +242,36 @@ public class Image
             uint grayscale = (uint)((0.299 * r) + (0.587 * g) + (0.114 * b));
             uint grayscaleArgb = (a << 24) | (grayscale << 16) | (grayscale << 8) | grayscale;
             m_pixels[i] = grayscaleArgb;
-            
-            maxGrayscale = Math.Max(maxGrayscale, grayscale);
+
+            if (a > 0)
+            {
+                minGrayscale = Math.Min(minGrayscale, grayscale);
+                maxGrayscale = Math.Max(maxGrayscale, grayscale);    
+            }
         }
 
-        if (normalize)
+        if (normalize && minGrayscale < maxGrayscale)
         {
-            Debug.Assert(maxGrayscale < 256, "Should never have rounded up beyond 255 for grayscaling");
-            
-            uint deltaFromMax = 255 - maxGrayscale;
+            // The intention here is to find out how far along the way the color
+            // is from Min -> Max, and then scale that up so Min stays at Min,
+            // but Max ends up at 255. This is effectively stretching anything
+            // from [Min, Max] to [Min, 255]. For most fonts, this preserves the
+            // darker edges which plays nicely with RGBA color adjustments.
+            double deltaInverse = 1.0 / (maxGrayscale - minGrayscale);
+            double minToByteMax = 255 - minGrayscale;
+
             for (int i = 0; i < m_pixels.Length; i++)
             {
                 uint argb = m_pixels[i];
-                uint adjustedGrayscale = (argb & 0x000000FF) + deltaFromMax;
-                uint grayscaleArgb = (argb & 0xFF000000) | (adjustedGrayscale << 16) | (adjustedGrayscale << 8) | adjustedGrayscale;
-                m_pixels[i] = grayscaleArgb; 
+                uint alphaComponent = argb & 0xFF000000;
+                if (alphaComponent == 0)
+                    continue;
+                
+                uint currentGrayscale = argb & 0x000000FF;
+                double factor = (currentGrayscale - minGrayscale) * deltaInverse;
+                uint adjustedGrayscale = minGrayscale + (uint)(minToByteMax * factor);
+                uint grayscaleArgb = alphaComponent | (adjustedGrayscale << 16) | (adjustedGrayscale << 8) | adjustedGrayscale;
+                m_pixels[i] = grayscaleArgb;
             }
         }
     }

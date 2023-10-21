@@ -11,7 +11,7 @@ public class FontDefinition
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly string Name;
-    public readonly Dictionary<char, CharDefinition> CharDefinitions = new Dictionary<char, CharDefinition>();
+    public readonly Dictionary<char, CharDefinition> CharDefinitions = new();
     public bool Grayscale;
     public bool GrayscaleNormalization;
     public int? SpaceWidth;
