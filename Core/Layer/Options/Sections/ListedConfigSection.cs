@@ -35,7 +35,7 @@ public class ListedConfigSection(OptionSectionType optionType) : IOptionSection
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr) = m_configValues[i];
             hud.Text(attr.Name, "SmallFont", 12, (-8, y), out Dimension drawArea, window: Align.TopMiddle, anchor: Align.TopRight);
-            hud.Text(cfgValue.ToString(), "SmallFont", 12, (8, y), window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gold);
+            hud.Text(cfgValue.ToString(), "SmallFontGrayscale", 12, (8, y), window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gold);
 
             y += drawArea.Height + 6;
         }

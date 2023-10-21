@@ -38,8 +38,11 @@ public static class BitmapFont
             // TODO
 
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
-
             var (glyphs, image) = CreateGlyphs(charImages, maxHeight, imageType);
+            
+            if (definition.Grayscale)
+                image.ConvertToGrayscale(definition.GrayscaleNormalization);
+            
             return new Font(definition.Name, glyphs, image);
         }
         catch

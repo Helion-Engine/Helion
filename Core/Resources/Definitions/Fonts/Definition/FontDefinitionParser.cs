@@ -24,7 +24,7 @@ namespace Helion.Resources.Definitions.Fonts.Definition;
 public class FontDefinitionParser : ParserBase
 {
     public readonly IList<FontDefinition> Definitions = new List<FontDefinition>();
-    private FontDefinition CurrentDefinition = new FontDefinition("none");
+    private FontDefinition CurrentDefinition = new("none");
 
     protected override void PerformParsing()
     {
@@ -103,6 +103,13 @@ public class FontDefinitionParser : ParserBase
         CurrentDefinition.Grayscale = ConsumeBoolean();
         Consume(';');
     }
+    
+    private void ConsumeGrayscaleNormalizationDefinition()
+    {
+        Consume('=');
+        CurrentDefinition.GrayscaleNormalization = ConsumeBoolean();
+        Consume(';');
+    }
 
     private void ConsumeSpaceDefinition()
     {
@@ -124,6 +131,9 @@ public class FontDefinitionParser : ParserBase
             break;
         case "GRAYSCALE":
             ConsumeGrayscaleDefinition();
+            break;
+        case "GRAYSCALENORMALIZATION":
+            ConsumeGrayscaleNormalizationDefinition();
             break;
         case "SPACE":
             ConsumeSpaceDefinition();

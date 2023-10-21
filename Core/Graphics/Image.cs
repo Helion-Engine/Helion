@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
@@ -93,7 +94,7 @@ public class Image
         for (int i = 0; i < m_pixels.Length; i++)
         {
             uint argb = m_pixels[i];
-            pixels[i] = (argb == Image.TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
+            pixels[i] = (argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
         }
 
         return new(pixels, Dimension, ImageType.Argb, Offset, Namespace);
@@ -223,7 +224,41 @@ public class Image
         return new(flippedPixels, Dimension, ImageType, Offset, Namespace);
     }
 
+    public void ConvertToGrayscale(bool normalize)
+    {
+        if (ImageType == ImageType.Palette)
+            throw new("Cannot convert palette image to grayscale, only ARGB");
 
+        uint maxGrayscale = 0;
+        for (int i = 0; i < m_pixels.Length; i++)
+        {
+            uint argb = m_pixels[i];
+            uint a = (argb & 0xFF000000) >> 24;
+            uint r = (argb & 0x00FF0000) >> 16;
+            uint g = (argb & 0x0000FF00) >> 8;
+            uint b = argb & 0x000000FF;
+
+            uint grayscale = (uint)((0.299 * r) + (0.587 * g) + (0.114 * b));
+            uint grayscaleArgb = (a << 24) | (grayscale << 16) | (grayscale << 8) | grayscale;
+            m_pixels[i] = grayscaleArgb;
+            
+            maxGrayscale = Math.Max(maxGrayscale, grayscale);
+        }
+
+        if (normalize)
+        {
+            Debug.Assert(maxGrayscale < 256, "Should never have rounded up beyond 255 for grayscaling");
+            
+            uint deltaFromMax = 255 - maxGrayscale;
+            for (int i = 0; i < m_pixels.Length; i++)
+            {
+                uint argb = m_pixels[i];
+                uint adjustedGrayscale = (argb & 0x000000FF) + deltaFromMax;
+                uint grayscaleArgb = (argb & 0xFF000000) | (adjustedGrayscale << 16) | (adjustedGrayscale << 8) | adjustedGrayscale;
+                m_pixels[i] = grayscaleArgb; 
+            }
+        }
+    }
 
     private static Image CreateNullImage()
     {
