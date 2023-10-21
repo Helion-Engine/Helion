@@ -99,7 +99,7 @@ public class OptionsLayer : IGameLayer
         if (sectionMap.TryGetValue(section, out IOptionSection optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
-        ListedConfigSection listedConfigSection = new(m_config, section);
+        ListedConfigSection listedConfigSection = new(m_config, section, m_soundManager);
         sectionMap[section] = listedConfigSection;
         return listedConfigSection;
     }
