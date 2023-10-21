@@ -28,6 +28,7 @@ public class ListedConfigSection : IOptionSection
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr)> m_configValues = new();
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
+    private readonly Stopwatch m_stopwatch = new();
     private int m_renderHeight;
     private int m_currentRowIndex;
     private bool m_hasSelectableRow;
@@ -66,6 +67,7 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumeKeyPressed(Key.Enter))
             {
                 m_rowIsSelected = true;
+                m_stopwatch.Restart();
                 m_rowEditText.Clear();
                 m_rowEditText.Append(m_configValues[m_currentRowIndex].CfgValue);
             }
@@ -148,6 +150,12 @@ public class ListedConfigSection : IOptionSection
         }
     }
 
+    private bool Flash()
+    {
+        const long DurationMs = 400;
+        return (m_stopwatch.ElapsedMilliseconds % DurationMs) < (DurationMs / 2);
+    }
+
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY)
     {
         if (m_configValues.Empty())
@@ -179,7 +187,7 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
                 hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, anchor: Align.TopLeft, color: valueColor);
-                if (CurrentRowAllowsTextInput())
+                if (CurrentRowAllowsTextInput() && Flash())
                     hud.Text("_", Fonts.SmallGray, fontSize, (16 + valueArea.Width + 1, y), out _, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Yellow);
             }
             else
