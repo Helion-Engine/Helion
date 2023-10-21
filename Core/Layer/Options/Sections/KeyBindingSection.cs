@@ -34,6 +34,7 @@ public class KeyBindingSection : IOptionSection
     {
         // This is anti-perf when we re-create everything all the time :(
         m_commandToKeys.Clear();
+        m_mappedCommands.Clear();
         
         // These should always exist, and should report being unbound if not by
         // having an empty list of keys assigned to it.
@@ -79,6 +80,46 @@ public class KeyBindingSection : IOptionSection
         }
     }
 
+    private void TryUpdateKeyBindingsFromPress(IConsumableInput input)
+    {
+        if (input.ConsumeKeyPressed(Key.Escape))
+        {
+            // We won't ever set Escape, and instead abort from setting.
+        }
+        else
+        {
+            foreach (Key key in Enum.GetValues<Key>())
+            {
+                if (!input.ConsumeKeyPressed(key)) 
+                    continue;
+                        
+                (string command, List<Key> keys) = m_commandToKeys[m_currentRow];
+                if (!keys.Contains(key))
+                {
+                    m_config.Keys.Add(key, command);
+                    keys.Add(key);
+                }
+                        
+                break;
+            } 
+        }
+
+        m_updatingKeyBinding = false;
+    }
+
+    private void UnbindCurrentRow()
+    {
+        (string command, List<Key> keys) = m_commandToKeys[m_currentRow];
+        
+        foreach (Key key in keys)
+            m_config.Keys.Remove(key, command);
+        
+        // Clear our local cache, which will be updated anyways but this allows
+        // for instant rendering feedback. We don't remove the row because we
+        // can then render "No binding" in its place.
+        keys.Clear();
+    }
+
     public void HandleInput(IConsumableInput input)
     {
         CheckForConfigUpdates();
@@ -88,33 +129,23 @@ public class KeyBindingSection : IOptionSection
         
         if (m_updatingKeyBinding)
         {
-            // TODO
+            if (input.HasAnyKeyPressed())
+                TryUpdateKeyBindingsFromPress(input);
+            
+            input.ConsumeAll();
         }
         else
         {
             if (input.ConsumeKeyPressed(Key.Up))
-            {
-                // TODO: Play sound
                 m_currentRow = m_currentRow != 0 ? (m_currentRow - 1) % m_commandToKeys.Count : m_commandToKeys.Count - 1;
-            }
-            
             if (input.ConsumeKeyPressed(Key.Down))
-            {
-                // TODO: Play sound
                 m_currentRow = (m_currentRow + 1) % m_commandToKeys.Count;
-            }
             
             if (input.ConsumeKeyPressed(Key.Enter))
-            {
-                // TODO: Play sound
                 m_updatingKeyBinding = true;
-            }
 
             if (input.ConsumeKeyPressed(Key.Backspace))
-            {
-                // TODO: Play sound
-                m_commandToKeys[m_currentRow].Keys.Clear();
-            }
+                UnbindCurrentRow();
         }
     }
 
@@ -129,9 +160,18 @@ public class KeyBindingSection : IOptionSection
         for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
         {
             (string command, List<Key> keys) = m_commandToKeys[cmdIndex];
-            
-            hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out Dimension commandArea,
-                window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
+
+            Dimension commandArea;
+            if (cmdIndex == m_currentRow && m_updatingKeyBinding)
+            {
+                hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                    window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Yellow);
+            }
+            else
+            {
+                hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                    window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
+            }
             
             if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
             {
