@@ -46,7 +46,6 @@ public class GameLayerManager : IGameLayerManager
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
-    public IWindow Window => m_window;
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
     private readonly IWindow m_window;

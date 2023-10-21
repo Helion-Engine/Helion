@@ -16,6 +16,7 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.World;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -30,6 +31,8 @@ public class OptionsLayer : IGameLayer
     private readonly List<IOptionSection> m_sections;
     private int m_currentSectionIndex;
     private int m_scrollOffset;
+    private int m_ticks;
+    private int m_windowHeight;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
     {
@@ -168,7 +171,7 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.Home))
                 m_scrollOffset = 0;
             if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
-                m_scrollOffset = -m_sections[m_currentSectionIndex].GetBottomY() + m_manager.Window.Dimension.Height - scrollAmount;
+                m_scrollOffset = -m_sections[m_currentSectionIndex].GetBottomY() + m_windowHeight - scrollAmount;
 
             m_scrollOffset = Math.Min(0, m_scrollOffset);
         }
@@ -179,7 +182,7 @@ public class OptionsLayer : IGameLayer
 
     public void RunLogic(TickerInfo tickerInfo)
     {
-        // Nothing right now.
+        m_ticks += tickerInfo.Ticks;
     }
 
     private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -202,6 +205,8 @@ public class OptionsLayer : IGameLayer
         FillBackgroundRepeatingImages(ctx, hud);
         int fontSize = m_config.Hud.GetMediumFontSize();
 
+        m_windowHeight = hud.Dimension.Height;
+
         int y = m_scrollOffset;
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
         y += titleArea.Height + m_config.Hud.GetScaled(5);
@@ -211,10 +216,32 @@ public class OptionsLayer : IGameLayer
         y += pageInstrArea.Height + m_config.Hud.GetScaled(16);
 
         if (m_currentSectionIndex < m_sections.Count)
-            m_sections[m_currentSectionIndex].Render(ctx, hud, y);
+        {
+            var section = m_sections[m_currentSectionIndex];
+            section.Render(ctx, hud, y);
+
+            if (m_scrollOffset != 0)
+                RenderIndicator(hud, fontSize, true);
+            if (section.GetBottomY() > hud.Dimension.Height)
+                RenderIndicator(hud, fontSize, false);
+        }
         else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
     }
+
+    private void RenderIndicator(IHudRenderContext hud, int fontSize, bool top)
+    {
+        if (!Flash())
+            return;
+
+        const string MoreIndicator = "*";
+        var textDimension = hud.MeasureText(MoreIndicator, Fonts.Small, fontSize);
+        int y = top ? m_config.Hud.GetScaled(4) : hud.Dimension.Height - textDimension.Height - m_config.Hud.GetScaled(4);
+        hud.Text(MoreIndicator, Fonts.Small, fontSize,
+            (hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4), y));
+    }
+
+    private bool Flash() => m_ticks / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
 
     public void Dispose()
     {
