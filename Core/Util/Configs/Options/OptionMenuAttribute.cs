@@ -3,9 +3,16 @@
 namespace Helion.Util.Configs.Options;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class OptionMenuAttribute(OptionSectionType section, string name, bool disabled = false) : Attribute
+public class OptionMenuAttribute : Attribute
 {
-    public readonly OptionSectionType Section = section;
-    public readonly string Name = name;
-    public readonly bool Disabled = disabled;
+    public OptionMenuAttribute(OptionSectionType section, string name, bool disabled = false)
+    {
+        Section = section;
+        Name = name;
+        Disabled = disabled;
+    }
+
+    public readonly OptionSectionType Section;
+    public readonly string Name;
+    public readonly bool Disabled;
 }

@@ -9,9 +9,14 @@ using Helion.Window;
 
 namespace Helion.Layer.Options.Sections;
 
-public class ListedConfigSection(OptionSectionType optionType) : IOptionSection
+public class ListedConfigSection : IOptionSection
 {
-    public OptionSectionType OptionType { get; } = optionType;
+    public ListedConfigSection(OptionSectionType optionType)
+    {
+        OptionType = optionType;
+    }
+
+    public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue, OptionMenuAttribute)> m_configValues = new();
 
     public void Add(IConfigValue value, OptionMenuAttribute attr)
