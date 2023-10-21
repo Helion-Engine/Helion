@@ -30,7 +30,7 @@ public class ConfigRender
     public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
 
     [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate vanilla contract")]
+    [OptionMenu(OptionSectionType.Render, "Emulate vanilla contrast")]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
     public readonly ConfigRenderFilter Filter = new();
