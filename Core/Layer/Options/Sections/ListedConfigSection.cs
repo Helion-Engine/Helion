@@ -64,14 +64,9 @@ public class ListedConfigSection : IOptionSection
         else
         {
             if (input.Manager.IsKeyPressed(Key.Up))
-            {
                 AdvanceToValidRow(-1);
-            }
-
             if (input.Manager.IsKeyPressed(Key.Down))
-            {
                 AdvanceToValidRow(1);
-            }
 
             if (input.ConsumeKeyPressed(Key.Enter))
             {
@@ -301,7 +296,7 @@ public class ListedConfigSection : IOptionSection
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) = m_configValues[i];
-            (Color attrColor, Color valueColor) = attr.Disabled ? (Color.DarkGray, Color.DarkGray) : (Color.Red, Color.White);
+            (Color attrColor, Color valueColor) = attr.Disabled ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
             
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
