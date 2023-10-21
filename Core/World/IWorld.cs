@@ -92,6 +92,7 @@ public interface IWorld : IDisposable
 
 
     void Link(Entity entity);
+    void LinkClamped(Entity entity);
     void Tick();
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
