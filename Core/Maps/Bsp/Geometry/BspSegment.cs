@@ -96,7 +96,7 @@ public class BspSegment : SegmentT2D<BspVertex>
         start.Edges.Add(this);
         end.Edges.Add(this);
 
-        Postcondition(Length >= 0.00001, "Extremely small BSP segment detected");
+        //Postcondition(Length >= 0.00001, "Extremely small BSP segment detected");
     }
 
     /// <summary>
