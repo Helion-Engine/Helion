@@ -8,7 +8,6 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
@@ -16,7 +15,6 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
-using Helion.World;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -140,7 +138,7 @@ public class OptionsLayer : IGameLayer
         
         if (input.ConsumeKeyPressed(Key.Escape))
         {
-            m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+            m_soundManager.PlayStaticSound(MenuSounds.Choose);
             m_manager.Remove(this);
             return;
         }
@@ -171,7 +169,7 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.Home))
                 m_scrollOffset = 0;
             if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
-                m_scrollOffset = -m_sections[m_currentSectionIndex].GetBottomY() + m_windowHeight - scrollAmount;
+                m_scrollOffset = -m_sections[m_currentSectionIndex].BottomY + m_windowHeight - scrollAmount;
 
             m_scrollOffset = Math.Min(0, m_scrollOffset);
         }
@@ -211,8 +209,8 @@ public class OptionsLayer : IGameLayer
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
         y += titleArea.Height + m_config.Hud.GetScaled(5);
 
-        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.Small, fontSize, (0, y),
-            out Dimension pageInstrArea, both: Align.TopMiddle);
+        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.SmallGray, fontSize, (0, y),
+            out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
         y += pageInstrArea.Height + m_config.Hud.GetScaled(16);
 
         if (m_currentSectionIndex < m_sections.Count)
@@ -222,7 +220,7 @@ public class OptionsLayer : IGameLayer
 
             if (m_scrollOffset != 0)
                 RenderIndicator(hud, fontSize, true);
-            if (section.GetBottomY() > hud.Dimension.Height)
+            if (section.BottomY > hud.Dimension.Height)
                 RenderIndicator(hud, fontSize, false);
         }
         else
@@ -236,12 +234,12 @@ public class OptionsLayer : IGameLayer
 
         const string MoreIndicator = "*";
         var textDimension = hud.MeasureText(MoreIndicator, Fonts.Small, fontSize);
+        int x = hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4);
         int y = top ? m_config.Hud.GetScaled(4) : hud.Dimension.Height - textDimension.Height - m_config.Hud.GetScaled(4);
-        hud.Text(MoreIndicator, Fonts.Small, fontSize,
-            (hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4), y));
+        hud.Text(MoreIndicator, Fonts.SmallGray, fontSize, (x, y), color: Color.Red);
     }
 
-    private bool Flash() => m_ticks / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
+    private bool Flash() => m_ticks / (int)(TicksPerSecond / 3) % 2 == 0;
 
     public void Dispose()
     {

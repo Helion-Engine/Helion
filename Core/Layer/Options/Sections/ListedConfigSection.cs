@@ -15,9 +15,9 @@ namespace Helion.Layer.Options.Sections;
 public class ListedConfigSection : IOptionSection
 {
     public OptionSectionType OptionType { get; }
+    public int BottomY { get; private set; }
     private readonly List<(IConfigValue, OptionMenuAttribute)> m_configValues = new();
     private readonly IConfig m_config;
-    private int m_bottomY;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType)
     {
@@ -39,7 +39,7 @@ public class ListedConfigSection : IOptionSection
     {
         int y = startY;
         
-        hud.Text(OptionType.ToString(), Fonts.Small, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle);
+        hud.Text(OptionType.ToString(), Fonts.SmallGray, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Hud.GetScaled(8);
 
         int fontSize = m_config.Hud.GetSmallFontSize();
@@ -47,14 +47,12 @@ public class ListedConfigSection : IOptionSection
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr) = m_configValues[i];
-            hud.Text(attr.Name, Fonts.Small, fontSize, (-8, y), out Dimension drawArea, window: Align.TopMiddle, anchor: Align.TopRight);
+            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-8, y), out Dimension drawArea, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
             hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (8, y), window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
 
             y += drawArea.Height + m_config.Hud.GetScaled(3);
         }
 
-        m_bottomY = y;
+        BottomY = y;
     }
-
-    public int GetBottomY() => m_bottomY;
 }
