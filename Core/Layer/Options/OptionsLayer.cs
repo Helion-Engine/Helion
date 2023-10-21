@@ -15,7 +15,6 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
-using NLog.Fluent;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -295,8 +294,7 @@ public class OptionsLayer : IGameLayer
         if (y + textDimension.Height > hud.Dimension.Height)
             y = hud.Dimension.Height - textDimension.Height;
 
-        hud.Text(Bar, Fonts.Small, fontSize,
-            (hud.Dimension.Width - textDimension.Width - m_config.Hud.GetScaled(4), y));
+        hud.Text(Bar, Fonts.Small, fontSize, (0, y), both: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
