@@ -32,6 +32,7 @@ public class ListedConfigSection : IOptionSection
     private readonly StringBuilder m_rowEditText = new();
     private int m_renderHeight;
     private int m_currentRowIndex;
+    private int? m_currentEnumIndex;
     private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
 
@@ -67,6 +68,7 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumeKeyPressed(Key.Enter))
             {
                 m_rowIsSelected = true;
+                m_currentEnumIndex = null;
                 m_stopwatch.Restart();
                 m_rowEditText.Clear();
                 m_rowEditText.Append(m_configValues[m_currentRowIndex].CfgValue);
@@ -82,31 +84,84 @@ public class ListedConfigSection : IOptionSection
         return !(isBool || isEnum);
     }
 
+    private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue)
+    {
+        if (!input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right)) 
+            return;
+        
+        bool newValue = !cfgValue.Value;
+        cfgValue.Set(newValue);
+        m_rowEditText.Clear();
+        m_rowEditText.Append(newValue);
+    }
+
+    private void UpdateEnumOption(IConsumableInput input, IConfigValue cfgValue)
+    {
+        bool left = input.ConsumeKeyPressed(Key.Left);
+        bool right = input.ConsumeKeyPressed(Key.Right);
+        if (!left && !right) 
+            return;
+        
+        object currentEnumValue = cfgValue.ObjectValue;
+        Array enumValues = Enum.GetValues(cfgValue.ValueType);
+        if (enumValues.Length <= 0) 
+            return;
+        
+        int enumIndex = 0;
+        if (m_currentEnumIndex.HasValue)
+        {
+            enumIndex = m_currentEnumIndex.Value;
+        }
+        else
+        {
+            for (; enumIndex < enumValues.Length; enumIndex++)
+            {
+                object enumVal = enumValues.GetValue(enumIndex);
+                if (enumVal?.Equals(currentEnumValue) ?? false)
+                    break;
+            }
+        }
+
+        if (enumIndex >= enumValues.Length) 
+            return;
+
+        if (right)
+            enumIndex = (enumIndex + 1) % enumValues.Length;
+        
+        if (left)
+        {
+            if (enumIndex == 0) 
+                enumIndex = enumValues.Length - 1;
+            else
+                enumIndex--;
+        }
+
+        object nextEnumValue = enumValues.GetValue(enumIndex);
+        m_rowEditText.Clear();
+        m_rowEditText.Append(nextEnumValue);
+        m_currentEnumIndex = enumIndex;
+    }
+
+    private void UpdateTextEditableOption(IConsumableInput input)
+    {
+        m_rowEditText.Append(input.ConsumeTypedCharacters());
+            
+        if (input.ConsumePressOrContinuousHold(Key.Backspace) && m_rowEditText.Length > 0)
+            m_rowEditText.Remove(m_rowEditText.Length - 1, 1);
+    }
+
     private void UpdateSelectedRow(IConsumableInput input)
     {
         bool doneEditingRow = false;
 
-        if (CurrentRowAllowsTextInput())
-        {
-            m_rowEditText.Append(input.ConsumeTypedCharacters());
-            
-            if (input.ConsumePressOrContinuousHold(Key.Backspace) && m_rowEditText.Length > 0)
-                m_rowEditText.Remove(m_rowEditText.Length - 1, 1);
-        }
-        else if (m_configValues[m_currentRowIndex].CfgValue is ConfigValue<bool> boolCfgValue)
-        {
-            if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.Right))
-            {
-                bool newValue = !boolCfgValue.Value;
-                boolCfgValue.Set(newValue);
-                m_rowEditText.Clear();
-                m_rowEditText.Append(newValue);
-            }
-        }
+        IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
+
+        if (cfgValue is ConfigValue<bool> boolCfgValue)
+            UpdateBoolOption(input, boolCfgValue);
+        else if (cfgValue.ValueType.BaseType == typeof(Enum))
+            UpdateEnumOption(input, cfgValue);
         else
-        {
-            // This must be an enum.
-        }
+            UpdateTextEditableOption(input);
         
         if (input.ConsumeKeyPressed(Key.Enter))
         {
