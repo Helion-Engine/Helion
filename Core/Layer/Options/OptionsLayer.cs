@@ -8,7 +8,6 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
@@ -16,7 +15,6 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
-using Helion.World;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -142,7 +140,7 @@ public class OptionsLayer : IGameLayer
         
         if (input.ConsumeKeyPressed(Key.Escape))
         {
-            m_soundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+            m_soundManager.PlayStaticSound(MenuSounds.Choose);
             m_manager.Remove(this);
             return;
         }
@@ -163,7 +161,9 @@ public class OptionsLayer : IGameLayer
                 if (input.ConsumeKeyPressed(Key.Home))
                     m_scrollOffset = 0;
                 if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
-                    m_scrollOffset = -section.GetRenderHeight() + m_windowHeight + m_headerHeight - scrollAmount;
+                    m_scrollOffset = -(section.GetRenderHeight() - m_windowHeight + m_headerHeight) - scrollAmount;
+
+                m_scrollOffset = Math.Min(0, m_scrollOffset);
             }
 
             if (input.ConsumeKeyPressed(Key.Left))
@@ -177,8 +177,6 @@ public class OptionsLayer : IGameLayer
                 m_scrollOffset = 0;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
             }
-
-            m_scrollOffset = Math.Min(0, m_scrollOffset);
         }
 
         // We don't want any input leaking into the layers below this.
@@ -223,6 +221,7 @@ public class OptionsLayer : IGameLayer
             out Dimension pageInstrArea, both: Align.TopMiddle);
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
+
 
         if (m_currentSectionIndex < m_sections.Count)
         {
@@ -270,7 +269,7 @@ public class OptionsLayer : IGameLayer
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
         section.GetRenderHeight() - (windowHeight - m_headerHeight) > 0;
 
-    private bool Flash() => m_ticks / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
+    private bool Flash() => m_ticks / (int)(TicksPerSecond / 3) % 2 == 0;
 
     public void Dispose()
     {
