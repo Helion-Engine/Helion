@@ -29,11 +29,11 @@ public class ListedConfigSection : IOptionSection
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
     private readonly Stopwatch m_stopwatch = new();
+    private readonly StringBuilder m_rowEditText = new();
     private int m_renderHeight;
     private int m_currentRowIndex;
     private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
-    private StringBuilder m_rowEditText = new();
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
     {
@@ -77,7 +77,9 @@ public class ListedConfigSection : IOptionSection
     private bool CurrentRowAllowsTextInput()
     {
         IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
-        return cfgValue is ConfigValue<double> or ConfigValue<float> or ConfigValue<int> or ConfigValue<uint> or ConfigValue<string>;
+        bool isBool = cfgValue.ValueType == typeof(bool);
+        bool isEnum = cfgValue.ValueType.BaseType != null && cfgValue.ValueType.BaseType == typeof(Enum);
+        return !(isBool || isEnum);
     }
 
     private void UpdateSelectedRow(IConsumableInput input)
@@ -152,10 +154,53 @@ public class ListedConfigSection : IOptionSection
 
     private bool Flash()
     {
-        const long DurationMs = 400;
-        return (m_stopwatch.ElapsedMilliseconds % DurationMs) < (DurationMs / 2);
+        const long Duration = 400;
+        const long HalfDuration = Duration / 2;
+        return m_stopwatch.ElapsedMilliseconds % Duration < HalfDuration;
+    }
+    
+    private void RenderEditUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
+    {
+        hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (16, pos.Y), out renderArea, window: Align.TopMiddle, 
+            anchor: Align.TopLeft, color: textColor);
+
+        if (Flash())
+        {
+            int x = pos.X + renderArea.Width + 1;
+            hud.Text("_", Fonts.SmallGray, fontSize, (x, pos.Y), out _, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Yellow);
+        }
     }
 
+    private void RenderEditSelectionArrows(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
+    {
+        if (Flash())
+        {
+            
+            // To prevent the word from moving, the left arrow needs to be drawn to the
+            // left of the word. We have to calculate this.
+            Dimension leftArrowArea = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+            
+            hud.Text("<", Fonts.SmallGray, fontSize, (pos.X - leftArrowArea.Width - 4, pos.Y), out _, window: Align.TopMiddle, 
+                anchor: Align.TopLeft, color: Color.Yellow);
+            
+            hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (pos.X, pos.Y), out Dimension textArea, window: Align.TopMiddle, 
+                anchor: Align.TopLeft, color: textColor);
+            int accumulatedWidth = textArea.Width + 4;
+            
+            hud.Text(">", Fonts.SmallGray, fontSize, (pos.X + accumulatedWidth, pos.Y), out Dimension rightArrowArea, window: Align.TopMiddle, 
+                anchor: Align.TopLeft, color: Color.Yellow);
+            accumulatedWidth += rightArrowArea.Width;
+
+            int maxHeight = Math.Max(Math.Max(leftArrowArea.Height, textArea.Height), rightArrowArea.Height);
+            renderArea = (accumulatedWidth, maxHeight);
+        }
+        else
+        {
+            hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, pos, out renderArea, window: Align.TopMiddle, 
+                anchor: Align.TopLeft, color: textColor);
+        }
+    }
+    
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY)
     {
         if (m_configValues.Empty())
@@ -186,16 +231,17 @@ public class ListedConfigSection : IOptionSection
             Dimension valueArea;
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
-                hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, anchor: Align.TopLeft, color: valueColor);
-                if (CurrentRowAllowsTextInput() && Flash())
-                    hud.Text("_", Fonts.SmallGray, fontSize, (16 + valueArea.Width + 1, y), out _, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Yellow);
+                if (CurrentRowAllowsTextInput())
+                    RenderEditUnderscore(hud, fontSize, (16, y), out valueArea, valueColor);
+                else
+                    RenderEditSelectionArrows(hud, fontSize, (16, y), out valueArea, valueColor);
             }
             else
             {
                 hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, anchor: Align.TopLeft, color: valueColor);
             }
             
-            if (i == m_currentRowIndex && m_hasSelectableRow)
+            if (i == m_currentRowIndex && m_hasSelectableRow && !m_rowIsSelected)
             {
                 Vec2I topRightCorner = (-16 - attrArea.Width - 12, y);
                 hud.Text(">", Fonts.SmallGray, fontSize, topRightCorner, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);    
@@ -207,6 +253,6 @@ public class ListedConfigSection : IOptionSection
 
         m_renderHeight = y - startY;
     }
-
+    
     public int GetRenderHeight() => m_renderHeight;
 }

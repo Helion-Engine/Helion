@@ -29,6 +29,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     public T Value { get; private set; }
     public T DefaultValue { get; private set; }
     public bool Changed { get; set; }
+    public Type ValueType => typeof(T);
     public ConfigSetFlags SetFlags { get; }
     public bool WriteToConfig { get; set; } = true;
 
