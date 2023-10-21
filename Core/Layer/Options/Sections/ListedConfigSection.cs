@@ -75,7 +75,7 @@ public class ListedConfigSection : IOptionSection
     private bool CurrentRowAllowsTextInput()
     {
         IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
-        return cfgValue is ConfigValue<double> or ConfigValue<float> or ConfigValue<string>;
+        return cfgValue is ConfigValue<double> or ConfigValue<float> or ConfigValue<int> or ConfigValue<uint> or ConfigValue<string>;
     }
 
     private void UpdateSelectedRow(IConsumableInput input)
