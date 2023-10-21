@@ -156,6 +156,18 @@ public class KeyBindingSection : IOptionSection
             both: Align.TopMiddle, color: Color.Red);
         int y = startY + headerArea.Height + m_config.Hud.GetScaled(8);
         int xOffset = m_config.Hud.GetScaled(4) * 2;
+        
+        hud.Text("Scroll with the mouse wheel or holding up/down", Fonts.SmallGray, fontSize, (0, y), out Dimension scrollArea, 
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += scrollArea.Height + 2;
+        
+        hud.Text("Press backspace to clear all bindings", Fonts.SmallGray, fontSize, (0, y), out Dimension instructionArea, 
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += instructionArea.Height + 2;
+        
+        hud.Text("Press enter to start binding and press a key", Fonts.SmallGray, fontSize, (0, y), out Dimension enterArea, 
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += enterArea.Height + 12;
 
         for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
         {
