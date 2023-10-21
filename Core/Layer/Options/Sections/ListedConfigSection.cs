@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -23,9 +24,11 @@ namespace Helion.Layer.Options.Sections;
 public class ListedConfigSection : IOptionSection
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
     
     public OptionSectionType OptionType { get; }
-    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr)> m_configValues = new();
+    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
     private readonly Stopwatch m_stopwatch = new();
@@ -43,9 +46,9 @@ public class ListedConfigSection : IOptionSection
         m_soundManager = soundManager;
     }
 
-    public void Add(IConfigValue value, OptionMenuAttribute attr)
+    public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
-        m_configValues.Add((value, attr));
+        m_configValues.Add((value, attr, configAttr));
         m_hasSelectableRow |= !attr.Disabled;
     }
 
@@ -194,7 +197,11 @@ public class ListedConfigSection : IOptionSection
             return;
         
         IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
+        var configAttr = m_configValues[m_currentRowIndex].ConfigAttr;
         ConfigSetResult result = cfgValue.Set(newValue);
+
+        if (result == ConfigSetResult.Set)
+            OnAttributeChanged?.Invoke(this, configAttr);
 
         Log.ConditionalTrace($"Config value with '{newValue}'for update result: {result}");
     }
@@ -288,7 +295,7 @@ public class ListedConfigSection : IOptionSection
 
         for (int i = 0; i < m_configValues.Count; i++)
         {
-            (IConfigValue cfgValue, OptionMenuAttribute attr) = m_configValues[i];
+            (IConfigValue cfgValue, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) = m_configValues[i];
             (Color attrColor, Color valueColor) = attr.Disabled ? (Color.DarkGray, Color.DarkGray) : (Color.Red, Color.White);
             
             if (i == m_currentRowIndex && m_rowIsSelected)
