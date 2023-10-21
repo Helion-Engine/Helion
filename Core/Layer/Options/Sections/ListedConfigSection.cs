@@ -93,6 +93,20 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumePressOrContinuousHold(Key.Backspace) && m_rowEditText.Length > 0)
                 m_rowEditText.Remove(m_rowEditText.Length - 1, 1);
         }
+        else if (m_configValues[m_currentRowIndex].CfgValue is ConfigValue<bool> boolCfgValue)
+        {
+            if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.Right))
+            {
+                bool newValue = !boolCfgValue.Value;
+                boolCfgValue.Set(newValue);
+                m_rowEditText.Clear();
+                m_rowEditText.Append(newValue);
+            }
+        }
+        else
+        {
+            // This must be an enum.
+        }
         
         if (input.ConsumeKeyPressed(Key.Enter))
         {
@@ -159,7 +173,7 @@ public class ListedConfigSection : IOptionSection
         return m_stopwatch.ElapsedMilliseconds % Duration < HalfDuration;
     }
     
-    private void RenderEditUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
+    private void RenderEditAndUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
     {
         hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (16, pos.Y), out renderArea, window: Align.TopMiddle, 
             anchor: Align.TopLeft, color: textColor);
@@ -171,11 +185,10 @@ public class ListedConfigSection : IOptionSection
         }
     }
 
-    private void RenderEditSelectionArrows(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
+    private void RenderEditAndSelectionArrows(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
     {
         if (Flash())
         {
-            
             // To prevent the word from moving, the left arrow needs to be drawn to the
             // left of the word. We have to calculate this.
             Dimension leftArrowArea = hud.MeasureText("<", Fonts.SmallGray, fontSize);
@@ -232,9 +245,9 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
                 if (CurrentRowAllowsTextInput())
-                    RenderEditUnderscore(hud, fontSize, (16, y), out valueArea, valueColor);
+                    RenderEditAndUnderscore(hud, fontSize, (16, y), out valueArea, valueColor);
                 else
-                    RenderEditSelectionArrows(hud, fontSize, (16, y), out valueArea, valueColor);
+                    RenderEditAndSelectionArrows(hud, fontSize, (16, y), out valueArea, valueColor);
             }
             else
             {
