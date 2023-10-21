@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util.Configs;
@@ -22,7 +20,6 @@ namespace Helion.Layer.Options.Sections;
 public class ListedConfigSection : IOptionSection
 {
     public OptionSectionType OptionType { get; }
-    public int BottomY { get; private set; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr)> m_configValues = new();
     private readonly IConfig m_config;
     private int m_renderHeight;

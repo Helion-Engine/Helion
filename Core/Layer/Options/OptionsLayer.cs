@@ -29,7 +29,6 @@ public class OptionsLayer : IGameLayer
     private readonly List<IOptionSection> m_sections;
     private int m_currentSectionIndex;
     private int m_scrollOffset;
-    private int m_ticks;
     private int m_windowHeight;
     private int m_headerHeight;
 
@@ -187,7 +186,7 @@ public class OptionsLayer : IGameLayer
 
     public void RunLogic(TickerInfo tickerInfo)
     {
-        m_ticks += tickerInfo.Ticks;
+        // Nothing to do.
     }
 
     private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -217,11 +216,16 @@ public class OptionsLayer : IGameLayer
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
-        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.Small, fontSize, (0, m_headerHeight + y),
-            out Dimension pageInstrArea, both: Align.TopMiddle);
+        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
+            out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
 
+        if (m_sections.Count > 1)
+        {
+            hud.Text("->", Fonts.SmallGray, fontSize, (-16, -16), both: Align.BottomRight, color: Color.White);
+            hud.Text("<-", Fonts.SmallGray, fontSize, (16, -16), both: Align.BottomLeft, color: Color.White);
+        }
 
         if (m_currentSectionIndex < m_sections.Count)
         {
@@ -229,7 +233,6 @@ public class OptionsLayer : IGameLayer
             section.Render(ctx, hud, y);
 
             RenderScrollBar(hud, fontSize, section);
-
         }
         else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
@@ -268,8 +271,6 @@ public class OptionsLayer : IGameLayer
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
         section.GetRenderHeight() - (windowHeight - m_headerHeight) > 0;
-
-    private bool Flash() => m_ticks / (int)(TicksPerSecond / 3) % 2 == 0;
 
     public void Dispose()
     {
