@@ -61,12 +61,20 @@ public class ListedConfigSection : IOptionSection
         else
         {
             if (input.Manager.IsKeyPressed(Key.Up))
+            {
+                // TODO: Play sound
                 AdvanceToValidRow(-1);
+            }
+
             if (input.Manager.IsKeyPressed(Key.Down))
+            {
+                // TODO: Play sound
                 AdvanceToValidRow(1);
+            }
 
             if (input.ConsumeKeyPressed(Key.Enter))
             {
+                // TODO: Play sound
                 m_rowIsSelected = true;
                 m_currentEnumIndex = null;
                 m_stopwatch.Restart();
@@ -89,6 +97,7 @@ public class ListedConfigSection : IOptionSection
         if (!input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right)) 
             return;
         
+        // TODO: Play sound
         bool newValue = !cfgValue.Value;
         cfgValue.Set(newValue);
         m_rowEditText.Clear();
@@ -136,6 +145,7 @@ public class ListedConfigSection : IOptionSection
                 enumIndex--;
         }
 
+        // TODO: Play sound
         object nextEnumValue = enumValues.GetValue(enumIndex);
         m_rowEditText.Clear();
         m_rowEditText.Append(nextEnumValue);
@@ -294,7 +304,8 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
             
-            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-16, y), out Dimension attrArea, window: Align.TopMiddle, anchor: Align.TopRight, color: attrColor);
+            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-16, y), out Dimension attrArea, window: Align.TopMiddle, 
+                anchor: Align.TopRight, color: attrColor);
 
             Dimension valueArea;
             if (i == m_currentRowIndex && m_rowIsSelected)
@@ -306,7 +317,8 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, anchor: Align.TopLeft, color: valueColor);
+                hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, 
+                    anchor: Align.TopLeft, color: valueColor);
             }
             
             if (i == m_currentRowIndex && m_hasSelectableRow && !m_rowIsSelected)
