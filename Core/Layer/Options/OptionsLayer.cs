@@ -15,6 +15,7 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using NLog.Fluent;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -32,6 +33,9 @@ public class OptionsLayer : IGameLayer
     private int m_windowHeight;
     private int m_headerHeight;
 
+    private int m_messageTicks;
+    private string m_message = string.Empty;
+
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
     {
         m_manager = manager;
@@ -40,14 +44,14 @@ public class OptionsLayer : IGameLayer
         m_sections = GenerateSections();
     }
 
-    private List<(IConfigValue, OptionMenuAttribute)> GetAllConfigFields()
+    private List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
     {
-        List<(IConfigValue, OptionMenuAttribute)> fields = new();
+        List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();
         RecursivelyGetConfigFieldsOrThrow(m_config, fields);
         return fields;
     }
 
-    private static void RecursivelyGetConfigFieldsOrThrow(object obj, List<(IConfigValue, OptionMenuAttribute)> fields)
+    private static void RecursivelyGetConfigFieldsOrThrow(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields)
     {
         foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
         {
@@ -66,7 +70,7 @@ public class OptionsLayer : IGameLayer
         }
     }
 
-    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute)> fields, int depth = 1)
+    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
     {
         const int RecursiveOverflowLimit = 100;
         if (depth > RecursiveOverflowLimit)
@@ -84,8 +88,9 @@ public class OptionsLayer : IGameLayer
             if (childObj is IConfigValue configValue)
             {
                 OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
-                if (attribute != null)
-                    fields.Add((configValue, attribute));
+                ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
+                if (attribute != null && configAttribute != null)
+                    fields.Add((configValue, attribute, configAttribute));
                 continue;
             }
 
@@ -100,10 +105,23 @@ public class OptionsLayer : IGameLayer
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
         ListedConfigSection listedConfigSection = new(m_config, section, m_soundManager);
+        listedConfigSection.OnAttributeChanged += ListedConfigSection_OnAttributeChanged;
         sectionMap[section] = listedConfigSection;
         return listedConfigSection;
     }
-    
+
+    private void ListedConfigSection_OnAttributeChanged(object? sender, ConfigInfoAttribute configAttr)
+    {
+        if (configAttr.GetSetWarningString(out var warningString))
+            ShowMessage(warningString);
+    }
+
+    private void ShowMessage(string message)
+    {
+        m_message = message;
+        m_messageTicks = (int)TicksPerSecond * 5;
+    }
+
     private List<IOptionSection> GenerateSections()
     {
         Dictionary<OptionSectionType, IOptionSection> sectionMap = new();
@@ -111,10 +129,10 @@ public class OptionsLayer : IGameLayer
         // This takes all the common section types and turns them into the
         // generic list of values that users can tweak. It does not handle
         // sections that require special logic, like key bindings.
-        foreach ((IConfigValue value, OptionMenuAttribute attr) in GetAllConfigFields())
+        foreach ((IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) in GetAllConfigFields())
         {
             ListedConfigSection cfgSection = GetOrMakeListedConfigSectionOrThrow(sectionMap, attr.Section);
-            cfgSection.Add(value, attr);
+            cfgSection.Add(value, attr, configAttr);
         }
         
         // Key bindings are a special type of option section handled specially.
@@ -186,7 +204,15 @@ public class OptionsLayer : IGameLayer
 
     public void RunLogic(TickerInfo tickerInfo)
     {
-        // Nothing to do.
+        if (m_messageTicks > 0)
+        {
+            m_messageTicks -= tickerInfo.Ticks;
+            if (m_messageTicks <= 0)
+            {
+                m_messageTicks = 0;
+                m_message = string.Empty;
+            }
+        }
     }
 
     private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -221,11 +247,15 @@ public class OptionsLayer : IGameLayer
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
 
+        int padding = m_config.Hud.GetScaled(8);
         if (m_sections.Count > 1)
         {
-            hud.Text("->", Fonts.SmallGray, fontSize, (-16, -16), both: Align.BottomRight, color: Color.White);
-            hud.Text("<-", Fonts.SmallGray, fontSize, (16, -16), both: Align.BottomLeft, color: Color.White);
+            hud.Text("->", Fonts.SmallGray, fontSize, (-padding, -padding), both: Align.BottomRight, color: Color.White);
+            hud.Text("<-", Fonts.SmallGray, fontSize, (padding, -padding), both: Align.BottomLeft, color: Color.White);
         }
+
+        if (m_message.Length > 0)
+            hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
 
         if (m_currentSectionIndex < m_sections.Count)
         {

@@ -17,6 +17,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
@@ -59,6 +60,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly Action<IRenderableSurfaceContext> m_renderDefaultAction;
     private readonly Action<IHudRenderContext> m_renderHudAction;
     private readonly HudRenderContext m_hudContext = new(default);
+    private readonly OptionsLayer m_optionsLayer;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
@@ -85,6 +87,8 @@ public class GameLayerManager : IGameLayerManager
         m_renderHudAction = RenderHud;
         m_renderer = null!;
         m_ctx = null!;
+
+        m_optionsLayer = new(this, m_config, m_soundManager);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }
@@ -323,11 +327,11 @@ public class GameLayerManager : IGameLayerManager
             Remove(ConsoleLayer);
     }
 
+
     private void CreateMenuLayer()
     {
         m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-
-        MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
+        MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
         Add(menuLayer);
     }
 
