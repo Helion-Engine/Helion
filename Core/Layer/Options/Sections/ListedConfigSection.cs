@@ -46,9 +46,9 @@ public class ListedConfigSection : IOptionSection
         if (!m_hasSelectableRow)
             return;
         
-        if (input.ConsumeKeyPressed(Key.Up))
+        if (input.Manager.IsKeyPressed(Key.Up))
             AdvanceToValidRow(-1);
-        if (input.ConsumeKeyPressed(Key.Down))
+        if (input.Manager.IsKeyPressed(Key.Down))
             AdvanceToValidRow(1);
     }
 
