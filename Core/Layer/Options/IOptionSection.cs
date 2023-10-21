@@ -10,4 +10,5 @@ public interface IOptionSection
 
     void HandleInput(IConsumableInput input);
     void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY);
+    int GetBottomY();
 }
