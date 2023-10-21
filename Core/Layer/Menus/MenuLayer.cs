@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio.Sounds;
+using Helion.Layer.Options;
 using Helion.Menus;
 using Helion.Menus.Impl;
 using Helion.Render.Common.Renderers;
@@ -27,7 +28,7 @@ public partial class MenuLayer : IGameLayer
     private bool m_disposed;
 
     public MenuLayer(GameLayerManager manager, IConfig config, HelionConsole console,
-        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager)
+        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager, OptionsLayer optionsLayer)
     {
         Manager = manager;
         m_config = config;
@@ -38,7 +39,7 @@ public partial class MenuLayer : IGameLayer
         m_renderVirtualHudAction = new(RenderVirtualHud);
         m_stopwatch.Start();
 
-        MainMenu mainMenu = new(this, config, console, soundManager, archiveCollection, saveGameManager);
+        MainMenu mainMenu = new(this, config, console, soundManager, archiveCollection, saveGameManager, optionsLayer);
         m_menus.Push(mainMenu);
     }
 

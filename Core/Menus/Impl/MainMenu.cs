@@ -24,12 +24,15 @@ public class MainMenu : Menu
     private readonly MenuLayer m_parent;
     private readonly SoundManager m_soundManager;
 
+    private readonly OptionsLayer m_optionsLayer;
+
     public MainMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveManager)
+        ArchiveCollection archiveCollection, SaveGameManager saveManager, OptionsLayer optionsLayer)
         : base(config, console, soundManager, archiveCollection)
     {
         m_parent = parent;
         m_soundManager = soundManager;
+        m_optionsLayer = optionsLayer;
 
         int offsetY = 64;
         if (archiveCollection.IWadType != IWadBaseType.Doom1 && archiveCollection.IWadType != IWadBaseType.ChexQuest)
@@ -62,10 +65,8 @@ public class MainMenu : Menu
     private Func<Menu?> CreateOptionsLayer()
     {
         return () =>
-        {
-            OptionsLayer optionsLayer = new(m_parent.Manager, Config, m_soundManager);
-            m_parent.Manager.Add(optionsLayer);
-        
+        {            
+            m_parent.Manager.Add(m_optionsLayer);        
             return null;
         };
     }
