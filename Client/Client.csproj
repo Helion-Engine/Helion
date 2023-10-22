@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if not exist $(OutDir)SoundFonts mkdir $(OutDir)SoundFonts&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)SoundFonts\Default.sf2&quot; &quot;$(OutDir)SoundFonts&quot;&#xD;&#xA;&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x64\*.*&quot; &quot;$(TargetDir)runtimes\win-x64\native&quot;&#xD;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x86\*.*&quot; &quot;$(TargetDir)runtimes\win-x86\native&quot;" />
+    <Exec Command="if not exist $(OutDir)SoundFonts mkdir $(OutDir)SoundFonts&#xA;xcopy /y /d  &quot;$(ProjectDir)SoundFonts\Default.sf2&quot; &quot;$(OutDir)SoundFonts&quot;&#xA;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x64\*.*&quot; &quot;$(TargetDir)runtimes\win-x64\native&quot;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x86\*.*&quot; &quot;$(TargetDir)runtimes\win-x86\native&quot;&#xA;&#xA;powershell -ExecutionPolicy Bypass -File &quot;$(SolutionDir)Assets/Scripts/ZipAssets.ps1&quot; &quot;$(SolutionDir)Assets/Assets/*&quot; &quot;$(TargetDir)assets.pk3&quot;&#xA;powershell -ExecutionPolicy Bypass -File &quot;$(SolutionDir)Assets/Scripts/ZipAssets.ps1&quot; &quot;$(SolutionDir)Assets/Assets/*&quot; &quot;$(SolutionDir)Tests/$(OutDir)assets.pk3&quot;&#xA;" />
   </Target>
 
 </Project>
