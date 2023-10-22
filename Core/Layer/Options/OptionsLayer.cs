@@ -187,14 +187,16 @@ public class OptionsLayer : IGameLayer
 
             m_scrollOffset = Math.Min(0, m_scrollOffset);
 
-            if (input.ConsumeKeyPressed(Key.Left))
+            if (input.ConsumePressOrContinuousHold(Key.Left))
             {
+                m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
-            if (input.ConsumeKeyPressed(Key.Right))
+            if (input.ConsumePressOrContinuousHold(Key.Right))
             {
+                m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
             }
@@ -255,6 +257,9 @@ public class OptionsLayer : IGameLayer
         hud.Clear(Color.Gray);
         FillBackgroundRepeatingImages(ctx, hud);
         int fontSize = m_config.Hud.GetMediumFontSize();
+        int smallPad = m_config.Hud.GetScaled(2);
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Fonts.SmallGray, fontSize, (smallPad, smallPad),
+            out _, both: Align.TopLeft, color: Color.Red);
 
         m_windowHeight = hud.Dimension.Height;
 

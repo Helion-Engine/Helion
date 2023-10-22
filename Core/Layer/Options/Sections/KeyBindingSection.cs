@@ -144,9 +144,15 @@ public class KeyBindingSection : IOptionSection
         else
         {
             if (input.ConsumePressOrContinuousHold(Key.Up))
+            {
+                m_soundManager.PlayStaticSound(MenuSounds.Cursor);
                 m_currentRow = m_currentRow != 0 ? (m_currentRow - 1) % m_commandToKeys.Count : m_commandToKeys.Count - 1;
+            }
             if (input.ConsumePressOrContinuousHold(Key.Down))
+            {
+                m_soundManager.PlayStaticSound(MenuSounds.Cursor);
                 m_currentRow = (m_currentRow + 1) % m_commandToKeys.Count;
+            }
 
             int scrollAmount = input.ConsumeScroll();
             if (scrollAmount != 0)
@@ -156,6 +162,7 @@ public class KeyBindingSection : IOptionSection
 
                 if (m_currentRow < 0)
                     m_currentRow = Math.Min(m_commandToKeys.Count + m_currentRow, m_commandToKeys.Count - 1);
+                m_soundManager.PlayStaticSound(MenuSounds.Cursor);
             }
 
             if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))

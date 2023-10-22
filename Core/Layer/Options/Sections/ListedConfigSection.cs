@@ -104,7 +104,8 @@ public class ListedConfigSection : IOptionSection
         int scroll = input.ConsumeScroll();
         if (!force && !input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0) 
             return;
-        
+
+        m_soundManager.PlayStaticSound(MenuSounds.Change);
         bool newValue = !cfgValue.Value;
         cfgValue.Set(newValue);
         m_rowEditText.Clear();
@@ -165,6 +166,7 @@ public class ListedConfigSection : IOptionSection
         m_rowEditText.Clear();
         m_rowEditText.Append(nextEnumValue);
         m_currentEnumIndex = enumIndex;
+        m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
     private static object GetEnumDescription(object value)
@@ -279,6 +281,8 @@ public class ListedConfigSection : IOptionSection
             if (!m_configValues[m_currentRowIndex].Attr.Disabled)
                 break;
         }
+
+        m_soundManager.PlayStaticSound(MenuSounds.Cursor);
     }
 
     private bool Flash()
