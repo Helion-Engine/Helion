@@ -2,13 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-
         <IsPackable>false</IsPackable>
-
         <RootNamespace>Helion.Tests</RootNamespace>
-
         <AssemblyName>Tests</AssemblyName>
-
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -103,5 +99,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(SolutionDir)Assets/Scripts/ZipAssets.ps1&quot; &quot;$(SolutionDir)Assets/Assets/*&quot; &quot;$(TargetDir)assets.pk3&quot;" />
+    </Target>
 
 </Project>
