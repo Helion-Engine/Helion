@@ -39,11 +39,7 @@ public class Ticker
     /// <returns>The current time in nanoseconds.</returns>
     public static long NanoTime()
     {
-        // From: https://stackoverflow.com/questions/1551742/what-is-the-equivalent-to-system-nanotime-in-net
-        long nano = 10000L * Stopwatch.GetTimestamp();
-        nano /= TimeSpan.TicksPerMillisecond;
-        nano *= 100L;
-        return nano;
+        return Stopwatch.GetElapsedTime(0).Ticks * TimeSpan.NanosecondsPerTick;
     }
 
     /// <summary>
