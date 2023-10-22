@@ -88,23 +88,10 @@ public class ArchiveImageRetriever : IImageRetriever
 
         foreach (TextureDefinitionComponent component in definition.Components)
         {
-            Image? subImage = m_compiledImages.Get(component.Name, definition.Namespace);
-
-            if (subImage == null)
-            {
-                // If we have an identical name to the child patch, we have
-                // to look in our entry list only because it can lead to
-                // infinite recursion and a stack overflow. Lots of vanilla
-                // wads do this unfortunately...
-                if (component.Name.Equals(definition.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
-                    if (entry != null)
-                        subImage = ImageFromEntry(entry);
-                }
-                else
-                    subImage = Get(component.Name, definition.Namespace);
-            }
+            Image? subImage = null;
+            Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
+            if (entry != null)
+                subImage = ImageFromEntry(entry, cacheEntry: false);
 
             if (subImage == null)
             {
@@ -158,7 +145,7 @@ public class ArchiveImageRetriever : IImageRetriever
         return Math.Max(0, image.Height - y - 1);
     }
 
-    private Image? ImageFromEntry(Entry entry)
+    private Image? ImageFromEntry(Entry entry, bool cacheEntry = true)
     {
         Image? image = null;
         byte[] data = entry.ReadData();
@@ -212,7 +199,8 @@ public class ArchiveImageRetriever : IImageRetriever
         if (entry.Namespace == ResourceNamespace.Sprites)
             SetSpriteOffset(image);
 
-        m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
+        if (cacheEntry)
+            m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
         return image;
     }
 }
