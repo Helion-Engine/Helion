@@ -20,26 +20,12 @@ using Helion.Util;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
-public class EntityRenderer
+public class EntityRenderer : IDisposable
 {
-    private class Vec2DCompararer : IEqualityComparer<Vec2D>
-    {
-        public bool Equals(Vec2D x, Vec2D y)
-        {
-            return x.X == y.X && x.Y == y.Y;
-        }
-
-        public int GetHashCode([DisallowNull] Vec2D obj)
-        {
-            return HashCode.Combine(obj.X, obj.Y);
-        }
-    }
-
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
-    private readonly RenderWorldDataManager m_worldDataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
@@ -48,18 +34,23 @@ public class EntityRenderer
     private bool m_spriteZCheck;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
+    private bool m_disposed;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, RenderWorldDataManager worldDataManager)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
     {
         m_config = config;
         m_textureManager = textureManager;
         m_dataManager = new(m_program);
-        m_worldDataManager = worldDataManager;
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+    }
+
+    ~EntityRenderer()
+    {
+        PerformDispose();
     }
     
     public void Clear(IWorld world)
@@ -268,5 +259,28 @@ public class EntityRenderer
     public void ResetInterpolation(IWorld world)
     {
         Clear(world);
+    }
+    
+    private void PerformDispose()
+    {
+        if (m_disposed)
+            return;
+        
+        m_program.Dispose();
+        m_dataManager.Dispose();
+
+        m_disposed = true;
+    }
+
+    public void Dispose()
+    {
+        PerformDispose();
+        GC.SuppressFinalize(this);
+    }
+    
+    private class Vec2DCompararer : IEqualityComparer<Vec2D>
+    {
+        public bool Equals(Vec2D x, Vec2D y) => x.X == y.X && x.Y == y.Y;
+        public int GetHashCode(Vec2D obj) => HashCode.Combine(obj.X, obj.Y);
     }
 }

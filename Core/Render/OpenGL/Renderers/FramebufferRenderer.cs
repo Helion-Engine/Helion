@@ -7,9 +7,7 @@ using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Impl;
 using Helion.Window;
-using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
 
@@ -169,6 +167,7 @@ public class FramebufferRenderer : IDisposable
         m_vbo.Dispose();
         m_vao.Dispose();
         m_program.Dispose();
+        Framebuffer.Dispose();
 
         m_disposed = true;
     }

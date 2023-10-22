@@ -62,7 +62,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_config = config;
         m_automapRenderer = new(archiveCollection);
-        m_entityRenderer = new(config, textureManager, m_worldDataManager);
+        m_entityRenderer = new(config, textureManager);
         m_primitiveRenderer = new();
         m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
@@ -455,5 +455,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.Dispose();
         m_automapRenderer.Dispose();
         m_primitiveRenderer.Dispose();
+        m_entityRenderer.Dispose();
     }
 }
