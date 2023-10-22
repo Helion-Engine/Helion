@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
@@ -16,7 +17,9 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
+using Newtonsoft.Json.Linq;
 using NLog;
+using static System.Net.Mime.MediaTypeNames;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
@@ -155,10 +158,23 @@ public class ListedConfigSection : IOptionSection
                 enumIndex--;
         }
 
-        object nextEnumValue = enumValues.GetValue(enumIndex);
+        object nextEnumValue = GetEnumDescription(enumValues.GetValue(enumIndex));
         m_rowEditText.Clear();
         m_rowEditText.Append(nextEnumValue);
         m_currentEnumIndex = enumIndex;
+    }
+
+    private object GetEnumDescription(object value)
+    {
+        var type = value.GetType();
+        if (type.BaseType != typeof(Enum))
+            return value;
+
+        FieldInfo fi = type.GetField(value.ToString());
+        var descAttr = fi.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
+        if (descAttr != null)
+            return descAttr.Description;
+        return value;
     }
 
     private void UpdateTextEditableOption(IConsumableInput input)
@@ -331,7 +347,7 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(GetEnumDescription(cfgValue).ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
 

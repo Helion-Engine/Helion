@@ -141,7 +141,6 @@ public class Window : GameWindow, IWindow
         return state switch
         {
             RenderWindowState.Fullscreen => WindowState.Fullscreen,
-            RenderWindowState.Maximized => WindowState.Maximized,
             _ => WindowState.Normal,
         };
     }
