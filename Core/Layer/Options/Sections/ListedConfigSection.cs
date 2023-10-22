@@ -39,6 +39,7 @@ public class ListedConfigSection : IOptionSection
     private int? m_currentEnumIndex;
     private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
+    private IConfigValue? m_currentEditValue;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
     {
@@ -78,10 +79,14 @@ public class ListedConfigSection : IOptionSection
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_rowIsSelected = true;
                 m_currentEnumIndex = null;
+                m_currentEditValue = m_configValues[m_currentRowIndex].CfgValue.Clone();
                 m_stopwatch.Restart();
-                
+
+                if (m_currentEditValue is ConfigValue<bool> boolCfgValue)
+                    UpdateBoolOption(input, boolCfgValue, true);
+
                 m_rowEditText.Clear();
-                m_rowEditText.Append(GetEnumDescription(m_configValues[m_currentRowIndex].CfgValue.ObjectValue));
+                m_rowEditText.Append(GetEnumDescription(m_currentEditValue.ObjectValue));
             }
         }
     }
@@ -94,10 +99,10 @@ public class ListedConfigSection : IOptionSection
         return !(isBool || isEnum);
     }
 
-    private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue)
+    private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue, bool force)
     {
         int scroll = input.ConsumeScroll();
-        if (!input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0) 
+        if (!force && !input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0) 
             return;
         
         bool newValue = !cfgValue.Value;
@@ -185,12 +190,14 @@ public class ListedConfigSection : IOptionSection
 
     private void UpdateSelectedRow(IConsumableInput input)
     {
-        bool doneEditingRow = false;
+        if (m_currentEditValue == null)
+            return;
 
-        IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
+        bool doneEditingRow = false;
+        IConfigValue cfgValue = m_currentEditValue;
 
         if (cfgValue is ConfigValue<bool> boolCfgValue)
-            UpdateBoolOption(input, boolCfgValue);
+            UpdateBoolOption(input, boolCfgValue, false);
         else if (cfgValue.ValueType.BaseType == typeof(Enum))
             UpdateEnumOption(input, cfgValue);
         else
@@ -218,6 +225,9 @@ public class ListedConfigSection : IOptionSection
 
     private void SubmitRowChanges()
     {
+        if (m_currentEditValue == null)
+            return;
+
         string newValue = m_rowEditText.ToString();
         
         // If we erase it and submit an empty field, we will treat this the
@@ -246,6 +256,7 @@ public class ListedConfigSection : IOptionSection
             OnAttributeChanged?.Invoke(this, configAttr);
 
         Log.ConditionalTrace($"Config value with '{newValue}'for update result: {result}");
+        m_currentEditValue = null;
     }
 
     private void AdvanceToValidRow(int direction)

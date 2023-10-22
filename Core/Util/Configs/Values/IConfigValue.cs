@@ -52,4 +52,6 @@ public interface IConfigValue
     /// <param name="flagType">The mask which must be present. This requires all
     /// of the bits to be set to apply the change.</param>
     void ApplyQueuedChange(ConfigSetFlags flagType);
+
+    IConfigValue Clone();
 }

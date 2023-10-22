@@ -156,4 +156,9 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
         return Value.ToString() ?? "";
     }
+
+    public IConfigValue Clone()
+    {
+        return new ConfigValue<T>(Value, m_filter);
+    }
 }
