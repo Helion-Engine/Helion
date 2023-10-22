@@ -151,6 +151,8 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         // For now, we only have a very few cases, so we'll handle them here.
         if (Value is List<string> stringList)
             return $"[\"{stringList.Join("\", \"")}\"]";
+        if (Value is double d)
+            return d.ToString("0.0######");
 
         return Value.ToString() ?? "";
     }
