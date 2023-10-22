@@ -9,7 +9,6 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
@@ -17,9 +16,7 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
-using Newtonsoft.Json.Linq;
 using NLog;
-using static System.Net.Mime.MediaTypeNames;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
@@ -230,7 +227,19 @@ public class ListedConfigSection : IOptionSection
         
         IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
         var configAttr = m_configValues[m_currentRowIndex].ConfigAttr;
-        ConfigSetResult result = cfgValue.Set(newValue);
+        ConfigSetResult result;
+        
+        // This is a hack for enums. The string we render for the user may
+        // not be a valid enum when setting, so we use the index instead.
+        if (m_currentEnumIndex.HasValue)
+        {
+            object enumValue = Enum.GetValues(cfgValue.ValueType).GetValue(m_currentEnumIndex.Value);
+            result = cfgValue.Set(enumValue);
+        }
+        else
+        {
+            result = cfgValue.Set(newValue);    
+        }
 
         if (result == ConfigSetResult.Set)
             OnAttributeChanged?.Invoke(this, configAttr);
