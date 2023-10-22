@@ -17,7 +17,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;

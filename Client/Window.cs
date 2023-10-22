@@ -241,6 +241,8 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
+        
+        Renderer.Dispose();
 
         m_disposed = true;
     }

@@ -2,18 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Helion.Audio;
-using Helion.Audio.Sounds;
 using Helion.Graphics;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Util.Configs;
-using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
 using Helion.Window;
-using Helion.World.Save;
 
 namespace Helion.Layer.Images;
 
@@ -21,31 +17,20 @@ public class TitlepicLayer : IGameLayer
 {
     private readonly GameLayerManager m_parent;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly IConfig m_config;
-    private readonly HelionConsole m_console;
-    private readonly SoundManager m_soundManager;
-    private readonly SaveGameManager m_saveGameManager;
     private readonly IAudioSystem m_audioSystem;
     private readonly Stopwatch m_stopwatch = new();
     private IList<string> m_pages;
     private TimeSpan m_pageDuration;
     private int m_pageIndex;
     private bool m_initRenderPages;
-    private bool m_disposed;
 
     private bool ShouldDarken => m_parent.MenuLayer != null;
 
-    public TitlepicLayer(GameLayerManager parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveGameManager, IAudioSystem audioSystem)
+    public TitlepicLayer(GameLayerManager parent, ArchiveCollection archiveCollection, IAudioSystem audioSystem)
     {
         m_parent = parent;
         m_archiveCollection = archiveCollection;
-        m_config = config;
-        m_console = console;
-        m_soundManager = soundManager;
-        m_saveGameManager = saveGameManager;
         m_audioSystem = audioSystem;
-
         m_pageDuration = TimeSpan.FromSeconds(archiveCollection.Definitions.MapInfoDefinition.GameDefinition.TitleTime);
 
         m_stopwatch.Start();
@@ -74,8 +59,7 @@ public class TitlepicLayer : IGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        if (m_disposed)
-            return;
+        // No input handled here.
     }
 
     public void RunLogic(TickerInfo tickerInfo)
@@ -85,9 +69,6 @@ public class TitlepicLayer : IGameLayer
 
     public void Render(IHudRenderContext hud)
     {
-        if (m_disposed)
-            return;
-
         if (!m_initRenderPages)
         {
             m_initRenderPages = true;
@@ -127,10 +108,6 @@ public class TitlepicLayer : IGameLayer
 
     public void Dispose()
     {
-        if (m_disposed)
-            return;
-
-        m_stopwatch.Stop();
-        m_disposed = true;
+        // Nothing to dispose.
     }
 }

@@ -8,7 +8,7 @@ namespace Helion.World.Util;
 
 public static class MapWarp
 {
-    public static bool GetMap(string warpString, ArchiveCollection archiveCollection, out MapInfoDef? mapInfoDef)
+    public static bool GetMap(string warpString, ArchiveCollection archiveCollection, [NotNullWhen(true)] out MapInfoDef? mapInfoDef)
     {
         mapInfoDef = null;
         if (warpString.Contains(' '))

@@ -23,6 +23,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public readonly ResourceNamespace Namespace;
     public readonly TextureTarget Target;
     public readonly int TransparentPixelCount;
+    private bool m_disposed;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -52,6 +53,11 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
 
     protected virtual void ReleaseUnmanagedResources()
     {
+        if (m_disposed)
+            return;
+        
         GL.DeleteTexture(TextureId);
+
+        m_disposed = true;
     }
 }

@@ -7,7 +7,6 @@ using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Shared;
-using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -25,7 +24,7 @@ public enum TextureFlags
     ClampY = 2,
 }
 
-public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager, IDisposable
+public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     where GLTextureType : GLTexture
 {
     protected readonly IConfig Config;
@@ -311,10 +310,12 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager,
     protected void ReleaseUnmanagedResources()
     {
         NullTexture.Dispose();
+        WhiteTexture.Dispose();
+        NullFont.Dispose();
+        
         m_textureTracker.GetValues().ForEach(texture => texture?.Dispose());
         m_textureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
-
-        NullFont.Dispose();
+        
         foreach (var pair in m_fonts)
             pair.Value.Dispose();
     }
