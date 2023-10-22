@@ -94,7 +94,9 @@ public class GLFramebuffer : IDisposable
         foreach (GLTexture2D texture in m_textures)
             texture.Dispose();
         m_textures.Clear();
+        
         m_renderBuffer?.Dispose();
+        
         GL.DeleteFramebuffer(m_name);
 
         m_disposed = true;
