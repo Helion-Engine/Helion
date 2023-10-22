@@ -33,6 +33,7 @@ public class ConfigHud
     public readonly ConfigValue<bool> ShowFPS = new(false);
 
     [ConfigInfo("If min/max frames per second should be rendered.")]
+    [OptionMenu(OptionSectionType.Hud, "Show Min/Max FPS")]
     public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
 
     [ConfigInfo("If the world stats should be rendered.")]

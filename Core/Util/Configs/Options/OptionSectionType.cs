@@ -4,14 +4,14 @@
 // values are shown before higher enum values when rendering.
 public enum OptionSectionType
 {
-    General,
     Keys,
     Mouse,
+    General,
     Video,
-    Render,
     Audio,
-    Compatibility,
+    Render,
     Hud,
+    Compatibility,
     SlowTick,
     Demo,
     Console,

@@ -19,6 +19,8 @@ namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
+    public event EventHandler<LockEvent>? OnLockChanged;
+
     public OptionSectionType OptionType => OptionSectionType.Keys;
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
@@ -112,6 +114,7 @@ public class KeyBindingSection : IOptionSection
         }
 
         m_updatingKeyBinding = false;
+        OnLockChanged?.Invoke(this, new(Lock.Unlocked));
     }
 
     private void UnbindCurrentRow()
@@ -169,6 +172,7 @@ public class KeyBindingSection : IOptionSection
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_updatingKeyBinding = true;
+                OnLockChanged?.Invoke(this, new(Lock.Locked, "Press any key to add binding. Escape to cancel."));
             }
 
             if (input.ConsumeKeyPressed(Key.Delete))

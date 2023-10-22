@@ -25,6 +25,7 @@ public class ListedConfigSection : IOptionSection
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    public event EventHandler<LockEvent>? OnLockChanged;
     public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
 
     public OptionSectionType OptionType { get; }
@@ -84,6 +85,11 @@ public class ListedConfigSection : IOptionSection
 
                 if (m_currentEditValue is ConfigValue<bool> boolCfgValue)
                     UpdateBoolOption(input, boolCfgValue, true);
+
+                if (m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum))
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left or right to change values. Enter to confirm."));
+                else
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm."));
 
                 m_rowEditText.Clear();
                 m_rowEditText.Append(GetEnumDescription(m_currentEditValue.ObjectValue));
@@ -210,12 +216,14 @@ public class ListedConfigSection : IOptionSection
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
             SubmitRowChanges();
             doneEditingRow = true;
+            OnLockChanged?.Invoke(this, new(Lock.Unlocked));
         }
 
         if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Clear);
             doneEditingRow = true;
+            OnLockChanged?.Invoke(this, new(Lock.Unlocked));
         }
 
         if (doneEditingRow)

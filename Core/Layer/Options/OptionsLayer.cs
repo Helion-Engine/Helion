@@ -36,6 +36,8 @@ public class OptionsLayer : IGameLayer
     private int m_headerHeight;
     private int m_messageTicks;
     private string m_message = string.Empty;
+    private string m_sectionMessage = string.Empty;
+    private bool m_locked;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
     {
@@ -145,16 +147,29 @@ public class OptionsLayer : IGameLayer
         // be seen.
         List<IOptionSection> sections = new();
         foreach (OptionSectionType section in Enum.GetValues<OptionSectionType>())
-            if (sectionMap.TryGetValue(section, out IOptionSection? optionSection))
-                sections.Add(optionSection);
+        {
+            if (!sectionMap.TryGetValue(section, out IOptionSection? optionSection))
+                continue;
+            sections.Add(optionSection);
+            optionSection.OnLockChanged += OptionSection_OnLockChanged;
+        }
         
         return sections;
+    }
+
+    private void OptionSection_OnLockChanged(object? sender, LockEvent e)
+    {
+        m_locked = e.Lock == Lock.Locked;
+        m_sectionMessage = e.Message;
     }
 
     public void HandleInput(IConsumableInput input)
     {
         var section = m_sections[m_currentSectionIndex];
         section.HandleInput(input);
+
+        if (m_locked)
+            return;
         
         if (input.ConsumeKeyPressed(Key.Escape))
         {
@@ -268,7 +283,7 @@ public class OptionsLayer : IGameLayer
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
-        hud.Text("Press \"left\" or \"right\" to change pages", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
+        hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
