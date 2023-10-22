@@ -47,7 +47,7 @@ public partial class WorldLayer
 
     private bool IsCommandContinuousHold(string command, IConsumableInput input, out int scrollAmount)
     {
-        return m_config.Keys.ConsumeCommandKeyPressOrContinousHold(command, input, out scrollAmount);
+        return m_config.Keys.ConsumeCommandKeyPressOrContinuousHold(command, input, out scrollAmount);
     }
 
     private bool IsCommandPressed(string command, IConsumableInput input) =>
@@ -137,6 +137,9 @@ public partial class WorldLayer
 
         if (IsCommandPressed(Constants.Input.Load, input))
             m_parent.GoToSaveOrLoadMenu(false);
+
+        if (IsCommandPressed(Constants.Input.OptionsMenu, input))
+            m_parent.ShowOptionsMenu();
     }
 
     private void HandlePausePress()

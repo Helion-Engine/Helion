@@ -16,7 +16,7 @@ public record struct Color(byte A, byte R, byte G, byte B)
     public static readonly Color Chocolate = (0xD2, 0x69, 0x1E);
     public static readonly Color Cyan = (0x00, 0xFF, 0xFF);
     public static readonly Color DarkBrown = (0x64, 0x16, 0x16);
-    public static readonly Color DarkGray = (0xA9, 0xA9, 0xA9);
+    public static readonly Color DarkGray = (0x49, 0x49, 0x49);
     public static readonly Color DarkGreen = (0x00, 0x64, 0x00);
     public static readonly Color DarkRed = (0x8B, 0x00, 0x00);
     public static readonly Color Firebrick = (0xB2, 0x22, 0x22);

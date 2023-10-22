@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -9,7 +8,6 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -29,7 +27,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
 using static Helion.Render.Common.RenderDimensions;
-using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
 

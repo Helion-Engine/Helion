@@ -96,6 +96,106 @@ font SmallFont
     }
 }
 
+font SmallFontGrayscale
+{
+    space = 4;
+    grayscale = true;
+    grayscaleNormalization = true;
+    characters
+    {
+        "!" STCFN033;
+        "\"" STCFN034 align top;
+        "#" STCFN035;
+        "$" STCFN036;
+        "%" STCFN037;
+        "&" STCFN038;
+        "'" STCFN039 align top;
+        "(" STCFN040;
+        ")" STCFN041;
+        "*" STCFN042 align top;
+        "+" STCFN043 align center;
+        "," STCFN044;
+        "-" STCFN045 align center;
+        "." STCFN046;
+        "/" STCFN047;
+        "0" STCFN048;
+        "1" STCFN049;
+        "2" STCFN050;
+        "3" STCFN051;
+        "4" STCFN052;
+        "5" STCFN053;
+        "6" STCFN054;
+        "7" STCFN055;
+        "8" STCFN056;
+        "9" STCFN057;
+        ":" STCFN058;
+        ";" STCFN059;
+        "<" STCFN060;
+        "=" STCFN061;
+        ">" STCFN062;
+        "?" STCFN063 default;
+        "@" STCFN064;
+        "A" STCFN065;
+        "B" STCFN066;
+        "C" STCFN067;
+        "D" STCFN068;
+        "E" STCFN069;
+        "F" STCFN070;
+        "G" STCFN071;
+        "H" STCFN072;
+        "I" STCFN073;
+        "J" STCFN074;
+        "K" STCFN075;
+        "L" STCFN076;
+        "M" STCFN077;
+        "N" STCFN078;
+        "O" STCFN079;
+        "P" STCFN080;
+        "Q" STCFN081;
+        "R" STCFN082;
+        "S" STCFN083;
+        "T" STCFN084;
+        "U" STCFN085;
+        "V" STCFN086;
+        "W" STCFN087;
+        "X" STCFN088;
+        "Y" STCFN089;
+        "Z" STCFN090;
+        "[" STCFN091;
+        "\\" STCFN092;
+        "]" STCFN093;
+        "^" STCFN094 align top;
+        "_" STCFN095;
+        "a" STCFN065;
+        "b" STCFN066;
+        "c" STCFN067;
+        "d" STCFN068;
+        "e" STCFN069;
+        "f" STCFN070;
+        "g" STCFN071;
+        "h" STCFN072;
+        "i" STCFN073;
+        "j" STCFN074;
+        "k" STCFN075;
+        "l" STCFN076;
+        "m" STCFN077;
+        "n" STCFN078;
+        "o" STCFN079;
+        "p" STCFN080;
+        "q" STCFN081;
+        "r" STCFN082;
+        "s" STCFN083;
+        "t" STCFN084;
+        "u" STCFN085;
+        "v" STCFN086;
+        "w" STCFN087;
+        "x" STCFN088;
+        "y" STCFN089;
+        "z" STCFN090;
+        "|" STCFN121;
+    }
+}
+
 font LargeHudFont
 {
     space = 12;

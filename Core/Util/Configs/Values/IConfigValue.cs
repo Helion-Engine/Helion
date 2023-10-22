@@ -1,3 +1,5 @@
+using System;
+
 namespace Helion.Util.Configs.Values;
 
 /// <summary>
@@ -21,6 +23,7 @@ public interface IConfigValue
     bool Changed { get; set; }
 
     bool WriteToConfig { get; set; }
+    Type ValueType { get; }
 
     /// <summary>
     /// The flags on when this value should be changed.

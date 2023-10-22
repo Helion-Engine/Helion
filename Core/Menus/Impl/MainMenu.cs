@@ -4,6 +4,7 @@ using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer.Images;
 using Helion.Layer.Menus;
+using Helion.Layer.Options;
 using Helion.Menus.Base;
 using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
@@ -23,23 +24,28 @@ public class MainMenu : Menu
     private readonly MenuLayer m_parent;
     private readonly SoundManager m_soundManager;
 
+    private readonly OptionsLayer m_optionsLayer;
+
     public MainMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveManager)
+        ArchiveCollection archiveCollection, SaveGameManager saveManager, OptionsLayer optionsLayer)
         : base(config, console, soundManager, archiveCollection)
     {
         m_parent = parent;
         m_soundManager = soundManager;
+        m_optionsLayer = optionsLayer;
 
         int offsetY = 64;
         if (archiveCollection.IWadType != IWadBaseType.Doom1 && archiveCollection.IWadType != IWadBaseType.ChexQuest)
             offsetY += 8;
 
-        List<IMenuComponent> components = new();
-        components.Add(new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false));
-        components.Add(CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()));
-        components.Add(CreateMenuOption("M_OPTION", OffsetX, PaddingY, () => new OptionsMenu(config, Console, soundManager, ArchiveCollection)));
-        components.Add(CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false, false)));
-        components.Add(CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager)));
+        List<IMenuComponent> components = new()
+        {
+            new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false),
+            CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()),
+            CreateMenuOption("M_OPTION", OffsetX, PaddingY, CreateOptionsLayer()),
+            CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, false, false, false)),
+            CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager))
+        };
 
         if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
             components.Add(CreateMenuOption("M_RDTHIS", OffsetX, PaddingY, ShowReadThis()));
@@ -54,6 +60,15 @@ public class MainMenu : Menu
             const int MenuItemHeight = 16;
             return new MenuImageComponent(image, offsetX, paddingY, "M_SKULL1", "M_SKULL2", action, imageAlign: Align.TopLeft, overrideY: MenuItemHeight);
         }
+    }
+
+    private Func<Menu?> CreateOptionsLayer()
+    {
+        return () =>
+        {
+            m_parent.Manager.Add(m_optionsLayer);        
+            return null;
+        };
     }
 
     private Func<Menu?> CreateSaveMenu(SaveGameManager saveManager)

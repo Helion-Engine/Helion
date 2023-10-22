@@ -1,4 +1,6 @@
+using NLog.Fluent;
 using System;
+using System.ComponentModel;
 
 namespace Helion.Util.Configs.Values;
 
@@ -46,5 +48,15 @@ public class ConfigInfoAttribute : Attribute
         Demo = demo;
         MapRestartRequired = mapRestartRequired;
         RestartRequired = restartRequired;
+    }
+
+    public bool GetSetWarningString(out string message)
+    {
+        message = string.Empty;
+        if (MapRestartRequired)
+            message = "Map restart required for this change to take effect.";
+        if (RestartRequired)
+            message = "Application restart required for this change to take effect.";
+        return message.Length > 0;
     }
 }

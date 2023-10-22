@@ -3,19 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Helion.Audio.Sounds;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
 using Helion.Layer.Menus;
+using Helion.Layer.Options;
 using Helion.Layer.Worlds;
 using Helion.Menus.Impl;
-using Helion.Models;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
-using Helion.Render.OpenGL;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -38,17 +35,17 @@ namespace Helion.Layer;
 /// </summary>
 public class GameLayerManager : IGameLayerManager
 {
+    private static readonly string[] MenuIgnoreCommands = { Constants.Input.Screenshot, Constants.Input.Console };
+
     public event EventHandler<IGameLayer>? GameLayerAdded;
 
     public ConsoleLayer? ConsoleLayer { get; private set; }
+    public OptionsLayer? OptionsLayer { get; private set; }
     public MenuLayer? MenuLayer { get; private set; }
     public ReadThisLayer? ReadThisLayer { get; private set; }
     public TitlepicLayer? TitlepicLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
-
-    private static readonly string[] MenuIgnoreCommands = new[] { Constants.Input.Screenshot, Constants.Input.Console };
-
     public WorldLayer? WorldLayer { get; private set; }
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
@@ -62,16 +59,15 @@ public class GameLayerManager : IGameLayerManager
     private readonly Stopwatch m_stopwatch = new();
     private readonly Action<IRenderableSurfaceContext> m_renderDefaultAction;
     private readonly Action<IHudRenderContext> m_renderHudAction;
-
     private readonly HudRenderContext m_hudContext = new(default);
-
+    private readonly OptionsLayer m_optionsLayer;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
 
-    internal IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
+    private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -87,10 +83,12 @@ public class GameLayerManager : IGameLayerManager
         m_saveGameManager = saveGameManager;
         m_profiler = profiler;
         m_stopwatch.Start();
-        m_renderDefaultAction = new(RenderDefault);
-        m_renderHudAction = new(RenderHud);
+        m_renderDefaultAction = RenderDefault;
+        m_renderHudAction = RenderHud;
         m_renderer = null!;
         m_ctx = null!;
+
+        m_optionsLayer = new(this, m_config, m_soundManager);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }
@@ -151,6 +149,10 @@ public class GameLayerManager : IGameLayerManager
             Remove(IntermissionLayer);
             IntermissionLayer = layer;
             break;
+        case OptionsLayer layer:
+            Remove(OptionsLayer);
+            OptionsLayer = layer;
+            break;
         case WorldLayer layer:
             Remove(WorldLayer);
             WorldLayer = layer;
@@ -190,6 +192,11 @@ public class GameLayerManager : IGameLayerManager
         {
             ConsoleLayer?.Dispose();
             ConsoleLayer = null;
+        }
+        else if (ReferenceEquals(layer, OptionsLayer))
+        {
+            OptionsLayer?.Dispose();
+            OptionsLayer = null;
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
@@ -243,7 +250,7 @@ public class GameLayerManager : IGameLayerManager
             if (ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
-
+            
             if (ShouldCreateMenu(input))
             {
                 if (ReadThisLayer != null)
@@ -259,7 +266,10 @@ public class GameLayerManager : IGameLayerManager
             }
 
             if (ReadThisLayer == null)
+            {
+                OptionsLayer?.HandleInput(input);
                 MenuLayer?.HandleInput(input);
+            }
 
             if (ConsoleLayer == null)
                 ReadThisLayer?.HandleInput(input);
@@ -317,11 +327,11 @@ public class GameLayerManager : IGameLayerManager
             Remove(ConsoleLayer);
     }
 
+
     private void CreateMenuLayer()
     {
         m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-
-        MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager);
+        MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
         Add(menuLayer);
     }
 
@@ -331,6 +341,14 @@ public class GameLayerManager : IGameLayerManager
             CreateMenuLayer();
 
         MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave, true);
+    }
+
+    public void ShowOptionsMenu()
+    {
+        if (MenuLayer == null)
+            CreateMenuLayer();
+
+        MenuLayer?.ShowOptionsMenu();
     }
 
     public void QuickSave()
@@ -343,8 +361,8 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Game.QuickSaveConfirm)
         {
-            MessageMenu confirm = new MessageMenu(m_config, m_console, m_soundManager, m_archiveCollection,
-                new string[] { $"Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save",  "Press Y to confirm." },
+            MessageMenu confirm = new(m_config, m_console, m_soundManager, m_archiveCollection,
+                new[] { "Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm." },
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;
 
@@ -380,6 +398,7 @@ public class GameLayerManager : IGameLayerManager
         HandleInput(m_window.InputManager, tickerInfo);
 
         ConsoleLayer?.RunLogic(tickerInfo);
+        OptionsLayer?.RunLogic(tickerInfo);
         MenuLayer?.RunLogic(tickerInfo);
         ReadThisLayer?.RunLogic(tickerInfo);
         EndGameLayer?.RunLogic(tickerInfo);
@@ -392,11 +411,6 @@ public class GameLayerManager : IGameLayerManager
             m_stopwatch.Restart();
             EndGameLayer?.OnTick();
         }
-    }
-
-    public void OnTick()
-    {
-        // Nothing to tick.
     }
 
     public void Render(Renderer renderer)
@@ -426,6 +440,7 @@ public class GameLayerManager : IGameLayerManager
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
         MenuLayer?.Render(hudCtx);
+        OptionsLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);
         ConsoleLayer?.Render(m_ctx, hudCtx);
     }
@@ -447,6 +462,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(TitlepicLayer);
         Remove(ReadThisLayer);
         Remove(MenuLayer);
+        Remove(OptionsLayer);
         Remove(ConsoleLayer);
 
         m_disposed = true;

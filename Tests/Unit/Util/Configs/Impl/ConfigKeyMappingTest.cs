@@ -56,8 +56,9 @@ public class ConfigKeyMappingTest
         (Key.Right, Constants.Input.AutoMapRight),
         (Key.F2, Constants.Input.Save),
         (Key.F3, Constants.Input.Load),
+        (Key.F4, Constants.Input.OptionsMenu),
         (Key.Tab, Constants.Input.Automap),
-        (Key.F6, Constants.Input.QuickSave)
+        (Key.F6, Constants.Input.QuickSave),
     };
 
     [Fact(DisplayName = "Can add defaults")]

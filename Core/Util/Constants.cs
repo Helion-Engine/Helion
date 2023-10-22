@@ -146,12 +146,14 @@ public static class Constants
         public const string CenterView = "CenterView";
         public const string Pause = "Pause";
         public const string QuickSave = "QuickSave";
+        public const string OptionsMenu = "OptionsMenu";
         public const string Menu = "Menu";
     }
 
     public static class Fonts
     {
         public const string Small = "SmallFont";
+        public const string SmallGray = "SmallFontGrayscale";
         public const string LargeHud = "LargeHudFont";
         public const string Console = "Console";
     };

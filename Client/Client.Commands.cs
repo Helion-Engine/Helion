@@ -530,10 +530,8 @@ public partial class Client
                 break;
         }
 
-        if (success && component.Attribute.MapRestartRequired)
-            Log.Warn("Map restart required for this change to take effect.");
-        if (success && component.Attribute.RestartRequired)
-            Log.Warn("Application restart required for this change to take effect.");
+        if (success && component.Attribute.GetSetWarningString(out var warning))
+            Log.Warn(warning);
 
         return true;
     }
