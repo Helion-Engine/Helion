@@ -146,6 +146,7 @@ public static class Constants
         public const string CenterView = "CenterView";
         public const string Pause = "Pause";
         public const string QuickSave = "QuickSave";
+        public const string OptionsMenu = "OptionsMenu";
         public const string Menu = "Menu";
     }
 

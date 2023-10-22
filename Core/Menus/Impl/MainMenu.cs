@@ -65,7 +65,7 @@ public class MainMenu : Menu
     private Func<Menu?> CreateOptionsLayer()
     {
         return () =>
-        {            
+        {
             m_parent.Manager.Add(m_optionsLayer);        
             return null;
         };

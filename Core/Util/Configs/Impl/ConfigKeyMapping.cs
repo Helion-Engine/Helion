@@ -57,6 +57,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         AddIfMissing(Key.MouseWheelDown, Constants.Input.AutoMapDecrease, Constants.Input.PreviousWeapon);
         AddIfMissing(Key.F2, Constants.Input.Save);
         AddIfMissing(Key.F3, Constants.Input.Load);
+        AddIfMissing(Key.F4, Constants.Input.OptionsMenu);
         AddIfMissing(Key.Tab, Constants.Input.Automap);
         AddIfMissing(Key.Pause, Constants.Input.Pause);
         AddIfMissing(Key.F6, Constants.Input.QuickSave);

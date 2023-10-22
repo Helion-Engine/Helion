@@ -24,6 +24,7 @@ public partial class MenuLayer : IGameLayer
     private readonly SaveGameManager m_saveGameManager;
     private readonly Stack<Menu> m_menus = new();
     private readonly Stopwatch m_stopwatch = new();
+    private readonly OptionsLayer m_optionsLayer;
     private readonly Action<IHudRenderContext> m_renderVirtualHudAction;
     private bool m_disposed;
 
@@ -36,6 +37,7 @@ public partial class MenuLayer : IGameLayer
         m_archiveCollection = archiveCollection;
         m_soundManager = soundManager;
         m_saveGameManager = saveGameManager;
+        m_optionsLayer = optionsLayer;
         m_renderVirtualHudAction = new(RenderVirtualHud);
         m_stopwatch.Start();
 
@@ -54,6 +56,12 @@ public partial class MenuLayer : IGameLayer
             m_saveGameManager, hasWorld, isSave, clearOnExit);
 
         m_menus.Push(saveMenu);
+    }
+
+    public void ShowOptionsMenu()
+    {
+        m_optionsLayer.ClearOnExit = true;
+        Manager.Add(m_optionsLayer);
     }
 
     public void ShowMessage(MessageMenu message)

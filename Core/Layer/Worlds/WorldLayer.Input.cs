@@ -137,6 +137,9 @@ public partial class WorldLayer
 
         if (IsCommandPressed(Constants.Input.Load, input))
             m_parent.GoToSaveOrLoadMenu(false);
+
+        if (IsCommandPressed(Constants.Input.OptionsMenu, input))
+            m_parent.ShowOptionsMenu();
     }
 
     private void HandlePausePress()

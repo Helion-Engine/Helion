@@ -22,6 +22,8 @@ namespace Helion.Layer.Options;
 
 public class OptionsLayer : IGameLayer
 {
+    public bool ClearOnExit { get; set; }
+
     private const string TiledBackgroundFlat = "FLOOR5_1";
     
     private readonly GameLayerManager m_manager;
@@ -135,7 +137,7 @@ public class OptionsLayer : IGameLayer
         }
         
         // Key bindings are a special type of option section handled specially.
-        sectionMap[OptionSectionType.Keys] = new KeyBindingSection(m_config);
+        sectionMap[OptionSectionType.Keys] = new KeyBindingSection(m_config, m_soundManager);
 
         // We want to sort by the section type where the lower the enumeration
         // value, the closer to the front of the list it is. This is because
@@ -158,6 +160,10 @@ public class OptionsLayer : IGameLayer
         {
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
             m_manager.Remove(this);
+
+            if (ClearOnExit)
+                m_manager.Remove(m_manager.MenuLayer);
+            ClearOnExit = false;
             return;
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -20,6 +21,7 @@ public class KeyBindingSection : IOptionSection
 {
     public OptionSectionType OptionType => OptionSectionType.Keys;
     private readonly IConfig m_config;
+    private readonly SoundManager m_soundManager;
     private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
     private int m_renderHeight;
@@ -27,9 +29,10 @@ public class KeyBindingSection : IOptionSection
     private int m_currentRow;
     private bool m_updatingKeyBinding;
 
-    public KeyBindingSection(IConfig config)
+    public KeyBindingSection(IConfig config, SoundManager soundManager)
     {
         m_config = config;
+        m_soundManager = soundManager;
     }
 
     private void CheckForConfigUpdates()
@@ -86,6 +89,7 @@ public class KeyBindingSection : IOptionSection
     {
         if (input.ConsumeKeyPressed(Key.Escape))
         {
+            m_soundManager.PlayStaticSound(MenuSounds.Clear);
             // We won't ever set Escape, and instead abort from setting.
         }
         else
@@ -100,6 +104,7 @@ public class KeyBindingSection : IOptionSection
                 {
                     m_config.Keys.Add(key, command);
                     keys.Add(key);
+                    m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 }
                         
                 break;
@@ -153,11 +158,17 @@ public class KeyBindingSection : IOptionSection
                     m_currentRow = Math.Min(m_commandToKeys.Count + m_currentRow, m_commandToKeys.Count - 1);
             }
 
-            if (input.ConsumeKeyPressed(Key.Enter))
+            if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+            {
+                m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_updatingKeyBinding = true;
+            }
 
             if (input.ConsumeKeyPressed(Key.Delete))
+            {
+                m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 UnbindCurrentRow();
+            }
         }
     }
 

@@ -64,19 +64,18 @@ public class ListedConfigSection : IOptionSection
         }
         else
         {
-            if (input.Manager.IsKeyPressed(Key.Up))
+            if (input.ConsumePressOrContinuousHold(Key.Up))
                 AdvanceToValidRow(-1);
-            if (input.Manager.IsKeyPressed(Key.Down))
+            if (input.ConsumePressOrContinuousHold(Key.Down))
                 AdvanceToValidRow(1);
 
             int scrollAmount = input.ConsumeScroll();
             if (scrollAmount != 0)
-            {
                 AdvanceToValidRow(-scrollAmount);
-            }
 
-            if (input.ConsumeKeyPressed(Key.Enter))
+            if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
             {
+                m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_rowIsSelected = true;
                 m_currentEnumIndex = null;
                 m_stopwatch.Restart();
@@ -96,7 +95,8 @@ public class ListedConfigSection : IOptionSection
 
     private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue)
     {
-        if (!input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right)) 
+        int scroll = input.ConsumeScroll();
+        if (!input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0) 
             return;
         
         bool newValue = !cfgValue.Value;
@@ -109,7 +109,8 @@ public class ListedConfigSection : IOptionSection
     {
         bool left = input.ConsumeKeyPressed(Key.Left);
         bool right = input.ConsumeKeyPressed(Key.Right);
-        if (!left && !right) 
+        int scroll = input.ConsumeScroll();
+        if (!left && !right && scroll == 0) 
             return;
         
         object currentEnumValue = cfgValue.ObjectValue;
@@ -134,6 +135,14 @@ public class ListedConfigSection : IOptionSection
 
         if (enumIndex >= enumValues.Length) 
             return;
+
+        if (scroll != 0)
+        {
+            enumIndex -= scroll;
+            enumIndex %= enumValues.Length;
+            if (enumIndex < 0)
+                enumIndex = Math.Clamp(enumValues.Length - enumIndex, 0, enumValues.Length - 1);
+        }
 
         if (right)
             enumIndex = (enumIndex + 1) % enumValues.Length;
@@ -173,14 +182,14 @@ public class ListedConfigSection : IOptionSection
         else
             UpdateTextEditableOption(input);
         
-        if (input.ConsumeKeyPressed(Key.Enter))
+        if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
             SubmitRowChanges();
             doneEditingRow = true;
         }
 
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Clear);
             doneEditingRow = true;

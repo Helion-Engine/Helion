@@ -343,6 +343,14 @@ public class GameLayerManager : IGameLayerManager
         MenuLayer?.AddSaveOrLoadMenuIfMissing(isSave, true);
     }
 
+    public void ShowOptionsMenu()
+    {
+        if (MenuLayer == null)
+            CreateMenuLayer();
+
+        MenuLayer?.ShowOptionsMenu();
+    }
+
     public void QuickSave()
     {
         if (WorldLayer == null  || !LastSave.HasValue)
