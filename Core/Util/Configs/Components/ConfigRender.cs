@@ -25,19 +25,9 @@ public class ConfigRenderFilter
 
 public class ConfigRender
 {
-    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
-    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
-    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
-
-    [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate vanilla contrast")]
-    public readonly ConfigValue<bool> FakeContrast = new(true);
-
-    public readonly ConfigRenderFilter Filter = new();
-
-    [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
-    [OptionMenu(OptionSectionType.Render, "Force pipeline flush (for old GPUs)")]
-    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
+    [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
+    [OptionMenu(OptionSectionType.Render, "VSync")]
+    public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
     [ConfigInfo("A cap on the maximum amount of frames per second. Zero is equivalent to no cap.")]
     [OptionMenu(OptionSectionType.Render, "Max FPS")]
@@ -50,6 +40,36 @@ public class ConfigRender
             _ => fps
         };
     });
+
+    public readonly ConfigRenderFilter Filter = new();
+
+    [ConfigInfo("Field of view. Default = 90")]
+    [OptionMenu(OptionSectionType.Render, "Field of view")]
+    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
+
+    [ConfigInfo("Max render distance.")]
+    [OptionMenu(OptionSectionType.Render, "Max rendering distance")]
+    public readonly ConfigValue<int> MaxDistance = new(0);
+
+    [ConfigInfo("Enable sprite transparency.")]
+    [OptionMenu(OptionSectionType.Render, "Sprite transparency")]
+    public readonly ConfigValue<bool> SpriteTransparency = new(true);
+
+    [ConfigInfo("Enable texture transparency.")]
+    [OptionMenu(OptionSectionType.Render, "Texture transparency")]
+    public readonly ConfigValue<bool> TextureTransparency = new(true);
+
+    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
+    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
+    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
+
+    [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
+    [OptionMenu(OptionSectionType.Render, "Emulate vanilla contrast")]
+    public readonly ConfigValue<bool> FakeContrast = new(true);
+
+    [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
+    [OptionMenu(OptionSectionType.Render, "Force pipeline flush (for old GPUs)")]
+    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
 
     [ConfigInfo("The multisampling amount. A value of 1 is the same as being off.")]
     [OptionMenu(OptionSectionType.Render, "Multisampling", disabled: true)]
@@ -71,10 +91,6 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting check")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
 
-    [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
-    [OptionMenu(OptionSectionType.Render, "VSync")]
-    public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
-
     [ConfigInfo("Adds to the rendering light level offset.")]
     [OptionMenu(OptionSectionType.Render, "Extra lighting")]
     public readonly ConfigValue<int> ExtraLight = new(0);
@@ -83,25 +99,9 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Full brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
-    [ConfigInfo("Enable sprite transparency.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite transparency")]
-    public readonly ConfigValue<bool> SpriteTransparency = new(true);
-
-    [ConfigInfo("Enable texture transparency.")]
-    [OptionMenu(OptionSectionType.Render, "Texture transparency")]
-    public readonly ConfigValue<bool> TextureTransparency = new(true);
-
-    [ConfigInfo("Max render distance.")]
-    [OptionMenu(OptionSectionType.Render, "Max rendering distance")]
-    public readonly ConfigValue<int> MaxDistance = new(0);
-
     [ConfigInfo("Traverses the BSP in a separate thread to mark lines seen for automap. Ignored if using BSP rendering.")]
     [OptionMenu(OptionSectionType.Render, "Automap on separate thread")]
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
-
-    [ConfigInfo("Field of view. Default = 90")]
-    [OptionMenu(OptionSectionType.Render, "Field of view")]
-    public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 
     [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render null textures as checkered")]
