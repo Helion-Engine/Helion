@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -22,6 +23,7 @@ public class KeyBindingSection : IOptionSection
     private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
     private int m_renderHeight;
+    private (int, int) m_selectedRender;
     private int m_currentRow;
     private bool m_updatingKeyBinding;
 
@@ -136,15 +138,25 @@ public class KeyBindingSection : IOptionSection
         }
         else
         {
-            if (input.ConsumeKeyPressed(Key.Up))
+            if (input.ConsumePressOrContinuousHold(Key.Up))
                 m_currentRow = m_currentRow != 0 ? (m_currentRow - 1) % m_commandToKeys.Count : m_commandToKeys.Count - 1;
-            if (input.ConsumeKeyPressed(Key.Down))
+            if (input.ConsumePressOrContinuousHold(Key.Down))
                 m_currentRow = (m_currentRow + 1) % m_commandToKeys.Count;
-            
+
+            int scrollAmount = input.ConsumeScroll();
+            if (scrollAmount != 0)
+            {
+                m_currentRow -= scrollAmount;
+                m_currentRow %= m_commandToKeys.Count;
+
+                if (m_currentRow < 0)
+                    m_currentRow = Math.Min(m_commandToKeys.Count + m_currentRow, m_commandToKeys.Count - 1);
+            }
+
             if (input.ConsumeKeyPressed(Key.Enter))
                 m_updatingKeyBinding = true;
 
-            if (input.ConsumeKeyPressed(Key.Backspace))
+            if (input.ConsumeKeyPressed(Key.Delete))
                 UnbindCurrentRow();
         }
     }
@@ -156,18 +168,19 @@ public class KeyBindingSection : IOptionSection
             both: Align.TopMiddle, color: Color.Red);
         int y = startY + headerArea.Height + m_config.Hud.GetScaled(8);
         int xOffset = m_config.Hud.GetScaled(4) * 2;
-        
+        int smallPad = m_config.Hud.GetScaled(1);
+
         hud.Text("Scroll with the mouse wheel or holding up/down", Fonts.SmallGray, fontSize, (0, y), out Dimension scrollArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += scrollArea.Height + 2;
+        y += scrollArea.Height + smallPad;
         
-        hud.Text("Press backspace to clear all bindings", Fonts.SmallGray, fontSize, (0, y), out Dimension instructionArea, 
+        hud.Text("Press delete to clear all bindings", Fonts.SmallGray, fontSize, (0, y), out Dimension instructionArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += instructionArea.Height + 2;
+        y += instructionArea.Height + smallPad;
         
         hud.Text("Press enter to start binding and press a key", Fonts.SmallGray, fontSize, (0, y), out Dimension enterArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += enterArea.Height + 12;
+        y += enterArea.Height + m_config.Hud.GetScaled(12);
 
         for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
         {
@@ -184,12 +197,19 @@ public class KeyBindingSection : IOptionSection
                 hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
             }
-            
+
+            if (cmdIndex == m_currentRow)
+                m_selectedRender = (y - startY, y + commandArea.Height - startY);
+
             if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
             {
-                Vec2I topRightCorner = (-xOffset - commandArea.Width - 12, y);
-                hud.Text(">", Fonts.SmallGray, fontSize, topRightCorner, window: Align.TopMiddle, 
-                    anchor: Align.TopRight, color: Color.White);    
+                var arrowSize = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+                Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Hud.GetScaled(2), y);
+                hud.Text(">", Fonts.SmallGray, fontSize, arrowLeft, window: Align.TopMiddle,
+                    anchor: Align.TopRight, color: Color.White);
+                Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Hud.GetScaled(2), y);
+                hud.Text("<", Fonts.SmallGray, fontSize, arrowRight, window: Align.TopMiddle, 
+                    anchor: Align.TopRight, color: Color.White);
             }
 
             if (keys.Empty())
@@ -227,4 +247,7 @@ public class KeyBindingSection : IOptionSection
     }
 
     public int GetRenderHeight() => m_renderHeight;
+    public (int, int) GetSelectedRenderY() => m_selectedRender;
+    public void SetToFirstSelection() => m_currentRow = 0;
+    public void SetToLastSelection() => m_currentRow = m_commandToKeys.Count - 1;
 }

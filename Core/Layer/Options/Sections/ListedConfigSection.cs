@@ -8,6 +8,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
@@ -25,7 +26,7 @@ public class ListedConfigSection : IOptionSection
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
-    
+
     public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
     private readonly IConfig m_config;
@@ -33,6 +34,7 @@ public class ListedConfigSection : IOptionSection
     private readonly Stopwatch m_stopwatch = new();
     private readonly StringBuilder m_rowEditText = new();
     private int m_renderHeight;
+    private (int, int) m_selectedRender;
     private int m_currentRowIndex;
     private int? m_currentEnumIndex;
     private bool m_hasSelectableRow;
@@ -66,6 +68,12 @@ public class ListedConfigSection : IOptionSection
                 AdvanceToValidRow(-1);
             if (input.Manager.IsKeyPressed(Key.Down))
                 AdvanceToValidRow(1);
+
+            int scrollAmount = input.ConsumeScroll();
+            if (scrollAmount != 0)
+            {
+                AdvanceToValidRow(-scrollAmount);
+            }
 
             if (input.ConsumeKeyPressed(Key.Enter))
             {
@@ -291,6 +299,7 @@ public class ListedConfigSection : IOptionSection
         y += headerArea.Height + m_config.Hud.GetScaled(8);
 
         int fontSize = m_config.Hud.GetSmallFontSize();
+        int offsetX = m_config.Hud.GetScaled(8);
 
         for (int i = 0; i < m_configValues.Count; i++)
         {
@@ -300,27 +309,33 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
             
-            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-16, y), out Dimension attrArea, window: Align.TopMiddle, 
+            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
                 anchor: Align.TopRight, color: attrColor);
 
             Dimension valueArea;
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
                 if (CurrentRowAllowsTextInput())
-                    RenderEditAndUnderscore(hud, fontSize, (16, y), out valueArea, valueColor);
+                    RenderEditAndUnderscore(hud, fontSize, (offsetX, y), out valueArea, valueColor);
                 else
-                    RenderEditAndSelectionArrows(hud, fontSize, (16, y), out valueArea, valueColor);
+                    RenderEditAndSelectionArrows(hud, fontSize, (offsetX, y), out valueArea, valueColor);
             }
             else
             {
-                hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (16, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(cfgValue.ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
-            
+
+            if (i == m_currentRowIndex)
+                m_selectedRender = (y - startY, y + valueArea.Height - startY);
+
             if (i == m_currentRowIndex && m_hasSelectableRow && !m_rowIsSelected)
             {
-                Vec2I topRightCorner = (-16 - attrArea.Width - 12, y);
-                hud.Text(">", Fonts.SmallGray, fontSize, topRightCorner, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);    
+                var arrowSize = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+                Vec2I arrowLeft = (-offsetX - attrArea.Width - m_config.Hud.GetScaled(2), y);
+                hud.Text(">", Fonts.SmallGray, fontSize, arrowLeft, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
+                Vec2I arrowRight = (-offsetX + arrowSize.Width + m_config.Hud.GetScaled(2), y);
+                hud.Text("<", Fonts.SmallGray, fontSize, arrowRight, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
             }
 
             int maxHeight = Math.Max(attrArea.Height, valueArea.Height);
@@ -331,4 +346,7 @@ public class ListedConfigSection : IOptionSection
     }
     
     public int GetRenderHeight() => m_renderHeight;
+    public (int, int) GetSelectedRenderY() => m_selectedRender;
+    public void SetToFirstSelection() => m_currentRowIndex = 0;
+    public void SetToLastSelection() => m_currentRowIndex = m_configValues.Count - 1;
 }

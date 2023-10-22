@@ -15,6 +15,7 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using static System.Collections.Specialized.BitVector32;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -160,26 +161,25 @@ public class OptionsLayer : IGameLayer
             return;
         }
 
+        bool checkScroll = true;
+
         // Switch pages if needed.
         if (m_sections.Count > 0)
         {
-            if (ScrollRequired(m_windowHeight, section))
+            if (input.ConsumeKeyPressed(Key.Home))
             {
-                int scrollAmount = GetScrollAmount();
-                m_scrollOffset += input.ConsumeScroll() * scrollAmount;
-
-                if (input.ConsumePressOrContinuousHold(Key.Up))
-                    m_scrollOffset += scrollAmount;
-                if (input.ConsumePressOrContinuousHold(Key.Down))
-                    m_scrollOffset -= scrollAmount;
-
-                if (input.ConsumeKeyPressed(Key.Home))
-                    m_scrollOffset = 0;
-                if (input.ConsumeKeyPressed(Key.End) && m_currentSectionIndex < m_sections.Count)
-                    m_scrollOffset = -(section.GetRenderHeight() - m_windowHeight + m_headerHeight) - scrollAmount;
-
-                m_scrollOffset = Math.Min(0, m_scrollOffset);
+                m_scrollOffset = 0;
+                section.SetToFirstSelection();
+                checkScroll = false;
             }
+
+            if (input.ConsumeKeyPressed(Key.End))
+                section.SetToLastSelection();
+
+            if (checkScroll && ScrollRequired(m_windowHeight, section))
+                ScrollToVisibleArea(section);
+
+            m_scrollOffset = Math.Min(0, m_scrollOffset);
 
             if (input.ConsumeKeyPressed(Key.Left))
             {
@@ -196,6 +196,23 @@ public class OptionsLayer : IGameLayer
 
         // We don't want any input leaking into the layers below this.
         input.ConsumeAll();
+    }
+
+    private void ScrollToVisibleArea(IOptionSection section)
+    {
+        int scrollAmount = GetScrollAmount();
+        (int startY, int endY) = section.GetSelectedRenderY();
+        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + m_windowHeight)
+        {
+            m_scrollOffset = (endY + m_headerHeight - m_windowHeight);
+            m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
+        }
+
+        if (startY + m_headerHeight < Math.Abs(m_scrollOffset))
+        {
+            m_scrollOffset = (startY + m_headerHeight);
+            m_scrollOffset = -(int)Math.Floor((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
+        }
     }
 
     private int GetScrollAmount() => (int)(16 * m_config.Hud.Scale);
