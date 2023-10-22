@@ -79,8 +79,9 @@ public class ListedConfigSection : IOptionSection
                 m_rowIsSelected = true;
                 m_currentEnumIndex = null;
                 m_stopwatch.Restart();
+                
                 m_rowEditText.Clear();
-                m_rowEditText.Append(m_configValues[m_currentRowIndex].CfgValue);
+                m_rowEditText.Append(GetEnumDescription(m_configValues[m_currentRowIndex].CfgValue.ObjectValue));
             }
         }
     }
@@ -161,7 +162,7 @@ public class ListedConfigSection : IOptionSection
         m_currentEnumIndex = enumIndex;
     }
 
-    private object GetEnumDescription(object value)
+    private static object GetEnumDescription(object value)
     {
         var type = value.GetType();
         if (type.BaseType != typeof(Enum))
@@ -356,7 +357,7 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(GetEnumDescription(cfgValue).ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(GetEnumDescription(cfgValue.ObjectValue).ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
 
