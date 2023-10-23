@@ -85,8 +85,6 @@ public partial class WorldLayer
         if (IsCommandPressed(Constants.Input.Pause, input))
             HandlePausePress();
 
-        CheckSaveOrLoadGame(input);
-
         if (IsCommandPressed(Constants.Input.HudDecrease, input))
             ChangeHudSize(false);
         else if (IsCommandPressed(Constants.Input.HudIncrease, input))
@@ -122,24 +120,6 @@ public partial class WorldLayer
                 m_parent.SubmitConsoleText(cmd.Command);
             }
         }
-    }
-
-    private void CheckSaveOrLoadGame(IConsumableInput input)
-    {
-        if (IsCommandPressed(Constants.Input.Save, input))
-        {
-            m_parent.GoToSaveOrLoadMenu(true);
-            return;
-        }
-
-        if (IsCommandPressed(Constants.Input.QuickSave, input))
-            m_parent.QuickSave();
-
-        if (IsCommandPressed(Constants.Input.Load, input))
-            m_parent.GoToSaveOrLoadMenu(false);
-
-        if (IsCommandPressed(Constants.Input.OptionsMenu, input))
-            m_parent.ShowOptionsMenu();
     }
 
     private void HandlePausePress()

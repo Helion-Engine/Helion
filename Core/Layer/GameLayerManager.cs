@@ -34,7 +34,7 @@ namespace Helion.Layer;
 /// </summary>
 public class GameLayerManager : IGameLayerManager
 {
-    private static readonly string[] MenuIgnoreCommands = { Constants.Input.Screenshot, Constants.Input.Console };
+    private static readonly string[] MenuIgnoreCommands = { Constants.Input.Screenshot, Constants.Input.Console, Constants.Input.OptionsMenu, Constants.Input.Load };
 
     public event EventHandler<IGameLayer>? GameLayerAdded;
 
@@ -257,6 +257,8 @@ public class GameLayerManager : IGameLayerManager
                 CreateMenuLayer();
             }
 
+            CheckMenuShortcuts(input);
+
             if (!HasMenuOrConsole())
             {
                 EndGameLayer?.HandleInput(input);
@@ -275,6 +277,24 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
+    }
+
+    private void CheckMenuShortcuts(IConsumableInput input)
+    {
+        if (ConsumeCommandPressed(Constants.Input.Save, input))
+        {
+            GoToSaveOrLoadMenu(true);
+            return;
+        }
+
+        if (ConsumeCommandPressed(Constants.Input.QuickSave, input))
+            QuickSave();
+
+        if (ConsumeCommandPressed(Constants.Input.Load, input))
+            GoToSaveOrLoadMenu(false);
+
+        if (ConsumeCommandPressed(Constants.Input.OptionsMenu, input))
+            ShowOptionsMenu();
     }
 
     private bool ShouldCreateMenu(IConsumableInput input)
