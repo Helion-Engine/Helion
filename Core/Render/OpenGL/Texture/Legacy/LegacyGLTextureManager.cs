@@ -32,6 +32,9 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
         foreach (GLLegacyTexture texture in TextureTracker.GetValues())
         {
+            if (texture.Namespace == ResourceNamespace.Sprites)
+                continue;
+
             texture.Bind();
             SetTextureFilter(texture.Target);
             texture.Unbind();
@@ -39,6 +42,9 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         
         foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
         {
+            if (texture.Namespace == ResourceNamespace.Sprites)
+                continue;
+
             texture.Bind();
             SetTextureFilter(texture.Target);
             texture.Unbind();
