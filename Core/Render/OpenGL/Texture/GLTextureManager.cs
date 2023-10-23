@@ -29,9 +29,10 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 {
     protected readonly IConfig Config;
     protected readonly ArchiveCollection ArchiveCollection;
+    protected readonly ResourceTracker<GLTextureType> TextureTracker = new();
+    protected readonly ResourceTracker<GLTextureType> TextureTrackerClamp = new();
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ResourceTracker<GLTextureType> m_textureTracker = new();
-    private readonly ResourceTracker<GLTextureType> m_textureTrackerClamp = new();
+    private bool m_disposed;
 
     private TextureManager TextureManager => ArchiveCollection.TextureManager;
 
@@ -120,7 +121,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         if (name == Constants.NoTexture)
             return false;
 
-        GLTextureType? textureForNamespace = m_textureTracker.GetOnly(name, priorityNamespace);
+        GLTextureType? textureForNamespace = TextureTracker.GetOnly(name, priorityNamespace);
         if (textureForNamespace != null)
         {
             texture = textureForNamespace;
@@ -143,7 +144,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         // Now that nothing in the desired namespace was found, we will
         // accept anything.
-        GLTextureType? anyTexture = m_textureTracker.Get(name, priorityNamespace);
+        GLTextureType? anyTexture = TextureTracker.Get(name, priorityNamespace);
         if (anyTexture != null)
         {
             texture = anyTexture;
@@ -258,7 +259,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return NullFont;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
@@ -298,26 +299,31 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     }
 
     private ResourceTracker<GLTextureType> GetTextureTracker(bool repeatY) =>
-        repeatY ? m_textureTracker : m_textureTrackerClamp;
+        repeatY ? TextureTracker : TextureTrackerClamp;
 
     protected void DeleteTexture(GLTextureType texture, string name, ResourceNamespace resourceNamespace)
     {
-        m_textureTracker.Remove(name, resourceNamespace);
-        m_textureTrackerClamp.Remove(name, resourceNamespace);
+        TextureTracker.Remove(name, resourceNamespace);
+        TextureTrackerClamp.Remove(name, resourceNamespace);
         texture.Dispose();
     }
 
-    protected void ReleaseUnmanagedResources()
+    private void ReleaseUnmanagedResources()
     {
+        if (m_disposed)
+            return;
+        
         NullTexture.Dispose();
         WhiteTexture.Dispose();
         NullFont.Dispose();
         
-        m_textureTracker.GetValues().ForEach(texture => texture?.Dispose());
-        m_textureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
+        TextureTracker.GetValues().ForEach(texture => texture?.Dispose());
+        TextureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
         
         foreach (var pair in m_fonts)
             pair.Value.Dispose();
+
+        m_disposed = true;
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);

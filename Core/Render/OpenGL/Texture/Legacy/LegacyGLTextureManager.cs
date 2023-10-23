@@ -17,17 +17,55 @@ namespace Helion.Render.OpenGL.Texture.Legacy;
 public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 {
     public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
+    private bool m_disposed;
 
     public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) : 
         base(config, archiveCollection)
     {
         ImageDrawInfoProvider = new GLLegacyImageDrawInfoProvider(this);
+
+        Config.Render.Filter.Texture.OnChanged += HandleFilterChange;
+        Config.Render.Anisotropy.OnChanged += HandleAnisotropyChange;
+    }
+
+    private void HandleFilterChange(object? sender, FilterType e)
+    {
+        foreach (GLLegacyTexture texture in TextureTracker.GetValues())
+        {
+            texture.Bind();
+            SetTextureFilter(texture.Target);
+            texture.Unbind();
+        }
+        
+        foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
+        {
+            texture.Bind();
+            SetTextureFilter(texture.Target);
+            texture.Unbind();
+        }
+    }
+
+    private void HandleAnisotropyChange(object? sender, int e)
+    {
+        foreach (GLLegacyTexture texture in TextureTracker.GetValues())
+        {
+            texture.Bind();
+            SetAnisotropicFiltering(texture.Target);
+            texture.Unbind();
+        }
+        
+        foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
+        {
+            texture.Bind();
+            SetAnisotropicFiltering(texture.Target);
+            texture.Unbind();
+        }
     }
 
     ~LegacyGLTextureManager()
     {
         FailedToDispose(this);
-        ReleaseUnmanagedResources();
+        Dispose();
     }
 
     public unsafe void UploadAndSetParameters(GLLegacyTexture texture, Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags)
@@ -42,7 +80,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
             // Because the C# image format is 'ARGB', we can get it into the
             // RGBA format by doing a BGRA format and then reversing it.
             GL.TexImage2D(texture.Target, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+                PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
         }
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -61,7 +99,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     /// </param>
     /// <returns>A new texture.</returns>
     protected override GLLegacyTexture GenerateTexture(Image image, string name,
-        ResourceNamespace resourceNamespace, TextureFlags flags)
+        ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default)
     {
         int textureId = GL.GenTexture();
         GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount());
@@ -78,7 +116,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     /// <returns>A newly allocated font texture.</returns>
     protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, string name)
     {
-        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts, TextureFlags.Default);
+        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts);
         GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);
         return fontTexture;
     }
@@ -167,5 +205,22 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         float value = Config.Render.Anisotropy.Value.Clamp(1, (int)GLLimits.MaxAnisotropy);
         GL.TexParameter(targetType, (TextureParameterName)All.TextureMaxAnisotropy, value);
+    }
+
+    private void PerformDispose()
+    {
+        if (m_disposed)
+            return;
+        
+        Config.Render.Filter.Texture.OnChanged -= HandleFilterChange;
+        Config.Render.Anisotropy.OnChanged -= HandleAnisotropyChange;
+
+        m_disposed = true;
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        PerformDispose();
     }
 }
