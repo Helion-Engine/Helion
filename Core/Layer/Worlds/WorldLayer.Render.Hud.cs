@@ -296,7 +296,7 @@ public partial class WorldLayer
             hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
 
             // Doom pushes the gun sprite up when the status bar is showing
-            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? 16 : 0;
+            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? m_config.Hud.FullSizeGunOffset : 0;
             DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);

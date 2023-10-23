@@ -26,6 +26,10 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Status bar size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
+    [ConfigInfo("Full size bar gun sprite offset.")]
+    [OptionMenu(OptionSectionType.Hud, "Full size bar gun offset")]
+    public readonly ConfigValue<int> FullSizeGunOffset = new(16);
+
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
     [OptionMenu(OptionSectionType.Hud, "Status bar texture")]
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
