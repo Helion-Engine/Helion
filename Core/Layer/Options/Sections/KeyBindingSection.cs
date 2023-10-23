@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -13,12 +14,15 @@ using Helion.Util.Configs.Options;
 using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
+using NLog;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    
     public event EventHandler<LockEvent>? OnLockChanged;
     public event EventHandler<RowEvent>? OnRowChanged;
 
@@ -27,6 +31,7 @@ public class KeyBindingSection : IOptionSection
     private readonly SoundManager m_soundManager;
     private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
+    private readonly HashSet<string> m_allCommands;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
     private int m_currentRow;
@@ -37,6 +42,28 @@ public class KeyBindingSection : IOptionSection
     {
         m_config = config;
         m_soundManager = soundManager;
+        m_allCommands = GetAllCommandNames();
+    }
+
+    private static HashSet<string> GetAllCommandNames()
+    {
+        HashSet<string> commandNames = new();
+        
+        foreach (FieldInfo fieldInfo in typeof(Input).GetFields())
+        {
+            if (fieldInfo is not { IsPublic: true, IsStatic: true })
+                continue;
+
+            if (fieldInfo.GetValue(null) is not string commandName)
+            {
+                Log.Error($"Unable to get constant command name field '{fieldInfo.Name}' for options menu, should never happen");
+                continue;
+            }
+
+            commandNames.Add(commandName.WithWordSpaces());
+        }
+
+        return commandNames;
     }
 
     private void CheckForConfigUpdates()
@@ -49,27 +76,30 @@ public class KeyBindingSection : IOptionSection
         // having an empty list of keys assigned to it.
         foreach (string command in InGameCommands)
         {
-            if (!m_mappedCommands.Contains(command))
-            {
-                m_commandToKeys.Add((command, new()));
-                m_mappedCommands.Add(command);
-            }
+            string cmd = command.WithWordSpaces();
+            if (m_mappedCommands.Contains(cmd)) 
+                continue;
+            
+            m_commandToKeys.Add((cmd, new()));
+            m_mappedCommands.Add(cmd);
         }
         
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
-            if (!m_mappedCommands.Contains(command))
+            string cmd = command.WithWordSpaces();
+            
+            if (!m_mappedCommands.Contains(cmd))
             {
                 keys = new();
-                m_commandToKeys.Add((command, keys));
-                m_mappedCommands.Add(command);
+                m_commandToKeys.Add((cmd, keys));
+                m_mappedCommands.Add(cmd);
             }
             else
             {
                 int index = 0;
                 for (; index < m_commandToKeys.Count; index++)
-                    if (command == m_commandToKeys[index].Command)
+                    if (cmd == m_commandToKeys[index].Command)
                         break;
 
                 if (index != m_commandToKeys.Count)
@@ -79,13 +109,20 @@ public class KeyBindingSection : IOptionSection
                 else
                 {
                     keys = new();
-                    m_commandToKeys.Add((command, keys));
-                    m_mappedCommands.Add(command);
+                    m_commandToKeys.Add((cmd, keys));
+                    m_mappedCommands.Add(cmd);
                 }
             }
 
             if (!keys.Contains(key))
                 keys.Add(key);
+        }
+
+        foreach (string command in m_allCommands.Where(cmd => !m_mappedCommands.Contains(cmd)))
+        {
+            string cmd = command.WithWordSpaces();
+            m_commandToKeys.Add((cmd, new()));
+            m_mappedCommands.Add(cmd);
         }
     }
 

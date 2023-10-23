@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Helion.Util.Extensions;
@@ -84,5 +85,28 @@ public static class StringExtensions
         }
 
         return startIndex;
+    }
+
+    // Returns a new string with spaces between words.
+    // Ex: "CommandSlot1" -> "Command Slot 1"
+    public static string WithWordSpaces(this string str)
+    {
+        if (str == "")
+            return "";
+        
+        StringBuilder builder = new();
+        builder.Append(str[0]);
+
+        for (int i = 1; i < str.Length; i++)
+        {
+            char prev = str[i - 1];
+            char current = str[i];
+
+            if (prev is >= 'a' and <= 'z' && current is < 'a' or > 'z')
+                builder.Append(' ');
+            builder.Append(current);
+        }
+
+        return builder.ToString();
     }
 }

@@ -24,4 +24,15 @@ public class StringExtensionsTest
     {
         str.IsMD5().Should().Be(isMD5);
     }
+
+    [Theory(DisplayName = "String with requested spaces are inserted correctly")]
+    [InlineData("", "")]
+    [InlineData("abc", "abc")]
+    [InlineData("Abc", "Abc")]
+    [InlineData("qweF", "qwe F")]
+    [InlineData("CommandSlot1", "Command Slot 1")]
+    public void TestWithSpaces(string input, string expected)
+    {
+        input.WithWordSpaces().Should().Be(expected);
+    }
 }
