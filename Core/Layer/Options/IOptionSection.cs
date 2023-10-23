@@ -29,9 +29,20 @@ public struct LockEvent
     }
 }
 
+public struct RowEvent
+{
+    public readonly int Index;
+
+    public RowEvent(int index)
+    {
+        Index = index;
+    }
+}
+
 public interface IOptionSection
 {
     public event EventHandler<LockEvent>? OnLockChanged;
+    public event EventHandler<RowEvent>? OnRowChanged;
 
     public OptionSectionType OptionType { get; }
 

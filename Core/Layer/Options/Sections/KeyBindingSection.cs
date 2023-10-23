@@ -20,6 +20,7 @@ namespace Helion.Layer.Options.Sections;
 public class KeyBindingSection : IOptionSection
 {
     public event EventHandler<LockEvent>? OnLockChanged;
+    public event EventHandler<RowEvent>? OnRowChanged;
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
     private readonly IConfig m_config;
@@ -30,6 +31,7 @@ public class KeyBindingSection : IOptionSection
     private (int, int) m_selectedRender;
     private int m_currentRow;
     private bool m_updatingKeyBinding;
+    private bool m_updateRow;
 
     public KeyBindingSection(IConfig config, SoundManager soundManager)
     {
@@ -146,6 +148,7 @@ public class KeyBindingSection : IOptionSection
         }
         else
         {
+            int lastRow = m_currentRow;
             if (input.ConsumePressOrContinuousHold(Key.Up))
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Cursor);
@@ -180,6 +183,9 @@ public class KeyBindingSection : IOptionSection
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 UnbindCurrentRow();
             }
+
+            if (m_currentRow != lastRow)
+                m_updateRow = true;
         }
     }
 
@@ -266,6 +272,12 @@ public class KeyBindingSection : IOptionSection
         }
 
         m_renderHeight = y - startY;
+
+        if (m_updateRow)
+        {
+            OnRowChanged?.Invoke(this, new(m_currentRow));
+            m_updateRow = false;
+        }
     }
 
     public int GetRenderHeight() => m_renderHeight;

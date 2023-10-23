@@ -26,6 +26,7 @@ public class ListedConfigSection : IOptionSection
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;
+    public event EventHandler<RowEvent>? OnRowChanged;
     public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
 
     public OptionSectionType OptionType { get; }
@@ -40,6 +41,7 @@ public class ListedConfigSection : IOptionSection
     private int? m_currentEnumIndex;
     private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
+    private bool m_updateRow;
     private IConfigValue? m_currentEditValue;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
@@ -66,6 +68,7 @@ public class ListedConfigSection : IOptionSection
         }
         else
         {
+            int lastRow = m_currentRowIndex;
             if (input.ConsumePressOrContinuousHold(Key.Up))
                 AdvanceToValidRow(-1);
             if (input.ConsumePressOrContinuousHold(Key.Down))
@@ -94,6 +97,9 @@ public class ListedConfigSection : IOptionSection
                 m_rowEditText.Clear();
                 m_rowEditText.Append(GetEnumDescription(m_currentEditValue.ObjectValue));
             }
+
+            if (lastRow != m_currentRowIndex)
+                m_updateRow = true;
         }
     }
 
@@ -405,6 +411,12 @@ public class ListedConfigSection : IOptionSection
         }
 
         m_renderHeight = y - startY;
+
+        if (m_updateRow)
+        {
+            OnRowChanged?.Invoke(this, new(m_currentRowIndex));
+            m_updateRow = false;
+        }
     }
     
     public int GetRenderHeight() => m_renderHeight;

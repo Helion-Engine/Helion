@@ -152,9 +152,16 @@ public class OptionsLayer : IGameLayer
                 continue;
             sections.Add(optionSection);
             optionSection.OnLockChanged += OptionSection_OnLockChanged;
+            optionSection.OnRowChanged += OptionSection_OnRowChanged;
         }
         
         return sections;
+    }
+
+    private void OptionSection_OnRowChanged(object? sender, RowEvent e)
+    {
+        if (e.Index == 0)
+            m_scrollOffset = 0;
     }
 
     private void OptionSection_OnLockChanged(object? sender, LockEvent e)
