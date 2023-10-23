@@ -103,7 +103,8 @@ public static class StringExtensions
             char current = str[i];
 
             if (prev is >= 'a' and <= 'z' && current is < 'a' or > 'z')
-                builder.Append(' ');
+                if (current != ' ')
+                    builder.Append(' ');
             builder.Append(current);
         }
 

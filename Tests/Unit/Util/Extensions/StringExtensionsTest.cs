@@ -31,6 +31,8 @@ public class StringExtensionsTest
     [InlineData("Abc", "Abc")]
     [InlineData("qweF", "qwe F")]
     [InlineData("CommandSlot1", "Command Slot 1")]
+    [InlineData("CenterView", "Center View")]
+    [InlineData("Center View", "Center View")]
     public void TestWithSpaces(string input, string expected)
     {
         input.WithWordSpaces().Should().Be(expected);
