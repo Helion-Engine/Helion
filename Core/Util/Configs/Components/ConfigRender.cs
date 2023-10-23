@@ -14,11 +14,11 @@ public enum RenderVsyncMode
 
 public class ConfigRenderFilter
 {
-    [ConfigInfo("The kind of filter applied to fonts.")]
+    [ConfigInfo("The kind of filter applied to fonts.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Font filtering")]
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
-    [ConfigInfo("The filter to be applied to textures.")]
+    [ConfigInfo("The filter to be applied to textures.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Texture filtering")]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }

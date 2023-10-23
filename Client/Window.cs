@@ -63,6 +63,34 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
+    public void SetWindowState(RenderWindowState state)
+    {
+        switch (state)
+        {
+            case RenderWindowState.Fullscreen:
+                WindowState = WindowState.Fullscreen;
+                break;
+            case RenderWindowState.Normal:
+                WindowState = WindowState.Normal; 
+                break;
+        }
+    }
+
+    public void SetDimension(Dimension dimension) =>
+        Size = new(dimension.Width, dimension.Height);
+
+    public void SetBorder(WindowBorder border) =>
+        WindowBorder = border;
+
+    public void SetDisplay(int display)
+    {
+        // Setting the monitor will force to fullscreen
+        if (WindowState != WindowState.Fullscreen)
+            return;
+
+        CurrentMonitor = GetMonitorHandle(display);
+    }
+
     private void SetVsync(RenderVsyncMode mode)
     {
         switch (mode)
@@ -132,7 +160,7 @@ public class Window : GameWindow, IWindow
             WindowState = GetWindowState(config.Window.State.Value),
         };
 
-        SetDisplay(config, settings);
+        SetDisplay(config.Window.Display.Value, settings);
         return settings;
     }
 
@@ -145,20 +173,25 @@ public class Window : GameWindow, IWindow
         };
     }
 
-    private static void SetDisplay(IConfig config, NativeWindowSettings settings)
-    {
-        if (config.Window.Display.Value <= 0)
-            return;
+    private static void SetDisplay(int display, NativeWindowSettings settings)
+    {   
+        settings.CurrentMonitor = GetMonitorHandle(display);
+    }
 
+    private static MonitorHandle GetMonitorHandle(int display)
+    {
         var windowMonitors = Monitors.GetMonitors();
-        var index = config.Window.Display.Value - 1;
+        if (display <= 0)
+            return windowMonitors[0].Handle;
+
+        var index = display - 1;
         if (index < 0 || index >= windowMonitors.Count)
         {
-            Log.Error($"Invalid display number: {config.Window.Display.Value}");
-            return;
+            Log.Error($"Invalid display number: {display}");
+            return windowMonitors[0].Handle;
         }
-        
-        settings.CurrentMonitor = windowMonitors[index].Handle;
+
+        return windowMonitors[index].Handle;
     }
 
     public void SetGrabCursor(bool set) => CursorState = set ? CursorState.Grabbed : CursorState.Hidden;
