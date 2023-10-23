@@ -56,7 +56,7 @@ public class ConfigInfoAttribute : Attribute
         if (MapRestartRequired)
             message = "Map restart required for this change to take effect.";
         if (RestartRequired)
-            message = "Application restart required for this change to take effect.";
+            message = "App restart required for this change to take effect.";
         return message.Length > 0;
     }
 }
