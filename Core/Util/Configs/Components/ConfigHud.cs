@@ -14,22 +14,24 @@ public class ConfigHudAutoMap
 
 public class ConfigHud
 {
-    public readonly ConfigHudAutoMap AutoMap = new();
+    [ConfigInfo("Shows crosshair.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair")]
+    public readonly ConfigValue<bool> Crosshair = new(true);
 
     [ConfigInfo("The amount of move bobbing the weapon does. 0.0 is off, 1.0 is normal.")]
     [OptionMenu(OptionSectionType.Hud, "Move bob")]
     public readonly ConfigValue<double> MoveBob = new(1.0, ClampNormalized);
 
-    [ConfigInfo("Amount to scale minimal hud.")]
-    [OptionMenu(OptionSectionType.Hud, "Hud scale")]
-    public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
-
     [ConfigInfo("The size of the status bar.")]
-    [OptionMenu(OptionSectionType.Hud, "Status bar size")]
+    [OptionMenu(OptionSectionType.Hud, "Status bar size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
+    [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
+    [OptionMenu(OptionSectionType.Hud, "Status bar texture")]
+    public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
+
     [ConfigInfo("If average frames per second should be rendered.")]
-    [OptionMenu(OptionSectionType.Hud, "Show FPS")]
+    [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
     public readonly ConfigValue<bool> ShowFPS = new(false);
 
     [ConfigInfo("If min/max frames per second should be rendered.")]
@@ -40,11 +42,9 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Show world stats")]
     public readonly ConfigValue<bool> ShowStats = new(false);
 
-    [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
-    [OptionMenu(OptionSectionType.Hud, "Status bar texture")]
-    public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
+    [ConfigInfo("Amount to scale minimal hud.")]
+    [OptionMenu(OptionSectionType.Hud, "Hud scale", spacer: true)]
+    public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
-    [ConfigInfo("Shows crosshair.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair")]
-    public readonly ConfigValue<bool> Crosshair = new(true);
+    public readonly ConfigHudAutoMap AutoMap = new();
 }

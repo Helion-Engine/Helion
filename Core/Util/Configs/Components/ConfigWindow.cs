@@ -17,7 +17,7 @@ public enum RenderWindowState
 public class ConfigWindowVirtual
 {
     [ConfigInfo("The width and height of the virtual dimension.")]
-    [OptionMenu(OptionSectionType.Video, "Virtual size")]
+    [OptionMenu(OptionSectionType.Video, "Virtual size", spacer: true)]
     public readonly ConfigValue<Dimension> Dimension = new((800, 600), (_, dim) => dim.Width >= 320 && dim.Height >= 200);
 
     [ConfigInfo("Whether virtual dimensions should be used or not.")]
@@ -39,13 +39,13 @@ public class ConfigWindow
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window")]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
-    public readonly ConfigWindowVirtual Virtual = new();
-
     [ConfigInfo("The border of the window.")]
     [OptionMenu(OptionSectionType.Video, "Border")]
     public readonly ConfigValue<WindowBorder> Border = new(WindowBorder.Resizable, OnlyValidEnums<WindowBorder>());
 
+    public readonly ConfigWindowVirtual Virtual = new();
+
     [ConfigInfo("The display number for the window. (0 = default. Use command ListDisplays for display numbers).")]
-    [OptionMenu(OptionSectionType.Video, "Display Number [0 default]")]
+    [OptionMenu(OptionSectionType.Video, "Display Number [0 default]", spacer: true)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 }

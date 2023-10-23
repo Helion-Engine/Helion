@@ -358,11 +358,15 @@ public class ListedConfigSection : IOptionSection
 
         int fontSize = m_config.Hud.GetSmallFontSize();
         int offsetX = m_config.Hud.GetScaled(8);
+        int spacerY = m_config.Hud.GetScaled(8);
 
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[i];
             (Color attrColor, Color valueColor) = attr.Disabled ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
+
+            if (attr.Spacer)
+               y += spacerY;
             
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;

@@ -16,17 +16,13 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Autoaim")]
     public readonly ConfigValue<bool> AutoAim = new(true);
 
+    [ConfigInfo("If the player should automatically use lines when bumping.", demo: true)]
+    [OptionMenu(OptionSectionType.General, "Bump Use", spacer: true)]
+    public readonly ConfigValue<bool> BumpUse = new(false);
+
     [ConfigInfo("The last loaded world state on death.")]
     [OptionMenu(OptionSectionType.General, "Load latest on death")]
     public readonly ConfigValue<bool> LoadLatestOnDeath = new(true);
-
-    [ConfigInfo("If the player should automatically use lines when bumping.", demo: true)]
-    [OptionMenu(OptionSectionType.General, "Bump Use")]
-    public readonly ConfigValue<bool> BumpUse = new(false);
-
-    [ConfigInfo("Enables fast monsters.", save: false, demo: true)]
-    [OptionMenu(OptionSectionType.General, "Fast monsters")]
-    public readonly ConfigValue<bool> FastMonsters = new(false);
 
     [ConfigInfo("Automatically saves at level start.", save: false)]
     [OptionMenu(OptionSectionType.General, "Autosave")]
@@ -35,6 +31,10 @@ public class ConfigGame
     [ConfigInfo("Confirm overwriting when quick saving.")]
     [OptionMenu(OptionSectionType.General, "Confirm quick save")]
     public readonly ConfigValue<bool> QuickSaveConfirm = new(true);
+
+    [ConfigInfo("Enables fast monsters.", save: false, demo: true)]
+    [OptionMenu(OptionSectionType.General, "Fast monsters", spacer: true)]
+    public readonly ConfigValue<bool> FastMonsters = new(false);
 
     [ConfigInfo("Enables monster closet detection and limited monster AI.", mapRestartRequired: true, demo: true)]
     [OptionMenu(OptionSectionType.General, "Monster closet detection")]

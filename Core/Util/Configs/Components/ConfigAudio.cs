@@ -19,7 +19,7 @@ public class ConfigAudio
     public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
 
     [ConfigInfo("Randomize sound pitch.")]
-    [OptionMenu(OptionSectionType.Audio, "Randomize Pitch")]
+    [OptionMenu(OptionSectionType.Audio, "Randomize Pitch", spacer: true)]
     public readonly ConfigValue<RandomPitch> RandomizePitch = new(RandomPitch.None);
 
     [ConfigInfo("Randomized pitch scale value.")]
@@ -31,7 +31,7 @@ public class ConfigAudio
     public readonly ConfigValue<double> Pitch = new(1, Clamp(0.1, 10));
 
     [ConfigInfo("Log sound errors.")]
-    [OptionMenu(OptionSectionType.Audio, "Log sound errors")]
+    [OptionMenu(OptionSectionType.Audio, "Log sound errors", spacer: true)]
     public readonly ConfigValue<bool> LogErrors = new(false);
 
     [ConfigInfo("The main device to use for audio.")]

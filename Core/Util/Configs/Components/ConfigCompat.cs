@@ -13,20 +13,20 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Use dehacked over decorate")]
     public readonly ConfigValue<bool> PreferDehacked = new(true);
 
-    [ConfigInfo("Use vanilla sector physics. Floors can move through ceiling. Only one move special per sector at a time.", serialize: true, demo: true)]
-    [OptionMenu(OptionSectionType.Compatibility, "Vanilla sector physics")]
-    public readonly ConfigValue<bool> VanillaSectorPhysics = new(false);
-
     [ConfigInfo("Allow items to dropoff tall ledges.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Items drop off ledges")]
     public readonly ConfigValue<bool> AllowItemDropoff = new(true);
+
+    [ConfigInfo("Use vanilla sector physics. Floors can move through ceiling. Only one move special per sector at a time.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Vanilla sector physics")]
+    public readonly ConfigValue<bool> VanillaSectorPhysics = new(false);
 
     [ConfigInfo("Emulate vanilla infinitely tall things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Infinitely tall things")]
     public readonly ConfigValue<bool> InfinitelyTallThings = new(false);
 
     [ConfigInfo("Things use their original vanilla heights for projectile collision checks.", serialize: true, demo: true)]
-    [OptionMenu(OptionSectionType.Compatibility, "Vanilla projectile height collision checks")]
+    [OptionMenu(OptionSectionType.Compatibility, "Vanilla missile height collision")]
     public readonly ConfigValue<bool> MissileClip = new(false);
 
     [ConfigInfo("Limits lost souls spawn by pain elementals to 21.", serialize: true, demo: true)]
