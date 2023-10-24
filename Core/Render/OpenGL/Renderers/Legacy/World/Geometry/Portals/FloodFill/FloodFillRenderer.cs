@@ -41,7 +41,7 @@ public class FloodFillRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        DisposeAndClearData();
+        ClearData();
     }
 
     private FloodFillInfo CreateFloodFillInfo(SectorPlane plane)
@@ -239,7 +239,7 @@ public class FloodFillRenderer : IDisposable
         }
     }
 
-    private void DisposeAndClearData()
+    private void ClearData()
     {
         foreach (FloodFillInfo info in m_floodFillInfos)
             info.Dispose();
@@ -247,7 +247,6 @@ public class FloodFillRenderer : IDisposable
         m_textureHandleToFloodFillInfoIndex.Clear();
         m_floodGeometry.Clear();
         m_freeData.Clear();
-        m_program.Dispose();
     }
 
     protected void Dispose(bool disposing)
@@ -255,8 +254,9 @@ public class FloodFillRenderer : IDisposable
         if (m_disposed)
             return;
 
-        DisposeAndClearData();
+        ClearData();
 
+        m_program.Dispose();
         m_disposed = true;
     }
 
