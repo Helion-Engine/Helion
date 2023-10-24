@@ -284,7 +284,7 @@ public static class WorldTriangulator
 
         if (line.Flags.Unpegged.Lower)
         {
-            double ceilZ = facingSide.Sector.Ceiling.Z;
+            double ceilZ = previous ? facingSide.Sector.Ceiling.PrevZ : facingSide.Sector.Ceiling.Z;
             float topDistFromCeil = (float)(ceilZ - topZ);
             float bottomDistFromCeil = (float)(ceilZ - bottomZ);
 
