@@ -33,7 +33,7 @@ public class Misc
     {
         World.Config.Compatibility.PainElementalLostSoulLimit.Set(true);
         var painElemental = GameActions.CreateEntity(World, "PainElemental", (-320, -320, 0));
-        var lostSoulId = World.EntityManager.DefinitionComposer.GetByName("LostSoul").Id;
+        var lostSoulId = World.EntityManager.DefinitionComposer.GetByName("LostSoul")!.Id;
         painElemental.SetTarget(Player);
 
         for (int i = 0; i < 20; i++)
