@@ -95,7 +95,7 @@ public class ListedConfigSection : IOptionSection
                     OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm."));
 
                 m_rowEditText.Clear();
-                m_rowEditText.Append(GetEnumDescription(m_currentEditValue.ObjectValue));
+                m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, m_configValues[m_currentRowIndex].Attr));
             }
 
             if (lastRow != m_currentRowIndex)
@@ -181,6 +181,21 @@ public class ListedConfigSection : IOptionSection
         m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
+    private static string GetConfigDisplayValue(IConfigValue configValue, OptionMenuAttribute attr)
+    {
+        if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
+            return GetEnumDescription(configValue.ObjectValue).ToString();
+
+        var doubleValue = Convert.ToDouble(configValue.ObjectValue);
+        if (attr.Scale != 0)
+            doubleValue *= attr.Scale;
+
+        if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
+            return doubleValue.ToString() + ".0";
+
+        return doubleValue.ToString();
+    }
+
     private static object GetEnumDescription(object value)
     {
         var type = value.GetType();
@@ -251,11 +266,16 @@ public class ListedConfigSection : IOptionSection
         // an empty string being converted into something "falsey".
         if (newValue == "")
             return;
-        
-        IConfigValue cfgValue = m_configValues[m_currentRowIndex].CfgValue;
-        var configAttr = m_configValues[m_currentRowIndex].ConfigAttr;
+
+        (var cfgValue, var attr, var configAttr) = m_configValues[m_currentRowIndex];
         ConfigSetResult result;
-        
+
+        if (attr.Scale != 0 && cfgValue.ValueType.IsAssignableFrom(typeof(double)) && 
+            double.TryParse(newValue, out var doubleValue))
+        {
+            newValue = (doubleValue / attr.Scale).ToString();
+        }
+
         // This is a hack for enums. The string we render for the user may
         // not be a valid enum when setting, so we use the index instead.
         if (m_currentEnumIndex.HasValue)
@@ -390,7 +410,7 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(GetEnumDescription(cfgValue.ObjectValue).ToString(), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(GetConfigDisplayValue(cfgValue, attr), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
 

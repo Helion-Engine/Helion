@@ -8,11 +8,11 @@ namespace Helion.Util.Configs.Components;
 public class ConfigAudio
 {
     [ConfigInfo("The volume of the music. 0.0 is off, 1.0 is max.")]
-    [OptionMenu(OptionSectionType.Audio, "Music Volume")]
+    [OptionMenu(OptionSectionType.Audio, "Music Volume", scale: 10)]
     public readonly ConfigValue<double> MusicVolume = new(1.0, ClampNormalized);
 
     [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
-    [OptionMenu(OptionSectionType.Audio, "Sound Volume")]
+    [OptionMenu(OptionSectionType.Audio, "Sound Volume", scale: 10)]
     public readonly ConfigValue<double> SoundVolume = new(1.0, ClampNormalized);
 
     [ConfigInfo("The volume of the sounds. 0.0 is off, 1.0 is max.")]
