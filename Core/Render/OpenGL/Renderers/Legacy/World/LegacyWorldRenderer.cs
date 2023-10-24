@@ -202,7 +202,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
                     sideNode.Value.BlockmapCount = m_renderData.CheckCount;
                     m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line,
-                        m_renderData.ViewerEntity.Position, m_renderData.ViewerEntity.PrevPosition);
+                        m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
                 }
 
                 for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)

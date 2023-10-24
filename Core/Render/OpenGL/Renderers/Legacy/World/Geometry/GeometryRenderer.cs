@@ -59,8 +59,8 @@ public class GeometryRenderer : IDisposable
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
     private bool m_cacheOverride;
-    private Vec3D m_position;
-    private Vec3D m_prevPosition;
+    private Vec3D m_viewPosition;
+    private Vec3D m_prevViewPosition;
     private Sector m_viewSector;
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
@@ -150,7 +150,7 @@ public class GeometryRenderer : IDisposable
 
     private void CacheData(IWorld world)
     {
-        Vec2D pos = m_position.XY;
+        Vec2D pos = m_viewPosition.XY;
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
@@ -189,9 +189,9 @@ public class GeometryRenderer : IDisposable
             var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
 
             // Set position Z within plane view so it's not culled
-            m_position.Z = sector.Floor.Plane.ToZ(pos) + 1;
+            m_viewPosition.Z = sector.Floor.Plane.ToZ(pos) + 1;
             RenderFlat(subsectors, renderSector.Floor, true, out _, out _);
-            m_position.Z = sector.Ceiling.Plane.ToZ(pos) - 1;
+            m_viewPosition.Z = sector.Ceiling.Plane.ToZ(pos) - 1;
             RenderFlat(subsectors, renderSector.Ceiling, false, out _, out _);
         }
     }
@@ -216,62 +216,41 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.RenderSkies(renderInfo);
     }
 
-    public void RenderSubsector(Sector viewSector, in Subsector subsector, in Vec3D position, bool hasRenderedSector)
+    public void RenderSector(Sector viewSector, Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)
     {
         m_buffer = true;
         m_viewSector = viewSector;
-        m_position = position;
-        m_prevPosition = m_position;
-        SetSectorRendering(subsector.Sector);
-
-        if (subsector.Sector.TransferHeights != null)
-        {
-            RenderWalls(subsector, position, position.XY);
-            if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
-                RenderSectorFlats(subsector.Sector, subsector.Sector.GetRenderSector(m_viewSector, position.Z), subsector.Sector.TransferHeights.ControlSector);
-            return;
-        }
-
-        RenderWalls(subsector, position, position.XY);
-        if (!hasRenderedSector && !subsector.Sector.AreFlatsStatic)
-            RenderSectorFlats(subsector.Sector, subsector.Sector, subsector.Sector);
-    }
-
-    public void RenderSector(Sector viewSector, Sector sector, in Vec3D position, in Vec3D prevPos)
-    {
-        m_buffer = true;
-        m_viewSector = viewSector;
-        m_position = position;
-        m_prevPosition = prevPos;
+        m_viewPosition = viewPosition;
+        m_prevViewPosition = prevViewPosition;
 
         SetSectorRendering(sector);
 
         if (sector.TransferHeights != null)
         {
-            RenderSectorWalls(sector, position.XY, prevPos.XY);
+            RenderSectorWalls(sector, viewPosition.XY, prevViewPosition.XY);
             if (!sector.AreFlatsStatic)
-                RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, position.Z), sector.TransferHeights.ControlSector);
+                RenderSectorFlats(sector, sector.GetRenderSector(m_viewSector, viewPosition.Z), sector.TransferHeights.ControlSector);
             return;
         }
 
         m_cacheOverride = false;
         m_transferHeightsView = TransferHeightView.Middle;
 
-        RenderSectorWalls(sector, position.XY, prevPos.XY);
+        RenderSectorWalls(sector, viewPosition.XY, prevViewPosition.XY);
         if (!sector.AreFlatsStatic)
             RenderSectorFlats(sector, sector, sector);
     }
 
-    public void RenderSectorWall(Sector viewSector, Sector sector, Line line, Vec3D position, Vec3D prevPos)
+    public void RenderSectorWall(Sector viewSector, Sector sector, Line line, Vec3D viewPosition, Vec3D prevViewPosition)
     {
         m_buffer = true;
         m_viewSector = viewSector;
-        m_position = position;
-        m_prevPosition = prevPos;
+        m_viewPosition = viewPosition;
+        m_prevViewPosition = prevViewPosition;
         SetSectorRendering(sector);
-        RenderSectorSideWall(sector, line.Front, position.XY, prevPos.XY, true);
+        RenderSectorSideWall(sector, line.Front, viewPosition.XY, prevViewPosition.XY, true);
         if (line.Back != null)
-            RenderSectorSideWall(sector, line.Back, position.XY, prevPos.XY, false);
+            RenderSectorSideWall(sector, line.Back, viewPosition.XY, prevViewPosition.XY, false);
     }
 
     private void SetSectorRendering(Sector sector)
@@ -280,7 +259,7 @@ public class GeometryRenderer : IDisposable
         {
             m_floorChanged = m_floorChanged || sector.TransferHeights.ControlSector.Floor.CheckRenderingChanged();
             m_ceilingChanged = m_ceilingChanged || sector.TransferHeights.ControlSector.Ceiling.CheckRenderingChanged();
-            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_position.Z);
+            m_transferHeightsView = TransferHeights.GetView(m_viewSector, m_viewPosition.Z);
             // Walls can only cache if middle view
             m_cacheOverride = m_transferHeightsView != TransferHeightView.Middle;
             return;
@@ -308,8 +287,8 @@ public class GeometryRenderer : IDisposable
         double floorZ = renderSector.Floor.Z;
         double ceilingZ = renderSector.Ceiling.Z;
 
-        bool floorVisible = m_position.Z >= floorZ || m_prevPosition.Z >= floorZ;
-        bool ceilingVisible = m_position.Z <= ceilingZ || m_prevPosition.Z <= ceilingZ;
+        bool floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= floorZ;
+        bool ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= ceilingZ;
         if (floorVisible && !sector.IsFloorStatic)
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
@@ -482,8 +461,8 @@ public class GeometryRenderer : IDisposable
         {
             Side otherSide = side.PartnerSide!;
             m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha) || side.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha);
-            Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
-            Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
+            Sector facingSector = side.Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
+            Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
             RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out _);
             side.LastRenderGametickAlpha = m_world.Gametick;
         }
@@ -506,7 +485,7 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
         LegacyVertex[]? data = m_vertexLookup[side.Id];
 
-        var renderSector = side.Sector.GetRenderSector(m_viewSector, m_position.Z);
+        var renderSector = side.Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
 
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
@@ -577,8 +556,8 @@ public class GeometryRenderer : IDisposable
     private void RenderTwoSided(Side facingSide, bool isFrontSide)
     {
         Side otherSide = facingSide.PartnerSide!;
-        Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_position.Z);
+        Sector facingSector = facingSide.Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
+        Sector otherSector = otherSide.Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
@@ -1004,7 +983,7 @@ public class GeometryRenderer : IDisposable
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
-        Sector renderSector = subsectors[0].Sector.GetRenderSector(m_viewSector, m_position.Z);
+        Sector renderSector = subsectors[0].Sector.GetRenderSector(m_viewSector, m_viewPosition.Z);
 
         if (isSky)
         {
