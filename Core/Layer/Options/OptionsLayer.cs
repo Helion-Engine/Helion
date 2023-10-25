@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Layer.Options.Sections;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
@@ -29,6 +32,8 @@ public class OptionsLayer : IGameLayer
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
     private readonly List<IOptionSection> m_sections;
+    private readonly MenuPositionList m_backForwardPos = new();
+    private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
     private int m_scrollOffset;
     private int m_windowHeight;
@@ -171,11 +176,14 @@ public class OptionsLayer : IGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
+        m_cursorPos = input.Manager.MousePosition;
         var section = m_sections[m_currentSectionIndex];
-        section.HandleInput(input);
 
         if (m_locked)
+        {
+            section.HandleInput(input);
             return;
+        }
         
         if (input.ConsumeKeyPressed(Key.Escape))
         {
@@ -203,12 +211,29 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.End))
                 section.SetToLastSelection();
 
-            if (checkScroll && ScrollRequired(m_windowHeight, section))
+            bool scrollRequired = ScrollRequired(m_windowHeight, section);
+            if (checkScroll && scrollRequired)
                 ScrollToVisibleArea(section);
 
-            m_scrollOffset = Math.Min(0, m_scrollOffset);
+            if (scrollRequired)
+            {
+                int scrollAmount = GetScrollAmount();
+                m_scrollOffset += input.ConsumeScroll() * scrollAmount;
+                m_scrollOffset = Math.Min(0, m_scrollOffset);
+            }
 
-            if (input.ConsumePressOrContinuousHold(Key.Left))
+            if (input.Manager.IsKeyDown(Key.MouseLeft))
+            {
+                int lol = 1;
+            }
+
+            int buttonIndex = -1;
+            if (!m_locked && m_backForwardPos.GetRowIndexForMouse(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
+                buttonIndex = checkButtonIndex;
+
+            section.HandleInput(input);
+
+            if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4) || buttonIndex == 0)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
@@ -216,7 +241,7 @@ public class OptionsLayer : IGameLayer
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
-            if (input.ConsumePressOrContinuousHold(Key.Right))
+            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) || buttonIndex == 1)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
@@ -276,6 +301,7 @@ public class OptionsLayer : IGameLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
+        m_backForwardPos.Clear();
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
         FillBackgroundRepeatingImages(ctx, hud);
@@ -291,17 +317,28 @@ public class OptionsLayer : IGameLayer
         hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
+        int padding = m_config.Hud.GetScaled(8);
+        if (m_sections.Count > 1)
+        {
+            int xOffset = (hud.Dimension.Width - titleArea.Dimension.Width) / 2;
+            int yOffset = (m_headerHeight / 2) - (titleArea.Dimension.Height / 2);
+            var arrowSize = hud.MeasureText("<-", Fonts.SmallGray, fontSize);
+            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleArea.TopLeft.Y + yOffset);
+            Vec2I forwardArrowPos = (xOffset + titleArea.Dimension.Width + padding, titleArea.TopRight.Y + yOffset);
+            hud.Text("<-", Fonts.SmallGray, fontSize, backArrowPos, color: Color.White);
+            hud.Text("->", Fonts.SmallGray, fontSize, forwardArrowPos, color: Color.White);
+
+            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), 0);
+            m_backForwardPos.Add(new Box2I(backArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), 1);
+
+            hud.Text("->", Fonts.SmallGray, fontSize, (-padding, -padding), both: Align.BottomRight, color: Color.White);
+            hud.Text("<-", Fonts.SmallGray, fontSize, (padding, -padding), both: Align.BottomLeft, color: Color.White);
+        }
+
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
-
-        int padding = m_config.Hud.GetScaled(8);
-        if (m_sections.Count > 1)
-        {
-            hud.Text("->", Fonts.SmallGray, fontSize, (-padding, -padding), both: Align.BottomRight, color: Color.White);
-            hud.Text("<-", Fonts.SmallGray, fontSize, (padding, -padding), both: Align.BottomLeft, color: Color.White);
-        }
 
         if (m_message.Length > 0)
             hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
@@ -315,6 +352,12 @@ public class OptionsLayer : IGameLayer
         }
         else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
+
+        if (hud.Textures.TryGet("cursor", out var cursorHandle, ResourceNamespace.Graphics))
+        {
+            float scale = 24 / (float)cursorHandle.Dimension.Height;
+            hud.Image("cursor", m_cursorPos, resourceNamespace: ResourceNamespace.Graphics, scale: scale);
+        }
     }
 
     private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)

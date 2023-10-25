@@ -11,6 +11,7 @@ namespace Helion.Window;
 public interface IInputManager
 {
     Vec2I MouseMove { get; }
+    Vec2I MousePosition { get; }
     public int Scroll { get; }
     public ReadOnlySpan<char> TypedCharacters { get; }
 

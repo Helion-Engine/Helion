@@ -219,9 +219,10 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
+        m_inputManager.SetMousePosition(((int)args.Position.X, (int)args.Position.Y));
         if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
-
+        
         Vec2F movement = (-args.Delta.X, -args.Delta.Y);
         m_inputManager.AddMouseMovement(movement.Int);
     }

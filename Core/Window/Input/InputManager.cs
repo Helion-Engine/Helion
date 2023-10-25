@@ -11,6 +11,7 @@ namespace Helion.Window.Input;
 public class InputManager : IInputManager
 {
     public Vec2I MouseMove { get; private set; } = (0, 0);
+    public Vec2I MousePosition { get; private set; } = (0, 0);
     private readonly ConsumableInput m_consumableInput;
     private readonly DynamicArray<Key> m_downKeys = new();
     private readonly DynamicArray<Key> m_upKeys = new();
@@ -65,6 +66,11 @@ public class InputManager : IInputManager
     {
         for (int i = 0; i < str.Length; i++)
             m_typedKeys.Add(str[i]);
+    }
+
+    public void SetMousePosition(Vec2I pos)
+    {
+        MousePosition = pos;
     }
 
     public void AddMouseMovement(Vec2I movement)

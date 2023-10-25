@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
@@ -34,17 +35,21 @@ public class ListedConfigSection : IOptionSection
 
     public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
+    private readonly MenuPositionList m_menuPositionList = new();
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
     private readonly Stopwatch m_stopwatch = new();
     private readonly StringBuilder m_rowEditText = new();
+    private Vec2I m_mousePos;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
     private int m_currentRowIndex;
     private int? m_currentEnumIndex;
+    private int m_lastY;
     private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
     private bool m_updateRow;
+    private bool m_updateMouse;
     private IConfigValue? m_currentEditValue;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
@@ -83,17 +88,26 @@ public class ListedConfigSection : IOptionSection
         else
         {
             int lastRow = m_currentRowIndex;
+
+            if (m_mousePos != input.Manager.MousePosition || m_updateMouse)
+            {
+                m_updateMouse = false;
+                m_mousePos = input.Manager.MousePosition;
+                if (m_menuPositionList.GetRowIndexForMouse(m_mousePos, out int rowIndex))
+                    m_currentRowIndex = rowIndex;
+            }
+
             if (input.ConsumePressOrContinuousHold(Key.Up))
                 AdvanceToValidRow(-1);
             if (input.ConsumePressOrContinuousHold(Key.Down))
                 AdvanceToValidRow(1);
 
-            int scrollAmount = input.ConsumeScroll();
-            if (scrollAmount != 0)
-                AdvanceToValidRow(-scrollAmount);
-
-            if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+            bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
+            if (mousePress || input.ConsumeKeyPressed(Key.Enter))
             {
+                if (mousePress && m_menuPositionList.GetRowIndexForMouse(input.Manager.MousePosition, out int rowIndex))
+                    m_currentRowIndex = rowIndex;
+
                 var configData = m_configValues[m_currentRowIndex];
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_rowIsSelected = true;
@@ -250,8 +264,9 @@ public class ListedConfigSection : IOptionSection
             UpdateEnumOption(input, cfgValue);
         else
             UpdateTextEditableOption(input);
-        
-        if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+
+        bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
+        if (mousePress || input.ConsumeKeyPressed(Key.Enter))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
             SubmitRowChanges();
@@ -388,8 +403,15 @@ public class ListedConfigSection : IOptionSection
     
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY)
     {
+        m_menuPositionList.Clear();
         if (m_configValues.Empty())
             return;
+
+        if (startY != m_lastY)
+        {
+            m_lastY = startY;
+            m_updateMouse = true;
+        }
         
         // This is for the case where we start off on a row that is disabled but
         // we know there's at least one valid row.
@@ -446,6 +468,13 @@ public class ListedConfigSection : IOptionSection
             }
 
             int maxHeight = Math.Max(attrArea.Height, valueArea.Height);
+
+            if (!IsConfigDisabled(i))
+            {
+                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + maxHeight));
+                m_menuPositionList.Add(rowDimensions, i);
+            }
+
             y += maxHeight + m_config.Hud.GetScaled(3);
         }
 

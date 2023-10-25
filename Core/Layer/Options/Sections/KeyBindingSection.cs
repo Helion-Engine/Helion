@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
@@ -28,15 +29,19 @@ public class KeyBindingSection : IOptionSection
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
     private readonly IConfig m_config;
+    private readonly MenuPositionList m_menuPositionList = new();
     private readonly SoundManager m_soundManager;
     private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
     private readonly HashSet<string> m_allCommands;
+    private Vec2I m_mousePos;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
     private int m_currentRow;
+    private int m_lastY;
     private bool m_updatingKeyBinding;
     private bool m_updateRow;
+    private bool m_updateMouse;
 
     public KeyBindingSection(IConfig config, SoundManager soundManager)
     {
@@ -188,6 +193,14 @@ public class KeyBindingSection : IOptionSection
         else
         {
             int lastRow = m_currentRow;
+            if (m_mousePos != input.Manager.MousePosition || m_updateMouse)
+            {
+                m_updateMouse = false;
+                m_mousePos = input.Manager.MousePosition;
+                if (m_menuPositionList.GetRowIndexForMouse(m_mousePos, out int rowIndex))
+                    m_currentRow = rowIndex;
+            }
+
             if (input.ConsumePressOrContinuousHold(Key.Up))
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Cursor);
@@ -197,17 +210,6 @@ public class KeyBindingSection : IOptionSection
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Cursor);
                 m_currentRow = (m_currentRow + 1) % m_commandToKeys.Count;
-            }
-
-            int scrollAmount = input.ConsumeScroll();
-            if (scrollAmount != 0)
-            {
-                m_currentRow -= scrollAmount;
-                m_currentRow %= m_commandToKeys.Count;
-
-                if (m_currentRow < 0)
-                    m_currentRow = Math.Min(m_commandToKeys.Count + m_currentRow, m_commandToKeys.Count - 1);
-                m_soundManager.PlayStaticSound(MenuSounds.Cursor);
             }
 
             if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
@@ -230,6 +232,14 @@ public class KeyBindingSection : IOptionSection
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY)
     {
+        m_menuPositionList.Clear();
+
+        if (startY != m_lastY)
+        {
+            m_lastY = startY;
+            m_updateMouse = true;
+        }
+
         int fontSize = m_config.Hud.GetSmallFontSize();
         hud.Text("Key Bindings", Fonts.SmallGray, m_config.Hud.GetLargeFontSize(), (0, startY), out Dimension headerArea, 
             both: Align.TopMiddle, color: Color.Red);
@@ -306,7 +316,11 @@ public class KeyBindingSection : IOptionSection
                     }
                 }
 
-                y += Math.Max(totalKeyArea.Height, commandArea.Height);
+                int rowHeight = Math.Max(totalKeyArea.Height, commandArea.Height);
+                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                m_menuPositionList.Add(rowDimensions, cmdIndex);
+
+                y += rowHeight;
             }
         }
 
