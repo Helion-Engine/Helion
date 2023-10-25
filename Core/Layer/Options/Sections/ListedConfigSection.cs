@@ -70,6 +70,9 @@ public class ListedConfigSection : IOptionSection
 
     public void ResetSelection() => m_currentRowIndex = 0;
 
+    public bool OnClickableItem(Vec2I mousePosition) =>
+        m_menuPositionList.GetRowIndexForMouse(mousePosition, out _);
+
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
         m_configValues.Add((value, attr, configAttr));

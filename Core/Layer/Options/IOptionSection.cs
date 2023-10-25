@@ -1,4 +1,5 @@
-﻿using Helion.Render.Common.Renderers;
+﻿using Helion.Geometry.Vectors;
+using Helion.Render.Common.Renderers;
 using Helion.Util.Configs.Options;
 using Helion.Window;
 using System;
@@ -53,4 +54,5 @@ public interface IOptionSection
     (int,int) GetSelectedRenderY();
     void SetToFirstSelection();
     void SetToLastSelection();
+    bool OnClickableItem(Vec2I mousePosition);
 }

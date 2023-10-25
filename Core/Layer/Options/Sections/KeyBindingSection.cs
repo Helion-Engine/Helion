@@ -52,6 +52,9 @@ public class KeyBindingSection : IOptionSection
 
     public void ResetSelection() => m_currentRow = 0;
 
+    public bool OnClickableItem(Vec2I mousePosition) =>
+        m_menuPositionList.GetRowIndexForMouse(mousePosition, out _);
+
     private static HashSet<string> GetAllCommandNames()
     {
         HashSet<string> commandNames = new();

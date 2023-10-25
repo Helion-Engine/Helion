@@ -27,6 +27,8 @@ public class OptionsLayer : IGameLayer
     public bool ClearOnExit { get; set; }
 
     private const string TiledBackgroundFlat = "FLOOR5_1";
+    private const int BackIndex = 0;
+    private const int ForwardIndex = 1;
     
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
@@ -233,7 +235,7 @@ public class OptionsLayer : IGameLayer
 
             section.HandleInput(input);
 
-            if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4) || buttonIndex == 0)
+            if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4) || buttonIndex == BackIndex)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
@@ -241,7 +243,7 @@ public class OptionsLayer : IGameLayer
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
-            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) || buttonIndex == 1)
+            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) || buttonIndex == ForwardIndex)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
@@ -328,11 +330,8 @@ public class OptionsLayer : IGameLayer
             hud.Text("<-", Fonts.SmallGray, fontSize, backArrowPos, color: Color.White);
             hud.Text("->", Fonts.SmallGray, fontSize, forwardArrowPos, color: Color.White);
 
-            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), 0);
-            m_backForwardPos.Add(new Box2I(backArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), 1);
-
-            hud.Text("->", Fonts.SmallGray, fontSize, (-padding, -padding), both: Align.BottomRight, color: Color.White);
-            hud.Text("<-", Fonts.SmallGray, fontSize, (padding, -padding), both: Align.BottomLeft, color: Color.White);
+            m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
+            m_backForwardPos.Add(new Box2I(backArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
         }
 
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
@@ -349,15 +348,22 @@ public class OptionsLayer : IGameLayer
             section.Render(ctx, hud, y);
 
             RenderScrollBar(hud, fontSize, section);
-        }
-        else
-            hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
 
-        if (hud.Textures.TryGet("cursor", out var cursorHandle, ResourceNamespace.Graphics))
-        {
-            float scale = 24 / (float)cursorHandle.Dimension.Height;
-            hud.Image("cursor", m_cursorPos, resourceNamespace: ResourceNamespace.Graphics, scale: scale);
+            if (m_locked)
+                return;
+
+            bool hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetRowIndexForMouse(m_cursorPos, out _);
+
+            string cursor = hover ? "pointer" : "cursor";
+            if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))
+            {
+                int size = hover ? 32 : 24;
+                float scale = size / (float)cursorHandle.Dimension.Height;
+                hud.Image(cursor, m_cursorPos, resourceNamespace: ResourceNamespace.Graphics, scale: scale);
+            }
         }
+        else        
+            hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
     }
 
     private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)
