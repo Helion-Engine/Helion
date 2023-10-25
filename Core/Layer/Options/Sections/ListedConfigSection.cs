@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
@@ -10,6 +11,7 @@ using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
@@ -17,6 +19,7 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
+using OpenTK.Windowing.Common;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
@@ -49,14 +52,23 @@ public class ListedConfigSection : IOptionSection
         m_config = config;
         OptionType = optionType;
         m_soundManager = soundManager;
+
+        SetDisableStates();
+        m_config.Window.State.OnChanged += WindowState_OnChanged;
     }
+
+    private void WindowState_OnChanged(object? sender, RenderWindowState windowState) =>
+        SetDisableStates();
+
+    private void SetDisableStates() =>
+        m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
 
     public void ResetSelection() => m_currentRowIndex = 0;
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
         m_configValues.Add((value, attr, configAttr));
-        m_hasSelectableRow |= !attr.Disabled;
+        m_hasSelectableRow |= !IsConfigDisabled(m_configValues.Count - 1);
     }
 
     public void HandleInput(IConsumableInput input)
@@ -210,7 +222,7 @@ public class ListedConfigSection : IOptionSection
             return value;
 
         FieldInfo fi = type.GetField(value.ToString());
-        var descAttr = fi.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
+        var descAttr = fi.GetCustomAttribute<DescriptionAttribute>();
         if (descAttr != null)
             return descAttr.Description;
         return value;
@@ -319,7 +331,7 @@ public class ListedConfigSection : IOptionSection
                 m_currentRowIndex += m_configValues.Count;
             m_currentRowIndex %= m_configValues.Count;
 
-            if (!m_configValues[m_currentRowIndex].Attr.Disabled)
+            if (!IsConfigDisabled(m_currentRowIndex))
                 break;
         }
 
@@ -381,7 +393,7 @@ public class ListedConfigSection : IOptionSection
         
         // This is for the case where we start off on a row that is disabled but
         // we know there's at least one valid row.
-        if (m_hasSelectableRow && m_configValues[m_currentRowIndex].Attr.Disabled)
+        if (m_hasSelectableRow && IsConfigDisabled(m_currentRowIndex))
             AdvanceToValidRow(1);
         
         int y = startY;
@@ -396,7 +408,7 @@ public class ListedConfigSection : IOptionSection
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[i];
-            (Color attrColor, Color valueColor) = attr.Disabled ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
+            (Color attrColor, Color valueColor) = IsConfigDisabled(i) ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
 
             if (attr.Spacer)
                y += spacerY;
@@ -444,6 +456,12 @@ public class ListedConfigSection : IOptionSection
             OnRowChanged?.Invoke(this, new(m_currentRowIndex));
             m_updateRow = false;
         }
+    }
+
+    private bool IsConfigDisabled(int rowIndex)
+    {
+        (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[rowIndex];
+        return cfgValue.OptionDisabled || attr.Disabled;
     }
     
     public int GetRenderHeight() => m_renderHeight;

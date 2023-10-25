@@ -23,6 +23,7 @@ public interface IConfigValue
     bool Changed { get; set; }
 
     bool WriteToConfig { get; set; }
+    bool OptionDisabled { get; set; }
     Type ValueType { get; }
 
     /// <summary>

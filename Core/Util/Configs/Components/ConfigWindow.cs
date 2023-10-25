@@ -35,13 +35,13 @@ public class ConfigWindow
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window")]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
-    [ConfigInfo("The width and height of the window.")]
-    [OptionMenu(OptionSectionType.Video, "Window size")]
-    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.HasPositiveArea);
-
     [ConfigInfo("The border of the window.")]
     [OptionMenu(OptionSectionType.Video, "Border")]
     public readonly ConfigValue<WindowBorder> Border = new(WindowBorder.Resizable, OnlyValidEnums<WindowBorder>());
+
+    [ConfigInfo("The width and height of the window.")]
+    [OptionMenu(OptionSectionType.Video, "Window size")]
+    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.HasPositiveArea);
 
     public readonly ConfigWindowVirtual Virtual = new();
 

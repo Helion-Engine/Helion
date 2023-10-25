@@ -32,6 +32,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     public Type ValueType => typeof(T);
     public ConfigSetFlags SetFlags { get; }
     public bool WriteToConfig { get; set; } = true;
+    public bool OptionDisabled { get; set; }
 
     // Given a <previousValue, newValue>, returns true if the value should
     // be accepted, or false if it is an unacceptable value and should not
