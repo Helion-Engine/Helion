@@ -53,6 +53,14 @@ public class OptionsLayer : IGameLayer
         m_sections = GenerateSections();
     }
 
+    public Vec2I GetMouseStartPosition(IWindow window)
+    {
+        // Set start position under header if not set, otherwise set to the position it was before
+        if (m_cursorPos == Vec2I.Zero)
+            m_cursorPos = (window.Dimension.Width / 2, m_config.Hud.GetScaled(45));
+        return m_cursorPos;
+    }
+
     private List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
     {
         List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();

@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Render;
 
 namespace Helion.Window;
@@ -28,4 +29,6 @@ public interface IWindow : IDisposable
     /// The current dimension of the framebuffer for the window.
     /// </summary>
     Dimension FramebufferDimension { get; }
+
+    void SetMousePosition(Vec2I pos);
 }

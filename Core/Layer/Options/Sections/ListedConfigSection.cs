@@ -126,7 +126,7 @@ public class ListedConfigSection : IOptionSection
                 if (isCycleValue)
                 {
                     m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, configData.Attr));
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left or right to change values. Enter to confirm."));
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm."));
                 }
                 else
                 {

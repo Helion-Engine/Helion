@@ -63,6 +63,12 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
+    public void SetMousePosition(Vec2I pos)
+    {
+        MousePosition = (pos.X, pos.Y);
+        InputManager.MousePosition = pos;
+    }
+
     public void SetWindowState(RenderWindowState state)
     {
         switch (state)

@@ -367,7 +367,8 @@ public class GameLayerManager : IGameLayerManager
         if (MenuLayer == null)
             CreateMenuLayer();
 
-        MenuLayer?.ShowOptionsMenu();
+        m_window.SetMousePosition(m_optionsLayer.GetMouseStartPosition(m_window));
+        MenuLayer.ShowOptionsMenu();
     }
 
     public void QuickSave()
