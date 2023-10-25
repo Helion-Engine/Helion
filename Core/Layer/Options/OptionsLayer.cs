@@ -224,11 +224,6 @@ public class OptionsLayer : IGameLayer
                 m_scrollOffset = Math.Min(0, m_scrollOffset);
             }
 
-            if (input.Manager.IsKeyDown(Key.MouseLeft))
-            {
-                int lol = 1;
-            }
-
             int buttonIndex = -1;
             if (!m_locked && m_backForwardPos.GetRowIndexForMouse(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
                 buttonIndex = checkButtonIndex;
