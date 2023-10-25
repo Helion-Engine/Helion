@@ -31,13 +31,13 @@ public class ConfigWindowVirtual
 
 public class ConfigWindow
 {
-    [ConfigInfo("The width and height of the window.")]
-    [OptionMenu(OptionSectionType.Video, "Window size")]
-    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.HasPositiveArea);
-
     [ConfigInfo("The state of the window, such as if it is fullscreen or windowed.")]
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window")]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
+
+    [ConfigInfo("The width and height of the window.")]
+    [OptionMenu(OptionSectionType.Video, "Window size")]
+    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.HasPositiveArea);
 
     [ConfigInfo("The border of the window.")]
     [OptionMenu(OptionSectionType.Video, "Border")]

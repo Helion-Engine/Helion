@@ -51,6 +51,8 @@ public class ListedConfigSection : IOptionSection
         m_soundManager = soundManager;
     }
 
+    public void ResetSelection() => m_currentRowIndex = 0;
+
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
         m_configValues.Add((value, attr, configAttr));
@@ -80,22 +82,27 @@ public class ListedConfigSection : IOptionSection
 
             if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
             {
+                var configData = m_configValues[m_currentRowIndex];
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_rowIsSelected = true;
                 m_currentEnumIndex = null;
-                m_currentEditValue = m_configValues[m_currentRowIndex].CfgValue.Clone();
+                m_currentEditValue = configData.CfgValue.Clone();
                 m_stopwatch.Restart();
 
                 if (m_currentEditValue is ConfigValue<bool> boolCfgValue)
                     UpdateBoolOption(input, boolCfgValue, true);
 
-                if (m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum))
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left or right to change values. Enter to confirm."));
-                else
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm."));
-
                 m_rowEditText.Clear();
-                m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, m_configValues[m_currentRowIndex].Attr));
+                bool isCycleValue = m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum);
+                if (isCycleValue)
+                {
+                    m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, configData.Attr));
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left or right to change values. Enter to confirm."));
+                }
+                else
+                {
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm."));
+                }
             }
 
             if (lastRow != m_currentRowIndex)

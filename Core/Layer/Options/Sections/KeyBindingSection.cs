@@ -45,6 +45,8 @@ public class KeyBindingSection : IOptionSection
         m_allCommands = GetAllCommandNames();
     }
 
+    public void ResetSelection() => m_currentRow = 0;
+
     private static HashSet<string> GetAllCommandNames()
     {
         HashSet<string> commandNames = new();

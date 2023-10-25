@@ -15,7 +15,6 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
-using static System.Collections.Specialized.BitVector32;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -213,6 +212,7 @@ public class OptionsLayer : IGameLayer
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
+                section.SetToFirstSelection();
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
             }
 
@@ -220,6 +220,7 @@ public class OptionsLayer : IGameLayer
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
+                section.SetToFirstSelection();
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
             }
         }
