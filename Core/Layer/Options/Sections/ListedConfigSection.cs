@@ -166,7 +166,7 @@ public class ListedConfigSection : IOptionSection
         bool left = input.ConsumeKeyPressed(Key.Left);
         bool right = input.ConsumeKeyPressed(Key.Right);
         int scroll = input.ConsumeScroll();
-        if (!left && !right && scroll == 0) 
+        if (m_currentEnumIndex.HasValue && !left && !right && scroll == 0) 
             return;
         
         object currentEnumValue = cfgValue.ObjectValue;
@@ -328,7 +328,7 @@ public class ListedConfigSection : IOptionSection
 
         if (result == ConfigSetResult.Set)
             OnAttributeChanged?.Invoke(this, configAttr);
-        else
+        else if (result != ConfigSetResult.Unchanged)
             OnError?.Invoke(this, "Enter a valid value");
 
         Log.ConditionalTrace($"Config value with '{newValue}'for update result: {result}");
