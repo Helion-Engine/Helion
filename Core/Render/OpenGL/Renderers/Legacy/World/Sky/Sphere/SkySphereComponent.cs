@@ -1,20 +1,14 @@
 using System;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Configs;
-using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereComponent : ISkyComponent
 {
-    private readonly IConfig m_config;
     private readonly StreamVertexBuffer<SkyGeometryVertex> m_geometryVbo;
     private readonly VertexArrayObject m_geometryVao;
     private readonly SkySphereGeometryShader m_geometryProgram;
@@ -24,10 +18,9 @@ public class SkySphereComponent : ISkyComponent
     public bool HasGeometry => !m_geometryVbo.Empty;
     public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
-    public SkySphereComponent(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
-        int textureHandle, bool flipSkyTexture)
+    public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, 
+        bool flipSkyTexture)
     {
-        m_config = config;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryVao = new("Sky geometry");
         m_geometryVbo = new("Sky geometry");
