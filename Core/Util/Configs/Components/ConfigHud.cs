@@ -46,8 +46,12 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Show world stats")]
     public readonly ConfigValue<bool> ShowStats = new(false);
 
-    [ConfigInfo("Amount to scale minimal hud.")]
-    [OptionMenu(OptionSectionType.Hud, "Hud scale", spacer: true)]
+    [ConfigInfo("If the hud should be autoscaled.")]
+    [OptionMenu(OptionSectionType.Hud, "Autoscale hud", spacer: true)]
+    public readonly ConfigValue<bool> AutoScale = new(true);
+
+    [ConfigInfo("Amount to scale the hud.")]
+    [OptionMenu(OptionSectionType.Hud, "Hud scale")]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
     public readonly ConfigHudAutoMap AutoMap = new();
