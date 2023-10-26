@@ -298,6 +298,9 @@ public class KeyBindingSection : IOptionSection
                 hud.Text("No binding", Fonts.SmallGray, fontSize, (xOffset, y), out Dimension noBindingArea,
                     window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
 
+                int rowHeight = Math.Max(noBindingArea.Height, commandArea.Height);
+                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                m_menuPositionList.Add(rowDimensions, cmdIndex);
                 y += Math.Max(noBindingArea.Height, commandArea.Height);
             }
             else
