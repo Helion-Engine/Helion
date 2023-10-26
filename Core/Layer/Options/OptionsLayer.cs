@@ -58,7 +58,8 @@ public class OptionsLayer : IGameLayer
         m_sections = GenerateSections();
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
-        m_config.Window.Virtual.Enable.OnChanged += WindowEnable_OnChanged;
+        m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
+        m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
     }
 
     public void SetMouseStartPosition()
@@ -67,9 +68,17 @@ public class OptionsLayer : IGameLayer
         m_setMouse = true;
     }
 
-    private void WindowEnable_OnChanged(object? sender, bool e) => m_resetMouse = true;
+    private void WindowVirtualDimension_OnChanged(object? sender, Dimension e) => HandleResize();
 
-    private void WindowState_OnChanged(object? sender, RenderWindowState e) => m_resetMouse = true;
+    private void WindowVirtualEnable_OnChanged(object? sender, bool e) => HandleResize();
+
+    private void WindowState_OnChanged(object? sender, RenderWindowState e) => HandleResize();
+
+    private void HandleResize()
+    {
+        m_resetMouse = true;
+        m_scrollOffset = 0;
+    }
 
     private void ResetMousePosition(IHudRenderContext hud)
     {
