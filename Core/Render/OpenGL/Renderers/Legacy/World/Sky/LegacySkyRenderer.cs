@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Configs;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -17,15 +14,13 @@ public class LegacySkyRenderer : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
-    private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
     private readonly List<ISkyComponent> m_skyComponentsList = new();
 
-    public LegacySkyRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
+    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
-        m_config = config;
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
     }
@@ -73,7 +68,7 @@ public class LegacySkyRenderer : IDisposable
         if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_config, m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture);
+        sky = new SkySphereComponent(m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture);
         m_skyComponents[textureHandleLookup] = sky;
         m_skyComponentsList.Add(sky);
         return true;

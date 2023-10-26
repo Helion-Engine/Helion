@@ -8,23 +8,19 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
-using Helion.World.Special.SectorMovement;
 using Helion.World.Static;
 using System;
 using System.Collections.Generic;
-using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
-using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -62,13 +58,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     // These are the flags to ignore when setting a side back to static.
     private SectorDynamic m_sideDynamicIgnore;
 
-    public StaticCacheGeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
+    public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
     {
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
-        m_skyRenderer = new(config, archiveCollection, textureManager);
+        m_skyRenderer = new(archiveCollection, textureManager);
     }
 
     static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)

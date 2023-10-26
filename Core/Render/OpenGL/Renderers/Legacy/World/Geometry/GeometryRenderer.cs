@@ -16,10 +16,8 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
-using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -90,10 +88,10 @@ public class GeometryRenderer : IDisposable
         m_worldDataManager = worldDataManager;
         m_viewClipper = viewClipper;
         Portals = new(archiveCollection, glTextureManager);
-        m_skyRenderer = new LegacySkyRenderer(config, archiveCollection, glTextureManager);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
-        m_staticCacheGeometryRenderer = new(config, archiveCollection, glTextureManager, staticProgram, this);
+        m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
         m_maxDistanceSquared = config.Render.MaxDistance * config.Render.MaxDistance;
 
         for (int i = 0; i < m_wallVertices.Length; i++)
