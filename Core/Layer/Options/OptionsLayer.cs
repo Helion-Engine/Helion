@@ -47,6 +47,7 @@ public class OptionsLayer : IGameLayer
     private string m_sectionMessage = string.Empty;
     private bool m_locked;
     private bool m_resetMouse;
+    private bool m_setMouse;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
     {
@@ -60,11 +61,15 @@ public class OptionsLayer : IGameLayer
         m_config.Window.Virtual.Enable.OnChanged += WindowEnable_OnChanged;
     }
 
-    public void SetMouseStartPosition() => m_resetMouse = true;
+    public void SetMouseStartPosition()
+    {
+        m_resetMouse = m_cursorPos == Vec2I.Zero;
+        m_setMouse = true;
+    }
 
-    private void WindowEnable_OnChanged(object? sender, bool e) => SetMouseStartPosition();
+    private void WindowEnable_OnChanged(object? sender, bool e) => m_resetMouse = true;
 
-    private void WindowState_OnChanged(object? sender, RenderWindowState e) => SetMouseStartPosition();
+    private void WindowState_OnChanged(object? sender, RenderWindowState e) => m_resetMouse = true;
 
     private void ResetMousePosition(IHudRenderContext hud)
     {
@@ -178,9 +183,15 @@ public class OptionsLayer : IGameLayer
             sections.Add(optionSection);
             optionSection.OnLockChanged += OptionSection_OnLockChanged;
             optionSection.OnRowChanged += OptionSection_OnRowChanged;
+            optionSection.OnError += OptionSection_OnError;
         }
         
         return sections;
+    }
+
+    private void OptionSection_OnError(object? sender, string error)
+    {
+        ShowMessage(error);
     }
 
     private void OptionSection_OnRowChanged(object? sender, RowEvent e)
@@ -197,7 +208,6 @@ public class OptionsLayer : IGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        m_cursorPos = input.Manager.MousePosition;
         var section = m_sections[m_currentSectionIndex];
 
         if (m_locked)
@@ -322,12 +332,8 @@ public class OptionsLayer : IGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
 
-        if (m_resetMouse)
-        {
-            ResetMousePosition(hud);
-            m_resetMouse = false;
-        }
-        
+        SetMouseFromRender(hud);
+
         FillBackgroundRepeatingImages(ctx, hud);
 
         int fontSize = m_config.Hud.GetMediumFontSize();
@@ -383,8 +389,32 @@ public class OptionsLayer : IGameLayer
                 hud.Image(cursor, m_cursorPos, resourceNamespace: ResourceNamespace.Graphics, scale: scale);
             }
         }
-        else        
+        else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
+    }
+
+    private void SetMouseFromRender(IHudRenderContext hud)
+    {
+        bool set = false;
+
+        if (m_resetMouse)
+        {
+            ResetMousePosition(hud);
+            m_resetMouse = false;
+            set = true;
+        }
+
+        if (m_setMouse)
+        {
+            m_window.SetMousePosition(m_cursorPos);
+            m_setMouse = false;
+            set = true;
+        }
+
+        if (set)
+            return;
+
+        m_cursorPos = m_window.InputManager.MousePosition; 
     }
 
     private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)

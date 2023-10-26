@@ -44,6 +44,7 @@ public interface IOptionSection
 {
     public event EventHandler<LockEvent>? OnLockChanged;
     public event EventHandler<RowEvent>? OnRowChanged;
+    public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
 

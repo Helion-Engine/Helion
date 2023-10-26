@@ -32,6 +32,7 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<LockEvent>? OnLockChanged;
     public event EventHandler<RowEvent>? OnRowChanged;
     public event EventHandler<ConfigInfoAttribute>? OnAttributeChanged;
+    public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
@@ -327,6 +328,8 @@ public class ListedConfigSection : IOptionSection
 
         if (result == ConfigSetResult.Set)
             OnAttributeChanged?.Invoke(this, configAttr);
+        else
+            OnError?.Invoke(this, "Enter a valid value");
 
         Log.ConditionalTrace($"Config value with '{newValue}'for update result: {result}");
         m_currentEditValue = null;
