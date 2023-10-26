@@ -41,7 +41,7 @@ public class ConfigWindow
 
     [ConfigInfo("The width and height of the window.")]
     [OptionMenu(OptionSectionType.Video, "Window size")]
-    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.HasPositiveArea);
+    public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.Width >= 320 && dim.Height >= 200);
 
     public readonly ConfigWindowVirtual Virtual = new();
 
