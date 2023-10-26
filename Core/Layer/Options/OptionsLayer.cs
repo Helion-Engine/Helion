@@ -12,6 +12,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
@@ -33,32 +34,42 @@ public class OptionsLayer : IGameLayer
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
+    private readonly IWindow m_window;
     private readonly List<IOptionSection> m_sections;
-    private readonly MenuPositionList m_backForwardPos = new();
+    private readonly BoxList m_backForwardPos = new();
+    private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
     private int m_scrollOffset;
-    private int m_windowHeight;
     private int m_headerHeight;
     private int m_messageTicks;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
     private bool m_locked;
+    private bool m_resetMouse;
 
-    public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager)
+    public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
     {
         m_manager = manager;
         m_config = config;
         m_soundManager = soundManager;
+        m_window = window;
         m_sections = GenerateSections();
+
+        m_config.Window.State.OnChanged += WindowState_OnChanged;
+        m_config.Window.Virtual.Enable.OnChanged += WindowEnable_OnChanged;
     }
 
-    public Vec2I GetMouseStartPosition(IWindow window)
+    public void SetMouseStartPosition() => m_resetMouse = true;
+
+    private void WindowEnable_OnChanged(object? sender, bool e) => SetMouseStartPosition();
+
+    private void WindowState_OnChanged(object? sender, RenderWindowState e) => SetMouseStartPosition();
+
+    private void ResetMousePosition(IHudRenderContext hud)
     {
-        // Set start position under header if not set, otherwise set to the position it was before
-        if (m_cursorPos == Vec2I.Zero)
-            m_cursorPos = (window.Dimension.Width / 2, m_config.Hud.GetScaled(45));
-        return m_cursorPos;
+        m_cursorPos = (hud.Dimension.Width / 2, m_config.Hud.GetScaled(45));
+        m_window.SetMousePosition(m_cursorPos);
     }
 
     private List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
@@ -221,7 +232,7 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.End))
                 section.SetToLastSelection();
 
-            bool scrollRequired = ScrollRequired(m_windowHeight, section);
+            bool scrollRequired = ScrollRequired(m_windowSize.Height, section);
             if (checkScroll && scrollRequired)
                 ScrollToVisibleArea(section);
 
@@ -229,11 +240,11 @@ public class OptionsLayer : IGameLayer
             {
                 int scrollAmount = GetScrollAmount();
                 m_scrollOffset += input.ConsumeScroll() * scrollAmount;
-                m_scrollOffset = Math.Min(0, m_scrollOffset);
+                m_scrollOffset = Math.Clamp(m_scrollOffset, -(section.GetRenderHeight() + m_headerHeight - m_windowSize.Height + scrollAmount), 0);
             }
 
             int buttonIndex = -1;
-            if (!m_locked && m_backForwardPos.GetRowIndexForMouse(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
+            if (!m_locked && m_backForwardPos.GetIndex(m_cursorPos, out int checkButtonIndex) && input.ConsumeKeyPressed(Key.MouseLeft))
                 buttonIndex = checkButtonIndex;
 
             section.HandleInput(input);
@@ -263,9 +274,9 @@ public class OptionsLayer : IGameLayer
     {
         int scrollAmount = GetScrollAmount();
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + m_windowHeight)
+        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + m_windowSize.Height)
         {
-            m_scrollOffset = (endY + m_headerHeight - m_windowHeight);
+            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height);
             m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
         }
 
@@ -306,16 +317,23 @@ public class OptionsLayer : IGameLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
+        m_windowSize = hud.Dimension;
         m_backForwardPos.Clear();
         ctx.ClearDepth();
         hud.Clear(Color.Gray);
+
+        if (m_resetMouse)
+        {
+            ResetMousePosition(hud);
+            m_resetMouse = false;
+        }
+        
         FillBackgroundRepeatingImages(ctx, hud);
+
         int fontSize = m_config.Hud.GetMediumFontSize();
         int smallPad = m_config.Hud.GetScaled(2);
         hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Fonts.SmallGray, fontSize, (smallPad, smallPad),
             out _, both: Align.TopLeft, color: Color.Red);
-
-        m_windowHeight = hud.Dimension.Height;
 
         m_headerHeight = 0;
         int y = m_scrollOffset;
@@ -326,8 +344,8 @@ public class OptionsLayer : IGameLayer
         if (m_sections.Count > 1)
         {
             int xOffset = (hud.Dimension.Width - titleArea.Dimension.Width) / 2;
-            int yOffset = (m_headerHeight / 2) - (titleArea.Dimension.Height / 2);
             var arrowSize = hud.MeasureText("<-", Fonts.SmallGray, fontSize);
+            int yOffset = (titleArea.Dimension.Height / 2) - (arrowSize.Height / 2);
             Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleArea.TopLeft.Y + yOffset);
             Vec2I forwardArrowPos = (xOffset + titleArea.Dimension.Width + padding, titleArea.TopRight.Y + yOffset);
             hud.Text("<-", Fonts.SmallGray, fontSize, backArrowPos, color: Color.White);
@@ -355,7 +373,7 @@ public class OptionsLayer : IGameLayer
             if (m_locked)
                 return;
 
-            bool hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetRowIndexForMouse(m_cursorPos, out _);
+            bool hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
 
             string cursor = hover ? "pointer" : "cursor";
             if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))

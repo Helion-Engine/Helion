@@ -87,7 +87,7 @@ public class GameLayerManager : IGameLayerManager
         m_renderer = null!;
         m_ctx = null!;
 
-        m_optionsLayer = new(this, m_config, m_soundManager);
+        m_optionsLayer = new(this, m_config, m_soundManager, m_window);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
     }
@@ -367,7 +367,7 @@ public class GameLayerManager : IGameLayerManager
         if (MenuLayer == null)
             CreateMenuLayer();
 
-        m_window.SetMousePosition(m_optionsLayer.GetMouseStartPosition(m_window));
+        m_optionsLayer.SetMouseStartPosition();
         MenuLayer.ShowOptionsMenu();
     }
 

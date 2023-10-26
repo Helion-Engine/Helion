@@ -29,7 +29,7 @@ public class KeyBindingSection : IOptionSection
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
     private readonly IConfig m_config;
-    private readonly MenuPositionList m_menuPositionList = new();
+    private readonly BoxList m_menuPositionList = new();
     private readonly SoundManager m_soundManager;
     private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
@@ -53,7 +53,7 @@ public class KeyBindingSection : IOptionSection
     public void ResetSelection() => m_currentRow = 0;
 
     public bool OnClickableItem(Vec2I mousePosition) =>
-        m_menuPositionList.GetRowIndexForMouse(mousePosition, out _);
+        m_menuPositionList.GetIndex(mousePosition, out _);
 
     private static HashSet<string> GetAllCommandNames()
     {
@@ -200,7 +200,7 @@ public class KeyBindingSection : IOptionSection
             {
                 m_updateMouse = false;
                 m_mousePos = input.Manager.MousePosition;
-                if (m_menuPositionList.GetRowIndexForMouse(m_mousePos, out int rowIndex))
+                if (m_menuPositionList.GetIndex(m_mousePos, out int rowIndex))
                     m_currentRow = rowIndex;
             }
 

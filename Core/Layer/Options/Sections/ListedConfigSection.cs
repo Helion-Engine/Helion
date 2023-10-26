@@ -35,7 +35,7 @@ public class ListedConfigSection : IOptionSection
 
     public OptionSectionType OptionType { get; }
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
-    private readonly MenuPositionList m_menuPositionList = new();
+    private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
     private readonly Stopwatch m_stopwatch = new();
@@ -71,7 +71,7 @@ public class ListedConfigSection : IOptionSection
     public void ResetSelection() => m_currentRowIndex = 0;
 
     public bool OnClickableItem(Vec2I mousePosition) =>
-        m_menuPositionList.GetRowIndexForMouse(mousePosition, out _);
+        m_menuPositionList.GetIndex(mousePosition, out _);
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
@@ -96,7 +96,7 @@ public class ListedConfigSection : IOptionSection
             {
                 m_updateMouse = false;
                 m_mousePos = input.Manager.MousePosition;
-                if (m_menuPositionList.GetRowIndexForMouse(m_mousePos, out int rowIndex))
+                if (m_menuPositionList.GetIndex(m_mousePos, out int rowIndex))
                     m_currentRowIndex = rowIndex;
             }
 
@@ -108,7 +108,7 @@ public class ListedConfigSection : IOptionSection
             bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
             if (mousePress || input.ConsumeKeyPressed(Key.Enter))
             {
-                if (mousePress && m_menuPositionList.GetRowIndexForMouse(input.Manager.MousePosition, out int rowIndex))
+                if (mousePress && m_menuPositionList.GetIndex(input.Manager.MousePosition, out int rowIndex))
                     m_currentRowIndex = rowIndex;
 
                 var configData = m_configValues[m_currentRowIndex];
