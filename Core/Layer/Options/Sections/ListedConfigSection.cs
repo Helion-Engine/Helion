@@ -109,8 +109,12 @@ public class ListedConfigSection : IOptionSection
             bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
             if (mousePress || input.ConsumeKeyPressed(Key.Enter))
             {
-                if (mousePress && m_menuPositionList.GetIndex(input.Manager.MousePosition, out int rowIndex))
+                if (mousePress)
+                {
+                    if (!m_menuPositionList.GetIndex(input.Manager.MousePosition, out int rowIndex))
+                        return;
                     m_currentRowIndex = rowIndex;
+                }
 
                 var configData = m_configValues[m_currentRowIndex];
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);

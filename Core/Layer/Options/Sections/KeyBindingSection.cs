@@ -216,8 +216,16 @@ public class KeyBindingSection : IOptionSection
                 m_currentRow = (m_currentRow + 1) % m_commandToKeys.Count;
             }
 
-            if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
+            bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
+            if (mousePress || input.ConsumeKeyPressed(Key.Enter))
             {
+                if (mousePress)
+                {
+                    if (!m_menuPositionList.GetIndex(input.Manager.MousePosition, out int rowIndex))
+                        return;
+                    m_currentRow = rowIndex;
+                }
+
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_updatingKeyBinding = true;
                 OnLockChanged?.Invoke(this, new(Lock.Locked, "Press any key to add binding. Escape to cancel."));

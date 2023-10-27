@@ -35,6 +35,5 @@ public class ConfigAudio
     public readonly ConfigValue<bool> LogErrors = new(false);
 
     [ConfigInfo("The main device to use for audio.")]
-    [OptionMenu(OptionSectionType.Audio, "Sound device", disabled: true)]
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 }

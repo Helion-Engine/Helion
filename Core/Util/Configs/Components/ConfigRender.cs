@@ -68,11 +68,10 @@ public class ConfigRender
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
     [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
-    [OptionMenu(OptionSectionType.Render, "Force pipeline flush (for old GPUs)")]
+    [OptionMenu(OptionSectionType.Render, "Pipeline flush (for old GPUs)")]
     public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
 
     [ConfigInfo("The multisampling amount. A value of 1 is the same as being off.")]
-    [OptionMenu(OptionSectionType.Render, "Multisampling", disabled: true)]
     public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
 
     [ConfigInfo("If any sprite should clip the floor.")]

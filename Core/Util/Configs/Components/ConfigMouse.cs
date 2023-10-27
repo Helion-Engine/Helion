@@ -35,6 +35,5 @@ public class ConfigMouse
     public readonly ConfigValue<bool> Focus = new(true);
 
     [ConfigInfo("A scaling divisor that allows other sensitivities to be reasonable values.")]
-    [OptionMenu(OptionSectionType.Mouse, "Pixel divisor", disabled: true)]
     public readonly ConfigValue<double> PixelDivisor = new(1024.0, Greater(0.0));
 }
