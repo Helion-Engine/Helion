@@ -219,7 +219,8 @@ public class EntityRenderer : IDisposable
 
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
-        
+
+        SetViewDirection(renderInfo.Camera.Direction.XY.Double);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ExtraLight(extraLight);
         m_program.HasInvulnerability(drawInvulnerability);

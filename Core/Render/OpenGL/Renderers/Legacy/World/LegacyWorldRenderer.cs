@@ -144,8 +144,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_viewerEntityId = renderInfo.ViewerEntity.Id;
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
-        m_entityRenderer.SetViewDirection(m_renderData.ViewDirection);
-        m_entityRenderer.SetTickFraction(renderInfo.TickFraction);
         m_renderData.CheckCount = ++WorldStatic.CheckCounter;
 
         m_renderData.MaxDistance = world.Config.Render.MaxDistance;
