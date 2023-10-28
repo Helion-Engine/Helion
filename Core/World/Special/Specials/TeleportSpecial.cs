@@ -83,6 +83,7 @@ public struct TeleportSpecial
 
         bool isMonsterCloset = entity.InMonsterCloset;
         Vec3D oldPosition = entity.Position;
+        Vec3D velocity = entity.Velocity;
         if (Teleport(entity, pos, angle, offsetZ))
         {
             if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
@@ -90,7 +91,7 @@ public struct TeleportSpecial
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
             {
-                var velocityAngle = Math.Atan2(entity.Velocity.Y, entity.Velocity.X);
+                var velocityAngle = Math.Atan2(velocity.Y, velocity.X);
                 m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(velocityAngle, 0.0) * Constants.TeleportOffsetDist));
             }
 
