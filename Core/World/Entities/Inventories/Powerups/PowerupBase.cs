@@ -13,13 +13,15 @@ public class PowerupBase : IPowerup
 {
     public EntityDefinition EntityDefinition { get; private set; }
     public PowerupType PowerupType { get; private set; }
-    public Color? DrawColor => m_drawColor;
+    public Color? DrawColor { get; private set; }
     public float DrawAlpha { get; private set; }
     public bool DrawPowerupEffect { get; private set; } = true;
     public bool DrawEffectActive { get; private set; } = true;
     public PowerupEffectType EffectType { get; private set; } = PowerupEffectType.None;
     public int Ticks => m_tics;
     public int EffectTicks => m_effectTics;
+    public readonly Color? PowerupColor;
+    public readonly float PowerupAlpha;
 
     private const int DefaultEffectTicks = 60 * (int)Constants.TicksPerSecond;
 
@@ -27,7 +29,6 @@ public class PowerupBase : IPowerup
     private int m_tics;
     private int m_effectTics;
     private float m_subAlpha;
-    private Color? m_drawColor;
 
     public PowerupBase(Player player, EntityDefinition definition, PowerupType type)
     {
@@ -37,8 +38,10 @@ public class PowerupBase : IPowerup
 
         if (EntityDefinition.Properties.Powerup.Color != null)
         {
-            m_drawColor = GetColor(EntityDefinition.Properties.Powerup.Color);
-            DrawAlpha = (float)EntityDefinition.Properties.Powerup.Color.Alpha;
+            PowerupColor = GetColor(EntityDefinition.Properties.Powerup.Color);
+            DrawColor = PowerupColor;
+            PowerupAlpha = (float)EntityDefinition.Properties.Powerup.Color.Alpha;
+            DrawAlpha = PowerupAlpha;
         }
 
         SetTics();
@@ -55,7 +58,8 @@ public class PowerupBase : IPowerup
         m_player = player;
         EntityDefinition = definition;
         PowerupType = (PowerupType)model.PowerupType;
-        m_drawColor = ColorModel.ToColor(model.DrawColor);
+        PowerupColor = ColorModel.ToColor(model.PowerupColor);
+        DrawColor = ColorModel.ToColor(model.DrawColor);
         DrawAlpha = model.DrawAlpha;
         DrawPowerupEffect = model.DrawPowerupEffect;
         DrawEffectActive = model.DrawEffectActive;
@@ -63,6 +67,7 @@ public class PowerupBase : IPowerup
         m_tics = model.Tics;
         m_effectTics = model.EffectTics;
         m_subAlpha = model.SubAlpha;
+        PowerupAlpha = model.PowerupAlpha;
     }
 
     public PowerupModel ToPowerupModel()
@@ -71,6 +76,7 @@ public class PowerupBase : IPowerup
         {
             Name = EntityDefinition.Name.ToString(),
             PowerupType = (int)PowerupType,
+            PowerupColor = ColorModel.ToColorModel(PowerupColor),
             DrawColor = ColorModel.ToColorModel(DrawColor),
             DrawAlpha = DrawAlpha,
             DrawPowerupEffect = DrawPowerupEffect,
@@ -78,7 +84,8 @@ public class PowerupBase : IPowerup
             EffectType = (int)EffectType,
             Tics = m_tics,
             EffectTics = m_effectTics,
-            SubAlpha = m_subAlpha
+            SubAlpha = m_subAlpha,
+            PowerupAlpha = PowerupAlpha
         };
     }
 
@@ -131,7 +138,7 @@ public class PowerupBase : IPowerup
         else
         {
             DrawEffectActive = false;
-            m_drawColor = null;
+            DrawColor = null;
         }
 
         if (m_tics <= 0)
@@ -145,7 +152,7 @@ public class PowerupBase : IPowerup
 
     private void CheckDrawPowerupEffect()
     {
-        if (PowerupType == PowerupType.Strength && m_drawColor.HasValue)
+        if (PowerupType == PowerupType.Strength && PowerupColor.HasValue)
         {
             DrawAlpha -= m_subAlpha;
             return;
@@ -176,5 +183,9 @@ public class PowerupBase : IPowerup
     public void Reset()
     {
         SetTics();
+
+        DrawEffectActive = true;
+        DrawColor = PowerupColor;
+        DrawAlpha = PowerupAlpha;
     }
 }

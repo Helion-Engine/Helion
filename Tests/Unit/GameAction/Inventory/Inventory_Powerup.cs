@@ -16,7 +16,7 @@ namespace Helion.Tests.Unit.GameAction
         public void RadiationSuit()
         {
             AssertNoPowerups(Player);
-            AssertPowerUp(World, Player, PowerupType.IronFeet, "Radsuit", () => { }, color: true);
+            AssertPowerUp(World, Player, PowerupType.IronFeet, "Radsuit", () => { }, color: true, alpha: 0.125f);
         }
 
         [Fact(DisplayName = "Invulnerability sphere")]
@@ -81,13 +81,15 @@ namespace Helion.Tests.Unit.GameAction
             InventoryUtil.AssertWeapon(Player.Weapon, "Pistol");
             Player.PendingWeapon.Should().BeNull();
             AssertNoPowerups(Player);
-            AssertPowerUp(World, Player, PowerupType.Strength, "Berserk", () => { }, color: true, effectTimeout: false);
+            AssertPowerUp(World, Player, PowerupType.Strength, "Berserk", () => { }, color: true, effectTimeout: false, alpha: 0.5f);
             Player.Health.Should().Be(100);
             InventoryUtil.AssertWeapon(Player.PendingWeapon, "Fist");
             GameActions.TickWorld(World, 2100);
             Player.Inventory.PowerupEffectColor.Should().BeNull();
             // Powerup stays past color (effectively forever)
             Player.Inventory.IsPowerupActive(PowerupType.Strength);
+
+            AssertPowerUp(World, Player, PowerupType.Strength, "Berserk", () => { }, color: true, effectTimeout: false, checkActive: false, alpha: 0.5f);
         }
 
         [Fact(DisplayName = "Stacked powerup effects")]
@@ -123,6 +125,7 @@ namespace Helion.Tests.Unit.GameAction
             World.PerformItemPickup(Player, radsuit);
             var powerup = Player.Inventory.GetPowerup(PowerupType.IronFeet)!;
             powerup.Should().NotBeNull();
+            powerup.DrawAlpha.Should().Be(0.125f);
 
             powerup.EffectTicks.Should().Be(35 * 60);
             powerup.Ticks.Should().Be(35 * 60);
@@ -135,6 +138,7 @@ namespace Helion.Tests.Unit.GameAction
             World.PerformItemPickup(Player, radsuit);
             powerup.EffectTicks.Should().Be(35 * 60);
             powerup.Ticks.Should().Be(35 * 60);
+            powerup.DrawAlpha.Should().Be(0.125f);
         }
 
         [Fact(DisplayName = "Powerup flashes color")]
@@ -167,9 +171,10 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         private static void AssertPowerUp(WorldBase world, Player player, PowerupType type, string powerupDefName, Action onGive,
-            bool color = false, bool colorMap = false, bool effectTimeout = true)
+            bool color = false, bool colorMap = false, bool effectTimeout = true, bool checkActive = true, float alpha = -1)
         {
-            player.Inventory.IsPowerupActive(type).Should().BeFalse();
+            if (checkActive)
+                player.Inventory.IsPowerupActive(type).Should().BeFalse();
 
             var item = GameActions.CreateEntity(world, powerupDefName, Vec3D.Zero);
             world.PerformItemPickup(player, item);
@@ -184,6 +189,9 @@ namespace Helion.Tests.Unit.GameAction
                 player.Inventory.PowerupEffectColor.Should().Be(powerup);
             else
                 player.Inventory.PowerupEffectColor.Should().BeNull();
+
+            if (alpha != -1)
+                player.Inventory.PowerupEffectColor.DrawAlpha.Should().Be(alpha);
 
             if (colorMap)
                 player.Inventory.PowerupEffectColorMap.Should().Be(powerup);

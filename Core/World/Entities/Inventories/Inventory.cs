@@ -317,6 +317,7 @@ public class Inventory
         if (existingPowerup != null)
         {
             existingPowerup.Reset();
+            SetPriorityPowerupEffects();
             return;
         }
 
