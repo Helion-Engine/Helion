@@ -20,7 +20,7 @@ public partial class ConsoleLayer
     private readonly List<string> m_bestOptions = new();
     private DateTime m_lastTabTime = DateTime.Now;
     private int m_submittedInputIndex = NoInputMessageIndex;
-    private int m_bestOptionIndex = 0;
+    private int m_bestOptionIndex;
 
     public void HandleInput(IConsumableInput input)
     {
@@ -31,8 +31,8 @@ public partial class ConsoleLayer
         }
 
         foreach (char c in input.ConsumeTypedCharacters())
-            m_console.AddInput(c);
-        input.ConsumeTypedCharacters();
+            if (c != '`')
+                m_console.AddInput(c);
 
         if (input.ConsumePressOrContinuousHold(Key.Backspace))
             m_console.RemoveInputCharacter();
