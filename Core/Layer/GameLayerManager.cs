@@ -47,6 +47,7 @@ public class GameLayerManager : IGameLayerManager
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
+    public LoadingLayer? LoadingLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
@@ -162,6 +163,10 @@ public class GameLayerManager : IGameLayerManager
             Remove(IwadSelectionLayer);
             IwadSelectionLayer = layer;
             break;
+        case LoadingLayer layer:
+            Remove(LoadingLayer);
+            LoadingLayer = layer;
+            break;
         case null:
             break;
         default:
@@ -237,6 +242,11 @@ public class GameLayerManager : IGameLayerManager
         {
             IwadSelectionLayer?.Dispose();
             IwadSelectionLayer = null;
+        }
+        else if (ReferenceEquals(layer, LoadingLayer))
+        {
+            LoadingLayer?.Dispose();
+            LoadingLayer = null;
         }
     }
 
@@ -473,6 +483,7 @@ public class GameLayerManager : IGameLayerManager
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
+        LoadingLayer?.Render(m_ctx, hudCtx);
         MenuLayer?.Render(hudCtx);
         OptionsLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);
@@ -498,6 +509,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(MenuLayer);
         Remove(OptionsLayer);
         Remove(ConsoleLayer);
+        Remove(LoadingLayer);
 
         m_disposed = true;
     }

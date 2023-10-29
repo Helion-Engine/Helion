@@ -61,6 +61,12 @@ public class IwadSelectionLayer : IGameLayer
 
         const int FontSize = 20;
 
+        if (m_iwadData.Count == 0)
+        {
+            hud.Text($"No IWADs found :(", ConsoleFont, FontSize, (0, y + 24), out dim, both: Align.Center);
+            return;
+        }
+
         foreach (var data in m_iwadData)
         {
             var measuredDim = hud.MeasureText(data.Name, ConsoleFont, FontSize);
@@ -82,7 +88,7 @@ public class IwadSelectionLayer : IGameLayer
         hud.Text("* ", ConsoleFont, FontSize, (-maxWidth / 2 - 8, selectedY), both: Align.Center);
 
         if (m_loading != null)
-            hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, 20, (0, y + 24), out dim, both: Align.Center);
+            hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, FontSize, (0, y + 24), out dim, both: Align.Center);
     }
 
     public void HandleInput(IConsumableInput input)

@@ -16,6 +16,9 @@ namespace Helion.Client;
 
 public partial class Client
 {
+    private IwadSelectionLayer? m_iwadSelectionLayer;
+    private LoadingLayer? m_loadingLayer;
+
     private async Task Initialize(string? iwad = null)
     {
         if (iwad == null && GetIwad() == null)
@@ -26,6 +29,10 @@ public partial class Client
             m_layerManager.Add(m_iwadSelectionLayer);
             return;
         }
+
+        m_layerManager.Remove(m_loadingLayer);
+        m_loadingLayer = new(m_archiveCollection, "Loading files...");
+        m_layerManager.Add(m_loadingLayer);
 
         await Task.Run(() => LoadFiles(iwad));
 
@@ -49,9 +56,9 @@ public partial class Client
             CheckLoadMap();
             AddTitlepicIfNoMap();
         }
-    }
 
-    private IwadSelectionLayer? m_iwadSelectionLayer;
+        m_layerManager.Remove(m_loadingLayer);
+    }
 
     private void AddTitlepicIfNoMap()
     {
@@ -149,6 +156,13 @@ public partial class Client
 
     private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
+        if (m_loadingLayer != null)
+        {
+            var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(mapName);
+            string text = mapInfo == null ? mapName : $"{mapName}: {mapInfo.GetNiceNameOrLookup(m_archiveCollection)}";
+            m_loadingLayer.LoadingText = $"Loading {text}...";
+        }
+
         m_console.ClearInputText();
         m_console.AddInput($"map {mapName}\n");
 
