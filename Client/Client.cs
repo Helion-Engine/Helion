@@ -37,7 +37,7 @@ public partial class Client : IDisposable, IInputManagement
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly AppInfo AppInfo = new();
 
-    private readonly ArchiveCollection m_archiveCollection;
+    private ArchiveCollection m_archiveCollection;
     private readonly IAudioSystem m_audioSystem;
     private readonly CommandLineArgs m_commandLineArgs;
     private readonly IConfig m_config;
@@ -196,7 +196,7 @@ public partial class Client : IDisposable, IInputManagement
     /// </summary>
     public void Run()
     {
-        Initialize();
+        _ = Initialize();
         m_window.Run();
         m_profiler.LogStats();
     }

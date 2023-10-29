@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
+using Helion.Layer.IwadSelection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -13,9 +16,18 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    private void Initialize()
+    private async Task Initialize(string? iwad = null)
     {
-        LoadFiles();
+        if (iwad == null && GetIwad() == null)
+        {
+            m_archiveCollection.Load(Array.Empty<string>());
+            m_iwadSelectionLayer = new(m_archiveCollection);
+            m_iwadSelectionLayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+            m_layerManager.Add(m_iwadSelectionLayer);
+            return;
+        }
+
+        await Task.Run(() => LoadFiles(iwad));
 
         if (m_commandLineArgs.Skill.HasValue)
             SetSkill(m_commandLineArgs.Skill.Value);
@@ -39,18 +51,27 @@ public partial class Client
         }
     }
 
+    private IwadSelectionLayer? m_iwadSelectionLayer;
+
     private void AddTitlepicIfNoMap()
     {
         if (m_layerManager.WorldLayer != null)
             return;
 
+        m_layerManager.Remove(m_iwadSelectionLayer);
         TitlepicLayer layer = new(m_layerManager, m_archiveCollection, m_audioSystem);
         m_layerManager.Add(layer);
     }
 
-    private void LoadFiles()
+    private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
-        if (!m_archiveCollection.Load(m_commandLineArgs.Files, GetIwad(),
+        await Initialize(iwad);
+        m_layerManager.Remove(m_iwadSelectionLayer);
+    }
+
+    private bool LoadFiles(string? iwad = null)
+    {
+        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(),
             dehackedPatch: m_commandLineArgs.DehackedPatch))
         {
             if (m_archiveCollection.Assets == null)
@@ -59,7 +80,10 @@ public partial class Client
                 ShowFatalError("Failed to load IWAD.");
             else
                 ShowFatalError("Failed to load files.");
+            return false;
         }
+
+        return true;
     }
 
     private void CheckLoadMap()
@@ -92,12 +116,6 @@ public partial class Client
         if (m_commandLineArgs.Iwad != null)
             return m_commandLineArgs.Iwad;
 
-        string? iwad = LocateIwad();
-        if (iwad != null)
-            return iwad;
-
-        Log.Error("No IWAD found!");
-        ShowConsole();
         return null;
     }
 

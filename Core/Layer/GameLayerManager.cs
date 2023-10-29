@@ -6,6 +6,7 @@ using Helion.Audio.Sounds;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
+using Helion.Layer.IwadSelection;
 using Helion.Layer.Menus;
 using Helion.Layer.Options;
 using Helion.Layer.Worlds;
@@ -45,6 +46,7 @@ public class GameLayerManager : IGameLayerManager
     public TitlepicLayer? TitlepicLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
+    public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
@@ -156,6 +158,10 @@ public class GameLayerManager : IGameLayerManager
             Remove(WorldLayer);
             WorldLayer = layer;
             break;
+        case IwadSelectionLayer layer:
+            Remove(IwadSelectionLayer);
+            IwadSelectionLayer = layer;
+            break;
         case null:
             break;
         default:
@@ -227,6 +233,11 @@ public class GameLayerManager : IGameLayerManager
             WorldLayer?.Dispose();
             WorldLayer = null;
         }
+        else if (ReferenceEquals(layer, IwadSelectionLayer))
+        {
+            IwadSelectionLayer?.Dispose();
+            IwadSelectionLayer = null;
+        }
     }
 
     private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
@@ -270,6 +281,7 @@ public class GameLayerManager : IGameLayerManager
             {
                 OptionsLayer?.HandleInput(input);
                 MenuLayer?.HandleInput(input);
+                IwadSelectionLayer?.HandleInput(input);
             }
 
             if (ConsoleLayer == null)
@@ -419,6 +431,7 @@ public class GameLayerManager : IGameLayerManager
 
         ConsoleLayer?.RunLogic(tickerInfo);
         OptionsLayer?.RunLogic(tickerInfo);
+        IwadSelectionLayer?.RunLogic(tickerInfo);
         MenuLayer?.RunLogic(tickerInfo);
         ReadThisLayer?.RunLogic(tickerInfo);
         EndGameLayer?.RunLogic(tickerInfo);
@@ -459,6 +472,7 @@ public class GameLayerManager : IGameLayerManager
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
+        IwadSelectionLayer?.Render(m_ctx, hudCtx);
         MenuLayer?.Render(hudCtx);
         OptionsLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);

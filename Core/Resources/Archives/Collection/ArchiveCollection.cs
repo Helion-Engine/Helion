@@ -27,6 +27,7 @@ using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Bytes;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
@@ -69,13 +70,15 @@ public class ArchiveCollection : IResources
     public TextureManager TextureManager { get; private set; }
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
+    public bool Loaded { get; private set; }
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
-    public readonly ArchiveCollectionEntries Entries = new();
-    public readonly DataEntries Data = new();
-    public readonly DefinitionEntries Definitions;
+    public ArchiveCollectionEntries Entries = new();
+    public DataEntries Data = new();
+    public DefinitionEntries Definitions;
     private readonly IArchiveLocator m_archiveLocator;
     private readonly List<Archive> m_archives = new();
     private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IConfig m_config;
     private string m_lastLoadedMapName = string.Empty;
     private IMap? m_lastLoadedMap;
     private bool m_lastLoadedMapIsTemp;
@@ -90,6 +93,7 @@ public class ArchiveCollection : IResources
         ImageRetriever = new ArchiveImageRetriever(this);
         TextureManager = new TextureManager(this);
         DataCache = dataCache;
+        m_config = config;
     }
 
     public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false) =>
@@ -258,6 +262,19 @@ public class ArchiveCollection : IResources
 
     public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null)
     {
+        if (Loaded)
+        {
+            m_overrideIWadInfo = null;
+            foreach (var archive in m_archives)
+                archive.Dispose();
+            m_archives.Clear();
+
+            Entries = new();
+            Data = new();
+            Definitions = new(this, m_config.Compatibility);
+        }
+
+        Loaded = true;
         List<string> filePaths = new();
         Archive? iwadArchive = null;
 
