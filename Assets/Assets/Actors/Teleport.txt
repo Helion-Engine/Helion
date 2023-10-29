@@ -20,6 +20,7 @@ actor TeleportDest 14
     +DONTSPLASH
     +ISTELEPORTSPOT
     +NOBLOCKMAP
+    +NOSECTOR
 }
 
 actor TeleportDest2 : TeleportDest 9044
