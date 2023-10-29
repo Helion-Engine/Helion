@@ -72,8 +72,8 @@ public partial class Client
 
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
-        await Initialize(iwad);
         m_layerManager.Remove(m_iwadSelectionLayer);
+        await Initialize(iwad);
     }
 
     private bool LoadFiles(string? iwad = null)
