@@ -91,8 +91,8 @@ public struct TeleportSpecial
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
             {
-                var velocityAngle = Math.Atan2(velocity.Y, velocity.X);
-                m_world.CreateTeleportFog(entity.Position + (Vec3D.UnitSphere(velocityAngle, 0.0) * Constants.TeleportOffsetDist));
+                Vec3D offsetUnit = Vec2D.UnitCircle(entity.AngleRadians).To3D(0);
+                m_world.CreateTeleportFog(entity.Position + (offsetUnit * Constants.TeleportOffsetDist));
             }
 
             return true;
