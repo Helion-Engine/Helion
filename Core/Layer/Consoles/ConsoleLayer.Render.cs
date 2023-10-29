@@ -101,21 +101,24 @@ public partial class ConsoleLayer
         int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
         int offsetCount = 0;
 
-        foreach (ConsoleMessage message in m_console.Messages)
+        lock (m_console.Messages)
         {
-            if (bottomY <= 0)
-                break;
-
-            if (offsetCount < m_messageRenderOffset)
+            foreach (ConsoleMessage message in m_console.Messages)
             {
-                offsetCount++;
-                continue;
+                if (bottomY <= 0)
+                    break;
+
+                if (offsetCount < m_messageRenderOffset)
+                {
+                    offsetCount++;
+                    continue;
+                }
+
+                hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea,
+                    anchor: Align.BottomLeft, color: message.Color, maxWidth: hud.Width);
+
+                bottomY -= drawArea.Height + BetweenMessagePadding;
             }
-
-            hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea,
-                anchor: Align.BottomLeft, color: message.Color, maxWidth: hud.Width);
-
-            bottomY -= drawArea.Height + BetweenMessagePadding;
         }
     }
 }

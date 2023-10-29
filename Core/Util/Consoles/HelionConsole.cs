@@ -160,8 +160,11 @@ public class HelionConsole : Target
         if (message.Length == 0)
             return;
 
-        Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime(), color));
-        RemoveExcessMessagesIfAny();
+        lock (Messages)
+        {
+            Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime(), color));
+            RemoveExcessMessagesIfAny();
+        }
     }
 
     /// <summary>

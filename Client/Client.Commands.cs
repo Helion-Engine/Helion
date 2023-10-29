@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
@@ -28,7 +29,6 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
 using Helion.World.Util;
-using NLog;
 
 namespace Helion.Client;
 
@@ -299,7 +299,7 @@ public partial class Client
     private void CommandHandleMap(ConsoleCommandEventArgs args)
     {
         MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
-        NewGame(mapInfo);
+        _ = NewGame(mapInfo);
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
@@ -312,7 +312,7 @@ public partial class Client
             return;
         }
 
-        NewGame(mapInfoDef);
+        _ = NewGame(mapInfoDef);
     }
 
     [ConsoleCommand("soundVolume", "Sets the sound volume")]
@@ -536,11 +536,13 @@ public partial class Client
         return true;
     }
 
-    private void NewGame(MapInfoDef mapInfo)
+    private async Task NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
-        LoadMap(mapInfo, null, null);
+        m_layerManager.LockInput = true;
+        await Task.Run(() => LoadMap(mapInfo, null, null));
         InitializeDemoRecorderFromCommandArgs();
+        m_layerManager.LockInput = false;
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
@@ -564,6 +566,17 @@ public partial class Client
     }
 
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    {
+        m_loadingLayer ??= new(m_archiveCollection, string.Empty);
+        m_loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
+        m_layerManager.Add(m_loadingLayer);
+
+        LoadMapInternal(mapInfoDef, worldModel, previousWorld, eventContext);
+
+        m_layerManager.Remove(m_loadingLayer);
+    }
+
+    private void LoadMapInternal(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);

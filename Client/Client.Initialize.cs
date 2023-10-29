@@ -156,13 +156,6 @@ public partial class Client
 
     private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
-        if (m_loadingLayer != null)
-        {
-            var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(mapName);
-            string text = mapInfo == null ? mapName : $"{mapName}: {mapInfo.GetNiceNameOrLookup(m_archiveCollection)}";
-            m_loadingLayer.LoadingText = $"Loading {text}...";
-        }
-
         m_console.ClearInputText();
         m_console.AddInput($"map {mapName}\n");
 

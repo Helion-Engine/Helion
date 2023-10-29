@@ -27,7 +27,7 @@ public class LoadingLayer : IGameLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        hud.Text(LoadingText, ConsoleFont, 20, (0, 0), both: Align.Center);
+        hud.Text(LoadingText, ConsoleFont, 24, (0, -8), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)

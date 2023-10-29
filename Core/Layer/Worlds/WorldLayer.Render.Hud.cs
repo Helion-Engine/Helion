@@ -766,31 +766,34 @@ public partial class WorldLayer
         // forward iteration without the stack, then they get drawn in the
         // reverse order and fading begins at the wrong end.
 
-        LinkedListNode<ConsoleMessage>? node = m_console.Messages.First;
-        while (node != null)
+        lock (m_console.Messages)
         {
-            ConsoleMessage msg = node.Value;
-            node = node.Next;
+            LinkedListNode<ConsoleMessage>? node = m_console.Messages.First;
+            while (node != null)
+            {
+                ConsoleMessage msg = node.Value;
+                node = node.Next;
 
-            if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, World, m_console))
-                break;
+                if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, World, m_console))
+                    break;
 
-            long timeSinceMessage = currentNanos - msg.TimeNanos;
-            if (timeSinceMessage > MaxVisibleTimeNanos)
-                break;
+                long timeSinceMessage = currentNanos - msg.TimeNanos;
+                if (timeSinceMessage > MaxVisibleTimeNanos)
+                    break;
 
-            m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
-            messagesDrawn++;
+                m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
+                messagesDrawn++;
+            }
+
+            for (int i = m_messages.Count - 1; i >= 0; i--)
+            {
+                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset, offsetY),
+                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
+                offsetY += drawArea.Height + MessageSpacing;
+            }
+
+            m_messages.Clear();
         }
-
-        for (int i = m_messages.Count - 1; i >= 0; i--)
-        {
-            hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset, offsetY),
-                out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
-            offsetY += drawArea.Height + MessageSpacing;
-        }
-
-        m_messages.Clear();
     }
 
     private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console)

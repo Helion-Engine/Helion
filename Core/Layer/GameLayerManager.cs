@@ -39,6 +39,8 @@ public class GameLayerManager : IGameLayerManager
 
     public event EventHandler<IGameLayer>? GameLayerAdded;
 
+    public bool LockInput { get; set; }
+
     public ConsoleLayer? ConsoleLayer { get; private set; }
     public OptionsLayer? OptionsLayer { get; private set; }
     public MenuLayer? MenuLayer { get; private set; }
@@ -252,6 +254,9 @@ public class GameLayerManager : IGameLayerManager
 
     private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
     {
+        if (LockInput)
+            return;
+
         IConsumableInput input = inputManager.Poll(tickerInfo.Ticks > 0);
         HandleInput(input);
 
@@ -482,11 +487,11 @@ public class GameLayerManager : IGameLayerManager
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
-        IwadSelectionLayer?.Render(m_ctx, hudCtx);
-        LoadingLayer?.Render(m_ctx, hudCtx);
         MenuLayer?.Render(hudCtx);
         OptionsLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);
+        IwadSelectionLayer?.Render(m_ctx, hudCtx);
+        LoadingLayer?.Render(m_ctx, hudCtx);
         ConsoleLayer?.Render(m_ctx, hudCtx);
     }
 
