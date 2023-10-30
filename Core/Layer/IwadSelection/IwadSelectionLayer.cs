@@ -6,6 +6,8 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -34,15 +36,17 @@ public class IwadSelectionLayer : IGameLayer
 
     public event EventHandler<string>? OnIwadSelected;
 
-    private static readonly string ConsoleFont = "Console";
+    private static readonly string ConsoleFont = Constants.Fonts.Console;
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly IConfig m_config;
     private readonly List<IwadData> m_iwadData = new();
     private int m_selectedIndex;
     private IwadData? m_loading;
 
-    public IwadSelectionLayer(ArchiveCollection archiveCollection)
+    public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config)
     {
         m_archiveCollection = archiveCollection;
+        m_config = config;
         IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
         var iwadData = iwadLocator.Locate().OrderBy(x => Path.GetFileName(x.Item1));
         foreach (var data in iwadData)
@@ -51,23 +55,26 @@ public class IwadSelectionLayer : IGameLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        int y = 0;
-        hud.Text("Select which IWAD to run:", ConsoleFont, 20, (0, y), out var dim, both: Align.Center);
-        y += dim.Height + 16;
+        int fontSize = m_config.Hud.GetScaled(20);
+        int spacer = m_config.Hud.GetScaled(8);
+
+        var testSize = hud.MeasureText("*", ConsoleFont, fontSize);
+
+        int y = -((testSize.Height + spacer) * m_iwadData.Count) / 2;
+        hud.Text("Select which IWAD to run:", ConsoleFont, fontSize, (0, y), out var dim, both: Align.Center);
+        y += dim.Height + spacer;
         int maxWidth = 0;
         int selectedY = 0;
 
-        const int FontSize = 20;
-
         if (m_iwadData.Count == 0)
         {
-            hud.Text($"No IWADs found :(", ConsoleFont, FontSize, (0, y + 24), out dim, both: Align.Center);
+            hud.Text($"No IWADs found :(", ConsoleFont, fontSize, (0, y + spacer * 3), out dim, both: Align.Center);
             return;
         }
 
         foreach (var data in m_iwadData)
         {
-            var measuredDim = hud.MeasureText(data.Name, ConsoleFont, FontSize);
+            var measuredDim = hud.MeasureText(data.Name, ConsoleFont, fontSize);
             if (measuredDim.Width > maxWidth)
                 maxWidth = measuredDim.Width;
         }
@@ -76,17 +83,17 @@ public class IwadSelectionLayer : IGameLayer
         {
             var data = m_iwadData[i];
             var text = data.Name;
-            var currentDim = hud.MeasureText(text, ConsoleFont, FontSize);
-            hud.Text(text, ConsoleFont, FontSize, (-((maxWidth - currentDim.Width)/2), y), out dim, both: Align.Center);
+            var currentDim = hud.MeasureText(text, ConsoleFont, fontSize);
+            hud.Text(text, ConsoleFont, fontSize, (-((maxWidth - currentDim.Width) / 2), y), out dim, both: Align.Center);
             if (i == m_selectedIndex)
                 selectedY = y;
-            y += dim.Height + 8;
+            y += dim.Height + spacer;
         }
 
-        hud.Text("* ", ConsoleFont, FontSize, (-maxWidth / 2 - 8, selectedY), both: Align.Center);
+        hud.Text("* ", ConsoleFont, fontSize, (-maxWidth / 2 - spacer, selectedY), both: Align.Center);
 
         if (m_loading != null)
-            hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, FontSize, (0, y + 24), out dim, both: Align.Center);
+            hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, fontSize, (0, y + (spacer * 3)), out dim, both: Align.Center);
     }
 
     public void HandleInput(IConsumableInput input)

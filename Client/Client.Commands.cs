@@ -567,7 +567,7 @@ public partial class Client
 
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
-        m_loadingLayer ??= new(m_archiveCollection, string.Empty);
+        m_loadingLayer ??= new(m_archiveCollection, m_config, string.Empty);
         m_loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         m_layerManager.Add(m_loadingLayer);
 

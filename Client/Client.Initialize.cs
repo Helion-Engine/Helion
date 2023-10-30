@@ -24,14 +24,14 @@ public partial class Client
         if (iwad == null && GetIwad() == null)
         {
             m_archiveCollection.Load(Array.Empty<string>());
-            m_iwadSelectionLayer = new(m_archiveCollection);
+            m_iwadSelectionLayer = new(m_archiveCollection, m_config);
             m_iwadSelectionLayer.OnIwadSelected += IwadSelection_OnIwadSelected;
             m_layerManager.Add(m_iwadSelectionLayer);
             return;
         }
 
         m_layerManager.Remove(m_loadingLayer);
-        m_loadingLayer = new(m_archiveCollection, "Loading files...");
+        m_loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
         m_layerManager.Add(m_loadingLayer);
 
         await Task.Run(() => LoadFiles(iwad));

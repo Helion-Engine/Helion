@@ -6,6 +6,8 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -15,19 +17,21 @@ namespace Helion.Layer.IwadSelection;
 
 public class LoadingLayer : IGameLayer
 {
-    private static readonly string ConsoleFont = "Console";
+    private static readonly string ConsoleFont = Constants.Fonts.Console;
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly IConfig m_config;
     public string LoadingText { get; set; }
 
-    public LoadingLayer(ArchiveCollection archiveCollection, string text)
+    public LoadingLayer(ArchiveCollection archiveCollection, IConfig config, string text)
     {
         m_archiveCollection = archiveCollection;
+        m_config = config;
         LoadingText = text;
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        hud.Text(LoadingText, ConsoleFont, 24, (0, -8), both: Align.BottomMiddle);
+        hud.Text(LoadingText, ConsoleFont, m_config.Hud.GetScaled(20), (0, -m_config.Hud.GetScaled(8)), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)
