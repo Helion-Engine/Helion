@@ -74,15 +74,15 @@ public class Weapon : InventoryItem, ITickable
 
     public void Tick()
     {
+        FrameState.Tick();
+        FlashState.Tick();
+
         if (m_tryingToFire && ReadyToFire)
             SetToFireState();
 
         ReadyState = false;
         ReadyToFire = false;
         m_tryingToFire = false;
-
-        FrameState.Tick();
-        FlashState.Tick();
     }
 
     private void SetToFireState()
