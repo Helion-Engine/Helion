@@ -539,10 +539,8 @@ public partial class Client
     private async Task NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
-        m_layerManager.LockInput = true;
-        await Task.Run(() => LoadMap(mapInfo, null, null));
+        await LoadMapAsync(mapInfo, null, null);
         InitializeDemoRecorderFromCommandArgs();
-        m_layerManager.LockInput = false;
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
@@ -565,18 +563,21 @@ public partial class Client
         return new DoomRandom();
     }
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
+        
         m_loadingLayer ??= new(m_archiveCollection, m_config, string.Empty);
         m_loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         m_layerManager.Add(m_loadingLayer);
 
-        LoadMapInternal(mapInfoDef, worldModel, previousWorld, eventContext);
+        m_layerManager.LockInput = true;
+        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
+        m_layerManager.LockInput = false;
 
         m_layerManager.Remove(m_loadingLayer);
     }
 
-    private void LoadMapInternal(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
@@ -718,7 +719,7 @@ public partial class Client
         m_resumeCommands.Clear();
     }
 
-    private void World_LevelExit(object? sender, LevelChangeEvent e)
+    private async void World_LevelExit(object? sender, LevelChangeEvent e)
     {
         if (sender is not IWorld world || e.Cancel)
             return;
@@ -730,24 +731,24 @@ public partial class Client
         switch (e.ChangeType)
         {
             case LevelChangeType.Next:
-                Intermission(world, GetNextLevel(world.MapInfo));
+                await Intermission(world, GetNextLevel(world.MapInfo));
                 break;
 
             case LevelChangeType.SecretNext:
                 m_isSecretExit = true;
-                Intermission(world, GetNextSecretLevel(world.MapInfo));
+                await Intermission(world, GetNextSecretLevel(world.MapInfo));
                 break;
 
             case LevelChangeType.SpecificLevel:
-                ChangeLevel(world, e);
+                await ChangeLevel(world, e);
                 break;
 
             case LevelChangeType.Reset:
-                LoadMap(world.MapInfo, null, null, e);
+                await LoadMapAsync(world.MapInfo, null, null, e);
                 break;
 
             case LevelChangeType.ResetOrLoadLast:
-                LoadMap(world.MapInfo, m_lastWorldModel, null, e);
+                await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e);
                 break;
         }
     }
@@ -785,11 +786,11 @@ public partial class Client
         }
     }
 
-    private void Intermission(IWorld world, MapInfoDef? nextMapInfo)
+    private async Task Intermission(IWorld world, MapInfoDef? nextMapInfo)
     {
         if (world.MapInfo.HasOption(MapOptions.NoIntermission))
         {
-            EndGame(world, nextMapInfo);
+            await EndGame(world, nextMapInfo);
         }
         else
         {
@@ -800,16 +801,16 @@ public partial class Client
         }
     }
 
-    private void IntermissionLayer_Exited(object? sender, EventArgs e)
+    private async void IntermissionLayer_Exited(object? sender, EventArgs e)
     {
         if (sender is not IntermissionLayer intermissionLayer)
             return;
 
+        await EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
-        EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
     }
 
-    private void EndGame(IWorld world, MapInfoDef? nextMapInfo)
+    private async Task EndGame(IWorld world, MapInfoDef? nextMapInfo)
     {
         ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
         ClusterDef? nextCluster = null;
@@ -829,7 +830,7 @@ public partial class Client
         if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
             HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
         else if (nextMapInfo != null)
-            LoadMap(nextMapInfo, null, world);
+            await LoadMapAsync(nextMapInfo, null, world);
     }
 
     private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
@@ -843,16 +844,16 @@ public partial class Client
         m_layerManager.Add(endGameLayer);
     }
 
-    private void EndGameLayer_Exited(object? sender, EventArgs e)
+    private async void EndGameLayer_Exited(object? sender, EventArgs e)
     {
         if (sender is not EndGameLayer endGameLayer)
             return;
 
         if (endGameLayer.NextMapInfo != null)
-            LoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World);
+            await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World);
     }
 
-    private void ChangeLevel(IWorld world, LevelChangeEvent e)
+    private async Task ChangeLevel(IWorld world, LevelChangeEvent e)
     {
         if (!MapWarp.GetMap(e.LevelNumber, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
@@ -863,7 +864,7 @@ public partial class Client
         if (e.IsCheat)
             world.DisplayMessage("$STSTR_CLEV");
 
-        LoadMap(mapInfoDef, null, null, e);
+        await LoadMapAsync(mapInfoDef, null, null, e);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>
