@@ -565,14 +565,17 @@ public partial class Client
 
     private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
-        
         m_loadingLayer ??= new(m_archiveCollection, m_config, string.Empty);
         m_loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
+        m_loadingLayer.LoadingImage = string.Empty;
         m_layerManager.Add(m_loadingLayer);
+
+        m_layerManager.WorldLayer?.World.Pause();
 
         m_layerManager.LockInput = true;
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
         m_layerManager.LockInput = false;
+
 
         m_layerManager.Remove(m_loadingLayer);
     }
@@ -611,6 +614,10 @@ public partial class Client
         UnRegisterWorldEvents();
         m_window.InputManager.Clear();
         m_resumeCommands.Clear();
+
+        if (m_loadingLayer != null)
+            m_loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
+
         m_layerManager.Remove(m_layerManager.WorldLayer);
 
         if (map == null)
