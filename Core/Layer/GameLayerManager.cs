@@ -272,7 +272,7 @@ public class GameLayerManager : IGameLayerManager
     {        
         if (input.HandleKeyInput)
         {
-            if (ConsumeCommandPressed(Constants.Input.Console, input))
+            if (IwadSelectionLayer != null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
             ConsoleLayer?.HandleInput(input);
             
@@ -326,7 +326,7 @@ public class GameLayerManager : IGameLayerManager
 
     private bool ShouldCreateMenu(IConsumableInput input)
     {
-        if (MenuLayer != null || ConsoleLayer != null)
+        if (MenuLayer != null || ConsoleLayer != null || IwadSelectionLayer != null)
             return false;
 
         bool hasMenuInput = (ReadThisLayer != null && ConsumeCommandDown(Constants.Input.Menu, input))
