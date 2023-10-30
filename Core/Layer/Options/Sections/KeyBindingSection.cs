@@ -22,6 +22,27 @@ namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
+    struct CommandKeys
+    {
+        public readonly string Command;
+        public readonly string Name;
+        public readonly List<Key> Keys;
+
+        public CommandKeys(string command, string name)
+        {
+            Command = command;
+            Name = name;
+            Keys = new List<Key>();
+        }
+
+        public CommandKeys(string command, string name, List<Key> keys)
+        {
+            Command = command;
+            Name = name;
+            Keys = keys;
+        }
+    }
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     
     public event EventHandler<LockEvent>? OnLockChanged;
@@ -32,7 +53,7 @@ public class KeyBindingSection : IOptionSection
     private readonly IConfig m_config;
     private readonly BoxList m_menuPositionList = new();
     private readonly SoundManager m_soundManager;
-    private readonly List<(string Command, List<Key> Keys)> m_commandToKeys = new();
+    private readonly List<CommandKeys> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
     private readonly HashSet<string> m_allCommands;
     private Vec2I m_mousePos;
@@ -71,7 +92,7 @@ public class KeyBindingSection : IOptionSection
                 continue;
             }
 
-            commandNames.Add(commandName.WithWordSpaces());
+            commandNames.Add(commandName);
         }
 
         return commandNames;
@@ -87,30 +108,30 @@ public class KeyBindingSection : IOptionSection
         // having an empty list of keys assigned to it.
         foreach (string command in InGameCommands)
         {
-            string cmd = command.WithWordSpaces();
-            if (m_mappedCommands.Contains(cmd)) 
+            if (m_mappedCommands.Contains(command)) 
                 continue;
-            
-            m_commandToKeys.Add((cmd, new()));
-            m_mappedCommands.Add(cmd);
+
+            string name = command.WithWordSpaces();
+            m_commandToKeys.Add(new(command, name));
+            m_mappedCommands.Add(command);
         }
         
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
-            string cmd = command.WithWordSpaces();
+            string name = command.WithWordSpaces();
             
-            if (!m_mappedCommands.Contains(cmd))
+            if (!m_mappedCommands.Contains(command))
             {
                 keys = new();
-                m_commandToKeys.Add((cmd, keys));
-                m_mappedCommands.Add(cmd);
+                m_commandToKeys.Add(new(command, name));
+                m_mappedCommands.Add(command);
             }
             else
             {
                 int index = 0;
                 for (; index < m_commandToKeys.Count; index++)
-                    if (cmd == m_commandToKeys[index].Command)
+                    if (command == m_commandToKeys[index].Command)
                         break;
 
                 if (index != m_commandToKeys.Count)
@@ -120,8 +141,8 @@ public class KeyBindingSection : IOptionSection
                 else
                 {
                     keys = new();
-                    m_commandToKeys.Add((cmd, keys));
-                    m_mappedCommands.Add(cmd);
+                    m_commandToKeys.Add(new(command, name, keys));
+                    m_mappedCommands.Add(command);
                 }
             }
 
@@ -131,9 +152,9 @@ public class KeyBindingSection : IOptionSection
 
         foreach (string command in m_allCommands.Where(cmd => !m_mappedCommands.Contains(cmd)))
         {
-            string cmd = command.WithWordSpaces();
-            m_commandToKeys.Add((cmd, new()));
-            m_mappedCommands.Add(cmd);
+            string name = command.WithWordSpaces();
+            m_commandToKeys.Add(new(command, name));
+            m_mappedCommands.Add(command);
         }
     }
 
@@ -151,11 +172,11 @@ public class KeyBindingSection : IOptionSection
                 if (!input.ConsumeKeyPressed(key)) 
                     continue;
                         
-                (string command, List<Key> keys) = m_commandToKeys[m_currentRow];
-                if (!keys.Contains(key))
+                var commandKeys = m_commandToKeys[m_currentRow];
+                if (!commandKeys.Keys.Contains(key))
                 {
-                    m_config.Keys.Add(key, command);
-                    keys.Add(key);
+                    m_config.Keys.Add(key, commandKeys.Command);
+                    commandKeys.Keys.Add(key);
                     m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 }
                         
@@ -169,15 +190,14 @@ public class KeyBindingSection : IOptionSection
 
     private void UnbindCurrentRow()
     {
-        (string command, List<Key> keys) = m_commandToKeys[m_currentRow];
-        
-        foreach (Key key in keys)
-            m_config.Keys.Remove(key, command);
-        
+        var commandKeys = m_commandToKeys[m_currentRow];        
+        foreach (Key key in commandKeys.Keys)
+            m_config.Keys.Remove(key, commandKeys.Command);
+
         // Clear our local cache, which will be updated anyways but this allows
         // for instant rendering feedback. We don't remove the row because we
         // can then render "No binding" in its place.
-        keys.Clear();
+        commandKeys.Keys.Clear();
     }
 
     public void HandleInput(IConsumableInput input)
@@ -273,17 +293,17 @@ public class KeyBindingSection : IOptionSection
 
         for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
         {
-            (string command, List<Key> keys) = m_commandToKeys[cmdIndex];
+            var commandKeys = m_commandToKeys[cmdIndex];
 
             Dimension commandArea;
             if (cmdIndex == m_currentRow && m_updatingKeyBinding)
             {
-                hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                hud.Text(commandKeys.Name, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Yellow);
             }
             else
             {
-                hud.Text(command, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                hud.Text(commandKeys.Name, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
             }
 
@@ -301,7 +321,7 @@ public class KeyBindingSection : IOptionSection
                     anchor: Align.TopRight, color: Color.White);
             }
 
-            if (keys.Empty())
+            if (commandKeys.Keys.Empty())
             {
                 hud.Text("No binding", Fonts.SmallGray, fontSize, (xOffset, y), out Dimension noBindingArea,
                     window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
@@ -314,15 +334,15 @@ public class KeyBindingSection : IOptionSection
             else
             {
                 Dimension totalKeyArea = (0, 0);
-                for (int keyIndex = 0; keyIndex < keys.Count; keyIndex++)
+                for (int keyIndex = 0; keyIndex < commandKeys.Keys.Count; keyIndex++)
                 {
-                    Key key = keys[keyIndex];
+                    Key key = commandKeys.Keys[keyIndex];
                     hud.Text(key.ToString(), Fonts.SmallGray, fontSize, (xOffset + totalKeyArea.Width, y),
                         out Dimension keyArea,
                         window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
                     totalKeyArea.Width += keyArea.Width;
 
-                    if (keyIndex != keys.Count - 1)
+                    if (keyIndex != commandKeys.Keys.Count - 1)
                     {
                         hud.Text(", ", Fonts.SmallGray, fontSize, (xOffset + totalKeyArea.Width, y),
                             out Dimension commaArea,
