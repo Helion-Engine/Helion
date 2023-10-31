@@ -1,4 +1,6 @@
 ﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
@@ -43,6 +45,7 @@ public class LoadingLayer : IGameLayer
         int fontSize = m_config.Hud.GetScaled(20);
         int yOffset = -m_config.Hud.GetScaled(8);
         var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
+        hud.FillBox(new(new Vec2I(0, hud.Dimension.Height  - dim.Height + (yOffset*2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
         hud.Text(LoadingText, ConsoleFont, fontSize, (0, yOffset), both: Align.BottomMiddle);
 
         if (m_stopwatch.ElapsedMilliseconds >= 500)
