@@ -466,7 +466,7 @@ public class ArchiveCollection : IResources
             return null;
         }
 
-        archive.OriginalFilePath = filePath;
+        archive.OriginalFilePath = Path.GetFullPath(filePath);
         if (md5 != null)
             archive.MD5 = md5;
 
