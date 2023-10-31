@@ -35,9 +35,9 @@ namespace Helion.Maps.Bsp.Zdbsp
 
                 CleanZdbspData(outputFile);
 
-                Log.Info($"Building nodes [{map.Archive.OriginalFilePath}]...");
+                Log.Info($"Building nodes [{map.Archive.Path}]...");
                 m_stopwatch.Restart();
-                if (!RunZdbsp(map.Archive.OriginalFilePath, mapName, outputFile))
+                if (!RunZdbsp(map.Archive.Path.FullPath, mapName, outputFile))
                     return false;
 
                 m_stopwatch.Stop();
