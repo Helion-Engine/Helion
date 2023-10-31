@@ -89,7 +89,7 @@ public interface IWorld : IDisposable
     bool IsChaseCamMode { get; }
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
-
+    bool IsDisposed { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);

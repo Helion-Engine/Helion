@@ -292,8 +292,7 @@ public partial class Client
         }
 
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null, 
-            showLoadingTitlepic: m_layerManager.WorldLayer == null);
+        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
@@ -577,17 +576,22 @@ public partial class Client
 
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         loadingLayer.LoadingImage = string.Empty;
-        m_layerManager.WorldLayer?.World.Pause();
+
+        if (showLoadingTitlepic)
+            loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
         m_layerManager.LockInput = true;
-        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext, showLoadingTitlepic));
+        m_layerManager.Remove(m_layerManager.WorldLayer);
+        m_layerManager.Remove(m_layerManager.MenuLayer);
+        m_layerManager.Remove(m_layerManager.ConsoleLayer);
+        m_archiveCollection.DataCache.FlushReferences();
+        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
         m_layerManager.LockInput = false;
 
         m_layerManager.Remove(loadingLayer);
     }
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null,
-        bool showLoadingTitlepic = true)
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
@@ -628,13 +632,8 @@ public partial class Client
             return;
         }
 
-        m_archiveCollection.DataCache.FlushReferences();
-
-
-        if (m_layerManager.LoadingLayer != null && showLoadingTitlepic)
-            m_layerManager.LoadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
-
         m_layerManager.Remove(m_layerManager.WorldLayer);
+        m_archiveCollection.DataCache.FlushReferences();
 
         WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
@@ -879,7 +878,7 @@ public partial class Client
         if (e.IsCheat)
             world.DisplayMessage("$STSTR_CLEV");
 
-        await LoadMapAsync(mapInfoDef, null, null, e, showLoadingTitlepic: false);
+        await LoadMapAsync(mapInfoDef, null, null, e);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>

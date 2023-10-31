@@ -276,7 +276,7 @@ public class Renderer : IDisposable
 
     private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)
     {
-        if (viewport.Width == 0 || viewport.Height == 0)
+        if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
             return;
 
         if (cmd.DrawAutomap)
