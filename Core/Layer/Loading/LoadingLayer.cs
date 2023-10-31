@@ -13,6 +13,7 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
+using System.Diagnostics;
 
 namespace Helion.Layer.IwadSelection;
 
@@ -21,6 +22,8 @@ public class LoadingLayer : IGameLayer
     private static readonly string ConsoleFont = Constants.Fonts.Console;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IConfig m_config;
+    private readonly Stopwatch m_stopwatch = new();
+    private bool m_indicator;
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
 
@@ -29,6 +32,7 @@ public class LoadingLayer : IGameLayer
         m_archiveCollection = archiveCollection;
         m_config = config;
         LoadingText = text;
+        m_stopwatch.Start();
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -36,7 +40,19 @@ public class LoadingLayer : IGameLayer
         if (LoadingImage.Length > 0)
             hud.RenderFullscreenImage(LoadingImage);
 
-        hud.Text(LoadingText, ConsoleFont, m_config.Hud.GetScaled(20), (0, -m_config.Hud.GetScaled(8)), both: Align.BottomMiddle);
+        int fontSize = m_config.Hud.GetScaled(20);
+        int yOffset = -m_config.Hud.GetScaled(8);
+        var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
+        hud.Text(LoadingText, ConsoleFont, fontSize, (0, yOffset), both: Align.BottomMiddle);
+
+        if (m_stopwatch.ElapsedMilliseconds >= 500)
+        {
+            m_indicator = !m_indicator;
+            m_stopwatch.Restart();
+        }
+
+        if (m_indicator)
+            hud.Text("*", ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)

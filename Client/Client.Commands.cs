@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
+using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
@@ -291,7 +292,8 @@ public partial class Client
         }
 
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        LoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
+        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null, 
+            showLoadingTitlepic: m_layerManager.WorldLayer == null);
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
@@ -563,24 +565,29 @@ public partial class Client
         return new DoomRandom();
     }
 
-    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null,
+        bool showLoadingTitlepic = true)
     {
-        m_loadingLayer ??= new(m_archiveCollection, m_config, string.Empty);
-        m_loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
-        m_loadingLayer.LoadingImage = string.Empty;
-        m_layerManager.Add(m_loadingLayer);
+        var loadingLayer = m_layerManager.LoadingLayer;
+        if (loadingLayer == null)
+        {
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            m_layerManager.Add(loadingLayer);
+        }
 
+        loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
+        loadingLayer.LoadingImage = string.Empty;
         m_layerManager.WorldLayer?.World.Pause();
 
         m_layerManager.LockInput = true;
-        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
+        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext, showLoadingTitlepic));
         m_layerManager.LockInput = false;
 
-
-        m_layerManager.Remove(m_loadingLayer);
+        m_layerManager.Remove(loadingLayer);
     }
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null,
+        bool showLoadingTitlepic = true)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
@@ -615,11 +622,6 @@ public partial class Client
         m_window.InputManager.Clear();
         m_resumeCommands.Clear();
 
-        if (m_loadingLayer != null)
-            m_loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
-
-        m_layerManager.Remove(m_layerManager.WorldLayer);
-
         if (map == null)
         {
             LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
@@ -627,6 +629,12 @@ public partial class Client
         }
 
         m_archiveCollection.DataCache.FlushReferences();
+
+
+        if (m_layerManager.LoadingLayer != null && showLoadingTitlepic)
+            m_layerManager.LoadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
+
+        m_layerManager.Remove(m_layerManager.WorldLayer);
 
         WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
@@ -751,11 +759,11 @@ public partial class Client
                 break;
 
             case LevelChangeType.Reset:
-                await LoadMapAsync(world.MapInfo, null, null, e);
+                await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
                 break;
 
             case LevelChangeType.ResetOrLoadLast:
-                await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e);
+                await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
                 break;
         }
     }
@@ -837,7 +845,7 @@ public partial class Client
         if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
             HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
         else if (nextMapInfo != null)
-            await LoadMapAsync(nextMapInfo, null, world);
+            await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
     }
 
     private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
@@ -857,7 +865,7 @@ public partial class Client
             return;
 
         if (endGameLayer.NextMapInfo != null)
-            await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World);
+            await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
     }
 
     private async Task ChangeLevel(IWorld world, LevelChangeEvent e)
@@ -871,7 +879,7 @@ public partial class Client
         if (e.IsCheat)
             world.DisplayMessage("$STSTR_CLEV");
 
-        await LoadMapAsync(mapInfoDef, null, null, e);
+        await LoadMapAsync(mapInfoDef, null, null, e, showLoadingTitlepic: false);
     }
 
     private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>

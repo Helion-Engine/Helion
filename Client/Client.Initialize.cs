@@ -16,23 +16,20 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    private IwadSelectionLayer? m_iwadSelectionLayer;
-    private LoadingLayer? m_loadingLayer;
-
     private async Task Initialize(string? iwad = null)
     {
         if (iwad == null && GetIwad() == null)
         {
             m_archiveCollection.Load(Array.Empty<string>());
-            m_iwadSelectionLayer = new(m_archiveCollection, m_config);
-            m_iwadSelectionLayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-            m_layerManager.Add(m_iwadSelectionLayer);
+            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config);
+            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+            m_layerManager.Add(selectionlayer);
             return;
         }
 
-        m_layerManager.Remove(m_loadingLayer);
-        m_loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
-        m_layerManager.Add(m_loadingLayer);
+        m_layerManager.Remove(m_layerManager.LoadingLayer);
+        LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
+        m_layerManager.Add(loadingLayer);
 
         await Task.Run(() => LoadFiles(iwad));
 
@@ -53,11 +50,11 @@ public partial class Client
         }
         else
         {
-            CheckLoadMap();
+            await CheckLoadMap();
             AddTitlepicIfNoMap();
         }
 
-        m_layerManager.Remove(m_loadingLayer);
+        m_layerManager.Remove(m_layerManager.LoadingLayer);
     }
 
     private void AddTitlepicIfNoMap()
@@ -65,14 +62,14 @@ public partial class Client
         if (m_layerManager.WorldLayer != null)
             return;
 
-        m_layerManager.Remove(m_iwadSelectionLayer);
+        m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
         TitlepicLayer layer = new(m_layerManager, m_archiveCollection, m_audioSystem);
         m_layerManager.Add(layer);
     }
 
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
-        m_layerManager.Remove(m_iwadSelectionLayer);
+        m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
         await Initialize(iwad);
     }
 
@@ -93,7 +90,7 @@ public partial class Client
         return true;
     }
 
-    private void CheckLoadMap()
+    private async Task CheckLoadMap()
     {
         bool tryLoadMap = m_commandLineArgs.Map != null || m_commandLineArgs.Warp != null;
 
@@ -102,17 +99,17 @@ public partial class Client
         {
             // Check if a specific map was loaded. If not load the first map in the demo file.
             if (!tryLoadMap && m_demoModel != null && m_demoModel.Maps.Count > 0)
-                LoadMap(m_demoModel.Maps[0].Map);
+                await LoadMap(m_demoModel.Maps[0].Map);
         }
 
         if (m_commandLineArgs.Map != null)
         {
-            LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
+            await LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
         }
         else if (m_commandLineArgs.Warp != null &&
             MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
-            LoadMap(mapInfoDef.MapName, m_commandLineArgs);
+            await LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
 
         InitializeDemoRecorderFromCommandArgs();
@@ -154,10 +151,9 @@ public partial class Client
             Log.Info($"Invalid skill level: {value}");
     }
 
-    private void LoadMap(string mapName, CommandLineArgs? args = null)
+    private async Task LoadMap(string mapName, CommandLineArgs? args = null)
     {
-        m_console.ClearInputText();
-        m_console.AddInput($"map {mapName}\n");
+        await LoadMapAsync(GetMapInfo(mapName), null, null);
 
         if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
         {
