@@ -16,7 +16,7 @@ public class PK3 : Archive, IDisposable
 
     public PK3(IEntryPath path, IIndexGenerator indexGenerator) : base(path)
     {
-        m_zipArchive = new ZipArchive(File.Open(Path.FullPath, FileMode.Open));
+        m_zipArchive = new(File.Open(Path.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
         m_indexGenerator = indexGenerator;
         Pk3EntriesFromData();
     }
