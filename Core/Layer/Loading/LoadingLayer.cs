@@ -22,10 +22,12 @@ namespace Helion.Layer.IwadSelection;
 public class LoadingLayer : IGameLayer
 {
     private static readonly string ConsoleFont = Constants.Fonts.Console;
+    private static readonly string[] Spinner = new[] { "-", "\\", "|", "/" };
+
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IConfig m_config;
     private readonly Stopwatch m_stopwatch = new();
-    private bool m_indicator;
+    private int m_spinner;
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
 
@@ -48,14 +50,13 @@ public class LoadingLayer : IGameLayer
         hud.FillBox(new(new Vec2I(0, hud.Dimension.Height  - dim.Height + (yOffset*2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
         hud.Text(LoadingText, ConsoleFont, fontSize, (0, yOffset), both: Align.BottomMiddle);
 
-        if (m_stopwatch.ElapsedMilliseconds >= 500)
+        if (m_stopwatch.ElapsedMilliseconds >= 80)
         {
-            m_indicator = !m_indicator;
+            m_spinner = ++m_spinner % Spinner.Length;
             m_stopwatch.Restart();
         }
-
-        if (m_indicator)
-            hud.Text("*", ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
+                
+        hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)
