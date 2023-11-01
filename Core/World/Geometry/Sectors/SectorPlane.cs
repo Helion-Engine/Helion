@@ -153,11 +153,14 @@ public class SectorPlane : ISoundSource
         {
             clearedSound = m_audio;
             m_audio = null;
+            m_soundInfo = null;
             return true;
         }
 
         if (m_soundInfo != null && m_soundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
         {
+            m_audio = null;
+            m_soundInfo = null;
             clearedSound = null;
             return true;
         }

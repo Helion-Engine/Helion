@@ -403,6 +403,7 @@ public class SoundManager : IDisposable
         m_soundsToPlay.AddLast(ArchiveCollection.DataCache.GetAudioNode(audioSource));
 
         source?.SoundCreated(audioSource, soundParams.Channel);
+        source?.SoundCreated(soundInfo, soundParams.Channel);
         return audioSource;
     }
 
@@ -430,6 +431,7 @@ public class SoundManager : IDisposable
     {
         var loopSound = new WaitingSound(source, pos, velocity, soundInfo, priority, soundParams);
         m_waitingLoopSounds.AddLast(ArchiveCollection.DataCache.GetWaitingSoundNode(loopSound));
+        source.SoundCreated(soundInfo, soundParams.Channel);
     }
 
     protected virtual void AttenuateIfNeeded(ISoundSource source, SoundInfo info, ref SoundParams soundParams)
