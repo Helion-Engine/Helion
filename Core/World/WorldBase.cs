@@ -1721,7 +1721,6 @@ public abstract class WorldBase : IWorld
         bool approxDistance2D)
     {
         double distance;
-
         if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.TopZ))
         {
             Vec3D sourcePos = source.Position;
@@ -1731,16 +1730,16 @@ public abstract class WorldBase : IWorld
                 targetPos.Z += entity.Height;
 
             if (approxDistance2D)
-                distance = Math.Max(0.0, sourcePos.ApproximateDistance2D(targetPos) - entity.Radius);
+                distance = Math.Max(0.0, sourcePos.ApproximateExplosionDistance2D(targetPos) - entity.Radius);
             else
                 distance = Math.Max(0.0, sourcePos.Distance(targetPos) - entity.Radius);
         }
         else
         {
             if (approxDistance2D)
-                distance = entity.Position.ApproximateDistance2D(source.Position) - entity.Radius;
+                distance = Math.Max(0.0, entity.Position.ApproximateExplosionDistance2D(source.Position) - entity.Radius);
             else
-                distance = entity.Position.Distance(source.Position) - entity.Radius;
+                distance = Math.Max(0.0, entity.Position.Distance(source.Position) - entity.Radius);
         }
 
         int applyDamage = Math.Clamp((int)(radius - distance), 0, maxDamage);

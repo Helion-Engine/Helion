@@ -158,6 +158,12 @@ namespace Helion.Geometry.Vectors
                 return dx + dy - (dx / 2);
             return dx + dy - (dy / 2);
         }
+        public double ApproximateExplosionDistance2D(in Vec3D other)
+        {
+            double dx = Math.Abs(X - other.X);
+            double dy = Math.Abs(Y - other.Y);
+            return dx > dy ? dx : dy;
+        }
 
         private IEnumerable<double> GetEnumerableValues()
         {
