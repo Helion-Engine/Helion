@@ -87,7 +87,7 @@ public class FastSwitch : IDisposable
         InventoryUtil.RunWeaponSwitch(World, Player, "Fist");
         InventoryUtil.AssertWeapon(Player.Weapon, "Fist");
         int ticks = World.Gametick - startTick;
-        ticks.Should().Be(SwitchTicks);
+        ticks.Should().Be(1);
     }
 
     [Fact(DisplayName = "Fast switch weapon back and forth")]

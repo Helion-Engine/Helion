@@ -74,14 +74,19 @@ public class Weapon : InventoryItem, ITickable
 
     public void Tick()
     {
+        ReadyState = false;
+        ReadyToFire = false;
+
         FrameState.Tick();
         FlashState.Tick();
 
         if (m_tryingToFire && ReadyToFire)
+        {
             SetToFireState();
+            ReadyState = false;
+            ReadyToFire = false;
+        }
 
-        ReadyState = false;
-        ReadyToFire = false;
         m_tryingToFire = false;
     }
 
