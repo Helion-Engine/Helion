@@ -342,6 +342,10 @@ public static class MathHelper
         return angleRadians;
     }
 
+    // Returns radian angle in the range of -2pi and 2pi
+    public static double GetNormalAngle(double angleRadians) =>
+        angleRadians % TwoPi;
+
     public static double ApproximateDistance(int dx, int dy)
     {
         dx = Math.Abs(dx);

@@ -2005,9 +2005,27 @@ public static class EntityActionFunctions
         }
         else
         {
-            entity.AngleRadians = angle;
             WorldStatic.SoundManager.CreateSoundOn(entity, "weapons/sawhit", new SoundParams(entity, channel: entity.WeaponSoundChannel));
-            entity.AngleRadians = entity.Position.Angle(hitEntity.Position);
+            double toAngle = MathHelper.GetPositiveAngle(entity.Position.Angle(hitEntity.Position));
+            double playerAngle = MathHelper.GetPositiveAngle(player.AngleRadians);
+            const double AngleLarger = MathHelper.HalfPi / 20;
+            const double AngleSmaller = MathHelper.HalfPi / 21;
+            if (MathHelper.GetNormalAngle(toAngle - playerAngle) < 0)
+            {
+                if (MathHelper.GetNormalAngle(toAngle - playerAngle) < -AngleLarger)
+                    playerAngle = toAngle + AngleSmaller;
+                else
+                    playerAngle -= AngleLarger;
+            }
+            else
+            {
+                if (MathHelper.GetNormalAngle(toAngle - playerAngle) > AngleLarger)
+                    playerAngle = toAngle - AngleSmaller;
+                else
+                    playerAngle += AngleLarger;
+            }
+
+            player.AngleRadians = playerAngle;
         }
     }
 

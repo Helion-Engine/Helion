@@ -7,8 +7,7 @@ namespace Helion.World.Sound;
 
 public interface ISoundSource
 {
-    void SoundCreated(SoundInfo soundInfo, SoundChannel channel);
-    void SoundCreated(IAudioSource audioSource, SoundChannel channel);
+    void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel);
     bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound);
     void ClearSound(IAudioSource audioSource, SoundChannel channel);
     double GetDistanceFrom(Entity listenerEntity);

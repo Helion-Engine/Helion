@@ -983,14 +983,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return $"Id:{Id} [{Definition}] [{Position}]";
     }
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
+    public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
         SoundChannels[(int)channel] = audioSource;
-    }
-
-    public void SoundCreated(SoundInfo soundInfo, SoundChannel channel)
-    {
-
     }
 
     public double GetDistanceFrom(Entity listenerEntity)
