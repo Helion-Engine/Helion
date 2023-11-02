@@ -70,17 +70,24 @@ public class IwadSelectionLayer : IGameLayer
         hud.RenderFullscreenImage("background");
         hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.8f);
 
+        Dimension dim;
         int y = -((fontSize + spacer) * m_iwadData.Count) / 2;
-        hud.Text("Select which IWAD to run:", ConsoleFont, fontSize, (0, y), out var dim, both: Align.Center);
-        y += dim.Height + spacer;
-        int maxWidth = 0;
-        int selectedY = 0;
 
         if (m_iwadData.Count == 0)
         {
-            hud.Text($"No IWADs found :(", ConsoleFont, fontSize, (0, y + spacer * 3), out dim, both: Align.Center);
+            y += spacer * 3;
+            hud.Text($"No IWADs found :(", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
+            y += dim.Height + spacer;
+            hud.Text($"Copy DOOM2.WAD to the Helion directory or launch with -iwad", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
+            y += dim.Height + spacer;
+            hud.Text("Press any key to exit", ConsoleFont, fontSize, (0, y), both: Align.Center);
             return;
         }
+
+        hud.Text("Select which IWAD to run:", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
+        y += dim.Height + spacer;
+        int maxWidth = 0;
+        int selectedY = 0;
 
         foreach (var data in m_iwadData)
         {
@@ -117,6 +124,12 @@ public class IwadSelectionLayer : IGameLayer
     {
         if (m_loading != null)
             return;
+
+        if (m_iwadData.Count == 0 && input.HasAnyKeyPressed())
+        {
+            Environment.Exit(0);
+            return;
+        }
 
         if (input.ConsumeKeyPressed(Key.Enter) && m_selectedIndex < m_iwadData.Count)
         {
