@@ -1,5 +1,8 @@
 ﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Texture.Fonts;
@@ -8,11 +11,13 @@ using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
+using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -40,8 +45,10 @@ public class IwadSelectionLayer : IGameLayer
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IConfig m_config;
     private readonly List<IwadData> m_iwadData = new();
+    private readonly Stopwatch m_stopwatch = new();
     private int m_selectedIndex;
     private IwadData? m_loading;
+    private bool m_indicator;
 
     public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config)
     {
@@ -51,6 +58,8 @@ public class IwadSelectionLayer : IGameLayer
         var iwadData = iwadLocator.Locate().OrderBy(x => Path.GetFileName(x.Item1));
         foreach (var data in iwadData)
             m_iwadData.Add(new(data.Item1, $"{Path.GetFileName(data.Item1)}: {data.Item2.Title}", data.Item2));
+
+        m_stopwatch.Start();
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -58,9 +67,10 @@ public class IwadSelectionLayer : IGameLayer
         int fontSize = m_config.Hud.GetScaled(20);
         int spacer = m_config.Hud.GetScaled(8);
 
-        var testSize = hud.MeasureText("*", ConsoleFont, fontSize);
+        hud.RenderFullscreenImage("background");
+        hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.8f);
 
-        int y = -((testSize.Height + spacer) * m_iwadData.Count) / 2;
+        int y = -((fontSize + spacer) * m_iwadData.Count) / 2;
         hud.Text("Select which IWAD to run:", ConsoleFont, fontSize, (0, y), out var dim, both: Align.Center);
         y += dim.Height + spacer;
         int maxWidth = 0;
@@ -90,7 +100,14 @@ public class IwadSelectionLayer : IGameLayer
             y += dim.Height + spacer;
         }
 
-        hud.Text("* ", ConsoleFont, fontSize, (-maxWidth / 2 - spacer, selectedY), both: Align.Center);
+        if (m_stopwatch.ElapsedMilliseconds >= 200)
+        {
+            m_indicator = !m_indicator;
+            m_stopwatch.Restart();
+        }
+
+        hud.Image("arrow-right", (-maxWidth / 2 - (fontSize / 2) - spacer, selectedY), both: Align.Center, scale: fontSize / 100.0f,
+            alpha: m_indicator ? 1.0f : 0.5f);
 
         if (m_loading != null)
             hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, fontSize, (0, y + (spacer * 3)), out dim, both: Align.Center);
@@ -107,10 +124,13 @@ public class IwadSelectionLayer : IGameLayer
             OnIwadSelected?.Invoke(this, m_loading.Value.FullPath);
         }
 
-        if (input.ConsumeKeyPressed(Key.Down))
+        if (input.ConsumePressOrContinuousHold(Key.Down))
             m_selectedIndex = ++m_selectedIndex % m_iwadData.Count;
-        if (input.ConsumeKeyPressed(Key.Up))
-            m_selectedIndex = Math.Max(--m_selectedIndex, 0);
+        if (input.ConsumePressOrContinuousHold(Key.Up))
+            --m_selectedIndex;
+
+        if (m_selectedIndex < 0)
+            m_selectedIndex = m_iwadData.Count + m_selectedIndex;
     }
 
     public void RunLogic(TickerInfo tickerInfo)
