@@ -42,14 +42,9 @@ public class DefaultSoundSource : ISoundSource
 
     public Vec3D? GetSoundVelocity() => Vec3D.Zero;
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
+    public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
         m_audioSource = audioSource;
-    }
-
-    public void SoundCreated(SoundInfo soundInfo, SoundChannel channel)
-    {
-
     }
 
     public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)

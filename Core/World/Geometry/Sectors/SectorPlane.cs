@@ -137,31 +137,19 @@ public class SectorPlane : ISoundSource
         return Vec2D.Zero;
     }
 
-    public void SoundCreated(IAudioSource audioSource, SoundChannel channel)
+    public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
         m_audio = audioSource;
-    }
-
-    public void SoundCreated(SoundInfo soundInfo, SoundChannel channel)
-    {
         m_soundInfo = soundInfo;
     }
 
     public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
-        if (m_audio != null && m_audio.AudioData.SoundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
+        if (m_soundInfo != null && m_soundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
         {
             clearedSound = m_audio;
             m_audio = null;
             m_soundInfo = null;
-            return true;
-        }
-
-        if (m_soundInfo != null && m_soundInfo.Name.Equals(sound, StringComparison.OrdinalIgnoreCase))
-        {
-            m_audio = null;
-            m_soundInfo = null;
-            clearedSound = null;
             return true;
         }
 
