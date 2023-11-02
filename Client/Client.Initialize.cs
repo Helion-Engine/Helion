@@ -120,14 +120,13 @@ public partial class Client
         if (m_commandLineArgs.Iwad != null)
             return m_commandLineArgs.Iwad;
 
-        return null;
-    }
-
-    private static string? LocateIwad()
-    {
         IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
         List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
-        return iwadData.Count > 0 ? iwadData[0].Item1 : null;
+        // Only return if one is found, otherwise show the iwad selector
+        if (iwadData.Count == 1)
+            return iwadData[0].Item1;
+
+        return null;
     }
 
     private MapInfoDef? GetDefaultMap()
