@@ -291,8 +291,10 @@ public partial class Client
             return;
         }
 
+        var world = m_layerManager.WorldLayer?.World;
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null);
+        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null, 
+            showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
