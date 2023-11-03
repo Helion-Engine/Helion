@@ -163,7 +163,10 @@ public class GameLayerManager : IGameLayerManager
         }
 
         if (gameLayer != null)
+        {
+            gameLayer.OnShow();
             GameLayerAdded?.Invoke(this, gameLayer);
+        }
     }
 
     public void SubmitConsoleText(string text)

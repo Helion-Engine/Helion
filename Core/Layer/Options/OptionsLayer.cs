@@ -62,6 +62,12 @@ public class OptionsLayer : IGameLayer
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
     }
 
+    public void OnShow()
+    {
+        if (m_currentSectionIndex < m_sections.Count)
+            m_sections[m_currentSectionIndex].OnShow();
+    }
+
     public void SetMouseStartPosition()
     {
         m_resetMouse = m_cursorPos == Vec2I.Zero;
@@ -274,6 +280,7 @@ public class OptionsLayer : IGameLayer
                 m_scrollOffset = 0;
                 section.SetToFirstSelection();
                 m_currentSectionIndex = (m_currentSectionIndex + m_sections.Count - 1) % m_sections.Count;
+                m_sections[m_currentSectionIndex].OnShow();
             }
 
             if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) || buttonIndex == ForwardIndex)
@@ -282,6 +289,7 @@ public class OptionsLayer : IGameLayer
                 m_scrollOffset = 0;
                 section.SetToFirstSelection();
                 m_currentSectionIndex = (m_currentSectionIndex + 1) % m_sections.Count;
+                m_sections[m_currentSectionIndex].OnShow();
             }
         }
 
@@ -375,9 +383,6 @@ public class OptionsLayer : IGameLayer
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
         y += m_headerHeight;
 
-        if (m_message.Length > 0)
-            hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
-
         if (m_currentSectionIndex < m_sections.Count)
         {
             var section = m_sections[m_currentSectionIndex];
@@ -400,6 +405,10 @@ public class OptionsLayer : IGameLayer
         }
         else
             hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
+
+
+        if (m_message.Length > 0)
+            hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
     }
 
     private void SetMouseFromRender(IHudRenderContext hud)

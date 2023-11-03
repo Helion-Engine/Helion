@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
@@ -50,12 +51,14 @@ public class KeyBindingSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
+    private readonly Key[] AllKeys = Enum.GetValues<Key>();
     private readonly IConfig m_config;
     private readonly BoxList m_menuPositionList = new();
     private readonly SoundManager m_soundManager;
     private readonly List<CommandKeys> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
     private readonly HashSet<string> m_allCommands;
+    private readonly StringBuilder m_builder = new();
     private Vec2I m_mousePos;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
@@ -64,12 +67,19 @@ public class KeyBindingSection : IOptionSection
     private bool m_updatingKeyBinding;
     private bool m_updateRow;
     private bool m_updateMouse;
+    private bool m_configUpdated;
 
     public KeyBindingSection(IConfig config, SoundManager soundManager)
     {
         m_config = config;
         m_soundManager = soundManager;
         m_allCommands = GetAllCommandNames();
+        m_configUpdated = true;
+    }
+
+    public void OnShow()
+    {
+        m_configUpdated = true;
     }
 
     public void ResetSelection() => m_currentRow = 0;
@@ -100,6 +110,11 @@ public class KeyBindingSection : IOptionSection
 
     private void CheckForConfigUpdates()
     {
+        if (!m_configUpdated)
+            return;
+
+        m_configUpdated = false;
+
         // This is anti-perf when we re-create everything all the time :(
         m_commandToKeys.Clear();
         m_mappedCommands.Clear();
@@ -111,7 +126,7 @@ public class KeyBindingSection : IOptionSection
             if (m_mappedCommands.Contains(command)) 
                 continue;
 
-            string name = command.WithWordSpaces();
+            string name = command.WithWordSpaces(m_builder);
             m_commandToKeys.Add(new(command, name));
             m_mappedCommands.Add(command);
         }
@@ -119,7 +134,7 @@ public class KeyBindingSection : IOptionSection
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
-            string name = command.WithWordSpaces();
+            string name = command.WithWordSpaces(m_builder);
             
             if (!m_mappedCommands.Contains(command))
             {
@@ -152,11 +167,12 @@ public class KeyBindingSection : IOptionSection
 
         foreach (string command in m_allCommands.Where(cmd => !m_mappedCommands.Contains(cmd)))
         {
-            string name = command.WithWordSpaces();
+            string name = command.WithWordSpaces(m_builder);
             m_commandToKeys.Add(new(command, name));
             m_mappedCommands.Add(command);
         }
     }
+
 
     private void TryUpdateKeyBindingsFromPress(IConsumableInput input)
     {
@@ -167,7 +183,7 @@ public class KeyBindingSection : IOptionSection
         }
         else
         {
-            foreach (Key key in Enum.GetValues<Key>())
+            foreach (Key key in AllKeys)
             {
                 if (!input.ConsumeKeyPressed(key)) 
                     continue;
@@ -175,10 +191,29 @@ public class KeyBindingSection : IOptionSection
                 var commandKeys = m_commandToKeys[m_currentRow];
                 if (!commandKeys.Keys.Contains(key))
                 {
+                    m_configUpdated = true;
                     m_config.Keys.Add(key, commandKeys.Command);
                     commandKeys.Keys.Add(key);
                     m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 }
+
+                CommandKeys? unbound = null;
+                foreach (var item in m_commandToKeys)
+                {
+                    for (int i = 0; i < item.Keys.Count; i++)
+                    {
+                        if (item.Keys[i] != key || item.Command.EqualsIgnoreCase(commandKeys.Command))
+                            continue;
+
+                        unbound = item;
+                        m_config.Keys.Remove(key, item.Command);
+                        item.Keys.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                if (unbound != null)
+                    OnError?.Invoke(this, $"{key.ToString()} was unbound from {unbound.Value.Command}");
                         
                 break;
             } 
@@ -190,6 +225,7 @@ public class KeyBindingSection : IOptionSection
 
     private void UnbindCurrentRow()
     {
+        m_configUpdated = true;
         var commandKeys = m_commandToKeys[m_currentRow];        
         foreach (Key key in commandKeys.Keys)
             m_config.Keys.Remove(key, commandKeys.Command);
