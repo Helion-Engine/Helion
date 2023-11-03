@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Render;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Texture.Fonts;
@@ -42,7 +43,10 @@ public class LoadingLayer : IGameLayer
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         if (LoadingImage.Length > 0)
+        {
+            hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black);
             hud.RenderFullscreenImage(LoadingImage);
+        }
 
         int fontSize = m_config.Hud.GetScaled(20);
         int yOffset = -m_config.Hud.GetScaled(8);
