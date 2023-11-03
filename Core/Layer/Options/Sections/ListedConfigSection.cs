@@ -503,6 +503,7 @@ public class ListedConfigSection : IOptionSection
         return cfgValue.OptionDisabled || attr.Disabled;
     }
     
+    public void OnShow() { }
     public int GetRenderHeight() => m_renderHeight;
     public (int, int) GetSelectedRenderY() => m_selectedRender;
     public void SetToFirstSelection() => m_currentRowIndex = 0;

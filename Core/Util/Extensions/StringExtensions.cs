@@ -89,12 +89,12 @@ public static class StringExtensions
 
     // Returns a new string with spaces between words.
     // Ex: "CommandSlot1" -> "Command Slot 1"
-    public static string WithWordSpaces(this string str)
+    public static string WithWordSpaces(this string str, StringBuilder builder)
     {
+        builder.Clear();
         if (str == "")
             return "";
-        
-        StringBuilder builder = new();
+
         builder.Append(str[0]);
 
         for (int i = 1; i < str.Length; i++)
