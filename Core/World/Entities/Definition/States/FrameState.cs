@@ -201,7 +201,7 @@ public struct FrameState
         if (!WorldStatic.SlowTickEnabled || WorldStatic.SlowTickDistance <= 0)
             return;
 
-        if (m_entity.InMonsterCloset)
+        if (m_entity.InMonsterCloset || m_entity.IsPlayer)
             return;
 
         if (CurrentTick > 0 &&
