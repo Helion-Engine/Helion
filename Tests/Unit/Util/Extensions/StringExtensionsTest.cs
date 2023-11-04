@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Helion.Util.Extensions;
+using System.Text;
 using Xunit;
 
 namespace Helion.Tests.Unit.Util.Extensions;
@@ -35,6 +36,6 @@ public class StringExtensionsTest
     [InlineData("Center View", "Center View")]
     public void TestWithSpaces(string input, string expected)
     {
-        input.WithWordSpaces().Should().Be(expected);
+        input.WithWordSpaces(new StringBuilder()).Should().Be(expected);
     }
 }
