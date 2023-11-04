@@ -120,7 +120,7 @@ public class SectorMoveSpecial : ISectorSpecial
         m_returnSpeed = MoveData.StartDirection == MoveDirection.Up ? -MoveData.ReturnSpeed : MoveData.ReturnSpeed;
 
         if (MoveData.Crush != null)
-            m_returnSpeed *= MoveData.Crush.ReturnFactor;
+            m_returnSpeed *= MoveData.Crush.Value.ReturnFactor;
     }
 
     private void InitStartClip()
@@ -185,7 +185,7 @@ public class SectorMoveSpecial : ISectorSpecial
         if (MoveData.Crush == null)
             return null;
 
-        return MoveData.Crush.ToCrushDataModel();
+        return MoveData.Crush.Value.ToCrushDataModel();
     }
 
     private SectorDamageSpecialModel? CreateSectorDamageSpecialModel()
@@ -408,7 +408,7 @@ public class SectorMoveSpecial : ISectorSpecial
             case SectorMoveStatus.Crush when IsInitCrush:
                 SetSectorDataChange();
                 m_crushing = true;
-                if (MoveData.Crush != null && MoveData.Crush.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
+                if (MoveData.Crush != null && MoveData.Crush.Value.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
                     m_speed = m_speed < 0 ? -0.1 : 0.1;
                 break;
 

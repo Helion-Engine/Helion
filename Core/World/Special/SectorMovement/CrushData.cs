@@ -3,7 +3,7 @@ using Helion.Models;
 
 namespace Helion.World.Special.SectorMovement;
 
-public class CrushData
+public struct CrushData
 {
     public readonly ZDoomCrushMode CrushMode;
     public readonly int Damage;

@@ -228,7 +228,7 @@ public class PhysicsManager
 
                 if (moveData.Crush != null)
                 {
-                    if (moveData.Crush.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Damage == 0)
+                    if (moveData.Crush.Value.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Value.Damage == 0)
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
@@ -284,7 +284,7 @@ public class PhysicsManager
         }
 
         if (moveData.Crush != null && m_crushEntities.Length > 0)
-            CrushEntities(m_crushEntities, sector, moveData.Crush);
+            CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
 
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
@@ -422,7 +422,7 @@ public class PhysicsManager
         return false;
     }
 
-    private void CrushEntities(DynamicArray<Entity> crushEntities, Sector sector, CrushData crush)
+    private void CrushEntities(DynamicArray<Entity> crushEntities, Sector sector, in CrushData crush)
     {
         if (crush.Damage == 0 || (m_world.Gametick & 3) != 0)
             return;
