@@ -2400,7 +2400,7 @@ namespace Helion.Tests.Unit.GameAction
             Sector sector = GameActions.GetSectorByTag(World, 141);
             sector.ActiveCeilingMove.Should().NotBeNull();
 
-            GameActions.RunCrusherCeiling(World, sector, 8, true);
+            GameActions.RunCrusherCeiling(World, sector, 8, slowDownOnCrush: true, playSound: false);
         }
 
         [Fact(DisplayName = "Doom Sector Type 1 - Lights blink random")]

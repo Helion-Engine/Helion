@@ -3,19 +3,20 @@ using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
+using System;
 
 namespace Helion.Tests.Unit.GameAction
 {
     public static partial class GameActions
     {
-        public static void RunCrusherCeiling(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true) =>
-            RunCrusherPlane(world, sector, sector.Ceiling, speed, slowDownOnCrush, destZ, repeat);
+        public static void RunCrusherCeiling(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true, bool playSound = true) =>
+            RunCrusherPlane(world, sector, sector.Ceiling, speed, slowDownOnCrush, destZ, repeat, playSound);
 
-        public static void RunCrusherFloor(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true) =>
+        public static void RunCrusherFloor(WorldBase world, Sector sector, int speed, bool slowDownOnCrush, double destZ = double.MaxValue, bool repeat = true, bool playSound = true) =>
             RunCrusherPlane(world, sector, sector.Floor, speed, slowDownOnCrush, destZ, repeat);
 
         public static void RunCrusherPlane(WorldBase world, Sector sector, SectorPlane plane, int speed, bool slowDownOnCrush,
-            double setDestZ = double.MaxValue, bool repeat = true)
+            double setDestZ = double.MaxValue, bool repeat = true, bool playSound = true)
         {
             var moveSpecial = (sector.GetActiveMoveSpecial(plane)! as SectorMoveSpecial)!;
             MoveDirection startDir = sector.Ceiling.Equals(plane) ? MoveDirection.Down : MoveDirection.Up;
@@ -80,6 +81,33 @@ namespace Helion.Tests.Unit.GameAction
 
             moveSpecial.Should().NotBeNull();
             moveSpecial.MoveDirection.Should().Be(startDir);
+
+            if (playSound)
+                AssertCrusherPlaneSound(world, plane);
+        }
+
+        private static void AssertCrusherPlaneSound(WorldBase world, SectorPlane plane)
+        {
+            var playingSounds = world.SoundManager.GetPlayingSounds();
+            var waitSounds = world.SoundManager.GetWaitingSounds();
+
+            var node = playingSounds.First;
+            while (node != null)
+            {
+                if (node.Value.AudioData.SoundSource == plane)
+                    return;
+                node = node.Next;
+            }
+
+            var waitNode = waitSounds.First;
+            while (waitNode != null)
+            {
+                if (waitNode.Value.SoundSource == plane)
+                    return;
+                waitNode = waitNode.Next;
+            }
+
+            throw new Exception("Expected sector plane to be playing sound.");
         }
     }
 }
