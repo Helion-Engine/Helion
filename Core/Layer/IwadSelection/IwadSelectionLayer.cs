@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using static Helion.Resources.IWad.IWadLocator;
 
 namespace Helion.Layer.IwadSelection;
 
@@ -50,14 +51,12 @@ public class IwadSelectionLayer : IGameLayer
     private IwadData? m_loading;
     private bool m_indicator;
 
-    public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config)
+    public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config, IList<IWadPath> iwadData)
     {
         m_archiveCollection = archiveCollection;
         m_config = config;
-        IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
-        var iwadData = iwadLocator.Locate().OrderBy(x => Path.GetFileName(x.Item1));
         foreach (var data in iwadData)
-            m_iwadData.Add(new(data.Item1, $"{Path.GetFileName(data.Item1)}: {data.Item2.Title}", data.Item2));
+            m_iwadData.Add(new(data.Path, $"{Path.GetFileName(data.Path)}: {data.Info.Title}", data.Info));
 
         m_stopwatch.Start();
     }

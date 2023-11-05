@@ -16,12 +16,20 @@ namespace Helion.Client;
 
 public partial class Client
 {
+    private readonly List<IWadPath> m_iwads = new();
+
     private async Task Initialize(string? iwad = null)
     {
-        if (iwad == null && GetIwad() == null)
+        if (iwad == null && m_iwads.Count == 0)
+        {
+            var iwadLocator = IWadLocator.CreateDefault();
+            m_iwads.AddRange(iwadLocator.Locate());
+        }
+
+        if (iwad == null && GetIwad(m_iwads) == null)
         {
             m_archiveCollection.Load(Array.Empty<string>());
-            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config);
+            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
             selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
             m_layerManager.Add(selectionlayer);
             return;
@@ -75,7 +83,7 @@ public partial class Client
 
     private bool LoadFiles(string? iwad = null)
     {
-        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(),
+        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(m_iwads),
             dehackedPatch: m_commandLineArgs.DehackedPatch))
         {
             if (m_archiveCollection.Assets == null)
@@ -115,16 +123,14 @@ public partial class Client
         InitializeDemoRecorderFromCommandArgs();
     }
 
-    private string? GetIwad()
+    private string? GetIwad(List<IWadPath> iwads)
     {
         if (m_commandLineArgs.Iwad != null)
             return m_commandLineArgs.Iwad;
 
-        IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
-        List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
         // Only return if one is found, otherwise show the iwad selector
-        if (iwadData.Count == 1)
-            return iwadData[0].Item1;
+        if (iwads.Count == 1)
+            return iwads[0].Path;
 
         return null;
     }
