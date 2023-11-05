@@ -205,6 +205,11 @@ public class KeyBindingSection : IOptionSection
                         if (item.Keys[i] != key || item.Command.EqualsIgnoreCase(commandKeys.Command))
                             continue;
 
+                        // Don't unbind if key is in automap section and this key is not
+                        if (item.Command.StartsWith("AutoMap", StringComparison.OrdinalIgnoreCase) != 
+                            commandKeys.Command.StartsWith("AutoMap", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         unbound = item;
                         m_config.Keys.Remove(key, item.Command);
                         item.Keys.RemoveAt(i);
