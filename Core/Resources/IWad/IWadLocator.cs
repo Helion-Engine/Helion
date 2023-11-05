@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,9 +19,12 @@ public class IWadLocator
         List<(string, IWadInfo)> iwads = new();
         foreach (var dir in m_directories)
         {
-            string[] files = Directory.GetFiles(dir, "*.wad");
+            string[] files = Directory.GetFiles(dir);
             foreach (var file in files)
             {
+                if (!file.EndsWith(".wad", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
                 if (iwadInfo != IWadInfo.DefaultIWadInfo)
                     iwads.Add((file, iwadInfo));
