@@ -21,7 +21,6 @@ public class OpenALAudioSystem : IAudioSystem
     public event EventHandler? DeviceChanging;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
-    private readonly ISet<string> m_extensions = new HashSet<string>();
     private readonly IConfig m_config;
     private OpenALDevice m_alDevice;
     private OpenALContext m_alContext;
@@ -37,7 +36,6 @@ public class OpenALAudioSystem : IAudioSystem
         m_config.Audio.SoundVolume.OnChanged += OnSoundVolumeChange;
 
         PrintOpenALInfo();
-        DiscoverExtensions();
     }
 
     public IEnumerable<string> GetDeviceNames()
@@ -92,15 +90,23 @@ public class OpenALAudioSystem : IAudioSystem
         if (PrintedALInfo)
             return;
 
-        Log.Info("OpenAL v{0}", AL.Get(ALGetString.Version));
-        Log.Info("OpenAL Vendor: {0}", AL.Get(ALGetString.Vendor));
-        Log.Info("OpenAL Renderer: {0}", AL.Get(ALGetString.Renderer));
-        Log.Info("OpenAL Extensions: {0}", AL.Get(ALGetString.Extensions).Split(' ').Length);
+        Log.Info("OpenAL v{0}", GetString(ALGetString.Version));
+        Log.Info("OpenAL Vendor: {0}", GetString(ALGetString.Vendor));
+        Log.Info("OpenAL Renderer: {0}", GetString(ALGetString.Renderer));
+        Log.Info("OpenAL Extensions: {0}", GetString(ALGetString.Extensions).Count(x => x == ' ') + 1);
 
         foreach (string device in GetDeviceNames())
             Log.Info($"Device: {device}");
 
         PrintedALInfo = true;
+    }
+
+    private static string GetString(ALGetString type)
+    {
+        string str = AL.Get(type);
+        if (str != null)
+            return str;
+        return string.Empty;
     }
 
     ~OpenALAudioSystem()
@@ -130,12 +136,6 @@ public class OpenALAudioSystem : IAudioSystem
     internal void Unlink(OpenALAudioSourceManager context)
     {
         m_sourceManagers.Remove(context);
-    }
-
-    private void DiscoverExtensions()
-    {
-        foreach (string extension in AL.Get(ALGetString.Extensions).Split(' '))
-            m_extensions.Add(extension);
     }
 
     private void PerformDispose()
