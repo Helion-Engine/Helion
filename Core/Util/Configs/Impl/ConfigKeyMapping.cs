@@ -114,9 +114,20 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
     public bool Remove(Key key, string command)
     {
-        int removed = m_commands.RemoveAll(x => x.Key == key && x.Command.Equals(command, StringComparison.OrdinalIgnoreCase));
-        Changed = removed > 0;
-        return removed > 0;
+        bool removed = false;
+        for (int i = 0; i < m_commands.Count; i++)
+        {
+            var cmd = m_commands[i];
+            if (cmd.Key != key || !cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            removed = true;
+            m_commands.RemoveAt(i);
+            break;
+        }
+
+        AddEmpty(key);
+        return removed;
     }
 
     public void AddEmpty(Key key)

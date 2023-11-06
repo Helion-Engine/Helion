@@ -132,7 +132,7 @@ public class FileConfig : Config
             }
 
             foreach ((Key key, IEnumerable<string> commands) in commandMapping)
-                section[key.ToString()] = $"[{commands.Select(cmd => $"\"{cmd}\"").Join(", ")}]";
+                section[key.ToString()] = $"[{commands.Where(x => x.Trim().Length > 0).Select(cmd => $"\"{cmd}\"").Join(", ")}]";
 
             return true;
         }
@@ -203,7 +203,7 @@ public class FileConfig : Config
                     continue;
                 }
 
-                List<string>? commandArray = JsonSerializer.Deserialize<List<string>>(keyData.Value);
+                List<string>? commandArray = JsonSerializer.Deserialize<List<string>>(keyData.Value).Where(x => x.Trim().Length > 0).ToList();
                 if (commandArray == null)
                 {
                     Log.Warn($"Unable to parse parse config key line: {keyData.KeyName} = {keyData.Value}");

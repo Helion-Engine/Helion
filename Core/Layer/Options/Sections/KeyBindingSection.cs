@@ -12,6 +12,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Extensions;
 using Helion.Window;
@@ -216,11 +217,19 @@ public class KeyBindingSection : IOptionSection
 
                 if (unbound != null)
                     OnError?.Invoke(this, $"{key.ToString()} was unbound from {unbound.Value.Command}");
-            } 
+
+                WriteConfigFile();
+            }
         }
 
         m_updatingKeyBinding = false;
         OnLockChanged?.Invoke(this, new(Lock.Unlocked));
+    }
+
+    private void WriteConfigFile()
+    {
+        if (m_config is FileConfig fileConfig)
+            fileConfig.Write(FileConfig.DefaultConfigPath);
     }
 
     private bool TryConsumeAnyKey(IConsumableInput input, out Key key)
@@ -254,6 +263,7 @@ public class KeyBindingSection : IOptionSection
         // for instant rendering feedback. We don't remove the row because we
         // can then render "No binding" in its place.
         commandKeys.Keys.Clear();
+        WriteConfigFile();
     }
 
     public void HandleInput(IConsumableInput input)
