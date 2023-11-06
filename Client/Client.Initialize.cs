@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
@@ -20,26 +19,30 @@ public partial class Client
 
     private async Task Initialize(string? iwad = null)
     {
-        if (iwad == null && m_iwads.Count == 0)
-        {
-            var iwadLocator = IWadLocator.CreateDefault();
-            m_iwads.AddRange(iwadLocator.Locate());
-        }
-
-        if (iwad == null && GetIwad(m_iwads) == null)
-        {
-            m_archiveCollection.Load(Array.Empty<string>());
-            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
-            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-            m_layerManager.Add(selectionlayer);
-            return;
-        }
-
+        m_archiveCollection.Load(Array.Empty<string>());
         m_layerManager.Remove(m_layerManager.LoadingLayer);
         LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
         m_layerManager.Add(loadingLayer);
 
-        await Task.Run(() => LoadFiles(iwad));
+        if (iwad == null && m_iwads.Count == 0)
+            await Task.Run(FindInstalledIWads);
+
+        if (iwad == null && GetIwad(m_iwads) == null)
+        {            
+            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
+            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+            m_layerManager.Add(selectionlayer);
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            return;
+        }
+
+        bool success = await Task.Run(() => LoadFiles(iwad));
+        if (!success)
+        {
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            ShowConsole();
+            return;
+        }
 
         if (m_commandLineArgs.Skill.HasValue)
             SetSkill(m_commandLineArgs.Skill.Value);
@@ -63,6 +66,12 @@ public partial class Client
         }
 
         m_layerManager.Remove(m_layerManager.LoadingLayer);
+    }
+
+    private void FindInstalledIWads()
+    {
+        var iwadLocator = IWadLocator.CreateDefault();
+        m_iwads.AddRange(iwadLocator.Locate());
     }
 
     private void AddTitlepicIfNoMap()

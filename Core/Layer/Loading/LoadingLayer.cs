@@ -51,6 +51,9 @@ public class LoadingLayer : IGameLayer
         int fontSize = m_config.Hud.GetScaled(20);
         int yOffset = -m_config.Hud.GetScaled(8);
         var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
+        if (dim.Width == 0 && dim.Height == 0)
+            return;
+
         hud.FillBox(new(new Vec2I(0, hud.Dimension.Height  - dim.Height + (yOffset*2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
         hud.Text(LoadingText, ConsoleFont, fontSize, (0, yOffset), both: Align.BottomMiddle);
 
@@ -76,13 +79,5 @@ public class LoadingLayer : IGameLayer
     public void Dispose()
     {
 
-    }
-
-    private Font GetFontOrDefault(string name)
-    {
-        var font = m_archiveCollection.GetFont(name);
-        if (font == null)
-            return new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
-        return font;
     }
 }
