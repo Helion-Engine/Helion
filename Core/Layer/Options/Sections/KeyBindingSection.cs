@@ -183,11 +183,8 @@ public class KeyBindingSection : IOptionSection
         }
         else
         {
-            foreach (Key key in AllKeys)
+            if (TryConsumeAnyKey(input, out var key))
             {
-                if (!input.ConsumeKeyPressed(key)) 
-                    continue;
-                        
                 var commandKeys = m_commandToKeys[m_currentRow];
                 if (!commandKeys.Keys.Contains(key))
                 {
@@ -219,13 +216,31 @@ public class KeyBindingSection : IOptionSection
 
                 if (unbound != null)
                     OnError?.Invoke(this, $"{key.ToString()} was unbound from {unbound.Value.Command}");
-                        
-                break;
             } 
         }
 
         m_updatingKeyBinding = false;
         OnLockChanged?.Invoke(this, new(Lock.Unlocked));
+    }
+
+    private bool TryConsumeAnyKey(IConsumableInput input, out Key key)
+    {
+        for (int i = 0;i < AllKeys.Length; i++)
+        {
+            key = AllKeys[i];
+            if (input.ConsumeKeyPressed(key))
+                return true;
+        }
+
+        int scroll = input.ConsumeScroll();
+        if (scroll != 0)
+        {
+            key = scroll < 0 ? Key.MouseWheelDown : Key.MouseWheelUp;
+            return true;
+        }
+
+        key = Key.Unknown;
+        return false;
     }
 
     private void UnbindCurrentRow()
@@ -250,7 +265,7 @@ public class KeyBindingSection : IOptionSection
         
         if (m_updatingKeyBinding)
         {
-            if (input.HasAnyKeyPressed())
+            if (input.HasAnyKeyPressed() || input.Scroll != 0)
                 TryUpdateKeyBindingsFromPress(input);
             
             input.ConsumeAll();
