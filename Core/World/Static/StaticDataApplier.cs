@@ -96,14 +96,17 @@ public class StaticDataApplier
 
     public static void SetFloodFillSide(IWorld world, Side facingSide, Side otherSide)
     {
+        Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
+        Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
+
         if (facingSide.Lower.TextureHandle <= Constants.NullCompatibilityTextureIndex && 
-            (facingSide.Sector.Floor.Z < otherSide.Sector.Floor.Z || facingSide.Sector.Floor.PrevZ < otherSide.Sector.Floor.PrevZ))
+            (facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ))
             facingSide.FloodTextures |= SideTexture.Lower;
         else
             facingSide.FloodTextures &= ~SideTexture.Lower;
 
         if (facingSide.Upper.TextureHandle <= Constants.NullCompatibilityTextureIndex && 
-            (facingSide.Sector.Ceiling.Z > otherSide.Sector.Ceiling.Z || facingSide.Sector.Ceiling.PrevZ > otherSide.Sector.Ceiling.PrevZ))
+            (facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ))
             facingSide.FloodTextures |= SideTexture.Upper;
         else
             facingSide.FloodTextures &= ~SideTexture.Upper;
