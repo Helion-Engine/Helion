@@ -727,6 +727,7 @@ public partial class DehackedDefinition
         { ThingState.MISSILEFLASH4, new("RocketLauncher::flash",        3) },
 
         { ThingState.SAW,           new("Chainsaw::ready",              0) },
+        { ThingState.SAWB,          new("Chainsaw::ready",              1) },
         { ThingState.SAWDOWN,       new("Chainsaw::deselect",           0) },
         { ThingState.SAWUP,         new("Chainsaw::select",             0) },
         { ThingState.SAW1,          new("Chainsaw::fire",               0) },
