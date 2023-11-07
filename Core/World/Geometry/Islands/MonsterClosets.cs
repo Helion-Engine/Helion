@@ -18,11 +18,15 @@ public static class MonsterClosets
     // a final post-processing step.
     public static void Classify(WorldBase world)
     {
-        Dictionary<Island, List<Entity>> islandToEntities = PopulateEntityToIsland(world);
+        PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
 
-        foreach (Island island in world.Geometry.Islands)
+        for (int i = 0; i < world.Geometry.Islands.Count; i++)
         {
-            if (!CalculateIfMonsterCloset(island, world))
+            Island island = world.Geometry.Islands[i];
+            if (!islandToEntities.TryGetValue(island, out var entities))
+                continue;
+
+            if (!CalculateIfMonsterCloset(island, world, entities, entityToSubsector))
                 continue;
 
             island.IsMonsterCloset = true;
@@ -32,41 +36,42 @@ public static class MonsterClosets
         }
     }
 
-    private static Dictionary<Island, List<Entity>> PopulateEntityToIsland(WorldBase world)
+    private static void PopulateLookups(WorldBase world, out Dictionary<Island, List<Entity>> islandToEntity, 
+        out Dictionary<int, BspSubsector> entityToSubsector)
     {
-        Dictionary<Island, List<Entity>> result = new();
-
+        islandToEntity = new();
+        entityToSubsector = new();
         foreach (Island island in world.Geometry.Islands)
-            result[island] = new();
+            islandToEntity[island] = new();
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
-            List<Entity> entities = result[subsector.Island];
+            List<Entity> entities = islandToEntity[subsector.Island];
             entities.Add(entity);
+            entityToSubsector[entity.Id] = subsector;
         }
-
-        return result;
     }
 
-    private static bool CalculateIfMonsterCloset(Island island, WorldBase world)
+    private static bool CalculateIfMonsterCloset(Island island, WorldBase world, List<Entity> entities,
+        Dictionary<int, BspSubsector> entityToSubsector)
     {
         // Monster closets are simple, should not have a ton of lines.
         if (island.Lines.Count > 300)
             return false;
 
-        foreach (Line line in island.Lines)
+        for (int i = 0; i < island.Lines.Count; i++)
         {
+            var line = island.Lines[i];
             if (line.HasSpecial && !line.Special.IsTeleport() && !line.Special.IsPlaneScroller())
                 return false;
         }
 
-        HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
         int monsterCount = 0;
-        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        for (int i = 0; i < entities.Count; i++)
         {
-            BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
-            if (!subsectors.Contains(subsector))
+            var entity = entities[i];
+            if (!entityToSubsector.TryGetValue(entity.Id, out var subsector))
                 continue;
 
             // Anything not a monster is not a monster closet.
