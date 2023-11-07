@@ -176,12 +176,13 @@ public class LegacyWorldRenderer : WorldRenderer
                     TransferHeights? transfer = sector.TransferHeights;
                     sector.BlockmapCount = m_renderData.CheckCount;
 
+                    const SectorDynamic MovementFlags = SectorDynamic.Movement | SectorDynamic.Scroll;
                     // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
                     if (transfer != null && transferHeightsView == TransferHeightView.Middle &&
-                        (sector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
-                        (sector.Ceiling.Dynamic & SectorDynamic.Movement) == 0 &&
-                        (transfer.ControlSector.Floor.Dynamic & SectorDynamic.Movement) == 0 &&
-                        (transfer.ControlSector.Ceiling.Dynamic & SectorDynamic.Movement) == 0)
+                        (sector.Floor.Dynamic & MovementFlags) == 0 &&
+                        (sector.Ceiling.Dynamic & MovementFlags) == 0 &&
+                        (transfer.ControlSector.Floor.Dynamic & MovementFlags) == 0 &&
+                        (transfer.ControlSector.Ceiling.Dynamic & MovementFlags) == 0)
                         continue;
 
                     Box2D sectorBox = sector.GetBoundingBox();
