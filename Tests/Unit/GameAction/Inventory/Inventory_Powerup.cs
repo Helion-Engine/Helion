@@ -191,7 +191,7 @@ namespace Helion.Tests.Unit.GameAction
                 player.Inventory.PowerupEffectColor.Should().BeNull();
 
             if (alpha != -1)
-                player.Inventory.PowerupEffectColor.DrawAlpha.Should().Be(alpha);
+                player.Inventory.PowerupEffectColor!.DrawAlpha.Should().Be(alpha);
 
             if (colorMap)
                 player.Inventory.PowerupEffectColorMap.Should().Be(powerup);
