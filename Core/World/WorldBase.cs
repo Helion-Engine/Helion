@@ -116,11 +116,12 @@ public abstract class WorldBase : IWorld
     public bool IsDisposed { get; private set; }
     public abstract ListenerParams GetListener();
     public int CurrentBossTarget { get; set; }
+    public MarkSpecials MarkSpecials { get; } = new();
 
     public GameInfoDef GameInfo => ArchiveCollection.Definitions.MapInfoDefinition.GameDefinition;
     public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
-    public readonly MapGeometry Geometry;
+    public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
     protected readonly IAudioSystem AudioSystem;
     protected readonly IMap Map;

@@ -27,7 +27,7 @@ public static class SwitchManager
         }
     }
 
-    private static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line, bool off)
+    public static (int, WallLocation) GetLineLineSwitchTexture(ArchiveCollection archiveCollection, Line line, bool off)
     {
         if (line.Back != null)
         {

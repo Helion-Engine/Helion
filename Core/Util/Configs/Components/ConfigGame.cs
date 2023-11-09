@@ -49,5 +49,13 @@ public class ConfigGame
     [ConfigInfo("Whether no monsters should be spawned.", save: false)]
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
+    [ConfigInfo("Marks lines and secctors that are activated by a special in the automap.")]
+    [OptionMenu(OptionSectionType.General, "Marks specials", spacer: true)]
+    public readonly ConfigValue<bool> MarkSpecials = new(false);
+
+    [ConfigInfo("Marks secret sectors in the automap.")]
+    [OptionMenu(OptionSectionType.General, "Marks secrets")]
+    public readonly ConfigValue<bool> MarkSecrets = new(false);
+
     public SkillDef? SelectedSkillDefinition { get; set; }
 }

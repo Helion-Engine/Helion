@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Helion.World.Entities.Players;
 
-public record struct PlayerTracerInfo(int Gametick, int Ticks, Vec3F Color)
+public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color)
 {
     public Seg3D LookPath;
     public Seg3D AimPath;
@@ -18,6 +18,7 @@ public record struct PlayerTracerInfo(int Gametick, int Ticks, Vec3F Color)
 /// </summary>
 public class PlayerTracers
 {
+    private int Id;
     public const int MaxTracers = 4 * (int)Constants.TicksPerSecond;
     public const int TracerRenderTicks = 4 * (int)Constants.TicksPerSecond;
     public static readonly Vec3F TracerColor = (1, 1, 1);
@@ -28,12 +29,11 @@ public class PlayerTracers
 
     private PlayerTracerInfo GetOrCreateTracerInfo(int gametick, Vec3F color, int ticks = TracerRenderTicks)
     {
-        PlayerTracerInfo? info = Tracers.First?.Value;
-
+        PlayerTracerInfo? info = FindTracer(color, ticks);
         // If there's no items, then make the first one.
         if (info == null)
         {
-            info = new(gametick, ticks, color);
+            info = new(++Id, gametick, ticks, color);
             Tracers.AddFirst(info.Value);
             return info.Value;
         }
@@ -42,7 +42,7 @@ public class PlayerTracers
         Debug.Assert(gametick >= info.Value.Gametick, "Trying to add an older gametick, should only be adding current or newer tracers");
         if (info.Value.Gametick != gametick)
         {
-            info = new(gametick, ticks, color);
+            info = new(++Id, gametick, ticks, color);
             Tracers.AddFirst(info.Value);
         }
 
@@ -51,6 +51,18 @@ public class PlayerTracers
             Tracers.RemoveLast();
 
         return info.Value;
+    }
+
+    private PlayerTracerInfo? FindTracer(Vec3F color, int ticks)
+    {
+        var node = Tracers.First;
+        while (node != null)
+        {
+            if (node.Value.Color == color && node.Value.Ticks == ticks)
+                return node.Value;
+            node = node.Next;
+        }
+        return null;
     }
 
     public void AddLookPath(Vec3D start, double yaw, double pitch, double distance, int gametick)
@@ -71,9 +83,24 @@ public class PlayerTracers
         info.AimPath = (start, end);
     }
 
-    public void AddTracer(Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks)
+    public int AddTracer(Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks)
     {
         PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, color, ticks);
         info.Tracers.Add(path);
+        return info.Id;
+    }
+
+    public void RemoveTracer(int id)
+    {
+        var node = Tracers.First;
+        while (node != null)
+        {
+            if (node.Value.Id == id)
+            {
+                Tracers.Remove(node);
+                break;
+            }
+            node = node.Next;
+        }
     }
 }

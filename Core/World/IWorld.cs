@@ -29,6 +29,8 @@ using Helion.Resources;
 using Helion.World.Static;
 using Helion.World.Blockmap;
 using Helion.Maps.Specials;
+using Helion.World.Impl.SinglePlayer;
+using Helion.World.Geometry;
 
 namespace Helion.World;
 
@@ -90,6 +92,8 @@ public interface IWorld : IDisposable
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
     bool IsDisposed { get; }
+    MarkSpecials MarkSpecials { get; }
+    MapGeometry Geometry { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
