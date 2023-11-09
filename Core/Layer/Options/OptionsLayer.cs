@@ -408,7 +408,11 @@ public class OptionsLayer : IGameLayer
 
 
         if (m_message.Length > 0)
+        {
+            var dim = hud.MeasureText(m_message, Fonts.SmallGray, fontSize);
+            hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
             hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
+        }
     }
 
     private void SetMouseFromRender(IHudRenderContext hud)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
@@ -16,22 +15,34 @@ namespace Helion.Client;
 
 public partial class Client
 {
+    private readonly List<IWadPath> m_iwads = new();
+
     private async Task Initialize(string? iwad = null)
     {
-        if (iwad == null && GetIwad() == null)
-        {
-            m_archiveCollection.Load(Array.Empty<string>());
-            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config);
-            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-            m_layerManager.Add(selectionlayer);
-            return;
-        }
-
+        m_archiveCollection.Load(Array.Empty<string>());
         m_layerManager.Remove(m_layerManager.LoadingLayer);
         LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
         m_layerManager.Add(loadingLayer);
 
-        await Task.Run(() => LoadFiles(iwad));
+        if (iwad == null && m_iwads.Count == 0)
+            await Task.Run(FindInstalledIWads);
+
+        if (iwad == null && GetIwad(m_iwads) == null)
+        {            
+            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
+            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+            m_layerManager.Add(selectionlayer);
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            return;
+        }
+
+        bool success = await Task.Run(() => LoadFiles(iwad));
+        if (!success)
+        {
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            ShowConsole();
+            return;
+        }
 
         if (m_commandLineArgs.Skill.HasValue)
             SetSkill(m_commandLineArgs.Skill.Value);
@@ -57,6 +68,12 @@ public partial class Client
         m_layerManager.Remove(m_layerManager.LoadingLayer);
     }
 
+    private void FindInstalledIWads()
+    {
+        var iwadLocator = IWadLocator.CreateDefault();
+        m_iwads.AddRange(iwadLocator.Locate());
+    }
+
     private void AddTitlepicIfNoMap()
     {
         if (m_layerManager.WorldLayer != null)
@@ -75,7 +92,7 @@ public partial class Client
 
     private bool LoadFiles(string? iwad = null)
     {
-        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(),
+        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(m_iwads),
             dehackedPatch: m_commandLineArgs.DehackedPatch))
         {
             if (m_archiveCollection.Assets == null)
@@ -115,16 +132,14 @@ public partial class Client
         InitializeDemoRecorderFromCommandArgs();
     }
 
-    private string? GetIwad()
+    private string? GetIwad(List<IWadPath> iwads)
     {
         if (m_commandLineArgs.Iwad != null)
             return m_commandLineArgs.Iwad;
 
-        IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
-        List<(string, IWadInfo)> iwadData = iwadLocator.Locate();
         // Only return if one is found, otherwise show the iwad selector
-        if (iwadData.Count == 1)
-            return iwadData[0].Item1;
+        if (iwads.Count == 1)
+            return iwads[0].Path;
 
         return null;
     }

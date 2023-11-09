@@ -30,6 +30,8 @@ public class TransferHeights
     public Sector GetRenderSector(TransferHeightView view)
     {
         Sector sector = RenderSectors[++RenderSectorIndex % RenderSectors.Length];
+        sector.Floor.SectorScrollData = null;
+        sector.Ceiling.SectorScrollData = null;
         switch (view)
         {
             case TransferHeightView.Top:
@@ -40,7 +42,6 @@ public class TransferHeights
                 sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
                 sector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
                 sector.Ceiling.Sector = ControlSector;
-                sector.LightLevel = ControlSector.LightLevel;
 
                 sector.Floor.Plane = ControlSector.Ceiling.Plane;
                 sector.Floor.Z = ControlSector.Ceiling.Z;
@@ -48,8 +49,8 @@ public class TransferHeights
                 sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
                 sector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
                 sector.Floor.Sector = ControlSector;
-                sector.LightLevel = ControlSector.LightLevel;
 
+                sector.LightLevel = ControlSector.LightLevel;
                 sector.TransferFloorLightSector = ControlSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
                 break;
@@ -61,17 +62,18 @@ public class TransferHeights
                 sector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
                 sector.Ceiling.TextureHandle = ParentSector.Ceiling.TextureHandle;
                 sector.Ceiling.LightLevel = ParentSector.CeilingRenderLightLevel;
+                sector.Ceiling.SectorScrollData = ParentSector.Ceiling.SectorScrollData;
                 sector.Ceiling.Sector = ParentSector;
-                sector.LightLevel = ParentSector.LightLevel;
 
                 sector.Floor.Plane = ControlSector.Floor.Plane;
                 sector.Floor.Z = ControlSector.Floor.Z;
                 sector.Floor.PrevZ = ControlSector.Floor.PrevZ;
                 sector.Floor.TextureHandle = ParentSector.Floor.TextureHandle;
                 sector.Floor.LightLevel = ParentSector.FloorRenderLightLevel;
+                sector.Floor.SectorScrollData = ParentSector.Floor.SectorScrollData;
                 sector.Floor.Sector = ParentSector;
-                sector.LightLevel = ParentSector.LightLevel;
 
+                sector.LightLevel = ParentSector.LightLevel;
                 sector.TransferFloorLightSector = ParentSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ParentSector.TransferCeilingLightSector;
                 break;
@@ -84,7 +86,6 @@ public class TransferHeights
                 sector.Ceiling.TextureHandle = ControlSector.Ceiling.TextureHandle;
                 sector.Ceiling.LightLevel = ControlSector.CeilingRenderLightLevel;
                 sector.Ceiling.Sector = ControlSector;
-                sector.LightLevel = ControlSector.LightLevel;
 
                 sector.Floor.Plane = ParentSector.Floor.Plane;
                 sector.Floor.Z = ParentSector.Floor.Z;
@@ -92,8 +93,8 @@ public class TransferHeights
                 sector.Floor.TextureHandle = ControlSector.Floor.TextureHandle;
                 sector.Floor.LightLevel = ControlSector.FloorRenderLightLevel;
                 sector.Floor.Sector = ControlSector;
-                sector.LightLevel = ControlSector.LightLevel;
 
+                sector.LightLevel = ControlSector.LightLevel;
                 sector.TransferFloorLightSector = ControlSector.TransferFloorLightSector;
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
                 break;

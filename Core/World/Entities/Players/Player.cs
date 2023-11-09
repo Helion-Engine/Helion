@@ -372,19 +372,11 @@ public class Player : Entity
 
     public bool HasNewWeapon() => m_hasNewWeapon;
 
-    public Vec3D GetViewPosition()
-    {
-        Vec3D position = Position;
-        position.Z += m_viewZ;
-        return position;
-    }
+    public Vec3D GetViewPosition() =>
+        new(Position.X, Position.Y, Position.Z + m_viewZ);
 
-    public Vec3D GetPrevViewPosition()
-    {
-        Vec3D position = PrevPosition;
-        position.Z += m_prevViewZ;
-        return position;
-    }
+    public Vec3D GetPrevViewPosition() =>
+        new(PrevPosition.X, PrevPosition.Y, PrevPosition.Z + m_prevViewZ);
 
     public void SetAndSmoothZ(double z)
     {
@@ -506,7 +498,10 @@ public class Player : Entity
 
     public OldCamera GetCamera(double t)
     {
-        Vec3D position = GetPrevViewPosition().Interpolate(GetViewPosition(), t);
+        Vec3D currentPos = GetViewPosition();
+        Vec3D prevPos = GetPrevViewPosition();
+        Vec3D position = prevPos.Interpolate(currentPos, t);
+        position = CheckPlaneClip(currentPos, prevPos, position);
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
@@ -593,6 +588,39 @@ public class Player : Entity
 
         StatusBar.Tick();
         m_hasNewWeapon = false;
+    }
+
+    private Vec3D CheckPlaneClip(Vec3D pos, Vec3D prevPos, Vec3D interpolatedPos)
+    {
+        ViewPlaneClip = false;
+        if (Sector.TransferHeights == null)
+            return interpolatedPos;
+
+        var transferView = TransferHeights.GetView(Sector, pos.Z);
+        var prevTransferView = TransferHeights.GetView(Sector, prevPos.Z);
+        var transferViewInterpolated = TransferHeights.GetView(Sector, interpolatedPos.Z);
+        var sector = Sector.GetRenderSector(Sector, interpolatedPos.Z);
+
+        double viewZ = interpolatedPos.Z;
+        double viewClipZ = transferViewInterpolated == TransferHeightView.Middle ? sector.Floor.Z : sector.Ceiling.Z;
+        double viewDiff = Math.Abs(viewZ - viewClipZ);
+        if (viewDiff < 10)
+            ViewPlaneClip = true;
+
+        // Check for when the transfer height plane is really close to the player camera z
+        // This forces the view to be +0.25 or -0.25 of the transfer heights floor
+        // Otherwise the clip is too close and looks terrible
+        const double MinPlaneView = 0.25;
+        double viewOffsetZ = 0;
+        if (viewDiff < MinPlaneView)
+            viewOffsetZ = transferView == TransferHeightView.Middle ? MinPlaneView : -MinPlaneView;
+
+        // Can't interpolate z if changing transfer heights views
+        if (transferView != prevTransferView || viewOffsetZ != 0)
+            return new Vec3D(interpolatedPos.X, interpolatedPos.Y, pos.Z + viewOffsetZ);
+
+        interpolatedPos.Z += viewOffsetZ;
+        return interpolatedPos;
     }
 
     private void SetRunningFrameState()
@@ -1236,7 +1264,7 @@ public class Player : Entity
 
         // Doom hard coded the decrease amounts for each weapon fire. Have to check if ammo use was changed via dehacked.
         // Handles example case where weapon is rocket launcher but fire calls A_FireBFG.
-        if (amount <= 0 || Weapon.AmmoDefinition.Properties.Weapons.AmmoUseSet)
+        if (amount <= 0 || (Weapon.AmmoDefinition != null && Weapon.AmmoDefinition.Properties.Weapons.AmmoUseSet))
             amount = Weapon.Definition.Properties.Weapons.AmmoUse;
 
         Inventory.Remove(Weapon.Definition.Properties.Weapons.AmmoType, amount);

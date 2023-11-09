@@ -31,7 +31,6 @@ namespace Helion.World.Impl.SinglePlayer;
 public class SinglePlayerWorld : WorldBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly DebugSpecials m_debugSpecials = new();
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
 
@@ -356,13 +355,13 @@ public class SinglePlayerWorld : WorldBase
 
     public override void OnTryEntityUseLine(Entity entity, Line line)
     {
-        m_debugSpecials.MarkSpecials(this, entity, line);
+        MarkSpecials.Mark(this, entity, line);
         base.OnTryEntityUseLine(entity, line);
     }
 
     public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
     {
-        m_debugSpecials.MarkSpecials(this, entity, line);
+        MarkSpecials.Mark(this, entity, line);
         return base.ActivateSpecialLine(entity, line, context);
     }
 

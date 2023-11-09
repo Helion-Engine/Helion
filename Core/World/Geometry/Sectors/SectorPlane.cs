@@ -28,7 +28,7 @@ public class SectorPlane : ISoundSource
     public int LastRenderGametick;
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
 
-    public SectorScrollData? SectorScrollData { get; private set; }
+    public SectorScrollData? SectorScrollData;
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
 

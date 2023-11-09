@@ -88,7 +88,7 @@ public class Renderer : IDisposable
         // Optimially this should be handled in the shader. Setting this variable and using it for a low zNear is good enough for now.
         // If we are being crushed or clipped into a line with a middle texture then use a lower zNear.
         float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
-        if (renderInfo.ViewerEntity.ViewLineClip)
+        if (renderInfo.ViewerEntity.ViewLineClip || renderInfo.ViewerEntity.ViewPlaneClip)
             zNear = 0.2f;
 
         zNear = MathHelper.Clamp(zNear, 0.2f, 7.9f);

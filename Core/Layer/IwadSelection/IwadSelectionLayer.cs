@@ -47,24 +47,22 @@ public class IwadSelectionLayer : IGameLayer
     private readonly List<IwadData> m_iwadData = new();
     private readonly Stopwatch m_stopwatch = new();
     private int m_selectedIndex;
-    private IwadData? m_loading;
     private bool m_indicator;
+    private bool m_loading;
 
-    public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config)
+    public IwadSelectionLayer(ArchiveCollection archiveCollection, IConfig config, IList<IWadPath> iwadData)
     {
         m_archiveCollection = archiveCollection;
         m_config = config;
-        IWadLocator iwadLocator = new(new[] { Directory.GetCurrentDirectory() });
-        var iwadData = iwadLocator.Locate().OrderBy(x => Path.GetFileName(x.Item1));
         foreach (var data in iwadData)
-            m_iwadData.Add(new(data.Item1, $"{Path.GetFileName(data.Item1)}: {data.Item2.Title}", data.Item2));
+            m_iwadData.Add(new(data.Path, $"{Path.GetFileName(data.Path)}: {data.Info.Title}", data.Info));
 
         m_stopwatch.Start();
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        int fontSize = m_config.Hud.GetScaled(20);
+        int fontSize = m_config.Hud.GetLargeFontSize();
         int spacer = m_config.Hud.GetScaled(8);
 
         hud.RenderFullscreenImage("background");
@@ -115,14 +113,11 @@ public class IwadSelectionLayer : IGameLayer
 
         hud.Image("arrow-right", (-maxWidth / 2 - (fontSize / 2) - spacer, selectedY), both: Align.Center, scale: fontSize / 100.0f,
             alpha: m_indicator ? 1.0f : 0.5f);
-
-        if (m_loading != null)
-            hud.Text($"Loading {m_loading.Value.Name}...", ConsoleFont, fontSize, (0, y + (spacer * 3)), out dim, both: Align.Center);
     }
 
     public void HandleInput(IConsumableInput input)
     {
-        if (m_loading != null)
+        if (m_loading)
             return;
 
         if (m_iwadData.Count == 0 && input.HasAnyKeyPressed())
@@ -133,8 +128,8 @@ public class IwadSelectionLayer : IGameLayer
 
         if (input.ConsumeKeyPressed(Key.Enter) && m_selectedIndex < m_iwadData.Count)
         {
-            m_loading = m_iwadData[m_selectedIndex];
-            OnIwadSelected?.Invoke(this, m_loading.Value.FullPath);
+            m_loading = true;
+            OnIwadSelected?.Invoke(this, m_iwadData[m_selectedIndex].FullPath);
         }
 
         if (input.ConsumePressOrContinuousHold(Key.Down))
@@ -154,13 +149,5 @@ public class IwadSelectionLayer : IGameLayer
     public void Dispose()
     {
         
-    }
-
-    private Font GetFontOrDefault(string name)
-    {
-        var font = m_archiveCollection.GetFont(name);
-        if (font == null)
-            return new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
-        return font;
     }
 }

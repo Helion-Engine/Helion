@@ -22,6 +22,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
+using Helion.World.Impl.SinglePlayer;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -146,11 +147,32 @@ public class LegacyAutomapRenderer : IDisposable
         PopulateThings(world, player, renderInfo);
         DrawEntity(player, renderInfo.TickFraction);
 
+        if (world.MarkSpecials != null)
+            ConnectMarkedSpecials(world, world.MarkSpecials);
+
         if (player != null && (m_offsetX != 0 || m_offsetY != 0))
             DrawCenterCross(player, renderInfo);
 
         TransferLineDataIntoBuffer(out box2F);
         m_vbo.UploadIfNeeded();
+    }
+
+    private void ConnectMarkedSpecials(IWorld world, MarkSpecials markSpecials)
+    {
+        for (int i = 0; i < markSpecials.MarkedSectors.Length; i++)
+        {
+            var sector = markSpecials.MarkedSectors[i];
+            if (sector.ActivatedByLineId < 0 || sector.ActivatedByLineId >= world.Geometry.Lines.Count)
+                continue;
+
+            var line = world.Geometry.Lines[sector.ActivatedByLineId];
+            var box = sector.GetBoundingBox();
+            var linePoint = line.Segment.FromTime(0.5);
+
+            var boxPoint = new Vec2D((box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2);
+
+            AddLine(AutomapColor.Purple, linePoint, boxPoint);
+        }
     }
 
     private void DrawCenterCross(Player player, RenderInfo renderInfo)
@@ -201,7 +223,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         bool forceDraw = !world.Config.Render.AutomapBspThread;
-        bool markSecrets = world.Config.Developer.MarkSecrets;
+        bool markSecrets = world.Config.Game.MarkSecrets;
 
         for (int i = 0; i < world.Lines.Count; i++)
         {
@@ -270,10 +292,15 @@ public class LegacyAutomapRenderer : IDisposable
 
     private static bool IsLineMarked(Line line, bool markSecrets)
     {
+        if (line.Id == 471)
+        {
+            int lol = 1;
+        }
+
         if (line.MarkAutomap)
             return true;
 
-        if (line.Front.Sector.MarkAutomap && (line.Back != null && line.Back.Sector.MarkAutomap))
+        if (line.Front.Sector.MarkAutomap || (line.Back != null && line.Back.Sector.MarkAutomap))
             return true;
 
         if (markSecrets && (line.Front.Sector.Secret || line.Back != null && line.Back.Sector.Secret))
