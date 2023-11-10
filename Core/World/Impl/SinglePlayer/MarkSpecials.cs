@@ -259,7 +259,7 @@ public class MarkSpecials
         for (int i = 0; i < lines.Count; i++)
         {
             Line line = lines[i];
-            if (!line.HasSpecial)
+            if (IgnoreLineSpecial(line))
                 continue;
 
             if (line.SectorTag == 0)
