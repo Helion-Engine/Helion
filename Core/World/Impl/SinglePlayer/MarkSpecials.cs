@@ -128,11 +128,11 @@ public class MarkSpecials
         Vec3D end = new((box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2, Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
 
         // Check if the point is in the sector. The center point of the bounding box may not be in the center if it's a complex concave polygon.
-        // In this case use the sound source which returns the closest line point.
         if (world.BspTree.ToSector(end).Id != sector.Id)
         {
-            end = sector.Floor.GetSoundSource(player, SectorPlaneFace.Floor);
-            end.Z = Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z);
+            var endLine = sector.Floor.GetClosestLineCenterFrom(player.Position.XY);
+            end = endLine.Segment.FromTime(0.5).To3D(Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
+            end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
         }
 
         m_playerTracers.Add(player.Tracers.AddTracer((start, end), world.Gametick, TracerColors[m_lineMarkColor], 

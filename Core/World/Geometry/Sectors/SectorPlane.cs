@@ -137,6 +137,28 @@ public class SectorPlane : ISoundSource
         return Vec2D.Zero;
     }
 
+    public Line? GetClosestLineCenterFrom(in Vec2D point)
+    {
+        double minDist = double.MaxValue;
+        Line? minLine = null;
+
+        for (int i = 0; i < Sector.Lines.Count; i++)
+        {
+            var line = Sector.Lines[i];
+            double dist = line.Segment.FromTime(0.5).Distance(point);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                minLine = line;
+            }
+        }
+
+        if (minLine != null)
+            return minLine;
+
+        return null;
+    }
+
     public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
         m_audio = audioSource;
