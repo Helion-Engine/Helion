@@ -147,8 +147,8 @@ public class LegacyAutomapRenderer : IDisposable
         PopulateThings(world, player, renderInfo);
         DrawEntity(player, renderInfo.TickFraction);
 
-        if (world.MarkSpecials != null)
-            ConnectMarkedSpecials(world, world.MarkSpecials);
+        if (world is SinglePlayerWorld singlePlayerWorld)
+            DrawAutomapTracers(world, singlePlayerWorld.Player);
 
         if (player != null && (m_offsetX != 0 || m_offsetY != 0))
             DrawCenterCross(player, renderInfo);
@@ -157,21 +157,21 @@ public class LegacyAutomapRenderer : IDisposable
         m_vbo.UploadIfNeeded();
     }
 
-    private void ConnectMarkedSpecials(IWorld world, MarkSpecials markSpecials)
+    private void DrawAutomapTracers(IWorld world, Player player)
     {
-        for (int i = 0; i < markSpecials.MarkedSectors.Length; i++)
+        var node = player.Tracers.Tracers.First;
+        while (node != null)
         {
-            var sector = markSpecials.MarkedSectors[i];
-            if (sector.ActivatedByLineId < 0 || sector.ActivatedByLineId >= world.Geometry.Lines.Count)
-                continue;
-
-            var line = world.Geometry.Lines[sector.ActivatedByLineId];
-            var box = sector.GetBoundingBox();
-            var linePoint = line.Segment.FromTime(0.5);
-
-            var boxPoint = new Vec2D((box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2);
-
-            AddLine(AutomapColor.Purple, linePoint, boxPoint);
+            if (node.Value.AutomapColor.HasValue)
+            {
+                var info = node.Value;
+                for (int i = 0; i < info.Tracers.Count; i++)
+                {
+                    var seg = info.Tracers[i];
+                    AddLine(node.Value.AutomapColor.Value, seg.Start.XY, seg.End.XY);
+                }
+            }
+            node = node.Next;
         }
     }
 

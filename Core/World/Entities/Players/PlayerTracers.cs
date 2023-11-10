@@ -1,12 +1,13 @@
 ﻿using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Helion.World.Entities.Players;
 
-public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color)
+public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, AutomapColor? AutomapColor)
 {
     public Seg3D LookPath;
     public Seg3D AimPath;
@@ -27,13 +28,13 @@ public class PlayerTracers
 
     public readonly LinkedList<PlayerTracerInfo> Tracers = new();
 
-    private PlayerTracerInfo GetOrCreateTracerInfo(int gametick, Vec3F color, int ticks = TracerRenderTicks)
+    private PlayerTracerInfo GetOrCreateTracerInfo(int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
     {
         PlayerTracerInfo? info = FindTracer(color, ticks);
         // If there's no items, then make the first one.
         if (info == null)
         {
-            info = new(++Id, gametick, ticks, color);
+            info = new(++Id, gametick, ticks, color, automapColor);
             Tracers.AddFirst(info.Value);
             return info.Value;
         }
@@ -42,7 +43,7 @@ public class PlayerTracers
         Debug.Assert(gametick >= info.Value.Gametick, "Trying to add an older gametick, should only be adding current or newer tracers");
         if (info.Value.Gametick != gametick)
         {
-            info = new(++Id, gametick, ticks, color);
+            info = new(++Id, gametick, ticks, color, automapColor);
             Tracers.AddFirst(info.Value);
         }
 
@@ -83,9 +84,9 @@ public class PlayerTracers
         info.AimPath = (start, end);
     }
 
-    public int AddTracer(Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks)
+    public int AddTracer(Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
     {
-        PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, color, ticks);
+        PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, color, ticks, automapColor);
         info.Tracers.Add(path);
         return info.Id;
     }

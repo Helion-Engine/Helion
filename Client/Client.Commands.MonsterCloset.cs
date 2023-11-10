@@ -13,8 +13,25 @@ namespace Helion.Client;
 
 public partial class Client
 {
+    enum ClosetType
+    {
+        Monster,
+        VooDoo
+    }
+
+    [ConsoleCommand("voodooclosets", "Prints the voodoo doll closets in the map.")]
+    private void PrintVooDooClosets(ConsoleCommandEventArgs args)
+    {
+        PrintClosets(ClosetType.VooDoo);
+    }
+
     [ConsoleCommand("monsterclosets", "Prints the monster closets in the map.")]
     private void PrintMonsterClosets(ConsoleCommandEventArgs args)
+    {
+        PrintClosets(ClosetType.Monster);
+    }
+
+    private void PrintClosets(ClosetType type)
     {
         if (m_layerManager.WorldLayer == null)
             return;
@@ -26,7 +43,10 @@ public partial class Client
         int count = 0;
         foreach (var island in islands)
         {
-            if (!island.IsMonsterCloset)
+            if (type == ClosetType.Monster && !island.IsMonsterCloset)
+                continue;
+
+            if (type == ClosetType.VooDoo && !island.IsVooDooCloset)
                 continue;
 
             IEnumerable<Sector> sectors = island.Subsectors.Where(x => x.Sector != null).Select(x => x.Sector).Distinct()!;
@@ -35,13 +55,17 @@ public partial class Client
             count++;
         }
 
-        Log.Info($"Total monster closets: {count}");
-        Log.Info($"Total monsters: {infoList.Sum(x => x.MonsterCount)}");
+        string stringType = type == ClosetType.Monster ? "monster" : "voodoo"; 
+
+        Log.Info($"Total {stringType} closets: {count}");
+        if (type == ClosetType.Monster)
+            Log.Info($"Total monsters: {infoList.Sum(x => x.MonsterCount)}");
 
         foreach (var info in infoList)
         {
-            Log.Info($"Monster closet {info.Id}");
-            Log.Info($"Monster count: {info.MonsterCount}");
+            Log.Info($"{stringType} closet {info.Id}");
+            if (type == ClosetType.Monster)
+                Log.Info($"Monster count: {info.MonsterCount}");
             Log.Info($"Bounds: {info.Box}");
             Log.Info($"Sectors: {info.Sectors}");
         }

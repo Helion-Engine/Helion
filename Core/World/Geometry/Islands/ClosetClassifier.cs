@@ -7,12 +7,7 @@ using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
 
-/// <summary>
-/// A classifier for monster closets, which are disjoint areas of the map
-/// that the player cannot reach, and only monsters are in, and only allow
-/// monsters out of them. Each monster closet is effectively an island.
-/// </summary>
-public static class MonsterClosets
+public static class ClosetClassifier
 {
     // Assumes entities and geometry have been populated. Should be done as
     // a final post-processing step.
@@ -26,13 +21,13 @@ public static class MonsterClosets
             if (!islandToEntities.TryGetValue(island, out var entities))
                 continue;
 
-            if (!CalculateIfMonsterCloset(island, world, entities, entityToSubsector))
-                continue;
+            SetCloset(island, world, entities, entityToSubsector);      
 
-            island.IsMonsterCloset = true;
-
-            foreach (Entity entity in islandToEntities[island])
-                entity.InMonsterCloset = true;
+            if (island.IsMonsterCloset)
+            {
+                foreach (Entity entity in islandToEntities[island])
+                    entity.InMonsterCloset = true;
+            }
         }
     }
 
@@ -53,21 +48,30 @@ public static class MonsterClosets
         }
     }
 
-    private static bool CalculateIfMonsterCloset(Island island, WorldBase world, List<Entity> entities,
+    private static void SetCloset(Island island, WorldBase world, List<Entity> entities,
         Dictionary<int, BspSubsector> entityToSubsector)
     {
         // Monster closets are simple, should not have a ton of lines.
         if (island.Lines.Count > 300)
-            return false;
+            return;
 
+        bool monsterCloset = true;
+        bool voodooCloset = true;
+
+        bool hasNonMonsterClosetSpecial = false;
         for (int i = 0; i < island.Lines.Count; i++)
         {
             var line = island.Lines[i];
             if (line.HasSpecial && !line.Special.IsTeleport() && !line.Special.IsPlaneScroller())
-                return false;
+            {
+                monsterCloset = false;
+                hasNonMonsterClosetSpecial = true;
+                break;
+            }
         }
 
         int monsterCount = 0;
+        int playerCount = 0;
         for (int i = 0; i < entities.Count; i++)
         {
             var entity = entities[i];
@@ -75,14 +79,21 @@ public static class MonsterClosets
                 continue;
 
             // Anything not a monster is not a monster closet.
-            bool isMonster = entity.Flags.CountKill;
-            if (!isMonster)
-                return false;
+            if (entity.Flags.CountKill)
+                monsterCount++;
+            else
+                monsterCloset = false;
 
-            monsterCount++;
+            if (entity.PlayerObj != null)
+            {
+                if (!entity.PlayerObj.IsVooDooDoll)
+                    voodooCloset = false;
+                playerCount++;
+            }
         }
 
-        return monsterCount > 0;
+        island.IsMonsterCloset = monsterCloset && monsterCount > 0;
+        island.IsVooDooCloset = !monsterCloset && voodooCloset && playerCount == 1;
     }
 
     // A "bridge" is a sector that connects two sections of the map, whereby

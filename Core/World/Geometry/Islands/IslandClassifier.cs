@@ -46,6 +46,7 @@ public static class IslandClassifier
 
             processedSubsectors.Add(subsector);
             island.Subsectors.Add(subsector);
+            subsector.Sector.Island = island;
 
             foreach (BspSubsectorSeg seg in subsector.Segments)
             {

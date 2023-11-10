@@ -106,7 +106,7 @@ public class SinglePlayerWorld : WorldBase
         }
 
         if (config.Game.MonsterCloset.Value)
-            MonsterClosets.Classify(this);
+            ClosetClassifier.Classify(this);
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
 
