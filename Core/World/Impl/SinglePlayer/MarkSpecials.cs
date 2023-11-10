@@ -12,23 +12,24 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using Helion.World.Special.Switches;
-using NLog.Fluent;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.World.Impl.SinglePlayer;
 
 public class MarkSpecials
 {
+
+    private static readonly Vec3F[] TracerColors = new Vec3F[] { new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f) };
+    private static readonly AutomapColor[] AutomapColors = new[] { AutomapColor.Red, AutomapColor.Green, AutomapColor.Blue, AutomapColor.Purple, AutomapColor.Yellow };
+
     public readonly DynamicArray<Sector> MarkedSectors = new();
     public readonly DynamicArray<Line> MarkedLines = new();
     private readonly DynamicArray<int> m_playerTracers = new();
-    private static readonly Vec3F[] TracerColors = new Vec3F[] { new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f) };
-    private static readonly AutomapColor[] AutomapColors = new[] { AutomapColor.Red, AutomapColor.Green, AutomapColor.Blue, AutomapColor.Purple, AutomapColor.Yellow };
-    private int m_developerMarkedLineId = -1;
+    private readonly Dictionary<int, List<Line>> m_tagToLines = new();
+    private bool m_mappedLineTags;
+    private int m_lastLineId = -1;
     private int m_lineMarkColor;
 
     public void Mark(IWorld world, Entity entity, Line line)
@@ -36,9 +37,10 @@ public class MarkSpecials
         if (!world.Config.Game.MarkSpecials || entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
             return;
 
-        if (line.Id == m_developerMarkedLineId)
+        if (line.Id == m_lastLineId)
             return;
 
+        m_lastLineId = line.Id;
         m_lineMarkColor = -1;
         ClearMarkedSectors();
         ClearMarkedLines();
@@ -49,13 +51,11 @@ public class MarkSpecials
 
         if (MarkedLines.Length > 0 || MarkedSectors.Length > 0)
         {
-            m_developerMarkedLineId = line.Id;
+            m_lastLineId = line.Id;
             MarkedLines.Add(line);
             line.MarkAutomap = true;
             return;
         }
-
-        m_developerMarkedLineId = -1;
     }
 
     public void Mark(IWorld world, Entity entity, Line line, bool traverseIsland)
@@ -100,6 +100,14 @@ public class MarkSpecials
                 MarkedSectors.Add(markSector);
                 if (!SectorHasLine(markSector, markLine))
                     ConnectLineToSector(world, player, markLine, markSector);
+
+                if (traverseIsland)
+                {
+                    var lineSectorFront = markLine.Front.Sector;
+                    if (markLine.HasSectorTag && lineSectorFront.Island != player.Sector.Island && lineSectorFront.Island.IsVooDooCloset)
+                        TraverseIslandSpecialSectors(world, entity, lineSectorFront.Island);
+                }         
+
                 world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetLineSpecialDescritpion(markLine)}");
             }
         }        
@@ -107,6 +115,26 @@ public class MarkSpecials
 
     private static bool IgnoreLineSpecial(Line line) =>
         !line.HasSpecial || (line.Flags.Activations & LineActivations.LevelStart) != 0;
+
+    private readonly HashSet<int> m_searchedSectors = new();
+
+    private void TraverseIslandSpecialSectors(IWorld world, Entity entity, Island island)
+    {
+        m_searchedSectors.Clear();
+        for (int i = 0; i < island.Subsectors.Count; i++)
+        {
+            var subsector = island.Subsectors[i];
+            if (m_searchedSectors.Contains(subsector.Sector.Id))
+                continue;
+            m_searchedSectors.Add(subsector.Sector.Id);
+
+            if (subsector.Sector.Tag == 0 || !m_tagToLines.TryGetValue(subsector.Sector.Tag, out var lines))
+                continue;
+
+            for (int j = 0; j < lines.Count; j++)
+                Mark(world, entity, lines[j], false);
+        }
+    }
 
     private void TraverseIslandSpecialLines(IWorld world, Entity entity, Island island)
     {
@@ -213,21 +241,52 @@ public class MarkSpecials
         int frontTag = sourceLine.Front.Sector.Tag;
         int backTag = sourceLine.Back == null ? 0 : sourceLine.Back.Sector.Tag;
 
-        for (int i = 0; i < world.Lines.Count; i++)
+        if (!m_mappedLineTags)
         {
-            Line line = world.Lines[i];
+            MarkSpecialLines(world.Lines, frontTag, backTag);
+            m_mappedLineTags = true;
+            return;
+        }
+
+        if (frontTag != 0 && m_tagToLines.TryGetValue(frontTag, out var lines))
+            MarkSpecialLines(lines, frontTag, backTag);
+        if (backTag != 0 && m_tagToLines.TryGetValue(backTag, out lines))
+            MarkSpecialLines(lines, frontTag, backTag);
+    }
+
+    private void MarkSpecialLines(IList<Line> lines, int frontTag, int backTag)
+    {
+        for (int i = 0; i < lines.Count; i++)
+        {
+            Line line = lines[i];
             if (!line.HasSpecial)
                 continue;
 
             if (line.SectorTag == 0)
                 continue;
 
+            MapLineTag(line);
+
             if (line.SectorTag != frontTag && line.SectorTag != backTag)
                 continue;
 
-            line.MarkAutomap = false;
+            line.MarkAutomap = true;
             MarkedLines.Add(line);
         }
+    }
+
+    private void MapLineTag(Line line)
+    {
+        if (m_mappedLineTags || !line.HasSectorTag)
+            return;
+
+        if (!m_tagToLines.TryGetValue(line.SectorTag, out var lines))
+        {
+            lines = new();
+            m_tagToLines[line.SectorTag] = lines;
+        }
+
+        lines.Add(line);
     }
 
     private void ClearMarkedLines()

@@ -50,11 +50,11 @@ public class ConfigGame
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
     [ConfigInfo("Marks lines and secctors that are activated by a special in the automap.")]
-    [OptionMenu(OptionSectionType.General, "Marks specials", spacer: true)]
+    [OptionMenu(OptionSectionType.General, "Mark specials", spacer: true)]
     public readonly ConfigValue<bool> MarkSpecials = new(false);
 
     [ConfigInfo("Marks secret sectors in the automap.")]
-    [OptionMenu(OptionSectionType.General, "Marks secrets")]
+    [OptionMenu(OptionSectionType.General, "Mark secrets")]
     public readonly ConfigValue<bool> MarkSecrets = new(false);
 
     public SkillDef? SelectedSkillDefinition { get; set; }
