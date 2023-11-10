@@ -351,7 +351,8 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void Run(CommandLineArgs commandLineArgs)
     {
-        FileConfig config = ReadConfigFileOrTerminate(FileConfig.DefaultConfigPath);
+        var configPath = string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName) ? FileConfig.DefaultConfigPath : commandLineArgs.ConfigFileName.Trim();
+        FileConfig config = ReadConfigFileOrTerminate(configPath);
 
         try
         {
@@ -368,8 +369,8 @@ public partial class Client : IDisposable, IInputManagement
         }
         finally
         {
-            if (!config.Write(FileConfig.DefaultConfigPath))
-                Log.Error($"Unable to write config to {FileConfig.DefaultConfigPath}");
+            if (!config.Write(configPath))
+                Log.Error($"Unable to write config to {configPath}");
 
             TempFileManager.DeleteAllFiles();
         }

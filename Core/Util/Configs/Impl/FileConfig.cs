@@ -80,7 +80,14 @@ public class FileConfig : Config
             success &= AddKeyFields(iniData);
 
             if (success)
+            {
+                // Ensure that all directories in the config path exist
+                var dirPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
+                if (dirPath != null)
+                    Directory.CreateDirectory(dirPath);
+
                 parser.WriteFile(filePath, iniData);
+            }
 
             Log.Info($"Wrote config file to {filePath}");
             return success;
