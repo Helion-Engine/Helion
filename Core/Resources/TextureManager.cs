@@ -34,6 +34,8 @@ public class TextureManager : ITickable
     public event EventHandler<AnimationEvent>? AnimationChanged;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
+    public List<Animation> GetAnimations() => m_animations;
+
     public string SkyTextureName { get; set; }
     public int NullCompatibilityTextureIndex { get; set; } = Constants.NullCompatibilityTextureIndex;
 
@@ -236,6 +238,11 @@ public class TextureManager : ITickable
     public Texture GetTexture(int index)
     {
         return m_textures[m_translations[index]];
+    }
+
+    public int GetTranslationIndex(int index)
+    {
+        return m_translations[index];
     }
 
     /// <summary>

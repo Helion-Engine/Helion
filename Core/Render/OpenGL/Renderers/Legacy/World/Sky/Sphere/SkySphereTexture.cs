@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -16,23 +18,22 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereTexture : IDisposable
 {
+    record struct SkyTexture(GLLegacyTexture GlTexture, int TextureIndex);
+
     private const int PixelRowsToEvaluate = 16;
     private const int DefaultPaddingDivisor = 3;
 
     public float ScaleU = 1.0f;
-    public bool FlipU;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly int m_textureHandleIndex;
-    private GLLegacyTexture m_texture;
-    private bool m_allocatedNewTexture;
-    private bool m_generatedSky;
+    private bool m_loadedTextures;
+    private List<SkyTexture> m_skyTextures = new();
 
     public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
-        m_texture = textureManager.NullTexture;
         m_textureHandleIndex = textureHandle;
     }
 
@@ -43,8 +44,27 @@ public class SkySphereTexture : IDisposable
 
     public GLLegacyTexture GetTexture()
     {
-        GenerateSkyIfNeeded();
-        return m_texture;
+        if (!m_loadedTextures)
+        {
+            m_loadedTextures = true;
+            InitializeAnimatedTextures();
+        }
+
+        // Check if we have generated this sky texture yet. The translation can change if skies are animated.
+        int textureIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
+        for (int i = 0; i < m_skyTextures.Count; i++)
+        {
+            if (m_skyTextures[i].TextureIndex == textureIndex)
+                return m_skyTextures[i].GlTexture;
+        }
+
+        if (GenerateSkyTextures(textureIndex, out var skyTexture))
+        {
+            m_skyTextures.Add(new(skyTexture, textureIndex));
+            return skyTexture;
+        }
+
+        return m_textureManager.NullTexture;
     }
 
     public void Dispose()
@@ -186,35 +206,37 @@ public class SkySphereTexture : IDisposable
         }
     }
 
-    private void GenerateSkyIfNeeded()
+    private void InitializeAnimatedTextures()
     {
-        if (m_generatedSky)
-            return;
+        var animations = m_archiveCollection.TextureManager.GetAnimations();
+        for (int i = 0; i < animations.Count; i++)
+        {
+            Animation anim = animations[i];
+            if (anim.TranslationIndex != m_textureHandleIndex)
+                continue;
 
-        // This sucks, but we need the archive to be populated before we
-        // can draw the sky. This has to be lazily loaded when we request
-        // rendering so we know all the textures have been loaded.
-        GenerateSkyTextures();
-        m_generatedSky = true;
+            var components = anim.AnimatedTexture.Components;
+            for (int j = 0; j < components.Count; j++)
+            {
+                int animatedTextureIndex = components[j].TextureIndex;
+                if (GenerateSkyTextures(animatedTextureIndex, out var skyTexture))
+                    m_skyTextures.Add(new(skyTexture, animatedTextureIndex));
+            }
+        }
     }
 
-    private void GenerateSkyTextures()
+    private bool GenerateSkyTextures(int textureIndex, [NotNullWhen(true)] out GLLegacyTexture? texture)
     {
-        Image? skyImage = GetSkyImage();
+        Image? skyImage = m_archiveCollection.TextureManager.GetTexture(textureIndex).Image;
         if (skyImage == null)
-            return;
-
-        if (m_texture != m_textureManager.NullTexture)
-            m_texture.Dispose();
+        {
+            texture = null;
+            return false;
+        }
 
         ScaleU = CalculateScale(skyImage.Width);
-        m_texture = CreateSkyTexture(skyImage);
-        m_allocatedNewTexture = true;
-    }
-
-    private Image? GetSkyImage()
-    {
-        return m_archiveCollection.TextureManager.GetTexture(m_textureHandleIndex).Image;
+        texture = CreateSkyTexture(skyImage);
+        return true;
     }
 
     private GLLegacyTexture CreateSkyTexture(Image skyImage)
@@ -248,7 +270,7 @@ public class SkySphereTexture : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        if (m_allocatedNewTexture)
-            m_texture.Dispose();
+        for (int i = 0; i < m_skyTextures.Count; i++)
+            m_skyTextures[i].GlTexture.Dispose();
     }
 }
