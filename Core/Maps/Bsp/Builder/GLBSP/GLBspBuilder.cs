@@ -85,8 +85,9 @@ public class GLBspBuilder : IBspBuilder
             Vec2D start = MakeVertex(glSegment.StartVertex, glSegment.IsStartVertexGL);
             Vec2D end = MakeVertex(glSegment.EndVertex, glSegment.IsEndVertexGL);
             IBspUsableLine? line = FindLine(glSegment.Linedef);
+            int? partnerSegId = glSegment.PartnerSegment.HasValue ? (int)glSegment.PartnerSegment.Value : null; 
 
-            SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);
+            SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide, partnerSegId);
             m_segments.Add(edge);
         }
 
@@ -129,11 +130,11 @@ public class GLBspBuilder : IBspBuilder
             // degenerate if needed by budging the middle vertex outwards
             // so it goes clockwise.
             Vec2D middle = (edges[0].Start + edges[0].End) / 2;
-            edges.Add(new SubsectorEdge(edges[0].End, middle));
-            edges.Add(new SubsectorEdge(middle, edges[0].Start));
+            edges.Add(new SubsectorEdge(edges[0].End, middle, null, true, null));
+            edges.Add(new SubsectorEdge(middle, edges[0].Start, null, true, null));
             break;
         case 2:
-            edges.Add(new SubsectorEdge(edges[1].End, edges[0].Start));
+            edges.Add(new SubsectorEdge(edges[1].End, edges[0].Start, null, true, null));
             break;
         }
     }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.World;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Subsectors;
 
 namespace Helion.Render.Common.World.SelfReferencing;
 
@@ -12,13 +14,17 @@ public class SelfReferencingLineLocator
     private readonly HashSet<Line> m_selfRefLines = new();
     private readonly Dictionary<Vec2D, SelfReferenceVertex> m_vertexToSelfRefLines = new();
     private readonly List<List<Line>> m_selfRefLineLoops = new();
+    private readonly List<SelfRefSubsectorIsland> m_islands = new();
+
+    public IReadOnlyList<SelfRefSubsectorIsland> Islands => m_islands;
 
     public void Process(IWorld world)
     {
         Clear();
-        FindLinesWithSameSideSectorReference(world);
-        CreateVertexGraph();
+        FindSelfReferencingLines(world);
+        CreateSelfReferenceVertexGraph();
         FindClosedLoops();
+        FindIslandsFromClosedLoops(world);
     }
 
     private void Clear()
@@ -26,21 +32,24 @@ public class SelfReferencingLineLocator
         m_selfRefLines.Clear();
         m_vertexToSelfRefLines.Clear();
         m_selfRefLineLoops.Clear();
+        m_islands.Clear();
     }
 
-    private void FindLinesWithSameSideSectorReference(IWorld world)
+    private static bool IsSelfReferencingLine(Line line)
+    {
+        bool verticesAreDifferent = line.StartPosition != line.EndPosition;
+        bool sameSectorBothSides = line.Back != null && line.Front.Sector.Id == line.Back.Sector.Id;
+        return verticesAreDifferent && sameSectorBothSides;
+    }
+
+    private void FindSelfReferencingLines(IWorld world)
     {
         foreach (Line line in world.Lines)
-        {
-            bool verticesAreDifferent = line.StartPosition != line.EndPosition;
-            bool sameSectorBothSides = line.Back != null && line.Front.Sector.Id == line.Back.Sector.Id;
-            
-            if (verticesAreDifferent && sameSectorBothSides)
+            if (IsSelfReferencingLine(line))
                 m_selfRefLines.Add(line);
-        }
     }
-    
-    private void CreateVertexGraph()
+
+    private void CreateSelfReferenceVertexGraph()
     {
         Span<Vec2D> endpoints = stackalloc Vec2D[2];
         foreach (Line line in m_selfRefLines)
@@ -96,7 +105,7 @@ public class SelfReferencingLineLocator
         
         return vertices;
     }
-    
+
     private void FindClosedLoops()
     {
         HashSet<Vec2D> visitedVertices = new();
@@ -123,6 +132,66 @@ public class SelfReferencingLineLocator
             // We have to track what we visited to avoid walking over everything again.
             foreach (SelfReferenceVertex vertex in connectedVertices)
                 visitedVertices.Add(vertex.Pos);
+        }
+    }
+
+    // TODO: This will blow the stack on some level at some point.
+    private void RecursivelyPopulateIsland(int subsectorId, HashSet<int> islandSubsectorIds, HashSet<Line> islandBorders, 
+        HashSet<Line> visitedLines, IWorld world, Line initialLine, int depth = 0)
+    {
+        if (depth > 100000)
+            throw new($"Infinite recursion detected when making self referencing subsector graph (subsector {subsectorId}, line: {initialLine.Id})");
+
+        // This also tracks as a marker for being visited.
+        islandSubsectorIds.Add(subsectorId);
+
+        foreach (SubsectorSegment seg in world.BspTree.Subsectors[subsectorId].ClockwiseEdges)
+        {
+            bool visitedBorderLine = false;
+            
+            if (seg.Side != null)
+            {
+                Line line = seg.Side.Line;
+
+                if (!IsSelfReferencingLine(line))
+                {
+                    visitedBorderLine = true;
+                    islandBorders.Add(line);
+                }
+                
+                visitedLines.Add(line);
+            }
+            
+            // Keep looking if it's both not a border, and has a side to recurse on. 
+            if (!visitedBorderLine && seg.PartnerSegId != null)
+            {
+                // Only visit if we haven't already. The recursive call should populate
+                // this subsector as having been visited.
+                if (!islandSubsectorIds.Contains(seg.SubsectorId))
+                {
+                    RecursivelyPopulateIsland(seg.SubsectorId, islandSubsectorIds, islandBorders, visitedLines, world, 
+                        initialLine, depth + 1);
+                }
+            }
+        }
+    }
+
+    private void FindIslandsFromClosedLoops(IWorld world)
+    {
+        HashSet<Line> visitedLines = new();
+        
+        // We only need the first line in a loop, and recursion will walk the rest.
+        foreach (Line selfRefLine in m_selfRefLineLoops.Select(loop => loop[0]))
+        {
+            Debug.Assert(selfRefLine.SubsectorSegs.Count > 0, "BSP tree either not generated, or not assigned to lines yet");
+            
+            int subsectorId = selfRefLine.SubsectorSegs[0].Subsector.Id;
+            HashSet<int> islandSubsectorIds = new();
+            HashSet<Line> islandBorders = new();
+            RecursivelyPopulateIsland(subsectorId, islandSubsectorIds, islandBorders, visitedLines, world, selfRefLine);
+
+            SelfRefSubsectorIsland island = new(m_islands.Count, islandSubsectorIds, islandBorders);
+            m_islands.Add(island);
         }
     }
 }

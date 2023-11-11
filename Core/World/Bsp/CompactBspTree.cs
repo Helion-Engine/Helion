@@ -30,7 +30,7 @@ public class CompactBspTree
     /// <summary>
     /// All the segments, which are the edges of the subsector.
     /// </summary>
-    public List<SubsectorSegment> Segments = new List<SubsectorSegment>();
+    public List<SubsectorSegment> Segments = new();
 
     /// <summary>
     /// All the subsectors, the convex leaves at the bottom of the BSP
@@ -209,26 +209,28 @@ public class CompactBspTree
 
     private BspCreateResultCompact CreateSubsector(BspNode node, GeometryBuilder builder)
     {
-        List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
+        int subsectorId = (int)m_nextSubsectorIndex;
+        
+        List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, subsectorId, builder);
 
         List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => new Seg2D(s.Start, s.End)).ToList();
         Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
 
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
+        Subsector subsector = new(subsectorId, sector, bbox, clockwiseSegments);
         Subsectors[m_nextSubsectorIndex] = subsector;
 
         return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);
     }
 
-    private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
+    private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, int subsectorId, GeometryBuilder builder)
     {
         List<SubsectorSegment> returnSegments = new();
 
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             Side? side = GetSideFromEdge(edge, builder);
-            SubsectorSegment subsectorEdge = new(side, edge.Start, edge.End);
+            SubsectorSegment subsectorEdge = new(side, edge.Start, edge.End, edge.PartnerSegId, subsectorId);
 
             returnSegments.Add(subsectorEdge);
             Segments.Add(subsectorEdge);

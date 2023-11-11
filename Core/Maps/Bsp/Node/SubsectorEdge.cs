@@ -14,30 +14,12 @@ namespace Helion.Maps.Bsp.Node;
 /// </summary>
 public class SubsectorEdge
 {
-    /// <summary>
-    /// The line this is a part of.
-    /// </summary>
     public readonly IBspUsableLine? Line;
-
-    /// <summary>
-    /// If this segment is on the front of the line or not. This is not
-    /// meaningful if it is a miniseg, and can be either true or false.
-    /// </summary>
     public readonly bool IsFront;
-
-    /// <summary>
-    /// The starting vertex.
-    /// </summary>
     public Vec2D Start;
-
-    /// <summary>
-    /// The ending vertex.
-    /// </summary>
     public Vec2D End;
-
-    /// <summary>
-    /// True if it's a miniseg, false if not.
-    /// </summary>
+    public int? PartnerSegId;
+    
     public bool IsMiniseg => Line == null;
 
     /// <summary>
@@ -51,12 +33,13 @@ public class SubsectorEdge
     /// <param name="front">True if this is on the front side, false if it
     /// is the back. This value is not used if this is a miniseg. This
     /// must never be false for a one sided line.</param>
-    public SubsectorEdge(Vec2D start, Vec2D end, IBspUsableLine? line = null, bool front = true)
+    public SubsectorEdge(Vec2D start, Vec2D end, IBspUsableLine? line, bool front, int? partnerSegId)
     {
         Start = start;
         End = end;
         IsFront = front;
         Line = line;
+        PartnerSegId = partnerSegId;
     }
 
     /// <summary>
@@ -97,7 +80,7 @@ public class SubsectorEdge
             BspVertex endingPoint = segment.Opposite(traversalPoint.Endpoint);
             bool traversedFrontSide = CheckIfTraversedFrontSide(traversalPoint, rotation);
 
-            SubsectorEdge edge = new(startPoint.Struct, endingPoint.Struct, segment.Line, traversedFrontSide);
+            SubsectorEdge edge = new(startPoint.Struct, endingPoint.Struct, segment.Line, traversedFrontSide, null);
             subsectorEdges.Add(edge);
 
             Invariant(startPoint != endingPoint, "Traversal produced the wrong endpoint indices");
