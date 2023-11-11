@@ -1,6 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
@@ -163,8 +164,8 @@ public class MarkSpecials
             end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
         }
 
-        m_playerTracers.Add(player.Tracers.AddTracer((start, end), world.Gametick, TracerColors[m_lineMarkColor], 
-            ticks: int.MaxValue, automapColor: AutomapColors[m_lineMarkColor]));
+        m_playerTracers.Add(player.Tracers.AddTracer(PrimitiveRenderType.Line, (start, end), world.Gametick, TracerColors[m_lineMarkColor], 
+            ticks: 0, automapColor: AutomapColors[m_lineMarkColor]));
     }
 
     private static bool SectorHasLine(Sector sector, Line line)

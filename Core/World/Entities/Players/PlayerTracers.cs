@@ -1,16 +1,15 @@
 ﻿using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Helion.World.Entities.Players;
 
-public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, AutomapColor? AutomapColor)
+public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, AutomapColor? AutomapColor, PrimitiveRenderType Type)
 {
-    public Seg3D LookPath;
-    public Seg3D AimPath;
     public readonly List<Seg3D> Tracers = new();
 }
 
@@ -28,13 +27,13 @@ public class PlayerTracers
 
     public readonly LinkedList<PlayerTracerInfo> Tracers = new();
 
-    private PlayerTracerInfo GetOrCreateTracerInfo(int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
+    private PlayerTracerInfo GetOrCreateTracerInfo(PrimitiveRenderType type, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
     {
         PlayerTracerInfo? info = FindTracer(color, ticks);
         // If there's no items, then make the first one.
         if (info == null)
         {
-            info = new(++Id, gametick, ticks, color, automapColor);
+            info = new(++Id, gametick, ticks, color, automapColor, type);
             Tracers.AddFirst(info.Value);
             return info.Value;
         }
@@ -43,7 +42,7 @@ public class PlayerTracers
         Debug.Assert(gametick >= info.Value.Gametick, "Trying to add an older gametick, should only be adding current or newer tracers");
         if (info.Value.Gametick != gametick)
         {
-            info = new(++Id, gametick, ticks, color, automapColor);
+            info = new(++Id, gametick, ticks, color, automapColor, type);
             Tracers.AddFirst(info.Value);
         }
 
@@ -71,8 +70,8 @@ public class PlayerTracers
         Vec3D dir = Vec3D.UnitSphere(yaw, pitch);
         Vec3D end = start + (dir * distance);
 
-        PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, TracerColor);
-        info.LookPath = (start, end);
+        PlayerTracerInfo info = GetOrCreateTracerInfo(PrimitiveRenderType.Line, gametick, TracerColor);
+        info.Tracers.Add(new(start, end));
     }
 
     public void AddAutoAimPath(Vec3D start, double yaw, double pitch, double distance, int gametick)
@@ -80,13 +79,13 @@ public class PlayerTracers
         Vec3D dir = Vec3D.UnitSphere(yaw, pitch);
         Vec3D end = start + (dir * distance);
 
-        PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, AimColor);
-        info.AimPath = (start, end);
+        PlayerTracerInfo info = GetOrCreateTracerInfo(PrimitiveRenderType.Line, gametick, AimColor);
+        info.Tracers.Add(new(start, end));
     }
 
-    public int AddTracer(Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
+    public int AddTracer(PrimitiveRenderType type, Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
     {
-        PlayerTracerInfo info = GetOrCreateTracerInfo(gametick, color, ticks, automapColor);
+        PlayerTracerInfo info = GetOrCreateTracerInfo(type, gametick, color, ticks, automapColor);
         info.Tracers.Add(path);
         return info.Id;
     }

@@ -52,6 +52,7 @@ using Helion.World.Static;
 using Helion.Geometry.Grids;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 
 namespace Helion.World;
 
@@ -1092,7 +1093,7 @@ public abstract class WorldBase : IWorld
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
             Vec3D railEnd = bi != null && bi.Value.Line != null ? intersect : end;
-            shooter.PlayerObj.Tracers.AddTracer((start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
+            shooter.PlayerObj.Tracers.AddTracer(PrimitiveRenderType.Rail, (start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
         return bi?.Entity;
