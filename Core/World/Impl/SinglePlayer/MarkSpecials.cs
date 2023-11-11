@@ -21,7 +21,6 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class MarkSpecials
 {
-
     private static readonly Vec3F[] TracerColors = new Vec3F[] { new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f) };
     private static readonly AutomapColor[] AutomapColors = new[] { AutomapColor.Red, AutomapColor.Green, AutomapColor.Blue, AutomapColor.Purple, AutomapColor.Yellow };
 
@@ -33,6 +32,13 @@ public class MarkSpecials
     private int m_lastLineId = -1;
     private int m_lineMarkColor;
 
+    public void Clear(Player player)
+    {
+        ClearMarkedSectors();
+        ClearMarkedLines();
+        ClearPlayerTracers(player);
+    }
+
     public void Mark(IWorld world, Entity entity, Line line)
     {
         if (!world.Config.Game.MarkSpecials || entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
@@ -43,9 +49,7 @@ public class MarkSpecials
 
         m_lastLineId = line.Id;
         m_lineMarkColor = -1;
-        ClearMarkedSectors();
-        ClearMarkedLines();
-        ClearPlayerTracers(entity.PlayerObj);
+        Clear(entity.PlayerObj);
 
         MarkSpecialLines(world, line);
         Mark(world, entity, line, true);

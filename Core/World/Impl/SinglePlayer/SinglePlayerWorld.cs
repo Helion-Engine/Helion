@@ -112,7 +112,8 @@ public class SinglePlayerWorld : WorldBase
 
         config.Player.Name.OnChanged += PlayerName_OnChanged;
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
-        Config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
+        config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
+        config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
 
         // Right now lazy loading from zip causes a noticeable delay. Preload to prevent stutter.
         SoundManager.CacheSound("misc/secret");
@@ -124,6 +125,11 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoSector = true;
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
+    }
+
+    private void MarkSpecials_OnChanged(object? sender, bool e)
+    {
+        MarkSpecials.Clear(Player);
     }
 
     private void AutomapBspThread_OnChanged(object? sender, bool set)
@@ -415,6 +421,7 @@ public class SinglePlayerWorld : WorldBase
         Config.Player.Name.OnChanged -= PlayerName_OnChanged;
         Config.Player.Gender.OnChanged -= PlayerGender_OnChanged;
         Config.Render.AutomapBspThread.OnChanged -= AutomapBspThread_OnChanged;
+        Config.Game.MarkSpecials.OnChanged -= MarkSpecials_OnChanged;
 
         base.PerformDispose();
     }
