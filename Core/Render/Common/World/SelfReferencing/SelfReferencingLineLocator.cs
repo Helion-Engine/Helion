@@ -137,10 +137,10 @@ public class SelfReferencingLineLocator
 
     // TODO: This will blow the stack on some level at some point.
     private void RecursivelyPopulateIsland(int subsectorId, HashSet<int> islandSubsectorIds, HashSet<Line> islandBorders, 
-        HashSet<Line> visitedLines, IWorld world, Line initialLine, int depth = 0)
+        HashSet<Line> visitedLines, IWorld world, int depth = 0)
     {
         if (depth > 100000)
-            throw new($"Infinite recursion detected when making self referencing subsector graph (subsector {subsectorId}, line: {initialLine.Id})");
+            throw new($"Infinite recursion detected when making self referencing subsector graph (subsector {subsectorId})");
 
         // This also tracks as a marker for being visited.
         islandSubsectorIds.Add(subsectorId);
@@ -168,10 +168,7 @@ public class SelfReferencingLineLocator
                 // Only visit if we haven't already. The recursive call should populate
                 // this subsector as having been visited.
                 if (!islandSubsectorIds.Contains(seg.SubsectorId))
-                {
-                    RecursivelyPopulateIsland(seg.SubsectorId, islandSubsectorIds, islandBorders, visitedLines, world, 
-                        initialLine, depth + 1);
-                }
+                    RecursivelyPopulateIsland(seg.SubsectorId, islandSubsectorIds, islandBorders, visitedLines, world, depth + 1);
             }
         }
     }
@@ -188,7 +185,7 @@ public class SelfReferencingLineLocator
             int subsectorId = selfRefLine.SubsectorSegs[0].Subsector.Id;
             HashSet<int> islandSubsectorIds = new();
             HashSet<Line> islandBorders = new();
-            RecursivelyPopulateIsland(subsectorId, islandSubsectorIds, islandBorders, visitedLines, world, selfRefLine);
+            RecursivelyPopulateIsland(subsectorId, islandSubsectorIds, islandBorders, visitedLines, world);
 
             SelfRefSubsectorIsland island = new(m_islands.Count, islandSubsectorIds, islandBorders);
             m_islands.Add(island);

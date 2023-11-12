@@ -34,6 +34,7 @@ namespace Helion.Geometry.Boxes
         public Box2I Int => new(Min.Int, Max.Int);
         public Box2F Float => new(Min.Float, Max.Float);
         public Vec2D Sides => Max - Min;
+        public double Area => Sides.X * Sides.Y;
 
         public Box2D(Vec2D min, Vec2D max)
         {
