@@ -361,33 +361,30 @@ public class LegacyWorldRenderer : WorldRenderer
         while (node != null)
         {
             var info = node.Value;
-            int ticks = world.Gametick - info.Gametick;
+            int ticks = info.Ticks <= 0 ? 0 : world.Gametick - info.Gametick;
             if (ticks > info.Ticks)
             {
+                var removeNode = node;
                 node = node.Next;
+                world.Player.Tracers.Tracers.Remove(removeNode);
                 continue;
             }
-
+        
             float alpha = ticks == 0 ? 1 : (info.Ticks - ticks) / (float)ticks;
-            AddSeg(info.AimPath, PlayerTracers.AimColor, alpha);
-
-            if (info.AimPath != info.LookPath)
-                AddSeg(info.LookPath, PlayerTracers.LookColor, alpha);
-
             for (var i = 0; i < info.Tracers.Count; i++)
             {
                 Seg3D tracer = info.Tracers[i];
-                AddSeg(tracer, node.Value.Color, alpha);
+                AddSeg(tracer, node.Value.Color, alpha, info.Type);
             }
 
             node = node.Next;
         }
     }
 
-    void AddSeg(Seg3D segment, Vec3F color, float alpha)
+    void AddSeg(Seg3D segment, Vec3F color, float alpha, PrimitiveRenderType type)
     {
         Seg3F seg = (segment.Start.Float, segment.End.Float);
-        m_primitiveRenderer.AddSegment(seg, color, alpha);
+        m_primitiveRenderer.AddSegment(seg, color, alpha, type);
     }
 
     private void SetInterpolationUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)

@@ -1,6 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
@@ -20,7 +21,6 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class MarkSpecials
 {
-
     private static readonly Vec3F[] TracerColors = new Vec3F[] { new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f) };
     private static readonly AutomapColor[] AutomapColors = new[] { AutomapColor.Red, AutomapColor.Green, AutomapColor.Blue, AutomapColor.Purple, AutomapColor.Yellow };
 
@@ -32,6 +32,13 @@ public class MarkSpecials
     private int m_lastLineId = -1;
     private int m_lineMarkColor;
 
+    public void Clear(Player player)
+    {
+        ClearMarkedSectors();
+        ClearMarkedLines();
+        ClearPlayerTracers(player);
+    }
+
     public void Mark(IWorld world, Entity entity, Line line)
     {
         if (!world.Config.Game.MarkSpecials || entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
@@ -42,9 +49,7 @@ public class MarkSpecials
 
         m_lastLineId = line.Id;
         m_lineMarkColor = -1;
-        ClearMarkedSectors();
-        ClearMarkedLines();
-        ClearPlayerTracers(entity.PlayerObj);
+        Clear(entity.PlayerObj);
 
         MarkSpecialLines(world, line);
         Mark(world, entity, line, true);
@@ -163,8 +168,8 @@ public class MarkSpecials
             end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
         }
 
-        m_playerTracers.Add(player.Tracers.AddTracer((start, end), world.Gametick, TracerColors[m_lineMarkColor], 
-            ticks: int.MaxValue, automapColor: AutomapColors[m_lineMarkColor]));
+        m_playerTracers.Add(player.Tracers.AddTracer(PrimitiveRenderType.Line, (start, end), world.Gametick, TracerColors[m_lineMarkColor], 
+            ticks: 0, automapColor: AutomapColors[m_lineMarkColor]));
     }
 
     private static bool SectorHasLine(Sector sector, Line line)
@@ -259,7 +264,7 @@ public class MarkSpecials
         for (int i = 0; i < lines.Count; i++)
         {
             Line line = lines[i];
-            if (!line.HasSpecial)
+            if (IgnoreLineSpecial(line))
                 continue;
 
             if (line.SectorTag == 0)
