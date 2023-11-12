@@ -19,7 +19,33 @@ namespace Helion.Util.Configs.Impl;
 /// </summary>
 public class FileConfig : Config
 {
-    public const string DefaultConfigPath = "config.ini";
+    public string DefaultConfigPath
+    {
+        get
+        {
+            // On Linux, default to "$XDG_CONFIG_HOME/helion/config.ini"
+            if (OperatingSystem.IsLinux())
+            {
+                var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+
+                if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+                {
+                   return $"{xdgConfigHome}/helion/config.ini";
+                }
+
+                // Fallback to "$HOME/.config/helion/config.ini"
+                var home = Environment.GetEnvironmentVariable("HOME");
+
+                if (!string.IsNullOrWhiteSpace(home))
+                {
+                   return $"{home}/.config/helion/config.ini";
+                }
+            }
+
+            return "config.ini";
+        }
+    }
+
     public const string EngineSectionName = "engine";
     public const string KeysSectionName = "keys";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
