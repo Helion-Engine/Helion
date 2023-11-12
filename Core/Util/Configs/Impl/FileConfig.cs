@@ -19,7 +19,7 @@ namespace Helion.Util.Configs.Impl;
 /// </summary>
 public class FileConfig : Config
 {
-    public string DefaultConfigPath
+    public static string DefaultConfigPath
     {
         get
         {
