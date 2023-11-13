@@ -475,7 +475,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SetDeathState(Entity? source)
     {
-        if (Definition.States.Labels.ContainsKey(Constants.FrameStates.Death))
+        if (Definition.DeathState.HasValue)
         {
             if (Definition.DeathState != null)
                 FrameState.SetFrameIndex(Definition.DeathState.Value);
@@ -486,7 +486,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public void SetXDeathState(Entity? source)
     {
-        if (Definition.States.Labels.ContainsKey(Constants.FrameStates.XDeath))
+        if (Definition.XDeathState.HasValue)
         {
             if (Definition.XDeathState != null)
                 FrameState.SetFrameIndex(Definition.XDeathState.Value);
