@@ -1695,7 +1695,7 @@ public partial class DehackedDefinition
         { ThingState.TECH2LAMP3,    new("TechLamp2::spawn",             2) },
         { ThingState.TECH2LAMP4,    new("TechLamp2::spawn",             3) },
 
-        { ThingState.TNT1,          new("Actor::null",                  0) },
+        { ThingState.TNT1,          new("Actor::spawn",                 0) },
 
         { ThingState.GRENADE,       new("Grenade::Grenade",             0) },
 
