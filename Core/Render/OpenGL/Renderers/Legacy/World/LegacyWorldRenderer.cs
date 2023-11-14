@@ -397,6 +397,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.TimeFrac(renderInfo.TickFraction);
         m_interpolationProgram.LightLevelMix(uniforms.Mix);
         m_interpolationProgram.ExtraLight(uniforms.ExtraLight);
+        m_interpolationProgram.DistanceOffset(uniforms.DistanceOffset);
     }
 
     private void SetStaticUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
@@ -408,6 +409,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.MvpNoPitch(uniforms.MvpNoPitch);
         m_staticProgram.LightLevelMix(uniforms.Mix);
         m_staticProgram.ExtraLight(uniforms.ExtraLight);
+        m_staticProgram.DistanceOffset(uniforms.DistanceOffset);
     }
 
     private ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
@@ -440,7 +442,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
             Renderer.CalculateMvpMatrix(renderInfo, true),
-            timeFrac, drawInvulnerability, mix, extraLight);
+            timeFrac, drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo));
     }
 
     private void ReleaseUnmanagedResources()

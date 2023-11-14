@@ -21,6 +21,7 @@ public class EntityProgram : RenderProgram
     public void FuzzFrac(float frac) => Uniforms.Set(frac, "fuzzFrac");
     public void TimeFrac(float frac) => Uniforms.Set(frac, "timeFrac");
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, "viewRightNormal");
+    public void DistanceOffset(float distance) => Uniforms.Set(distance, "distanceOffset");
 
     protected override string VertexShader() => @"
         #version 330
@@ -36,8 +37,10 @@ public class EntityProgram : RenderProgram
         out float alphaOut;
         out float fuzzOut;
         out float flipUOut;
+        flat out float distanceOffsetFrag;
 
         uniform float timeFrac;
+        uniform float distanceOffset;
 
         void main()
         {
@@ -45,6 +48,7 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha;
             fuzzOut = fuzz;
             flipUOut = flipU;
+            distanceOffsetFrag = distanceOffset;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
     ";
@@ -132,6 +136,7 @@ public class EntityProgram : RenderProgram
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
+        flat in float distanceOffsetFrag;
 
         out vec4 fragColor;
 

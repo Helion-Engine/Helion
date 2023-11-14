@@ -10,8 +10,9 @@ public readonly struct ShaderUniforms
     public readonly float Mix;
     public readonly bool DrawInvulnerability;
     public readonly int ExtraLight;
+    public readonly float DistanceOffset;
 
-    public ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight)
+    public ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset)
     {
         Mvp = mvp;
         MvpNoPitch = mvpNoPitch;
@@ -19,5 +20,6 @@ public readonly struct ShaderUniforms
         Mix = mix;
         DrawInvulnerability = drawInvulnerability;
         ExtraLight = extraLight;
+        DistanceOffset = distanceOffset;
     }
 }

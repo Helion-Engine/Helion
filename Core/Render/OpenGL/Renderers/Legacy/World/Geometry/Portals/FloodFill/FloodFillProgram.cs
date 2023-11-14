@@ -16,6 +16,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_mvpNoPitchLocation;
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
+    private readonly int m_distanceOffsetLocation;
 
     public FloodFillProgram() : base("Flood fill plane")
     {
@@ -26,7 +27,7 @@ public class FloodFillProgram : RenderProgram
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
-        m_extraLightLocation = Uniforms.GetLocation("extraLight");
+        m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -39,6 +40,7 @@ public class FloodFillProgram : RenderProgram
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
+    public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -53,6 +55,7 @@ public class FloodFillProgram : RenderProgram
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
+        flat out float distanceOffsetFrag;
 
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
@@ -65,8 +68,9 @@ public class FloodFillProgram : RenderProgram
         {
             vec3 prevPos = vec3(pos.x, pos.y, prevZ);
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
-            vertexPosFrag = mix(prevPos, pos, timeFrac);            
+            vertexPosFrag = mix(prevPos, pos, timeFrac);
 
+            ${LightLevelVertexSetFrags}
             ${VertexLightBuffer}
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
@@ -77,7 +81,8 @@ public class FloodFillProgram : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer);
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
+    .Replace("${LightLevelVertexSetFrags}", LightLevel.VertexSetFrags);
 
     protected override string FragmentShader() => @"
         #version 330
