@@ -229,7 +229,7 @@ public class KeyBindingSection : IOptionSection
     private void WriteConfigFile()
     {
         if (m_config is FileConfig fileConfig)
-            fileConfig.Write(FileConfig.DefaultConfigPath);
+            fileConfig.Write();
     }
 
     private bool TryConsumeAnyKey(IConsumableInput input, out Key key)
