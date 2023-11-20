@@ -351,7 +351,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void Run(CommandLineArgs commandLineArgs)
     {
-        var configPath = string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName) ? FileConfig.DefaultConfigPath : commandLineArgs.ConfigFileName.Trim();
+        var configPath = string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName) ? FileConfig.GetDefaultConfigPath() : commandLineArgs.ConfigFileName.Trim();
         FileConfig config = ReadConfigFileOrTerminate(configPath);
 
         try

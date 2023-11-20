@@ -19,33 +19,7 @@ namespace Helion.Util.Configs.Impl;
 /// </summary>
 public class FileConfig : Config
 {
-    public static string DefaultConfigPath
-    {
-        get
-        {
-            // On Linux, default to "$XDG_CONFIG_HOME/helion/config.ini"
-            if (OperatingSystem.IsLinux())
-            {
-                var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-
-                if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-                {
-                   return $"{xdgConfigHome}/helion/config.ini";
-                }
-
-                // Fallback to "$HOME/.config/helion/config.ini"
-                var home = Environment.GetEnvironmentVariable("HOME");
-
-                if (!string.IsNullOrWhiteSpace(home))
-                {
-                   return $"{home}/.config/helion/config.ini";
-                }
-            }
-
-            return "config.ini";
-        }
-    }
-
+    const string IniFile = "config.ini";
     public const string EngineSectionName = "engine";
     public const string KeysSectionName = "keys";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -63,6 +37,33 @@ public class FileConfig : Config
         // their default state. This is okay and should not be considered as
         // "changed".
         UnsetChangedFlag();
+    }
+
+    public static string GetDefaultConfigPath()
+    {
+        if (File.Exists(IniFile))
+            return IniFile;
+
+        // On Linux, default to "$XDG_CONFIG_HOME/helion/config.ini"
+        if (OperatingSystem.IsLinux())
+        {
+            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+
+            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+            {
+                return $"{xdgConfigHome}/helion/{IniFile}";
+            }
+
+            // Fallback to "$HOME/.config/helion/config.ini"
+            var home = Environment.GetEnvironmentVariable("HOME");
+
+            if (!string.IsNullOrWhiteSpace(home))
+            {
+                return $"{home}/.config/helion/{IniFile}";
+            }
+        }
+
+        return IniFile;
     }
 
     /// <summary>
