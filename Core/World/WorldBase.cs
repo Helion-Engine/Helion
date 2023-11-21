@@ -1279,14 +1279,24 @@ public abstract class WorldBase : IWorld
 
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
+            var saveFlags = flags;
             definition = vanillaDef;
-            flags = vanillaDef.Flags;
+            flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
         }
 
         if (player.IsVooDooDoll)
             return GiveVooDooItem(player, item, flags, pickupFlash);
 
         return player.GiveItem(definition, flags, pickupFlash);
+    }
+
+    private static EntityFlags GetCombinedPickupFlags(EntityFlags dehackedFlags, EntityFlags? flags)
+    {
+        // Need to carry over flags that are modified by the world and affect pickups
+        if (flags.HasValue)
+            dehackedFlags.Dropped = flags.Value.Dropped;
+
+        return dehackedFlags;
     }
 
     private bool GetDehackedPickup(DehackedDefinition dehacked, Entity item, [NotNullWhen(true)] out EntityDefinition? definition)
