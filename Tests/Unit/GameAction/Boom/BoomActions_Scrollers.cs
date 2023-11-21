@@ -86,8 +86,8 @@ public partial class BoomActions
         GameActions.ActivateLine(World, World.Player, 362, ActivationContext.UseLine).Should().BeTrue();
         GameActions.RunSectorPlaneSpecial(World, moveSector);
         GameActions.TickWorld(World, 1);
-        AssertScrollOffsets(scrollLine1.Front.ScrollData!, new Vec2D(0, 0));
-        AssertScrollOffsets(scrollLine2.Front.ScrollData!, new Vec2D(0, 0));
+        AssertScrollOffsets(scrollLine1.Front.ScrollData!, Vec2D.Zero);
+        AssertScrollOffsets(scrollLine2.Front.ScrollData!, Vec2D.Zero);
     }
 
     [Fact(DisplayName = "Boom Action 250 Scroll ceiling")]
@@ -171,6 +171,83 @@ public partial class BoomActions
         AssertScrollDiffOffsets(line1.Front.ScrollData!, new Vec2D(4, -2));
         AssertScrollDiffOffsets(line2.Front.ScrollData!, new Vec2D(2, -4));
         AssertScrollDiffOffsets(line3.Front.ScrollData!, new Vec2D(4, 0));
+    }
+
+    [Fact(DisplayName = "Boom Action 1024 Scroll tagged wall using offsets")]
+    public void Action1024()
+    {
+        var line1 = GameActions.GetLine(World, 367);
+        var line2 = GameActions.GetLine(World, 368);
+        var line3 = GameActions.GetLine(World, 370);
+
+        GameActions.TickWorld(World, 1);
+        line1.Front.ScrollData.Should().NotBeNull();
+        line2.Front.ScrollData.Should().NotBeNull();
+        line3.Front.ScrollData.Should().NotBeNull();
+
+        AssertScrollDiffOffsets(line1.Front.ScrollData!, new Vec2D(0.25, -0.125));
+        AssertScrollDiffOffsets(line2.Front.ScrollData!, new Vec2D(0.125, -0.25));
+        AssertScrollDiffOffsets(line3.Front.ScrollData!, new Vec2D(-0.25, 0.125));
+    }
+
+    [Fact(DisplayName = "Boom Action 1025 Scroll tagged wall using offsets displacement")]
+    public void Action1025()
+    {
+        var line1 = GameActions.GetLine(World, 374);
+        var line2 = GameActions.GetLine(World, 375);
+        var line3 = GameActions.GetLine(World, 377);
+        var moveSector = GameActions.GetSectorByTag(World, 24);
+
+        GameActions.TickWorld(World, 1);
+        line1.Front.ScrollData.Should().NotBeNull();
+        line2.Front.ScrollData.Should().NotBeNull();
+        line3.Front.ScrollData.Should().NotBeNull();
+
+        GameActions.ActivateLine(World, World.Player, 379, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        GameActions.TickWorld(World, 1);
+
+        AssertScrollOffsets(line1.Front.ScrollData!, new Vec2D(-4, 8));
+        AssertScrollOffsets(line2.Front.ScrollData!, new Vec2D(-4, 8));
+        AssertScrollOffsets(line3.Front.ScrollData!, new Vec2D(-4, 8));
+
+        GameActions.ActivateLine(World, World.Player, 389, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        GameActions.TickWorld(World, 1);
+
+        AssertScrollOffsets(line1.Front.ScrollData!, Vec2D.Zero);
+        AssertScrollOffsets(line2.Front.ScrollData!, Vec2D.Zero);
+        AssertScrollOffsets(line3.Front.ScrollData!, Vec2D.Zero);
+    }
+
+    [Fact(DisplayName = "Boom Action 1026 Scroll tagged wall using offsets accelerative")]
+    public void Action1026()
+    {
+        var line1 = GameActions.GetLine(World, 402);
+        var line2 = GameActions.GetLine(World, 403);
+        var line3 = GameActions.GetLine(World, 404);
+        var moveSector = GameActions.GetSectorByTag(World, 25);
+
+        GameActions.TickWorld(World, 1);
+        line1.Front.ScrollData.Should().NotBeNull();
+        line2.Front.ScrollData.Should().NotBeNull();
+        line3.Front.ScrollData.Should().NotBeNull();
+
+        GameActions.ActivateLine(World, World.Player, 400, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        GameActions.TickWorld(World, 1);
+
+        AssertScrollDiffOffsets(line1.Front.ScrollData!, new Vec2D(4, -8));
+        AssertScrollDiffOffsets(line2.Front.ScrollData!, new Vec2D(4, -8));
+        AssertScrollDiffOffsets(line3.Front.ScrollData!, new Vec2D(4, -8));
+
+        GameActions.ActivateLine(World, World.Player, 391, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        GameActions.TickWorld(World, 1);
+
+        AssertScrollDiffOffsets(line1.Front.ScrollData!, Vec2D.Zero);
+        AssertScrollDiffOffsets(line2.Front.ScrollData!, Vec2D.Zero);
+        AssertScrollDiffOffsets(line3.Front.ScrollData!, Vec2D.Zero);
     }
 
     private static void AssertScrollDiffOffsets(SideScrollData scrollData, Vec2D offset)
