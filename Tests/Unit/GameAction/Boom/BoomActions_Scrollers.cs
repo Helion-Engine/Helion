@@ -77,11 +77,17 @@ public partial class BoomActions
         scrollLine1.Front.ScrollData.Should().NotBeNull();
         scrollLine2.Front.ScrollData.Should().NotBeNull();
 
-        GameActions.ActivateLine(World, World.Player, 362, ActivationContext.UseLine);
+        GameActions.ActivateLine(World, World.Player, 352, ActivationContext.UseLine).Should().BeTrue();
         GameActions.RunSectorPlaneSpecial(World, moveSector);
         GameActions.TickWorld(World, 1);
         AssertScrollOffsets(scrollLine1.Front.ScrollData!, new Vec2D(64, 0));
         AssertScrollOffsets(scrollLine2.Front.ScrollData!, new Vec2D(64, 0));
+
+        GameActions.ActivateLine(World, World.Player, 362, ActivationContext.UseLine).Should().BeTrue();
+        GameActions.RunSectorPlaneSpecial(World, moveSector);
+        GameActions.TickWorld(World, 1);
+        AssertScrollOffsets(scrollLine1.Front.ScrollData!, new Vec2D(0, 0));
+        AssertScrollOffsets(scrollLine2.Front.ScrollData!, new Vec2D(0, 0));
     }
 
     [Fact(DisplayName = "Boom Action 250 Scroll ceiling")]
