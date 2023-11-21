@@ -709,42 +709,46 @@ public class SpecialManager : ITickable, IDisposable
         IEnumerable<Line> lines = m_world.FindByLineId(setLine.Args.Arg0);
         ZDoomScroll flags = (ZDoomScroll)setLine.Args.Arg1;
 
-        ScrollSpeeds speeds = GetScrollSpeedsFromLine(setLine, flags);
-        if (!speeds.ScrollSpeed.HasValue)
-            return;
-
-        speeds.ScrollSpeed = (speeds.ScrollSpeed.Value.Y, speeds.ScrollSpeed.Value.X);
-
         Sector? changeScroll = null;
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             changeScroll = setLine.Front.Sector;
 
-        Vec2D speed = speeds.ScrollSpeed.Value;
         foreach (Line line in lines)
         {
             if (line.Id == setLine.Id)
                 continue;
 
-            if (flags == ZDoomScroll.None)
+            if ((flags & ZDoomScroll.LineOffset) != 0)
             {
-                speeds = ScrollUtil.GetScrollLineSpeed(setLine, line);
+                ScrollSpeeds speeds = GetScrollOffsetSpeedsFromLine(setLine, flags);
                 if (!speeds.ScrollSpeed.HasValue)
                     continue;
-                speed = speeds.ScrollSpeed.Value;
-            }
 
-            AddSpecial(new ScrollSpecial(m_world, line, speed, ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
+                AddSpecial(new ScrollSpecial(m_world, line, speeds.ScrollSpeed.Value, 
+                    ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
+                continue;
+            }
+            else
+            {
+                ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(setLine, line);
+                if (!speeds.ScrollSpeed.HasValue)
+                    continue;
+
+                AddSpecial(new ScrollSpecial(m_world, line, speeds.ScrollSpeed.Value, 
+                    ZDoomLineScroll.All, accelSector: changeScroll, scrollFlags: flags));
+            }
         }
     }
 
-    private static ScrollSpeeds GetScrollSpeedsFromLine(Line setLine, ZDoomScroll flags)
+    private static ScrollSpeeds GetScrollOffsetSpeedsFromLine(Line setLine, ZDoomScroll flags)
     {
         if (flags == ZDoomScroll.None)
             return new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
-        else if ((flags & ZDoomScroll.OffsetSpeed) != 0)
+
+        if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
-        
-        return ScrollUtil.GetScrollLineSpeed(setLine, flags | ZDoomScroll.Line, ZDoomPlaneScrollType.Scroll);
+
+        return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.Y / 8.0, setLine.Front.Offset.X / 8.0) };
     }
 
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)

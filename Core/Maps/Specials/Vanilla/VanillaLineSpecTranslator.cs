@@ -667,17 +667,17 @@ public static class VanillaLineSpecTranslator
 
             case VanillaLineSpecialType.StandardScrollMbf21:
                 argsToMutate.Arg0 = tag;
-                argsToMutate.Arg1 = (int)ZDoomScroll.OffsetSpeed;
+                argsToMutate.Arg1 = (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
 
             case VanillaLineSpecialType.AccelerativeScrollMbf21:
                 argsToMutate.Arg0 = tag;
-                argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative | (int)ZDoomScroll.OffsetSpeed;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative | (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
 
             case VanillaLineSpecialType.DisplacementScrollMbf21:
                 argsToMutate.Arg0 = tag;
-                argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.OffsetSpeed;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
 
             default:
