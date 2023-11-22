@@ -58,7 +58,8 @@ public class IWadLocator
     {
         try
         {
-            var files = Directory.EnumerateFiles(dir, "*.wad");
+            var files = Directory.EnumerateFiles(dir, "*")
+                .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase));
             foreach (var file in files)
             {
                 IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
