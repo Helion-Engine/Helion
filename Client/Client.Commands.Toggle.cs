@@ -33,4 +33,16 @@ public partial class Client
 
         m_layerManager.WorldLayer.World.ToggleChaseCameraMode();
     }
+
+    [ConsoleCommand("markspecials", "Toggles mark specials")]
+    private void ToggleMarkSpecials(ConsoleCommandEventArgs args)
+    {
+        m_config.Game.MarkSpecials.Set(!m_config.Game.MarkSpecials.Value);
+    }
+
+    [ConsoleCommand("marksecrets", "Toggles mark secrets")]
+    private void ToggleMarkSecrets(ConsoleCommandEventArgs args)
+    {
+        m_config.Game.MarkSecrets.Set(!m_config.Game.MarkSecrets.Value);
+    }
 }
