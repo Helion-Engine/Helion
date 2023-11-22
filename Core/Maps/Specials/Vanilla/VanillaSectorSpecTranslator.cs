@@ -29,7 +29,7 @@ public static class VanillaSectorSpecTranslator
             case VanillaSectorSpecialType.LightStrobeOnePlusSecond:
                 return ZDoomSectorSpecialType.LightGlow;
             case VanillaSectorSpecialType.Secret:
-                sectorData.Secret = true;
+                sectorData.SectorEffect |= SectorEffect.Secret;
                 return ZDoomSectorSpecialType.Secret;
             case VanillaSectorSpecialType.DoorCloseStay30Seconds:
                 return ZDoomSectorSpecialType.SectorDoorClose30Seconds;

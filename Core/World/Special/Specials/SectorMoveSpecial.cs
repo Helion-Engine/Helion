@@ -245,6 +245,9 @@ public class SectorMoveSpecial : ISectorSpecial
             if ((MoveData.Flags & SectorMoveFlags.ClearDamage) != 0)
                 Sector.SectorDamageSpecial = null;
 
+            if (MoveData.SectorEffect != null)
+                Sector.SetSectorEffect(MoveData.SectorEffect.Value);
+
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
 

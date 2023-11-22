@@ -46,7 +46,7 @@ public class Sector
     public int BlockmapCount;
     public SectorPlaneFace LastActivePlaneMove;
     public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
-    public bool Secret { get; private set; }
+    public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
     public int DamageAmount { get; private set; }
     public int? SkyTextureHandle { get; private set; }
     public bool FlipSkyTexture { get; set; }
@@ -67,7 +67,7 @@ public class Sector
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public readonly InstantKillEffect KillEffect;
-    public readonly SectorEffect SectorEffect;
+    public SectorEffect SectorEffect { get; private set; }
 
     public double Friction = Constants.DefaultFriction;
 
@@ -85,7 +85,6 @@ public class Sector
         Floor = floor;
         Ceiling = ceiling;
         SectorSpecialType = sectorSpecial;
-        Secret = sectorData.Secret;
         DamageAmount = sectorData.DamageAmount;
         KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
@@ -196,8 +195,23 @@ public class Sector
 
     public void SetSecret(bool set)
     {
-        Secret = set;
-        DataChanges |= SectorDataTypes.Secret;
+        if (set == Secret)
+            return;
+
+        if (set)
+            SectorEffect |= SectorEffect.Secret;
+        else
+            SectorEffect &= ~SectorEffect.Secret;
+        DataChanges |= SectorDataTypes.SectorEffect;
+    }
+
+    public void SetSectorEffect(SectorEffect effect)
+    {
+        if (SectorEffect == effect)
+            return;
+
+        SectorEffect = effect;
+        DataChanges |= SectorDataTypes.SectorEffect;
     }
 
     public void PlaneTextureChange(SectorPlane sectorPlane)
@@ -230,13 +244,13 @@ public class Sector
             SoundValidationCount = SoundValidationCount,
             SoundBlock = SoundBlock,
             SoundTarget = SoundTarget.Entity?.Id,
-            Secret = Secret,
             SectorSpecialType = (int)SectorSpecialType,
             SectorDataChanges = (int)DataChanges,
             SkyTexture = SkyTextureHandle,
             TransferFloorLight = TransferFloorLightSector?.Id,
             TransferCeilingLight = TransferCeilingLightSector?.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
+            SectorEffect = SectorEffect
         };
 
         if (DataChanged)
@@ -332,7 +346,11 @@ public class Sector
             if ((DataChanges & SectorDataTypes.Friction) != 0 && sectorModel.Friction.HasValue)
                 Friction = sectorModel.Friction.Value;
 
-            Secret = sectorModel.Secret;
+            if (sectorModel.Secret.HasValue)
+                SetSecret(sectorModel.Secret.Value);
+            if (sectorModel.SectorEffect.HasValue)
+                SetSectorEffect(sectorModel.SectorEffect.Value);
+
             DamageAmount = sectorModel.DamageAmount;
         }
 

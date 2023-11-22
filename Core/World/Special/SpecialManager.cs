@@ -385,11 +385,11 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
         TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneFace.Floor, destZ,
-            out int floorChangeTexture, out SectorDamageSpecial? damageSpecial);
+            out int floorChangeTexture, out SectorDamageSpecial? damageSpecial, out var sectorEffect);
 
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture,
-            damageSpecial: damageSpecial),
+            damageSpecial: damageSpecial, sectorEffect: sectorEffect),
             DefaultFloorSound);
     }
 
@@ -410,22 +410,25 @@ public class SpecialManager : ITickable, IDisposable
         int? changeTexture = null;
         SectorDamageSpecial? damageSpecial = null;
         CrushData? crush = null;
+        SectorEffect? sectorEffect = null;
 
         if ((flags & ZDoomGenericFlags.CopyTxAndSpecial) != 0)
         {
             if ((flags & ZDoomGenericFlags.TriggerNumericModel) != 0)
             {
                 if (TriggerSpecials.GetNumericModelChange(m_world, sector, planeType, destZ,
-                    out int numericChangeTexture, out SectorDamageSpecial? changeSpecial))
+                    out int numericChangeTexture, out SectorDamageSpecial? changeSpecial, out var changeSectorEffect))
                 {
                     changeTexture = numericChangeTexture;
                     damageSpecial = changeSpecial;
+                    sectorEffect = changeSectorEffect;
                 }
             }
             else
             {
                 changeTexture = line.Front.Sector.GetTexture(planeType);
                 damageSpecial = line.Front.Sector.SectorDamageSpecial;
+                sectorEffect = line.Front.Sector.SectorEffect;
             }
 
             ZDoomGenericFlags changeFlags = flags & ZDoomGenericFlags.CopyTxAndSpecial;
@@ -449,7 +452,8 @@ public class SpecialManager : ITickable, IDisposable
             start, MoveRepetition.None, speed, 0, crush: crush,
             floorChangeTextureHandle: floorChangeTexture,
             ceilingChangeTextureHandle: ceilingChangeTexture,
-            damageSpecial: damageSpecial),
+            damageSpecial: damageSpecial,
+            sectorEffect: sectorEffect),
             planeType == SectorPlaneFace.Floor ? DefaultFloorSound : DefaultCeilingSound);
     }
 

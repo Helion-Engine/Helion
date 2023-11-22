@@ -1,3 +1,4 @@
+using Helion.Maps.Specials;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 
@@ -16,6 +17,7 @@ public readonly struct SectorMoveData
     public readonly SectorDamageSpecial? DamageSpecial;
     public readonly MoveDirection StartDirection;
     public readonly SectorMoveFlags Flags;
+    public readonly SectorEffect? SectorEffect;
 
     public const int InstantToggleSpeed = int.MaxValue;
 
@@ -25,7 +27,8 @@ public readonly struct SectorMoveData
         int? ceilingChangeTextureHandle = null,
         SectorDamageSpecial? damageSpecial = null,
         double? returnSpeed = null,
-        SectorMoveFlags flags = SectorMoveFlags.None)
+        SectorMoveFlags flags = SectorMoveFlags.None,
+        SectorEffect? sectorEffect = null)
     {
         SectorMoveType = moveType;
         StartDirection = startDirection;
@@ -38,5 +41,6 @@ public readonly struct SectorMoveData
         DamageSpecial = damageSpecial;
         ReturnSpeed = returnSpeed ?? speed;
         Flags = flags;
+        SectorEffect = sectorEffect;
     }
 }

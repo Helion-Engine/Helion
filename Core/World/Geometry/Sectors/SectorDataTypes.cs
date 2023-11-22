@@ -14,8 +14,8 @@ public enum SectorDataTypes
     SectorSpecialType = 32,
     MovementLocked = 64,
     Offset = 128,
-    Secret = 256,
+    SectorEffect = 256,
     SkyTexture = 512,
     TransferHeights = 1024,
-    Friction = 2048
+    Friction = 2048,
 }

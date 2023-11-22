@@ -1,3 +1,4 @@
+using Helion.Maps.Specials;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 
@@ -17,11 +18,12 @@ public static class TriggerSpecials
         bool transferSpecial = true)
     {
         if (type == PlaneTransferType.Numeric && GetNumericModelChange(world, sector, planeType, sector.GetZ(planeType),
-            out int changeTexture, out SectorDamageSpecial? damageSpecial))
+            out int changeTexture, out SectorDamageSpecial? damageSpecial, out var sectorEffect))
         {
             world.SetPlaneTexture(sector.GetSectorPlane(planeType), changeTexture);
             if (transferSpecial)
                 sector.SectorDamageSpecial = damageSpecial?.Copy(sector);
+            sector.SetSectorEffect(sectorEffect);
         }
         else if (type == PlaneTransferType.Trigger && line != null)
         {
@@ -32,10 +34,11 @@ public static class TriggerSpecials
     }
 
     public static bool GetNumericModelChange(IWorld world, Sector sector, SectorPlaneFace planeType,
-        double destZ, out int changeTexture, out SectorDamageSpecial? damageSpecial)
+        double destZ, out int changeTexture, out SectorDamageSpecial? damageSpecial, out SectorEffect sectorEffect)
     {
         changeTexture = planeType == SectorPlaneFace.Floor ? sector.Floor.TextureHandle : sector.Ceiling.TextureHandle;
         damageSpecial = sector.SectorDamageSpecial;
+        sectorEffect = SectorEffect.None;
         bool found = false;
         for (int i = 0; i < sector.Lines.Count; i++)
         {
@@ -57,6 +60,7 @@ public static class TriggerSpecials
 
             if (found)
             {
+                sectorEffect = opposingSector.SectorEffect;
                 damageSpecial = opposingSector.SectorDamageSpecial?.Copy(sector);
                 if (damageSpecial == null)
                     damageSpecial = SectorDamageSpecial.CreateNoDamage(world, sector);

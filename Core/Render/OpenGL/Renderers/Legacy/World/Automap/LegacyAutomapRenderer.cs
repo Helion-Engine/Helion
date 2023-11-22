@@ -292,11 +292,6 @@ public class LegacyAutomapRenderer : IDisposable
 
     private static bool IsLineMarked(Line line, bool markSecrets)
     {
-        if (line.Id == 471)
-        {
-            int lol = 1;
-        }
-
         if (line.MarkAutomap)
             return true;
 

@@ -74,8 +74,9 @@ public static class SectorSpecialData
             return;
 
         ISectorBits bits = Bits[(int)type];
-        sectorData.Secret = (sectorType & bits.SecretFlag) != 0;
         sectorData.SectorEffect = GetSectorEffect(sectorType, bits);
+        if ((sectorType & bits.SecretFlag) != 0)
+            sectorData.SectorEffect |= SectorEffect.Secret;
 
         if ((sectorType & bits.AltSectorTypeFlag) != 0)
             SetAltSectorTypeData(sectorType & ~bits.AltSectorTypeFlag, sectorData, bits);
