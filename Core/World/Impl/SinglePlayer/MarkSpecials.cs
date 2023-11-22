@@ -37,6 +37,7 @@ public class MarkSpecials
         ClearMarkedSectors();
         ClearMarkedLines();
         ClearPlayerTracers(player);
+        m_lastLineId = -1;
     }
 
     public void Mark(IWorld world, Entity entity, Line line)
@@ -47,9 +48,9 @@ public class MarkSpecials
         if (line.Id == m_lastLineId)
             return;
 
+        Clear(entity.PlayerObj);
         m_lastLineId = line.Id;
         m_lineMarkColor = -1;
-        Clear(entity.PlayerObj);
 
         MarkSpecialLines(world, line);
         Mark(world, entity, line, true);
@@ -300,6 +301,7 @@ public class MarkSpecials
             MarkedLines[i].MarkAutomap = false;
         MarkedLines.Clear();
     }
+
     private void ClearMarkedSectors()
     {
         for (int i = 0; i < MarkedSectors.Length; i++)
