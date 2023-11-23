@@ -512,6 +512,7 @@ public abstract class WorldBase : IWorld
     {
         if ((m_levelChangeFlags & LevelChangeFlags.KillAllPlayers) != 0)
             KillAllPlayers();
+        m_levelChangeFlags = LevelChangeFlags.None;
     }
 
     private void TickPlayerStatusBars()

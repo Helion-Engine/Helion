@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
@@ -27,7 +28,15 @@ public partial class BoomActions
     {
         World = WorldAllocator.LoadMap("Resources/boomactions.zip", "boomactions.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
 
-        World.Player.Inventory.ClearKeys();
+        Player.Inventory.ClearKeys();
+        Player.Inventory.Powerups.Clear();
+
+        if (Player.IsDead)
+        {
+            GameActions.SetEntityPosition(World, Player, (704, 1088));
+            Player.SetRaiseState();
+            GameActions.TickWorld(World, 35);
+        }
     }
 
     private void WorldInit(SinglePlayerWorld world)
