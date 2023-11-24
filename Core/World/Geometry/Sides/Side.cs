@@ -18,7 +18,6 @@ public class Side : IRenderObject
     public readonly Wall Lower;
     public Vec2I Offset;
     public Line Line { get; internal set; }
-    public Wall[] Walls { get; protected set; }
     public SideDataTypes DataChanges { get; set; }
     public bool DataChanged => DataChanges > 0;
     // This is currently just for the renderer to know for scrolling lines to not cache
@@ -52,7 +51,6 @@ public class Side : IRenderObject
         Upper = upper;
         Middle = middle;
         Lower = lower;
-        Walls = new[] { middle, upper, lower };
 
         upper.Side = this;
         middle.Side = this;

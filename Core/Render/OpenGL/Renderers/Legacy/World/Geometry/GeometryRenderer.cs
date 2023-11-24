@@ -14,6 +14,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
@@ -312,14 +313,12 @@ public class GeometryRenderer : IDisposable
         HashSet<int> textures = new();
         for (int i = 0; i < world.Lines.Count; i++)
         {
-            for (int j = 0; j < world.Lines[i].Front.Walls.Length; j++)
-                textures.Add(world.Lines[i].Front.Walls[j].TextureHandle);
+            AddSideTextures(world, textures, world.Lines[i].Front);
 
             if (world.Lines[i].Back == null)
                 continue;
 
-            for (int j = 0; j < world.Lines[i].Back!.Walls.Length; j++)
-                textures.Add(world.Lines[i].Back!.Walls[j].TextureHandle);
+            AddSideTextures(world, textures, world.Lines[i].Back);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -329,6 +328,13 @@ public class GeometryRenderer : IDisposable
         }
 
         TextureManager.LoadTextureImages(textures);
+    }
+
+    private static void AddSideTextures(IWorld world, HashSet<int> textures, Side side)
+    {
+        textures.Add(side.Lower.TextureHandle);
+        textures.Add(side.Middle.TextureHandle);
+        textures.Add(side.Upper.TextureHandle);
     }
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
