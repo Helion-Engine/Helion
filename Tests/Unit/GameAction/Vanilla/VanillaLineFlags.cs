@@ -34,29 +34,29 @@ namespace Helion.Tests.Unit.GameAction
             var lineBlockFlags = typeof(LineBlockFlags);
             var automapFlags = typeof(LineAutomapFlags);
 
-            AssertFlags(GameActions.GetLine(World, 15).Flags.Unpegged,
+            GameActions.AssertFlags(GameActions.GetLine(World, 15).Flags.Unpegged,
                 unpeggedFlags.GetField(nameof(UnpeggedFlags.Lower)));
 
-            AssertFlags(GameActions.GetLine(World, 1).Flags.Unpegged,
+            GameActions.AssertFlags(GameActions.GetLine(World, 1).Flags.Unpegged,
                 unpeggedFlags.GetField(nameof(UnpeggedFlags.Upper)));
 
-            AssertFlags(GameActions.GetLine(World, 8).Flags.Blocking,
+            GameActions.AssertFlags(GameActions.GetLine(World, 8).Flags.Blocking,
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Players)),
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)));
 
-            AssertFlags(GameActions.GetLine(World, 9).Flags.Blocking,
+            GameActions.AssertFlags(GameActions.GetLine(World, 9).Flags.Blocking,
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)));
 
-            AssertFlags(GameActions.GetLine(World, 12).Flags.Automap,
+            GameActions.AssertFlags(GameActions.GetLine(World, 12).Flags.Automap,
                 automapFlags.GetField(nameof(LineAutomapFlags.NeverDraw)));
 
-            AssertFlags(GameActions.GetLine(World, 16).Flags.Automap,
+            GameActions.AssertFlags(GameActions.GetLine(World, 16).Flags.Automap,
                 automapFlags.GetField(nameof(LineAutomapFlags.AlwaysDraw)));
 
-            AssertFlags(GameActions.GetLine(World, 14).Flags.Automap,
+            GameActions.AssertFlags(GameActions.GetLine(World, 14).Flags.Automap,
                 automapFlags.GetField(nameof(LineAutomapFlags.DrawAsOneSided)));
 
-            AssertFlags(GameActions.GetLine(World, 13).Flags,
+            GameActions.AssertFlags(GameActions.GetLine(World, 13).Flags,
                 lineFlags.GetField(nameof(LineFlags.BlockSound)));
         }
 
@@ -100,32 +100,6 @@ namespace Helion.Tests.Unit.GameAction
             bi.Should().NotBeNull();
             bi!.Value.Line.Should().NotBeNull();
             bi!.Value.Line!.Id.Should().Be(6);
-        }
-
-        private static void AssertFlags(object flags, params FieldInfo?[] trueField)
-        {
-            int trueCount = 0;
-            trueField.Should().NotBeNull();
-
-            foreach (var field in trueField)
-                field.Should().NotBeNull();
-
-            foreach (var field in flags.GetType().GetFields())
-            {
-                if (field.FieldType != typeof(bool))
-                    continue;
-
-                if (trueField.Contains(field))
-                {
-                    trueCount++;
-                    field.GetValue(flags).Should().Be(true);
-                    continue;
-                }
-
-                field.GetValue(flags).Should().Be(false);
-            }
-
-            trueCount.Should().Be(trueField.Length);
         }
     }
 }

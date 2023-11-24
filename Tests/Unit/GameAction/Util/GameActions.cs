@@ -15,6 +15,7 @@ using Helion.World.Physics.Blockmap;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Helion.Tests.Unit.GameAction
 {
@@ -206,7 +207,8 @@ namespace Helion.Tests.Unit.GameAction
 
             SetEntityOutOfBounds(world, entity);
 
-            return pos == nextPos;
+            var line = GetLine(world, lineId);
+            return line.Segment.OnRight(pos) == line.Segment.OnRight(nextPos);
         }
 
         public static bool EntityUseLine(WorldBase world, Entity entity, int lineId)
@@ -440,5 +442,31 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         public static double GetAngle(Bearing bearing) => MathHelper.HalfPi * (int)bearing;
+
+        public static void AssertFlags(object flags, params FieldInfo?[] trueField)
+        {
+            int trueCount = 0;
+            trueField.Should().NotBeNull();
+
+            foreach (var field in trueField)
+                field.Should().NotBeNull();
+
+            foreach (var field in flags.GetType().GetFields())
+            {
+                if (field.FieldType != typeof(bool))
+                    continue;
+
+                if (trueField.Contains(field))
+                {
+                    trueCount++;
+                    field.GetValue(flags).Should().Be(true);
+                    continue;
+                }
+
+                field.GetValue(flags).Should().Be(false);
+            }
+
+            trueCount.Should().Be(trueField.Length);
+        }
     }
 }
