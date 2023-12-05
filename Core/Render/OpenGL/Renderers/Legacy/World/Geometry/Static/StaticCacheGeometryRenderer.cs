@@ -362,15 +362,25 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (vertices == null)
             return;
 
+        bool sideUpdated = false || side == null;
+        bool planeUpdated = false || plane == null;
+
         if (update)
         {
-            if (side != null)
+            if (side != null && m_skyGeometry.HasSide(side))
+            {
+                sideUpdated = true;
                 m_skyGeometry.UpdateSide(side, wallLocation, vertices);
+            }
 
-            if (plane != null && vertices != null)
+            if (plane != null && m_skyGeometry.HasPlane(plane))
+            {
+                planeUpdated = true;
                 m_skyGeometry.UpdatePlane(plane, vertices);
+            }
 
-            return;
+            if (sideUpdated && planeUpdated)
+                return;
         }
 
         if (!m_skyRenderer.GetOrCreateSky(sector.SkyTextureHandle, sector.FlipSkyTexture, out var sky))
@@ -379,13 +389,13 @@ public class StaticCacheGeometryRenderer : IDisposable
         int index = sky.Vbo.Count;
         sky.Add(vertices, vertices.Length);
 
-        if (plane != null && vertices != null)
+        if (plane != null && !planeUpdated)
         {
             m_skyGeometry.AddPlane(sky, plane, vertices, index);
             return;
         }
 
-        if (side == null)
+        if (side == null || sideUpdated)
             return;
 
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices, index);

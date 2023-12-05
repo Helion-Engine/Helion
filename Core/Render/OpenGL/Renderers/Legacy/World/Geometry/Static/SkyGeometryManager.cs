@@ -98,6 +98,9 @@ public sealed class SkyGeometryManager
             UpdateSkyGeometry(data, vertices);
     }
 
+    public bool HasPlane(SectorPlane plane) => m_planeLookup.ContainsKey(plane.Id);
+    public bool HasSide(Side side) => m_sideLookup.ContainsKey(side.Id);
+
     public void UpdatePlane(SectorPlane plane, SkyGeometryVertex[] vertices)
     {
         if (!m_planeLookup.TryGetValue(plane.Id, out var data))
