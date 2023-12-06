@@ -54,10 +54,10 @@ public class PortalRenderer : IDisposable
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
     {
         const int FakeWallHeight = 8192;
+        Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
+        Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
         if (sideTexture == SideTexture.Upper)
         {
-            Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
-            Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
             SectorPlane top = facingSector.Ceiling;
             SectorPlane bottom = otherSector.Ceiling;
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront);
@@ -70,7 +70,7 @@ public class PortalRenderer : IDisposable
                     facingSide.UpperFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
             }
 
-            if (IsSky(facingSector.Ceiling) || facingSide.Sector.TransferHeights != null || otherSide.Sector.TransferHeights != null)
+            if (IgnoreAltFloodFill(facingSide, otherSide))
                 return;
 
             bottom = facingSector.Ceiling;
@@ -88,8 +88,6 @@ public class PortalRenderer : IDisposable
         else
         {
             Debug.Assert(sideTexture == SideTexture.Lower, $"Expected lower floor, got {sideTexture} instead");
-            Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
-            Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
             SectorPlane top = otherSector.Floor;
             SectorPlane bottom = facingSector.Floor;
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront);
@@ -102,7 +100,7 @@ public class PortalRenderer : IDisposable
                     facingSide.LowerFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, floodMinZ, double.MaxValue);
             }
 
-            if (IsSky(facingSide.Sector.Floor) || facingSide.Sector.TransferHeights != null || otherSide.Sector.TransferHeights != null)
+            if (IgnoreAltFloodFill(facingSide, otherSide))
                 return;
 
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.
@@ -119,6 +117,9 @@ public class PortalRenderer : IDisposable
                 facingSide.LowerFloodKey2 = m_floodFillRenderer.AddStaticWall(facingSector.Floor, wall, double.MinValue, floodMinZ);
         }
     }
+
+    private bool IgnoreAltFloodFill(Side facingSide, Side otherSide) =>
+        IsSky(facingSide.Sector.Floor) || IsSky(otherSide.Sector.Floor) || facingSide.Sector.TransferHeights != null || otherSide.Sector.TransferHeights != null;
 
     public void Render(RenderInfo renderInfo)
     {
