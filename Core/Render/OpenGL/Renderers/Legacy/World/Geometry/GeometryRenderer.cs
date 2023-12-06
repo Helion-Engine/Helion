@@ -772,6 +772,8 @@ public class GeometryRenderer : IDisposable
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || 
                 !UpperIsVisible(facingSide, otherSide, facingSector, otherSector))
             {
+                // This isn't the best spot for this but separating this logic would be difficult. (Sector 72 in skyshowcase.wad)
+                facingSide.FloodTextures &= ~SideTexture.Upper;
                 verticies = null;
                 skyVerticies = null;
                 return;
