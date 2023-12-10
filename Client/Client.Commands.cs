@@ -299,14 +299,14 @@ public partial class Client
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
     [ConsoleCommandArg("mapName", "The name of the map")]
-    private void CommandHandleMap(ConsoleCommandEventArgs args)
+    private async Task CommandHandleMap(ConsoleCommandEventArgs args)
     {
         MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
-        _ = NewGame(mapInfo);
+        await NewGame(mapInfo);
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
-    private void CommandStartNewGame(ConsoleCommandEventArgs args)
+    private async Task CommandStartNewGame(ConsoleCommandEventArgs args)
     {
         MapInfoDef? mapInfoDef = GetDefaultMap();
         if (mapInfoDef == null)
@@ -315,7 +315,7 @@ public partial class Client
             return;
         }
 
-        _ = NewGame(mapInfoDef);
+        await NewGame(mapInfoDef);
     }
 
     [ConsoleCommand("soundVolume", "Sets the sound volume")]
@@ -572,25 +572,20 @@ public partial class Client
         var loadingLayer = m_layerManager.LoadingLayer;
         if (loadingLayer == null)
         {
-            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            loadingLayer = new(m_layerManager, m_archiveCollection, m_config, string.Empty);
             m_layerManager.Add(loadingLayer);
         }
 
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
-        loadingLayer.LoadingImage = string.Empty;
-
-        if (showLoadingTitlepic)
-            loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
+        loadingLayer.LoadingImage = m_archiveCollection.GameInfo.CreditPages[0];
 
         m_layerManager.LockInput = true;
-        m_layerManager.Remove(m_layerManager.WorldLayer);
-        m_layerManager.Remove(m_layerManager.MenuLayer);
-        m_layerManager.Remove(m_layerManager.ConsoleLayer);
+        m_layerManager.ClearAllExcept(loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
         m_layerManager.LockInput = false;
 
-        m_layerManager.Remove(loadingLayer);
+        loadingLayer.SetFadeOut(TimeSpan.FromSeconds(1));
     }
 
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
@@ -648,7 +643,7 @@ public partial class Client
         RegisterWorldEvents(newLayer);
 
         m_layerManager.Add(newLayer);
-        m_layerManager.ClearAllExcept(newLayer);
+        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer);
 
         if (players.Count > 0 && m_config.Game.AutoSave)
         {

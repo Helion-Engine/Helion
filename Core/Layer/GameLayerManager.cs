@@ -129,50 +129,50 @@ public class GameLayerManager : IGameLayerManager
     {
         switch (gameLayer)
         {
-        case ConsoleLayer layer:
-            Remove(ConsoleLayer);
-            ConsoleLayer = layer;
-            break;
-        case MenuLayer layer:
-            Remove(MenuLayer);
-            MenuLayer = layer;
-            break;
-        case ReadThisLayer layer:
-            Remove(ReadThisLayer);
-            ReadThisLayer = layer;
-            break;
-        case EndGameLayer layer:
-            Remove(EndGameLayer);
-            EndGameLayer = layer;
-            break;
-        case TitlepicLayer layer:
-            Remove(TitlepicLayer);
-            TitlepicLayer = layer;
-            break;
-        case IntermissionLayer layer:
-            Remove(IntermissionLayer);
-            IntermissionLayer = layer;
-            break;
-        case OptionsLayer layer:
-            Remove(OptionsLayer);
-            OptionsLayer = layer;
-            break;
-        case WorldLayer layer:
-            Remove(WorldLayer);
-            WorldLayer = layer;
-            break;
-        case IwadSelectionLayer layer:
-            Remove(IwadSelectionLayer);
-            IwadSelectionLayer = layer;
-            break;
-        case LoadingLayer layer:
-            Remove(LoadingLayer);
-            LoadingLayer = layer;
-            break;
-        case null:
-            break;
-        default:
-            throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
+            case ConsoleLayer layer:
+                Remove(ConsoleLayer);
+                ConsoleLayer = layer;
+                break;
+            case MenuLayer layer:
+                Remove(MenuLayer);
+                MenuLayer = layer;
+                break;
+            case ReadThisLayer layer:
+                Remove(ReadThisLayer);
+                ReadThisLayer = layer;
+                break;
+            case EndGameLayer layer:
+                Remove(EndGameLayer);
+                EndGameLayer = layer;
+                break;
+            case TitlepicLayer layer:
+                Remove(TitlepicLayer);
+                TitlepicLayer = layer;
+                break;
+            case IntermissionLayer layer:
+                Remove(IntermissionLayer);
+                IntermissionLayer = layer;
+                break;
+            case OptionsLayer layer:
+                Remove(OptionsLayer);
+                OptionsLayer = layer;
+                break;
+            case WorldLayer layer:
+                Remove(WorldLayer);
+                WorldLayer = layer;
+                break;
+            case IwadSelectionLayer layer:
+                Remove(IwadSelectionLayer);
+                IwadSelectionLayer = layer;
+                break;
+            case LoadingLayer layer:
+                Remove(LoadingLayer);
+                LoadingLayer = layer;
+                break;
+            case null:
+                break;
+            default:
+                throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
         }
 
         if (gameLayer != null)
@@ -253,6 +253,11 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+    }
+
+    private void GameLayer_OnRemove(object? sender, EventArgs e)
+    {
+        Remove(sender);
     }
 
     private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
