@@ -151,7 +151,7 @@ sightTraverseEndOfLoop:
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Shootable || !entity.Flags.Solid)
+                    if (!entity.Flags.Shootable)
                         continue;
 
                     entity.BlockmapCount = checkCounter;

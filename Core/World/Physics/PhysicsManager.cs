@@ -1088,6 +1088,7 @@ public class PhysicsManager
         {
             tryMove.Subsector = m_bspTree.ToSubsector(position.To3D(0));
             tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.ToFloorZ(position);
+            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.ToCeilingZ(position);
         }
 
         Box2D nextBox = new(position, entity.Radius);

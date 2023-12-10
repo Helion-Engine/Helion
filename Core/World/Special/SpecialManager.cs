@@ -652,9 +652,17 @@ public class SpecialManager : ITickable, IDisposable
             var sector = sectors.GetSector(i);
             Entity? pusher = null;
             if (type == PushType.Push)
+            {
                 pusher = GetPusher(sector);
+                if (pusher == null)
+                    continue;
+            }
 
-            AddSpecial(new PushSpecial(type, m_world, sector, GetPushFactor(line), pusher));
+            var pushFactor = GetPushFactor(line);
+            if (pusher != null && pusher.Definition.EditorId == (int)EditorId.PointPuller)
+                pushFactor *= -1;
+
+            AddSpecial(new PushSpecial(type, m_world, sector, pushFactor, pusher));
         }
     }
 
