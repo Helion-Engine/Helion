@@ -191,7 +191,7 @@ public class GameLayerManager : IGameLayerManager
 
     public LinkedList<string> GetConsoleSubmittedInput() => m_console.SubmittedInput;
 
-    public void ClearAllExcept(params IGameLayer[] layers)
+    public void ClearAllExcept(params IGameLayer?[] layers)
     {
         foreach (IGameLayer existingLayer in Layers)
             if (!layers.Contains(existingLayer))

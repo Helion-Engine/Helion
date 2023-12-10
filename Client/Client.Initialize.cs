@@ -64,8 +64,6 @@ public partial class Client
             await CheckLoadMap();
             AddTitlepicIfNoMap();
         }
-
-        m_layerManager.Remove(m_layerManager.LoadingLayer);
     }
 
     private void FindInstalledIWads()

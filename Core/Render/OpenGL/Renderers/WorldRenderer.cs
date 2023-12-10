@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Helion.Render.OpenGL.Shared;
 using Helion.World;
 
@@ -9,7 +10,7 @@ namespace Helion.Render.OpenGL.Renderers;
 /// </summary>
 public abstract class WorldRenderer : IDisposable
 {
-    private readonly WeakReference<IWorld?> m_lastRenderedWorld = new WeakReference<IWorld?>(null);
+    protected readonly WeakReference<IWorld?> m_lastRenderedWorld = new WeakReference<IWorld?>(null);
 
     /// <summary>
     /// Performs rendering on the world provided with the information for
@@ -20,10 +21,7 @@ public abstract class WorldRenderer : IDisposable
     public void Render(IWorld world, RenderInfo renderInfo)
     {
         if (IsWorldNotSeenBefore(world))
-        {
-            m_lastRenderedWorld.SetTarget(world);
             UpdateToNewWorld(world);
-        }
 
         if (renderInfo.DrawAutomap)
             PerformAutomapRender(world, renderInfo);
@@ -40,7 +38,7 @@ public abstract class WorldRenderer : IDisposable
     /// provided.
     /// </summary>
     /// <param name="world">The world to update to.</param>
-    protected abstract void UpdateToNewWorld(IWorld world);
+    public abstract void UpdateToNewWorld(IWorld world);
 
     /// <summary>
     /// Performs the actual rendering of the automap.

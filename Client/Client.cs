@@ -10,7 +10,9 @@ using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Graphics;
 using Helion.Layer;
+using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
+using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -52,6 +54,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private bool m_disposed;
     private bool m_takeScreenshot;
+    private bool m_loadComplete;
 
     private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
@@ -180,6 +183,7 @@ public partial class Client : IDisposable, IInputManagement
         m_profiler.ResetTimers();
         m_profiler.Global.Start();
 
+        CheckLoadMapComplete();
         CheckForErrorsIfDebug();
 
         RunLogic();
@@ -189,6 +193,26 @@ public partial class Client : IDisposable, IInputManagement
 
         m_profiler.Global.Stop();
         m_profiler.MarkFrameFinished();
+    }
+
+    private void CheckLoadMapComplete()
+    {
+        if (!m_loadComplete)
+            return;
+
+        m_loadComplete = false;
+        var newLayer = m_layerManager.WorldLayer;
+        if (newLayer == null)
+            return;
+
+        m_window.Renderer.UpdateToNewWorld(newLayer.World);
+        m_layerManager.LockInput = false;
+
+        newLayer.World.Start(m_lastWorldModel);
+        CheckLoadMapDemo(newLayer, m_lastWorldModel);
+        ForceGarbageCollection();
+
+        m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));
     }
 
     /// <summary>

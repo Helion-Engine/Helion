@@ -577,15 +577,15 @@ public partial class Client
         }
 
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
-        loadingLayer.LoadingImage = m_archiveCollection.GameInfo.CreditPages[0];
+        loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
         m_layerManager.LockInput = true;
         m_layerManager.ClearAllExcept(loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
-        m_layerManager.LockInput = false;
 
-        loadingLayer.SetFadeOut(TimeSpan.FromSeconds(1));
+        // Signal the client to finalizing loading on the main thread. OpenGL can't do things off of the main thread.
+        m_loadComplete = true;
     }
 
     private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
@@ -673,11 +673,6 @@ public partial class Client
             AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, worldPlayer);
             newLayer.StartRecording(m_demoRecorder);
         }
-
-        newLayer.World.Start(worldModel);
-        CheckLoadMapDemo(newLayer, worldModel);
-
-        ForceGarbageCollection();
     }
 
     private SkillDef? GetSkillDefinition(WorldModel? worldModel)
