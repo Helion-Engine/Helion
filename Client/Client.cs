@@ -55,6 +55,7 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
+    private WorldModel? m_loadCompleteModel;
 
     private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
@@ -206,11 +207,12 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
-        newLayer.World.Start(m_lastWorldModel);
+        newLayer.World.Start(m_loadCompleteModel);
         m_window.Renderer.UpdateToNewWorld(newLayer.World);
         m_layerManager.LockInput = false;
 
-        CheckLoadMapDemo(newLayer, m_lastWorldModel);
+        CheckLoadMapDemo(newLayer, m_loadCompleteModel);
+        m_loadCompleteModel = null;
         ForceGarbageCollection();
 
         m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));

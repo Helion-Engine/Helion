@@ -585,6 +585,7 @@ public partial class Client
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
 
         // Signal the client to finalizing loading on the main thread. OpenGL can't do things off of the main thread.
+        m_loadCompleteModel = worldModel;
         m_loadComplete = true;
     }
 
