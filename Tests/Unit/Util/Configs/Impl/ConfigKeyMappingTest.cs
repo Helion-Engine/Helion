@@ -178,7 +178,7 @@ public class ConfigKeyMappingTest
         var input = Substitute.For<IConsumableInput>();
         input.ConsumeKeyDown(Arg.Is(Key.C)).Returns(true);
 
-        keys.ConsumeCommandKeyDown("something", input, out _).Should().BeTrue();
+        keys.ConsumeCommandKeyDown("something", input, out _, out _).Should().BeTrue();
         input.Received(1).ConsumeKeyDown(Key.C);
     }
 
