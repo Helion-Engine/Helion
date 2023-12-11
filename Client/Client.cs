@@ -205,10 +205,11 @@ public partial class Client : IDisposable, IInputManagement
         if (newLayer == null)
             return;
 
+        // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
+        newLayer.World.Start(m_lastWorldModel);
         m_window.Renderer.UpdateToNewWorld(newLayer.World);
         m_layerManager.LockInput = false;
 
-        newLayer.World.Start(m_lastWorldModel);
         CheckLoadMapDemo(newLayer, m_lastWorldModel);
         ForceGarbageCollection();
 
