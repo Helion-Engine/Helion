@@ -42,7 +42,7 @@ public interface IConfigKeyMapping
     /// <param name="input">The consumable input.</param>
     /// <returns>True if it was found to be down and was consumed, false if
     /// not or if something else consumed it.</returns>
-    bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount);
+    bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount, out Key key);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently down.

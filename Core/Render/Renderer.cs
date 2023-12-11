@@ -104,6 +104,8 @@ public class Renderer : IDisposable
         float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
         if (renderInfo.ViewerEntity.ViewLineClip || renderInfo.ViewerEntity.ViewPlaneClip)
             zNear = ZNearMin;
+        if (renderInfo.Config.FieldOfView > 100)
+            zNear = Math.Min(zNear, 6);
 
         return MathHelper.Clamp(zNear, ZNearMin, ZNearMax);
     }

@@ -58,9 +58,9 @@ public partial class WorldLayer
         return m_config.Keys.ConsumeCommandKeyPress(command, input, out scrollAmount);
     }
 
-    private bool IsCommandDown(string command, IConsumableInput input, out int scrollAmount)
+    private bool IsCommandDown(string command, IConsumableInput input, out int scrollAmount, out Key key)
     {
-        return m_config.Keys.ConsumeCommandKeyDown(command, input, out scrollAmount);
+        return m_config.Keys.ConsumeCommandKeyDown(command, input, out scrollAmount, out key);
     }
 
     public void AddCommand(TickCommands cmd) => GetTickCommand().Add(cmd);
@@ -190,10 +190,10 @@ public partial class WorldLayer
         for (int i = 0; i < KeyPressCommandMapping.Length; i++)
         {
             (string command, TickCommands tickCommand) = KeyPressCommandMapping[i];
-            if (IsCommandDown(command, input, out int scrollAmount))
+            if (IsCommandDown(command, input, out int scrollAmount, out Key key))
             {
                 if (tickCommand == TickCommands.NextWeapon || tickCommand == TickCommands.PreviousWeapon)
-                    weaponScroll += scrollAmount;
+                    weaponScroll += GetWeaponScroll(scrollAmount, key, tickCommand);
                 cmd.Add(tickCommand);
             }
         }
@@ -202,6 +202,15 @@ public partial class WorldLayer
         int yMove = input.GetMouseMove().Y;
         if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
             cmd.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
+    }
+
+    private int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
+    {
+        // Invert scroll amount if keys are opposite to the command
+        if ((key == Key.MouseWheelUp && tickCommand != TickCommands.NextWeapon) ||
+            (key == Key.MouseWheelDown && tickCommand != TickCommands.PreviousWeapon))
+            return scrollAmount * -1;
+        return scrollAmount;
     }
 
     private void ChangeHudSize(bool increase)
