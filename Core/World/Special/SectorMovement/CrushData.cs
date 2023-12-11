@@ -9,7 +9,11 @@ public struct CrushData
     public readonly int Damage;
     public readonly double ReturnFactor;
 
-    public static readonly CrushData Default = new(ZDoomCrushMode.DoomWithSlowDown, 10);
+    public const int DefaultDamage = 10;
+
+    public static readonly CrushData Default = new(ZDoomCrushMode.DoomWithSlowDown, DefaultDamage);
+    public static readonly CrushData BoomDefaultCeiling = new(ZDoomCrushMode.DoomNoSlowDown, DefaultDamage);
+    public static readonly CrushData BoomDefaultFloor = new(ZDoomCrushMode.Hexen, DefaultDamage);
 
     public CrushData(ZDoomCrushMode crushMode, int damage, double returnFactor = 1.0)
     {

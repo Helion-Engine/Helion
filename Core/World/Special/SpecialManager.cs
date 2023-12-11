@@ -439,7 +439,7 @@ public class SpecialManager : ITickable, IDisposable
         }
 
         if ((flags & ZDoomGenericFlags.Crush) != 0)
-            crush = CrushData.Default;
+            crush = planeType == SectorPlaneFace.Floor ? CrushData.BoomDefaultFloor : CrushData.BoomDefaultCeiling;
 
         int? floorChangeTexture = null;
         int? ceilingChangeTexture = null;
