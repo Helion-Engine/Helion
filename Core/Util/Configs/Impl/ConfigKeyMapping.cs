@@ -157,12 +157,13 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
-    public bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount)
+    public bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount, out Key key)
     {
         scrollAmount = 0;
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
+            key = cmd.Key;
             if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
@@ -173,6 +174,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
                 return true;
         }
 
+        key = Key.Unknown;
         return false;
     }
 

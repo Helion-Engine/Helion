@@ -83,8 +83,8 @@ public class Weapons
     private (int, int) CycleSlot(Player player, int slot, bool next)
     {
         int startSlot = slot;
-        if (startSlot < MinSlot || startSlot > MaxSlot)
-            return DefaultSlot;
+        if (m_weaponSlots.Count == 0)
+           return DefaultSlot;
 
         int subslot = CycleSubSlot(player, next);
         if (subslot != -1)
