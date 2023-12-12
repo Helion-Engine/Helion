@@ -12,6 +12,8 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
+    public bool ShouldRender { get; set; }
+
     private static readonly (string, TickCommands)[] KeyPressCommandMapping =
     {
         (Constants.Input.Forward,       TickCommands.Forward),

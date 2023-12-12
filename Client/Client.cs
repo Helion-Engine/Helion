@@ -215,6 +215,8 @@ public partial class Client : IDisposable, IInputManagement
         m_loadCompleteModel = null;
         ForceGarbageCollection();
 
+        // Flag the WorldLayer that it is safe to render now that everything has been loaded
+        newLayer.ShouldRender = true;
         m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));
     }
 

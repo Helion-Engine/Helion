@@ -20,9 +20,6 @@ public abstract class WorldRenderer : IDisposable
     /// <param name="renderInfo">The rendering metadata.</param>
     public void Render(IWorld world, RenderInfo renderInfo)
     {
-        if (IsWorldNotSeenBefore(world))
-            UpdateToNewWorld(world);
-
         if (renderInfo.DrawAutomap)
             PerformAutomapRender(world, renderInfo);
         else
@@ -53,11 +50,4 @@ public abstract class WorldRenderer : IDisposable
     /// <param name="world">The world.</param>
     /// <param name="renderInfo">The rendering metadata.</param>
     protected abstract void PerformRender(IWorld world, RenderInfo renderInfo);
-
-    private bool IsWorldNotSeenBefore(IWorld world)
-    {
-        if (!m_lastRenderedWorld.TryGetTarget(out IWorld? lastWorld))
-            return true;
-        return !ReferenceEquals(lastWorld, world);
-    }
 }

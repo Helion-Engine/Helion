@@ -483,7 +483,8 @@ public class GameLayerManager : IGameLayerManager
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
-        WorldLayer?.Render(ctx);
+        if (WorldLayer != null && WorldLayer.ShouldRender)
+            WorldLayer.Render(ctx);
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
