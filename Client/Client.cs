@@ -352,15 +352,21 @@ public partial class Client : IDisposable, IInputManagement
         }
         catch (Exception e)
         {
-            Logger errorLogger = LogManager.GetLogger(HelionLoggers.ErrorLoggerName);
-            errorLogger.Error(e, "Fatal error occurred");
-            ShowFatalError(e.ToString());
+            HandleFatalException(e);
         }
+    }
+
+    private static void HandleFatalException(Exception e)
+    {
+        Logger errorLogger = LogManager.GetLogger(HelionLoggers.ErrorLoggerName);
+        errorLogger.Error(e, "Fatal error occurred");
+        ShowFatalError(e.ToString());
     }
 
     private static void ShowFatalError(string msg)
     {
         Log.Error(msg);
+        Environment.Exit(-1);
         // TODO would be nice to have UI component here...
     }
 

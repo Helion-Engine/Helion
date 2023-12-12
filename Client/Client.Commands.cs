@@ -261,7 +261,7 @@ public partial class Client
 
     [ConsoleCommand("load", "Loads a save game file into a new world")]
     [ConsoleCommandArg("fileName", "The name of the file")]
-    private void CommandLoadGame(ConsoleCommandEventArgs args)
+    private async Task CommandLoadGame(ConsoleCommandEventArgs args)
     {
         string fileName = args.Args[0];
         Log.Info($"Loading save file {fileName}");
@@ -293,7 +293,7 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer?.World;
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        _ = LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null, 
+        await LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null,
             showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
     }
 
@@ -301,21 +301,35 @@ public partial class Client
     [ConsoleCommandArg("mapName", "The name of the map")]
     private async Task CommandHandleMap(ConsoleCommandEventArgs args)
     {
-        MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
-        await NewGame(mapInfo);
+        try
+        {
+            MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
+            await NewGame(mapInfo);
+        }
+        catch (Exception e)
+        {
+            HandleFatalException(e);
+        }
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
     private async Task CommandStartNewGame(ConsoleCommandEventArgs args)
     {
-        MapInfoDef? mapInfoDef = GetDefaultMap();
-        if (mapInfoDef == null)
+        try
         {
-            LogError("Unable to find default map for game to start on");
-            return;
-        }
+            MapInfoDef? mapInfoDef = GetDefaultMap();
+            if (mapInfoDef == null)
+            {
+                LogError("Unable to find default map for game to start on");
+                return;
+            }
 
-        await NewGame(mapInfoDef);
+            await NewGame(mapInfoDef);
+        }
+        catch (Exception e)
+        {
+            HandleFatalException(e);
+        }
     }
 
     [ConsoleCommand("soundVolume", "Sets the sound volume")]
@@ -728,35 +742,42 @@ public partial class Client
 
     private async void World_LevelExit(object? sender, LevelChangeEvent e)
     {
-        if (sender is not IWorld world || e.Cancel)
-            return;
-
-        if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
-            WriteStatsFile(world);
-
-        m_isSecretExit = false;
-        switch (e.ChangeType)
+        try
         {
-            case LevelChangeType.Next:
-                await Intermission(world, GetNextLevel(world.MapInfo));
-                break;
+            if (sender is not IWorld world || e.Cancel)
+                return;
 
-            case LevelChangeType.SecretNext:
-                m_isSecretExit = true;
-                await Intermission(world, GetNextSecretLevel(world.MapInfo));
-                break;
+            if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
+                WriteStatsFile(world);
 
-            case LevelChangeType.SpecificLevel:
-                await ChangeLevel(world, e);
-                break;
+            m_isSecretExit = false;
+            switch (e.ChangeType)
+            {
+                case LevelChangeType.Next:
+                    await Intermission(world, GetNextLevel(world.MapInfo));
+                    break;
 
-            case LevelChangeType.Reset:
-                await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
-                break;
+                case LevelChangeType.SecretNext:
+                    m_isSecretExit = true;
+                    await Intermission(world, GetNextSecretLevel(world.MapInfo));
+                    break;
 
-            case LevelChangeType.ResetOrLoadLast:
-                await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
-                break;
+                case LevelChangeType.SpecificLevel:
+                    await ChangeLevel(world, e);
+                    break;
+
+                case LevelChangeType.Reset:
+                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
+                    break;
+
+                case LevelChangeType.ResetOrLoadLast:
+                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleFatalException(ex);
         }
     }
 
@@ -819,25 +840,32 @@ public partial class Client
 
     private async Task EndGame(IWorld world, MapInfoDef? nextMapInfo)
     {
-        ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
-        ClusterDef? nextCluster = null;
-        if (nextMapInfo != null)
-            nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
-
-        bool isChangingClusters = cluster != null && nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
-        if (cluster != null && isChangingClusters)
+        try
         {
-            bool hasExitText = m_isSecretExit ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
-            if (!hasExitText && nextCluster == null)
-                isChangingClusters = false;
-            if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
-                isChangingClusters = false;
-        }
+            ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
+            ClusterDef? nextCluster = null;
+            if (nextMapInfo != null)
+                nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
 
-        if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
-            HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
-        else if (nextMapInfo != null)
-            await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
+            bool isChangingClusters = cluster != null && nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
+            if (cluster != null && isChangingClusters)
+            {
+                bool hasExitText = m_isSecretExit ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
+                if (!hasExitText && nextCluster == null)
+                    isChangingClusters = false;
+                if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
+                    isChangingClusters = false;
+            }
+
+            if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
+                HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+            else if (nextMapInfo != null)
+                await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
+        }
+        catch (Exception e)
+        {
+            HandleFatalException(e);
+        }
     }
 
     private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
@@ -853,11 +881,18 @@ public partial class Client
 
     private async void EndGameLayer_Exited(object? sender, EventArgs e)
     {
-        if (sender is not EndGameLayer endGameLayer)
-            return;
+        try
+        {
+            if (sender is not EndGameLayer endGameLayer)
+                return;
 
-        if (endGameLayer.NextMapInfo != null)
-            await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
+            if (endGameLayer.NextMapInfo != null)
+                await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
+        }
+        catch(Exception ex)
+        {
+            HandleFatalException(ex);
+        }
     }
 
     private async Task ChangeLevel(IWorld world, LevelChangeEvent e)
