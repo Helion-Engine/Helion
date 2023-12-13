@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using Helion.Util.Bytes;
 
 namespace Helion.Util.Sounds.Mus;
@@ -50,7 +52,7 @@ public static class MusToMidi
         return null;
     }
 
-    private static void WriteTime(ref uint queuedTime, ByteWriter writer)
+    private static void WriteTime(ref uint queuedTime, BinaryWriter writer)
     {
         uint buffer = queuedTime & 0x7F;
         while ((queuedTime >>= 7) != 0)
@@ -61,7 +63,7 @@ public static class MusToMidi
 
         while (true)
         {
-            writer.Byte((byte)(buffer & 0xFF));
+            writer.Write((byte)(buffer & 0xFF));
 
             if ((buffer & 0x80) != 0)
                 buffer >>= 8;
@@ -74,56 +76,56 @@ public static class MusToMidi
     }
 
     private static void WritePressKey(byte channel, byte key, byte velocity, ref uint queuedTime,
-        ByteWriter writer)
+        BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Byte((byte)((byte)MidiEvent.PressKey | channel),
-                    (byte)(key & 0x7F),
-                    (byte)(velocity & 0x7F));
+        writer.Write((byte)((byte)MidiEvent.PressKey | channel));
+        writer.Write((byte)(key & 0x7F));
+        writer.Write((byte)(velocity & 0x7F));
     }
 
-    private static void WriteReleaseKey(byte channel, byte key, ref uint queuedTime, ByteWriter writer)
+    private static void WriteReleaseKey(byte channel, byte key, ref uint queuedTime, BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Byte((byte)((byte) MidiEvent.ReleaseKey | channel),
-                    (byte)(key & 0x7F),
-                    0);
+        writer.Write((byte)((byte)MidiEvent.ReleaseKey | channel));
+        writer.Write((byte)(key & 0x7F));
+        writer.Write((byte)0);
     }
 
-    private static void WritePitchWheel(byte channel, short wheel, ref uint queuedTime, ByteWriter writer)
+    private static void WritePitchWheel(byte channel, short wheel, ref uint queuedTime, BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Byte((byte)((byte) MidiEvent.PitchWheel | channel),
-                    (byte)(wheel & 0x7F),
-                    (byte)((wheel >> 7) & 0x7F));
+        writer.Write((byte)((byte)MidiEvent.PitchWheel | channel));
+        writer.Write((byte)(wheel & 0x7F));
+        writer.Write((byte)((wheel >> 7) & 0x7F));
     }
 
-    private static void WriteChangePatch(byte channel, byte patch, ref uint queuedTime, ByteWriter writer)
+    private static void WriteChangePatch(byte channel, byte patch, ref uint queuedTime, BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Byte((byte)((byte) MidiEvent.ChangePatch | channel),
-                    (byte)(patch & 0x7F));
+        writer.Write((byte)((byte)MidiEvent.ChangePatch | channel));
+        writer.Write((byte)(patch & 0x7F));
     }
 
     private static void WriteChangeControllerValue(byte channel, byte control, byte value,
-        ref uint queuedTime, ByteWriter writer)
+        ref uint queuedTime, BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Byte((byte)((byte) MidiEvent.ChangeController | channel),
-                    (byte)(control & 0x7F),
-                    (byte)((value & 0x80) != 0 ? 0x7F : value));
+        writer.Write((byte)((byte)MidiEvent.ChangeController | channel));
+        writer.Write((byte)(control & 0x7F));
+        writer.Write((byte)((value & 0x80) != 0 ? 0x7F : value));
     }
 
     private static void WriteChangeControllerNoValue(byte channel, byte control, ref uint queuedTime,
-        ByteWriter writer)
+        BinaryWriter writer)
     {
         WriteChangeControllerValue(channel, control, 0, ref queuedTime, writer);
     }
 
-    private static void WriteTrackEnd(ref uint queuedTime, ByteWriter writer)
+    private static void WriteTrackEnd(ref uint queuedTime, BinaryWriter writer)
     {
         WriteTime(ref queuedTime, writer);
-        writer.Bytes(EndTrack);
+        writer.Write(EndTrack);
     }
 
     private static int AllocateMidiChannel(int[] channelMap)
@@ -174,7 +176,8 @@ public static class MusToMidi
         byte[] channelVelocities = new byte[MaxChannels];
         Array.Fill(channelVelocities, (byte)0x7F);
 
-        using ByteWriter trackWriter = new();
+        using MemoryStream stream = new();
+        using BinaryWriter trackWriter = new (stream);
         using ByteReader reader = new(musData);
         MusHeader header = new(reader);
         reader.Offset(header.ScoreStart);
@@ -240,13 +243,11 @@ public static class MusToMidi
         // A lot of this convoluted logic below is to get around writing to
         // a weird location. This should be cleaned up if possible by some
         // methods being added to the appropriate classes.
-        byte[] midiData = trackWriter.GetData();
+        byte[] midiData = stream.ToArray();
         int numBytes = midiData.Length;
-
-        using ByteWriter midiWriter = new();
-        midiWriter.Bytes(MidiHeader);
-        midiWriter.Bytes(midiData);
-        byte[] outData = midiWriter.GetData();
+        byte[] outData = new byte[numBytes + MidiHeader.Length];
+        Array.Copy(MidiHeader, outData, MidiHeader.Length);
+        Array.Copy(midiData, 0, outData, MidiHeader.Length, numBytes);
 
         // Since the writer is little endian only, we have to manually
         // write in big endian. This also writes it to a position that
