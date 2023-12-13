@@ -495,10 +495,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         foreach (var data in m_geometry)
-        {
-            data.Vbo.Dispose();
-            data.Vao.Dispose();
-        }
+            data.Dispose();
 
         m_geometry.Clear();
         m_textureToGeometryLookup.Clear();
@@ -508,17 +505,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_runtimeGeometry.Clear();
         m_updateLightSectors.Clear();
 
+        m_runtimeGeometry.FlushReferences();
+        m_updateLightSectors.FlushReferences();
+        m_updateLightSectors.FlushReferences();
+
         m_transferHeightsLookup.SetAll(null);
 
         ClearBufferData(m_bufferData);
         ClearBufferData(m_bufferDataClamp);
+        ClearBufferData(m_bufferLists);
 
+        m_bufferData.FlushReferences();
+        m_bufferDataClamp.FlushReferences();
         m_bufferLists.FlushReferences();
     }
 
     private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
     {
-        for (int i = 0; i < bufferData.Length; i++)
+        for (int i = 0; i < bufferData.Capacity; i++)
         {
             var list = bufferData.Data[i];
             if (list != null)
@@ -690,10 +694,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         foreach (var data in m_geometry)
-        {
-            data.Vbo.Dispose();
-            data.Vao.Dispose();
-        }
+            data.Dispose();
         
         m_disposed = true;
     }

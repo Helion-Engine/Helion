@@ -18,4 +18,10 @@ public sealed class GeometryData
         Vbo = vbo;
         Vao = vao;
     }
+
+    public void Dispose()
+    {
+        Vbo.Dispose();
+        Vao.Dispose();
+    }
 }
