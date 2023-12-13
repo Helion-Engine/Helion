@@ -18,7 +18,8 @@ public partial class WorldLayer
                                       m_parent.MenuLayer != null ||
                                       m_parent.TitlepicLayer != null ||
                                       m_parent.IntermissionLayer != null ||
-                                      m_parent.ReadThisLayer != null;
+                                      m_parent.ReadThisLayer != null ||
+                                      m_parent.LoadingLayer != null;
     public void RunLogic(TickerInfo tickerInfo)
     {
         TickWorld(tickerInfo);

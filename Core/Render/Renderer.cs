@@ -21,6 +21,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.Window;
+using Helion.World;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -70,6 +71,11 @@ public class Renderer : IDisposable
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    public void UpdateToNewWorld(IWorld world)
+    {
+        m_worldRenderer.UpdateToNewWorld(world);
     }
 
     ~Renderer()

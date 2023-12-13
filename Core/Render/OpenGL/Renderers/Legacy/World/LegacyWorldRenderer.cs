@@ -92,8 +92,10 @@ public class LegacyWorldRenderer : WorldRenderer
         GC.SuppressFinalize(this);
     }
 
-    protected override void UpdateToNewWorld(IWorld world)
+    public override void UpdateToNewWorld(IWorld world)
     {
+        m_lastRenderedWorld.SetTarget(world);
+
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
 

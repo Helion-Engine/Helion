@@ -129,50 +129,50 @@ public class GameLayerManager : IGameLayerManager
     {
         switch (gameLayer)
         {
-        case ConsoleLayer layer:
-            Remove(ConsoleLayer);
-            ConsoleLayer = layer;
-            break;
-        case MenuLayer layer:
-            Remove(MenuLayer);
-            MenuLayer = layer;
-            break;
-        case ReadThisLayer layer:
-            Remove(ReadThisLayer);
-            ReadThisLayer = layer;
-            break;
-        case EndGameLayer layer:
-            Remove(EndGameLayer);
-            EndGameLayer = layer;
-            break;
-        case TitlepicLayer layer:
-            Remove(TitlepicLayer);
-            TitlepicLayer = layer;
-            break;
-        case IntermissionLayer layer:
-            Remove(IntermissionLayer);
-            IntermissionLayer = layer;
-            break;
-        case OptionsLayer layer:
-            Remove(OptionsLayer);
-            OptionsLayer = layer;
-            break;
-        case WorldLayer layer:
-            Remove(WorldLayer);
-            WorldLayer = layer;
-            break;
-        case IwadSelectionLayer layer:
-            Remove(IwadSelectionLayer);
-            IwadSelectionLayer = layer;
-            break;
-        case LoadingLayer layer:
-            Remove(LoadingLayer);
-            LoadingLayer = layer;
-            break;
-        case null:
-            break;
-        default:
-            throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
+            case ConsoleLayer layer:
+                Remove(ConsoleLayer);
+                ConsoleLayer = layer;
+                break;
+            case MenuLayer layer:
+                Remove(MenuLayer);
+                MenuLayer = layer;
+                break;
+            case ReadThisLayer layer:
+                Remove(ReadThisLayer);
+                ReadThisLayer = layer;
+                break;
+            case EndGameLayer layer:
+                Remove(EndGameLayer);
+                EndGameLayer = layer;
+                break;
+            case TitlepicLayer layer:
+                Remove(TitlepicLayer);
+                TitlepicLayer = layer;
+                break;
+            case IntermissionLayer layer:
+                Remove(IntermissionLayer);
+                IntermissionLayer = layer;
+                break;
+            case OptionsLayer layer:
+                Remove(OptionsLayer);
+                OptionsLayer = layer;
+                break;
+            case WorldLayer layer:
+                Remove(WorldLayer);
+                WorldLayer = layer;
+                break;
+            case IwadSelectionLayer layer:
+                Remove(IwadSelectionLayer);
+                IwadSelectionLayer = layer;
+                break;
+            case LoadingLayer layer:
+                Remove(LoadingLayer);
+                LoadingLayer = layer;
+                break;
+            case null:
+                break;
+            default:
+                throw new ArgumentException($"Unknown object passed for layer: {gameLayer.GetType()}");
         }
 
         if (gameLayer != null)
@@ -191,7 +191,7 @@ public class GameLayerManager : IGameLayerManager
 
     public LinkedList<string> GetConsoleSubmittedInput() => m_console.SubmittedInput;
 
-    public void ClearAllExcept(params IGameLayer[] layers)
+    public void ClearAllExcept(params IGameLayer?[] layers)
     {
         foreach (IGameLayer existingLayer in Layers)
             if (!layers.Contains(existingLayer))
@@ -253,6 +253,11 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+    }
+
+    private void GameLayer_OnRemove(object? sender, EventArgs e)
+    {
+        Remove(sender);
     }
 
     private void HandleInput(IInputManager inputManager, TickerInfo tickerInfo)
@@ -478,7 +483,8 @@ public class GameLayerManager : IGameLayerManager
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
-        WorldLayer?.Render(ctx);
+        if (WorldLayer != null && WorldLayer.ShouldRender)
+            WorldLayer.Render(ctx);
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);

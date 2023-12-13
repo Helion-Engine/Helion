@@ -19,53 +19,58 @@ public partial class Client
 
     private async Task Initialize(string? iwad = null)
     {
-        m_archiveCollection.Load(Array.Empty<string>());
-        m_layerManager.Remove(m_layerManager.LoadingLayer);
-        LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
-        m_layerManager.Add(loadingLayer);
-
-        if (iwad == null && m_iwads.Count == 0)
-            await Task.Run(FindInstalledIWads);
-
-        if (iwad == null && GetIwad(m_iwads) == null)
-        {            
-            IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
-            selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-            m_layerManager.Add(selectionlayer);
+        try
+        {
+            m_archiveCollection.Load(Array.Empty<string>());
             m_layerManager.Remove(m_layerManager.LoadingLayer);
-            return;
-        }
+            LoadingLayer loadingLayer = new(m_layerManager, m_archiveCollection, m_config, "Loading files...");
+            m_layerManager.Add(loadingLayer);
 
-        bool success = await Task.Run(() => LoadFiles(iwad));
-        if (!success)
+            if (iwad == null && m_iwads.Count == 0)
+                await Task.Run(FindInstalledIWads);
+
+            if (iwad == null && GetIwad(m_iwads) == null)
+            {
+                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
+                selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+                m_layerManager.Add(selectionlayer);
+                m_layerManager.Remove(m_layerManager.LoadingLayer);
+                return;
+            }
+
+            bool success = await Task.Run(() => LoadFiles(iwad));
+            if (!success)
+            {
+                m_layerManager.Remove(m_layerManager.LoadingLayer);
+                ShowConsole();
+                return;
+            }
+
+            if (m_commandLineArgs.Skill.HasValue)
+                SetSkill(m_commandLineArgs.Skill.Value);
+
+            m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
+            m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
+            m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+
+            if (m_commandLineArgs.LevelStat)
+                ClearStatsFile();
+
+            if (m_commandLineArgs.LoadGame != null)
+            {
+                ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
+                await CommandLoadGame(args);
+            }
+            else
+            {
+                await CheckLoadMap();
+                AddTitlepicIfNoMap();
+            }
+        }
+        catch (Exception e)
         {
-            m_layerManager.Remove(m_layerManager.LoadingLayer);
-            ShowConsole();
-            return;
+            HandleFatalException(e);
         }
-
-        if (m_commandLineArgs.Skill.HasValue)
-            SetSkill(m_commandLineArgs.Skill.Value);
-
-        m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
-        m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
-        m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
-
-        if (m_commandLineArgs.LevelStat)
-            ClearStatsFile();
-
-        if (m_commandLineArgs.LoadGame != null)
-        {
-            ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
-            CommandLoadGame(args);
-        }
-        else
-        {
-            await CheckLoadMap();
-            AddTitlepicIfNoMap();
-        }
-
-        m_layerManager.Remove(m_layerManager.LoadingLayer);
     }
 
     private void FindInstalledIWads()
