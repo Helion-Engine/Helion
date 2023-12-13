@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry.Segments;
 using Helion.Maps.Bsp;
@@ -24,29 +25,15 @@ public static class HexenGeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static MapGeometry? Create(HexenMap map, IBspBuilder bspBuilder, TextureManager textureManager)
+    public static MapGeometry? Create(HexenMap map, GeometryBuilder builder, TextureManager textureManager,
+        Func<CompactBspTree?> createBspTree)
     {
-        GeometryBuilder builder = new();
-
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
 
-        CompactBspTree? bspTree;
-        try
-        {
-            bspTree = CompactBspTree.Create(map, builder, bspBuilder);
-            if (bspTree == null)
-                return null;
-        }
-        catch (AssertionException)
-        {
-            throw;
-        }
-        catch
-        {
-            Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
+        var bspTree = createBspTree();
+        if (bspTree == null)
             return null;
-        }
 
         return new(map, builder, bspTree);
     }

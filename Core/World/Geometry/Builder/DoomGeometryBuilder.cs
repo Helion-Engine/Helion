@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry.Segments;
+using Helion.Maps;
 using Helion.Maps.Bsp;
+using Helion.Maps.Bsp.Builder.GLBSP;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -22,26 +25,15 @@ namespace Helion.World.Geometry.Builder;
 public static class DoomGeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public static MapGeometry? Create(DoomMap map, IBspBuilder bspBuilder, TextureManager textureManager)
+    public static MapGeometry? Create(DoomMap map, GeometryBuilder builder, TextureManager textureManager, 
+        Func<CompactBspTree?> createBspTree)
     {
-        GeometryBuilder builder = new();
-
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
 
-        CompactBspTree? bspTree;
-        try
-        {
-            bspTree = CompactBspTree.Create(map, builder, bspBuilder);
-            if (bspTree == null)
-                return null;
-        }
-        catch
-        {
-            Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
+        var bspTree = createBspTree();
+        if (bspTree == null)
             return null;
-        }
 
         return new(map, builder, bspTree);
     }

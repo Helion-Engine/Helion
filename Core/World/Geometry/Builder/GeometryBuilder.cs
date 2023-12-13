@@ -6,6 +6,7 @@ using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
 using Helion.Resources;
 using Helion.Util.Configs;
+using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -57,15 +58,33 @@ public class GeometryBuilder
         if (bspBuilder == null)
             return null;
 
+        GeometryBuilder geometryBuilder = new();
         switch (map)
         {
             case DoomMap doomMap:
-                return DoomGeometryBuilder.Create(doomMap, bspBuilder, textureManager);
+                return DoomGeometryBuilder.Create(doomMap, geometryBuilder, textureManager, CreateBspTree);
             case HexenMap hexenMap:
-                return HexenGeometryBuilder.Create(hexenMap, bspBuilder, textureManager);
+                return HexenGeometryBuilder.Create(hexenMap, geometryBuilder, textureManager, CreateBspTree);
             default:
                 Log.Error("Do not support map type {0} yet", map.MapType);
                 return null;
+        }
+
+        CompactBspTree? CreateBspTree()
+        {
+            CompactBspTree? bspTree;
+            try
+            {
+                bspTree = CompactBspTree.Create(map, geometryBuilder, bspBuilder);
+                if (bspTree == null)
+                    return null;
+            }
+            catch
+            {
+                Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
+                return null;
+            }
+            return bspTree;
         }
     }
 
