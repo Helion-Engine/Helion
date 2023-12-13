@@ -8,7 +8,7 @@ namespace Helion.Util.Bytes;
 /// <summary>
 /// A helper class for writing bytes.
 /// </summary>
-public class ByteWriter
+public class ByteWriter : IDisposable
 {
     private readonly MemoryStream stream = new();
     private readonly BinaryWriter writer;
@@ -16,6 +16,11 @@ public class ByteWriter
     public ByteWriter()
     {
         writer = new BinaryWriter(stream);
+    }
+
+    public void Dispose()
+    {
+        writer.Dispose();
     }
 
     /// <summary>

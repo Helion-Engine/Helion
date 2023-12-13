@@ -174,8 +174,8 @@ public static class MusToMidi
         byte[] channelVelocities = new byte[MaxChannels];
         Array.Fill(channelVelocities, (byte)0x7F);
 
-        ByteWriter trackWriter = new();
-        ByteReader reader = new(musData);
+        using ByteWriter trackWriter = new();
+        using ByteReader reader = new(musData);
         MusHeader header = new(reader);
         reader.Offset(header.ScoreStart);
 
@@ -243,7 +243,7 @@ public static class MusToMidi
         byte[] midiData = trackWriter.GetData();
         int numBytes = midiData.Length;
 
-        ByteWriter midiWriter = new();
+        using ByteWriter midiWriter = new();
         midiWriter.Bytes(MidiHeader);
         midiWriter.Bytes(midiData);
         byte[] outData = midiWriter.GetData();
