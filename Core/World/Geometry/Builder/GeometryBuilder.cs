@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Bsp;
@@ -22,11 +23,11 @@ public class GeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly List<Line> Lines = new();
-    public readonly List<Side> Sides = new();
-    public readonly List<Wall> Walls = new();
-    public readonly List<Sector> Sectors = new();
-    public readonly List<SectorPlane> SectorPlanes = new();
+    public readonly List<Line> Lines;
+    public readonly List<Side> Sides;
+    public readonly List<Wall> Walls;
+    public readonly List<Sector> Sectors;
+    public readonly List<SectorPlane> SectorPlanes;
 
     /// <summary>
     /// A cached dictionary that maps the line ID number onto a line from
@@ -38,10 +39,19 @@ public class GeometryBuilder
     /// the line IDs in a map are not guaranteed to be contiguous due to
     /// map corruption, line removal, etc.
     /// </remarks>
-    public readonly Dictionary<int, Line> MapLines = new();
+    public readonly Dictionary<int, Line> MapLines;
+        
+    private static CompactBspTree? m_lastBspTree;
+    private static string m_lastMap = string.Empty;
 
-    internal GeometryBuilder()
+    internal GeometryBuilder(IMap map)
     {
+        Lines = new(map.GetLines().Count);
+        Sides = new(map.GetSides().Count);
+        Walls = new(map.GetSides().Count * 3);
+        Sectors = new(map.GetSectors().Count);
+        SectorPlanes = new(map.GetSectors().Count * 2);
+        MapLines = new(map.GetLines().Count);
     }
 
     /// <summary>
@@ -58,7 +68,7 @@ public class GeometryBuilder
         if (bspBuilder == null)
             return null;
 
-        GeometryBuilder geometryBuilder = new();
+        GeometryBuilder geometryBuilder = new(map);
         switch (map)
         {
             case DoomMap doomMap:
@@ -72,7 +82,14 @@ public class GeometryBuilder
 
         CompactBspTree? CreateBspTree()
         {
+            if (map.Name.Length > 0 && m_lastMap == map.Name && m_lastBspTree != null)
+            {
+                RemapBspTree(m_lastBspTree, geometryBuilder);
+                return m_lastBspTree;
+            }
+
             CompactBspTree? bspTree;
+            m_lastBspTree = null;
             try
             {
                 bspTree = CompactBspTree.Create(map, geometryBuilder, bspBuilder);
@@ -84,7 +101,20 @@ public class GeometryBuilder
                 Log.Error("Unable to load map, BSP tree cannot be built due to corrupt geometry");
                 return null;
             }
+
+            m_lastMap = map.Name;
+            m_lastBspTree = bspTree;
             return bspTree;
+        }
+    }
+
+    private static void RemapBspTree(CompactBspTree bspTree, GeometryBuilder geometryBuilder)
+    {
+        // Sectors are recreated so they need to be remapped from the new builder
+        for (int i = 0; i < bspTree.Subsectors.Length; i++)
+        {
+            var subsector = bspTree.Subsectors[i];
+            subsector.Sector = geometryBuilder.Sectors[subsector.Sector.Id];
         }
     }
 

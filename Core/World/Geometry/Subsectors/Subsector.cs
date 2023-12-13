@@ -11,7 +11,7 @@ namespace Helion.World.Geometry.Subsectors;
 public class Subsector
 {
     public readonly int Id;
-    public readonly Sector Sector;
+    public Sector Sector;
     public readonly Box2D BoundingBox;
     public readonly List<SubsectorSegment> ClockwiseEdges;
     public readonly LinkableList<Entity> Entities = new();
