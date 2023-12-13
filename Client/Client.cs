@@ -204,7 +204,13 @@ public partial class Client : IDisposable, IInputManagement
         m_loadComplete = false;
         var newLayer = m_layerManager.WorldLayer;
         if (newLayer == null)
+        {
+            Log.Error("Failed to map");
+            ShowConsole();
+            m_layerManager.LockInput = false;
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
             return;
+        }
 
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
         newLayer.World.Start(m_loadCompleteModel);
