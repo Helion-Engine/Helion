@@ -20,6 +20,7 @@ public class ByteWriter : IDisposable
 
     public void Dispose()
     {
+        stream.Dispose();
         writer.Dispose();
     }
 
