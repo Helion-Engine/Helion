@@ -43,7 +43,7 @@ public class Block
     /// <summary>
     /// All the lines for this block.
     /// </summary>  
-    public readonly DynamicArray<BlockLine> BlockLines = new();
+    public readonly DynamicArray<BlockLine> BlockLines = new(arrayPool: false);
 
     /// <summary>
     /// All the entities in this block.

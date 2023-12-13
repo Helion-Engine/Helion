@@ -38,6 +38,8 @@ public class DynamicArray<T>
 
     public bool Empty() => Length == 0;
 
+    private bool m_arrayPool;
+
     /// <summary>
     /// Creates a new dynamic array.
     /// </summary>
@@ -45,11 +47,15 @@ public class DynamicArray<T>
     /// no value is provided it defaults to 8. This value should not be
     /// negative or zero. It will be clamped to being at least a value of
     /// 1 to avoid certain resizing issues.</param>
-    public DynamicArray(int capacity = 8)
+    public DynamicArray(int capacity = 8, bool arrayPool = false)
     {
         Precondition(capacity > 0, "Must have a positive capacity");
         capacity = Math.Max(1, capacity);
-        Data = ArrayPool<T>.Shared.Rent(capacity);
+        m_arrayPool = arrayPool;
+        if (arrayPool)
+            Data = ArrayPool<T>.Shared.Rent(capacity);
+        else
+            Data = new T[capacity];
     }
 
     public T this[int index]
@@ -199,10 +205,19 @@ public class DynamicArray<T>
 
     private void SetCapacity(int newCapacity)
     {
-        T[] newData = ArrayPool<T>.Shared.Rent(newCapacity);
-        Array.Copy(Data, newData, Data.Length);
-        ArrayPool<T>.Shared.Return(Data, true);
-        Data = newData;
+        if (m_arrayPool)
+        {
+            T[] newData = ArrayPool<T>.Shared.Rent(newCapacity);
+            Array.Copy(Data, newData, Data.Length);
+            ArrayPool<T>.Shared.Return(Data, true);
+            Data = newData;
+        }
+        else
+        {
+            T[] newData = new T[newCapacity];
+            Array.Copy(Data, newData, Data.Length);
+            Data = newData;
+        }
         Version++;
     }
 }
