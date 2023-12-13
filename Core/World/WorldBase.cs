@@ -237,6 +237,20 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
     }
 
+    private void UnRegisterConfigChanges()
+    {
+        Config.SlowTick.Enabled.OnChanged -= SlowTickEnabled_OnChanged;
+        Config.SlowTick.ChaseFailureSkipCount.OnChanged -= SlowTickChaseFailureSkipCount_OnChanged;
+        Config.SlowTick.Distance.OnChanged -= SlowTickDistance_OnChanged;
+        Config.SlowTick.ChaseMultiplier.OnChanged -= SlowTickChaseMultiplier_OnChanged;
+        Config.SlowTick.LookMultiplier.OnChanged -= SlowTickLookMultiplier_OnChanged;
+        Config.SlowTick.TracerMultiplier.OnChanged -= SlowTickTracerMultiplier_OnChanged;
+        Config.Compatibility.MissileClip.OnChanged -= MissileClip_OnChanged;
+        Config.Compatibility.AllowItemDropoff.OnChanged -= AllowItemDropoff_OnChanged;
+        Config.Compatibility.InfinitelyTallThings.OnChanged -= InfinitelyTallThings_OnChanged;
+        Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
+    }
+
     private void SetWorldStatic()
     {
         Entity.ClosetChaseCount = 0;
@@ -1788,9 +1802,13 @@ public abstract class WorldBase : IWorld
     protected virtual void PerformDispose()
     {
         IsDisposed = true;
+        UnRegisterConfigChanges();
         SpecialManager.Dispose();
         EntityManager.Dispose();
         SoundManager.Dispose();
+
+        Blockmap.Dispose();
+        RenderBlockmap.Dispose();
     }
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)

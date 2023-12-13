@@ -42,6 +42,15 @@ public class BlockMap
         m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
         SetBlockCoordinates();
     }
+
+    public void Dispose()
+    {
+        for (int i = 0; i < m_blocks.Blocks.Length; i++)
+        {
+            var block = m_blocks.Blocks[i];
+            block.BlockLines.FlushStruct();
+        }
+    }
     
     public BlockmapSegIterator<Block> Iterate(in Seg2D seg)
     {

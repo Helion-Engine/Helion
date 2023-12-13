@@ -593,6 +593,8 @@ public partial class Client
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
+        UnRegisterWorldEvents();
+
         m_layerManager.LockInput = true;
         m_layerManager.ClearAllExcept(loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
