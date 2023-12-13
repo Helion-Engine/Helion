@@ -32,10 +32,12 @@ public class PK3 : Archive, IDisposable
         Invariant(entry.Parent == this, "Bad entry parent");
 
         using var stream = entry.ZipEntry.Open();
-        MemoryStream memoryStream = new();
-        stream.CopyTo(memoryStream);
-        memoryStream.Position = 0;
-        return memoryStream.ToArray();
+        var entryLength = entry.ZipEntry.Length;
+        byte[] data = new byte[entryLength];
+        int writeLength = 0;
+        while(writeLength < entryLength)
+            writeLength += stream.Read(data, writeLength, data.Length - writeLength);
+        return data;
     }
 
     private static bool ZipEntryDirectory(ZipArchiveEntry entry)
