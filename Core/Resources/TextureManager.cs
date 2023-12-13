@@ -47,10 +47,9 @@ public class TextureManager : ITickable
         SkyTextureName = "SKY1";
     }
 
-    public TextureManager(ArchiveCollection archiveCollection, MapInfoDef? mapInfoDef = null, bool unitTest = false)
+    public TextureManager(ArchiveCollection archiveCollection, bool unitTest = false)
     {
-        m_archiveCollection = archiveCollection;
-        SkyTextureName = mapInfoDef?.Sky1.Name ?? "SKY1";
+        m_archiveCollection = archiveCollection;        
         m_unitTest = unitTest;
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
@@ -73,6 +72,15 @@ public class TextureManager : ITickable
         InitAnimations();
         InitSwitches();
         InitSprites(spriteNames, spriteEntries);
+    }
+
+    public void SetSkyTexture(string skyTextureName)
+    {
+        if (skyTextureName.EqualsIgnoreCase(SkyTextureName))
+            return;
+
+        m_defaultSkyTexture = null;
+        SkyTextureName = skyTextureName;
     }
 
     public Texture GetDefaultSkyTexture()

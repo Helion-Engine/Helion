@@ -82,6 +82,7 @@ public class ArchiveCollection : IResources
     private string m_lastLoadedMapName = string.Empty;
     private IMap? m_lastLoadedMap;
     private bool m_lastLoadedMapIsTemp;
+    private bool m_initTextureManager;
     private IWadInfo? m_overrideIWadInfo;
 
     public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
@@ -96,8 +97,30 @@ public class ArchiveCollection : IResources
         m_config = config;
     }
 
-    public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false) =>
-        TextureManager = new TextureManager(this, mapInfo, unitTest);
+    public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false)
+    {
+        if (unitTest)
+        {
+            TextureManager = new TextureManager(this, unitTest);
+            SetTextureManagerSky(mapInfo);
+            return;
+        }
+
+        if (m_initTextureManager)
+        {
+            SetTextureManagerSky(mapInfo);
+            return;
+        }
+
+        TextureManager = new TextureManager(this, unitTest);
+        SetTextureManagerSky(mapInfo);
+        m_initTextureManager = true;
+    }
+
+    private void SetTextureManagerSky(MapInfoDef mapInfo)
+    {
+        TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? "SKY1");
+    }
 
     public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)
     {
