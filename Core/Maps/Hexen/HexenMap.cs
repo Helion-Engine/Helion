@@ -104,7 +104,7 @@ public class HexenMap : IMap
 
         int zdoomLineSpecialCount = Enum.GetNames(typeof(ZDoomLineSpecialType)).Length;
         int numLines = lineData.Length / BytesPerLine;
-        ByteReader reader = new(lineData);
+        using ByteReader reader = new(lineData);
         List<HexenLine> lines = new();
 
         for (int id = 0; id < numLines; id++)
@@ -250,7 +250,7 @@ public class HexenMap : IMap
             return null;
 
         int numThings = thingData.Length / BytesPerThing;
-        ByteReader reader = new(thingData);
+        using ByteReader reader = new(thingData);
         List<HexenThing> things = new();
 
         for (int id = 0; id < numThings; id++)

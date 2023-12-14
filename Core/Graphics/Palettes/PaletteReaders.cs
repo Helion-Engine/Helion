@@ -36,7 +36,7 @@ public static class PaletteReaders
         if (data.Length < 16)
             return false;
 
-        ByteReader reader = new ByteReader(data);
+        using ByteReader reader = new ByteReader(data);
 
         int width = reader.ReadInt16();
         int height = reader.ReadInt16();
@@ -90,7 +90,7 @@ public static class PaletteReaders
     {
         try
         {
-            ByteReader reader = new(data);
+            using ByteReader reader = new(data);
 
             int width = reader.ReadInt16();
             int height = reader.ReadInt16();

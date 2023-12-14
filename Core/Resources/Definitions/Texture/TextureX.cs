@@ -35,7 +35,7 @@ public class TextureX
 
         try
         {
-            ByteReader reader = new ByteReader(data);
+            using ByteReader reader = new ByteReader(data);
 
             int numTextures = reader.ReadInt32();
 

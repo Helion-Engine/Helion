@@ -61,7 +61,7 @@ public class GLComponents
             throw new Exception("Bad GL vertex data length");
 
         int count = (vertexData.Length - 4) / BytesPerVertex;
-        ByteReader reader = new(vertexData);
+        using ByteReader reader = new(vertexData);
 
         Version = reader.ReadStringLength(4) switch
         {
@@ -93,7 +93,7 @@ public class GLComponents
             throw new Exception("Bad GL segment data length");
 
         int count = segmentData.Length / byteLength;
-        ByteReader reader = new(segmentData);
+        using ByteReader reader = new(segmentData);
 
         for (int i = 0; i < count; i++)
         {
@@ -118,7 +118,7 @@ public class GLComponents
             throw new Exception("Bad GL subsector data length");
 
         int count = subsectorData.Length / byteLength;
-        ByteReader reader = new(subsectorData);
+        using ByteReader reader = new(subsectorData);
 
         for (int i = 0; i < count; i++)
         {
@@ -139,7 +139,7 @@ public class GLComponents
             throw new Exception("Bad GL node data length");
 
         int count = dataLength / byteLength;
-        ByteReader reader = new(nodeData);
+        using ByteReader reader = new(nodeData);
 
         for (int i = 0; i < count; i++)
         {

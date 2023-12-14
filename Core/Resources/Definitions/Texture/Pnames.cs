@@ -34,7 +34,7 @@ public class Pnames
 
         try
         {
-            ByteReader reader = new ByteReader(data);
+            using ByteReader reader = new ByteReader(data);
             int count = reader.ReadInt32();
             int actual = (data.Length - 4) / 8;
 

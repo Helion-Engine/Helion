@@ -108,7 +108,7 @@ public class DoomMap : IMap
             return null;
 
         int numVertices = vertexData.Length / BytesPerVertex;
-        ByteReader reader = new(vertexData);
+        using ByteReader reader = new(vertexData);
         List<DoomVertex> vertices = new();
 
         for (int id = 0; id < numVertices; id++)
@@ -128,7 +128,7 @@ public class DoomMap : IMap
             return null;
 
         int numSectors = sectorData.Length / BytesPerSector;
-        ByteReader reader = new(sectorData);
+        using ByteReader reader = new(sectorData);
         List<DoomSector> sectors = new();
 
         for (int id = 0; id < numSectors; id++)
@@ -154,7 +154,7 @@ public class DoomMap : IMap
             return null;
 
         int numSides = sideData.Length / BytesPerSide;
-        ByteReader reader = new(sideData);
+        using ByteReader reader = new(sideData);
         List<DoomSide> sides = new();
 
         for (int id = 0; id < numSides; id++)
@@ -221,7 +221,7 @@ public class DoomMap : IMap
             return null;
 
         int numLines = lineData.Length / BytesPerLine;
-        ByteReader lineReader = new(lineData);
+        using ByteReader lineReader = new(lineData);
         List<DoomLine> lines = new();
 
         for (int id = 0; id < numLines; id++)
@@ -354,7 +354,7 @@ public class DoomMap : IMap
             return null;
 
         int numThings = thingData.Length / BytesPerThing;
-        ByteReader reader = new(thingData);
+        using ByteReader reader = new(thingData);
         List<DoomThing> things = new();
 
         for (int id = 0; id < numThings; id++)
@@ -381,7 +381,7 @@ public class DoomMap : IMap
             return nodes;
 
         int numNodes = nodeData.Length / BytesPerNode;
-        ByteReader reader = new(nodeData);
+        using ByteReader reader = new(nodeData);
 
         for (int id = 0; id < numNodes; id++)
         {
