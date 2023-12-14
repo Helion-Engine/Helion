@@ -706,10 +706,11 @@ public partial class Client
 
     private static void ForceGarbageCollection()
     {
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
+        for (int i = 0; i < 4; i++)
+        {            
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+            GC.WaitForPendingFinalizers();
+        }
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)
