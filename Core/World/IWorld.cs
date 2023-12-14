@@ -92,6 +92,7 @@ public interface IWorld : IDisposable
     bool DrawHud { get; }
     bool AnyLayerObscuring { get; set; }
     bool IsDisposed { get; }
+    bool SameAsPreviousMap { get; set; }
     MarkSpecials MarkSpecials { get; }
     MapGeometry Geometry { get; }
 

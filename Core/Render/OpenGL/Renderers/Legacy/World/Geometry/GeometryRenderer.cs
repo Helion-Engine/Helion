@@ -114,35 +114,44 @@ public class GeometryRenderer : IDisposable
         m_viewSector = DefaultSector;
         PreloadAllTextures(world);
 
-        m_vertexLookup = new LegacyVertex[world.Sides.Count][];
-        m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
-        m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
-        m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
-        m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
-        m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
-        for (int i = 0; i < world.Sectors.Count; i++)
-            m_subsectors[i] = new();
+        for (int i = 0; i < m_subsectors.Length; i++)
+        {
+            m_subsectors[i].FlushReferences();
+            m_subsectors[i].Clear();
+        }
 
-        m_drawnSides = new int[world.Sides.Count];
+        if (!world.SameAsPreviousMap)
+        {
+            m_vertexLookup = new LegacyVertex[world.Sides.Count][];
+            m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
+            m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
+            m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
+            m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
+
+            m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
+            for (int i = 0; i < world.Sectors.Count; i++)
+                m_subsectors[i] = new();
+
+            m_drawnSides = new int[world.Sides.Count];
+
+            m_vertexFloorLookup = new(3);
+            m_vertexCeilingLookup = new(3);
+            m_skyFloorVertexLookup = new(3);
+            m_skyCeilingVertexLookup = new(3);
+
+            m_lightBuffer?.Dispose();
+            const int FloatSize = 4;
+            m_lightBuffer = new("Sector lights texture buffer",
+                world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize));
+        }
+
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
-
-        m_vertexFloorLookup = new(3);
-        m_vertexCeilingLookup = new(3);
-        m_skyFloorVertexLookup = new(3);
-        m_skyCeilingVertexLookup = new(3);
 
         Clear(m_tickFraction, true);
         CacheData(world);
 
         Portals.UpdateTo(world);
-
-        if (m_lightBuffer != null)
-            m_lightBuffer.Dispose();
-
-        const int FloatSize = 4;
-        m_lightBuffer = new("Sector lights texture buffer",
-            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize));
 
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
     }
@@ -310,6 +319,10 @@ public class GeometryRenderer : IDisposable
 
     private void PreloadAllTextures(IWorld world)
     {
+        if (world.SameAsPreviousMap)
+            return;
+
+        //TODO don't do this if the map didn't change
         HashSet<int> textures = new();
         for (int i = 0; i < world.Lines.Count; i++)
         {

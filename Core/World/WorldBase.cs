@@ -88,6 +88,7 @@ public abstract class WorldBase : IWorld
     public bool DrawPause { get; protected set; }
     public bool PlayingDemo { get; set; }
     public bool DemoEnded { get; set; }
+    public bool SameAsPreviousMap { get; set; }
     public IRandom Random => m_random;
     public IRandom SecondaryRandom { get; private set; }
     public IList<Line> Lines => Geometry.Lines;

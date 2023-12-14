@@ -15,6 +15,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
+using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
@@ -32,6 +33,7 @@ public partial class WorldLayer : IGameLayerParent
 {
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static string LastMapName = string.Empty;
 
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
@@ -132,6 +134,10 @@ public partial class WorldLayer : IGameLayerParent
         if (world == null)
             return null;
 
+        if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
+            world.SameAsPreviousMap = true;
+
+        LastMapName = mapInfoDef.MapName;
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
