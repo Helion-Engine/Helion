@@ -39,9 +39,9 @@ public partial class Client
             }
 
             bool success = await Task.Run(() => LoadFiles(iwad));
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
             if (!success)
             {
-                m_layerManager.Remove(m_layerManager.LoadingLayer);
                 ShowConsole();
                 return;
             }
