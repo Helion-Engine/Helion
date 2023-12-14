@@ -89,7 +89,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         m_lightBuffer = lightBuffer;
         ClearData();
-        m_skyRenderer.Reset();
+
+        if (!world.SameAsPreviousMap)
+            m_skyRenderer.Reset();
 
         m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
@@ -101,9 +103,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_world = world;
-        
-        SetSideDynamicIgnore();
-        
+        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
+        m_sideDynamicIgnore = SectorDynamic.Alpha;
+
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
@@ -236,12 +238,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 lightBuffer[index + Constants.LightBuffer.WallOffset] = sector.LightLevel;
             } 
         });
-    }
-
-    private void SetSideDynamicIgnore()
-    {
-        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
-        m_sideDynamicIgnore = SectorDynamic.Alpha;
     }
 
     private static void UpdateLookup(DynamicArray<int> array, int count)
