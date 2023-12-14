@@ -47,7 +47,6 @@ public class GeometryRenderer : IDisposable
     private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
     private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
     private readonly SkyGeometryVertex[] m_skyWallVertices = new SkyGeometryVertex[6];
-    private readonly ViewClipper m_viewClipper;
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
@@ -81,13 +80,12 @@ public class GeometryRenderer : IDisposable
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
     public GeometryRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager,
-        RenderProgram program, RenderProgram staticProgram, ViewClipper viewClipper, RenderWorldDataManager worldDataManager)
+        RenderProgram program, RenderProgram staticProgram, RenderWorldDataManager worldDataManager)
     {
         m_config = config;
         m_program = program;
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
-        m_viewClipper = viewClipper;
         Portals = new(archiveCollection, glTextureManager);
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_viewSector = DefaultSector;
@@ -173,17 +171,18 @@ public class GeometryRenderer : IDisposable
             for (int j = 0; j < edges.Count; j++)
             {
                 SubsectorSegment edge = edges[j];
-                if (edge.Side == null)
+                if (edge.SideId == null)
                     continue;
 
-                if (edge.Side.IsTwoSided)
+                var side = m_world.Sides[edge.SideId.Value];
+                if (side.IsTwoSided)
                 {
-                    RenderSide(edge.Side, edge.Side.IsFront);
-                    RenderSide(edge.Side.PartnerSide!, edge.Side.PartnerSide!.IsFront);
+                    RenderSide(side, side.IsFront);
+                    RenderSide(side.PartnerSide!, side.PartnerSide!.IsFront);
                     continue;
                 }
                 
-                RenderSide(edge.Side, true);
+                RenderSide(side, true);
             }
         }
 
@@ -421,16 +420,12 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < edges.Count; i++)
         {
             SubsectorSegment edge = edges[i];
-            if (edge.Side == null)
+            if (edge.SideId == null)
                 continue;
 
-            Line line = edge.Side.Line;
+            Line line = m_world.Sides[edge.SideId.Value].Line;
             if (m_lineDrawnTracker.HasDrawn(line))
-            {
-                if (!line.Sky)
-                    AddLineClip(edge);
                 continue;
-            }
 
             line.MarkSeenOnAutomap();
                 
@@ -456,17 +451,7 @@ public class GeometryRenderer : IDisposable
             m_lineDrawnTracker.MarkDrawn(line);
 
             line.Sky = m_skyOverride;
-            if (!m_skyOverride)
-                AddLineClip(edge);
         }
-    }
-
-    private void AddLineClip(SubsectorSegment edge)
-    {
-        if (edge.Side!.Line.OneSided)
-            m_viewClipper.AddLine(edge.Start, edge.End);
-        else if (LineOpening.IsRenderingBlocked(edge.Side.Line))
-            m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
     public void RenderAlphaSide(Side side, bool isFrontSide)

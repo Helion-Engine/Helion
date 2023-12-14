@@ -16,13 +16,13 @@ public readonly struct SubsectorSegment
     /// <summary>
     /// The side this belongs to, if any (will be null if it's a miniseg).
     /// </summary>
-    public readonly Side? Side;
+    public readonly int? SideId;
 
     /// <summary>
     /// Checks if this is a miniseg or not (is along the empty splitter and
     /// does not map onto any line/side directly).
     /// </summary>
-    public bool IsMiniseg => Side == null;
+    public bool IsMiniseg => SideId == null;
 
     /// <summary>
     /// Creates a new subsector segment.
@@ -31,9 +31,9 @@ public readonly struct SubsectorSegment
     /// miniseg.</param>
     /// <param name="start">The starting point of this segment.</param>
     /// <param name="end">The ending point of this segment.</param>
-    public SubsectorSegment(Side? side, Vec2D start, Vec2D end)
+    public SubsectorSegment(int? sideId, Vec2D start, Vec2D end)
     {
-        Side = side;
+        SideId = sideId;
         Start = start;
         End = end;
     }

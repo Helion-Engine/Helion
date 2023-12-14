@@ -40,7 +40,6 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly StaticShader m_staticProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly LegacyAutomapRenderer m_automapRenderer;
-    private readonly ViewClipper m_viewClipper;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new(256);
     private readonly Comparison<IRenderObject> m_renderObjectComparer = new(RenderObjectCompare);
     private readonly ArchiveCollection m_archiveCollection;
@@ -64,9 +63,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer = new(archiveCollection);
         m_entityRenderer = new(config, textureManager);
         m_primitiveRenderer = new();
-        m_viewClipper = new(archiveCollection.DataCache);
         m_viewSector = Sector.CreateDefault();
-        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_viewClipper, m_worldDataManager);
+        m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_maxDistance = config.Render.MaxDistance;
@@ -318,8 +316,6 @@ public class LegacyWorldRenderer : WorldRenderer
     private void Clear(IWorld world, RenderInfo renderInfo)
     {
         bool newTick = world.GameTicker != m_lastTicker;
-        m_viewClipper.Clear();
-
         m_geometryRenderer.Clear(renderInfo.TickFraction, newTick);
 
         if (newTick)

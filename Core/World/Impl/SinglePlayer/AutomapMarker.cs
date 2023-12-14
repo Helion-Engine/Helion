@@ -163,10 +163,11 @@ public class AutomapMarker
         for (int i = 0; i < subsector.ClockwiseEdges.Count; i++)
         {
             var edge = subsector.ClockwiseEdges[i];
-            if (edge.Side == null)
+            if (edge.SideId == null)
                 continue;
 
-            Line line = edge.Side.Line;
+            var side = m_world.Sides[edge.SideId.Value];
+            Line line = side.Line;
             if (m_lineDrawnTracker.HasDrawn(line))
             {
                 AddLineClip(edge);
@@ -194,9 +195,10 @@ public class AutomapMarker
 
     private void AddLineClip(SubsectorSegment edge)
     {
-        if (edge.Side!.Line.OneSided)
+        var side = m_world.Sides[edge.SideId!.Value];
+        if (side.Line.OneSided)
             m_viewClipper.AddLine(edge.Start, edge.End);
-        else if (LineOpening.IsRenderingBlocked(edge.Side.Line))
+        else if (LineOpening.IsRenderingBlocked(side.Line))
             m_viewClipper.AddLine(edge.Start, edge.End);
     }
 
