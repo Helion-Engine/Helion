@@ -29,6 +29,8 @@ public class GeometryBuilder
         
     private static (CompactBspTree, BspTreeNew)? m_lastBspTree;
     private static string m_lastMap = string.Empty;
+    private static string m_lastArchive = string.Empty;
+
 
     internal GeometryBuilder(IMap map)
     {
@@ -59,7 +61,9 @@ public class GeometryBuilder
 
         (CompactBspTree, BspTreeNew)? CreateBspTree()
         {
-            if (map.Name.Length > 0 && m_lastMap.EqualsIgnoreCase(map.Name) && m_lastBspTree != null)
+            if (map.Name.Length > 0 && m_lastMap.EqualsIgnoreCase(map.Name) &&
+                m_lastArchive.Equals(map.Archive.MD5) &&
+                m_lastBspTree != null)
             {
                 RemapBspTree(m_lastBspTree.Value.Item1, geometryBuilder);
                 return (m_lastBspTree.Value.Item1, m_lastBspTree.Value.Item2);
@@ -80,6 +84,7 @@ public class GeometryBuilder
             }
 
             m_lastMap = map.Name;
+            m_lastArchive = map.Archive.MD5;
             m_lastBspTree = (bspTree, new BspTreeNew(map, geometryBuilder.Lines, geometryBuilder.Sectors));
             return m_lastBspTree;
         }
