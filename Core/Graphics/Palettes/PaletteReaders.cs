@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Util.Bytes;
 using Helion.Util.Extensions;
+using System;
 
 namespace Helion.Graphics.Palettes;
 
@@ -116,8 +117,9 @@ public static class PaletteReaders
 
                     int indicesCount = reader.ReadByte();
                     reader.Advance(1); // Skip dummy.
-                    byte[] paletteIndices = reader.ReadBytes(indicesCount);
-                    reader.Advance(1); // Skip dummy.
+                    int position = (int)reader.BaseStream.Position;
+                    var paletteIndices = new Span<byte>(data, position, indicesCount);
+                    reader.Advance(indicesCount + 1); // Skip dummy.
 
                     // Tall patch support, since we are writing up the column we expect rowStart to be greater than the last
                     // If it's smaller or equal then add to the offset to support images greater than 254 in height
