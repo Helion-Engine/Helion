@@ -11,6 +11,9 @@ using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
+using Helion.World;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition.States;
 
 namespace Helion.Resources;
 
@@ -27,6 +30,8 @@ public class TextureManager : ITickable
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Animation> m_animations = new();
     private readonly HashSet<int> m_animatedTextures = new();
+    private readonly HashSet<int> m_processedEntityDefinitions = new();
+    private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = new();
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -49,7 +54,7 @@ public class TextureManager : ITickable
 
     public TextureManager(ArchiveCollection archiveCollection, bool unitTest = false)
     {
-        m_archiveCollection = archiveCollection;        
+        m_archiveCollection = archiveCollection;
         m_unitTest = unitTest;
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
@@ -71,7 +76,58 @@ public class TextureManager : ITickable
 
         InitAnimations();
         InitSwitches();
-        InitSprites(spriteNames, spriteEntries);
+        MapSpriteIndexToEntries(spriteEntries, spriteNames);
+    }
+
+    private void MapSpriteIndexToEntries(List<Entry> spriteEntries, List<string> spriteNames)
+    {
+        foreach (var spriteName in spriteNames)
+        {
+            int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
+            m_spriteIndexEntries[spriteIndex] = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToArray();
+        }
+    }
+
+    public void InitSprites(IWorld world)
+    {
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        {
+            if (m_processedEntityDefinitions.Contains(entity.Definition.Id))
+                continue;
+
+            m_processedEntityDefinitions.Add(entity.Definition.Id);
+            var def = entity.Definition;
+            LoadSprite(def.SpawnState);
+            LoadSprite(def.MissileState);
+            LoadSprite(def.MeleeState);
+            LoadSprite(def.DeathState);
+            LoadSprite(def.XDeathState);
+            LoadSprite(def.RaiseState);
+            LoadSprite(def.SeeState);
+            LoadSprite(def.PainState);
+            LoadSprite(def.HealState);
+        }
+    }
+
+    private void LoadSprite(int? stateIndex)
+    {
+        if (!stateIndex.HasValue || stateIndex.Value < 0 || stateIndex.Value >= m_archiveCollection.EntityFrameTable.Frames.Count)
+            return;
+
+        var entityFrame = m_archiveCollection.EntityFrameTable.Frames[stateIndex.Value];
+        int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(entityFrame.Sprite);
+        GetSpriteDefinition(spriteIndex);
+    }
+
+    public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
+    {
+        if (spriteIndex >= SpriteDefinitions.Length || SpriteDefinitions[spriteIndex] == null)
+        {
+            var newSpriteDef = CreateSpriteDefinition(spriteIndex);
+            return newSpriteDef;
+        }
+
+        return SpriteDefinitions.Data[spriteIndex];
     }
 
     public void SetSkyTexture(string skyTextureName)
@@ -271,15 +327,6 @@ public class TextureManager : ITickable
         return m_textures[m_translations[index]];
     }
 
-
-    public SpriteDefinition? GetSpriteDefinition(int spriteIndex)
-    {
-        if (spriteIndex >= SpriteDefinitions.Length)
-            return null;
-
-        return SpriteDefinitions.Data[spriteIndex];
-    }
-
     public void Tick()
     {
         for (int i = 0; i < m_animations.Count; i++)
@@ -311,18 +358,16 @@ public class TextureManager : ITickable
         }
     }
 
-    private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
+    private SpriteDefinition? CreateSpriteDefinition(int spriteIndex)
     {
-        SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
-        foreach (var spriteName in spriteNames)
-        {
-            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
-            int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
-            if (spriteIndex >= SpriteDefinitions.Capacity)
-                SpriteDefinitions.Resize(spriteIndex + 32);
+        if (spriteIndex >= SpriteDefinitions.Capacity)
+            SpriteDefinitions.Resize(spriteIndex + 32);
 
-            SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(spriteName, spriteDefEntries, m_archiveCollection.ImageRetriever);
-        }
+        if (!m_spriteIndexEntries.TryGetValue(spriteIndex, out var entries))
+            return null;
+
+        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, m_archiveCollection.ImageRetriever);
+        return SpriteDefinitions.Data[spriteIndex];
     }
 
     private void InitSwitches()

@@ -137,6 +137,7 @@ public partial class WorldLayer : IGameLayerParent
         if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
             world.SameAsPreviousMap = true;
 
+        archiveCollection.TextureManager.InitSprites(world);
         LastMapName = mapInfoDef.MapName;
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);

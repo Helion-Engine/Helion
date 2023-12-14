@@ -9,21 +9,19 @@ public class SpriteDefinition
     public const int MaxFrames = 29;
     public const int MaxRotations = 8;
     public SpriteRotation?[,] Rotations => m_spriteRotations;
-
-    public readonly string Name;
     public bool HasRotations { get; private set; }
 
     private readonly SpriteRotation?[,] m_spriteRotations = new SpriteRotation[MaxFrames, MaxRotations];
+    private static readonly Dictionary<string, Texture> SpriteTextureLookup = new();
 
-    public SpriteDefinition(string name, List<Entry> entries, IImageRetriever imageRetriever)
+    public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever)
     {
-        Name = name;
-
         int frame;
         int rotation;
 
-        foreach (var entry in entries)
+        for (int i = 0; i < entries.Count; i++)
         {
+            var entry = entries[i];
             if (entry.Path.Name.Length < 6)
                 continue;
 
@@ -49,8 +47,12 @@ public class SpriteDefinition
         if (frame < 0 || frame >= MaxFrames)
             return;
 
-        Texture texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
-        texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+        if (!SpriteTextureLookup.TryGetValue(entry.Path.Name, out var texture))
+        {
+            texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
+            texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+            SpriteTextureLookup[entry.Path.Name] = texture;
+        }
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
         if (rotation == 0)
