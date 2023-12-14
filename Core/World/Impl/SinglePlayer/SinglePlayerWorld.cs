@@ -30,9 +30,12 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class SinglePlayerWorld : WorldBase
 {
+    private static int StaticId;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
+
+    public int Id = StaticId++;
 
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;

@@ -26,16 +26,16 @@ public static class HexenGeometryBuilder
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static MapGeometry? Create(HexenMap map, GeometryBuilder builder, TextureManager textureManager,
-        Func<CompactBspTree?> createBspTree)
+        Func<(CompactBspTree, BspTreeNew)?> createBspTree)
     {
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
 
         var bspTree = createBspTree();
-        if (bspTree == null)
+        if (!bspTree.HasValue)
             return null;
 
-        return new(map, builder, bspTree);
+        return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
     private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,
@@ -173,7 +173,6 @@ public static class HexenGeometryBuilder
 
             Line line = new(builder.Lines.Count, hexenLine.Id, seg, front, back, flags, special, specialArgs);
             builder.Lines.Add(line);
-            builder.MapLines[line.MapId] = line;
         }
     }
 }

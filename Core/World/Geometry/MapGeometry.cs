@@ -25,7 +25,7 @@ public class MapGeometry
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
     private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
 
-    internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree)
+    internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
@@ -33,14 +33,14 @@ public class MapGeometry
         Sectors = builder.Sectors;
         SectorPlanes = builder.SectorPlanes;
         CompactBspTree = bspTree;
-        BspTree = new(map, Lines, Sectors);
+        BspTree = bspTreeNew;
 
         TrackSectorsByTag();
         TrackLinesByLineId();
         AttachBspToGeometry(BspTree);
 
         // Requires geometry to be attached to each other before classifying.
-        Islands = IslandClassifier.Classify(BspTree.Subsectors);
+        Islands = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines);
         AttachIslandsToGeometry(Islands);
     }
 
@@ -90,15 +90,15 @@ public class MapGeometry
             m_idToLine[line.LineId] = new List<Line> { line };
     }
 
-    private static void AttachBspToGeometry(BspTreeNew bspTree)
+    private void AttachBspToGeometry(BspTreeNew bspTree)
     {
         foreach (BspSubsector subsector in bspTree.Subsectors)
-            if (subsector.Sector != null)
-                subsector.Sector.Subsectors.Add(subsector);
+            if (subsector.SectorId.HasValue)
+                Sectors[subsector.SectorId.Value].Subsectors.Add(subsector);
 
         foreach (BspSubsectorSeg seg in bspTree.Segments)
-            if (seg.Line != null)
-                seg.Line.SubsectorSegs.Add(seg);
+            if (seg.LineId.HasValue)
+                Lines[seg.LineId.Value].SubsectorSegs.Add(seg);
     }
 
     private void AttachIslandsToGeometry(List<Island> islands)

@@ -52,16 +52,16 @@ public static class ClosetClassifier
         Dictionary<int, BspSubsector> entityToSubsector)
     {
         // Monster closets are simple, should not have a ton of lines.
-        if (island.Lines.Count > 300)
+        if (island.LineIds.Count > 300)
             return;
 
         bool monsterCloset = true;
         bool voodooCloset = true;
 
         bool hasNonMonsterClosetSpecial = false;
-        for (int i = 0; i < island.Lines.Count; i++)
+        for (int i = 0; i < island.LineIds.Count; i++)
         {
-            var line = island.Lines[i];
+            var line = world.Lines[island.LineIds[i]];
             if (line.HasSpecial && !line.Special.IsTeleport() && !line.Special.IsPlaneScroller())
             {
                 monsterCloset = false;

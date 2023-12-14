@@ -126,15 +126,17 @@ public class MarkSpecials
 
     private void TraverseIslandSpecialSectors(IWorld world, Entity entity, Island island)
     {
+        var sectors = world.Sectors;
         m_searchedSectors.Clear();
         for (int i = 0; i < island.Subsectors.Count; i++)
         {
             var subsector = island.Subsectors[i];
-            if (m_searchedSectors.Contains(subsector.Sector.Id))
+            if (!subsector.SectorId.HasValue || m_searchedSectors.Contains(subsector.SectorId.Value))
                 continue;
-            m_searchedSectors.Add(subsector.Sector.Id);
+            m_searchedSectors.Add(subsector.SectorId.Value);
 
-            if (subsector.Sector.Tag == 0 || !m_tagToLines.TryGetValue(subsector.Sector.Tag, out var lines))
+            var sector = sectors[subsector.SectorId.Value];
+            if (sector.Tag == 0 || !m_tagToLines.TryGetValue(sector.Tag, out var lines))
                 continue;
 
             for (int j = 0; j < lines.Count; j++)
@@ -144,9 +146,9 @@ public class MarkSpecials
 
     private void TraverseIslandSpecialLines(IWorld world, Entity entity, Island island)
     {
-        for (int i = 0; i < island.Lines.Count; i++)
+        for (int i = 0; i < island.LineIds.Count; i++)
         {
-            var line = island.Lines[i];
+            var line = world.Lines[island.LineIds[i]];
             if (IgnoreLineSpecial(line))
                 continue;
 

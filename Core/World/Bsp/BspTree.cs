@@ -7,6 +7,7 @@ using Helion.Util.Extensions;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,40 +17,38 @@ namespace Helion.World.Bsp;
 public class BspSubsectorSeg : Segment2D
 {
     public readonly int Id;
-    public readonly Line? Line;
-    public readonly Sector? Sector;
-    public readonly bool Front;
+    public readonly int? LineId;
+    public readonly int? SectorId;
     public BspSubsectorSeg Partner { get; internal set; } = null!;
     public BspSubsector Subsector { get; internal set; } = null!;
 
-    public BspSubsectorSeg(int id, Vec2D start, Vec2D end, Line? line, Sector? sector, bool front) : base(start, end)
+    public BspSubsectorSeg(int id, Vec2D start, Vec2D end, int? lineId, int? sectorId) : base(start, end)
     {
         Id = id;
-        Line = line;
-        Sector = sector;
-        Front = front;
+        SectorId = lineId;
+        SectorId = sectorId;
     }
 
-    public override string ToString() => $"{Struct} (line = {Line?.Id ?? -1}, sector = {Sector?.Id ?? -1})";
+    public override string ToString() => $"{Struct} (line = {LineId ?? -1}, sector = {SectorId ?? -1})";
 }
 
 public class BspSubsector
 {
     public readonly int Id;
-    public readonly Sector? Sector;
+    public readonly int? SectorId;
     public readonly List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
     public Island Island { get; internal set; } = null!;
 
-    public BspSubsector(int id, Sector? sector, List<BspSubsectorSeg> segs)
+    public BspSubsector(int id, int? sectorId, List<BspSubsectorSeg> segs)
     {
         Id = id;
-        Sector = sector;
+        SectorId = sectorId;
         Segments = segs;
         Box = Box2D.Bound(segs) ?? default;
     }
 
-    public override string ToString() => $"{Id}, sector = {Sector?.Id}, segs = {Segments.Count}, box = {Box}";
+    public override string ToString() => $"{Id}, sector = {SectorId ?? -1}, segs = {Segments.Count}, box = {Box}";
 }
 
 public class BspNodeNew
@@ -100,8 +99,10 @@ public class BspTreeNew
         var glVertices = map.GL.Vertices;
 
         // Create them so they can be indexed.
-        foreach ((int id, GLSegment seg) in map.GL.Segments.Enumerate())
+        int id = 0;
+        for (int i = 0; i < map.GL.Segments.Count; i++)
         {
+            var seg = map.GL.Segments[i];
             Vec2D start = GetVertex(seg.IsStartVertexGL, seg.StartVertex);
             Vec2D end = GetVertex(seg.IsEndVertexGL, seg.EndVertex);
             Line? line = null;
@@ -118,15 +119,17 @@ public class BspTreeNew
                 }
             }
 
-
-            BspSubsectorSeg segment = new(id, start, end, line, sector, seg.IsRightSide);
+            BspSubsectorSeg segment = new(id, start, end, line?.Id, sector?.Id);
             Segments.Add(segment);
+            id++;
         }
 
         // Attaching partner segs must come after we have populated everything so
         // that references are valid.
-        foreach ((int i, GLSegment seg) in map.GL.Segments.Enumerate())
+        id = 0;
+        for (int i = 0; i < map.GL.Segments.Count; i++)
         {
+            var seg = map.GL.Segments[i];
             BspSubsectorSeg segment = Segments[i];
             if (seg.PartnerSegment.HasValue)
                 segment.Partner = Segments[(int)seg.PartnerSegment.Value];
@@ -143,28 +146,32 @@ public class BspTreeNew
         if (map.GL == null)
             return;
 
-        foreach ((int subsectorId, GLSubsector ssec) in map.GL.Subsectors.Enumerate())
+        int subsectorId = 0;
+        for (int i = 0; i < map.GL.Subsectors.Count; i++)
         {
-            Sector? sector = null;
-            List<BspSubsectorSeg> segments = new();
+            GLSubsector ssec = map.GL.Subsectors[i];
+            
+            int? sectorId = null;
 
             int start = ssec.FirstSegmentIndex;
             int end = start + ssec.Count;
-            for (int i = start; i < end; i++)
+            List<BspSubsectorSeg> segments = new(Math.Max(end - start, 3));
+            for (int j = start; j < end; j++)
             {
-                BspSubsectorSeg segment = Segments[i];
-                sector ??= segment.Sector;
+                BspSubsectorSeg segment = Segments[j];
+                sectorId ??= segment.SectorId;
                 segments.Add(segment);
             }
 
-            BspSubsector subsector = new(subsectorId, sector, segments);
+            BspSubsector subsector = new(subsectorId, sectorId, segments);
             Subsectors.Add(subsector);
 
-            for (int i = start; i < end; i++)
+            for (int j = start; j < end; j++)
             {
-                BspSubsectorSeg segment = Segments[i];
+                BspSubsectorSeg segment = Segments[j];
                 segment.Subsector = subsector;
             }
+            subsectorId++;
         }
     }
 
@@ -181,16 +188,19 @@ public class BspTreeNew
 
         // Create them so we can index into them, in case the BSP indices are not
         // in the expected order.
-        foreach ((int id, GLNode glNode) in map.GL.Nodes.Enumerate())
+        int id = 0;
+        for (int i = 0; i <  map.GL.Nodes.Count; i++)
         {
-            BspNodeNew node = new(id, glNode.Splitter);
+            BspNodeNew node = new(id++, map.GL.Nodes[i].Splitter);
             Nodes.Add(node);
         }
 
         // Now attach the nodes since all our references are available.
-        foreach ((int id, GLNode glNode) in map.GL.Nodes.Enumerate())
+        id = 0;
+        for (int i = 0; i < map.GL.Nodes.Count; i++)
         {
-            BspNodeNew node = Nodes[id];
+            var glNode = map.GL.Nodes[i];
+            BspNodeNew node = Nodes[id++];
             node.Left = GetChild(glNode.LeftChild, glNode.IsLeftSubsector);
             node.Right = GetChild(glNode.RightChild, glNode.IsRightSubsector);
         }

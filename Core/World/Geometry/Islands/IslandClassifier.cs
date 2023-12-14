@@ -1,4 +1,5 @@
-﻿using Helion.World.Bsp;
+﻿using Helion.Maps;
+using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System;
@@ -12,7 +13,7 @@ namespace Helion.World.Geometry.Islands;
 /// </summary>
 public static class IslandClassifier
 {
-    public static List<Island> Classify(List<BspSubsector> subsectors)
+    public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, List<Line> lines)
     {
         int islandId = 0;
         List<Island> islands = new();
@@ -24,16 +25,17 @@ public static class IslandClassifier
                 continue;
 
             Island island = new(islandId++);
-            TraverseSubsectors(subsector, island, processedSubsectors);
+            TraverseSubsectors(subsector, island, processedSubsectors, sectors, lines);
             islands.Add(island);
         }
 
         return islands;
     }
 
-    private static void TraverseSubsectors(BspSubsector initialSubsector, Island island, HashSet<BspSubsector> processedSubsectors)
+    private static void TraverseSubsectors(BspSubsector initialSubsector, Island island, HashSet<BspSubsector> processedSubsectors, 
+        List<Sector> sectors, List<Line> lines)
     {
-        HashSet<Line> visitedLines = new();
+        HashSet<int> visitedLines = new();
         Stack<BspSubsector> subsectorsToVisit = new();
         subsectorsToVisit.Push(initialSubsector);
 
@@ -46,14 +48,15 @@ public static class IslandClassifier
 
             processedSubsectors.Add(subsector);
             island.Subsectors.Add(subsector);
-            subsector.Sector.Island = island;
+            if (subsector.SectorId.HasValue)
+                sectors[subsector.SectorId.Value].Island = island;
 
             foreach (BspSubsectorSeg seg in subsector.Segments)
             {
-                if (seg.Line != null && !visitedLines.Contains(seg.Line))
+                if (seg.LineId != null && !visitedLines.Contains(seg.LineId.Value))
                 {
-                    island.Lines.Add(seg.Line);
-                    visitedLines.Add(seg.Line);
+                    island.LineIds.Add(seg.LineId.Value);
+                    visitedLines.Add(seg.LineId.Value);
                 }
 
                 if (seg.Partner != null && !processedSubsectors.Contains(seg.Partner.Subsector))

@@ -7,6 +7,7 @@ using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
 using Helion.Resources;
 using Helion.Util.Configs;
+using Helion.Util.Extensions;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -16,9 +17,6 @@ using NLog;
 
 namespace Helion.World.Geometry.Builder;
 
-/// <summary>
-/// A helper class for making the geometry in a map.
-/// </summary>
 public class GeometryBuilder
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -28,20 +26,8 @@ public class GeometryBuilder
     public readonly List<Wall> Walls;
     public readonly List<Sector> Sectors;
     public readonly List<SectorPlane> SectorPlanes;
-
-    /// <summary>
-    /// A cached dictionary that maps the line ID number onto a line from
-    /// the map this was parsed from.
-    /// </summary>
-    /// <remarks>
-    /// We need this for the BSP builder to work properly because it does
-    /// references by map line ID. It also can't be a dictionary because
-    /// the line IDs in a map are not guaranteed to be contiguous due to
-    /// map corruption, line removal, etc.
-    /// </remarks>
-    public readonly Dictionary<int, Line> MapLines;
         
-    private static CompactBspTree? m_lastBspTree;
+    private static (CompactBspTree, BspTreeNew)? m_lastBspTree;
     private static string m_lastMap = string.Empty;
 
     internal GeometryBuilder(IMap map)
@@ -51,17 +37,8 @@ public class GeometryBuilder
         Walls = new(map.GetSides().Count * 3);
         Sectors = new(map.GetSectors().Count);
         SectorPlanes = new(map.GetSectors().Count * 2);
-        MapLines = new(map.GetLines().Count);
     }
 
-    /// <summary>
-    /// Creates world geometry from a map.
-    /// </summary>
-    /// <param name="map">The map to turn into world geometry.</param>
-    /// <param name="config">The player config data.</param>
-    /// <param name="textureManager">TextureManager.</param>
-    /// <returns>A map geometry object if it was parsed and created right,
-    /// otherwise null if it failed.</returns>
     public static MapGeometry? Create(IMap map, IConfig config, TextureManager textureManager)
     {
         IBspBuilder? bspBuilder = CreateBspBuilder(map, config);
@@ -80,12 +57,12 @@ public class GeometryBuilder
                 return null;
         }
 
-        CompactBspTree? CreateBspTree()
+        (CompactBspTree, BspTreeNew)? CreateBspTree()
         {
-            if (map.Name.Length > 0 && m_lastMap == map.Name && m_lastBspTree != null)
+            if (map.Name.Length > 0 && m_lastMap.EqualsIgnoreCase(map.Name) && m_lastBspTree != null)
             {
-                RemapBspTree(m_lastBspTree, geometryBuilder);
-                return m_lastBspTree;
+                RemapBspTree(m_lastBspTree.Value.Item1, geometryBuilder);
+                return (m_lastBspTree.Value.Item1, m_lastBspTree.Value.Item2);
             }
 
             CompactBspTree? bspTree;
@@ -103,8 +80,8 @@ public class GeometryBuilder
             }
 
             m_lastMap = map.Name;
-            m_lastBspTree = bspTree;
-            return bspTree;
+            m_lastBspTree = (bspTree, new BspTreeNew(map, geometryBuilder.Lines, geometryBuilder.Sectors));
+            return m_lastBspTree;
         }
     }
 
