@@ -109,57 +109,60 @@ public class KeyBindingSection : IOptionSection
         return commandNames;
     }
 
+    private void MapCommands()
+    {
+        m_commandToKeys.Clear();
+        m_mappedCommands.Clear();
+
+        // These should always exist, and should report being unbound if not by
+        // having an empty list of keys assigned to it.
+        foreach (string command in InGameCommands)
+            MapCommand(command);
+
+        // Search for items that were bound by the user
+        foreach ((_, string command) in m_config.Keys.GetKeyMapping())
+            MapCommand(command);
+    }
+
+    private void MapCommand(string command)
+    {
+        if (string.IsNullOrWhiteSpace(command) || m_mappedCommands.Contains(command))
+            return;
+
+        string name = command.WithWordSpaces(m_builder);
+        m_commandToKeys.Add(new(command, name));
+        m_mappedCommands.Add(command);
+    }
+
     private void CheckForConfigUpdates()
     {
         if (!m_configUpdated)
             return;
 
         m_configUpdated = false;
-
-        // This is anti-perf when we re-create everything all the time :(
-        m_commandToKeys.Clear();
-        m_mappedCommands.Clear();
-        
-        // These should always exist, and should report being unbound if not by
-        // having an empty list of keys assigned to it.
-        foreach (string command in InGameCommands)
-        {
-            if (m_mappedCommands.Contains(command)) 
-                continue;
-
-            string name = command.WithWordSpaces(m_builder);
-            m_commandToKeys.Add(new(command, name));
-            m_mappedCommands.Add(command);
-        }
-        
+        MapCommands();
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
             string name = command.WithWordSpaces(m_builder);
-            
+
             if (!m_mappedCommands.Contains(command))
+                continue;
+
+            int index = 0;
+            for (; index < m_commandToKeys.Count; index++)
+                if (command == m_commandToKeys[index].Command)
+                    break;
+
+            if (index != m_commandToKeys.Count)
             {
-                keys = new();
-                m_commandToKeys.Add(new(command, name));
-                m_mappedCommands.Add(command);
+                keys = m_commandToKeys[index].Keys;
             }
             else
             {
-                int index = 0;
-                for (; index < m_commandToKeys.Count; index++)
-                    if (command == m_commandToKeys[index].Command)
-                        break;
-
-                if (index != m_commandToKeys.Count)
-                {
-                    keys = m_commandToKeys[index].Keys;
-                }
-                else
-                {
-                    keys = new();
-                    m_commandToKeys.Add(new(command, name, keys));
-                    m_mappedCommands.Add(command);
-                }
+                keys = new();
+                m_commandToKeys.Add(new(command, name, keys));
+                m_mappedCommands.Add(command);
             }
 
             if (!keys.Contains(key))
