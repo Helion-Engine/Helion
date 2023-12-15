@@ -316,6 +316,9 @@ public class GameLayerManager : IGameLayerManager
 
     private void CheckMenuShortcuts(IConsumableInput input)
     {
+        if (OptionsLayer != null)
+            return;
+
         if (ConsumeCommandPressed(Constants.Input.Save, input))
         {
             GoToSaveOrLoadMenu(true);
