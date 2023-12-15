@@ -206,6 +206,14 @@ public static class Constants
         Input.AutoMapDown,
         Input.AutoMapLeft,
         Input.AutoMapRight,
+        Input.Save,
+        Input.Load,
+        Input.Automap,
+        Input.Pause,
+        Input.QuickSave,
+        Input.OptionsMenu,
+        Input.Menu,
+        Input.CenterView
     };
 
     public static class ConsoleCommands
