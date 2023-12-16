@@ -18,4 +18,5 @@ public enum SectorDataTypes
     SkyTexture = 512,
     TransferHeights = 1024,
     Friction = 2048,
+    KillEffect = 4096,
 }

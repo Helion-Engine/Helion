@@ -384,12 +384,12 @@ public class SpecialManager : ITickable, IDisposable
     public ISpecial CreateFloorLowerSpecialChangeTextureAndType(Sector sector, SectorDest sectorDest, double speed)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
-        TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneFace.Floor, destZ,
-            out int floorChangeTexture, out SectorDamageSpecial? damageSpecial, out var sectorEffect);
+        TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneFace.Floor, destZ, sectorDest,
+            out var changes);
 
         return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
-            MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture,
-            damageSpecial: damageSpecial, sectorEffect: sectorEffect),
+            MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: changes.Texture,
+            damageSpecial: changes.DamageSpecial, sectorEffect: changes.SectorEffect, killEffect: changes.KillEffect),
             DefaultFloorSound);
     }
 
@@ -407,53 +407,38 @@ public class SpecialManager : ITickable, IDisposable
         if (start == MoveDirection.Down && sectorDest == SectorDest.HighestAdjacentFloor)
             destZ -= amount;
 
-        int? changeTexture = null;
-        SectorDamageSpecial? damageSpecial = null;
+        TriggerChanges triggerChanges = new();
         CrushData? crush = null;
-        SectorEffect? sectorEffect = null;
 
         if ((flags & ZDoomGenericFlags.CopyTxAndSpecial) != 0)
         {
             if ((flags & ZDoomGenericFlags.TriggerNumericModel) != 0)
             {
-                if (TriggerSpecials.GetNumericModelChange(m_world, sector, planeType, destZ,
-                    out int numericChangeTexture, out SectorDamageSpecial? changeSpecial, out var changeSectorEffect))
-                {
-                    changeTexture = numericChangeTexture;
-                    damageSpecial = changeSpecial;
-                    sectorEffect = changeSectorEffect;
-                }
+                if (TriggerSpecials.GetNumericModelChange(m_world, sector, planeType, destZ, sectorDest, out var changes))
+                    triggerChanges = changes;
             }
             else
             {
-                changeTexture = line.Front.Sector.GetTexture(planeType);
-                damageSpecial = line.Front.Sector.SectorDamageSpecial;
-                sectorEffect = line.Front.Sector.SectorEffect;
+                triggerChanges = new TriggerChanges(line, planeType);
             }
 
             ZDoomGenericFlags changeFlags = flags & ZDoomGenericFlags.CopyTxAndSpecial;
-            if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial || damageSpecial == null)
-                damageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
+            if (changeFlags == ZDoomGenericFlags.CopyTxRemoveSpecial || triggerChanges.DamageSpecial == null)
+                triggerChanges.DamageSpecial = SectorDamageSpecial.CreateNoDamage(m_world, sector);
             else if (changeFlags == ZDoomGenericFlags.CopyTx)
-                damageSpecial = null;
+                triggerChanges.DamageSpecial = null;
         }
 
         if ((flags & ZDoomGenericFlags.Crush) != 0)
             crush = planeType == SectorPlaneFace.Floor ? CrushData.BoomDefaultFloor : CrushData.BoomDefaultCeiling;
 
-        int? floorChangeTexture = null;
-        int? ceilingChangeTexture = null;
-        if (planeType == SectorPlaneFace.Floor)
-            floorChangeTexture = changeTexture;
-        else
-            ceilingChangeTexture = changeTexture;
-
         return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(planeType,
             start, MoveRepetition.None, speed, 0, crush: crush,
-            floorChangeTextureHandle: floorChangeTexture,
-            ceilingChangeTextureHandle: ceilingChangeTexture,
-            damageSpecial: damageSpecial,
-            sectorEffect: sectorEffect),
+            floorChangeTextureHandle: planeType == SectorPlaneFace.Floor ? triggerChanges.Texture : null,
+            ceilingChangeTextureHandle: planeType == SectorPlaneFace.Ceiling ? triggerChanges.Texture : null,
+            damageSpecial: triggerChanges.DamageSpecial,
+            sectorEffect: triggerChanges.SectorEffect,
+            killEffect: triggerChanges.KillEffect),
             planeType == SectorPlaneFace.Floor ? DefaultFloorSound : DefaultCeilingSound);
     }
 

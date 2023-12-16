@@ -248,6 +248,9 @@ public class SectorMoveSpecial : ISectorSpecial
             if (MoveData.SectorEffect != null)
                 Sector.SetSectorEffect(MoveData.SectorEffect.Value);
 
+            if (MoveData.KillEffect != null)
+                Sector.SetKillEffect(MoveData.KillEffect.Value);
+
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
 

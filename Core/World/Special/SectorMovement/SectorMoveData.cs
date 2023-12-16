@@ -18,6 +18,7 @@ public readonly struct SectorMoveData
     public readonly MoveDirection StartDirection;
     public readonly SectorMoveFlags Flags;
     public readonly SectorEffect? SectorEffect;
+    public readonly InstantKillEffect? KillEffect;
 
     public const int InstantToggleSpeed = int.MaxValue;
 
@@ -28,7 +29,8 @@ public readonly struct SectorMoveData
         SectorDamageSpecial? damageSpecial = null,
         double? returnSpeed = null,
         SectorMoveFlags flags = SectorMoveFlags.None,
-        SectorEffect? sectorEffect = null)
+        SectorEffect? sectorEffect = null,
+        InstantKillEffect? killEffect = null)
     {
         SectorMoveType = moveType;
         StartDirection = startDirection;
@@ -42,5 +44,6 @@ public readonly struct SectorMoveData
         ReturnSpeed = returnSpeed ?? speed;
         Flags = flags;
         SectorEffect = sectorEffect;
+        KillEffect = killEffect;
     }
 }

@@ -66,7 +66,7 @@ public class Sector
     public bool MarkAutomap;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
-    public readonly InstantKillEffect KillEffect;
+    public InstantKillEffect KillEffect { get; private set; }
     public SectorEffect SectorEffect { get; private set; }
 
     public double Friction = Constants.DefaultFriction;
@@ -212,6 +212,15 @@ public class Sector
 
         SectorEffect = effect;
         DataChanges |= SectorDataTypes.SectorEffect;
+    }
+
+    public void SetKillEffect(InstantKillEffect effect)
+    {
+        if (KillEffect == effect)
+            return;
+
+        KillEffect = effect;
+        DataChanges |= SectorDataTypes.KillEffect;
     }
 
     public void PlaneTextureChange(SectorPlane sectorPlane)
@@ -762,5 +771,19 @@ public class Sector
         }
 
         BlockmapNodes.Clear();
+    }
+
+    public void ApplyTriggerChanges(IWorld world, TriggerChanges changes, SectorPlaneFace planeType, bool transferSpecial)
+    {
+        if (changes.Texture.HasValue)
+            world.SetPlaneTexture(GetSectorPlane(planeType), changes.Texture.Value);
+        if (transferSpecial)
+        {
+            SectorDamageSpecial = changes.DamageSpecial?.Copy(this);
+            if (changes.SectorEffect.HasValue)
+                SetSectorEffect(changes.SectorEffect.Value);
+            if (changes.KillEffect.HasValue)
+                SetKillEffect(changes.KillEffect.Value);
+        }
     }
 }
