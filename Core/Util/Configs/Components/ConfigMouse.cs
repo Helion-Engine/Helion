@@ -25,9 +25,13 @@ public class ConfigMouse
     [ConfigInfo("The horizontal sensitivity. This is multiplied by the sensitivity value for a final calculation.")]
     [OptionMenu(OptionSectionType.Mouse, "Horizontal Sensitivity")]
     public readonly ConfigValue<double> Yaw = new(1.0);
+    
+    [ConfigInfo("Invert mouse Y.")]
+    [OptionMenu(OptionSectionType.Mouse, "Invert Y", spacer: true)]
+    public readonly ConfigValue<bool> InvertY = new(false);
 
     [ConfigInfo("If the mouse should interpolate.")]
-    [OptionMenu(OptionSectionType.Mouse, "Interpolate", spacer: true)]
+    [OptionMenu(OptionSectionType.Mouse, "Interpolate")]
     public readonly ConfigValue<bool> Interpolate = new(true);
 
     [ConfigInfo("If the mouse should be focused on the window or not.")]
