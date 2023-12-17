@@ -75,7 +75,6 @@ public partial class WorldLayer : IGameLayerParent
         CurrentMap = mapInfoDef;
 
         m_drawAutomapAndHudAction = new(DrawAutomapAndHudContext);
-        m_virtualDrawHudWeaponAction = new(VirtualDrawHudWeapon);
         m_renderWorldAction = new(RenderWorld);
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);

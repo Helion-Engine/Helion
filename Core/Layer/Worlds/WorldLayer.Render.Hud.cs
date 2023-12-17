@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Graphics.Geometry;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -52,7 +55,6 @@ public partial class WorldLayer
     private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
     private readonly List<(string message, float alpha)> m_messages = new();
-    private readonly Action<HudDrawWeapon> m_virtualDrawHudWeaponAction;
 
     private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
@@ -326,14 +328,8 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
-        hud.DoomVirtualResolution(m_virtualDrawHudWeaponAction, new HudDrawWeapon(hud, frameState, yOffset, flash));
-    }
-
-    private void VirtualDrawHudWeapon(HudDrawWeapon hud)
-    {
         int lightLevel;
-
-        if (hud.FrameState.Frame.Properties.Bright || Player.DrawFullBright())
+        if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
         {
             lightLevel = 255;
         }
@@ -345,35 +341,85 @@ public partial class WorldLayer
         }
 
         Color lightLevelColor = ((byte)lightLevel, (byte)lightLevel, (byte)lightLevel);
-        string sprite = GetHudWeaponSpriteString(hud);
+        string sprite = GetHudWeaponSpriteString(frameState, flash);
 
-        if (!hud.Hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
+        if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
             return;
-
-        Vec2I offset = handle.Offset;
-        float tickFraction = m_lastTickInfo.Fraction;
-
-        offset.Y += hud.yOffset;
-        Vec2I weaponOffset = Player.PrevWeaponOffset.Interpolate(Player.WeaponOffset, tickFraction).Int +
-            Player.PrevBobOffset.Interpolate(Player.BobOffset, tickFraction).Int;
 
         float alpha = 1.0f;
         IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
         if (powerup != null && powerup.DrawPowerupEffect)
             alpha = 0.3f;
 
+        var offset = handle.Offset;
+        offset.Y += yOffset;
         offset = TranslateDoomOffset(offset);
-        hud.Hud.Image(sprite, offset + weaponOffset, color: lightLevelColor, alpha: alpha);
+        var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
+        hud.Image(sprite, hudBox, color: lightLevelColor, alpha: alpha);
     }
 
-    private string GetHudWeaponSpriteString(HudDrawWeapon hud)
+    private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)
     {
-        string sprite = hud.Flash ? m_weaponFlashSprite : m_weaponSprite;
-        SpanString spriteSpan = hud.Flash ? m_weaponFlashSpriteSpan : m_weaponSpriteSpan;
+        Vec2D scale = GetDoomScale(hud, out int centeredOffsetX);
+        var prevWeaponOffset = Player.PrevWeaponOffset + Player.PrevBobOffset;
+        var weaponOffset = Player.WeaponOffset + Player.BobOffset;
+
+        var prevBox = TranslateDoomImageDimensions(offset.X + prevWeaponOffset.X,
+            offset.Y + prevWeaponOffset.Y,
+            handle.Dimension.Width,
+            handle.Dimension.Height,
+            scale);
+
+        var box = TranslateDoomImageDimensions(offset.X + weaponOffset.X,
+            offset.Y + weaponOffset.Y,
+            handle.Dimension.Width,
+            handle.Dimension.Height,
+            scale);
+
+        var prevBoxMin = prevBox.Min.Double;
+        var prevBoxMax = prevBox.Max.Double;
+        var boxMin = box.Min.Double;
+        var boxMax = box.Max.Double;
+        var interpolatedMin = prevBoxMin.Interpolate(boxMin, m_lastTickInfo.Fraction).Int;
+        var interpolatedMax = prevBoxMax.Interpolate(boxMax, m_lastTickInfo.Fraction).Int;
+
+        var centeredOffset = new Vec2I(centeredOffsetX, 0);
+        return new HudBox(interpolatedMin + centeredOffset, interpolatedMax + centeredOffset);
+    }
+
+    private HudBox TranslateDoomImageDimensions(double x, double y, int width, int height, Vec2D scale)
+    {
+        var start = (new Vec2D(x, y) * scale).Int;
+        var end = (new Vec2D(x + width, y + height) * scale).Int;
+        return new HudBox((start.X, start.Y), (end.X, end.Y));
+    }
+
+    private Vec2D GetDoomScale(IHudRenderContext ctx, out int centeredOffsetX)
+    {
+        var dimension = m_config.Window.Virtual.Enable ? m_config.Window.Virtual.Dimension : ctx.Dimension;
+        var virtualDimensions = new Dimension(320, 200);
+        if (dimension == virtualDimensions)
+        {
+            centeredOffsetX = 0;
+            return new Vec2D(1, 1);
+        }
+
+        double viewWidth = ctx.Dimension.Height * Constants.DoomVirtualAspectRatio;
+        double scaleWidth = viewWidth / virtualDimensions.Width;
+        double scaleHeight = ctx.Dimension.Height / (double)virtualDimensions.Height;
+        var scale = new Vec2D(scaleWidth, scaleHeight);
+        centeredOffsetX = (ctx.Dimension.Width - (int)(virtualDimensions.Width * scale.X)) / 2;
+        return scale;
+    }
+
+    private string GetHudWeaponSpriteString(FrameState frameState, bool flash)
+    {
+        string sprite = flash ? m_weaponFlashSprite : m_weaponSprite;
+        SpanString spriteSpan = flash ? m_weaponFlashSpriteSpan : m_weaponSpriteSpan;
         int oldLength = spriteSpan.Length;
         spriteSpan.Clear();
-        spriteSpan.Append(hud.FrameState.Frame.Sprite);
-        spriteSpan.Append((char)(hud.FrameState.Frame.Frame + 'A'));
+        spriteSpan.Append(frameState.Frame.Sprite);
+        spriteSpan.Append((char)(frameState.Frame.Frame + 'A'));
         spriteSpan.Append('0');
 
         // This buffer string needs to have the exact length of the sprite. All these lookups are dependent on GetHashCode which changes with string.Length...
@@ -383,7 +429,7 @@ public partial class WorldLayer
             string exactSpriteString = StringBuffer.ToStringExact(sprite);
             if (!ReferenceEquals(exactSpriteString, sprite))
                 StringBuffer.FreeString(sprite);
-            if (hud.Flash)
+            if (flash)
                 m_weaponFlashSprite = exactSpriteString;
             else
                 m_weaponSprite = exactSpriteString;
