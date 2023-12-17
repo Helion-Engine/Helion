@@ -2,7 +2,7 @@
 
 A modern Doom engine written from the ground up with a focus on performance.
 
-Helion uses static rendering with a state management system to reconcile dynamic map changes in Doom. In contrast to the typical BSP tree rendering that requires significant CPU processing, Helion is able to manage dynamic changes and optimially utilize the GPU resulting in dramatic performance increases. 
+Helion uses static rendering with a state management system to reconcile dynamic map changes in Doom. In contrast to the typical BSP tree rendering that requires significant CPU processing, Helion is able to manage dynamic changes and optimially utilize the GPU resulting in dramatic performance increases.
 
 Content creators have created maps that struggle to render at high framerates with even the latest and most expensive hardware. With Helion, Doom's most complex maps are no longer stressful on modern GPUs and playable on old hardware that was previously impossible.
 
@@ -19,16 +19,23 @@ image::https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
 
 If using **Visual Studio 2022+** or **Rider**, press Run and it will do everything.
 
-
 ### Linux
 
-This assumes Ubuntu for installing packages.
+Install dependencies first:
+
+#### Debian/Ubuntu
 
 ```sh
 sudo apt install dotnet-sdk-7.0 libfluidsynth-dev libopenal-dev
 ```
 
-If you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.
+#### Fedora
+
+```sh
+sudo dnf install dotnet-sdk-7.0 fluidsynth-devel openal-devel
+```
+
+After installing dependencies, if you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.
 
 To make a release build:
 
@@ -38,7 +45,6 @@ Scripts/build.sh
 
 ### Mac
 
-None of the developers have a Mac to test. 
+None of the developers have a Mac to test.
 
 You likely can follow the Linux instructions to build.
-
