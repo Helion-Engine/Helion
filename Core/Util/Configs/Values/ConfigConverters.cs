@@ -71,7 +71,7 @@ public static class ConfigConverters
     {
         static T ThrowableDoubleConverter(object obj)
         {
-            string text = obj.ToString() ?? "0.0";
+            string text = obj.ToString() ?? "0";
             if (text.EqualsIgnoreCase("false"))
                 return (T)(object)0.0;
             if (text.EqualsIgnoreCase("true"))
