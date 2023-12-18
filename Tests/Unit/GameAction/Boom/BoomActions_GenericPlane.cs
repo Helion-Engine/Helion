@@ -113,6 +113,7 @@ public partial class BoomActions
     [Fact(DisplayName = "Generic floor crusher")]
     public void GenericFloorCrusher()
     {
+        World.ResetGametick();
         var sector = GameActions.GetSectorByTag(World, 34);
         var monster = GameActions.GetSectorEntity(World, sector.Id, "DoomImp");
         monster.Health.Should().Be(60);
@@ -132,6 +133,7 @@ public partial class BoomActions
     [Fact(DisplayName = "Generic ceiling crusher")]
     public void GenericCeilingCrusher()
     {
+        World.ResetGametick();
         var sector = GameActions.GetSectorByTag(World, 35);
         var monster = GameActions.GetSectorEntity(World, sector.Id, "DoomImp");
         monster.Health.Should().Be(60);
@@ -139,11 +141,12 @@ public partial class BoomActions
         GameActions.ActivateLine(World, Player, 552, ActivationContext.UseLine).Should().BeTrue();
 
         GameActions.TickWorld(World, 1);
-        // Ceiling crush doesn't block and does crush damage like vanilla doom
+        // Ceiling crush doesn't block and does crush damage like vanilla doom but doesn't slow down
         monster.Health.Should().BeLessThan(60);
         sector.Ceiling.Z.Should().Be(55);
 
-        GameActions.RunSectorPlaneSpecial(World, sector);
+        // RunCeilingLower ensures the speed is the same and doesn't slow down when crushing
+        GameActions.RunCeilingLower(World, sector, 0, 8);
         monster.Health.Should().Be(0);
         sector.Ceiling.Z.Should().Be(0);
     }

@@ -1745,6 +1745,8 @@ public abstract class WorldBase : IWorld
         return false;
     }
 
+    public void ResetGametick() => Gametick = 0;
+
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
     {

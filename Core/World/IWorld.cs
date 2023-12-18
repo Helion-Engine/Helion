@@ -155,6 +155,7 @@ public interface IWorld : IDisposable
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
+    void ResetGametick();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
