@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -232,7 +233,7 @@ public class ListedConfigSection : IOptionSection
             doubleValue *= attr.Scale;
 
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + ".0";
+            return doubleValue.ToString() + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "0";
 
         return doubleValue.ToString();
     }
