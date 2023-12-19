@@ -15,6 +15,7 @@ using Helion.Models;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
@@ -51,7 +52,7 @@ public partial class Client
         if (args.Args.Count < 3)
             return;
 
-        if (!double.TryParse(args.Args[0], out var x) || !double.TryParse(args.Args[1], out var y) || !double.TryParse(args.Args[2], out var z))
+        if (!Parsing.TryParseDouble(args.Args[0], out var x) || !Parsing.TryParseDouble(args.Args[1], out var y) || !Parsing.TryParseDouble(args.Args[2], out var z))
             return;
 
         m_layerManager.WorldLayer.World.SetEntityPosition(m_layerManager.WorldLayer.World.Player, (x, y, z));

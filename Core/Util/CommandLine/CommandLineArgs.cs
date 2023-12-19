@@ -1,5 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.Util.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,7 +137,7 @@ public class CommandLineArgs
 
     private static double? ParseDouble(string? value)
     {
-        if (!double.TryParse(value, out var dValue))
+        if (!Parsing.TryParseDouble(value, out var dValue))
             return null;
 
         return dValue;
@@ -158,7 +159,7 @@ public class CommandLineArgs
         string[] items = value.Split(new char[] { ',' });
         if (items.Length < 3)
             return null;
-        if (!double.TryParse(items[0], out var x) || !double.TryParse(items[1], out var y) || !double.TryParse(items[2], out var z))
+        if (!Parsing.TryParseDouble(items[0], out var x) || !Parsing.TryParseDouble(items[1], out var y) || !Parsing.TryParseDouble(items[2], out var z))
             return null;
 
         return new Vec3D(x, y, z);

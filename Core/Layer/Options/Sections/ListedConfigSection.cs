@@ -12,6 +12,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
@@ -233,7 +234,7 @@ public class ListedConfigSection : IOptionSection
             doubleValue *= attr.Scale;
 
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
         return doubleValue.ToString();
     }
@@ -313,8 +314,8 @@ public class ListedConfigSection : IOptionSection
         (var cfgValue, var attr, var configAttr) = m_configValues[m_currentRowIndex];
         ConfigSetResult result;
 
-        if (attr.Scale != 0 && cfgValue.ValueType.IsAssignableFrom(typeof(double)) && 
-            double.TryParse(newValue, out var doubleValue))
+        if (attr.Scale != 0 && cfgValue.ValueType.IsAssignableFrom(typeof(double)) &&
+            Parsing.TryParseDouble(newValue, out var doubleValue))
         {
             newValue = (doubleValue / attr.Scale).ToString();
         }

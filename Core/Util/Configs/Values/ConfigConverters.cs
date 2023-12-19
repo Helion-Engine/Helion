@@ -42,7 +42,7 @@ public static class ConfigConverters
             string text = obj.ToString() ?? "false";
             if (text.EqualsIgnoreCase("true"))
                 return (T)(object)true;
-            if (double.TryParse(text, out double d))
+            if (Parsing.TryParseDouble(text, out double d))
                 return (T)(object)(d != 0);
             return (T)(object)bool.Parse(text);
         }
@@ -59,7 +59,7 @@ public static class ConfigConverters
                 return (T)(object)0;
             if (text.EqualsIgnoreCase("true"))
                 return (T)(object)1;
-            if (double.TryParse(text, out double d))
+            if (Parsing.TryParseDouble(text, out double d))
                 return (T)(object)(int)d;
             return (T)(object)int.Parse(text);
         }
@@ -76,12 +76,11 @@ public static class ConfigConverters
                 return (T)(object)0.0;
             if (text.EqualsIgnoreCase("true"))
                 return (T)(object)1.0;
-            return (T)(object)double.Parse(text);
+            return (T)(object)Parsing.ParseDouble(text);
         }
 
         return ThrowableDoubleConverter;
     }
-
     private static Func<object, T> MakeThrowableEnumConverter<T>() where T : notnull
     {
         Array enumValues = Enum.GetValues(typeof(T));

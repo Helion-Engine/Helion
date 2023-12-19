@@ -153,7 +153,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         if (Value is List<string> stringList)
             return $"[\"{stringList.Join("\", \"")}\"]";
         if (Value is double d)
-            return d.ToString("0.0######");
+            return d.ToString("0.0######", Parsing.DecimalFormat);
 
         return Value.ToString() ?? "";
     }
