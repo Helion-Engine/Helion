@@ -22,7 +22,7 @@ public partial class Voodoo : IDisposable
 
     public Voodoo()
     {
-        World = WorldAllocator.LoadMap("Resources/voodoo.zip", "voodoo.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cahceWorld: false);
+        World = WorldAllocator.LoadMap("Resources/voodoo.zip", "voodoo.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
         World.Player.TickCommand = new TestTickCommand();
     }
 

@@ -252,6 +252,7 @@ public class ScrollSpecial : ISpecial
 
                 entity.Velocity.X += speed.X;
                 entity.Velocity.Y += speed.Y;
+                entity.Flags.IgnoreDropOff = true;
             }
         }
     }

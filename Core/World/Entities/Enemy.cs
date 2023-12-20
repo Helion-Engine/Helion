@@ -323,7 +323,9 @@ public partial class Entity
 
         Vec2D nextPos = GetNextEnemyPos();
         bool isMoving = Position.XY != nextPos;
+        Flags.MonsterMove = true;
         tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, nextPos);
+        Flags.MonsterMove = false;
         if (Flags.Teleport)
             return true;
 

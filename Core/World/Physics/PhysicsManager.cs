@@ -125,6 +125,7 @@ public class PhysicsManager
         entity.BlockingSectorPlane = null;
         MoveXY(entity);
         MoveZ(entity);
+        entity.Flags.IgnoreDropOff = false;
     }
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)

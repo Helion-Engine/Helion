@@ -789,12 +789,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Flags.Float || Flags.Dropoff)
             return false;
 
-        // Only allow for non-monster things. Currently the physics code allows monsters to easily get stuck.
-        // There are boom maps that require item movement like this (e.g. Fractured Worlds MAP03 red key BFG)
-        if (WorldStatic.AllowItemDropoff)
-            return Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
+        if (!WorldStatic.AllowItemDropoff)
+            return true;
 
-        return true;
+        if (IsBoomSentient)
+        {
+            if (IsDead)
+                return false;
+
+            if (Flags.MonsterMove)
+                return true;            
+        }
+
+        return !Flags.IgnoreDropOff;
     }
 
     public bool IsBoomSentient => Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
