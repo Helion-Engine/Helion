@@ -8,6 +8,7 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using System;
 using System.Collections.Generic;
@@ -106,11 +107,18 @@ public class PushSpecial : ISpecial
 
     private GridIterationStatus PushEntity(Entity entity)
     {
-        if (ShouldNotPush(entity) || !m_world.CheckLineOfSight(entity, m_pusher))
+        if (entity.Flags.NoClip)
             return GridIterationStatus.Continue;
 
-        double distance = entity.Position.XY.Distance(m_pusher.Position.XY);
-        double speed = (m_magnitude - (distance / 2)) * WindFactor;
+        if (!entity.IsBoomSentient && !entity.Flags.Shootable)
+            return GridIterationStatus.Continue;
+
+        if (!m_world.CheckLineOfSight(entity, m_pusher))
+            return GridIterationStatus.Continue;
+
+        double distance = entity.Position.ApproximateDistance2D(m_pusher.Position);
+        Vec2D diff = entity.Position.XY - m_pusher.Position.XY;
+        double speed = (m_magnitude * 128) / (diff.X * diff.X + diff.Y * diff.Y + 1);
 
         if (speed <= 0)
             return GridIterationStatus.Continue;
@@ -120,6 +128,7 @@ public class PushSpecial : ISpecial
             angle += Math.PI;
 
         entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
+        entity.Flags.IgnoreDropOff = true;
         return GridIterationStatus.Continue;
     }
 

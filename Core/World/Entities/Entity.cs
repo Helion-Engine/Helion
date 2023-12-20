@@ -797,6 +797,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return true;
     }
 
+    public bool IsBoomSentient => Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
+
     public bool CheckDropOff(TryMoveData tryMove)
     {
         if (!ShouldCheckDropOff())
