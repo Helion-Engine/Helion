@@ -550,6 +550,10 @@ public class Player : Entity
         Inventory.Tick();
         AnimationWeapon?.Tick();
 
+        // Match Boom functionality that continually checks to change weapons in G_BuildTickCmd
+        if (AttackDown && !CheckAmmo() && PendingWeapon == null)
+            TrySwitchWeapon();
+
         m_interpolateAngle = ShouldInterpolate();
 
         PrevAngle = AngleRadians;
