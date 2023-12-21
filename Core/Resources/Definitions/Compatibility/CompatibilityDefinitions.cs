@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
-using Helion.Util;
 using NLog;
 
 namespace Helion.Resources.Definitions.Compatibility;

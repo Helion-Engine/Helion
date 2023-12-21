@@ -1,5 +1,4 @@
 using Helion.Geometry.Vectors;
-using Helion.World.Geometry.Sides;
 using System.Runtime.InteropServices;
 
 namespace Helion.World.Geometry.Subsectors;

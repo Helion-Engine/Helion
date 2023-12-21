@@ -1,5 +1,4 @@
 using System;
-using Helion.Geometry.Vectors;
 using Helion.Util.Assertion;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;

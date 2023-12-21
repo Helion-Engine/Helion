@@ -3,10 +3,8 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Context;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Texture;
 

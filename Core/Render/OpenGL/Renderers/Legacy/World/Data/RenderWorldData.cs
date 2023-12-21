@@ -1,10 +1,8 @@
 using System;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 

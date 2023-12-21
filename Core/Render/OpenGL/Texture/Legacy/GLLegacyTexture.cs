@@ -1,7 +1,5 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Graphics;
-using Helion.Render.OpenGL.Context;
 using Helion.Resources;
 using OpenTK.Graphics.OpenGL;
 

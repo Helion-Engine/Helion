@@ -2,14 +2,11 @@
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
-using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using static OpenTK.Graphics.OpenGL.GL;
 
 namespace Helion.Render.OpenGL.Vertex;
 

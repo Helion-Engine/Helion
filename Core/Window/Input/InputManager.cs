@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.Util.Extensions;

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Resources.Definitions.Compatibility.Sides;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using NLog;

@@ -16,7 +16,7 @@ public interface ICheat
     bool IsMatch(ReadOnlySpan<char> str);
     bool PartialMatch(ReadOnlySpan<char> str);
 
-    public virtual void SetActivated(Player player)
+    public void SetActivated(Player player)
     {
         if (player.Cheats.IsCheatActive(CheatType))
             player.Cheats.SetCheatInactive(CheatType);

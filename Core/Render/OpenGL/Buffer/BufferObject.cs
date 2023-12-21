@@ -1,11 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Buffer;
 

@@ -4,7 +4,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using System.Collections.Generic;
-using System;
 
 namespace Helion.World.Special.Specials;
 

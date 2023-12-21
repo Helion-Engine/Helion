@@ -1,15 +1,10 @@
-﻿using GlmSharp;
-using Helion;
-using Helion.Geometry.Vectors;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Shader;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Windowing.Common.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Util;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Shader;
 

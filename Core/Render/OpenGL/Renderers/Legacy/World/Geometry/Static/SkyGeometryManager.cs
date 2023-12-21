@@ -1,11 +1,10 @@
-﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
+﻿using System.Collections.Generic;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
-using Helion.World.Static;
-using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 

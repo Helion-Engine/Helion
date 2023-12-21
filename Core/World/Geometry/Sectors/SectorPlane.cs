@@ -2,13 +2,10 @@ using Helion.Audio;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Resources.Definitions.SoundInfo;
-using Helion.Util.Extensions;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Sound;
-using Helion.World.Special.Specials;
 using Helion.World.Static;
 using System;
 

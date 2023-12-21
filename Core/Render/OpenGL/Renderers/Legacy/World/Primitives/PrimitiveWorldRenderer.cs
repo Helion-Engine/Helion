@@ -1,12 +1,10 @@
-﻿using Helion.Geometry.Segments;
+﻿using System;
+using System.Collections.Generic;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
-using Helion.Window.Input;
 using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 

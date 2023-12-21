@@ -1,5 +1,4 @@
-﻿using Helion.Util;
-using Helion.Util.Assertion;
+﻿using Helion.Util.Assertion;
 using System;
 
 namespace Helion.World.Entities;

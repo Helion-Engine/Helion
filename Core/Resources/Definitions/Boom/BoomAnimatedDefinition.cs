@@ -1,6 +1,5 @@
 using Helion.Resources.Archives.Entries;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Helion.Resources.Definitions.Boom;
 

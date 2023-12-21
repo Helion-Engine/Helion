@@ -1,6 +1,5 @@
 using System.Linq;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.IWad;
 using Helion.Util;

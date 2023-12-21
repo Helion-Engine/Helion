@@ -3,7 +3,6 @@ using Helion.World.Entities.Definition.States;
 using System;
 using System.Collections.Generic;
 using static Helion.Dehacked.DehackedDefinition;
-using System.Xml;
 
 namespace Helion.World.Entities.Definition;
 

@@ -1,7 +1,6 @@
 using Force.Crc32;
 using Helion.Util.Container;
 using Helion.Window.Input;
-using static Helion.Util.Constants;
 
 namespace Helion.Util.Extensions;
 

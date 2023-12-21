@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Helion.Util.CommandLine;
-using Helion.Util.Extensions;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Consoles;
 

@@ -2,7 +2,6 @@ using System;
 using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Render.Common.Context;
-using Helion.Render.Common.World;
 
 namespace Helion.Render.Common.Renderers;
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;

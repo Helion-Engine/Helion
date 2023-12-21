@@ -2,7 +2,6 @@
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
-using System.Collections.Generic;
 
 namespace Helion.World.Physics.Blockmap;
 

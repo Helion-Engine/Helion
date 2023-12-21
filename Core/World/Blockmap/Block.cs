@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;

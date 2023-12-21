@@ -3,15 +3,11 @@ using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Models;
-using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using System;
-using System.Collections.Generic;
 
 namespace Helion.World.Special.Specials;
 

@@ -1,6 +1,5 @@
 using Helion.Models;
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities.Definition.Flags;
 

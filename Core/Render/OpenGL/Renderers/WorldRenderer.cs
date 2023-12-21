@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Helion.Render.OpenGL.Shared;
 using Helion.World;
 

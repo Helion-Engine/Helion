@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using System;
 using System.Collections.Generic;
 
 namespace Helion.Layer.Options;

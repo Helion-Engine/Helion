@@ -1,7 +1,6 @@
 ﻿using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
-using System;
 
 namespace Helion.Resources.Definitions.MapInfo;
 

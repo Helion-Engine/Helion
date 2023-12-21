@@ -9,12 +9,10 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
-using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
@@ -33,7 +31,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 public class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
-    private static readonly Sector DefaultSector = Sector.CreateDefault();
+    private static readonly Sector DefaultSector = CreateDefault();
 
     public readonly List<IRenderObject> AlphaSides = new();
     public readonly PortalRenderer Portals;

@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;

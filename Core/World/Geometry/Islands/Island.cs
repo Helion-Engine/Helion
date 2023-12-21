@@ -1,5 +1,4 @@
 ﻿using Helion.World.Bsp;
-using Helion.World.Geometry.Lines;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;

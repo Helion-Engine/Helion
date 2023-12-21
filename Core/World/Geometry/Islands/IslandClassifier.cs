@@ -1,10 +1,7 @@
-﻿using Helion.Maps;
-using Helion.World.Bsp;
+﻿using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
 

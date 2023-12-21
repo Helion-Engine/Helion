@@ -1,7 +1,6 @@
-﻿using Helion.Render.OpenGL.Util;
+﻿using System;
+using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
-using System;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 
 namespace Helion.Render.OpenGL.Shader;
 

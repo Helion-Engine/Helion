@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Helion.Util;
 using Helion.Util.Bytes;
 
 namespace Helion.Resources.Definitions.Texture;

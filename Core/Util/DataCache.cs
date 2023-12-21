@@ -4,7 +4,6 @@ using Helion.Audio.Impl.Components;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Physics.Blockmap;
 using System.Collections.Generic;
 using Helion.Audio.Sounds;
 using Helion.Render.OpenGL.Texture.Legacy;

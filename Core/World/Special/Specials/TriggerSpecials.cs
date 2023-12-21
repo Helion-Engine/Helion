@@ -2,7 +2,6 @@ using Helion.Maps.Specials;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
-using System;
 
 namespace Helion.World.Special.Specials;
 

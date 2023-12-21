@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
-using Helion.Util;
 using Helion.Util.Bytes;
 using NLog;
 

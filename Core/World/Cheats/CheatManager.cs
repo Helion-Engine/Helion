@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Helion.Strings;
 using Helion.Window;
 using Helion.World.Entities.Players;

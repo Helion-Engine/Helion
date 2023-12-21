@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Segments;
-using Helion.Maps;
-using Helion.Maps.Bsp;
-using Helion.Maps.Bsp.Builder.GLBSP;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -6,17 +8,10 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util.Configs;
-using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
-using Helion.Util;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 

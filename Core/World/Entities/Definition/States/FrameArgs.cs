@@ -46,11 +46,6 @@ namespace Helion.World.Entities.Definition.States
             return ArgType.Undefined;
         }
 
-        public FrameArgs(object arg)
-            : this(new object[] { arg })
-        {
-        }
-
         public int GetInt(int index)
         {
             if (m_types[index] == ArgType.Int || m_types[index] == ArgType.Double)

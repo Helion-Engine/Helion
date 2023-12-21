@@ -1,5 +1,4 @@
-﻿using Helion.Maps.Specials;
-using Helion.Maps.Specials.Vanilla;
+﻿using Helion.Maps.Specials.Vanilla;
 
 namespace Helion.Resources.Definitions.MapInfo;
 

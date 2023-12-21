@@ -22,7 +22,6 @@ using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
-using Helion.World;
 
 namespace Helion.World.Entities;
 

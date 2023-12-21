@@ -1,8 +1,7 @@
-﻿using OpenTK.Graphics.OpenGL;
-using Helion.Render.OpenGL.Util;
-using Helion.Util.Container;
-using System;
+﻿using System;
 using System.Diagnostics;
+using Helion.Render.OpenGL.Util;
+using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Textures;
 

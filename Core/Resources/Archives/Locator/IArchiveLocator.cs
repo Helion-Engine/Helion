@@ -1,5 +1,3 @@
-using Helion.Util;
-
 namespace Helion.Resources.Archives.Locator;
 
 /// <summary>

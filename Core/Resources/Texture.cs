@@ -1,5 +1,4 @@
 using Helion.Graphics;
-using Helion.Util;
 
 namespace Helion.Resources;
 

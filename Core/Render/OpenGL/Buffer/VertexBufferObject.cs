@@ -1,7 +1,3 @@
-using System.Linq;
-using System.Runtime.InteropServices;
-using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Vertex;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -11,7 +7,7 @@ public abstract class VertexBufferObject<T> : ArrayBufferObject<T> where T : str
 {
     protected override string LabelPrefix => "VBO";
 
-    protected VertexBufferObject(string label, int capacity = BufferObject<T>.DefaultCapacity) : base(label, capacity)
+    protected VertexBufferObject(string label, int capacity = DefaultCapacity) : base(label, capacity)
     {
     }
 
@@ -38,7 +34,7 @@ public class StaticVertexBuffer<T> : VertexBufferObject<T> where T : struct
 {
     protected override BufferUsageHint Hint => BufferUsageHint.StaticDraw;
 
-    public StaticVertexBuffer(string label, int capacity = BufferObject<T>.DefaultCapacity) : base(label, capacity)
+    public StaticVertexBuffer(string label, int capacity = DefaultCapacity) : base(label, capacity)
     {
     }
 }

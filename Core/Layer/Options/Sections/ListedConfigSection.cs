@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -22,7 +21,6 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
-using OpenTK.Windowing.Common;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;

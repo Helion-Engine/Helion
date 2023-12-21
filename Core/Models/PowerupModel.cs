@@ -1,5 +1,3 @@
-using Helion.Graphics;
-
 namespace Helion.Models;
 
 public class PowerupModel

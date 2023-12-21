@@ -1,10 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.World.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {

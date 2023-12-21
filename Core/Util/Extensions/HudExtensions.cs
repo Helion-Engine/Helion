@@ -1,8 +1,6 @@
 ﻿using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using System.Reflection.Metadata;
-using Helion.Resources;
 
 namespace Helion.Util.Extensions;
 

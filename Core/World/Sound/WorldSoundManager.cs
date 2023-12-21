@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;

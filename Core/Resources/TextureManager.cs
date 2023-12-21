@@ -6,14 +6,11 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
-using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
-using Helion.World.Entities;
-using Helion.World.Entities.Definition.States;
 
 namespace Helion.Resources;
 

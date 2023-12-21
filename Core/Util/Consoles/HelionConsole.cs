@@ -86,7 +86,7 @@ public class HelionConsole : Target
         {
             // I have no idea why this keeps thinking it is null when it is
             // not possible, I'll suppress it.
-            m_config.Console.MaxMessages!.OnChanged += OnMaxMessagesChanged;
+            m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
             AddToLogger(args);
         }
     }

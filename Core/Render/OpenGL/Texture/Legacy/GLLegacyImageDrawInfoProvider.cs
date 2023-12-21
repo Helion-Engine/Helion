@@ -1,4 +1,3 @@
-using System;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shared;

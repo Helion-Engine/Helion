@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Util;
-using Helion.Util.Container;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 

@@ -21,7 +21,6 @@ using Helion.Util.Profiling;
 using Helion.Window;
 using static Helion.Util.Assertion.Assert;
 using static Helion.World.Entities.EntityManager;
-using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;

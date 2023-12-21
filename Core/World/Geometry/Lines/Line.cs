@@ -6,16 +6,13 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.Geometry.Vectors;
-using System;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
-using Helion.World.Special.Switches;
 using Helion.Resources;
 using Helion.World.Bsp;
 using System.Linq;
 using Helion.Maps.Bsp.Geometry;
 using Helion.World.Geometry.Islands;
-using Helion.Maps.Components.GL;
 using Helion.World.Blockmap;
 
 namespace Helion.World.Geometry.Lines;

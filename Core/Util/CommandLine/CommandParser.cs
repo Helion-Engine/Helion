@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Util.CommandLine;
 
 namespace Helion.Util.CommandLine;
 

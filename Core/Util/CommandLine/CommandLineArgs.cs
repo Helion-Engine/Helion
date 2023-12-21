@@ -1,6 +1,5 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.Util.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helion.Geometry.Boxes;
-using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;

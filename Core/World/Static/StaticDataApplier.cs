@@ -1,14 +1,7 @@
-﻿using Helion.Util.Configs.Components;
-using Helion.World.Geometry.Sectors;
+﻿using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
-using Helion.World.Special;
-using System;
-using System.Collections.Generic;
-using Helion.Maps.Specials;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
-using Helion.World.Special.Switches;
 using Helion.Resources;
 using Helion.Util;
 

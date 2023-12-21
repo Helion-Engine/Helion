@@ -1,7 +1,6 @@
 using Helion.Models;
 using Helion.World.Cheats;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials;

@@ -1,7 +1,8 @@
+using Helion.Geometry.Vectors;
+using Helion.Maps.Specials.ZDoom;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
-using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 
 namespace Helion.Models;
@@ -37,7 +38,7 @@ public class ScrollSpecialModel : ISpecialModel
             if (!world.IsLineIdValid(lineId))
                 return null;
 
-            return new ScrollSpecial(world, world.Lines[lineId], accelSector, this);
+            return new ScrollSpecial(world.Lines[lineId], accelSector, this);
         }
         else if (SectorId.HasValue)
         {
@@ -45,9 +46,9 @@ public class ScrollSpecialModel : ISpecialModel
             if (!world.IsSectorIdValid(sectorId))
                 return null;
 
-            return new ScrollSpecial(world, world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
+            return new ScrollSpecial(world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
         }
 
-        return new ScrollSpecial(world, world.Lines[0], Geometry.Vectors.Vec2D.Zero, Maps.Specials.ZDoom.ZDoomLineScroll.MiddleTexture);
+        return new ScrollSpecial(world.Lines[0], Vec2D.Zero, ZDoomLineScroll.MiddleTexture);
     }
 }

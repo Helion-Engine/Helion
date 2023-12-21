@@ -1,12 +1,10 @@
 using System;
 using System.IO;
-using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
-using Helion.Util.Extensions;
 using NLog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;

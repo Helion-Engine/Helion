@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;

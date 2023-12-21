@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using Helion.Util.Bytes;
 
 namespace Helion.Util.Sounds.Mus;

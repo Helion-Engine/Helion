@@ -1,7 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
 

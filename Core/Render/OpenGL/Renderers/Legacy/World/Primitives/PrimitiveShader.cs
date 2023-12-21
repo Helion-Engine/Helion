@@ -1,8 +1,5 @@
 using GlmSharp;
-using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shader;
-using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 

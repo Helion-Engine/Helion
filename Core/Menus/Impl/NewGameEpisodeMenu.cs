@@ -1,6 +1,5 @@
 using Helion.Audio.Sounds;
 using Helion.Menus.Base;
-using Helion.Menus.Base.Text;
 using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;

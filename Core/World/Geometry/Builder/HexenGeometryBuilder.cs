@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Segments;
-using Helion.Maps.Bsp;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util.Assertion;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;

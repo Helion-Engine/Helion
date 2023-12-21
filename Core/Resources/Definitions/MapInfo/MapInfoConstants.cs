@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Util.Configs.Components;
 
 namespace Helion.Resources.Definitions.MapInfo;
 

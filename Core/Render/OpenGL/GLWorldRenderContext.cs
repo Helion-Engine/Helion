@@ -11,7 +11,6 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Commands;
-using Helion.Util.Assertion;
 using Helion.World;
 
 namespace Helion.Render.OpenGL;

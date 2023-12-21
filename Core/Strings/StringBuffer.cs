@@ -1,13 +1,9 @@
-﻿using SixLabors.Shapes;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Globalization;
-
 namespace Helion.Strings;
 
 // String buffer class that will concat and reuse buffers without allocations. NOT thread safe.
-public unsafe static partial class StringBuffer
+public unsafe static class StringBuffer
 {
     private const int MinBufferLength = 64;
     private const char Null = '\0';

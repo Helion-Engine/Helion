@@ -55,8 +55,8 @@ public class BspNodeNew
 {
     public readonly int Id;
     public readonly Seg2D Splitter;
-    public (BspNodeNew?, BspSubsector?) Left { get; internal set; } = default;
-    public (BspNodeNew?, BspSubsector?) Right { get; internal set; } = default;
+    public (BspNodeNew?, BspSubsector?) Left { get; internal set; }
+    public (BspNodeNew?, BspSubsector?) Right { get; internal set; }
 
     public BspNodeNew(int id, Seg2D splitter)
     {

@@ -5,7 +5,6 @@ using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
-using Helion.Util.Container;
 
 namespace Helion.Maps;
 

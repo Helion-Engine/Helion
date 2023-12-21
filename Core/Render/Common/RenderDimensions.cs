@@ -1,7 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Enums;
-using Helion.Render.Common.Renderers;
 
 namespace Helion.Render.Common;
 

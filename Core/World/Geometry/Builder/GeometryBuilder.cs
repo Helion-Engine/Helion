@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Helion.Maps;
 using Helion.Maps.Bsp;
