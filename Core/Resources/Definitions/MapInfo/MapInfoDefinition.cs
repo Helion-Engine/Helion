@@ -17,10 +17,12 @@ public partial class MapInfoDefinition
     public GameInfoDef GameDefinition { get; private set; } = new();
 
     private bool m_legacy;
+    private bool m_parseWeapons;
 
-    public void Parse(ArchiveCollection archiveCollection, string data)
+    public void Parse(ArchiveCollection archiveCollection, string data, bool parseWeapons)
     {
         m_legacy = true;
+        m_parseWeapons = parseWeapons;
         SimpleParser parser = new SimpleParser();
         parser.Parse(data);
 
@@ -480,7 +482,7 @@ public partial class MapInfoDefinition
                     gameDef.AdvisoryTime = parser.ConsumeInteger();
                 else if (item.Equals(GameTelefogHeightName, StringComparison.OrdinalIgnoreCase))
                     gameDef.TelefogHeight = parser.ConsumeInteger();
-                else if (item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
+                else if (m_parseWeapons && item.Equals(GameWeaponSlotName, StringComparison.OrdinalIgnoreCase))
                     ParseWeaponSlot(gameDef, parser);
             }
             else
@@ -745,6 +747,6 @@ public partial class MapInfoDefinition
         if (entry == null)
             throw new ParserException(parser.GetCurrentLine(), 0, 0, $"Failed to find include file {file}");
 
-        Parse(archiveCollection, entry.ReadDataAsString());
+        Parse(archiveCollection, entry.ReadDataAsString(), m_parseWeapons);
     }
 }
