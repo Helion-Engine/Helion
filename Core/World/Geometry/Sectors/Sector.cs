@@ -32,7 +32,6 @@ public class Sector
     public readonly SectorPlane Floor;
     public readonly SectorPlane Ceiling;
     public readonly List<Line> Lines = new();
-    public readonly List<Side> Sides = new();
     public readonly LinkableList<Entity> Entities = new();
     public readonly List<BspSubsector> Subsectors = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();

@@ -20,22 +20,27 @@ public class LineSpecial
 
     public const int NoLock = 0;
 
-    public readonly ZDoomLineSpecialType LineSpecialType;
-    public readonly LineSpecialCompatibility LineSpecialCompatibility;
+    public ZDoomLineSpecialType LineSpecialType { get; private set; }
+    public LineSpecialCompatibility LineSpecialCompatibility { get; private set; }
     public bool Active { get; set; }
-    private readonly bool m_moveSpecial;
-    private readonly bool m_sectorStopMove;
-    private readonly bool m_lightSpecial;
-    private readonly bool m_sectorTrigger;
-    private readonly bool m_floorMove;
-    private readonly bool m_ceilingMove;
-    private readonly LineActivationType m_lineActivationType;
+    private bool m_moveSpecial;
+    private bool m_sectorStopMove;
+    private bool m_lightSpecial;
+    private bool m_sectorTrigger;
+    private bool m_floorMove;
+    private bool m_ceilingMove;
+    private LineActivationType m_lineActivationType;
 
     public LineSpecial(ZDoomLineSpecialType type) : this(type, LineActivationType.Any, LineSpecialCompatibility.Default)
     {
     }
 
     public LineSpecial(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility compatibility)
+    {
+        Set(type, lineActivationType, compatibility);
+    }
+
+    public void Set(ZDoomLineSpecialType type, LineActivationType lineActivationType, LineSpecialCompatibility compatibility)
     {
         LineSpecialType = type;
         LineSpecialCompatibility = compatibility;

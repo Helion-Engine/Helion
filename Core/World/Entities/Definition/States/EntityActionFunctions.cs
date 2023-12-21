@@ -2831,32 +2831,31 @@ public static class EntityActionFunctions
         entity.AngleRadians = oldAngle;
     }
 
-    private static Line? m_dummyLine;
+    private static Line? DummyLine;
+    private static LineSpecial DummyLineSpecial = new(ZDoomLineSpecialType.None);
+    private static Sector DummySector = Sector.CreateDefault();
 
     public static void A_LineEffect(Entity entity)
     {
-        if (WorldStatic.World.Sectors.Count == 0)
-            return;
-
         SpecialArgs specialArgs = new();
-        if (!CreateLineEffectSpecial(entity.Frame, out var lineSpecial, out var flags, ref specialArgs))
+        if (!CreateLineEffectSpecial(entity.Frame, DummyLineSpecial, out var flags, ref specialArgs))
             return;
 
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
-        m_dummyLine ??= CreateDummyLine(flags, lineSpecial, specialArgs, WorldStatic.World.Sectors[0]);
+        DummyLine ??= CreateDummyLine(flags, specialArgs, DummySector);
 
-        m_dummyLine.Args = specialArgs;
-        m_dummyLine.Flags = flags;
+        DummyLine.Special = DummyLineSpecial;
+        DummyLine.Args = specialArgs;
+        DummyLine.Flags = flags;
 
-        EntityActivateSpecial args = new(ActivationContext.CrossLine, entity, m_dummyLine);
+        EntityActivateSpecial args = new(ActivationContext.CrossLine, entity, DummyLine);
         WorldStatic.World.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 
-    public static bool CreateLineEffectSpecial(EntityFrame frame, [NotNullWhen(true)] out LineSpecial? lineSpecial, 
+    public static bool CreateLineEffectSpecial(EntityFrame frame, LineSpecial lineSpecial, 
         out LineFlags flags, ref SpecialArgs specialArgs)
     {
-        lineSpecial = null;
         flags = new LineFlags(MapLineFlags.Doom(0));
         var specialType = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)frame.DehackedMisc1,
             frame.DehackedMisc2, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
@@ -2864,16 +2863,16 @@ public static class EntityActionFunctions
         if (specialType == ZDoomLineSpecialType.None)
             return false;
 
-        lineSpecial = new(specialType, activationType, compat);
+        lineSpecial.Set(specialType, activationType, compat);
         return true;
     }
 
-    public static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
+    public static Line CreateDummyLine(LineFlags flags, SpecialArgs args, Sector sector)
     {
         var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
         var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
         var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, 0, seg, side, null, flags, special, args);
+        return new Line(0, 0, seg, side, null, flags, LineSpecial.Default, args);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)

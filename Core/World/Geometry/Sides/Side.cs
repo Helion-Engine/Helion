@@ -55,7 +55,6 @@ public class Side : IRenderObject
         upper.Side = this;
         middle.Side = this;
         lower.Side = this;
-        sector.Sides.Add(this);
 
         // We are okay with things blowing up violently if someone forgets
         // to assign it, because that is such a critical error on the part
