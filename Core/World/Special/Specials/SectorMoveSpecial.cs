@@ -29,9 +29,9 @@ public class SectorMoveSpecial : ISectorSpecial
     public bool IsInitialMove { get; protected set; } = true;
     public virtual bool MultiSector => false;
     public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
+    public double DestZ { get; protected set; }
 
     protected readonly IWorld m_world;
-    protected double DestZ;
 
     private double m_startZ;
     private double m_minZ;
