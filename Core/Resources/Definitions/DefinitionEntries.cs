@@ -56,6 +56,9 @@ public class DefinitionEntries
     private bool m_parseDecorate;
     private bool m_parseUniversalMapInfo;
     private bool m_parseLegacyMapInfo;
+    private bool m_parseWeapons;
+
+    private bool ShouldParseWeapons => m_parseWeapons || !ConfigCompatibility.PreferDehacked;
 
     /// <summary>
     /// Creates a definition entries data structure which has no tracked
@@ -100,7 +103,9 @@ public class DefinitionEntries
         if (!GetEntry(archive, entryName, out Entry? entry) || entry == null)
             return false;
 
+        m_parseWeapons = true;
         ParseEntry(ParseMapInfo, entry);
+        m_parseWeapons = false;
         return true;
     }
 
@@ -133,14 +138,14 @@ public class DefinitionEntries
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
-    private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text);
+    private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
 
     private void ParseMapInfo(string text)
     {
         if (!m_parseLegacyMapInfo)
             return;
 
-        MapInfoDefinition.Parse(m_archiveCollection, text);
+        MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     }
 
     private void ParseUniversalMapInfo(string text)
