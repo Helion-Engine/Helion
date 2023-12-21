@@ -478,8 +478,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (Definition.DeathState != null)
                 FrameState.SetFrameIndex(Definition.DeathState.Value);
-            SetDeathRandomizeTicks();
-            SetDeath(source, false);
+            
+            if (!IsDisposed)
+            {
+                SetDeathRandomizeTicks();
+                SetDeath(source, false);  
+            }
         }
     }
 
@@ -489,8 +493,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         {
             if (Definition.XDeathState != null)
                 FrameState.SetFrameIndex(Definition.XDeathState.Value);
-            SetDeathRandomizeTicks();
-            SetDeath(source, true);
+            
+            if (!IsDisposed)
+            {
+                SetDeathRandomizeTicks();
+                SetDeath(source, true);                
+            }
         }
     }
 
