@@ -792,14 +792,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (!WorldStatic.AllowItemDropoff)
             return true;
 
-        if (IsBoomSentient)
-        {
-            if (IsDead)
-                return false;
-
-            if (Flags.MonsterMove)
-                return true;            
-        }
+        if (IsBoomSentient && Flags.MonsterMove)
+            return true;
 
         return !Flags.IgnoreDropOff;
     }
@@ -972,6 +966,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         else
         {
             Flags.Corpse = true;
+            Flags.Dropoff = true;
             Flags.Skullfly = false;
             Flags.Shootable = false;
             if (!Flags.DontFall)

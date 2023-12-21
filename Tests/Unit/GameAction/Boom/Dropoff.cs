@@ -61,7 +61,7 @@ public class Dropoff
     }
 
     [Fact(DisplayName = "Normal monster dropoff with float")]
-    public void NormalMonsterDropOffFloatt()
+    public void NormalMonsterDropOffFloat()
     {
         var lost = GameActions.GetEntity(World, 7);
         lost.Position.Should().Be(new Vec3D(64, 96, 64));
@@ -70,5 +70,22 @@ public class Dropoff
         move.HighestFloorZ.Should().Be(0);
         move.DropOffZ.Should().Be(0);
         lost.Position.Z.Should().Be(64);
+    }
+
+    [Fact(DisplayName = "Monster falls of ledge when dead")]
+    public void DeadMonsterDropoff()
+    {
+        var imp = GameActions.GetEntity(World, 3);
+        imp.Position.Should().Be(new Vec3D(-32, 96, 64));
+        imp.Kill(null);
+        imp.IsDead.Should().BeTrue();
+        var move = World.PhysicsManager.TryMoveXY(imp, new Vec2D(-32, 32));
+        move.Success.Should().BeTrue();
+        move.HighestFloorZ.Should().Be(0);
+        move.DropOffZ.Should().Be(0);
+        imp.Position.Z.Should().Be(64);
+
+        GameActions.TickWorld(World, 35);
+        imp.Position.Z.Should().Be(0);
     }
 }
