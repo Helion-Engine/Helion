@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
@@ -29,6 +30,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
+using SixLabors.ImageSharp.PixelFormats;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -508,8 +510,24 @@ public partial class WorldLayer
         int x = m_padding;
         int y = -m_padding;
 
-        hud.Image(Medkit, (x, y), out var medkitArea, both: Align.BottomLeft, scale: m_scale);
-        x += medkitArea.Width + m_padding;
+        bool hasArmorImage = false;
+        var armorProp = Player.ArmorProperties;
+        var armorDimension = new Dimension(0, 0);
+        if (armorProp != null && hud.Textures.HasImage(armorProp.Inventory.Icon))
+        {
+            armorDimension = GetDoomScaledImageArea(hud, armorProp.Inventory.Icon);
+            hasArmorImage = true;
+        }
+
+        // Force the column width to the maximum of armor / medkit images
+        // Custom images can change the dimensions and cause it to bump whem armor is picked up. Assume a 32 width for armor by default.
+        var medkitDimension = GetDoomScaledImageArea(hud, Medkit);
+        int setWidth = Math.Max(armorDimension.Width, medkitDimension.Width);
+        setWidth = Math.Max(setWidth, (int)(32 * m_scale));
+
+        x += (setWidth - medkitDimension.Width) / 2;
+        DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft);
+        x += setWidth + m_padding;
 
         m_healthString.Clear();
         m_healthString.Append(Math.Max(0, Player.Health));
@@ -523,18 +541,17 @@ public partial class WorldLayer
         x += m_healthWidth;
         int highestX = x;
 
-        DrawFace(hud, (x, y), out HudBox faceArea, Align.BottomLeft, true);
+        DrawDoomScaledImage(hud, Player.StatusBar.GetFacePatch(), (x, y), out var faceArea, both: Align.BottomLeft);
 
         if (Player.Armor > 0)
         {
-            x = m_padding;
-            y -= medkitArea.Height + (m_padding * 2);
+            x = m_padding + (setWidth - armorDimension.Width) / 2;
+            y -= medkitArea.Height + m_padding;
 
-            EntityProperties? armorProp = Player.ArmorProperties;
-            if (armorProp != null && hud.Textures.HasImage(armorProp.Inventory.Icon))
+            if (armorProp != null && hasArmorImage)
             {
-                hud.Image(armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft, scale: m_scale);
-                x += armorArea.Width + m_padding;
+                DrawDoomScaledImage(hud, armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft);
+                x += setWidth + m_padding;
             }
 
             m_armorString.Clear();
@@ -545,9 +562,29 @@ public partial class WorldLayer
         }
     }
 
-    private void DrawFace(IHudRenderContext hud, Vec2I origin, out HudBox area, Align? both = null, bool scaleDraw = false)
+    const double DoomVerticalScale = (320 / 200.0) / (640 / 480.0);
+
+    private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null)
     {
-        hud.Image(Player.StatusBar.GetFacePatch(), origin, out area, both: both, scale: scaleDraw ? m_scale : 1.0f);
+        if (!hud.Textures.TryGet(image, out var handle, ResourceNamespace.Sprites))
+        {
+            area = default;
+            return;
+        }
+
+        var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);
+        var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
+        area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
+        hud.Image(image, area, both: both);
+    }
+
+    private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
+    {
+        if (!hud.Textures.TryGet(image, out var handle, ResourceNamespace.Sprites))
+            return default;
+
+        var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);
+        return new Dimension((int)(handle.Area.Width * scale.X), (int)(handle.Area.Height * scale.Y));
     }
 
     private void DrawMinimalHudKeys(IHudRenderContext hud, int y)
@@ -561,8 +598,7 @@ public partial class WorldLayer
             string icon = key.Definition.Properties.Inventory.Icon;
             if (!hud.Textures.HasImage(icon))
                 continue;
-
-            hud.Image(icon, (-m_padding, y), out HudBox drawArea, both: Align.TopRight, scale: m_scale);
+            DrawDoomScaledImage(hud, icon, (-m_padding, y), out var drawArea, both: Align.TopRight);
             y += drawArea.Height + m_padding;
         }
     }
@@ -596,7 +632,7 @@ public partial class WorldLayer
             return;
 
         x -= (int)(handle.Dimension.Width * m_scale);
-        hud.Image(weapon.AmmoSprite, (x, y), both: Align.BottomRight, scale: m_scale);
+        DrawDoomScaledImage(hud, weapon.AmmoSprite, (x, y), out _, both: Align.BottomRight);
     }
 
     private void DrawFullStatusBar(IHudRenderContext hud)
@@ -617,7 +653,7 @@ public partial class WorldLayer
         const int FullHudFaceY = 170;
         DrawFullHudHealthArmorAmmo(hud);
         DrawFullHudWeaponSlots(hud);
-        DrawFace(hud, (FullHudFaceX, FullHudFaceY), out var _);
+        hud.Image(Player.StatusBar.GetFacePatch(), (FullHudFaceX, FullHudFaceY));
         DrawFullHudKeys(hud);
         DrawFullTotalAmmo(hud);
     }
