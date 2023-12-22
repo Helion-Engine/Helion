@@ -524,10 +524,11 @@ public partial class WorldLayer
         var medkitDimension = GetDoomScaledImageArea(hud, Medkit);
         int setWidth = Math.Max(armorDimension.Width, medkitDimension.Width);
         setWidth = Math.Max(setWidth, (int)(32 * m_scale));
+        int textStartX = setWidth + m_padding * 2;
 
         x += (setWidth - medkitDimension.Width) / 2;
         DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft);
-        x += setWidth + m_padding;
+        x = textStartX;
 
         m_healthString.Clear();
         m_healthString.Append(Math.Max(0, Player.Health));
@@ -549,10 +550,9 @@ public partial class WorldLayer
             y -= medkitArea.Height + m_padding;
 
             if (armorProp != null && hasArmorImage)
-            {
                 DrawDoomScaledImage(hud, armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft);
-                x += setWidth + m_padding;
-            }
+
+            x = textStartX;
 
             m_armorString.Clear();
             m_armorString.Append(Player.Armor);
