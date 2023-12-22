@@ -331,11 +331,11 @@ public class KeyBindingSection : IOptionSection
         }
     }
 
-    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY)
+    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
     {
         m_menuPositionList.Clear();
 
-        if (startY != m_lastY)
+        if (didMouseWheelScroll && startY != m_lastY)
         {
             m_lastY = startY;
             m_updateMouse = true;

@@ -48,6 +48,7 @@ public class OptionsLayer : IGameLayer
     private bool m_locked;
     private bool m_resetMouse;
     private bool m_setMouse;
+    private bool m_didMouseWheelScroll;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
     {
@@ -264,8 +265,11 @@ public class OptionsLayer : IGameLayer
             if (scrollRequired)
             {
                 int scrollAmount = GetScrollAmount();
-                m_scrollOffset += input.ConsumeScroll() * scrollAmount;
-                m_scrollOffset = Math.Clamp(m_scrollOffset, -(section.GetRenderHeight() + m_headerHeight - m_windowSize.Height + scrollAmount), 0);
+                int consumeScroll = input.ConsumeScroll();
+                if (consumeScroll != 0)
+                    m_didMouseWheelScroll = true;
+                m_scrollOffset += consumeScroll * scrollAmount;
+                m_scrollOffset = Math.Clamp(m_scrollOffset, -(section.GetRenderHeight() + m_headerHeight - m_windowSize.Height + scrollAmount), 0);                
             }
 
             int buttonIndex = -1;
@@ -386,7 +390,8 @@ public class OptionsLayer : IGameLayer
         if (m_currentSectionIndex < m_sections.Count)
         {
             var section = m_sections[m_currentSectionIndex];
-            section.Render(ctx, hud, y);
+            section.Render(ctx, hud, y, m_didMouseWheelScroll);
+            m_didMouseWheelScroll = false;
 
             RenderScrollBar(hud, fontSize, section);
 

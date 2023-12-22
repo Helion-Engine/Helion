@@ -51,7 +51,7 @@ public interface IOptionSection
     void OnShow();
     void ResetSelection();
     void HandleInput(IConsumableInput input);
-    void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY);
+    void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll);
     int GetRenderHeight();
     (int,int) GetSelectedRenderY();
     void SetToFirstSelection();
