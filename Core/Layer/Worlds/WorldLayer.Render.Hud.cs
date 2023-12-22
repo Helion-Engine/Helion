@@ -36,7 +36,8 @@ using static Helion.Render.Common.RenderDimensions;
 namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
-{
+{    
+    private const double DoomVerticalScale = (320 / 200.0) / (640 / 480.0);
     private const int MapFontSize = 12;
     private const int DebugFontSize = 8;
     private const int LeftOffset = 1;
@@ -164,14 +165,15 @@ public partial class WorldLayer
             StatValues[2] = AppendStatString(m_secretString, World.LevelStats.SecretCount, World.LevelStats.TotalSecrets);
 
             for (int i = 0; i < RenderableStatLabels.Length; i++)
-                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], ConsoleFont, m_infoFontSize);
+                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], ConsoleFont, m_infoFontSize, 
+                    useDoomScale: false);
 
             RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, ConsoleFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters));
+                GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
             RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, ConsoleFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems));
+                GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems), useDoomScale: false);
             RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, ConsoleFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets));
+                GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets), useDoomScale: false);
         }
 
         for (int i = 0; i < RenderableStatValues.Length; i++)
@@ -208,7 +210,7 @@ public partial class WorldLayer
             m_timeString.Append(':');
             m_timeString.Append((int)ts.Seconds, 2);
 
-            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, ConsoleFont, m_infoFontSize);
+            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, ConsoleFont, m_infoFontSize, useDoomScale: false);
         }
 
         hud.Text(m_renderTimeString, labelPos, both: align);
@@ -265,7 +267,7 @@ public partial class WorldLayer
         str.Append("FPS: ");
         str.Append((int)Math.Round(fps));
 
-        SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize);
+        SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize, useDoomScale: false);
         hud.Text(renderableString, (-m_padding, y), both: Align.TopRight);
 
         y += renderableString.DrawArea.Height + FpsMessageSpacing;
@@ -489,13 +491,16 @@ public partial class WorldLayer
         return Color.White;
     }
 
-    private RenderableString SetRenderableString(ReadOnlySpan<char> charSpan, RenderableString renderableString, string font, int fontSize, Color? drawColor = null)
+    private RenderableString SetRenderableString(ReadOnlySpan<char> charSpan, RenderableString renderableString, string font, int fontSize, Color? drawColor = null,
+        bool useDoomScale = true)
     {
         if (!HasTicks)
             return renderableString;
 
         renderableString.Set(World.ArchiveCollection.DataCache, charSpan, GetFontOrDefault(font),
             fontSize, TextAlign.Left, drawColor: drawColor);
+        if (useDoomScale)
+            renderableString.DrawArea = new(renderableString.DrawArea.Width, (int)(renderableString.DrawArea.Height * DoomVerticalScale));
         return renderableString;
     }
 
@@ -561,8 +566,6 @@ public partial class WorldLayer
             hud.Text(m_renderArmorString, (x, y), both: Align.BottomLeft);
         }
     }
-
-    const double DoomVerticalScale = (320 / 200.0) / (640 / 480.0);
 
     private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null)
     {
