@@ -75,7 +75,8 @@ public class SectorPlane : ISoundSource
 
     public void CreateScrollData()
     {
-        SectorScrollData = new();
+        if (SectorScrollData == null)
+            SectorScrollData = new();
     }
 
     public void SetTexture(int texture, int gametick)

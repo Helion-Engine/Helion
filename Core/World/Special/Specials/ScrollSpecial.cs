@@ -65,12 +65,14 @@ public class ScrollSpecial : ISpecial
         m_scrollLineFront = front;
         if (m_scrollLineFront)
         {
-            Line.Front.ScrollData = new();
+            if (Line.Front.ScrollData == null)
+                Line.Front.ScrollData = new();
             m_frontScroll = Line.Front.ScrollData;
         }
         else if (Line.Back != null)
         {
-            Line.Back.ScrollData = new();
+            if (Line.Front.ScrollData == null)
+                Line.Back.ScrollData = new();
             m_backScroll = Line.Back.ScrollData;
         }
 
@@ -194,23 +196,29 @@ public class ScrollSpecial : ISpecial
 
     private void Scroll(SideScrollData scrollData, in Vec2D speed)
     {
+        bool updateInterpolation = WorldStatic.World.Gametick != scrollData.Gametick; 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
         {
-            scrollData.LastOffsetUpper = scrollData.OffsetUpper;
+            if (updateInterpolation)
+                scrollData.LastOffsetUpper = scrollData.OffsetUpper;
             scrollData.OffsetUpper += speed;
         }
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
         {
-            scrollData.LastOffsetMiddle = scrollData.OffsetMiddle;
+            if (updateInterpolation)
+                scrollData.LastOffsetMiddle = scrollData.OffsetMiddle;
             scrollData.OffsetMiddle += speed;
         }
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
         {
-            scrollData.LastOffsetLower = scrollData.OffsetLower;
+            if (updateInterpolation)
+                scrollData.LastOffsetLower = scrollData.OffsetLower;
             scrollData.OffsetLower += speed;
         }
+
+        scrollData.Gametick = WorldStatic.World.Gametick;
     }
 
     private void ScrollPlane(SectorPlane sectorPlane, SectorScrollData scroll, in Vec2D speed)
@@ -223,7 +231,11 @@ public class ScrollSpecial : ISpecial
                 return;
             }
 
-            scroll.LastOffset = scroll.Offset;
+            if (scroll.Gametick != WorldStatic.World.Gametick)
+            {
+                scroll.Gametick = WorldStatic.World.Gametick;
+                scroll.LastOffset = scroll.Offset;
+            }
             scroll.Offset += speed;
             sectorPlane.Sector.DataChanges |= SectorDataTypes.Offset;
         }
