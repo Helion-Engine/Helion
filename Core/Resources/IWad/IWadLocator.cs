@@ -17,6 +17,15 @@ public class IWadLocator
         "steamapps/common/DOOM 3 BFG Edition/base/wads",
     };
 
+    private static readonly string[] LinuxDoomDirs = new[]
+    {
+        "/usr/local/share/doom",
+        "/usr/local/share/games/doom",
+        "/usr/share/doom",
+        "/usr/share/games/doom",
+        "/usr/share/games/doom3bfg/base/wads",
+    };
+
     private readonly List<string> m_directories;
 
     public static IWadLocator CreateDefault()
@@ -30,6 +39,9 @@ public class IWadLocator
             foreach (var dir in SteamDoomDirs)
                 paths.Add(Path.Combine(steamPath, dir));
         }
+
+        if (OperatingSystem.IsLinux())
+            paths.AddRange(LinuxDoomDirs);
 
         return new IWadLocator(paths);
     }
