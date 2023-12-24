@@ -94,23 +94,19 @@ public class IWadLocator
         if (OperatingSystem.IsWindows())
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
 
-        // On Linux, default to "$XDG_CONFIG_HOME/.steam/steam"
+        // On Linux, default to "$XDG_DATA_HOME/Steam"
         if (OperatingSystem.IsLinux())
         {
-            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
-            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-            {
-                return $"{xdgConfigHome}/.steam/steam";
-            }
+            if (!string.IsNullOrWhiteSpace(xdgDataHome))
+                return $"{xdgDataHome}/Steam";
 
-            // Fallback to "$HOME/.steam/steam"
+            // Fallback to "$HOME/.local/share/Steam"
             var home = Environment.GetEnvironmentVariable("HOME");
 
             if (!string.IsNullOrWhiteSpace(home))
-            {
-                return $"{home}/.steam/steam";
-            }
+                return $"{home}/.local/share/Steam";
         }
 
         return null;
