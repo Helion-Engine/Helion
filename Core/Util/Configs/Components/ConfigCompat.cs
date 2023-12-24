@@ -36,4 +36,8 @@ public class ConfigCompat
     [ConfigInfo("Disables item drop tossing.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Disable item drop tossing")]
     public readonly ConfigValue<bool> NoTossDrops = new(false);
+
+    [ConfigInfo("Use Doom's bugged stair building.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Use bugged stair building")]
+    public readonly ConfigValue<bool> Stairs = new(false);
 }

@@ -135,12 +135,45 @@ public partial class WorldLayer : IGameLayerParent
 
         if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
             world.SameAsPreviousMap = true;
+        else
+            SetCompatibilityOptions(config, map, mapInfoDef);
 
         archiveCollection.TextureManager.InitSprites(world);
         LastMapName = mapInfoDef.MapName;
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
+    }
+
+    private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef)
+    {
+        var compat = config.Compatibility;
+        compat.MissileClip.ResetToUserValue();
+        compat.VanillaShortestTexture.ResetToUserValue();
+        compat.VanillaSectorPhysics.ResetToUserValue();
+        compat.InfinitelyTallThings.ResetToUserValue();
+        compat.PainElementalLostSoulLimit.ResetToUserValue();
+        compat.NoTossDrops.ResetToUserValue();
+        compat.Stairs.ResetToUserValue();
+
+        if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
+            compat.MissileClip.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatShortestTexture))
+            compat.VanillaShortestTexture.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatFloorMove))
+            compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatNoCrossOver))
+            compat.InfinitelyTallThings.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatLimitPain))
+            compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatNoTossDrops))
+            compat.NoTossDrops.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatStairs))
+            compat.Stairs.SetWithNoWriteConfig(true);
+
+        // Hardcoding TNT MAP30 here for now
+        if (map.Name.EqualsIgnoreCase("MAP30") && map.MD5.Equals("d41d8cd98f00b204e9800998ecf8427e"))
+            compat.Stairs.SetWithNoWriteConfig(true);
     }
 
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)

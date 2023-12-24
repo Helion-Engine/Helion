@@ -33,6 +33,7 @@ public class DoomMap : IMap
     private static readonly DoomSide EmptySide = new(0, (0, 0), Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, EmptySector);
 
     public Archive Archive { get; }
+    public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
     public readonly List<DoomLine> Lines;

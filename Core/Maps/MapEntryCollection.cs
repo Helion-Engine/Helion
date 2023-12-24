@@ -1,5 +1,7 @@
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
+using Helion.Util.Bytes;
+using System.IO;
 
 namespace Helion.Maps;
 
@@ -35,6 +37,22 @@ public class MapEntryCollection
     public Entry? GLSubsectors { get; set; }
     public Entry? GLNodes { get; set; }
     public Entry? GLPVS { get; set; }
+
+    public string GetMD5()
+    {
+        using var stream = new MemoryStream();        
+        if (Vertices != null)
+            stream.Write(Vertices.ReadData());
+        if (Things != null)
+            stream.Write(Things.ReadData());
+        if (Linedefs != null)
+            stream.Write(Linedefs.ReadData());
+        if (Sidedefs != null)
+            stream.Write(Sidedefs.ReadData());
+        if (Sectors != null)
+            stream.Write(Sectors.ReadData());
+        return Files.CalculateMD5(stream);
+    }
 
     public bool IsDoomMap => Vertices != null && Sectors != null && Sidedefs != null && Linedefs != null && Things != null;
     public bool IsHexenMap => IsDoomMap && Behavior != null;

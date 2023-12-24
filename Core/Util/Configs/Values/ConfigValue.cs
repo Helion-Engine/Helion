@@ -27,6 +27,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     public object ObjectValue => Value;
     public object ObjectDefaultValue => DefaultValue;
     public T Value { get; private set; }
+    public T UserValue { get; private set; }
     public T DefaultValue { get; private set; }
     public bool Changed { get; set; }
     public Type ValueType => typeof(T);
@@ -99,13 +100,20 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     public ConfigSetResult Set(T newValue)
     {
         WriteToConfig = true;
-        return SetValue(newValue, false);
+        var result = SetValue(newValue, false);
+        UserValue = Value;
+        return result;
     }
 
     public ConfigSetResult SetWithNoWriteConfig(T newValue)
     {
         WriteToConfig = false;
         return SetValue(newValue, false);
+    }
+
+    public void ResetToUserValue()
+    {
+        Value = UserValue;
     }
 
     private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
