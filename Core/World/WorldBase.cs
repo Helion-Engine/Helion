@@ -198,8 +198,6 @@ public abstract class WorldBase : IWorld
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
         
         m_teleportFogDef = EntityManager.DefinitionComposer.GetByName("TeleportFog");
-        
-        SetCompatibilityOptions(mapInfoDef);
 
         RegisterConfigChanges();
         SetWorldStatic();
@@ -314,20 +312,6 @@ public abstract class WorldBase : IWorld
         WorldStatic.SlowTickLookMultiplier = value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
         WorldStatic.SlowTickTracerMultiplier = value;
-
-    private void SetCompatibilityOptions(MapInfoDef mapInfoDef)
-    {
-        if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
-            Config.Compatibility.MissileClip.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.CompatShortestTexture))
-            Config.Compatibility.VanillaShortestTexture.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.CompatFloorMove))
-            Config.Compatibility.VanillaSectorPhysics.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.CompatNoCrossOver))
-            Config.Compatibility.InfinitelyTallThings.SetWithNoWriteConfig(true);
-        if (mapInfoDef.HasOption(MapOptions.CompatLimitPain))
-            Config.Compatibility.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
-    }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {

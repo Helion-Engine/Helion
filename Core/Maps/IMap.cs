@@ -17,6 +17,7 @@ public interface IMap
     string Name { get; }
     MapType MapType { get; }
     public Archive Archive { get; }
+    public string MD5 { get; set; }
     IReadOnlyList<ILine> GetLines();
     IReadOnlyList<INode> GetNodes();
     IReadOnlyList<ISector> GetSectors();
@@ -26,12 +27,20 @@ public interface IMap
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
     
-    public static IMap? Read(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility = null)
+    public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
     {
-        return map.MapType switch
+        var map = Create(archive, mapEntries, compatibility);
+        if (map != null)
+            map.MD5 = mapEntries.GetMD5();
+        return map;
+    }
+
+    private static IMap? Create(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
+    {
+        return mapEntries.MapType switch
         {
-            MapType.Doom => DoomMap.Create(archive, map, compatibility),
-            MapType.Hexen => HexenMap.Create(archive, map, compatibility),
+            MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility),
+            MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility),
             _ => null
         };
     }

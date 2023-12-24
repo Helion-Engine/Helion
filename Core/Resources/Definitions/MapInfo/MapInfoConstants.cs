@@ -254,6 +254,7 @@ public partial class MapInfoDefinition
         { "compat_nopassover",      new MapOptionSet { Option = MapOptions.CompatNoCrossOver, Value = true } },
         { "compat_limitpain",       new MapOptionSet { Option = MapOptions.CompatLimitPain, Value = true } },
         { "compat_notossdrops",     new MapOptionSet { Option = MapOptions.CompatNoTossDrops, Value = true } },
+        { "compat_stairs",          new MapOptionSet { Option = MapOptions.CompatStairs, Value = true } },
     };
 
     private static readonly HashSet<string> MapOptionsIgnore = new(StringComparer.OrdinalIgnoreCase)

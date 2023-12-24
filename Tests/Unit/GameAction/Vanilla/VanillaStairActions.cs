@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
+using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
@@ -28,6 +29,7 @@ public class VanillaStairActions
     [Fact(DisplayName = "Vanilla stairs with same tag raise (Doom Action 7 (S1) Raise stairs 8)")]
     public void VanillaStairsRaiseWithSameTag()
     {
+        World.Config.Compatibility.Stairs.Set(false);
         const int StairActivationLine = 9;
 
         GameActions.EntityUseLine(World, Player, StairActivationLine).Should().BeTrue();
@@ -43,6 +45,7 @@ public class VanillaStairActions
     [Fact(DisplayName = "Vanilla stairs that are joined together outside of the map like TNT30 (Doom Action 7 (S1) Raise stairs 8)")]
     public void VanillaStairsJoinedSectorExtraRaiseHeight()
     {
+        World.Config.Compatibility.Stairs.Set(true);
         const int StairActivationLine = 34;
 
         GameActions.EntityUseLine(World, Player, StairActivationLine).Should().BeTrue();

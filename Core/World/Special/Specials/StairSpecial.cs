@@ -19,6 +19,7 @@ public class StairSpecial : SectorMoveSpecial
     private int m_stairDelayTics;
     private int m_resetTics;
     private bool m_init;
+    private bool m_buggedStairs;
 
     private class StairMove
     {
@@ -57,6 +58,7 @@ public class StairSpecial : SectorMoveSpecial
         base(world, sector, 0, 0, new SectorMoveData(SectorPlaneFace.Floor, direction, MoveRepetition.None, speed, 0),
             new SectorSoundData(null, null, Constants.PlatStopSound))
     {
+        m_buggedStairs = world.Config.Compatibility.Stairs;
         m_init = true;
         m_stairDelay = delay;
         m_resetTics = resetTicks == 0 ? -1 : resetTicks;
@@ -66,16 +68,53 @@ public class StairSpecial : SectorMoveSpecial
         if (direction == MoveDirection.Down)
             height = -height;
 
-        StairMove? stairMove = new(sector, height);
+        Sector.ActiveFloorMove = null;
+        StairBuild(Sector, Sector.Floor.TextureHandle, height, ignoreTexture);
+    }
 
+    private void StairBuild(Sector sector, int floorpic, int stairHeight, bool ignoreTexture)
+    {
+        if (sector.IsMoving)
+            return;
+
+        int height = stairHeight;
+        sector.ActiveFloorMove = this;
+        m_stairs.Add(new StairMove(sector, height));
+
+        bool keepBuilding = false;
         do
         {
-            if (!stairMove.Sector.IsMoving)
-                stairMove.Sector.ActiveFloorMove = this;
-            m_stairs.Add(stairMove);
-            stairMove = GetNextStair(stairMove, Sector.Floor.TextureHandle, height, ignoreTexture);
-        }
-        while (stairMove != null);
+            keepBuilding = false;
+            for (int i = 0; i < sector.Lines.Count; i++)
+            {
+                Line line = sector.Lines[i];
+                if (line.Back == null)
+                    continue;
+
+                if (line.Front.Sector.Id != sector.Id)
+                    continue;
+
+                if (!ignoreTexture && line.Back.Sector.Floor.TextureHandle != floorpic)
+                    continue;
+
+                // The original game had this bug where it would increment height before checking if th sector was already in motion
+                if (m_buggedStairs)
+                    height += stairHeight;
+
+                if (line.Back.Sector.IsMoving)
+                    continue;
+
+                // Correctly add height after is moving check
+                if (!m_buggedStairs)
+                    height += stairHeight;
+
+                sector = line.Back.Sector;
+                sector.ActiveFloorMove = this;
+                m_stairs.Add(new StairMove(sector, height));
+                keepBuilding = true;
+                break;                
+            }
+        } while (keepBuilding);
     }
 
     public StairSpecial(IWorld world, Sector sector, StairSpecialModel model) :
@@ -171,12 +210,12 @@ public class StairSpecial : SectorMoveSpecial
         }
 
         SpecialTickStatus currentStatus = SpecialTickStatus.Continue;
-        int height = 0;
+        double height = 0;
 
         for (int i = 0; i < m_stairs.Count; i++)
         {
             IsInitialMove = setInitialMove;
-            height += m_stairs[i].Height;
+            height = m_stairs[i].Height;
             Sector = m_stairs[i].Sector;
             SectorPlane = Sector.Floor;
             if (m_resetTics == 0)
@@ -235,25 +274,6 @@ public class StairSpecial : SectorMoveSpecial
 
             sector.Floor.PrevZ = sector.Floor.Z;
         }
-    }
-
-    private static StairMove? GetNextStair(StairMove start, int floorpic, int stairHeight, bool ignoreTexture)
-    {
-        int height = 0;
-        for (int i = 0; i < start.Sector.Lines.Count; i++)
-        {
-            Line line = start.Sector.Lines[i];
-            if (line.Back != null && line.Front.Sector == start.Sector &&
-                (ignoreTexture || line.Back.Sector.Floor.TextureHandle == floorpic))
-            {
-                // The original game had this bug where it would increment height before checking if th sector was already in motion
-                height += stairHeight;
-                if (!line.Back.Sector.IsMoving)
-                    return new StairMove(line.Back.Sector, height);
-            }
-        }
-
-        return null;
     }
 
     private void CreateMovementSound(Sector sector) =>

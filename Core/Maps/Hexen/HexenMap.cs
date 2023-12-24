@@ -27,6 +27,7 @@ public class HexenMap : IMap
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public Archive Archive { get; }
+    public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Hexen;
     public readonly List<HexenLine> Lines;
