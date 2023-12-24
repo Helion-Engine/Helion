@@ -32,9 +32,9 @@ public class IWadLocator
     {
         List<string> paths = new() { Directory.GetCurrentDirectory() };
 
-        string? steamPath = GetSteamPath();
+        var steamPath = GetSteamPath();
 
-        if (steamPath != null && Directory.Exists(steamPath))
+        if (Directory.Exists(steamPath))
         {
             foreach (var dir in SteamDoomDirs)
                 paths.Add(Path.Combine(steamPath, dir));
