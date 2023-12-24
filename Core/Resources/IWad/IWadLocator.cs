@@ -9,12 +9,21 @@ public class IWadLocator
 {
     private static readonly string[] SteamDoomDirs = new[]
     {
-        "steamapps/common/ultimate doom/base",
-        "steamapps/common/doom 2/base",
+        "steamapps/common/Ultimate Doom/base",
+        "steamapps/common/Doom 2/base",
         "steamapps/common/Doom 2/masterbase",
         "steamapps/common/Doom 2/finaldoombase",
-        "steamapps/common/final doom/base",
+        "steamapps/common/Final Doom/base",
         "steamapps/common/DOOM 3 BFG Edition/base/wads",
+    };
+
+    private static readonly string[] LinuxDoomDirs = new[]
+    {
+        "/usr/local/share/doom",
+        "/usr/local/share/games/doom",
+        "/usr/share/doom",
+        "/usr/share/games/doom",
+        "/usr/share/games/doom3bfg/base/wads",
     };
 
     private readonly List<string> m_directories;
@@ -23,11 +32,18 @@ public class IWadLocator
     {
         List<string> paths = new() { Directory.GetCurrentDirectory() };
 
-        string steamPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+        var steamPath = GetSteamPath();
+
         if (Directory.Exists(steamPath))
         {
             foreach (var dir in SteamDoomDirs)
                 paths.Add(Path.Combine(steamPath, dir));
+        }
+
+        if (OperatingSystem.IsLinux())
+        {
+            paths.AddRange(LinuxDoomDirs);
+            paths.AddRange(GetLinuxUserPaths());
         }
 
         return new IWadLocator(paths);
@@ -71,5 +87,50 @@ public class IWadLocator
             }
         }
         catch { }
+    }
+
+    private static string? GetSteamPath()
+    {
+        if (OperatingSystem.IsWindows())
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+
+        if (OperatingSystem.IsLinux())
+        {
+            var home = Environment.GetEnvironmentVariable("HOME");
+
+            if (!string.IsNullOrWhiteSpace(home))
+                return $"{home}/.local/share/Steam";
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> GetLinuxUserPaths()
+    {
+        var paths = new List<string>();
+
+        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+
+        if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+            paths.Add($"{xdgConfigHome}/helion");
+
+        var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+        if (!string.IsNullOrWhiteSpace(xdgDataHome))
+        {
+            paths.Add($"{xdgDataHome}/doom");
+            paths.Add($"{xdgDataHome}/games/doom");
+        }
+
+        var home = Environment.GetEnvironmentVariable("HOME");
+
+        if (!string.IsNullOrWhiteSpace(home))
+        {
+            paths.Add($"{home}/.config/helion");
+            paths.Add($"{home}/.local/share/doom");
+            paths.Add($"{home}/.local/share/games/doom");
+        }
+
+        return paths;
     }
 }

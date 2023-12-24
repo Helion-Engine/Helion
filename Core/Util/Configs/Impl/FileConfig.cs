@@ -50,17 +50,13 @@ public class FileConfig : Config
             var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
 
             if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-            {
                 return $"{xdgConfigHome}/helion/{IniFile}";
-            }
 
             // Fallback to "$HOME/.config/helion/config.ini"
             var home = Environment.GetEnvironmentVariable("HOME");
 
             if (!string.IsNullOrWhiteSpace(home))
-            {
                 return $"{home}/.config/helion/{IniFile}";
-            }
         }
 
         return IniFile;
