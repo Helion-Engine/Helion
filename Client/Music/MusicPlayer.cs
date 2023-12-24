@@ -16,6 +16,7 @@ public class MusicPlayer : IMusicPlayer
     private readonly IConfig m_config;
     private IMusicPlayer? m_musicPlayer;
     private string m_lastDataHash = string.Empty;
+    private float m_volume;
     private bool m_disposed;
 
     private Thread? m_thread;
@@ -93,6 +94,7 @@ public class MusicPlayer : IMusicPlayer
     private void PlayThread(object? param)
     {
         var playParams = (PlayParams)param!;
+        m_musicPlayer?.SetVolume(m_volume);
         m_musicPlayer?.Play(playParams.Data, playParams.Loop, false);
     }
 
@@ -120,6 +122,7 @@ public class MusicPlayer : IMusicPlayer
 
     public void SetVolume(float volume)
     {
+        m_volume = volume;
         m_musicPlayer?.SetVolume(volume);
     }
 

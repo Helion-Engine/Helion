@@ -38,6 +38,9 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     public void SetVolume(float volume)
     {
+        if (m_player == null || m_disposed)
+            return;
+
         var setting = m_settings[ConfigurationKeys.SynthGain];
         setting.DoubleValue = volume * setting.DoubleDefault;
     }
@@ -65,7 +68,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         m_lastFile = TempFileManager.GetFile();
         File.WriteAllBytes(m_lastFile, data);
 
-        using (Synth synth = new Synth(m_settings))
+        using (Synth synth = new(m_settings))
         {
             synth.LoadSoundFont(m_soundFontFile, true);
             for (int i = 0; i < 16; i++)
@@ -73,17 +76,16 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
             using (m_player = new Player(synth))
             {
-                using (var adriver = new AudioDriver(synth.Settings, synth))
-                {
-                    if (loop)
-                        m_player.SetLoop(-1);
-                    m_player.Add(m_lastFile);
-                    m_player.Play();
-                    m_player.Join();
-                }
+                using var adriver = new AudioDriver(synth.Settings, synth);
+                if (loop)
+                    m_player.SetLoop(-1);
+                m_player.Add(m_lastFile);
+                m_player.Play();
+                m_player.Join();
             }
         }
 
+        m_player = null;
         return true;
     }
 
