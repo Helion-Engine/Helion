@@ -9,11 +9,11 @@ public class IWadLocator
 {
     private static readonly string[] SteamDoomDirs = new[]
     {
-        "steamapps/common/ultimate doom/base",
-        "steamapps/common/doom 2/base",
+        "steamapps/common/Ultimate Doom/base",
+        "steamapps/common/Doom 2/base",
         "steamapps/common/Doom 2/masterbase",
         "steamapps/common/Doom 2/finaldoombase",
-        "steamapps/common/final doom/base",
+        "steamapps/common/Final Doom/base",
         "steamapps/common/DOOM 3 BFG Edition/base/wads",
     };
 
@@ -23,8 +23,9 @@ public class IWadLocator
     {
         List<string> paths = new() { Directory.GetCurrentDirectory() };
 
-        string steamPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
-        if (Directory.Exists(steamPath))
+        string? steamPath = GetSteamPath();
+
+        if (steamPath != null && Directory.Exists(steamPath))
         {
             foreach (var dir in SteamDoomDirs)
                 paths.Add(Path.Combine(steamPath, dir));
@@ -71,5 +72,32 @@ public class IWadLocator
             }
         }
         catch { }
+    }
+
+    private static string? GetSteamPath()
+    {
+        if (OperatingSystem.IsWindows())
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+
+        // On Linux, default to "$XDG_CONFIG_HOME/.steam/steam"
+        if (OperatingSystem.IsLinux())
+        {
+            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+
+            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+            {
+                return $"{xdgConfigHome}/.steam/steam";
+            }
+
+            // Fallback to "$HOME/.steam/steam"
+            var home = Environment.GetEnvironmentVariable("HOME");
+
+            if (!string.IsNullOrWhiteSpace(home))
+            {
+                return $"{home}/.steam/steam";
+            }
+        }
+
+        return null;
     }
 }
