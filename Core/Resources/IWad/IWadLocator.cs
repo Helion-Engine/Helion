@@ -41,7 +41,10 @@ public class IWadLocator
         }
 
         if (OperatingSystem.IsLinux())
+        {
             paths.AddRange(LinuxDoomDirs);
+            paths.AddRange(GetLinuxUserPaths());
+        }
 
         return new IWadLocator(paths);
     }
@@ -111,5 +114,34 @@ public class IWadLocator
         }
 
         return null;
+    }
+
+    private static IEnumerable<string> GetLinuxUserPaths()
+    {
+        var paths = new List<string>();
+
+        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+
+        if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+            paths.Add($"{xdgConfigHome}/helion");
+
+        var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+        if (!string.IsNullOrWhiteSpace(xdgDataHome))
+        {
+            paths.Add($"{xdgDataHome}/doom");
+            paths.Add($"{xdgDataHome}/games/doom");
+        }
+
+        var home = Environment.GetEnvironmentVariable("HOME");
+
+        if (!string.IsNullOrWhiteSpace(home))
+        {
+            paths.Add($"{home}/.config/helion");
+            paths.Add($"{home}/.local/share/doom");
+            paths.Add($"{home}/.local/share/games/doom");
+        }
+
+        return paths;
     }
 }
