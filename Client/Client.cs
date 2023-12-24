@@ -400,7 +400,7 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = new FluidSynthMusicPlayer(config, $"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+            using IMusicPlayer musicPlayer = new MusicPlayer(config);
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
             audioPlayer.SetVolume(config.Audio.SoundVolume.Value);

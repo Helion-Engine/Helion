@@ -258,13 +258,13 @@ public class SinglePlayerWorld : WorldBase
     public override void Start(WorldModel? worldModel)
     {
         base.Start(worldModel);
-        if (!PlayLevelMusic(AudioSystem, MapInfo.Music, ArchiveCollection))
+        if (!PlayLevelMusic(Config, AudioSystem, MapInfo.Music, ArchiveCollection))
             AudioSystem.Music.Stop();
 
         m_automapMarker.Start(this);
     }
 
-    public static bool PlayLevelMusic(IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
+    public static bool PlayLevelMusic(IConfig config, IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
     {
         if (string.IsNullOrWhiteSpace(entryName))
             return false;
@@ -276,19 +276,13 @@ public class SinglePlayerWorld : WorldBase
             return false;
         }
 
-        byte[] data = entry.ReadData();
-        byte[]? midiData = MusToMidi.Convert(data);
-        if (midiData == null)
-        {
-            Log.Warn("Unable to play music, cannot convert from MUS to MIDI");
-            return false;
-        }
-
-        bool playingSuccess = audioSystem.Music.Play(midiData);
+        bool playingSuccess = audioSystem.Music.Play(entry.ReadData());
+        audioSystem.Music.SetVolume((float)config.Audio.MusicVolume.Value);
         if (!playingSuccess)
             Log.Warn("Unable to play MIDI track through device");
         return playingSuccess;
     }
+
 
     public void HandleMouseMovement(IConsumableInput input)
     {

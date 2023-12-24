@@ -1,9 +1,7 @@
 using System;
 using System.IO;
-using System.Threading;
 using Helion.Audio;
 using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NFluidsynth;
 using static Helion.Util.Assertion.Assert;
@@ -14,11 +12,9 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 {
     private readonly string m_soundFontFile;
     private readonly Settings m_settings;
-    private readonly IConfig m_config;
     private string m_lastDataHash = string.Empty;
     private string m_lastFile = string.Empty;
     private Player? m_player;
-    private Thread? m_thread;
     private bool m_disposed;
 
     private class PlayParams
@@ -27,25 +23,17 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         public bool Loop { get; set; }
     }
 
-    public FluidSynthMusicPlayer(IConfig config, string soundFontFile)
+    public FluidSynthMusicPlayer(string soundFontFile)
     {
-        m_config = config;
         m_soundFontFile = soundFontFile;
         m_settings = new Settings();
         m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
-
-        m_config.Audio.MusicVolume.OnChanged += OnMusicVolumeChange;
     }
 
     ~FluidSynthMusicPlayer()
     {
         FailedToDispose(this);
         PerformDispose();
-    }
-
-    private void OnMusicVolumeChange(object? sender, double newVolume)
-    {
-        SetVolume((float)newVolume);
     }
 
     public void SetVolume(float volume)
@@ -76,16 +64,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         m_lastFile = TempFileManager.GetFile();
         File.WriteAllBytes(m_lastFile, data);
-        m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-        m_thread.Start(new PlayParams() { File = m_lastFile, Loop = loop });
-
-        return true;
-    }
-
-    private void PlayThread(object? param)
-    {
-        if (param is not PlayParams playParams)
-            return;
 
         using (Synth synth = new Synth(m_settings))
         {
@@ -97,23 +75,25 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             {
                 using (var adriver = new AudioDriver(synth.Settings, synth))
                 {
-                    if (playParams.Loop)
+                    if (loop)
                         m_player.SetLoop(-1);
-                    m_player.Add(playParams.File);
+                    m_player.Add(m_lastFile);
                     m_player.Play();
                     m_player.Join();
                 }
             }
         }
 
-        m_player = null;
+        return true;
     }
-
 
     public void Stop()
     {
-        m_player?.Stop();
-        m_thread?.Join();
+        if (m_player == null || m_disposed)
+            return;
+
+        m_player.Stop();
+        m_player = null;
     }
 
     public void Dispose()
@@ -126,8 +106,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     {
         if (m_disposed)
             return;
-
-        m_config.Audio.MusicVolume.OnChanged -= OnMusicVolumeChange;
 
         Stop();
         m_settings.Dispose();

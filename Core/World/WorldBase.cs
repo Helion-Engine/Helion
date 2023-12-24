@@ -1773,7 +1773,7 @@ public abstract class WorldBase : IWorld
             if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
                 return false;
 
-            SinglePlayerWorld.PlayLevelMusic(singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);
+            SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);
             return true;
         }
 
