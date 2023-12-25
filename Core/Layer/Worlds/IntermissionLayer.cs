@@ -119,15 +119,7 @@ public partial class IntermissionLayer : IGameLayer
             return;
         }
 
-        byte[] data = entry.ReadData();
-        byte[]? midiData = MusToMidi.Convert(data);
-        if (midiData == null)
-        {
-            Log.Error($"Unable to convert {musicName} from MUS to MIDI, data is corrupt");
-            return;
-        }
-
-        m_musicPlayer.Play(midiData);
+        m_musicPlayer.Play(entry.ReadData());
     }
 
     public void Dispose()

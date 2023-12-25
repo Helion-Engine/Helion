@@ -12,10 +12,10 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 {
     private readonly string m_soundFontFile;
     private readonly Settings m_settings;
-    private string m_lastDataHash = string.Empty;
     private string m_lastFile = string.Empty;
     private Player? m_player;
     private bool m_disposed;
+    private float m_volume = 1;
 
     private class PlayParams
     {
@@ -38,27 +38,22 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     public void SetVolume(float volume)
     {
+        m_volume = volume;
         if (m_player == null || m_disposed)
             return;
-
-        var setting = m_settings[ConfigurationKeys.SynthGain];
-        setting.DoubleValue = volume * setting.DoubleDefault;
+        SetVolumeInternal();
     }
 
-    public bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true)
+    private void SetVolumeInternal()
+    {
+        var setting = m_settings[ConfigurationKeys.SynthGain];
+        setting.DoubleValue = m_volume * setting.DoubleDefault;
+    }
+
+    public bool Play(byte[] data, MusicPlayerOptions options)
     {
         if (m_disposed)
             return false;
-
-        string? hash = null;
-        if (ignoreAlreadyPlaying)
-        {
-            hash = data.CalculateCrc32();
-            if (hash == m_lastDataHash)
-                return true;
-        }
-
-        m_lastDataHash = hash ?? data.CalculateCrc32();
 
         Stop();
 
@@ -77,8 +72,11 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             using (m_player = new Player(synth))
             {
                 using var adriver = new AudioDriver(synth.Settings, synth);
-                if (loop)
+                if (options.HasFlag(MusicPlayerOptions.Loop))
                     m_player.SetLoop(-1);
+
+                SetVolumeInternal();
+
                 m_player.Add(m_lastFile);
                 m_player.Play();
                 m_player.Join();

@@ -146,14 +146,7 @@ public partial class EndGameLayer : IGameLayer
             return;
         }
 
-        byte[] data = entry.ReadData();
-        // Eventually we'll need to not assume .mus all the time.
-        byte[]? midiData = MusToMidi.Convert(data);
-
-        if (midiData != null)
-            m_musicPlayer.Play(midiData);
-        else
-            Log.Warn($"Cannot decode end game music file: {music}");
+        m_musicPlayer.Play(entry.ReadData());
     }
 
     public void Dispose()

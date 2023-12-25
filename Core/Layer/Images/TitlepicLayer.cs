@@ -49,12 +49,7 @@ public class TitlepicLayer : IGameLayer
         if (entry == null)
             return;
 
-        byte[] data = entry.ReadData();
-        byte[]? convertedData = MusToMidi.Convert(data);
-        if (convertedData == null)
-            return;
-
-        audioSystem.Music.Play(convertedData, loop: false, ignoreAlreadyPlaying: false);
+        audioSystem.Music.Play(entry.ReadData(), MusicPlayerOptions.None);
     }
 
     public void HandleInput(IConsumableInput input)

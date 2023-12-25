@@ -2,6 +2,14 @@ using System;
 
 namespace Helion.Audio;
 
+[Flags]
+public enum MusicPlayerOptions
+{
+    None,
+    Loop = 1,
+    IgnoreAlreadyPlaying = 2
+}
+
 /// <summary>
 /// Plays music from sound file data.
 /// </summary>
@@ -18,12 +26,8 @@ public interface IMusicPlayer : IDisposable
     /// The data to play.
     /// </summary>
     /// <param name="data">The data.</param>
-    /// <param name="loop">True if it should loop, false if not.</param>
-    /// <returns>True if it succeeded and is playing, false if there was an
-    /// error loading or playing the track.</returns>
-    /// <param name="ignoreAlreadyPlaying">If true and the currently playing midi data
-    /// matches then this Play call will be ignored.</param>
-    bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true);
+    /// <param name="options">Player options.</param>
+    bool Play(byte[] data, MusicPlayerOptions options = MusicPlayerOptions.Loop | MusicPlayerOptions.IgnoreAlreadyPlaying);
 
     /// <summary>
     /// Stops playing the music.

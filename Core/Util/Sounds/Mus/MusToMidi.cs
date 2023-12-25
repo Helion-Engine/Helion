@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Helion.Util.Bytes;
 
@@ -26,29 +27,44 @@ public static class MusToMidi
         0, 0, 0, 0
     };
 
-    /// <summary>
-    /// Converts the MUS bytes to MIDI bytes.
-    /// </summary>
-    /// <param name="musData">The MUS data.</param>
-    /// <returns>A new byte array of MIDI data.</returns>
-    public static byte[]? Convert(byte[] musData)
+    public static bool TryConvert(byte[] musData, [NotNullWhen(true)] out byte[]? data)
     {
+        data = null;
+
         if (musData.Length > 3 && musData[0] == 'M' && musData[1] == 'U' && musData[2] == 'S')
         {
             try
             {
-                return ConvertOrThrow(musData);
+                data = ConvertOrThrow(musData);
+                return true;
             }
             catch
             {
-                return null;
+                return false;
             }
         }
 
         if (musData.Length > 4 && musData[0] == 'M' && musData[1] == 'T' && musData[2] == 'h' && musData[3] == 'd')
-            return musData;
+        {
+            data = musData;
+            return true;
+        }
 
-        return null;
+        return false;
+    }
+
+    public static bool TryConvertNoHeader(byte[] musData, [NotNullWhen(true)] out byte[]? data)
+    {
+        data = null;
+        try
+        {
+            data = ConvertOrThrow(musData);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void WriteTime(ref uint queuedTime, BinaryWriter writer)

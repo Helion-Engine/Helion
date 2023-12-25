@@ -4,7 +4,6 @@ using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 
@@ -24,12 +23,12 @@ public class MusicPlayer : IMusicPlayer
     private class PlayParams
     {
         public readonly byte[] Data;
-        public readonly bool Loop;
+        public readonly MusicPlayerOptions Options;
 
-        public PlayParams(byte[] data, bool loop)
+        public PlayParams(byte[] data, MusicPlayerOptions options)
         {
             Data = data;
-            Loop = loop;
+            Options = options;
         }
     }
 
@@ -39,13 +38,13 @@ public class MusicPlayer : IMusicPlayer
         m_config.Audio.MusicVolume.OnChanged += OnMusicVolumeChange;
     }
 
-    public bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true)
+    public bool Play(byte[] data, MusicPlayerOptions options)
     {
         if (m_disposed)
             return false;
 
         string? hash = null;
-        if (ignoreAlreadyPlaying)
+        if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
         {
             hash = data.CalculateCrc32();
             if (hash == m_lastDataHash)
@@ -58,20 +57,29 @@ public class MusicPlayer : IMusicPlayer
         m_musicPlayer?.Dispose();
         m_musicPlayer = null;
 
-        if (GetMidiConversion(data, out var converted))
+        if (MusToMidi.TryConvert(data, out var converted))
         {
-            m_musicPlayer = new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+            m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
-        else if (data.Length > 3 && data[0] == 'O' && data[1] == 'g' && data[2] == 'g')
+        else if (NAudioMusicPlayer.IsOgg(data))
+        {
             m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+        }
         else if (NAudioMusicPlayer.IsMp3(data))
-            m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);            
+        {
+            m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+        }
+        else if (MusToMidi.TryConvertNoHeader(data, out converted))
+        {
+            m_musicPlayer = CreateFluidSynthPlayer();
+            data = converted;
+        }
 
         if (m_musicPlayer != null)
         {
             m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-            m_thread.Start(new PlayParams(data, loop));
+            m_thread.Start(new PlayParams(data, options));
             return true;
         }
 
@@ -79,23 +87,17 @@ public class MusicPlayer : IMusicPlayer
         return false;
     }
 
-    private static bool GetMidiConversion(byte[] data, [NotNullWhen(true)] out byte[]? converted)
-    {
-        if (data.Length > 4 && data[0] == 'M' && data[1] == 'T' && data[2] == 'h' && data[3] == 'd')
-        {
-            converted = data;
-            return true;
-        }
-
-        converted = MusToMidi.Convert(data);
-        return converted != null;
-    }
+    private static IMusicPlayer CreateFluidSynthPlayer() => 
+        new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
 
     private void PlayThread(object? param)
     {
+        if (m_musicPlayer == null)
+            return;
+
         var playParams = (PlayParams)param!;
-        m_musicPlayer?.SetVolume(m_volume);
-        m_musicPlayer?.Play(playParams.Data, playParams.Loop, false);
+        m_musicPlayer.SetVolume(m_volume);
+        m_musicPlayer.Play(playParams.Data, playParams.Options);
     }
 
     private void OnMusicVolumeChange(object? sender, double newVolume)

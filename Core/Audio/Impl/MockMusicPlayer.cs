@@ -9,7 +9,7 @@ namespace Helion.Audio.Impl
 
         }
 
-        public bool Play(byte[] data, bool loop = true, bool ignoreAlreadyPlaying = true)
+        public bool Play(byte[] data, MusicPlayerOptions options)
         {
             return true;
         }
