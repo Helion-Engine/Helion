@@ -32,6 +32,7 @@ public class TextureManager : ITickable
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
+    private readonly bool m_cacheAllSprites;
 
     public event EventHandler<AnimationEvent>? AnimationChanged;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
@@ -49,9 +50,10 @@ public class TextureManager : ITickable
         SkyTextureName = "SKY1";
     }
 
-    public TextureManager(ArchiveCollection archiveCollection, bool unitTest = false)
+    public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, bool unitTest = false)
     {
         m_archiveCollection = archiveCollection;
+        m_cacheAllSprites = cacheAllSprites;
         m_unitTest = unitTest;
 
         // Needs to be in ascending order for boom animated to work correctly, since it functions on lump index ranges.
@@ -74,6 +76,9 @@ public class TextureManager : ITickable
         InitAnimations();
         InitSwitches();
         MapSpriteIndexToEntries(spriteEntries, spriteNames);
+
+        if (m_cacheAllSprites)
+            InitSprites(spriteNames, spriteEntries);
     }
 
     private void MapSpriteIndexToEntries(List<Entry> spriteEntries, List<string> spriteNames)
@@ -87,6 +92,9 @@ public class TextureManager : ITickable
 
     public void InitSprites(IWorld world)
     {
+        if (m_cacheAllSprites)
+            return;
+
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             if (m_processedEntityDefinitions.Contains(entity.Definition.Id))
@@ -103,6 +111,22 @@ public class TextureManager : ITickable
             LoadSprite(def.SeeState);
             LoadSprite(def.PainState);
             LoadSprite(def.HealState);
+        }
+
+        m_processedEntityDefinitions.Clear();
+    }
+
+    private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
+    {
+        SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
+        foreach (var spriteName in spriteNames)
+        {
+            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
+            int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
+            if (spriteIndex >= SpriteDefinitions.Capacity)
+                SpriteDefinitions.Resize(spriteIndex + 32);
+
+            GetSpriteDefinition(spriteIndex);
         }
     }
 

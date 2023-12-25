@@ -74,6 +74,10 @@ public class ConfigRender
     [ConfigInfo("The multisampling amount. A value of 1 is the same as being off.")]
     public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
 
+    [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Cache all sprites")]
+    public readonly ConfigValue<bool> CacheSprites = new(true);
+
     [ConfigInfo("If any sprite should clip the floor.")]
     [OptionMenu(OptionSectionType.Render, "Sprite floor clip", spacer: true)]
     public readonly ConfigValue<bool> SpriteClip = new(true);

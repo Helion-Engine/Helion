@@ -101,7 +101,7 @@ public class ArchiveCollection : IResources
     {
         if (unitTest)
         {
-            TextureManager = new TextureManager(this, unitTest);
+            TextureManager = new TextureManager(this, m_config.Render.CacheSprites, unitTest);
             SetTextureManagerSky(mapInfo);
             return;
         }
@@ -112,7 +112,7 @@ public class ArchiveCollection : IResources
             return;
         }
 
-        TextureManager = new TextureManager(this, unitTest);
+        TextureManager = new TextureManager(this, m_config.Render.CacheSprites, unitTest);
         SetTextureManagerSky(mapInfo);
         m_initTextureManager = true;
     }
