@@ -1016,10 +1016,13 @@ public abstract class WorldBase : IWorld
         if (projectile.Flags.Randomize)
             projectile.SetRandomizeTicks();
 
-        if (projectile.Flags.NoClip)
-            return projectile;
-
         Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.MissileMovementSpeed;
+        if (projectile.Flags.NoClip)
+        {
+            projectile.Velocity = velocity;
+            return projectile;
+        }
+        
         Vec3D testPos = projectile.Position;
         if (projectile.Properties.MissileMovementSpeed > 0)
             testPos += Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0);
