@@ -759,13 +759,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool ShouldApplyFriction()
     {
-        if (Flags.MbfBouncer && Flags.NoGravity)
+        if (Flags.NoGravity)
             return false;
 
         if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
             return false;
 
-        return Flags.NoGravity || OnGround;
+        return OnGround;
     }
 
     /// <summary>
