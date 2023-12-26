@@ -22,6 +22,7 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special;
 using NLog;
+using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.World.Entities.Definition.States;
 
@@ -1848,8 +1849,14 @@ public static class EntityActionFunctions
             player.Refire = false;
         }
 
-        if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 &&
-            player.Weapon.FrameState.IsState(Constants.FrameStates.Ready))
+        bool playReadySound;
+        // If using dehacked then use hard-coded vanilla frame index check
+        if (WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition != null)
+            playReadySound = player.Weapon.FrameState.Frame.VanillaIndex == (int)ThingState.SAW;
+        else
+            playReadySound = player.Weapon.FrameState.IsState(Constants.FrameStates.Ready);
+
+        if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && playReadySound)
         {
             WorldStatic.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
                 new SoundParams(entity, channel: entity.WeaponSoundChannel));
