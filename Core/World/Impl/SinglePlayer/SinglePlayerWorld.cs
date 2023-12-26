@@ -123,6 +123,7 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.Invisible = true;
         ChaseCamPlayer.Flags.NoClip = true;
         ChaseCamPlayer.Flags.NoGravity = true;
+        ChaseCamPlayer.Flags.Fly = true;
         ChaseCamPlayer.Flags.NoBlockmap = true;
         ChaseCamPlayer.Flags.NoSector = true;
 

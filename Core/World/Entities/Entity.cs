@@ -759,13 +759,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool ShouldApplyFriction()
     {
-        if (Flags.NoGravity)
-            return false;
-
         if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
             return false;
 
-        return OnGround;
+        // Need to apply friction for player fly
+        return OnGround || Flags.Fly;
     }
 
     /// <summary>
