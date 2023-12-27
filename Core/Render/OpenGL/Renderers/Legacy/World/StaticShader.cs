@@ -7,19 +7,37 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class StaticShader : RenderProgram
 {
+    private readonly int m_boundTextureLocation;
+    private readonly int m_sectorLightTextureLocation;
+    private readonly int m_cameraLocation;
+    private readonly int m_mvpLocation;
+    private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_mvpNoPitchLocation;
+    private readonly int m_lightLevelMixLocation;
+    private readonly int m_extraLightLocation;
+    private readonly int m_distanceOffsetLocation;
+
     public StaticShader() : base("WorldStatic")
     {
+        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
+        m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
+        m_extraLightLocation = Uniforms.GetLocation("extraLight");
+        m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
-    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, "sectorLightTexture");
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
 
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, "mvpNoPitch");
-    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, "lightLevelMix");
-    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, "extraLight");
-    public void DistanceOffset(float distance) => Uniforms.Set(distance, "distanceOffset");
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
+    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
+    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
+    public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
 
     protected override string VertexShader() => @"
         #version 330

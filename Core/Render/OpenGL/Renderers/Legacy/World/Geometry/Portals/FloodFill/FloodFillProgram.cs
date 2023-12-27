@@ -9,6 +9,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill
 public class FloodFillProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_sectorLightTextureLocation;
     private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
@@ -21,6 +22,7 @@ public class FloodFillProgram : RenderProgram
     public FloodFillProgram() : base("Flood fill plane")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
@@ -32,7 +34,7 @@ public class FloodFillProgram : RenderProgram
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, "sectorLightTexture");
+    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
 
     public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);

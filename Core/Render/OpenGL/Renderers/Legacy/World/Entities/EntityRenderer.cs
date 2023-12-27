@@ -225,6 +225,7 @@ public class EntityRenderer : IDisposable
         m_program.FuzzFrac(fuzzFrac);
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
+        m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
     }
 
     public void RenderAlpha(RenderInfo renderInfo)
