@@ -27,6 +27,7 @@ public class FloodFillProgram : RenderProgram
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
+        m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
     }
 
@@ -111,10 +112,10 @@ public class FloodFillProgram : RenderProgram
             vec2 uv = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
 
             uv.y = -uv.y; // Vanilla textures are drawn top-down.
-            fragColor = texture(boundTexture, uv);
 
             float dist = (mvpNoPitch * vec4(planePos, 1.0)).z;
             ${LightLevelFragFunction}
+            fragColor = texture(boundTexture, uv);
             fragColor.xyz *= lightLevel;
 
             // If invulnerable, grayscale everything and crank the brightness.
