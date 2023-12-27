@@ -222,6 +222,7 @@ public class FloodFillRenderer : IDisposable
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.LightLevelMix(mix);
         m_program.ExtraLight(extraLight);
+        m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {
