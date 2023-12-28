@@ -24,6 +24,7 @@ using static Helion.World.Entities.EntityManager;
 using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
+using Helion.World.Entities.Inventories.Powerups;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -31,6 +32,7 @@ public class SinglePlayerWorld : WorldBase
 {
     private static int StaticId;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly CheatType[] ChaseCameraCheats = new[] { CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings };
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
 
@@ -369,7 +371,7 @@ public class SinglePlayerWorld : WorldBase
     }
 
     public override void ToggleChaseCameraMode()
-    {
+    {       
         m_chaseCamMode = !m_chaseCamMode;
         string activated = m_chaseCamMode ? "activated" : "deactivated";
         Log.Info($"Chase camera {activated}.");
@@ -382,6 +384,17 @@ public class SinglePlayerWorld : WorldBase
             ChaseCamPlayer.AngleRadians = Player.AngleRadians;
             ChaseCamPlayer.PitchRadians = Player.PitchRadians;
             ChaseCamPlayer.Velocity = Vec3D.Zero;
+            ChaseCamPlayer.Cheats.ClearCheats();
+
+            foreach (CheatType cheat in ChaseCameraCheats)
+            {
+                if (Player.Cheats.IsCheatActive(cheat))
+                    ChaseCamPlayer.Cheats.SetCheatActive(cheat);
+            }
+
+            if (Player.Inventory.IsPowerupActive(PowerupType.ComputerAreaMap))
+                ChaseCamPlayer.Cheats.SetCheatActive(CheatType.AutoMapModeShowAllLines);
+
             ChaseCamPlayer.ResetInterpolation();
 
             if (PlayingDemo)
