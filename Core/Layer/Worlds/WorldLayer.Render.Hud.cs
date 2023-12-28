@@ -313,12 +313,15 @@ public partial class WorldLayer
         if (!m_drawAutomap && m_config.Hud.Crosshair)
             DrawCrosshair(hud);
 
-        switch (m_config.Hud.StatusBarSize.Value)
+        m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
+        switch (m_statusBarSizeType)
         {
             case StatusBarSizeType.Minimal:
                 DrawMinimalStatusBar(hud, topRightY);
                 break;
-            case StatusBarSizeType.Full:
+            case StatusBarSizeType.Hidden:
+                break;
+            default:
                 DrawFullStatusBar(hud);
                 break;
         }
@@ -641,11 +644,12 @@ public partial class WorldLayer
     private void DrawFullStatusBar(IHudRenderContext hud)
     {
         const string StatusBar = "STBAR";
-
-        if (hud.Textures.TryGet(StatusBar, out var statusBarHandle))
-            DrawStatusBarBackground(hud, statusBarHandle);
-
-        hud.RenderStatusBar(StatusBar);
+        if (m_statusBarSizeType == StatusBarSizeType.Full)
+        {
+            if (hud.Textures.TryGet(StatusBar, out var statusBarHandle))
+                DrawStatusBarBackground(hud, statusBarHandle);
+            hud.RenderStatusBar(StatusBar);
+        }
 
         hud.DoomVirtualResolution(m_virtualDrawFullStatusBarAction, hud);
     }
@@ -656,7 +660,8 @@ public partial class WorldLayer
         const int FullHudFaceY = 170;
         DrawFullHudHealthArmorAmmo(hud);
         DrawFullHudWeaponSlots(hud);
-        hud.Image(Player.StatusBar.GetFacePatch(), (FullHudFaceX, FullHudFaceY));
+        if (m_statusBarSizeType == StatusBarSizeType.Full)
+            hud.Image(Player.StatusBar.GetFacePatch(), (FullHudFaceX, FullHudFaceY));
         DrawFullHudKeys(hud);
         DrawFullTotalAmmo(hud);
     }
@@ -728,7 +733,8 @@ public partial class WorldLayer
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
     {
-        hud.Image("STARMS", (104, 0), both: Align.BottomLeft);
+        if (m_statusBarSizeType ==  StatusBarSizeType.Full)
+            hud.Image("STARMS", (104, 0), both: Align.BottomLeft);
 
         for (int slot = 2; slot <= 7; slot++)
             DrawWeaponNumber(hud, slot);

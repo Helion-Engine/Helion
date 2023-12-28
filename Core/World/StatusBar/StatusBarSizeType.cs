@@ -4,5 +4,6 @@ public enum StatusBarSizeType
 {
     Hidden,
     Minimal,
+    FullNoBackground,
     Full
 }
