@@ -83,7 +83,7 @@ public class MusicPlayer : IMusicPlayer
             return true;
         }
 
-        Log.Info("Unknown/unsupported music format");
+        Log.Warn("Unknown/unsupported music format");
         return false;
     }
 

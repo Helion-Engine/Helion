@@ -281,11 +281,8 @@ public class SinglePlayerWorld : WorldBase
 
         bool playingSuccess = audioSystem.Music.Play(entry.ReadData());
         audioSystem.Music.SetVolume((float)config.Audio.MusicVolume.Value);
-        if (!playingSuccess)
-            Log.Warn("Unable to play MIDI track through device");
         return playingSuccess;
     }
-
 
     public void HandleMouseMovement(IConsumableInput input)
     {
