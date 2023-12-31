@@ -71,6 +71,7 @@ public class ArchiveCollection : IResources
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
+    public IConfig Config => m_config;
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();
     public DataEntries Data = new();
