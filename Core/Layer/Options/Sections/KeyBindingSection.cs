@@ -10,6 +10,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Impl;
@@ -44,6 +45,16 @@ public class KeyBindingSection : IOptionSection
             Keys = keys;
         }
     }
+
+    private static readonly Dictionary<string, string> RemapNames = new()
+    {
+        { Constants.Input.AutoMapIncrease, "AutoMap Zoom In" },
+        { Constants.Input.AutoMapDecrease, "AutoMap Zoom Out" },
+        { Constants.Input.AutoMapUp, "AutoMap Up" },
+        { Constants.Input.AutoMapDown, "AutoMap Down" },
+        { Constants.Input.AutoMapLeft, "AutoMap Left" },
+        { Constants.Input.AutoMapRight, "AutoMap Right" },
+    };
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     
@@ -129,7 +140,9 @@ public class KeyBindingSection : IOptionSection
         if (string.IsNullOrWhiteSpace(command) || m_mappedCommands.Contains(command))
             return;
 
-        string name = command.WithWordSpaces(m_builder);
+        if (!RemapNames.TryGetValue(command, out var name))
+            name = command.WithWordSpaces(m_builder);
+
         m_commandToKeys.Add(new(command, name));
         m_mappedCommands.Add(command);
     }
