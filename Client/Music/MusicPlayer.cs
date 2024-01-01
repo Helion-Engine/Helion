@@ -5,6 +5,7 @@ using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Helion.Client.Music;
@@ -62,13 +63,18 @@ public class MusicPlayer : IMusicPlayer
             m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
-        else if (NAudioMusicPlayer.IsOgg(data))
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
-        }
-        else if (NAudioMusicPlayer.IsMp3(data))
-        {
-            m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+            // Ogg/mp3 currently only works in Windows
+            if (NAudioMusicPlayer.IsOgg(data))
+            {
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+            }
+            else if (NAudioMusicPlayer.IsMp3(data))
+            {
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+            }
+
         }
         else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
