@@ -110,8 +110,4 @@ public class ConfigRender
     [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render null textures")]
     public readonly ConfigValue<bool> NullTexture = new(false);
-
-    [ConfigInfo("Sky render mode.")]
-    [OptionMenu(OptionSectionType.Render, "Sky mode")]
-    public readonly ConfigValue<SkyRenderMode> SkyMode = new(SkyRenderMode.Normal);
 }
