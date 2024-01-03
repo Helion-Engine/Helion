@@ -542,7 +542,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (update)
         {
             UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.Index,
-                renderedVertices, renderPlane, null, null, true);
+                renderedVertices, plane, null, null, true);
             return;
         }
 
