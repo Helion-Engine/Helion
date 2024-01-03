@@ -667,18 +667,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Clear();
     }
 
-    private unsafe void UpdateTransferLight(int sectorId, float lightLevel, bool floor, LookupArray<List<Sector>?> lookup,
-        GLMappedBuffer<float> lightBuffer)
-    {
-        return;
-        if (!lookup.TryGetValue(sectorId, out var sectors))
-            return;
-
-        var lightBufferType = floor ? LightBufferType.Floor : LightBufferType.Ceiling;
-        for (int i = 0; i < sectors.Count; i++)
-            lightBuffer[GetLightBufferIndex(sectors[i], lightBufferType)] = lightLevel;
-    }
-
     public void RenderSkies(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);
