@@ -89,6 +89,59 @@ namespace Helion.Tests.Unit.GameAction
             RunEntityDisposed(rocket);
         }
 
+        [Fact(DisplayName = "Missile hits non-solid and shootable")]
+        public void MissileNonSolidShootable()
+        {
+            var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
+            entity.Flags.Solid = false;
+            var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
+            rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
+            rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
+
+            RunMissileExplode(rocket);
+            rocket.Position.Should().Be(new Vec3D(1920, 960, 32));
+            rocket.BlockingEntity.Should().Be(entity);
+            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
+
+            RunEntityDisposed(rocket);
+        }
+
+        [Fact(DisplayName = "Missile hits non-shootable and solid")]
+        public void MissileNonShootableSolid()
+        {
+            var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
+            entity.Flags.Shootable = false;
+            var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
+            rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
+            rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
+
+            RunMissileExplode(rocket);
+            rocket.Position.Should().Be(new Vec3D(1920, 960, 32));
+            rocket.BlockingEntity.Should().Be(entity);
+            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
+
+            RunEntityDisposed(rocket);
+        }
+
+        [Fact(DisplayName = "Missile hits non-shootable non-solid special")]
+        public void MissileNonShootableNonSolidSpecial()
+        {
+            var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
+            entity.Flags.Solid = false;
+            entity.Flags.Shootable = false;
+            entity.Flags.Special = true;
+            var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
+            rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
+            rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
+
+            RunMissileExplode(rocket);
+            rocket.Position.Should().Be(new Vec3D(1920, 960, 32));
+            rocket.BlockingEntity.Should().Be(entity);
+            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
+
+            RunEntityDisposed(rocket);
+        }
+
         [Fact(DisplayName = "Missile hits entity feet")]
         public void MissileHitsEntityFeet()
         {
