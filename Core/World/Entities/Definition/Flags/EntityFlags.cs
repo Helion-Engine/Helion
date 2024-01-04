@@ -8,6 +8,7 @@ public struct EntityFlags
     public static readonly int NumFlags = Enum.GetValues(typeof(EntityFlag)).Length;
     public static readonly int SpecialFlag = FlagValue.Flag1;
     public static readonly int SolidFlag = FlagValue.Flag2;
+    public static readonly int ShootableFlag = FlagValue.Flag3;
 
     public int Flags1;
     public int Flags2;

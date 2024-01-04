@@ -1070,7 +1070,7 @@ public class PhysicsManager
         LinkToWorld(entity);
     }
 
-    private static readonly int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag;
+    private static readonly int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
 
     public unsafe bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
     {

@@ -732,11 +732,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool CanBlockEntity(Entity other)
     {
-        if (Id == other.Id || Owner.Entity == other || !other.Flags.Solid || other.Flags.NoClip)
+        if (Id == other.Id || Owner.Entity == other || other.Flags.NoClip)
             return false;
 
         if (Flags.Ripper)
             return false;
+
+        // Ignore solid checks for missiles
+        if (Flags.Missile)
+            return true;
 
         return other.Flags.Solid;
     }
