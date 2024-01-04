@@ -122,8 +122,6 @@ sightTraverseEndOfLoop:
                     continue;
                 if (!entity.Flags.Shootable)
                     continue;
-                if (!entity.Flags.Solid)
-                    continue;
 
                 entity.BlockmapCount = checkCounter;
                 if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
