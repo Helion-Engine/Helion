@@ -34,6 +34,7 @@ public class LoadingLayer : IGameLayer
     private int m_spinner;
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
+    public bool ShowSpinner { get; set; } = true;
 
     private readonly IGameLayerManager m_layerManager;
 
@@ -88,8 +89,9 @@ public class LoadingLayer : IGameLayer
             m_spinner = ++m_spinner % Spinner.Length;
             m_stopwatch.Restart();
         }
-                
-        hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
+        
+        if (ShowSpinner)
+            hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)

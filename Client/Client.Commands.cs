@@ -650,6 +650,10 @@ public partial class Client
         m_layerManager.Remove(m_layerManager.WorldLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
+        // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
+        if (m_layerManager.LoadingLayer != null)
+            m_layerManager.LoadingLayer.ShowSpinner = false;
+
         WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
             players.FirstOrDefault(), worldModel, random);
