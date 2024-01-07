@@ -134,7 +134,6 @@ public abstract class WorldBase : IWorld
     private int m_easyBossBrain;
     private int m_soundCount;
     private int m_lastBumpActivateGametick;
-    private int m_exitGametick;
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
@@ -466,11 +465,11 @@ public abstract class WorldBase : IWorld
 
         if (WorldState == WorldState.Exit)
         {
+            if (m_exitTicks == ExitTicks)
+                ResetInterpolation();
+
             SoundManager.Tick();
             m_exitTicks--;
-
-            if (m_exitGametick == Gametick - 1)
-                ResetInterpolation();
 
             if (m_exitTicks <= 0)
             {
@@ -798,6 +797,8 @@ public abstract class WorldBase : IWorld
         GC.SuppressFinalize(this);
     }
 
+    const int ExitTicks = 15;
+
     public void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None)
     {
         SoundManager.ClearSounds();
@@ -806,8 +807,7 @@ public abstract class WorldBase : IWorld
         WorldState = WorldState.Exit;
         // The exit ticks thing is fudge. Change random to secondary to not break demos later.
         m_random = SecondaryRandom;
-        m_exitTicks = 15;
-        m_exitGametick = Gametick;
+        m_exitTicks = ExitTicks;
     }
 
     public Entity[] GetBossTargets()
