@@ -1,5 +1,6 @@
 using Helion.Models;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
 
@@ -9,10 +10,10 @@ public class DoorOpenCloseSpecial : SectorMoveSpecial
 {
     public int Key { get; private set; }
 
-    public DoorOpenCloseSpecial(IWorld world, Sector sector, double dest, double speed, int delay, int key = -1)
+    public DoorOpenCloseSpecial(IWorld world, Sector sector, double dest, double speed, int delay, int key = -1, int lightTag = 0)
         : base(world, sector, sector.Floor.Z, dest,
               new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, 
-                flags: SectorMoveFlags.Door), SpecialManager.GetDoorSound(speed))
+                flags: SectorMoveFlags.Door, lightTag: lightTag), SpecialManager.GetDoorSound(speed))
     {
         Key = key;
     }

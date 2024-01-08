@@ -40,6 +40,7 @@ public class SectorMoveSpecialModel : ISpecialModel
     public bool PlayedReturnSound { get; set; }
     public bool PlayedStartSound { get; set; }
     public bool Paused { get; set; }
+    public int? LightTag { get; set; }
 
     public virtual ISpecial? ToWorldSpecial(IWorld world)
     {

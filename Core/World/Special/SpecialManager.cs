@@ -330,17 +330,18 @@ public class SpecialManager : ITickable, IDisposable
             MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), liftSound ? LiftSound : PlatSound);
     }
 
-    public SectorMoveSpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay)
+    public SectorMoveSpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay);
+        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, lightTag: lightTag);
     }
 
-    public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay)
+    public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, flags: SectorMoveFlags.Door), GetDoorSound(speed, true));
+            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, 
+            flags: SectorMoveFlags.Door, lightTag: lightTag), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
@@ -349,17 +350,18 @@ public class SpecialManager : ITickable, IDisposable
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
     }
 
-    public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed)
+    public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0);
+        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0, lightTag: lightTag);
     }
 
-    public SectorMoveSpecial CreateDoorCloseSpecial(Sector sector, double speed)
+    public SectorMoveSpecial CreateDoorCloseSpecial(Sector sector, double speed, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
         return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, MoveRepetition.None, speed, 0, flags: SectorMoveFlags.Door), GetDoorSound(speed, true));
+            MoveDirection.Down, MoveRepetition.None, speed, 0, 
+            flags: SectorMoveFlags.Door, lightTag: lightTag), GetDoorSound(speed, true));
     }
 
     public ISpecial CreateFloorLowerSpecial(Sector sector, SectorDest sectorDest, double speed, int adjust = 0, LineSpecialCompatibility? compat = null)
@@ -1437,12 +1439,14 @@ public class SpecialManager : ITickable, IDisposable
     {
         double speed = line.Args.Arg1 * SpeedFactor;
         int delay = GetOtics(line.Args.Arg3);
-        return ((ZDoomDoorKind)line.Args.Arg2) switch
+        int lightTag = (line.Args.Arg2 & (int)ZDoomDoorKind.LightTag) == 0 ? 0 : line.Args.Arg0;
+        var kind = (ZDoomDoorKind)(line.Args.Arg2 & 0x3);
+        return (kind) switch
         {
-            ZDoomDoorKind.OpenDelayClose => CreateDoorOpenCloseSpecial(sector, speed, delay),
-            ZDoomDoorKind.OpenStay => CreateDoorOpenStaySpecial(sector, speed),
-            ZDoomDoorKind.CloseDelayOpen => CreateDoorCloseOpenSpecial(sector, speed, delay),
-            ZDoomDoorKind.CloseStay => CreateDoorCloseSpecial(sector, speed),
+            ZDoomDoorKind.OpenDelayClose => CreateDoorOpenCloseSpecial(sector, speed, delay, lightTag),
+            ZDoomDoorKind.OpenStay => CreateDoorOpenStaySpecial(sector, speed, lightTag),
+            ZDoomDoorKind.CloseDelayOpen => CreateDoorCloseOpenSpecial(sector, speed, delay, lightTag),
+            ZDoomDoorKind.CloseStay => CreateDoorCloseSpecial(sector, speed, lightTag),
             _ => null,
         };
     }

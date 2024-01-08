@@ -1,4 +1,5 @@
 using Helion.Maps.Specials;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 
@@ -19,6 +20,7 @@ public readonly struct SectorMoveData
     public readonly SectorMoveFlags Flags;
     public readonly SectorEffect? SectorEffect;
     public readonly InstantKillEffect? KillEffect;
+    public readonly int LightTag;
 
     public const int InstantToggleSpeed = int.MaxValue;
 
@@ -30,7 +32,8 @@ public readonly struct SectorMoveData
         double? returnSpeed = null,
         SectorMoveFlags flags = SectorMoveFlags.None,
         SectorEffect? sectorEffect = null,
-        InstantKillEffect? killEffect = null)
+        InstantKillEffect? killEffect = null,
+        int lightTag = 0)
     {
         SectorMoveType = moveType;
         StartDirection = startDirection;
@@ -45,5 +48,6 @@ public readonly struct SectorMoveData
         Flags = flags;
         SectorEffect = sectorEffect;
         KillEffect = killEffect;
+        LightTag = lightTag;
     }
 }

@@ -5,5 +5,7 @@ public enum ZDoomDoorKind
     OpenDelayClose,
     OpenStay,
     CloseDelayOpen,
-    CloseStay
+    CloseStay,
+    DisableRetrigger = 64,
+    LightTag = 128
 }

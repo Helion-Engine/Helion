@@ -109,7 +109,7 @@ public static class BoomLineSpecTranslator
         else if (special >= DoorBase)
         {
             type = ZDoomLineSpecialType.DoorGeneric;
-            SetGenericDoor(special, ref argsToMutate, ref lineFlags);
+            SetGenericDoor(special, tag, lineActivationType, ref argsToMutate, ref lineFlags);
         }
         else if (special >= LockedBase)
         {
@@ -200,16 +200,18 @@ public static class BoomLineSpecTranslator
         argsToMutate.Arg3 = ((special & LiftTargetMask) >> LiftTargetShift) + 1;
     }
 
-    private static void SetGenericDoor(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
+    private static void SetGenericDoor(ushort special, int tag, LineActivationType lineActivationType, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         if ((special & DoorMonsterMask) != 0)
             lineFlags.Activations |= LineActivations.Monster;
 
-        // Arg1 = Speed, Arg2 = Kind, Arg3 = Delay
+        // Arg1 = Speed, Arg2 = Kind, Arg3 = Delay   
         argsToMutate.Arg1 = GetDoorSpeed(special);
         // ZDoomDoorKind
         argsToMutate.Arg2 = (special & DoorKindMask) >> DoorKindShift;
         argsToMutate.Arg3 = GetDoorDelay(special);
+        if (tag > 0 && lineActivationType == LineActivationType.BackSide)
+            argsToMutate.Arg2 += (int)ZDoomDoorKind.LightTag;
     }
 
     private static void SetGenericDoorLock(ushort special, ref SpecialArgs argsToMutate)

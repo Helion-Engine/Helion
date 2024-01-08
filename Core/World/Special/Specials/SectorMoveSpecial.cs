@@ -4,6 +4,7 @@ using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.World.Entities;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
@@ -83,7 +84,8 @@ public class SectorMoveSpecial : ISectorSpecial
             ceilingChangeTextureHandle: model.CeilingChange,
             damageSpecial: model.DamageSpecial?.ToWorldSpecial(world),
             returnSpeed: model.ReturnSpeed,
-            flags: (SectorMoveFlags)model.Flags);
+            flags: (SectorMoveFlags)model.Flags,
+            lightTag: model.LightTag ?? 0);
         SoundData = new SectorSoundData(model.StartSound, model.ReturnSound, model.StopSound, model.MovementSound);
         SectorPlane = MoveData.SectorMoveType == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
         m_startZ = model.StartZ;
@@ -167,6 +169,7 @@ public class SectorMoveSpecial : ISectorSpecial
             Paused = IsPaused,
             DamageSpecial = CreateSectorDamageSpecialModel(),
             Crush = CreateCrushDataModel(),
+            LightTag = MoveData.LightTag > 0 ? MoveData.LightTag : null
         };
     }
 
@@ -225,6 +228,9 @@ public class SectorMoveSpecial : ISectorSpecial
 
         if (MoveStatus == SectorMoveStatus.BlockedAndStop)
             DestZ = SectorPlane.Z;
+
+        if (MoveData.LightTag > 0)
+            DoorLight.UpdateLight(m_world, MoveData.LightTag, m_maxZ, m_minZ, Sector.Ceiling.Z);
 
         CheckPlaySound();
 
