@@ -19,6 +19,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_extraLightLocation;
     private readonly int m_viewRightNormalLocation;
     private readonly int m_distanceOffsetLocation;
+    private readonly int m_colorMixLocation;
 
     public EntityProgram() : base("Entity")
     {
@@ -32,6 +33,7 @@ public class EntityProgram : RenderProgram
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
         //m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
+        m_colorMixLocation = Uniforms.GetLocation("colorMix");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -44,6 +46,7 @@ public class EntityProgram : RenderProgram
     public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, m_viewRightNormalLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
+    public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -167,6 +170,7 @@ public class EntityProgram : RenderProgram
         uniform sampler2D boundTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
+        uniform vec3 colorMix;
 
         // These two functions are found here:
         // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -206,6 +210,8 @@ public class EntityProgram : RenderProgram
 
             if (fragColor.w <= 0.0)
                 discard;
+
+            fragColor.xyz *= min(colorMix, 1);
 
             // If invulnerable, grayscale everything and crank the brightness.
             // Note: The 1.5x is a visual guess to make it look closer to vanilla.

@@ -1,3 +1,4 @@
+using Helion.Graphics.Palettes;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Static;

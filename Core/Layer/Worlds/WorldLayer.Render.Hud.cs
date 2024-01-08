@@ -6,6 +6,8 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
+using Helion.Graphics.Palettes;
+using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
@@ -347,7 +349,13 @@ public partial class WorldLayer
             lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
-        Color lightLevelColor = ((byte)lightLevel, (byte)lightLevel, (byte)lightLevel);
+        var camera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
+        var colorMix = Renderer.GetColorMix(Player, camera);
+
+        Color lightLevelColor = ((byte)(Math.Min(lightLevel * colorMix.X, 255)), 
+            (byte)(Math.Min(lightLevel * colorMix.Y, 255)), 
+            (byte)(Math.Min(lightLevel * colorMix.Z, 255)));
+
         string sprite = GetHudWeaponSpriteString(frameState, flash);
 
         if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))

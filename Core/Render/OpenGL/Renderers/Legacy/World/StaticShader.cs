@@ -1,4 +1,5 @@
 ﻿using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
@@ -16,6 +17,7 @@ public class StaticShader : RenderProgram
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
     private readonly int m_distanceOffsetLocation;
+    private readonly int m_colorMixLocation;
 
     public StaticShader() : base("WorldStatic")
     {
@@ -27,6 +29,7 @@ public class StaticShader : RenderProgram
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
+        m_colorMixLocation = Uniforms.GetLocation("colorMix");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -38,6 +41,7 @@ public class StaticShader : RenderProgram
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
+    public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -88,6 +92,7 @@ public class StaticShader : RenderProgram
 
         uniform int hasInvulnerability;
         uniform sampler2D boundTexture;
+        uniform vec3 colorMix;
 
         ${LightLevelFragVariables}        
         ${LightLevelConstants}
@@ -103,6 +108,8 @@ public class StaticShader : RenderProgram
 
             if (fragColor.w <= 0.0)
                 discard;
+
+            fragColor.xyz *= min(colorMix, 1);
 
             // If invulnerable, grayscale everything and crank the brightness.
             // Note: The 1.5x is a visual guess to make it look closer to vanilla.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GlmSharp;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -195,37 +196,19 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(RenderInfo renderInfo)
     {
-        const int TicksPerFrame = 4;
-        const int DifferentFrames = 8;
-        
-        mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
-        mat4 mvpNoPitch = Renderer.CalculateMvpMatrix(renderInfo, true);
-        float fuzzFrac = (((WorldStatic.World.GameTicker / TicksPerFrame) % DifferentFrames)) + 1;
-        bool drawInvulnerability = false;
-        int extraLight = 0;
-        float mix = 0.0f;
-
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-        {
-            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
-                mix = 1.0f;
-            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
-                drawInvulnerability = true;
-
-            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
-        }
-
+        var uniforms = Renderer.GetShaderUniforms(renderInfo);
         SetViewDirection(renderInfo.Camera.Direction.XY.Double);
         m_program.BoundTexture(TextureUnit.Texture0);
-        m_program.ExtraLight(extraLight);
-        m_program.HasInvulnerability(drawInvulnerability);
-        m_program.LightLevelMix(mix);
-        m_program.Mvp(mvp);
-        m_program.MvpNoPitch(mvpNoPitch);
-        m_program.FuzzFrac(fuzzFrac);
+        m_program.ExtraLight(uniforms.ExtraLight);
+        m_program.HasInvulnerability(uniforms.DrawInvulnerability);
+        m_program.LightLevelMix(uniforms.Mix);
+        m_program.Mvp(uniforms.Mvp);
+        m_program.MvpNoPitch(uniforms.MvpNoPitch);
+        m_program.FuzzFrac(uniforms.TimeFrac);
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
+        m_program.ColorMix(uniforms.ColorMix);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

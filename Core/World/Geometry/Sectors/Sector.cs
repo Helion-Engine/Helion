@@ -18,6 +18,8 @@ using Helion.Geometry.Boxes;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Islands;
 using static Helion.World.Entities.EntityManager;
+using Helion.Graphics.Palettes;
+using Helion.Maps.Doom.Components;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -238,9 +240,9 @@ public class Sector
         ChangeGametick = gametick;
     }
 
-    public void SetTransferHeights(Sector controlSector)
+    public void SetTransferHeights(Sector controlSector, Colormap? upper, Colormap? middle, Colormap? lower)
     {
-        TransferHeights = new TransferHeights(this, controlSector);
+        TransferHeights = new TransferHeights(this, controlSector, upper, middle, lower);
         DataChanges |= SectorDataTypes.TransferHeights;
     }
 
@@ -258,6 +260,9 @@ public class Sector
             TransferFloorLight = TransferFloorLightSector?.Id,
             TransferCeilingLight = TransferCeilingLightSector?.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
+            TransferHeightsColormapUpper = TransferHeights?.UpperColormap?.Entry?.Path.Name,
+            TransferHeightsColormapMiddle = TransferHeights?.MiddleColormap?.Entry?.Path.Name,
+            TransferHeightsColormapLower = TransferHeights?.LowerColormap?.Entry?.Path.Name,
             SectorEffect = SectorEffect
         };
 
@@ -369,7 +374,13 @@ public class Sector
             TransferCeilingLightSector = sectors[sectorModel.TransferCeilingLight.Value];
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
-            TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value]);
+        {
+            var textureManager = world.ArchiveCollection.TextureManager;
+            textureManager.TryGetColormap(sectorModel.TransferHeightsColormapUpper, out var upper);
+            textureManager.TryGetColormap(sectorModel.TransferHeightsColormapMiddle, out var middle);
+            textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
+            TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
+        }
     }
 
     private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;

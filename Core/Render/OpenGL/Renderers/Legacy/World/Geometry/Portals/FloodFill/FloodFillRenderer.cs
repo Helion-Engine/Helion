@@ -194,35 +194,22 @@ public class FloodFillRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        mat4 mvp = Renderer.CalculateMvpMatrix(renderInfo);
-        bool drawInvulnerability = false;
-        int extraLight = 0;
-        float mix = 0.0f;
-
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-        {
-            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
-                mix = 1.0f;
-            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
-                drawInvulnerability = true;
-
-            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
-        }
-
+        var uniforms = Renderer.GetShaderUniforms(renderInfo);
         m_program.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.SectorLightTexture(TextureUnit.Texture1);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
-        m_program.Mvp(mvp);
+        m_program.Mvp(uniforms.Mvp);
         m_program.TimeFrac(renderInfo.TickFraction);
-        m_program.HasInvulnerability(drawInvulnerability);
-        m_program.MvpNoPitch(Renderer.CalculateMvpMatrix(renderInfo, true));
+        m_program.HasInvulnerability(uniforms.DrawInvulnerability);
+        m_program.MvpNoPitch(uniforms.MvpNoPitch);
         m_program.TimeFrac(renderInfo.TickFraction);
-        m_program.LightLevelMix(mix);
-        m_program.ExtraLight(extraLight);
-        m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
+        m_program.LightLevelMix(uniforms.Mix);
+        m_program.ExtraLight(uniforms.ExtraLight);
+        m_program.DistanceOffset(uniforms.DistanceOffset);
+        m_program.ColorMix(uniforms.ColorMix);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {

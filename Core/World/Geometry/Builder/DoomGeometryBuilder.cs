@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Segments;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -8,6 +9,7 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
+using Helion.Util;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -88,6 +90,22 @@ public static class DoomGeometryBuilder
 
         Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
+
+        if (doomLine.LineType == VanillaLineSpecialType.TransferHeights)
+        {
+            Colormap? upperColormap = null;
+            Colormap? middleColormap = null;
+            Colormap? lowerColormap = null;
+            if (upperTexture.Index == Constants.NoTextureIndex)
+                textureManager.TryGetColormap(doomSide.UpperTexture, out upperColormap);
+            if (middleTexture.Index == Constants.NoTextureIndex)
+                textureManager.TryGetColormap(doomSide.MiddleTexture, out middleColormap);
+            if (lowerTexture.Index == Constants.NoTextureIndex)
+                textureManager.TryGetColormap(doomSide.LowerTexture, out lowerColormap);
+
+            if (upperColormap != null || middleColormap != null || lowerColormap != null)
+                front.Colormaps = new(upperColormap, middleColormap, lowerColormap);
+        }
 
         nextSideId++;
 

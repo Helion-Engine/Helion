@@ -18,6 +18,7 @@ using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
+using Helion.World.Entities;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -76,6 +77,49 @@ public class Renderer : IDisposable
     ~Renderer()
     {
         Dispose(false);
+    }
+
+    public static ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
+    {
+        // We divide by 4 to make it so the noise changes every four ticks.
+        // We then mod by 8 so that the number stays small (or else when it
+        // is multiplied in the shader it will overflow very quickly if we
+        // don't do this). This could be any number, I just arbitrarily
+        // chose 8. This means there are 8 different versions that are to
+        // be rendered if the person stares at an unmoving body long enough.
+        // Then we add 1 because if the value is 0, then the noise formula
+        // outputs zero uniformly which makes it look invisible.
+        const int TicksPerFrame = 4;
+        const int DifferentFrames = 8;
+
+        float timeFrac = ((WorldStatic.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
+        bool drawInvulnerability = false;
+        int extraLight = 0;
+        float mix = 0.0f;
+        var colorMix = GetColorMix(renderInfo.ViewerEntity, renderInfo.Camera);
+
+        if (renderInfo.ViewerEntity.PlayerObj != null)
+        {
+            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
+                mix = 1.0f;
+            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
+                drawInvulnerability = true;
+
+            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
+        }
+
+        return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
+            Renderer.CalculateMvpMatrix(renderInfo, true),
+            timeFrac, drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
+            colorMix);
+    }
+
+    public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)
+    {
+        if (viewerEntity.Sector.TransferHeights != null &&
+            viewerEntity.Sector.TransferHeights.TryGetColormap(viewerEntity.Sector, camera.PositionInterpolated.Z, out var colormap))
+            return colormap.ColorMix;
+        return Vec3F.One;
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)

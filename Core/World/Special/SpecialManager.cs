@@ -608,11 +608,12 @@ public class SpecialManager : ITickable, IDisposable
 
     private void SetTransferHeights(Line line)
     {
+        var front = line.Front;
         var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            sector.SetTransferHeights(line.Front.Sector);
+            sector.SetTransferHeights(front.Sector, front.Colormaps?.Upper, front.Colormaps?.Middle, front.Colormaps?.Lower);
         }
     }
 

@@ -18,6 +18,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
     private readonly int m_distanceOffsetLocation;
+    private readonly int m_colorMixLocation;
 
     public FloodFillProgram() : base("Flood fill plane")
     {
@@ -31,6 +32,7 @@ public class FloodFillProgram : RenderProgram
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
+        m_colorMixLocation = Uniforms.GetLocation("colorMix");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -44,6 +46,7 @@ public class FloodFillProgram : RenderProgram
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
+    public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -99,6 +102,7 @@ public class FloodFillProgram : RenderProgram
         uniform vec3 camera;
         uniform mat4 mvpNoPitch;
         uniform int hasInvulnerability;
+        uniform vec3 colorMix;
 
         ${LightLevelFragVariables}
         ${LightLevelConstants}
@@ -119,6 +123,8 @@ public class FloodFillProgram : RenderProgram
             ${LightLevelFragFunction}
             fragColor = texture(boundTexture, uv);
             fragColor.xyz *= lightLevel;
+
+            fragColor.xyz *= min(colorMix, 1);
 
             // If invulnerable, grayscale everything and crank the brightness.
             // Note: The 1.5x is a visual guess to make it look closer to vanilla.

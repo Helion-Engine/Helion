@@ -1,12 +1,16 @@
 using GlmSharp;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereGeometryShader : RenderProgram
 {
+    private readonly int m_mvpLocation;
+
     public SkySphereGeometryShader() : base("Sky sphere geometry")
     {
+        m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
     public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");

@@ -3,6 +3,7 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
@@ -261,7 +262,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
         m_entityRenderer.RenderNonAlpha(renderInfo);
 
-        var uniforms = GetShaderUniforms(renderInfo);
+        var uniforms = Renderer.GetShaderUniforms(renderInfo);
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -390,6 +391,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.LightLevelMix(uniforms.Mix);
         m_interpolationProgram.ExtraLight(uniforms.ExtraLight);
         m_interpolationProgram.DistanceOffset(uniforms.DistanceOffset);
+        m_interpolationProgram.ColorMix(uniforms.ColorMix);
     }
 
     private void SetStaticUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
@@ -402,39 +404,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.LightLevelMix(uniforms.Mix);
         m_staticProgram.ExtraLight(uniforms.ExtraLight);
         m_staticProgram.DistanceOffset(uniforms.DistanceOffset);
-    }
-
-    private ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
-    {
-        // We divide by 4 to make it so the noise changes every four ticks.
-        // We then mod by 8 so that the number stays small (or else when it
-        // is multiplied in the shader it will overflow very quickly if we
-        // don't do this). This could be any number, I just arbitrarily
-        // chose 8. This means there are 8 different versions that are to
-        // be rendered if the person stares at an unmoving body long enough.
-        // Then we add 1 because if the value is 0, then the noise formula
-        // outputs zero uniformly which makes it look invisible.
-        const int TicksPerFrame = 4;
-        const int DifferentFrames = 8;
-
-        float timeFrac = ((WorldStatic.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
-        bool drawInvulnerability = false;
-        int extraLight = 0;
-        float mix = 0.0f;
-
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-        {
-            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
-                mix = 1.0f;
-            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
-                drawInvulnerability = true;
-
-            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
-        }
-
-        return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
-            Renderer.CalculateMvpMatrix(renderInfo, true),
-            timeFrac, drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo));
+        m_staticProgram.ColorMix(uniforms.ColorMix);
     }
 
     private void ReleaseUnmanagedResources()

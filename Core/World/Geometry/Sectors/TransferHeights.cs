@@ -1,9 +1,15 @@
+using Helion.Graphics.Palettes;
+using System.Diagnostics.CodeAnalysis;
+
 namespace Helion.World.Geometry.Sectors;
 
 public class TransferHeights
 {
     public readonly Sector ParentSector;
     public readonly Sector ControlSector;
+    public readonly Colormap? UpperColormap;
+    public readonly Colormap? MiddleColormap;
+    public readonly Colormap? LowerColormap;
 
     // Because sectors are classes returning new ones every time would put too much pressure on the GC.
     // This static rotating list will allow for up to 16 calls in the stack before they are reused.
@@ -21,10 +27,14 @@ public class TransferHeights
 
     private static int RenderSectorIndex = RenderSectors.Length;
 
-    public TransferHeights(Sector parentSector, Sector controlSector)
+    public TransferHeights(Sector parentSector, Sector controlSector,
+        Colormap? upper, Colormap? middle, Colormap? lower)
     {
         ParentSector = parentSector;
         ControlSector = controlSector;
+        UpperColormap = upper;
+        MiddleColormap = middle;
+        LowerColormap = lower;
     }
 
     public Sector GetRenderSector(TransferHeightView view)
@@ -102,6 +112,27 @@ public class TransferHeights
 
         sector.DataChanges = ParentSector.DataChanges | ControlSector.DataChanges;
         return sector;
+    }
+
+    public bool TryGetColormap(Sector viewSector, double viewZ, [NotNullWhen(true)] out Colormap? colormap)
+    {
+        var view = GetView(viewSector, viewZ);
+        switch (view)
+        {
+            case TransferHeightView.Bottom:
+                colormap = LowerColormap;
+                break;
+            case TransferHeightView.Top:
+                colormap = UpperColormap;
+                break;
+            case TransferHeightView.Middle:
+                colormap = MiddleColormap;
+                break;
+            default:
+                colormap = null;
+                break;
+        }
+        return colormap != null;
     }
 
     public static TransferHeightView GetView(Sector viewSector, double viewZ)
