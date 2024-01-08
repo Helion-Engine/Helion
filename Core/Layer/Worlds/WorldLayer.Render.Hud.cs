@@ -331,7 +331,8 @@ public partial class WorldLayer
 
     private static short GetLightLevel(Player player)
     {
-        Sector sector = player.Sector;
+        // TODO this should probably use RenderInfo
+        Sector sector = player.Sector.GetRenderSector(player.Sector, player.Position.Z + player.ViewHeight);
         return (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
     }
 
