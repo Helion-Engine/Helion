@@ -15,4 +15,5 @@ public enum ResourceNamespace
     Sounds,
     Sprites,
     Textures,
+    Colormaps
 }

@@ -21,6 +21,7 @@ using Helion.Dehacked;
 using Helion.World.Entities.Definition;
 using Helion.Util.Configs.Components;
 using static Helion.Util.Assertion.Assert;
+using Helion.Graphics.Palettes;
 
 namespace Helion.Resources.Definitions;
 
@@ -46,6 +47,7 @@ public class DefinitionEntries
     public readonly ConfigCompat ConfigCompatibility;
     public readonly EntityFrameTable EntityFrameTable = new();
     public readonly TexturesDefinition TexturesDef = new();
+    public readonly Dictionary<string, Colormap> Colormaps = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -225,14 +227,25 @@ public class DefinitionEntries
         m_pnamesTextureXCollection = new PnamesTextureXCollection();
 
         foreach (Entry entry in archive.Entries)
+        {
             if (m_entryNameToAction.TryGetValue(entry.Path.Name, out var action))
                 action(entry);
+            if (entry.Namespace == ResourceNamespace.Colormaps)
+                AddColormap(entry);
+        }
 
         if (m_pnamesTextureXCollection.Valid)
             CreateImageDefinitionsFrom(m_pnamesTextureXCollection);
 
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
+    }
+
+    private void AddColormap(Entry entry)
+    {
+        var colormap = Colormap.From(m_archiveCollection.Data.Palette, entry.ReadData(), entry);
+        if (colormap != null)
+            Colormaps[entry.Path.Name] = colormap;
     }
 
     private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)

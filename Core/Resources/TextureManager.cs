@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
@@ -270,6 +271,16 @@ public class TextureManager : ITickable
             return texture!;
 
         return m_textures[Constants.NoTextureIndex];
+    }
+
+    public bool TryGetColormap(string? name, out Colormap? colormap)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            colormap = null;
+            return false;
+        }
+        return m_archiveCollection.Definitions.Colormaps.TryGetValue(name, out colormap);
     }
 
     public bool IsTextureAnimated(int textureHandle) => m_animatedTextures.Contains(textureHandle);

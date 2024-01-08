@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,57 +9,69 @@ using System.Threading.Tasks;
 
 namespace Helion.Graphics.Palettes;
 
-/// <summary>
-/// An encapsulation of a colormap. Each colormap is made up of one or more
-/// layers, where a colormap layer is an array of all 256 RGB colors. The
-/// top layer (index 0) is the main layer used for drawing images, and the
-/// rest are for vanilla blood coloring or tinting.
-/// </summary>
 public class Colormap
 {
     public static readonly int NumColors = 256;
-    public static readonly int ColorComponents = 3;
     public static readonly int NumLayers = 34;
-    public static readonly int BytesPerLayer = NumColors * ColorComponents;
-    public static readonly int BytesPerColormap = BytesPerLayer * NumLayers;
+    public static readonly int BytesPerColormap = NumColors * NumLayers;
     private static Colormap? DefaultColormap;
 
     private readonly List<Color[]> layers;
 
+    public readonly Vec3F ColorMix;
+    public readonly Entry? Entry;
+
     public int Count => NumLayers;
 
-    private Colormap(List<Color[]> colormapLayers)
+    private Colormap(List<Color[]> colormapLayers) 
+        : this(colormapLayers, Vec3F.One, null)
+    {
+
+    }
+
+    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry entry)
     {
         layers = colormapLayers;
+        ColorMix = colorMix;
+        Entry = entry;
     }
 
-    public static Colormap? From(byte[] data)
+    public static Colormap? From(Palette palette, byte[] data, Entry entry)
     {
-        if (data.Length != BytesPerColormap)
+        if (data.Length < BytesPerColormap)
             return null;
 
+        Vec3I addColors = Vec3I.Zero;
         List<Color[]> colormapLayers = new();
-        for (int layer = 0; layer < data.Length / BytesPerLayer; layer++)
+        var paletteColors = palette.DefaultLayer;
+        for (int layer = 0; layer < NumLayers; layer++)
         {
-            int offset = layer * BytesPerLayer;
-            Span<byte> layerSpan = new(data, offset, BytesPerLayer);
-            colormapLayers.Add(ColormapLayerFrom(layerSpan));
+            int startIndex = layer * NumColors;
+            var currentColors = new Color[NumColors];
+            for (int i = 0; i < NumColors; i++)
+            {
+                int index = data[startIndex + i];
+                if (index < 0 || index >= paletteColors.Length)
+                {
+                    currentColors[i] = Color.Black;
+                    continue;
+                }
+
+                if (layer != 0)
+                    continue;
+
+                var currentColor = paletteColors[data[index]];
+                addColors.X += currentColor.R;
+                addColors.Y += currentColor.G;
+                addColors.Z += currentColor.B;
+                currentColors[i] = currentColor;
+            }
+            colormapLayers.Add(currentColors);
         }
 
-        return new(colormapLayers);
-    }
-
-    private static Color[] ColormapLayerFrom(Span<byte> data)
-    {
-        Debug.Assert(data.Length == BytesPerLayer, "Colormap byte span range incorrect");
-
-        Color[] colormapColors = new Color[NumColors];
-
-        int offset = 0;
-        for (int i = 0; i < BytesPerLayer; i += ColorComponents)
-            colormapColors[offset++] = Color.FromInts(255, data[i], data[i + 1], data[i + 2]);
-
-        return colormapColors;
+        var colorMix = addColors.Float / NumColors;
+        colorMix.Normalize();
+        return new (colormapLayers, colorMix, entry);
     }
 
     public Color[] Layer(int index) => layers[index];
@@ -67,18 +81,9 @@ public class Colormap
         if (DefaultColormap != null)
             return DefaultColormap;
 
-        byte[] data = new byte[BytesPerColormap];
-
-        for (int i = 0; i < BytesPerColormap / ColorComponents; i++)
-        {
-            data[i] = (byte)i;
-            data[i + 1] = (byte)i;
-            data[i + 2] = (byte)i;
-        }
-
-        Colormap? colormap = From(data) ?? throw new("Failed to create the default colormap, shouldn't be possible");
-
-        DefaultColormap = colormap;
-        return colormap;
+        List<Color[]> colors = new();
+        colors.Add(new Color[NumColors]);
+        DefaultColormap = new(colors);
+        return DefaultColormap;
     }
 }

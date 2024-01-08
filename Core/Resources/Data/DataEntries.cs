@@ -62,15 +62,6 @@ public class DataEntries
             Log.Warn("Cannot read corrupt palette at {0}", entry);
     }
 
-    private void HandleColormap(Entry entry)
-    {
-        Colormap? colormap = Colormap.From(entry.ReadData());
-        if (colormap != null)
-            m_latestColormap = colormap;
-        else
-            Log.Warn("Cannot read corrupt colormap at {0}", entry);
-    }
-
     private void HandleTrueTypeFont(Entry entry)
     {
         string fontName = entry.Path.Name;
