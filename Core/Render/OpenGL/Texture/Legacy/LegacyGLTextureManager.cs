@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
@@ -19,6 +20,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     public override IImageDrawInfoProvider ImageDrawInfoProvider { get; }
     private bool m_disposed;
 
+    private List<GLLegacyTexture> m_registeredTextures = new();
+
     public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) : 
         base(config, archiveCollection)
     {
@@ -28,26 +31,43 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         Config.Render.Anisotropy.OnChanged += HandleAnisotropyChange;
     }
 
+    // Deals with setting parameters for config changes (filter and anistropy)
+    public void RegisterTexture(GLLegacyTexture texture)
+    {
+        m_registeredTextures.Add(texture);
+    }
+
+    public void UnRegisterTexture(GLLegacyTexture texture)
+    {
+        m_registeredTextures.Remove(texture);
+    }
+
     private void HandleFilterChange(object? sender, FilterType e)
     {
-        foreach (GLLegacyTexture texture in TextureTracker.GetValues())
-        {
-            if (texture.Namespace == ResourceNamespace.Sprites)
-                continue;
+        UpdateTextureTrackerFilter(TextureTracker);
+        UpdateTextureTrackerFilter(TextureTrackerClamp);
 
+        foreach (GLLegacyTexture texture in m_registeredTextures)
+        {
             texture.Bind();
             SetTextureFilter(texture.Target);
             texture.Unbind();
         }
-        
-        foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
+    }
+
+    private void UpdateTextureTrackerFilter(ResourceTracker<GLLegacyTexture> tracker)
+    {
+        foreach (var key in tracker.GetKeys())
         {
-            if (texture.Namespace == ResourceNamespace.Sprites)
+            if (key == ResourceNamespace.Sprites)
                 continue;
 
-            texture.Bind();
-            SetTextureFilter(texture.Target);
-            texture.Unbind();
+            foreach (var texture in tracker.GetValues(key))
+            {
+                texture.Bind();
+                SetTextureFilter(texture.Target);
+                texture.Unbind();
+            }
         }
     }
 
@@ -61,6 +81,13 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         }
         
         foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
+        {
+            texture.Bind();
+            SetAnisotropicFiltering(texture.Target);
+            texture.Unbind();
+        }
+
+        foreach (GLLegacyTexture texture in m_registeredTextures)
         {
             texture.Bind();
             SetAnisotropicFiltering(texture.Target);
@@ -122,8 +149,9 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     /// <returns>A newly allocated font texture.</returns>
     protected override GLFontTexture<GLLegacyTexture> GenerateFont(Font font, string name)
     {
-        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts);
+        GLLegacyTexture texture = GenerateTexture(font.Image, $"[FONT] {name}", ResourceNamespace.Fonts, TextureFlags.ClampX | TextureFlags.ClampY);
         GLFontTexture<GLLegacyTexture> fontTexture = new(texture, font);
+        TextureTrackerClamp.Insert(name, ResourceNamespace.Fonts, texture);
         return fontTexture;
     }
 
@@ -157,28 +185,11 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         }
     }
 
-    private void SetTextureFilter(TextureTarget targetType)
+    public void SetTextureFilter(TextureTarget targetType)
     {
         (int minFilter, int maxFilter) = FindFilterValues(Config.Render.Filter.Texture.Value);
         GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, minFilter);
         GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, maxFilter);
-    }
-
-    private void HandleSpriteTextureParameters(TextureTarget targetType)
-    {
-        GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-    }
-
-    private void HandleFontTextureParameters(TextureTarget targetType)
-    {
-        (int fontMinFilter, int fontMaxFilter) = FindFilterValues(Config.Render.Filter.Font.Value);
-        GL.TexParameter(targetType, TextureParameterName.TextureMinFilter, fontMinFilter);
-        GL.TexParameter(targetType, TextureParameterName.TextureMagFilter, fontMaxFilter);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-        GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
     }
 
     private (int minFilter, int maxFilter) FindFilterValues(FilterType filterType)
@@ -204,7 +215,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         return (minFilter, magFilter);
     }
 
-    private void SetAnisotropicFiltering(TextureTarget targetType)
+    public void SetAnisotropicFiltering(TextureTarget targetType)
     {
         if (Config.Render.Anisotropy <= 1)
             return;

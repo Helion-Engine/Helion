@@ -123,6 +123,11 @@ public class ResourceTracker<T> where T : class
         return m_table.GetValues();
     }
 
+    public IEnumerable<ResourceNamespace> GetKeys()
+    {
+        return m_table.GetFirstKeys();
+    }
+
     /// <summary>
     /// Returns a list of all resources of the given resource namespace.
     /// </summary>

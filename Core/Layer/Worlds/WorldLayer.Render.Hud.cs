@@ -48,6 +48,7 @@ public partial class WorldLayer
     private const int FpsMessageSpacing = 2;
     private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
     private const long FadingNanoSpan = 350L * 1000L * 1000L;
+    private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
     private static readonly string SmallHudFont = Constants.Fonts.Small;
@@ -359,7 +360,7 @@ public partial class WorldLayer
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
 
-        if (!hud.Textures.TryGet(sprite, out var handle, ResourceNamespace.Sprites))
+        if (!hud.Textures.TryGet(sprite, out var handle, LookupNamespace))
             return;
 
         float alpha = 1.0f;
@@ -581,7 +582,7 @@ public partial class WorldLayer
 
     private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null)
     {
-        if (!hud.Textures.TryGet(image, out var handle, ResourceNamespace.Sprites))
+        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
         {
             area = default;
             return;
@@ -595,7 +596,7 @@ public partial class WorldLayer
 
     private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
     {
-        if (!hud.Textures.TryGet(image, out var handle, ResourceNamespace.Sprites))
+        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
             return default;
 
         var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);

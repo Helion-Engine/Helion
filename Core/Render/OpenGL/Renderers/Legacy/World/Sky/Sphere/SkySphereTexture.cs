@@ -262,6 +262,7 @@ public class SkySphereTexture : IDisposable
         GLLegacyTexture texture = new(textureId, debugName, fadedSkyImage.Dimension, fadedSkyImage.Offset, fadedSkyImage.Namespace, TextureTarget.Texture2D, fadedSkyImage.TransparentPixelCount());
 
         m_textureManager.UploadAndSetParameters(texture, fadedSkyImage, debugName, ResourceNamespace.Global, TextureFlags.Default);
+        m_textureManager.RegisterTexture(texture);
 
         return texture;
     }
@@ -269,6 +270,9 @@ public class SkySphereTexture : IDisposable
     private void ReleaseUnmanagedResources()
     {
         for (int i = 0; i < m_skyTextures.Count; i++)
+        {
+            m_textureManager.UnRegisterTexture(m_skyTextures[i].GlTexture);
             m_skyTextures[i].GlTexture.Dispose();
+        }
     }
 }

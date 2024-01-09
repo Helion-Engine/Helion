@@ -16,7 +16,8 @@ public enum RenderVsyncMode
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
-    [OptionMenu(OptionSectionType.Render, "Font filtering")]
+    // TODO need to implement to take effect
+    //[OptionMenu(OptionSectionType.Render, "Font filtering")]
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
     [ConfigInfo("The filter to be applied to textures.")]
