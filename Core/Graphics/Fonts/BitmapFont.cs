@@ -117,16 +117,18 @@ public static class BitmapFont
     {
         Dictionary<char, Glyph> glyphs = new();
         int offsetX = 0;
-        int width = charImages.Values.Select(i => i.Width).Sum();
+        const int padding = 1;
+        int width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
 
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, imageType);
 
         foreach ((char c, Image charImage) in charImages)
         {
+            offsetX += padding;
             charImage.DrawOnTopOf(atlas, (offsetX, 0));
             glyphs[c] = new Glyph(c, (offsetX, 0), charImage.Dimension, atlasDimension);
-            offsetX += charImage.Width;
+            offsetX += charImage.Width + padding;
         }
 
         return (glyphs, atlas);
