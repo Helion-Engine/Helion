@@ -59,13 +59,6 @@ public class SkySphereRenderer : IDisposable
 
     private static mat4 CalculateMvp(RenderInfo renderInfo)
     {
-        // Note that this means we've hard coded the sky to always render
-        // the same regardless of the field of view.
-        float w = renderInfo.Viewport.Width;
-        float h = renderInfo.Viewport.Height;
-        float aspectRatio = w / h;
-        float fovY = OldCamera.FieldOfViewXToY((float)MathHelper.HalfPi, aspectRatio);
-
         // We want the sky sphere to not be touching the NDC edges because
         // we'll be doing some translating which could push it outside of
         // the clipping box. Therefore we shrink the unit sphere from r = 1
@@ -83,7 +76,8 @@ public class SkySphereRenderer : IDisposable
 
         // Our projection far plane only goes as far as the scaled sphere
         // radius.
-        mat4 projection = mat4.PerspectiveFov(fovY, w, h, 0.0f, 0.5f);
+        var fovInfo = Renderer.GetFieldOfViewInfo(renderInfo);
+        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, 0.0f, 0.5f);
 
         return projection * view * model;
     }

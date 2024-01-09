@@ -26,6 +26,8 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
 
+public record struct FieldOfViewInfo(float Width, float Height, float FovY);
+
 public class Renderer : IDisposable
 {
     const float ZNearMin = 0.2f;
@@ -124,16 +126,21 @@ public class Renderer : IDisposable
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
     {
+        var fovInfo = GetFieldOfViewInfo(renderInfo);
+        mat4 model = mat4.Identity;
+        mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
+
+        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), 65536.0f);
+        return projection * view * model;
+    }
+
+    public static FieldOfViewInfo GetFieldOfViewInfo(RenderInfo renderInfo)
+    {
         float w = renderInfo.Viewport.Width;
         float h = renderInfo.Viewport.Height * 0.825f;
         // Default FOV is 63.2. Config default is 90 so we need to convert. (90 - 63.2 = 26.8).
         float fovY = (float)MathHelper.ToRadians(renderInfo.Config.FieldOfView - 26.8);
-
-        mat4 model = mat4.Identity;
-        mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
-
-        mat4 projection = mat4.PerspectiveFov(fovY, w, h, GetZNear(renderInfo), 65536.0f);
-        return projection * view * model;
+        return new(w, h, fovY);
     }
 
     private static float GetZNear(RenderInfo renderInfo)
