@@ -59,7 +59,6 @@ public class InterpolationShader : RenderProgram
         out vec2 uvFrag;
         flat out float alphaFrag;
         flat out float addAlphaFrag;
-        flat out float distanceOffsetFrag;
 
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
@@ -71,7 +70,6 @@ public class InterpolationShader : RenderProgram
             uvFrag = mix(prevUV, uv, timeFrac);
             alphaFrag = alpha;
             addAlphaFrag = addAlpha;
-            ${LightLevelVertexSetFrags}
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
@@ -82,8 +80,7 @@ public class InterpolationShader : RenderProgram
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
-    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
-    .Replace("${LightLevelVertexSetFrags}", LightLevel.VertexSetFrags);
+    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
 
     protected override string FragmentShader() => @"
         #version 330

@@ -76,7 +76,6 @@ public class FloodFillProgram : RenderProgram
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
             vertexPosFrag = mix(prevPos, pos, timeFrac);
 
-            ${LightLevelVertexSetFrags}
             ${VertexLightBuffer}
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
@@ -87,8 +86,7 @@ public class FloodFillProgram : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
-    .Replace("${LightLevelVertexSetFrags}", LightLevel.VertexSetFrags);
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer);
 
     protected override string FragmentShader() => @"
         #version 330

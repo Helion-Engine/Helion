@@ -20,10 +20,8 @@ lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).z;";
 
-    public static string VertexSetFrags => "distanceOffsetFrag = distanceOffset;";
-
     public static string FragVariables(LightLevelOptions options) =>
-$"flat in float distanceOffsetFrag;flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;";
+$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;";
 
     public static string Constants =
 @"// Defined in GLHelper as well
@@ -36,7 +34,7 @@ const int lightFadeStart = 56;";
 
     public static string FragFunction =
 @"float lightLevel = lightLevelFrag;
-float distCalc = clamp(dist - lightFadeStart - distanceOffsetFrag, 0, dist);
+float distCalc = clamp(dist - lightFadeStart - distanceOffset, 0, dist);
 int sub = int(21.53536 - 21.63471881/(1 + pow((distCalc/48.46036), 0.9737408)));
 int index = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
 sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);

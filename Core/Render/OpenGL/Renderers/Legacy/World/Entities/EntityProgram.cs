@@ -32,7 +32,7 @@ public class EntityProgram : RenderProgram
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
-        //m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
+        m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
     }
     
@@ -62,10 +62,8 @@ public class EntityProgram : RenderProgram
         out float alphaOut;
         out float fuzzOut;
         out float flipUOut;
-        out float distanceOffsetFrag;
 
         uniform float timeFrac;
-        uniform float distanceOffset;
 
         void main()
         {
@@ -73,7 +71,6 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha;
             fuzzOut = fuzz;
             flipUOut = flipU;
-            distanceOffsetFrag = distanceOffset;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
     ";
@@ -161,7 +158,6 @@ public class EntityProgram : RenderProgram
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
-        flat in float distanceOffsetFrag;
 
         out vec4 fragColor;
 
@@ -171,6 +167,7 @@ public class EntityProgram : RenderProgram
         uniform float lightLevelMix;
         uniform int extraLight;
         uniform vec3 colorMix;
+        uniform float distanceOffset;
 
         // These two functions are found here:
         // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
