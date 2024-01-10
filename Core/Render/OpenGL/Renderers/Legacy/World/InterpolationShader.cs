@@ -101,28 +101,11 @@ public class InterpolationShader : RenderProgram
 
         void main() {
             ${LightLevelFragFunction}
-            fragColor = texture(boundTexture, uvFrag);
-            fragColor.xyz *= lightLevel;
-            // This is set by textures that might have alpha pixels and are set to a wall that would allow the player to see through them
-            // Doom would render these pixels black. E.g. set a one-sided wall to texture MIDSPACE
-            fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;
-
-            if (fragColor.w <= 0.0)
-                discard;
-
-            fragColor.xyz *= min(colorMix, 1);
-
-            // If invulnerable, grayscale everything and crank the brightness.
-            // Note: The 1.5x is a visual guess to make it look closer to vanilla.
-            if (hasInvulnerability != 0)
-            {
-                float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-                maxColor *= 1.5;
-                fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-            }
+            ${FragColorFunction}
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelConstants}", LightLevel.Constants)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default));
+    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha));
 }

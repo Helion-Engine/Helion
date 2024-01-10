@@ -13,8 +13,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereRenderer : IDisposable
 {
-    private const int HorizontalSpherePoints = 32;
-    private const int VerticalSpherePoints = 32;
+    private const int HorizontalSpherePoints = 64;
+    private const int VerticalSpherePoints = 64;
     private static readonly vec3 UpOpenGL = new(0, 1, 0);
 
     private readonly StaticVertexBuffer<SkySphereVertex> m_vbo;

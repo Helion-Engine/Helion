@@ -113,28 +113,17 @@ public class FloodFillProgram : RenderProgram
             float planeDot = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
             vec3 planePos = camera + (lookDir * planeDot);
             vec2 texDim = textureSize(boundTexture, 0);
-            vec2 uv = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
+            vec2 uvFrag = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
 
-            uv.y = -uv.y; // Vanilla textures are drawn top-down.
+            uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
 
             float dist = (mvpNoPitch * vec4(planePos, 1.0)).z;
             ${LightLevelFragFunction}
-            fragColor = texture(boundTexture, uv);
-            fragColor.xyz *= lightLevel;
-
-            fragColor.xyz *= min(colorMix, 1);
-
-            // If invulnerable, grayscale everything and crank the brightness.
-            // Note: The 1.5x is a visual guess to make it look closer to vanilla.
-            if (hasInvulnerability != 0)
-            {
-                float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-                maxColor *= 1.5;
-                fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-            }
+            ${FragColorFunction}
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelConstants}", LightLevel.Constants)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist));
+    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.None));
 }

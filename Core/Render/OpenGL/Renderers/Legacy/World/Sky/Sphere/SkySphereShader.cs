@@ -1,4 +1,5 @@
 using GlmSharp;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 
@@ -50,15 +51,8 @@ public class SkySphereShader : RenderProgram
 
         void main() {
             fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU, uvFrag.y));
-
-            // If invulnerable, grayscale everything and crank the brightness.
-            // Note: The 1.5x is a visual guess to make it look closer to vanilla.
-            if (hasInvulnerability != 0)
-            {
-                float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-                maxColor *= 1.5;
-                fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-            }
+            ${InvulnerabilityFragColor}
         }
-    ";
+    "
+    .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor);
 }
