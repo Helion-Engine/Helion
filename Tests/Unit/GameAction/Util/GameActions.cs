@@ -35,6 +35,8 @@ namespace Helion.Tests.Unit.GameAction
 
         public static Sector GetSectorByTag(WorldBase world, int tag) => world.Sectors.First(x => x.Tag == tag);
 
+        public static List<Sector> GetSectorsByTag(WorldBase world, int tag) => world.Sectors.Where(x => x.Tag == tag).ToList();
+
         public static Entity GetEntity(WorldBase world, int id)
         {
             for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)

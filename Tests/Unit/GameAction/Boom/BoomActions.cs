@@ -437,4 +437,55 @@ public partial class BoomActions
         GameActions.EntityUseLine(World, Player, Line).Should().BeFalse();
         GameActions.RunSectorPlaneSpecial(World, sector);
     }
+
+    [Fact(DisplayName = "Door with light tag")]
+    public void DoorWithLightTag()
+    {
+        const int Line = 565;
+        const int MoveAmount = 4;
+        const int LightAmount = 8;
+        int ceiling = 0;
+        short lightLevel = 50;
+        short previousLightLevel = 49;
+
+        var doorSector = GameActions.GetSector(World, 118);
+        var lightSectors = GameActions.GetSectorsByTag(World, 36);
+        lightSectors.Count.Should().Be(2);
+        doorSector.Ceiling.Z.Should().Be(0);
+        foreach (var lightSector in lightSectors)
+            lightSector.LightLevel.Should().Be(lightLevel);
+
+        GameActions.EntityUseLine(World, Player, Line).Should().BeTrue();
+
+        for (int i = 0; i < 25; i++)
+        {
+            GameActions.TickWorld(World, 1);
+            ceiling += MoveAmount;
+            lightLevel += LightAmount;
+            doorSector.Ceiling.Z.Should().Be(ceiling);
+            lightSectors[0].LightLevel.Should().Be(lightLevel);
+            // Because of the way the algorithm works this sector will interpolate between itself and the other tagged sector only.
+            lightSectors[1].LightLevel.Should().BeGreaterThan(previousLightLevel);
+            previousLightLevel = lightSectors[1].LightLevel;
+        }
+
+        foreach (var lightSector in lightSectors)
+            lightSector.LightLevel.Should().Be(250);
+
+        GameActions.TickWorld(World, 35);
+
+        for (int i = 0; i < 25; i++)
+        {
+            GameActions.TickWorld(World, 1);
+            ceiling -= MoveAmount;
+            lightLevel -= LightAmount;
+            doorSector.Ceiling.Z.Should().Be(ceiling);
+            // Both sectors are in sync on the way back down.
+            lightSectors[0].LightLevel.Should().Be(lightLevel);
+            lightSectors[1].LightLevel.Should().Be(lightLevel);
+        }
+
+        foreach (var lightSector in lightSectors)
+            lightSector.LightLevel.Should().Be(50);
+    }
 }
