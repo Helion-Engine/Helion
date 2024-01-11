@@ -861,10 +861,10 @@ public abstract class WorldBase : IWorld
             if (bi.Line == null)
                 continue;
 
+            OnTryEntityUseLine(entity, bi.Line);
+
             if (bi.Line.Segment.OnRight(start))
             {
-                OnTryEntityUseLine(entity, bi.Line);
-
                 if (bi.Line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
 
