@@ -287,7 +287,7 @@ public class TextureManager : ITickable
 
     private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
     {
-        if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name))
+        if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name) || m_archiveCollection.Definitions.Colormaps.ContainsKey(name))
             return;
 
         Texture? addedTexture = null;

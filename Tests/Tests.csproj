@@ -38,6 +38,9 @@
       <None Update="Resources\boomactions.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\boomcolormap.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Resources\boomphysics.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
