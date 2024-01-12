@@ -587,7 +587,8 @@ public partial class WorldLayer
             return;
         }
 
-        var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);
+        var verticalScale = hud.Dimension.Width == 320 && hud.Dimension.Height == 200 ? 1 : DoomVerticalScale;
+        var scale = new Vec2D(1 * m_scale, verticalScale * m_scale);
         var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
         area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
         hud.Image(image, area, both: both);
