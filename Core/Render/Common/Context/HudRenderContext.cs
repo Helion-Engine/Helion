@@ -6,6 +6,7 @@ public class HudRenderContext
 {
     public Dimension Dimension;
     public bool DrawInvul;
+    public bool DrawFuzz;
 
     public HudRenderContext(Dimension dimension)
     {
@@ -16,5 +17,6 @@ public class HudRenderContext
     {
         Dimension = dimension;
         DrawInvul = false;
+        DrawFuzz = false;
     }
 }

@@ -30,12 +30,17 @@ public readonly struct FramebufferVertex
 
 public class FramebufferProgram : RenderProgram
 {
+    private readonly int m_boundTextureLocation;
+    private readonly int m_mvpLocation;
+
     public FramebufferProgram() : base("Framebuffer")
     {
+        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, "mvp");
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

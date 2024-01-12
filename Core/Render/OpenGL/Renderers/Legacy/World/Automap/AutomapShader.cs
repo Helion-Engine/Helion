@@ -6,12 +6,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public class AutomapShader : RenderProgram
 {
+    private readonly int m_colorLocation;
+    private readonly int m_mvpLocation;
+
     public AutomapShader() : base("Automap")
     {
+        m_colorLocation = Uniforms.GetLocation("color");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void Color(Vec3F color) => Uniforms.Set(color, "color");
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
+    public void Color(Vec3F color) => Uniforms.Set(color, m_colorLocation);
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

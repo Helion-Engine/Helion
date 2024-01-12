@@ -51,25 +51,25 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     public override void DrawImage(string textureName, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawInvul)
+        float alpha, bool drawInvul, bool drawFuzz)
     {
         m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
-        AddImage(texture, drawArea, multiplyColor, alpha, drawInvul);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawInvul, drawFuzz);
     }
 
     public override void DrawImage(string textureName, Vec2I topLeft, Color multiplyColor,
-        float alpha, bool drawInvul)
+        float alpha, bool drawInvul, bool drawFuzz)
     {
         m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
         (int width, int height) = texture.Dimension;
         ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
-        AddImage(texture, drawArea, multiplyColor, alpha, drawInvul);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawInvul, drawFuzz);
     }
 
     public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
     {
         GLLegacyTexture texture = m_textureManager.WhiteTexture;
-        AddImage(texture, drawArea, (255, color.R, color.G, color.B), alpha, false);
+        AddImage(texture, drawArea, (255, color.R, color.G, color.B), alpha, false, false);
     }
 
     public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha)
@@ -105,7 +105,7 @@ public class LegacyHudRenderer : HudRenderer
 
     private HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph, float alpha)
     {
-        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false);
+        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false, false);
     }
 
     public override void Render(Rectangle viewport)
@@ -115,6 +115,7 @@ public class LegacyHudRenderer : HudRenderer
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.Mvp(CreateMvp(viewport));
+        m_program.FuzzFrac(Renderer.GetTimeFrac());
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {
@@ -154,13 +155,13 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawInvul)
+        float alpha, bool drawInvul, bool drawFuzz)
     {
         // Remember that we are drawing along the Z for visual depth now.
-        HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawInvul);
-        HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawInvul);
-        HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawInvul);
-        HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawInvul);
+        HudVertex topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawInvul, drawFuzz);
+        HudVertex topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawInvul, drawFuzz);
+        HudVertex bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawInvul, drawFuzz);
+        HudVertex bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawInvul, drawFuzz);
 
         HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad);

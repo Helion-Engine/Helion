@@ -5,11 +5,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 
 public class PrimitiveShader : RenderProgram
 {
+    private readonly int m_mvpLocation;
+
     public PrimitiveShader() : base("Primitive")
     {
+        m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

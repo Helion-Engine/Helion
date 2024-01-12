@@ -13,7 +13,7 @@ public class SkySphereGeometryShader : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

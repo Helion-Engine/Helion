@@ -194,22 +194,21 @@ public class FloodFillRenderer : IDisposable
 
     public void Render(RenderInfo renderInfo)
     {
-        var uniforms = Renderer.GetShaderUniforms(renderInfo);
         m_program.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.SectorLightTexture(TextureUnit.Texture1);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
-        m_program.Mvp(uniforms.Mvp);
+        m_program.Mvp(renderInfo.Uniforms.Mvp);
         m_program.TimeFrac(renderInfo.TickFraction);
-        m_program.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_program.MvpNoPitch(uniforms.MvpNoPitch);
+        m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        m_program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         m_program.TimeFrac(renderInfo.TickFraction);
-        m_program.LightLevelMix(uniforms.Mix);
-        m_program.ExtraLight(uniforms.ExtraLight);
-        m_program.DistanceOffset(uniforms.DistanceOffset);
-        m_program.ColorMix(uniforms.ColorMix);
+        m_program.LightLevelMix(renderInfo.Uniforms.Mix);
+        m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        m_program.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
+        m_program.ColorMix(renderInfo.Uniforms.ColorMix);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {

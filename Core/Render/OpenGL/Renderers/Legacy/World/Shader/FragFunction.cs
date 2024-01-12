@@ -36,19 +36,22 @@ public class FragFunction
             return res * res;
         }";
 
+    public static string FuzzFragFunction =>
+        @"if (fuzzFrag > 0)
+        {
+            // The division/floor is to chunk pixels together to make
+            // blocks. A larger denominator makes it more blocky.
+            vec2 blockCoordinate = floor(gl_FragCoord.xy);
+            fragColor.xyz = vec3(0, 0, 0);
+            fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
+        }";
+
     public static string FragColorFunction(FragColorFunctionOptions options)
     {
         return @"
             fragColor = texture(boundTexture, uvFrag.st);"
-            + (options.HasFlag(FragColorFunctionOptions.Fuzz) ?            
-            @"if (fuzzFrag > 0)
-            {
-                lightLevel = 0;
-                // The division/floor is to chunk pixels together to make
-                // blocks. A larger denominator makes it more blocky.
-                vec2 blockCoordinate = floor(gl_FragCoord.xy);
-                fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
-            }"
+            + (options.HasFlag(FragColorFunctionOptions.Fuzz) ?
+            FuzzFragFunction
             : 
             "") +
             "fragColor.xyz *= lightLevel;" +

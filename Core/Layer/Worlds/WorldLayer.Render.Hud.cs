@@ -303,6 +303,9 @@ public partial class WorldLayer
         if (Player.AnimationWeapon != null && !m_drawAutomap)
         {
             hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
+            IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
+            if (powerup != null && powerup.DrawPowerupEffect)
+                hudContext.DrawFuzz = true;
 
             // Doom pushes the gun sprite up when the status bar is showing
             int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? m_config.Hud.FullSizeGunOffset : 0;
@@ -311,6 +314,7 @@ public partial class WorldLayer
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
 
             hudContext.DrawInvul = false;
+            hudContext.DrawFuzz = false;
         }
 
         if (!m_drawAutomap && m_config.Hud.Crosshair)
@@ -363,16 +367,11 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(sprite, out var handle, LookupNamespace))
             return;
 
-        float alpha = 1.0f;
-        IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
-        if (powerup != null && powerup.DrawPowerupEffect)
-            alpha = 0.3f;
-
         var offset = handle.Offset;
         offset.Y += yOffset;
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
-        hud.Image(sprite, hudBox, color: lightLevelColor, alpha: alpha);
+        hud.Image(sprite, hudBox, color: lightLevelColor);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)

@@ -81,6 +81,17 @@ public class Renderer : IDisposable
         Dispose(false);
     }
 
+    public static float GetTimeFrac()
+    {
+        if (WorldStatic.World == null)
+            return 0;
+
+        const int TicksPerFrame = 4;
+        const int DifferentFrames = 8;
+
+        return ((WorldStatic.World.GameTicker / TicksPerFrame) % DifferentFrames) + 1;
+    }
+
     public static ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
     {
         // We divide by 4 to make it so the noise changes every four ticks.
@@ -91,10 +102,7 @@ public class Renderer : IDisposable
         // be rendered if the person stares at an unmoving body long enough.
         // Then we add 1 because if the value is 0, then the noise formula
         // outputs zero uniformly which makes it look invisible.
-        const int TicksPerFrame = 4;
-        const int DifferentFrames = 8;
 
-        float timeFrac = ((WorldStatic.World.Gametick / TicksPerFrame) % DifferentFrames) + 1;
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
@@ -112,7 +120,7 @@ public class Renderer : IDisposable
 
         return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
             Renderer.CalculateMvpMatrix(renderInfo, true),
-            timeFrac, drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
+            GetTimeFrac(), drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
             colorMix);
     }
 
@@ -319,10 +327,10 @@ public class Renderer : IDisposable
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability);
+            m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz);
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)
@@ -351,6 +359,7 @@ public class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
         m_worldRenderer.Render(cmd.World, m_renderInfo);
     }
 

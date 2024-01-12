@@ -28,7 +28,10 @@ public readonly struct HudVertex
     [VertexAttribute("hasInvulnerability")]
     public readonly float DrawInvulnerability;
 
-    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawInvul)
+    [VertexAttribute("hasFuzz")]
+    public readonly float DrawFuzz;
+
+    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawInvul, bool drawFuzz)
     {
         X = x;
         Y = y;
@@ -41,11 +44,12 @@ public readonly struct HudVertex
         MultiplierFactor = mulFactor / 255.0f;
         Alpha = alpha;
         DrawInvulnerability = drawInvul ? 1.0f : 0.0f;
+        DrawFuzz = drawFuzz ? 1.0f : 0.0f;
     }
 
     // TODO: Updated color to be RGBA, but still need to do step 2 and abandon division for RGBA.
-    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawInvul) : 
-        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawInvul)
+    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawInvul, bool drawFuzz) : 
+        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawInvul, drawFuzz)
     {
     }
 }

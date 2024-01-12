@@ -196,19 +196,18 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(RenderInfo renderInfo)
     {
-        var uniforms = Renderer.GetShaderUniforms(renderInfo);
         SetViewDirection(renderInfo.Camera.Direction.XY.Double);
         m_program.BoundTexture(TextureUnit.Texture0);
-        m_program.ExtraLight(uniforms.ExtraLight);
-        m_program.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_program.LightLevelMix(uniforms.Mix);
-        m_program.Mvp(uniforms.Mvp);
-        m_program.MvpNoPitch(uniforms.MvpNoPitch);
-        m_program.FuzzFrac(uniforms.TimeFrac);
+        m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        m_program.LightLevelMix(renderInfo.Uniforms.Mix);
+        m_program.Mvp(renderInfo.Uniforms.Mvp);
+        m_program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
+        m_program.FuzzFrac(renderInfo.Uniforms.TimeFrac);
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
-        m_program.ColorMix(uniforms.ColorMix);
+        m_program.ColorMix(renderInfo.Uniforms.ColorMix);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

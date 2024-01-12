@@ -7,15 +7,26 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereShader : RenderProgram
 {
+    private readonly int m_boundTextureLocation;
+    private readonly int m_mvpLocation;
+    private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_scaleULocation;
+    private readonly int m_flipULocation;
+
     public SkySphereShader() : base("Sky sphere")
     {
+        m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_mvpLocation = Uniforms.GetLocation("mvp");
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_scaleULocation = Uniforms.GetLocation("scaleU");
+        m_flipULocation = Uniforms.GetLocation("flipU");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, "boundTexture");
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, "hasInvulnerability");
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, "mvp");
-    public void ScaleU(float u) => Uniforms.Set(u, "scaleU");
-    public void FlipU(bool flip) => Uniforms.Set(flip, "flipU");
+    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
+    public void ScaleU(float u) => Uniforms.Set(u, m_scaleULocation);
+    public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
 
     protected override string VertexShader() => @"
         #version 330

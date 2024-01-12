@@ -262,17 +262,15 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
         m_entityRenderer.RenderNonAlpha(renderInfo);
 
-        var uniforms = Renderer.GetShaderUniforms(renderInfo);
-
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(renderInfo, uniforms);
+        SetInterpolationUniforms(renderInfo);
         m_worldDataManager.DrawNonAlpha();
         m_interpolationProgram.Unbind();
 
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetStaticUniforms(renderInfo, uniforms);
+        SetStaticUniforms(renderInfo);
         m_geometryRenderer.RenderStaticGeometry();
         m_staticProgram.Unbind();
 
@@ -280,7 +278,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(renderInfo, uniforms);
+        SetInterpolationUniforms(renderInfo);
         m_worldDataManager.DrawAlpha();
         m_interpolationProgram.Unbind();
         
@@ -380,31 +378,31 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer.AddSegment(seg, color, alpha, type);
     }
 
-    private void SetInterpolationUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
+    private void SetInterpolationUniforms(RenderInfo renderInfo)
     {
         m_interpolationProgram.BoundTexture(TextureUnit.Texture0);
         m_interpolationProgram.SectorLightTexture(TextureUnit.Texture1);
-        m_interpolationProgram.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_interpolationProgram.Mvp(uniforms.Mvp);
-        m_interpolationProgram.MvpNoPitch(uniforms.MvpNoPitch);
+        m_interpolationProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        m_interpolationProgram.Mvp(renderInfo.Uniforms.Mvp);
+        m_interpolationProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         m_interpolationProgram.TimeFrac(renderInfo.TickFraction);
-        m_interpolationProgram.LightLevelMix(uniforms.Mix);
-        m_interpolationProgram.ExtraLight(uniforms.ExtraLight);
-        m_interpolationProgram.DistanceOffset(uniforms.DistanceOffset);
-        m_interpolationProgram.ColorMix(uniforms.ColorMix);
+        m_interpolationProgram.LightLevelMix(renderInfo.Uniforms.Mix);
+        m_interpolationProgram.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        m_interpolationProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
+        m_interpolationProgram.ColorMix(renderInfo.Uniforms.ColorMix);
     }
 
-    private void SetStaticUniforms(RenderInfo renderInfo, ShaderUniforms uniforms)
+    private void SetStaticUniforms(RenderInfo renderInfo)
     {
         m_staticProgram.BoundTexture(TextureUnit.Texture0);
         m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
-        m_staticProgram.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_staticProgram.Mvp(uniforms.Mvp);
-        m_staticProgram.MvpNoPitch(uniforms.MvpNoPitch);
-        m_staticProgram.LightLevelMix(uniforms.Mix);
-        m_staticProgram.ExtraLight(uniforms.ExtraLight);
-        m_staticProgram.DistanceOffset(uniforms.DistanceOffset);
-        m_staticProgram.ColorMix(uniforms.ColorMix);
+        m_staticProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        m_staticProgram.Mvp(renderInfo.Uniforms.Mvp);
+        m_staticProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
+        m_staticProgram.LightLevelMix(renderInfo.Uniforms.Mix);
+        m_staticProgram.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        m_staticProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
+        m_staticProgram.ColorMix(renderInfo.Uniforms.ColorMix);
     }
 
     private void ReleaseUnmanagedResources()

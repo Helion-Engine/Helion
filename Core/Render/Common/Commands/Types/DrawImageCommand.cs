@@ -12,10 +12,11 @@ public struct DrawImageCommand
     public readonly Color MultiplyColor;
     public readonly bool AreaIsTextureDimension;
     public readonly bool DrawInvulnerability;
+    public readonly bool DrawFuzz;
     public readonly string TextureName;
 
     public DrawImageCommand(string textureName, ImageBox2I drawArea, Color multiplyColor,
-        float alpha = 1.0f, bool drawInvul = false)
+        float alpha = 1.0f, bool drawInvul = false, bool drawFuzz = false)
     {
         TextureName = textureName;
         DrawArea = drawArea;
@@ -23,5 +24,6 @@ public struct DrawImageCommand
         MultiplyColor = multiplyColor;
         AreaIsTextureDimension = false;
         DrawInvulnerability = drawInvul;
+        DrawFuzz = drawFuzz;
     }
 }

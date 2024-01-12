@@ -125,7 +125,7 @@ public class GLHudRenderContext : IHudRenderContext
     private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null,
         ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f)
+        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false)
     {
         drawArea = default;
 
@@ -148,7 +148,7 @@ public class GLHudRenderContext : IHudRenderContext
             window, anchor);
 
         m_commands.DrawImage(texture, pos.X, pos.Y, drawDim.Width, drawDim.Height,
-            color ?? Color.White, alpha, m_context.DrawInvul);
+            color ?? Color.White, alpha, m_context.DrawInvul, m_context.DrawFuzz);
 
         drawArea = (location, location + drawDim.Vector);
     }

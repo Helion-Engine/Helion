@@ -1,5 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Util.Configs.Components;
 using Helion.World.Entities;
 using static Helion.Util.Assertion.Assert;
@@ -21,6 +22,7 @@ public class RenderInfo
     public Vec2I AutomapOffset;
     public double AutomapScale;
     public ConfigRender Config;
+    public ShaderUniforms Uniforms;
 
     public RenderInfo()
     {
