@@ -808,10 +808,11 @@ public partial class Client
     {
         try
         {
-            TimeSpan ts = TimeSpan.FromSeconds(world.LevelTime / Constants.TicksPerSecond);
+            TimeSpan levelTime = TimeSpan.FromSeconds(world.LevelTime / Constants.TicksPerSecond);
+            TimeSpan totalTime = TimeSpan.FromSeconds(world.GlobalData.TotalTime / Constants.TicksPerSecond);
             using StreamWriter sw = File.AppendText(StatFile);
             sw.WriteLine(string.Format("{0} - {1} ({2})  K: {3}/{4}  I: {5}/{6}  S: {7}/{8}", world.MapInfo.MapName,
-                $"{ts.Minutes}:{ts.Seconds}.{ts.Milliseconds}", $"{ts.Minutes}:{ts.Seconds}",
+                $"{levelTime.Minutes}:{levelTime.Seconds}.{levelTime.Milliseconds}", $"{totalTime.Minutes}:{totalTime.Seconds}",
                 world.LevelStats.KillCount, world.LevelStats.TotalMonsters,
                 world.LevelStats.ItemCount, world.LevelStats.TotalItems,
                 world.LevelStats.SecretCount, world.LevelStats.TotalSecrets));
