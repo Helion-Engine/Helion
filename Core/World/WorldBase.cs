@@ -1016,7 +1016,10 @@ public abstract class WorldBase : IWorld
         if (projectile.Flags.Randomize)
             projectile.SetRandomizeTicks();
 
-        Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * projectile.Properties.MissileMovementSpeed;
+        double speed = IsFastMonsters && projectile.Properties.FastSpeed > 0 ? 
+            projectile.Properties.FastSpeed : projectile.Properties.MissileMovementSpeed;
+
+        Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * speed;
         if (projectile.Flags.NoClip)
         {
             projectile.Velocity = velocity;
