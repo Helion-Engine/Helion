@@ -16,6 +16,7 @@ namespace Helion.Tests.Unit.GameAction;
 [Collection("GameActions")]
 public class Nightmare
 {
+    const string Ammo = "RocketAmmo";
     private SinglePlayerWorld World;
     private Player Player => World.Player;
     private readonly NoRandom m_random = new();
@@ -97,5 +98,23 @@ public class Nightmare
 
         fog.Any(x => x.Position == (-320, -64, 0)).Should().BeTrue();
         fog.Any(x => x.Position == (-320, -128, 0)).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Nightmare double ammo")]
+    public void NightmareDoubletAmmo()
+    {
+        Player.Inventory.Amount(Ammo).Should().Be(0);
+        var rocket = GameActions.CreateEntity(World, Ammo, (-320, -64, 0));
+        World.PerformItemPickup(Player, rocket);
+        Player.Inventory.Amount(Ammo).Should().Be(2);
+    }
+
+    [Fact(DisplayName = "Nightmare double weapon ammo")]
+    public void NightmareDoubleWeaponAmmo()
+    {
+        Player.Inventory.Amount(Ammo).Should().Be(0);
+        var rocket = GameActions.CreateEntity(World, "RocketLauncher", (-320, -64, 0));
+        World.PerformItemPickup(Player, rocket);
+        Player.Inventory.Amount("RocketAmmo").Should().Be(4);
     }
 }
