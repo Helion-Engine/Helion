@@ -1979,7 +1979,7 @@ public static class EntityActionFunctions
                 pitch, Constants.EntityShootDistance, 3 * ((WorldStatic.Random.NextByte() % 5) + 1));
     }
 
-    private static void A_SargAttack(Entity entity)
+    public static void A_SargAttack(Entity entity)
     {
         if (entity.Target.Entity == null)
             return;
