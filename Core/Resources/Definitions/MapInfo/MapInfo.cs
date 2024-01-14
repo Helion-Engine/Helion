@@ -31,7 +31,7 @@ public class MapInfo
             m_episodes.Remove(episode);
     }
 
-    public void AddMap(MapInfoDef newMap)
+    public void AddOrReplaceMap(MapInfoDef newMap)
         => AddOrReplace(m_maps, newMap);
 
     public void AddCluster(ClusterDef newCluster)

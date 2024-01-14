@@ -47,7 +47,7 @@ public partial class MapInfoDefinition
             else if (item.Equals(AddDefaultMapName, StringComparison.OrdinalIgnoreCase))
                 ParseMapDef(parser, false, MapInfo.DefaultMap);
             else if (item.Equals(MapName, StringComparison.OrdinalIgnoreCase))
-                MapInfo.AddMap(ParseMapDef(parser, true, MapInfo.DefaultMap == null ? null : (MapInfoDef)MapInfo.DefaultMap.Clone()));
+                MapInfo.AddOrReplaceMap(ParseMapDef(parser, true, MapInfo.DefaultMap == null ? null : (MapInfoDef)MapInfo.DefaultMap.Clone()));
             else if (item.Equals(SkillName, StringComparison.OrdinalIgnoreCase))
                 MapInfo.AddSkill(ParseSkillDef(parser));
             else if (item.Equals(ClearSkillsName, StringComparison.OrdinalIgnoreCase))

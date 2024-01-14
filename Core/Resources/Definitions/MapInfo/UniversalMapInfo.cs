@@ -22,6 +22,7 @@ public partial class MapInfoDefinition
             MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
             if (existing != null)
                 mapDef = existing;
+            MapInfo.AddOrReplaceMap(mapDef);
 
             mapDef.LookupName = string.Empty;
             while (!IsBlockComplete(parser, true))
@@ -114,8 +115,9 @@ public partial class MapInfoDefinition
         string picName = parser.ConsumeString();
         parser.ConsumeString(",");
         string name = parser.ConsumeString();
-        parser.ConsumeString(",");
-        string key = parser.ConsumeString();
+        string key = string.Empty;
+        if (parser.ConsumeIf(","))
+            key = parser.ConsumeString();
 
         MapInfo.AddEpisode(new()
         {
