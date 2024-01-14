@@ -608,7 +608,7 @@ public class DehackedApplier
         EntityDefinition definition = new(0, newName, 0, new List<string>());
         definition.DehackedName = thing.Name;
         composer.Add(definition);
-        m_dehacked.NewThingLookup[index] = definition;
+        m_dehacked.NewThingLookup.Set(index, definition);
         return newName;
     }
 

@@ -1,3 +1,4 @@
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Definition;
@@ -31,7 +32,7 @@ public partial class DehackedDefinition
 
     public readonly Dictionary<int, string> NewSoundLookup = new();
     public readonly Dictionary<int, string> NewSpriteLookup = new();
-    public readonly Dictionary<int, EntityDefinition> NewThingLookup = new();
+    public readonly LookupArray<EntityDefinition> NewThingLookup = new();
     public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
 
     public DehackedCheat? Cheat { get; private set; }
