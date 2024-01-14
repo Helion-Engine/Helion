@@ -167,7 +167,7 @@ public class WarpTest
     private static void SetEpisodeMapInfo(MapInfo mapInfo)
     {
         foreach (string mapName in EpisodeMaps)
-            mapInfo.AddMap(new MapInfoDef() { MapName = mapName });
+            mapInfo.AddOrReplaceMap(new MapInfoDef() { MapName = mapName });
 
         mapInfo.AddEpisode(new EpisodeDef() { Name = "Episode 1", StartMap = "E1M1" });
         mapInfo.AddEpisode(new EpisodeDef() { Name = "Episode 2", StartMap = "E1M2" });
@@ -176,7 +176,7 @@ public class WarpTest
     private static void SetMapInfo(MapInfo mapInfo)
     {
         foreach (string mapName in Maps)
-            mapInfo.AddMap(new MapInfoDef() { MapName = mapName });
+            mapInfo.AddOrReplaceMap(new MapInfoDef() { MapName = mapName });
 
         mapInfo.AddEpisode(new EpisodeDef() { Name = "MAPxx", StartMap = "MAP01" });
     }
