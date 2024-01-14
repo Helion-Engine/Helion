@@ -605,7 +605,7 @@ public class DehackedApplier
             return def.Name;
 
         string newName = GetDehackedActorName(index);
-        EntityDefinition definition = new(0, newName, 0, new List<string>());
+        EntityDefinition definition = new(composer.GetNextId(), newName, 0, Array.Empty<string>());
         definition.DehackedName = thing.Name;
         composer.Add(definition);
         m_dehacked.NewThingLookup.Set(index, definition);

@@ -174,7 +174,7 @@ public class EntityDefinitionComposer
         ActorDefinition? baseActorClass = m_archiveCollection.Definitions.Decorate[Constants.BaseActorClass];
         if (baseActorClass == null)
             throw new HelionException($"Missing base decorate actor definition {Constants.BaseActorClass}");
-
+        
         definitions.AddFirst(baseActorClass);
         actorDefinitions = definitions.ToArray();
         return true;
@@ -193,7 +193,7 @@ public class EntityDefinitionComposer
         }
 
         int id = m_indexTracker.Next();
-        List<string> parentClassNames = definitions.Select(d => d.Name).ToList();
+        var parentClassNames = definitions.Select(d => d.Name).ToArray();
         EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
         ApplyFlagsAndPropertiesFrom(definition, definitions);
@@ -206,4 +206,6 @@ public class EntityDefinitionComposer
 
         return definition;
     }
+
+    public int GetNextId() => m_indexTracker.Next();
 }
