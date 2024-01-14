@@ -393,7 +393,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual void Tick()
     {
         PrevPosition = Position;
-        Flags.Teleport = false;
+
+        Flags.Teleported = false;
 
         if (FrozenTics > 0)
             FrozenTics--;

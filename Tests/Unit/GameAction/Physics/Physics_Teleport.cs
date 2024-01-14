@@ -222,5 +222,47 @@ namespace Helion.Tests.Unit.GameAction
             bool check = caco.Position == teleportDest.Position;
             check.Should().BeTrue();
         }
+
+        [Fact(DisplayName = "Teleport fog with teleport flag should fail")]
+        public void TeleportWithTeleportFlagFail()
+        {
+            int telportLine = 405;
+            Entity caco = GameActions.GetEntity(World, 68);
+            Entity teleportDest = GameActions.GetEntity(World, 67);
+
+            caco.Flags.Teleport = true;
+            GameActions.EntityCrossLine(World, caco, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            bool check = caco.Position == teleportDest.Position;
+            check.Should().BeFalse();
+            caco.Flags.Teleport = false;
+        }
+
+        [Fact(DisplayName = "Teleport fog with no clip flag should fail")]
+        public void TeleportWithNoClipFlagFail()
+        {
+            int telportLine = 405;
+            Entity caco = GameActions.GetEntity(World, 68);
+            Entity teleportDest = GameActions.GetEntity(World, 67);
+
+            caco.Flags.NoClip = true;
+            GameActions.EntityCrossLine(World, caco, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            bool check = caco.Position == teleportDest.Position;
+            check.Should().BeFalse();
+            caco.Flags.NoClip = false;
+        }
+
+        [Fact(DisplayName = "Teleport fog with no teleport flag should fail")]
+        public void TeleportWithNoTeleportFlagFail()
+        {
+            int telportLine = 405;
+            Entity caco = GameActions.GetEntity(World, 68);
+            Entity teleportDest = GameActions.GetEntity(World, 67);
+
+            caco.Flags.NoTeleport = true;
+            GameActions.EntityCrossLine(World, caco, telportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
+            bool check = caco.Position == teleportDest.Position;
+            check.Should().BeFalse();
+            caco.Flags.NoTeleport = false;
+        }
     }
 }

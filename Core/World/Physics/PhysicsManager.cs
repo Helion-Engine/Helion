@@ -965,7 +965,7 @@ public class PhysicsManager
             {
                 entity.MoveLinked = true;
                 MoveTo(entity, nextPosition, TryMoveData);
-                if (entity.Flags.Teleport)
+                if (entity.Flags.Teleported)
                     return TryMoveData;
 
                 m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
@@ -1277,6 +1277,9 @@ doneIsPositionValid:
 
         LinkToWorld(entity, tryMove);
 
+        if (entity.Flags.Teleport || entity.Flags.NoClip)
+            return;
+
         for (int i = tryMove.IntersectSpecialLines.Length - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Length; i--)
             CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
     }
@@ -1300,7 +1303,7 @@ doneIsPositionValid:
     {
         if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo) &&
             MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove) &&
-            !entity.Flags.Teleport)
+            !entity.Flags.Teleported)
         {
             ReorientToSlideAlong(entity, moveInfo.BlockingLine!, residualStep, ref stepDelta, ref movesLeft);
             return;

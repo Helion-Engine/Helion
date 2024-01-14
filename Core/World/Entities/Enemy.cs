@@ -326,7 +326,7 @@ public partial class Entity
         Flags.MonsterMove = true;
         tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, nextPos);
         Flags.MonsterMove = false;
-        if (Flags.Teleport)
+        if (Flags.Teleported)
             return true;
 
         if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
