@@ -83,7 +83,8 @@ public class MainMenu : Menu
 
     private Func<Menu?> CreateNewGameMenu()
     {
-        bool hasEpisodes = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes.Any(e => !e.PicName.Empty());
+        var episodes = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
+        bool hasEpisodes = episodes.Any(e => !e.PicName.Empty());
         return hasEpisodes ?
             () => new NewGameEpisodeMenu(Config, Console, SoundManager, ArchiveCollection) :
             () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, GetDefaultEpisode());
