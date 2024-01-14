@@ -2762,12 +2762,12 @@ public static class EntityActionFunctions
 
     private static void A_Spawn(Entity entity)
     {
-        if (!GetDehackedActorName(entity, entity.Frame.DehackedMisc1, out string? name))
+        if (!GetDehackedActorDefinition(entity, entity.Frame.DehackedMisc1, out var def))
             return;
 
         Vec3D pos = entity.Position;
         pos.Z += entity.Frame.DehackedMisc2;
-        WorldStatic.EntityManager.Create(name, pos);
+        WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
     }
 
     private static void A_Face(Entity entity)
@@ -3019,7 +3019,7 @@ public static class EntityActionFunctions
 
     private static void A_SpawnObject(Entity entity)
     {
-        if (!GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
+        if (!GetDehackedActorDefinition(entity, entity.Frame.DehackedArgs1, out var def))
             return;
 
         double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
@@ -3035,7 +3035,7 @@ public static class EntityActionFunctions
         Vec3D offset = ((forwardUnit * forwadDist) + (sideUnit * sideDist)).To3D(zOffset);
         Vec3D velocity = ((forwardUnit * forwardVel) + (sideUnit * sideVel)).To3D(zVelocity);
 
-        Entity? createdEntity = WorldStatic.EntityManager.Create(name, entity.Position + offset);
+        Entity? createdEntity = WorldStatic.EntityManager.Create(def, entity.Position + offset, 0, 0, 0);
         if (createdEntity == null)
             return;
 
@@ -3067,11 +3067,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
-        if (!GetDehackedActorName(entity, frame.DehackedArgs1, out string? name))
-            return;
-
-        var projectileDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
-        if (projectileDef == null)
+        if (!GetDehackedActorDefinition(entity, frame.DehackedArgs1, out var projectileDef))
             return;
 
         double angle = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs2));
@@ -3083,11 +3079,7 @@ public static class EntityActionFunctions
 
     private static void A_MonsterProjectile(Entity entity)
     {
-        if (entity.Target.Entity == null || !GetDehackedActorName(entity, entity.Frame.DehackedArgs1, out string? name))
-            return;
-        // TODO should cache these definitions
-        var projectileDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
-        if (projectileDef == null)
+        if (entity.Target.Entity == null || !GetDehackedActorDefinition(entity, entity.Frame.DehackedArgs1, out var projectileDef))
             return;
 
         double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
@@ -3336,16 +3328,16 @@ public static class EntityActionFunctions
         from.FrameState.SetState(newFrame);
     }
 
-    private static bool GetDehackedActorName(Entity entity, int index, [NotNullWhen(true)] out string? name)
+    private static bool GetDehackedActorDefinition(Entity entity, int index, [NotNullWhen(true)] out EntityDefinition? def)
     {
         var dehacked = WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition;
         if (dehacked == null)
         {
-            name = null;
+            def = null;
             return false;
         }
 
-        return dehacked.GetEntityDefinitionName(index, out name);
+        return dehacked.GetEntityDefinition(index, out def);
     }
 
     private static Entity? FireEnemyProjectile(Entity entity, Entity target, EntityDefinition def, double zOffset = 0)

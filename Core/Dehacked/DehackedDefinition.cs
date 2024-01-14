@@ -2,6 +2,7 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
@@ -34,11 +35,23 @@ public partial class DehackedDefinition
     public readonly Dictionary<int, string> NewSpriteLookup = new();
     public readonly LookupArray<EntityDefinition> NewThingLookup = new();
     public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
+    public readonly EntityDefinition?[] ActorDefinitions;
 
     public DehackedCheat? Cheat { get; private set; }
     public DehackedMisc? Misc { get; private set; }
     public int DoomVersion { get; private set; }
     public int PatchFormat { get; set; }
+
+    public DehackedDefinition()
+    {
+        ActorDefinitions = new EntityDefinition[ActorNames.Length];
+    }
+
+    public void LoadActorDefinitions(EntityDefinitionComposer composer)
+    {
+        for (int i = 0; i < ActorNames.Length; i++)
+            ActorDefinitions[i] = composer.GetByName(ActorNames[i]);
+    }
 
     public void Parse(string data)
     {
@@ -126,6 +139,25 @@ public partial class DehackedDefinition
             name = def.Name;
             return true;
         }
+
+        return false;
+    }
+
+    public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def)
+    {
+        def = null;
+        int index = thingNumber - 1;
+        if (index < 0)
+            return false;
+
+        if (index < ActorDefinitions.Length)
+        {
+            def = ActorDefinitions[index];
+            return true;
+        }
+
+        if (NewThingLookup.TryGetValue(index, out def))
+            return true;
 
         return false;
     }

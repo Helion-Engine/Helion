@@ -466,6 +466,7 @@ public class ArchiveCollection : IResources
     {
         if (Definitions.DehackedDefinition != null)
         {
+            Definitions.DehackedDefinition.LoadActorDefinitions(EntityDefinitionComposer);
             DehackedApplier dehackedApplier = new(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
         }
