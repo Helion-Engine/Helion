@@ -223,7 +223,7 @@ namespace Helion.Tests.Unit.GameAction
             check.Should().BeTrue();
         }
 
-        [Fact(DisplayName = "Teleport fog with teleport flag should fail")]
+        [Fact(DisplayName = "Teleport with teleport flag should fail")]
         public void TeleportWithTeleportFlagFail()
         {
             int telportLine = 405;
@@ -237,7 +237,7 @@ namespace Helion.Tests.Unit.GameAction
             caco.Flags.Teleport = false;
         }
 
-        [Fact(DisplayName = "Teleport fog with no clip flag should fail")]
+        [Fact(DisplayName = "Teleport with no clip flag should fail")]
         public void TeleportWithNoClipFlagFail()
         {
             int telportLine = 405;
@@ -251,7 +251,7 @@ namespace Helion.Tests.Unit.GameAction
             caco.Flags.NoClip = false;
         }
 
-        [Fact(DisplayName = "Teleport fog with no teleport flag should fail")]
+        [Fact(DisplayName = "Teleport with no teleport flag should fail")]
         public void TeleportWithNoTeleportFlagFail()
         {
             int telportLine = 405;
@@ -263,6 +263,18 @@ namespace Helion.Tests.Unit.GameAction
             bool check = caco.Position == teleportDest.Position;
             check.Should().BeFalse();
             caco.Flags.NoTeleport = false;
+        }
+
+        [Fact(DisplayName = "Teleport from back side should fail")]
+        public void TeleportFromBackSideFail()
+        {
+            int telportLine = 405;
+            Entity caco = GameActions.GetEntity(World, 68);
+            Entity teleportDest = GameActions.GetEntity(World, 67);
+
+            GameActions.EntityCrossLine(World, caco, telportLine, moveOutofBounds: false, forceFrozen: false, fromBack: true).Should().BeTrue();
+            bool check = caco.Position == teleportDest.Position;
+            check.Should().BeFalse();
         }
     }
 }
