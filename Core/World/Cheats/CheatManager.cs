@@ -22,7 +22,7 @@ public class CheatManager
         new ExactMatchCheat("$STSTR_FLY", "Fly mode off", "fly", "fly", CheatType.Fly),
         new ExactMatchCheat("$STSTR_DIE", string.Empty, string.Empty, "kill", CheatType.Kill, canToggle: false),
         new ExactMatchCheat("$STSTR_MONSTERSKILLED", string.Empty, string.Empty, "killmonsters", CheatType.KillAllMonsters, canToggle: false),
-        new ExactMatchCheat("$STSTR_RES", string.Empty, string.Empty, "resurrect", CheatType.Ressurect, canToggle: false),
+        new ExactMatchCheat("$STSTR_RES", string.Empty, string.Empty, "resurrect", CheatType.Resurrect, canToggle: false),
         new ExactMatchCheat("$STSTR_FAADDED", string.Empty, "idfa", "idfa", CheatType.GiveAllNoKeys, canToggle: false),
         new ExactMatchCheat("$STSTR_KFAADDED", string.Empty, "idkfa", "idkfa", CheatType.GiveAll, canToggle: false),
         new ExactMatchCheat("$STSTR_CHOPPERS", string.Empty, "idchoppers", CheatType.Chainsaw, canToggle: false),

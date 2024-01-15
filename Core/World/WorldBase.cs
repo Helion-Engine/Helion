@@ -2106,7 +2106,7 @@ public abstract class WorldBase : IWorld
                 ClearConsole?.Invoke(this, EventArgs.Empty);
                 player.ForceGib();
                 break;
-            case CheatType.Ressurect:
+            case CheatType.Resurrect:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
                 if (player.IsDead)
                     player.SetRaiseState();
@@ -2346,13 +2346,20 @@ public abstract class WorldBase : IWorld
         if (def == null)
             return;
 
-        // Not really a powerup, part of inventory
         if (powerupType == PowerupType.ComputerAreaMap)
         {
+            // Not really a powerup, part of inventory
             if (player.Inventory.HasItem(def.Name))
                 player.Inventory.Remove(def.Name, 1);
             else
                 player.Inventory.Add(def, 1);
+        }
+        else if (powerupType == PowerupType.Strength)
+        {
+            // Triggered from item pickup state
+            var berserk = EntityManager.Create("Berserk", Vec3D.Zero);
+            if (berserk != null)
+                PerformItemPickup(player, berserk);
         }
         else
         {

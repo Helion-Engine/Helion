@@ -150,7 +150,7 @@ namespace Helion.Tests.Unit.GameAction
             destroyEntities.ForEach(x => world.EntityManager.Destroy(x));
         }
 
-        public static bool SetEntityToLine(WorldBase world, Entity entity, int lineId, double distanceBeforeLine)
+        public static bool SetEntityToLine(WorldBase world, Entity entity, int lineId, double distanceBeforeLine, bool fromBack = false)
         {
             var line = GetLine(world, lineId);
             if (line == null)
@@ -158,7 +158,7 @@ namespace Helion.Tests.Unit.GameAction
 
             Vec2D center = line.Segment.FromTime(0.5);
 
-            double angle = line.Segment.Start.Angle(line.Segment.End);
+            double angle = fromBack ? line.Segment.End.Angle(line.Segment.Start) : line.Segment.Start.Angle(line.Segment.End);
             angle -= MathHelper.HalfPi;
 
             center += distanceBeforeLine * Vec2D.UnitCircle(angle);
@@ -174,9 +174,9 @@ namespace Helion.Tests.Unit.GameAction
 
         // forceActivation will ignore if the line was previously activated. Required for testing different scenarios on single use specials.
         public static bool EntityCrossLine(WorldBase world, Entity entity, int lineId, bool forceActivation = false, bool moveOutofBounds = true,
-            bool forceFrozen = true)
+            bool forceFrozen = true, bool fromBack = false)
         {
-            if (!SetEntityToLine(world, entity, lineId, entity.Radius))
+            if (!SetEntityToLine(world, entity, lineId, entity.Radius, fromBack))
                 return false;
 
             if (forceActivation)
