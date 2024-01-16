@@ -10,7 +10,7 @@ namespace Helion.World.Entities.Players;
 
 public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, AutomapColor? AutomapColor, PrimitiveRenderType Type)
 {
-    public readonly List<Seg3D> Tracers = new();
+    public readonly List<Seg3D> Segs = new();
 }
 
 /// <summary>
@@ -71,7 +71,7 @@ public class PlayerTracers
         Vec3D end = start + (dir * distance);
 
         PlayerTracerInfo info = GetOrCreateTracerInfo(PrimitiveRenderType.Line, gametick, TracerColor);
-        info.Tracers.Add(new(start, end));
+        info.Segs.Add(new(start, end));
     }
 
     public void AddAutoAimPath(Vec3D start, double yaw, double pitch, double distance, int gametick)
@@ -80,13 +80,13 @@ public class PlayerTracers
         Vec3D end = start + (dir * distance);
 
         PlayerTracerInfo info = GetOrCreateTracerInfo(PrimitiveRenderType.Line, gametick, AimColor);
-        info.Tracers.Add(new(start, end));
+        info.Segs.Add(new(start, end));
     }
 
     public int AddTracer(PrimitiveRenderType type, Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
     {
         PlayerTracerInfo info = GetOrCreateTracerInfo(type, gametick, color, ticks, automapColor);
-        info.Tracers.Add(path);
+        info.Segs.Add(path);
         return info.Id;
     }
 

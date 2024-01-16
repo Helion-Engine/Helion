@@ -362,9 +362,9 @@ public class LegacyWorldRenderer : WorldRenderer
             }
         
             float alpha = ticks == 0 ? 1 : (info.Ticks - ticks) / (float)ticks;
-            for (var i = 0; i < info.Tracers.Count; i++)
+            for (var i = 0; i < info.Segs.Count; i++)
             {
-                Seg3D tracer = info.Tracers[i];
+                Seg3D tracer = info.Segs[i];
                 AddSeg(tracer, node.Value.Color, alpha, info.Type);
             }
 

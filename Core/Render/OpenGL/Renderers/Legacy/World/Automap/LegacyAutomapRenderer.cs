@@ -165,9 +165,9 @@ public class LegacyAutomapRenderer : IDisposable
             if (node.Value.AutomapColor.HasValue)
             {
                 var info = node.Value;
-                for (int i = 0; i < info.Tracers.Count; i++)
+                for (int i = 0; i < info.Segs.Count; i++)
                 {
-                    var seg = info.Tracers[i];
+                    var seg = info.Segs[i];
                     AddLine(node.Value.AutomapColor.Value, seg.Start.XY, seg.End.XY);
                 }
             }

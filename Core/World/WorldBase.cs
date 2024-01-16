@@ -1128,7 +1128,9 @@ public abstract class WorldBase : IWorld
                     EntityActivatedSpecial(args);
                 }
 
-                intersect = bi.Intersection.To3D(start.Z + (Math.Tan(pitch) * bi.Distance2D));
+                intersect.X = bi.Intersection.X;
+                intersect.Y = bi.Intersection.Y;
+                intersect.Z = start.Z + (Math.Tan(pitch) * bi.Distance2D);
 
                 if (bi.Line.Back == null)
                 {
@@ -1171,8 +1173,10 @@ public abstract class WorldBase : IWorld
                     returnValue = bi;
                     break;
                 }
+                continue;
             }
-            else if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
+
+            if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
                 if (damage > 0)
@@ -1394,20 +1398,11 @@ public abstract class WorldBase : IWorld
             }
 
             bool skyClip = false;
-
-            if (entity.BlockingLine != null)
+            if (entity.BlockingLine != null && !entity.BlockingLine.OneSided)
             {
-                if (entity.BlockingLine.OneSided && IsSkyClipOneSided(entity.BlockingLine.Front.Sector, entity.BlockingLine.Front.Sector.ToFloorZ(entity.Position),
-                    entity.BlockingLine.Front.Sector.ToCeilingZ(entity.Position), entity.Position))
-                {
+                GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
+                if (IsSkyClipTwoSided(front, back, entity.Position))
                     skyClip = true;
-                }
-                else if (!entity.BlockingLine.OneSided)
-                {
-                    GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
-                    if (IsSkyClipTwoSided(front, back, entity.Position))
-                        skyClip = true;
-                }
             }
 
             if (entity.BlockingSectorPlane != null && ArchiveCollection.TextureManager.IsSkyTexture(entity.BlockingSectorPlane.TextureHandle))
