@@ -42,6 +42,8 @@ public partial class Entity
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
         !entity.IsDead && (!IsFriend(entity) || Target.Entity == null);
 
+    public void SetMoveDirection(MoveDir dir) => m_direction = dir;
+
     public bool SetNewTarget(bool allaround)
     {
         if (IsFrozen)

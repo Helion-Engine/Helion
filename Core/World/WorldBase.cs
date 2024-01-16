@@ -2208,7 +2208,7 @@ public abstract class WorldBase : IWorld
         entity.Flags.Solid = true;
         entity.Height = entity.Definition.Properties.Height;
 
-        Entity? saveTarget = healChaseEntity.Target.Entity;
+        Entity? saveTarget = healChaseEntity.Target?.Entity;
         healChaseEntity.SetTarget(entity);
         EntityActionFunctions.A_FaceTarget(healChaseEntity);
         healChaseEntity.SetTarget(saveTarget);
