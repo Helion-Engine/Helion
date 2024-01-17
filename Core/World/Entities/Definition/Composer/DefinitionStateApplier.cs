@@ -124,7 +124,7 @@ public class DefinitionStateApplier
         SetDefinitionStateIndicies(entityFrameTable, definition);
     }
 
-    private static int? GetEntityFrame(EntityFrameTable entityFrameTable, EntityDefinition definition, string label)
+    public static int? GetEntityFrame(EntityFrameTable entityFrameTable, EntityDefinition definition, string label)
     {
         if (definition.States.Labels.TryGetValue(label, out int index))
             return index;
