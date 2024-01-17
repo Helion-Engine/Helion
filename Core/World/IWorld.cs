@@ -123,6 +123,7 @@ public interface IWorld : IDisposable
     bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true);
     void PerformItemPickup(Entity entity, Entity item);
     void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
+    void HandleEntityClipPlane(Entity entity, SectorPlane plane);
     void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);

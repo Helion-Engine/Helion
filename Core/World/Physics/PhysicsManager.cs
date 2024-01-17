@@ -188,6 +188,8 @@ public class PhysicsManager
                 // Push the entity up, and the next loop will verify it is legal
                 else
                     PushUpBlockingEntity(entity);
+
+                m_world.HandleEntityClipPlane(entity, sectorPlane);
             }
         }
 

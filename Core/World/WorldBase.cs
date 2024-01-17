@@ -1417,9 +1417,13 @@ public abstract class WorldBase : IWorld
         {
             if (entity.BlockingEntity != null && ShouldDieFromTouch(entity, entity.BlockingEntity))
                 entity.BlockingEntity.Kill(null);
-            else if (entity.IsCrushing())
-                entity.Kill(null);
         }
+    }
+
+    public virtual void HandleEntityClipPlane(Entity entity, SectorPlane plane)
+    {
+        if (entity.Flags.Touchy)
+            entity.Kill(null);
     }
 
     public virtual void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)

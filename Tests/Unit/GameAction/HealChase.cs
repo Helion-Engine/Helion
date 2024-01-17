@@ -3,19 +3,20 @@ using Helion.Dehacked;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using Xunit;
 using static Helion.World.Entities.Entity;
 
 namespace Helion.Tests.Unit.GameAction;
 
 [Collection("GameActions")]
-public class HealChase
+public class HealChase : IDisposable
 {
     private readonly SinglePlayerWorld World;
 
     public HealChase()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private void WorldInit(SinglePlayerWorld world)
@@ -23,6 +24,12 @@ public class HealChase
         world.ArchiveCollection.Definitions.DehackedDefinition = new();
         DehackedApplier applier = new(world.ArchiveCollection.Definitions, world.ArchiveCollection.Definitions.DehackedDefinition);
         applier.Apply(world.ArchiveCollection.Definitions.DehackedDefinition, world.ArchiveCollection.Definitions, world.EntityManager.DefinitionComposer);
+    }
+
+    public void Dispose()
+    {
+        GameActions.DestroyCreatedEntities(World);
+        GC.SuppressFinalize(this);
     }
 
     [Fact(DisplayName = "Vile chase raises monster")]
