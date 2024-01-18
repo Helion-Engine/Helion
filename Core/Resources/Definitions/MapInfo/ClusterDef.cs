@@ -15,6 +15,11 @@ public class ClusterDef
     public bool IsExitTextLump { get; set; }
     public bool AllowIntermission { get; set; }
 
+    public ClusterDef(int number)
+    {
+        ClusterNum = number;
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj is ClusterDef cluster && cluster.ClusterNum == ClusterNum)

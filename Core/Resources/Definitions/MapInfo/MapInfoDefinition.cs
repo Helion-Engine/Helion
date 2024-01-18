@@ -325,9 +325,7 @@ public partial class MapInfoDefinition
 
     private ClusterDef ParseCluster(SimpleParser parser)
     {
-        ClusterDef clusterDef = new();
-        clusterDef.ClusterNum = parser.ConsumeInteger();
-
+        ClusterDef clusterDef = new(parser.ConsumeInteger());
         ConsumeBrace(parser, true);
 
         while (!IsBlockComplete(parser, false))

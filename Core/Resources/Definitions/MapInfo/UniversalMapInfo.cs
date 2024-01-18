@@ -164,7 +164,11 @@ public partial class MapInfoDefinition
     private ClusterDef GetOrCreateClusterDef(MapInfoDef mapDef)
     {
         if (!MapInfo.TryGetCluster(mapDef.Cluster, out var clusterDef))
-            clusterDef = new ClusterDef() { ClusterNum = MapInfo.GetNewClusterNumber() };
+        {
+            clusterDef = new ClusterDef(MapInfo.GetNewClusterNumber());
+            mapDef.Cluster = clusterDef.ClusterNum;
+            MapInfo.AddCluster(clusterDef);
+        }
 
         return clusterDef;
     }
