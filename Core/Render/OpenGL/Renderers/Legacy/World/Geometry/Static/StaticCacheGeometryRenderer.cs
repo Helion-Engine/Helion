@@ -314,7 +314,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        bool upperVisible = m_geometryRenderer.UpperOrSkySideIsVisible(side, facingSector, otherSector, out bool skyHack);
+        bool upperVisible = GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, facingSector, otherSector, out bool skyHack);
         if (upper && upperVisible)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);

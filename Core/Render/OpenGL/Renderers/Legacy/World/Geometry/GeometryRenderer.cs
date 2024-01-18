@@ -574,7 +574,7 @@ public class GeometryRenderer : IDisposable
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
             facingSide.Middle.IsDynamic)
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if (facingSide.Upper.IsDynamic && UpperOrSkySideIsVisible(facingSide, facingSector, otherSector, out _))
+        if (facingSide.Upper.IsDynamic && UpperOrSkySideIsVisible(TextureManager, facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
@@ -590,15 +590,15 @@ public class GeometryRenderer : IDisposable
             facingSide.UpperFloodKey > 0;
     }
 
-    public bool UpperOrSkySideIsVisible(Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
+    public static bool UpperOrSkySideIsVisible(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         skyHack = false;
         double facingZ = facingSector.Ceiling.Z;
         double otherZ = otherSector.Ceiling.Z;
         double prevFacingZ = facingSector.Ceiling.PrevZ;
         double prevOtherZ = otherSector.Ceiling.PrevZ;
-        bool isFacingSky = TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
-        bool isOtherSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+        bool isFacingSky = textureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        bool isOtherSky = textureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 
         if (isFacingSky && isOtherSky)
         {
