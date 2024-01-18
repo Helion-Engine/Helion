@@ -98,6 +98,9 @@ public partial class EndGameLayer : IGameLayer
         m_musicPlayer = musicPlayer;
         m_soundManager = soundManager;
         m_flatImage = language.GetMessage(currentCluster.Flat);
+        if (string.IsNullOrEmpty(m_flatImage))
+            m_flatImage = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleFlat;
+
         m_displayText = LookUpDisplayText(archiveCollection, language, clusterText);
         m_timespan = GetPageTime();
 
@@ -107,7 +110,7 @@ public partial class EndGameLayer : IGameLayer
 
         m_ticker.Start();
         string music = currentCluster.Music;
-        if (music == "")
+        if (string.IsNullOrEmpty(music))
             music = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleMusic;
         PlayMusic(music);
     }
