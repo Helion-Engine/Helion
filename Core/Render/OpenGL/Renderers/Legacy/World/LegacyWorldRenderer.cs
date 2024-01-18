@@ -87,6 +87,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     public override void UpdateToNewWorld(IWorld world)
     {
+        TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
         if (m_previousWorld != null)

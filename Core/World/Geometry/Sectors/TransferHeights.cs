@@ -27,6 +27,18 @@ public class TransferHeights
 
     private static int RenderSectorIndex = RenderSectors.Length;
 
+    public static void FlushSectorReferences()
+    {
+        for (int i = 0; i < RenderSectors.Length; i++)
+        {
+            var sector = RenderSectors[i];
+            sector.Floor.Sector = sector;
+            sector.Ceiling.Sector = sector;
+            sector.TransferFloorLightSector = sector;
+            sector.TransferCeilingLightSector = sector;
+        }
+    }
+
     public TransferHeights(Sector parentSector, Sector controlSector,
         Colormap? upper, Colormap? middle, Colormap? lower)
     {
