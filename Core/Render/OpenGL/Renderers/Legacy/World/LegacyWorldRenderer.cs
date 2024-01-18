@@ -134,9 +134,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_viewSector = world.BspTree.ToSector(m_renderData.ViewPosInterpolated3D);
-
-        TransferHeightView transferHeightsView = TransferHeights.GetView(m_viewSector, renderInfo.Camera.PositionInterpolated.Z);
+        m_viewSector = renderInfo.ViewSector;
 
         m_viewerEntityId = renderInfo.ViewerEntity.Id;
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
@@ -174,7 +172,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
                     const SectorDynamic MovementFlags = SectorDynamic.Movement | SectorDynamic.Scroll;
                     // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
-                    if (transfer != null && transferHeightsView == TransferHeightView.Middle &&
+                    if (transfer != null && renderInfo.TransferHeightView == TransferHeightView.Middle &&
                         (sector.Floor.Dynamic & MovementFlags) == 0 &&
                         (sector.Ceiling.Dynamic & MovementFlags) == 0 &&
                         (transfer.ControlSector.Floor.Dynamic & MovementFlags) == 0 &&
@@ -237,7 +235,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
         }
 
-        m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);     
+        m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated3D);     
     }
 
     void RenderSector(Sector sector)
@@ -335,7 +333,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                m_entityRenderer.RenderEntity(m_viewSector, entity, m_renderData.ViewPosInterpolated3D);
+                m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated3D);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {

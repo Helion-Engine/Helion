@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Util.Configs.Components;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared;
@@ -23,6 +24,8 @@ public class RenderInfo
     public double AutomapScale;
     public ConfigRender Config;
     public ShaderUniforms Uniforms;
+    public Sector ViewSector;
+    public TransferHeightView TransferHeightView;
 
     public RenderInfo()
     {
@@ -33,7 +36,7 @@ public class RenderInfo
     }
 
     public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
-        Vec2I automapOffset, double automapScale, ConfigRender config)
+        Vec2I automapOffset, double automapScale, ConfigRender config, Sector viewSector, TransferHeightView transferHeightView)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");
 
@@ -45,6 +48,8 @@ public class RenderInfo
         AutomapOffset = automapOffset;
         AutomapScale = automapScale;
         Config = config;
+        ViewSector = viewSector;
+        TransferHeightView = transferHeightView;
 
         if (!DrawAutomap)
             LastAutomapOffset = Vec2F.Zero;

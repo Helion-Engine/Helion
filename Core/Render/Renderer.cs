@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
@@ -19,6 +20,7 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -357,8 +359,11 @@ public class Renderer : IDisposable
 
         DrawHudImagesIfAnyQueued(viewport);
 
+        var viewSector = cmd.World.BspTree.ToSector(cmd.Camera.PositionInterpolated.Double);
+        var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
+
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render);
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
         m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
         m_worldRenderer.Render(cmd.World, m_renderInfo);
     }

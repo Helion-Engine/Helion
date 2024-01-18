@@ -155,10 +155,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
     }
 
-    public void CheckForFloodFill(Side facingSide, Side otherSide, Sector otherSector, bool isFront)
+    public void CheckForFloodFill(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFront)
     {
         SideTexture previous = facingSide.FloodTextures;
-        StaticDataApplier.SetFloodFillSide(m_world, facingSide, otherSide);
+        StaticDataApplier.SetFloodFillSide(m_world, facingSide, otherSide, facingSector, otherSector);
         if (previous == facingSide.FloodTextures)
             return;
 
@@ -794,8 +794,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            CheckForFloodFill(line.Front, line.Back, line.Back.Sector, true);
-            CheckForFloodFill(line.Back, line.Front, line.Front.Sector, false);
+            CheckForFloodFill(line.Front, line.Back, line.Front.Sector.GetRenderSector(TransferHeightView.Middle), 
+                line.Back.Sector.GetRenderSector(TransferHeightView.Middle), true);
+            CheckForFloodFill(line.Back, line.Front, line.Back.Sector.GetRenderSector(TransferHeightView.Middle), 
+                line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
     }
 

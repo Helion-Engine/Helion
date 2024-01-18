@@ -25,6 +25,7 @@ public class EntityRenderer : IDisposable
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
+    private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
     private bool m_spriteZCheck;
@@ -62,11 +63,6 @@ public class EntityRenderer : IDisposable
 
     public void SetTickFraction(double tickFraction) =>
         m_tickFraction = tickFraction;
-
-    public void SetViewDirection(Vec2D viewDirection)
-    {
-        m_viewRightNormal = viewDirection.RotateRight90().Unit().Float;
-    }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
     {
@@ -115,7 +111,7 @@ public class EntityRenderer : IDisposable
         return 0;
     }
 
-    public unsafe void RenderEntity(Sector viewSector, Entity entity, in Vec3D position)
+    public unsafe void RenderEntity(Entity entity, in Vec3D position)
     {
         const double NudgeFactor = 0.0001;
         
@@ -152,7 +148,7 @@ public class EntityRenderer : IDisposable
         if (spriteDef != null)
             spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
         GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        Sector sector = entity.Sector.GetRenderSector(viewSector, position.Z);
+        Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
             (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
@@ -196,7 +192,8 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(RenderInfo renderInfo)
     {
-        SetViewDirection(renderInfo.Camera.Direction.XY.Double);
+        m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
+        m_transferHeightView = renderInfo.TransferHeightView;
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);

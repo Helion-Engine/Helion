@@ -79,15 +79,14 @@ public class StaticDataApplier
         if (line.Back == null)
             return;
 
-        SetFloodFillSide(world, line.Front, line.Back);
-        SetFloodFillSide(world, line.Back, line.Front);
+        var frontSector = line.Front.Sector.GetRenderSector(TransferHeightView.Middle);
+        var backSector = line.Back.Sector.GetRenderSector(TransferHeightView.Middle);
+        SetFloodFillSide(world, line.Front, line.Back, frontSector, backSector);
+        SetFloodFillSide(world, line.Back, line.Front, backSector, frontSector);
     }
 
-    public static void SetFloodFillSide(IWorld world, Side facingSide, Side otherSide)
+    public static void SetFloodFillSide(IWorld world, Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
-        Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
-        Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
-
         if (facingSide.Lower.TextureHandle <= Constants.NullCompatibilityTextureIndex && 
             (facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ))
             facingSide.FloodTextures |= SideTexture.Lower;
