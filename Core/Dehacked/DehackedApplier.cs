@@ -674,7 +674,11 @@ public class DehackedApplier
                 continue;
             }
 
-            CheckLevelString(text);
+            if (CheckLevelString(text))
+                continue;
+
+            if (UpdateMusicString(text, language))
+                continue;
 
             if (language.GetKeyByValue(text.OldString, out string? key) && key != null)
                 language.SetValue(key, text.NewString);
@@ -683,24 +687,106 @@ public class DehackedApplier
         }
     }
 
+    private static readonly Dictionary<string, string> MusicLookup = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "e1m1", "MUSIC_E1M1" },
+        { "e1m2", "MUSIC_E1M2" },
+        { "e1m3", "MUSIC_E1M3" },
+        { "e1m4", "MUSIC_E1M4" },
+        { "e1m5", "MUSIC_E1M5" },
+        { "e1m6", "MUSIC_E1M6" },
+        { "e1m7", "MUSIC_E1M7" },
+        { "e1m8", "MUSIC_E1M8" },
+        { "e1m9", "MUSIC_E1M9" },
+        { "e2m1", "MUSIC_E2M1" },
+        { "e2m2", "MUSIC_E2M2" },
+        { "e2m3", "MUSIC_E2M3" },
+        { "e2m4", "MUSIC_E2M4" },
+        { "e2m5", "MUSIC_E2M5" },
+        { "e2m6", "MUSIC_E2M6" },
+        { "e2m7", "MUSIC_E2M7" },
+        { "e2m8", "MUSIC_E2M8" },
+        { "e2m9", "MUSIC_E2M9" },
+        { "e3m1", "MUSIC_E3M1" },
+        { "e3m2", "MUSIC_E3M2" },
+        { "e3m3", "MUSIC_E3M3" },
+        { "e3m4", "MUSIC_E3M4" },
+        { "e3m5", "MUSIC_E3M5" },
+        { "e3m6", "MUSIC_E3M6" },
+        { "e3m7", "MUSIC_E3M7" },
+        { "e3m8", "MUSIC_E3M8" },
+        { "e3m9", "MUSIC_E3M9" },
+        { "inter", "MUSIC_INTER" },
+        { "intro", "MUSIC_INTRO" },
+        { "bunny", "MUSIC_BUNNY" },
+        { "victor", "MUSIC_VICTOR" },
+        { "introa", "MUSIC_INTROA" },
+        { "runnin", "MUSIC_RUNNIN" },
+        { "stalks", "MUSIC_STALKS" },
+        { "countd", "MUSIC_COUNTD" },
+        { "betwee", "MUSIC_BETWEE" },
+        { "doom", "MUSIC_DOOM" },
+        { "the_da", "MUSIC_THE_DA" },
+        { "shawn", "MUSIC_SHAWN" },
+        { "ddtblu", "MUSIC_DDTBLU" },
+        { "in_cit", "MUSIC_IN_CIT" },
+        { "dead", "MUSIC_DEAD" },
+        { "stlks2", "MUSIC_STLKS2" },
+        { "theda2", "MUSIC_THEDA2" },
+        { "doom2", "MUSIC_DOOM2" },
+        { "ddtbl2", "MUSIC_DDTBL2" },
+        { "runni2", "MUSIC_RUNNI2" },
+        { "dead2", "MUSIC_DEAD2" },
+        { "stlks3", "MUSIC_STLKS3" },
+        { "romero", "MUSIC_ROMERO" },
+        { "shawn2", "MUSIC_SHAWN2" },
+        { "messag", "MUSIC_MESSAG" },
+        { "count2", "MUSIC_COUNT2" },
+        { "ddtbl3", "MUSIC_DDTBL3" },
+        { "ampie", "MUSIC_AMPIE" },
+        { "theda3", "MUSIC_THEDA3" },
+        { "adrian", "MUSIC_ADRIAN" },
+        { "messg2", "MUSIC_MESSG2" },
+        { "romer2", "MUSIC_ROMER2" },
+        { "tense", "MUSIC_TENSE" },
+        { "shawn3", "MUSIC_OPENIN" },
+        { "evil", "MUSIC_EVIL" },
+        { "ultima", "MUSIC_ULTIMA" },
+        { "read_m", "MUSIC_READ_M" },
+        { "dm2ttl", "MUSIC_DM2TTL" },
+        { "dm2int", "MUSIC_DM2INT" },
+    };
+
+    private static bool UpdateMusicString(DehackedString text, LanguageDefinition language)
+    {
+        if (!MusicLookup.TryGetValue(text.OldString, out var lookup))
+            return false;
+
+        return language.SetValue(lookup, "D_" + text.NewString);
+    }
+
     private static readonly Regex[] LevelRegex = new Regex[]
     {
         new Regex(@"^level \d+: "),
         new Regex(@"^E\dM\d: ")
     };
 
-    private static void CheckLevelString(DehackedString text)
+    private static bool CheckLevelString(DehackedString text)
     {
+        bool success = false;
         foreach (var regex in LevelRegex)
         {
             var match = regex.Match(text.OldString);
+            success = success || match.Success;
             if (match.Success)
                 text.OldString = text.OldString.Replace(match.Value, string.Empty);
 
             match = regex.Match(text.NewString);
+            success = success || match.Success;
             if (match.Success)
                 text.NewString = text.NewString.Replace(match.Value, string.Empty);
         }
+        return success;
     }
 
     private static void UpdateSpriteText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, DehackedString text)

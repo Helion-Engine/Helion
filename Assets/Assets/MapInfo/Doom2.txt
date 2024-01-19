@@ -22,7 +22,7 @@ map MAP01 lookup "HUSTR_1"
 	sky1 = "SKY1"
 	cluster = 5
 	par = 30
-	music = "D_RUNNIN"
+	music = "$MUSIC_RUNNIN"
 }
 
 map MAP02 lookup "HUSTR_2"
@@ -33,7 +33,7 @@ map MAP02 lookup "HUSTR_2"
 	sky1 = "SKY1"
 	cluster = 5
 	par = 90
-	music = "D_STALKS"
+	music = "$MUSIC_STALKS"
 }
 
 map MAP03 lookup "HUSTR_3"
@@ -44,7 +44,7 @@ map MAP03 lookup "HUSTR_3"
 	sky1 = "SKY1"
 	cluster = 5
 	par = 120
-	music = "D_COUNTD"
+	music = "$MUSIC_COUNTD"
 }
 
 map MAP04 lookup "HUSTR_4"
@@ -55,7 +55,7 @@ map MAP04 lookup "HUSTR_4"
 	sky1 = "SKY1"
 	cluster = 5
 	par = 120
-	music = "D_BETWEE"
+	music = "$MUSIC_BETWEE"
 }
 
 map MAP05 lookup "HUSTR_5"
@@ -66,7 +66,7 @@ map MAP05 lookup "HUSTR_5"
 	sky1 = "SKY1"
 	cluster = 5
 	par = 90
-	music = "D_DOOM"
+	music = "$MUSIC_DOOM"
 }
 
 map MAP06 lookup "HUSTR_6"
@@ -78,7 +78,7 @@ map MAP06 lookup "HUSTR_6"
 	cluster = 5
 	par = 150
 	sucktime = 1
-	music = "D_THE_DA"
+	music = "$MUSIC_THE_DA"
 	needclustertext
 }
 
@@ -91,7 +91,7 @@ map MAP07 lookup "HUSTR_7"
 	cluster = 6
 	par = 120
 	map07special
-	music = "D_SHAWN"
+	music = "$MUSIC_SHAWN"
 }
 
 map MAP08 lookup "HUSTR_8"
@@ -102,7 +102,7 @@ map MAP08 lookup "HUSTR_8"
 	sky1 = "SKY1"
 	cluster = 6
 	par = 120
-	music = "D_DDTBLU"
+	music = "$MUSIC_DDTBLU"
 }
 
 map MAP09 lookup "HUSTR_9"
@@ -113,7 +113,7 @@ map MAP09 lookup "HUSTR_9"
 	sky1 = "SKY1"
 	cluster = 6
 	par = 270
-	music = "D_IN_CIT"
+	music = "$MUSIC_IN_CIT"
 }
 
 map MAP10 lookup "HUSTR_10"
@@ -124,7 +124,7 @@ map MAP10 lookup "HUSTR_10"
 	sky1 = "SKY1"
 	cluster = 6
 	par = 90
-	music = "D_DEAD"
+	music = "$MUSIC_DEAD"
 }
 
 map MAP11 lookup "HUSTR_11"
@@ -135,7 +135,7 @@ map MAP11 lookup "HUSTR_11"
 	sky1 = "SKY1"
 	cluster = 6
 	par = 210
-	music = "D_STLKS2"
+	music = "$MUSIC_STLKS2"
 	needclustertext
 }
 
@@ -147,7 +147,7 @@ map MAP12 lookup "HUSTR_12"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_THEDA2"
+	music = "$MUSIC_THEDA2"
 }
 
 map MAP13 lookup "HUSTR_13"
@@ -158,7 +158,7 @@ map MAP13 lookup "HUSTR_13"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_DOOM2"
+	music = "$MUSIC_DOOM2"
 }
 
 map MAP14 lookup "HUSTR_14"
@@ -169,7 +169,7 @@ map MAP14 lookup "HUSTR_14"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_DDTBL2"
+	music = "$MUSIC_DDTBL2"
 }
 
 map MAP15 lookup "HUSTR_15"
@@ -180,7 +180,7 @@ map MAP15 lookup "HUSTR_15"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 210
-	music = "D_RUNNI2"
+	music = "$MUSIC_RUNNI2"
 	needclustertext
 }
 
@@ -192,7 +192,7 @@ map MAP16 lookup "HUSTR_16"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_DEAD2"
+	music = "$MUSIC_DEAD2"
 }
 
 map MAP17 lookup "HUSTR_17"
@@ -203,7 +203,7 @@ map MAP17 lookup "HUSTR_17"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 420
-	music = "D_STLKS3"
+	music = "$MUSIC_STLKS3"
 }
 
 map MAP18 lookup "HUSTR_18"
@@ -214,7 +214,7 @@ map MAP18 lookup "HUSTR_18"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_ROMERO"
+	music = "$MUSIC_ROMERO"
 }
 
 map MAP19 lookup "HUSTR_19"
@@ -225,7 +225,7 @@ map MAP19 lookup "HUSTR_19"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 210
-	music = "D_SHAWN2"
+	music = "$MUSIC_SHAWN2"
 }
 
 map MAP20 lookup "HUSTR_20"
@@ -236,7 +236,7 @@ map MAP20 lookup "HUSTR_20"
 	sky1 = "SKY2"
 	cluster = 7
 	par = 150
-	music = "D_MESSAG"
+	music = "$MUSIC_MESSAG"
 	needclustertext
 }
 
@@ -248,7 +248,7 @@ map MAP21 lookup "HUSTR_21"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 240
-	music = "D_COUNT2"
+	music = "$MUSIC_COUNT2"
 }
 
 map MAP22 lookup "HUSTR_22"
@@ -259,7 +259,7 @@ map MAP22 lookup "HUSTR_22"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 150
-	music = "D_DDTBL3"
+	music = "$MUSIC_DDTBL3"
 }
 
 map MAP23 lookup "HUSTR_23"
@@ -270,7 +270,7 @@ map MAP23 lookup "HUSTR_23"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 180
-	music = "D_AMPIE"
+	music = "$MUSIC_AMPIE"
 }
 
 map MAP24 lookup "HUSTR_24"
@@ -281,7 +281,7 @@ map MAP24 lookup "HUSTR_24"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 150
-	music = "D_THEDA3"
+	music = "$MUSIC_THEDA3"
 }
 
 map MAP25 lookup "HUSTR_25"
@@ -292,7 +292,7 @@ map MAP25 lookup "HUSTR_25"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 150
-	music = "D_ADRIAN"
+	music = "$MUSIC_ADRIAN"
 }
 
 map MAP26 lookup "HUSTR_26"
@@ -303,7 +303,7 @@ map MAP26 lookup "HUSTR_26"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 300
-	music = "D_MESSG2"
+	music = "$MUSIC_MESSG2"
 }
 
 map MAP27 lookup "HUSTR_27"
@@ -314,7 +314,7 @@ map MAP27 lookup "HUSTR_27"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 330
-	music = "D_ROMER2"
+	music = "$MUSIC_ROMER2"
 }
 
 map MAP28 lookup "HUSTR_28"
@@ -325,7 +325,7 @@ map MAP28 lookup "HUSTR_28"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 420
-	music = "D_TENSE"
+	music = "$MUSIC_TENSE"
 }
 
 map MAP29 lookup "HUSTR_29"
@@ -336,7 +336,7 @@ map MAP29 lookup "HUSTR_29"
 	sky1 = "SKY3"
 	cluster = 8
 	par = 300
-	music = "D_SHAWN3"
+	music = "$MUSIC_SHAWN3"
 }
 
 map MAP30 lookup "HUSTR_30"
@@ -348,7 +348,7 @@ map MAP30 lookup "HUSTR_30"
 	cluster = 8
 	par = 180
 	allowmonstertelefrags
-	music = "D_OPENIN"
+	music = "$MUSIC_OPENIN"
 	needclustertext
 }
 
@@ -360,7 +360,7 @@ map MAP31 lookup "HUSTR_31"
 	sky1 = "SKY3"
 	cluster = 9
 	par = 120
-	music = "D_EVIL"
+	music = "$MUSIC_EVIL"
 	needclustertext
 }
 
@@ -372,7 +372,7 @@ map MAP32 lookup "HUSTR_32"
 	sky1 = "SKY3"
 	cluster = 10
 	par = 30
-	music = "D_ULTIMA"
+	music = "$MUSIC_ULTIMA"
 }
 
 // DOOM II first cluster (up thru level 6)
