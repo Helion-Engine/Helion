@@ -14,7 +14,7 @@ public partial class MapInfoDefinition
 
         while (!parser.IsDone())
         {
-            MapInfoDef mapDef = (MapInfoDef)MapInfo.DefaultMap.Clone();
+            MapInfoDef mapDef = MapInfo.DefaultMap == null ? new MapInfoDef() : (MapInfoDef)MapInfo.DefaultMap.Clone();
             parser.ConsumeString("MAP");
             mapDef.MapName = parser.ConsumeString();
             ConsumeBrace(parser, true);
@@ -88,6 +88,7 @@ public partial class MapInfoDefinition
 
     private void ParseBossAction(SimpleParser parser, MapInfoDef mapDef)
     {
+        mapDef.MapSpecial = MapSpecial.None;
         mapDef.MapSpecialAction = MapSpecialAction.None;
         if (parser.ConsumeIf("clear"))
         {
