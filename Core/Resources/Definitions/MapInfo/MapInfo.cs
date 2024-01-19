@@ -73,7 +73,7 @@ public class MapInfo
     public int GetNewClusterNumber()
     {
         if (m_clusters.Count == 0)
-            return 0;
+            return 1;
 
         return m_clusters.Max(x => x.ClusterNum) + 1;
     }
