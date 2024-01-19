@@ -1,0 +1,200 @@
+//PHOBOS OVERRUN
+map e1m1
+{
+	levelname = "Chemical Circumstances"
+	label = "E1M1 Label"
+	music = "D_E1M0"
+	next = "E1M2"
+	levelpic = "WILV00"
+	episode = "M_EPI1", "1"
+	author = "the author"
+	partime = 420
+}
+
+map e1m2
+{
+	levelname = "Chemical Storage"
+	label = clear
+	music = "D_E1M2"
+	next = "E1M3"
+	levelpic = "WILV01"
+	skytexture = "TESTSKY"
+	nointermission = true
+	EnterPic = "TESTINTERPIC"
+	intertext = clear
+	intertextsecret = clear
+}
+
+map e1m3
+{
+	levelname = "Nukage Nexus"
+	music = "D_E1M3"
+	next = "E1M9"
+	nextSecret = "E1M9"
+	levelpic = "WILV02"
+	intertextsecret = "super secret",
+	"really secret"
+}
+
+map e1m4
+{
+	levelname = "Blast Terminal"
+	music = "D_E1M4"
+	next = "E1M5"
+	levelpic = "WILV03"
+}
+
+map e1m5
+{
+	levelname = "Martian Security"
+	music = "D_E1M5"
+	next = "E1M6"
+	levelpic = "WILV04"
+}
+
+map e1m6
+{
+	levelname = "Storage Facility"
+	music = "D_E1M6"
+	next = "E1M7"
+	levelpic = "WILV05"
+}
+
+map e1m7
+{
+	levelname = "Armoury"
+	music = "D_E1M7B"
+	next = "E1M8"
+	levelpic = "WILV06"
+}
+
+map e1m8
+{
+	levelname = "Rotten Core"
+	music = "D_E1M8"
+	endgame = true
+	EndPic = "CREDIT"
+	levelpic = "WILV07"
+	InterText = "Despite your victory, you rot along with the",
+	"core and everything goes black.",
+	"",
+	"You awaken on what appears to be Deimos,",
+	"but something has changed. Time to get",
+	"to the bottom of this.",
+	"",
+	"Join us for Episode 2: Deimos Corrupted!"
+	bossaction = "cyberdemon", 69, 42069
+}
+
+map e1m9
+{
+	levelname = "Swift Crater Facility"
+	music = "D_E1M9"
+	next = "E1M4"
+	levelpic = "WILV08"
+	endbunny = true
+}
+
+map e3m1
+{
+	levelname = "The lone map"
+	unknownitem = "test"
+	episode = clear
+}
+
+
+// ANOMALY ASYLUM
+map e5m1
+{
+	levelname = "Asylum of Glowing Crosses"
+	music = "D_E5M1"
+	next = "E5M2"
+	levelpic = "WILV40"
+	skytexture = "SKY2"
+	episode = "M_EPI5", "5", "k"
+	intermusic = "D_TEST"
+	bossaction = clear
+}
+
+map e5m2
+{
+	levelname = "Quarantine Zone"
+	music = "D_E5M2"
+	next = "E5M3"
+	skytexture = "SKY2"
+	levelpic = "WILV41"
+}
+
+map e5m3
+{
+	levelname = "Deimosian Memories"
+	music = "D_E2M1"
+	next = "E5M4"
+	skytexture = "SKY2"
+	levelpic = "WILV42"
+}
+
+map e5m4
+{
+	levelname = "Cathexis"
+	music = "D_E5M4"
+	next = "E5M5"
+	skytexture = "SKY2"
+	levelpic = "WILV43"
+}
+
+map e5m5
+{
+	levelname = "Voltaire Quarry"
+	music = "D_E5M5"
+	next = "E5M9"
+	nextSecret = "E5M9"
+	skytexture = "SKY2"
+	levelpic = "WILV44"
+}
+
+map e5m6
+{
+	levelname = "Compact Facility"
+	music = "D_E5M6"
+	next = "E5M7"
+	skytexture = "SKY2"
+	levelpic = "WILV45"
+}
+
+map e5m7
+{
+	levelname = "Soul's Journey's End"
+	music = "D_E5M7"
+	next = "E5M8"
+	skytexture = "SKY2"
+	levelpic = "WILV46"
+}
+
+map e5m8
+{
+	levelname = "Point Sinister"
+	music = "D_E5M8"
+	endgame = true
+	EndPic = "CREDIT"
+	skytexture = "SKY2"
+	levelpic = "WILV47"
+	interbackdrop = "FLAT_69"
+	InterText = 
+	"Deimos has become fully corrupted,",
+	"and you now stand on the threshold",
+	"of hell!",
+	"",
+	"Join us for the next episode: Fever Dream!"
+	endcast = true
+}
+
+map e5m9
+{
+	levelname = "Mountain Factory"
+	music = "D_E5M9"
+	next = "E5M6"
+	skytexture = "SKY2"
+	levelpic = "WILV48"
+}
+
