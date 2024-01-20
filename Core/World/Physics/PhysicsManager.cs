@@ -646,19 +646,23 @@ public class PhysicsManager
         double lowestCeil = entity.LowestCeilingZ;
         double highestFloor = entity.HighestFloorZ;
 
-        if (entity.TopZ > lowestCeil)
+        // short.MinValue checks are to emulate the fixed point overflow required for mikoportals.
+        if (entity.TopZ > lowestCeil || highestFloor <= short.MinValue)
         {
             entity.Velocity.Z = 0;
             entity.Position.Z = lowestCeil - entity.Height;
 
-            if (entity.LowestCeilingObject is Entity blockEntity)
-                entity.BlockingEntity = blockEntity;
-            else
-                entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
+            if (highestFloor > short.MinValue)
+            {
+                if (entity.LowestCeilingObject is Entity blockEntity)
+                    entity.BlockingEntity = blockEntity;
+                else
+                    entity.BlockingSectorPlane = entity.LowestCeilingSector.Ceiling;
+            }
         }
 
         bool clippedFloor = entity.Position.Z <= highestFloor;
-        if (entity.Position.Z <= highestFloor)
+        if (entity.Position.Z <= highestFloor && highestFloor < short.MaxValue)
         {
             if (entity.HighestFloorObject is Entity highestEntity &&
                 highestEntity.TopZ <= entity.Position.Z + entity.GetMaxStepHeight())
@@ -824,7 +828,14 @@ public class PhysicsManager
         {
             Sector sector = intersectSectors[i];
             double floorZ = sector.ToFloorZ(entity.Position);
-            if (floorZ > highestFloorZ)
+
+            if (floorZ < short.MinValue)
+            {
+                highestFloor = sector;
+                highestFloorZ = floorZ;
+            }
+
+            if (floorZ > highestFloorZ && highestFloorZ > short.MinValue)
             {
                 highestFloor = sector;
                 highestFloorZ = floorZ;
