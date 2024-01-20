@@ -1004,7 +1004,8 @@ public class PhysicsManager
             }
 
             success = false;
-            ClearVelocityXY(entity);
+            if (ShouldClearSlide(entity))
+                ClearVelocityXY(entity);
             break;
         }
 
@@ -1336,8 +1337,9 @@ doneIsPositionValid:
         movesLeft = 0;
     }
 
-    private static BoxCornerTracers CalculateCornerTracers(Box2D currentBox, Vec2D stepDelta)
+    private static BoxCornerTracers CalculateCornerTracers(Entity entity, Vec2D stepDelta)
     {
+        Box2D currentBox = entity.GetBox2D();
         Span<Vec2D> corners = stackalloc Vec2D[3];
         if (stepDelta.X >= 0)
         {
@@ -1391,7 +1393,7 @@ doneIsPositionValid:
             {
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
-                    if (cornerTracer.Intersection(line->Segment, out double time) &&
+                    if (cornerTracer.Intersection(line->Segment, out double time) && time > 0 && time < 1 &&
                         LineBlocksEntity(entity, position, line, null) != LineBlock.NoBlock &&
                         time < hitTime)
                     {
@@ -1423,8 +1425,7 @@ doneIsPositionValid:
         //
         // This obviously can miss things, but this is how vanilla does it
         // and we want to have compatibility with the mods that use.
-        Box2D currentBox = entity.GetBox2D();
-        BoxCornerTracers tracers = CalculateCornerTracers(currentBox, stepDelta);
+        BoxCornerTracers tracers = CalculateCornerTracers(entity, stepDelta);
         CheckCornerTracerIntersection(tracers.First, entity, ref moveInfo);
         CheckCornerTracerIntersection(tracers.Second, entity, ref moveInfo);
         CheckCornerTracerIntersection(tracers.Third, entity, ref moveInfo);
@@ -1432,7 +1433,7 @@ doneIsPositionValid:
         return moveInfo.IntersectionFound;
     }
 
-    private bool MoveCloseToBlockingLine(Entity entity, Vec2D stepDelta, MoveInfo moveInfo, out Vec2D residualStep, TryMoveData tryMove)
+    private bool MoveCloseToBlockingLine(Entity entity, Vec2D stepDelta, in MoveInfo moveInfo, out Vec2D residualStep, TryMoveData tryMove)
     {
         Precondition(moveInfo.LineIntersectionTime >= 0, "Blocking line intersection time should never be negative");
         Precondition(moveInfo.IntersectionFound, "Should not be moving close to a line if we didn't hit one");
