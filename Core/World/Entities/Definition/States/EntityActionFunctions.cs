@@ -1162,7 +1162,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null || WorldStatic.BFGBall == null)
             return;
 
-        entity.PlayerObj.DecreaseAmmoCompatibility(40);
+        entity.PlayerObj.DecreaseAmmoCompatibility(WorldStatic.WeaponBfg?.Properties.Weapons.AmmoUse ?? 40);
         WorldStatic.World.FireProjectile(entity, entity.AngleRadians, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
             WorldStatic.World.Config.Game.AutoAim, WorldStatic.BFGBall, out _);
     }

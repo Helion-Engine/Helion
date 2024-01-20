@@ -1130,7 +1130,10 @@ public class DehackedApplier
         {
             var bfg = composer.GetByName(BFG900Class);
             if (bfg != null)
+            {
                 bfg.Properties.Weapons.AmmoUse = dehacked.Misc.BfgCellsPerShot.Value;
+                bfg.Properties.Weapons.AmmoUseSet = true;
+            }
         }
 
         if (dehacked.Misc.MonstersInfight.HasValue)

@@ -292,6 +292,7 @@ public abstract class WorldBase : IWorld
         WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByName("SpawnShot");
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
+        WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.BFG900Class);
     }
     private void VanillaMovementPhysics_OnChanged(object? sender, bool enabled) =>
         WorldStatic.VanillaMovementPhysics = enabled;

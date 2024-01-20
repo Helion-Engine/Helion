@@ -51,6 +51,8 @@ public static class WorldStatic
     public static EntityDefinition? BFGBall;
     public static EntityDefinition? PlasmaBall;
 
+    public static EntityDefinition? WeaponBfg;
+
     public static void FlushIntersectionReferences()
     {
         for (int i = 0; i < Intersections.Capacity; i++)
