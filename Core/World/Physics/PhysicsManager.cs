@@ -1329,7 +1329,8 @@ doneIsPositionValid:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        ClearVelocityXY(entity);
+        if (ShouldClearSlide(entity))
+            ClearVelocityXY(entity);
         stepDelta.X = 0;
         stepDelta.Y = 0;
         movesLeft = 0;
@@ -1510,7 +1511,8 @@ doneIsPositionValid:
             if (IsPositionValid(entity, nextPosition, tryMove))
             {
                 MoveTo(entity, nextPosition, tryMove);
-                entity.Velocity.Y = 0;
+                if (ShouldClearSlide(entity))
+                    entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
             }
@@ -1521,7 +1523,8 @@ doneIsPositionValid:
             if (IsPositionValid(entity, nextPosition, tryMove))
             {
                 MoveTo(entity, nextPosition, tryMove);
-                entity.Velocity.X = 0;
+                if (ShouldClearSlide(entity))
+                    entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
             }
@@ -1529,6 +1532,10 @@ doneIsPositionValid:
 
         return false;
     }
+
+
+    private static bool ShouldClearSlide(Entity entity) =>
+        !WorldStatic.VanillaMovementPhysics || (entity.IsBlocked() && entity.BlockingLine != null);
 
     private void MoveXY(Entity entity)
     {
