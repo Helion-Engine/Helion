@@ -21,6 +21,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla sector physics")]
     public readonly ConfigValue<bool> VanillaSectorPhysics = new(false);
 
+    [ConfigInfo("Use vanilla movement physics. Velocity is maintained when hitting things.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Vanilla movement physics")]
+    public readonly ConfigValue<bool> VanillaMovementPhysics = new(false);
+
     [ConfigInfo("Emulate vanilla infinitely tall things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Infinitely tall things")]
     public readonly ConfigValue<bool> InfinitelyTallThings = new(false);

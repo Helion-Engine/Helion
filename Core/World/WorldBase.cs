@@ -233,6 +233,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
+        Config.Compatibility.VanillaMovementPhysics.OnChanged += VanillaMovementPhysics_OnChanged; 
     }
 
     private void UnRegisterConfigChanges()
@@ -247,6 +248,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.AllowItemDropoff.OnChanged -= AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged -= InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
+        Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -275,6 +277,7 @@ public abstract class WorldBase : IWorld
         WorldStatic.MissileClip = Config.Compatibility.MissileClip;
         WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
         WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
+        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
@@ -290,7 +293,8 @@ public abstract class WorldBase : IWorld
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
     }
-
+    private void VanillaMovementPhysics_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.VanillaMovementPhysics = enabled;
     private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
         WorldStatic.NoTossDrops = enabled;
     private void InfinitelyTallThings_OnChanged(object? sender, bool enabled) =>
