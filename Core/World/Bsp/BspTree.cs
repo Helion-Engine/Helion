@@ -25,7 +25,7 @@ public class BspSubsectorSeg : Segment2D
     public BspSubsectorSeg(int id, Vec2D start, Vec2D end, int? lineId, int? sectorId) : base(start, end)
     {
         Id = id;
-        SectorId = lineId;
+        LineId = lineId;
         SectorId = sectorId;
     }
 
