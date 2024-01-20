@@ -36,6 +36,19 @@ public partial class WorldLayer : IGameLayerParent
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static string LastMapName = string.Empty;
 
+    record class MapCompatibility(string Name, string MapName, string MD5);
+    record class ArchiveCompatibility(string Name, string MD5);
+
+    private static readonly MapCompatibility[] MapCompat = new MapCompatibility[]
+    {
+        new ("TNT MAP30", "MAP30", "d41d8cd98f00b204e9800998ecf8427e")
+    };
+
+    private static readonly ArchiveCompatibility[] ArchiveCompat = new ArchiveCompatibility[]
+    {
+        new ("KDIKDIZD", "7343bc51d8b640e8f63bea8e87888b20")
+    };
+
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
@@ -138,7 +151,7 @@ public partial class WorldLayer : IGameLayerParent
         if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
             world.SameAsPreviousMap = true;
         else
-            SetCompatibilityOptions(config, map, mapInfoDef);
+            SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
         archiveCollection.TextureManager.InitSprites(world);
         LastMapName = mapInfoDef.MapName;
@@ -147,7 +160,7 @@ public partial class WorldLayer : IGameLayerParent
         return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
     }
 
-    private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef)
+    private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef, ArchiveCollection archiveCollection)
     {
         var compat = config.Compatibility;
         compat.MissileClip.ResetToUserValue();
@@ -157,6 +170,7 @@ public partial class WorldLayer : IGameLayerParent
         compat.PainElementalLostSoulLimit.ResetToUserValue();
         compat.NoTossDrops.ResetToUserValue();
         compat.Stairs.ResetToUserValue();
+        compat.VanillaMovementPhysics.ResetToUserValue();
 
         if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
             compat.MissileClip.SetWithNoWriteConfig(true);
@@ -173,9 +187,28 @@ public partial class WorldLayer : IGameLayerParent
         if (mapInfoDef.HasOption(MapOptions.CompatStairs))
             compat.Stairs.SetWithNoWriteConfig(true);
 
-        // Hardcoding TNT MAP30 here for now
-        if (map.Name.EqualsIgnoreCase("MAP30") && map.MD5.Equals("d41d8cd98f00b204e9800998ecf8427e"))
-            compat.Stairs.SetWithNoWriteConfig(true);
+        foreach (var mapCompat in MapCompat)
+        {
+            if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5))
+            {
+                compat.Stairs.SetWithNoWriteConfig(true);
+                break;
+            }
+        }
+
+        foreach (var archive in archiveCollection.Archives)
+        {
+            foreach (var archiveCompat in ArchiveCompat)
+            {
+                if (archive.MD5.Equals(archiveCompat.MD5))
+                {
+                    compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+                    compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
+                    compat.MissileClip.SetWithNoWriteConfig(true);
+                    break;
+                }
+            }
+        }
     }
 
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
