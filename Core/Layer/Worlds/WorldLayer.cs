@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Helion.Audio;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -13,6 +15,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -36,17 +39,21 @@ public partial class WorldLayer : IGameLayerParent
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static string LastMapName = string.Empty;
 
-    record class MapCompatibility(string Name, string MapName, string MD5);
-    record class ArchiveCompatibility(string Name, string MD5);
+    record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
+    record class ArchiveCompatibility(string Name, string MD5, IList<(FieldInfo, bool)> Values);
 
     private static readonly MapCompatibility[] MapCompat = new MapCompatibility[]
     {
-        new ("TNT MAP30", "MAP30", "d41d8cd98f00b204e9800998ecf8427e")
+        new("TNT MAP30", "MAP30", "d41d8cd98f00b204e9800998ecf8427e",
+            GetConfigCompatProperties((nameof(ConfigCompat.Stairs), true)))
     };
 
     private static readonly ArchiveCompatibility[] ArchiveCompat = new ArchiveCompatibility[]
     {
-        new ("KDIKDIZD", "7343bc51d8b640e8f63bea8e87888b20")
+        new("KDIKDIZD", "7343bc51d8b640e8f63bea8e87888b20",
+            GetConfigCompatProperties((nameof(ConfigCompat.VanillaMovementPhysics), true),
+                (nameof(ConfigCompat.VanillaSectorPhysics), true),
+                (nameof(ConfigCompat.MissileClip), true)))
     };
 
     public IntermissionLayer? Intermission { get; private set; }
@@ -191,7 +198,7 @@ public partial class WorldLayer : IGameLayerParent
         {
             if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5))
             {
-                compat.Stairs.SetWithNoWriteConfig(true);
+                ApplyCompatOptions(config, mapCompat.Values);
                 break;
             }
         }
@@ -202,12 +209,21 @@ public partial class WorldLayer : IGameLayerParent
             {
                 if (archive.MD5.Equals(archiveCompat.MD5))
                 {
-                    compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
-                    compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
-                    compat.MissileClip.SetWithNoWriteConfig(true);
+                    ApplyCompatOptions(config, archiveCompat.Values);
                     break;
                 }
             }
+        }
+    }
+
+    private static void ApplyCompatOptions(IConfig config, IList<(FieldInfo, bool)> props)
+    {
+        foreach (var (field, set) in props)
+        {
+            var configValue = field.GetValue(config.Compatibility) as ConfigValue<bool>;
+            if (configValue == null)
+                continue;
+            configValue.SetWithNoWriteConfig(set);
         }
     }
 
@@ -242,6 +258,21 @@ public partial class WorldLayer : IGameLayerParent
 
         return null;
     }
+
+    private static IList<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)
+    {
+        List<(FieldInfo, bool)> props = new();
+        var type = typeof(ConfigCompat);
+        foreach ((string name, bool set) in items)
+        {
+            var field = type.GetField(name);
+            if (field == null)
+                continue;
+            props.Add((field, set));
+        }
+        return props;
+    }
+
 
     public void Remove(object layer)
     {
