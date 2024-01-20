@@ -272,10 +272,12 @@ public class SinglePlayerWorld : WorldBase
         if (string.IsNullOrWhiteSpace(entryName))
             return false;
 
-        Entry? entry = archiveCollection.Entries.FindByName(archiveCollection.Definitions.Language.GetMessage(entryName));
+        string lookup = archiveCollection.Definitions.Language.GetMessage(entryName);
+        Entry? entry = archiveCollection.Entries.FindByName(lookup);
+
         if (entry == null)
         {
-            Log.Warn("Cannot find music track: {0}", entryName);
+            Log.Warn("Cannot find music track: {0}", lookup);
             return false;
         }
 
