@@ -10,6 +10,8 @@ using Helion.World.Impl.SinglePlayer;
 using System;
 using Xunit;
 
+namespace Helion.Tests.Unit.GameAction;
+
 [Collection("GameActions")]
 public class DehackedPickup : IDisposable
 {
