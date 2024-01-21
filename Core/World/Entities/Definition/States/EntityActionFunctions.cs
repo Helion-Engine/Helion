@@ -1688,8 +1688,8 @@ public static class EntityActionFunctions
         skull.Flags.IsMonster = true;
 
         // Ignore parent for clip checking
-        bool wasSolid = entity.Flags.Solid;
-        entity.Flags.Solid = false;
+        bool wasNoClip = entity.Flags.NoClip;
+        entity.Flags.NoClip = true;
 
         // Add some better checking from the original
         // Set the skull barely clipped into the parent
@@ -1698,11 +1698,11 @@ public static class EntityActionFunctions
             !WorldStatic.World.PhysicsManager.TryMoveXY(skull, skullPos.XY).Success)
         {
             skull.Kill(null);
-            entity.Flags.Solid = wasSolid;
+            entity.Flags.NoClip = wasNoClip;
             return;
         }
 
-        entity.Flags.Solid = wasSolid;
+        entity.Flags.NoClip = wasNoClip;
         skull.SetTarget(entity.Target.Entity);
         A_SkullAttack(skull);
     }
