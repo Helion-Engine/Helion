@@ -304,7 +304,14 @@ public partial class Client
     {
         try
         {
-            MapInfoDef mapInfo = GetMapInfo(args.Args[0]);
+            var mapName = args.Args[0];
+            if (MapInfo.IsWarpTrans(mapName))
+            {
+                await NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
+                return;
+            }
+
+            MapInfoDef mapInfo = GetMapInfo(mapName);
             await NewGame(mapInfo);
         }
         catch (Exception e)

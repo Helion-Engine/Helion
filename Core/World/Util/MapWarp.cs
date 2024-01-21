@@ -71,8 +71,8 @@ public static class MapWarp
 
     private static bool GetMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string mapName)
     {
-        string startMap = "map01";
-        if (mapInfo.Episodes.Count > 0)
+        string startMap = "map01";        
+        if (mapInfo.Episodes.Count > 0 && !MapInfo.IsWarpTrans(mapInfo.Episodes[0].StartMap))
             startMap = mapInfo.Episodes[0].StartMap;
 
         Regex mapRegex = new Regex(@"(?<map>[^\s\d]+)\d+");

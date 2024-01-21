@@ -1,5 +1,7 @@
 using Helion.Maps.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
+using Helion.World.Util;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -8,6 +10,8 @@ namespace Helion.Resources.Definitions.MapInfo;
 
 public class MapInfo
 {
+    const string WarpTrans = "&wt@";
+
     public IReadOnlyList<EpisodeDef> Episodes => m_episodes.AsReadOnly();
     public IReadOnlyList<MapInfoDef> Maps => m_maps.AsReadOnly();
     public IReadOnlyList<ClusterDef> Clusters => m_clusters.AsReadOnly();
@@ -103,6 +107,15 @@ public class MapInfo
     public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
     public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
+    public static bool IsWarpTrans(string mapName) => mapName.StartsWith(WarpTrans);
+    
+    public MapInfoDef GetStartMapOrDefault(ArchiveCollection archiveCollection, string mapName)
+    {        
+        if (IsWarpTrans(mapName) && MapWarp.GetMap(mapName[WarpTrans.Length..], archiveCollection, out var mapInfoDef))
+            return mapInfoDef;
+
+        return GetMapInfoOrDefault(mapName);
+    }
 
     private static void AddOrReplace<T>(List<T> items, T newItem)
     {

@@ -159,7 +159,7 @@ public partial class Client
 
         var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
         string startMapName = mapInfo.Episodes[0].StartMap;
-        return mapInfo.GetMap(startMapName);
+        return mapInfo.GetStartMapOrDefault(m_archiveCollection, startMapName);
     }
 
     private void SetSkill(int value)
