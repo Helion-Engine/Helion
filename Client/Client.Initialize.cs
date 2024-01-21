@@ -53,6 +53,8 @@ public partial class Client
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
 
+            m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config);
+
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
 

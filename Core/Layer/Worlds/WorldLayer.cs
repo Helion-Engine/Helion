@@ -11,6 +11,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Strings;
 using Helion.Util;
@@ -40,20 +41,11 @@ public partial class WorldLayer : IGameLayerParent
     private static string LastMapName = string.Empty;
 
     record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
-    record class ArchiveCompatibility(string Name, string MD5, IList<(FieldInfo, bool)> Values);
 
     private static readonly MapCompatibility[] MapCompat = new MapCompatibility[]
     {
         new("TNT MAP30", "MAP30", "d41d8cd98f00b204e9800998ecf8427e",
             GetConfigCompatProperties((nameof(ConfigCompat.Stairs), true)))
-    };
-
-    private static readonly ArchiveCompatibility[] ArchiveCompat = new ArchiveCompatibility[]
-    {
-        new("KDIKDIZD", "7343bc51d8b640e8f63bea8e87888b20",
-            GetConfigCompatProperties((nameof(ConfigCompat.VanillaMovementPhysics), true),
-                (nameof(ConfigCompat.VanillaSectorPhysics), true),
-                (nameof(ConfigCompat.MissileClip), true)))
     };
 
     public IntermissionLayer? Intermission { get; private set; }
@@ -157,7 +149,7 @@ public partial class WorldLayer : IGameLayerParent
 
         if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
             world.SameAsPreviousMap = true;
-        else
+        else if (archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
             SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
         archiveCollection.TextureManager.InitSprites(world);
@@ -169,15 +161,12 @@ public partial class WorldLayer : IGameLayerParent
 
     private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef, ArchiveCollection archiveCollection)
     {
+        // Complevel is a global modifier. Cannot restore compatibility options here.
+        if (archiveCollection.Definitions.CompLevelDefinition.CompLevel != CompLevel.Undefined)            
+            return;
+
         var compat = config.Compatibility;
-        compat.MissileClip.ResetToUserValue();
-        compat.VanillaShortestTexture.ResetToUserValue();
-        compat.VanillaSectorPhysics.ResetToUserValue();
-        compat.InfinitelyTallThings.ResetToUserValue();
-        compat.PainElementalLostSoulLimit.ResetToUserValue();
-        compat.NoTossDrops.ResetToUserValue();
-        compat.Stairs.ResetToUserValue();
-        compat.VanillaMovementPhysics.ResetToUserValue();
+        compat.ResetToUserValues();
 
         if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
             compat.MissileClip.SetWithNoWriteConfig(true);
@@ -200,18 +189,6 @@ public partial class WorldLayer : IGameLayerParent
             {
                 ApplyCompatOptions(config, mapCompat.Values);
                 break;
-            }
-        }
-
-        foreach (var archive in archiveCollection.Archives)
-        {
-            foreach (var archiveCompat in ArchiveCompat)
-            {
-                if (archive.MD5.Equals(archiveCompat.MD5))
-                {
-                    ApplyCompatOptions(config, archiveCompat.Values);
-                    break;
-                }
             }
         }
     }

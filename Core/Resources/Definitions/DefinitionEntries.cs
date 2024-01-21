@@ -48,6 +48,7 @@ public class DefinitionEntries
     public readonly EntityFrameTable EntityFrameTable = new();
     public readonly TexturesDefinition TexturesDef = new();
     public readonly Dictionary<string, Colormap> Colormaps = new();
+    public readonly CompLevelDefinition CompLevelDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -90,6 +91,7 @@ public class DefinitionEntries
         m_entryNameToAction["UMAPINFO"] = entry => ParseEntry(ParseUniversalMapInfo, entry);
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
+        m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
     }
 
     public void ParseDehackedPatch(string data)
@@ -141,6 +143,7 @@ public class DefinitionEntries
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
+    private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
 
     private void ParseMapInfo(string text)
     {

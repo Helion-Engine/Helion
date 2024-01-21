@@ -44,4 +44,16 @@ public class ConfigCompat
     [ConfigInfo("Use Doom's bugged stair building.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use bugged stair building")]
     public readonly ConfigValue<bool> Stairs = new(false);
+
+    public void ResetToUserValues()
+    {
+        MissileClip.ResetToUserValue();
+        VanillaShortestTexture.ResetToUserValue();
+        VanillaSectorPhysics.ResetToUserValue();
+        InfinitelyTallThings.ResetToUserValue();
+        PainElementalLostSoulLimit.ResetToUserValue();
+        NoTossDrops.ResetToUserValue();
+        Stairs.ResetToUserValue();
+        VanillaMovementPhysics.ResetToUserValue();
+    }
 }
