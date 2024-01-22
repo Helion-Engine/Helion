@@ -1672,8 +1672,8 @@ public static class EntityActionFunctions
         }
 
         Vec3D skullPos = entity.Position;
-        Vec3D startPos = entity.Position;
         skullPos.Z += 8;
+        Vec3D startPos = skullPos;
 
         Entity? skull = WorldStatic.EntityManager.Create("LostSoul", startPos);
         if (skull == null)
@@ -2370,7 +2370,9 @@ public static class EntityActionFunctions
         entity.PlayAttackSound();
         A_FaceTarget(entity);
 
-        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, entity.PitchTo(entity.CenterPoint, entity.Target.Entity)) * 20;
+        var targetCenter = entity.Target.Entity.CenterPoint;
+        entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 
+            entity.Position.Pitch(targetCenter, targetCenter.XY.Distance(entity.Position.XY))) * 20;
         entity.Flags.Skullfly = true;
     }
 
