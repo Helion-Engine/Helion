@@ -1540,8 +1540,16 @@ doneIsPositionValid:
 
     private void MoveXY(Entity entity)
     {
-        if (entity.IsDisposed || (entity.Velocity.X == 0 && entity.Velocity.Y == 0))
+        if (entity.IsDisposed)
             return;
+
+        // Doom checked skull fly here. This is required to match dehacked functionality if the velocity is cleared but didn't actually hit anything.
+        if (entity.Velocity.X == 0 && entity.Velocity.Y == 0)
+        {
+            if (entity.Flags.Skullfly)
+                m_world.HandleEntityHit(entity, entity.Velocity, TryMoveData);
+            return;
+        }
 
         TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
         if (entity.ShouldApplyFriction())
