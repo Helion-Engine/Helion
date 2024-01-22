@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.World.Entities;
 
@@ -507,7 +508,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     {
         if (Flags.Missile)
         {
-            if (Flags.Randomize)
+            // Doom will always apply randomization, force this functionality if a dehacked patch is applied
+            if (Flags.Randomize || WorldStatic.Dehacked)
                 SetRandomizeTicks();
             if (FrameState.CurrentTick < 1)
                 FrameState.SetTics(1);

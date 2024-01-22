@@ -278,6 +278,7 @@ public abstract class WorldBase : IWorld
         WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
         WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
         WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
+        WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null; 
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;

@@ -33,6 +33,7 @@ public static class WorldStatic
     public static bool AllowItemDropoff;
     public static bool NoTossDrops;
     public static bool VanillaMovementPhysics;
+    public static bool Dehacked;
     public static int RespawnTimeSeconds;
     public static int ClosetLookFrameIndex;
     public static int ClosetChaseFrameIndex;

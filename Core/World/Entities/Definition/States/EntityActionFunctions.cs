@@ -1851,7 +1851,7 @@ public static class EntityActionFunctions
 
         bool playReadySound;
         // If using dehacked then use hard-coded vanilla frame index check
-        if (WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition != null)
+        if (WorldStatic.Dehacked)
             playReadySound = player.Weapon.FrameState.Frame.VanillaIndex == (int)ThingState.SAW;
         else
             playReadySound = player.Weapon.FrameState.IsState(Constants.FrameStates.Ready);
