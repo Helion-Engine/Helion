@@ -41,6 +41,8 @@ public class EntityModel
     public int? LowSec { get; set; }
     public int? HighEntity { get; set; }
     public int? LowEntity { get; set; }
+    // Previously was not serialized
+    public bool? OnGround { get; set; }
 
     public Vec3D GetVelocity() => (VelocityX, VelocityY, VelocityZ);
 

@@ -226,6 +226,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         FrameState = new(this, definition, entityModel.Frame);
         InMonsterCloset = IsClosetChase || IsClosetLook;
+
+        if (entityModel.OnGround.HasValue)
+            OnGround = entityModel.OnGround.Value;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -262,6 +265,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         entityModel.LowSec = LowestCeilingSector.Id;
         entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
+        entityModel.OnGround = OnGround;
         return entityModel;
     }
 
