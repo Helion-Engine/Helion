@@ -38,9 +38,11 @@ public class HexenMap : IMap
     public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
     public byte[]? Reject { get; set; }
+    public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
     private HexenMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides,
-        List<HexenLine> lines, List<HexenThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject)
+        List<HexenLine> lines, List<HexenThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject,
+        CompatibilityMapDefinition? compatibility)
     {
         Archive = archive;
         Name = name;
@@ -52,6 +54,7 @@ public class HexenMap : IMap
         Nodes = nodes;
         GL = gl;
         Reject = reject;
+        CompatibilityDefinition = compatibility;
     }
 
     /// <summary>
@@ -87,7 +90,7 @@ public class HexenMap : IMap
 
         IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes?.ReadData());
         GLComponents? gl = GLComponents.Read(map);
-        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData());
+        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData(), compatibility);
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;

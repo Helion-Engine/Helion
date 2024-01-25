@@ -49,6 +49,21 @@ public class CompatibilityParser : ParserBase
             ConsumeLineMapElement();
         else if (ConsumeIf("SIDE"))
             ConsumeSideMapElement();
+        else if (ConsumeIf("midtexturehacksector"))
+        {
+            m_mapDefinition.MidTextureHackSectors.Add(ConsumeInteger());
+            Consume(';');
+        }
+        else if (ConsumeIf("norenderfloorsector"))
+        {
+            m_mapDefinition.NoRenderFloorSectors.Add(ConsumeInteger());
+            Consume(';');
+        }
+        else if (ConsumeIf("norenderceiling"))
+        {
+            m_mapDefinition.NoRenderCeilingSectors.Add(ConsumeInteger());
+            Consume(';');
+        }
     }
 
     private void ConsumeLineMapElement()

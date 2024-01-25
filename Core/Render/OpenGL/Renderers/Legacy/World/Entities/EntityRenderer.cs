@@ -100,6 +100,9 @@ public class EntityRenderer : IDisposable
         if (texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
             return 0;
 
+        if (entity.Sector.Floor.NoRender)
+            return offsetAmount;
+
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
             float maxHeight = texture.Height * m_spriteClipFactorMax;

@@ -87,3 +87,37 @@
         line 14 delete;
     }
 }
+
+"KDiKDi_A.wad"
+{
+	map "MAP13"
+	{
+		midtexturehacksector 113;
+	}
+
+	map "MAP14"
+	{
+		midtexturehacksector 655;
+	}
+
+	map "MAP17"
+	{
+		midtexturehacksector 501;
+	}
+	
+	map "MAP20"
+	{
+		midtexturehacksector 918;
+		midtexturehacksector 260;
+		midtexturehacksector 694;
+		midtexturehacksector 695;
+		midtexturehacksector 708;
+		midtexturehacksector 804;
+		midtexturehacksector 808;
+		midtexturehacksector 809;
+		norenderfloorsector 715;
+		norenderfloorsector 696;
+		norenderfloorsector 697;
+		norenderfloorsector 699;
+	}
+}

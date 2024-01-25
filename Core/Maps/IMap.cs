@@ -26,7 +26,8 @@ public interface IMap
     IReadOnlyList<IVertex> GetVertices();
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
-    
+    CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
     {
         var map = Create(archive, mapEntries, compatibility);
