@@ -31,6 +31,7 @@ using Helion.World.Blockmap;
 using Helion.Maps.Specials;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Geometry;
+using Helion.Maps;
 
 namespace Helion.World;
 
@@ -95,6 +96,7 @@ public interface IWorld : IDisposable
     bool SameAsPreviousMap { get; set; }
     MarkSpecials MarkSpecials { get; }
     MapGeometry Geometry { get; }
+    IMap Map { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);

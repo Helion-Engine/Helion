@@ -125,8 +125,10 @@ public abstract class WorldBase : IWorld
 
     public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
+    public IMap Map { get; private set; }
+
     protected readonly IAudioSystem AudioSystem;
-    protected readonly IMap Map;
+
     protected readonly Profiler Profiler;
     private readonly IRandom m_saveRandom;
     private IRandom m_random;
