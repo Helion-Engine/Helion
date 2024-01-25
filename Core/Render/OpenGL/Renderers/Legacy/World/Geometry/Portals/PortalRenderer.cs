@@ -10,11 +10,16 @@ using Helion.World.Static;
 using System;
 using System.Diagnostics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
+using Helion.World.Geometry.Walls;
+using Helion.World.Geometry.Lines;
+using Helion.Util;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
 public class PortalRenderer : IDisposable
 {
+    const int FakeWallHeight = 8192;
+
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
@@ -51,9 +56,48 @@ public class PortalRenderer : IDisposable
     public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
         HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, true);
 
+    public void AddFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront) =>
+        HandleFloodFillPlane(facingSide, floodSector, face, isFront, false);
+
+    public void UpdateFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront) =>
+        HandleFloodFillPlane(facingSide, floodSector, face, isFront, true);
+
+    private void HandleFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront, bool update)
+    {
+        if (face == SectorPlaneFace.Floor)
+        {
+            var top = facingSide.Sector.Floor;
+            m_fakeFloor.TextureHandle = floodSector.Floor.TextureHandle;
+            m_fakeFloor.Z = top.Z - FakeWallHeight;
+            m_fakeFloor.PrevZ = facingSide.Sector.Floor.PrevZ - FakeWallHeight;
+            m_fakeFloor.LightLevel = floodSector.LightLevel;
+
+            var wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, isFront);
+
+            if (update)
+                m_floodFillRenderer.UpdateStaticWall(facingSide.FloorFloodKey, floodSector.Floor, wall, top.Z, double.MaxValue);
+            else
+                facingSide.FloorFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, top.Z, double.MaxValue);
+        }
+        else
+        {
+            var bottom = facingSide.Sector.Ceiling;
+            m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
+            m_fakeCeiling.Z = bottom.Z + FakeWallHeight;
+            m_fakeCeiling.PrevZ = facingSide.Sector.Ceiling.PrevZ + FakeWallHeight;
+            m_fakeCeiling.LightLevel = floodSector.LightLevel;
+
+            var wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, isFront);
+
+            if (update)
+                m_floodFillRenderer.UpdateStaticWall(facingSide.CeilingFloodKey, floodSector.Ceiling, wall, double.MinValue, bottom.Z);
+            else
+                facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z);
+        }
+    }
+
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
     {
-        const int FakeWallHeight = 8192;
         Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
         if (sideTexture == SideTexture.Upper)
