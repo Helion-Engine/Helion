@@ -279,7 +279,10 @@ public class GeometryRenderer : IDisposable
             }
 
             if (smallestFloodSector != null)
+            {
+                LastFloodSectors.Add(smallestFloodSector.Value);
                 world.Sectors[smallestFloodSector.Value].Flood = true;
+            }
         }
     }
 
