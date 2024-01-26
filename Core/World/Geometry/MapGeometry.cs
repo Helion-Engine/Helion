@@ -41,9 +41,7 @@ public class MapGeometry
 
         TrackSectorsByTag();
         TrackLinesByLineId();
-        AttachBspToGeometry(BspTree);
 
-        // Requires geometry to be attached to each other before classifying.
         Islands = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines);
 
         SectorIslands = new List<Island>[Sectors.Count];
@@ -156,16 +154,5 @@ public class MapGeometry
             lines.Add(line);
         else
             m_idToLine[line.LineId] = new List<Line> { line };
-    }
-
-    private void AttachBspToGeometry(BspTreeNew bspTree)
-    {
-        foreach (BspSubsector subsector in bspTree.Subsectors)
-            if (subsector.SectorId.HasValue)
-                Sectors[subsector.SectorId.Value].Subsectors.Add(subsector);
-
-        foreach (BspSubsectorSeg seg in bspTree.Segments)
-            if (seg.LineId.HasValue)
-                Lines[seg.LineId.Value].SubsectorSegs.Add(seg);
     }
 }

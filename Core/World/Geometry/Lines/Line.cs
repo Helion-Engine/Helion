@@ -26,7 +26,6 @@ public class Line : IBspUsableLine
     public Seg2D Segment;
     public Side Front;
     public Side? Back;
-    public List<BspSubsectorSeg> SubsectorSegs = new();
     public Island Island = null!;
     public int LineId;
     public SpecialArgs Args;
