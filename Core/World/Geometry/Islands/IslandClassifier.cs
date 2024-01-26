@@ -16,19 +16,37 @@ public static class IslandClassifier
     static int SectorIslandId = 0;
     static HashSet<BspSubsector> ProcessedSubsectors = new();
 
-    public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, List<Line> lines, int sectorId = -1)
+    public static List<Island>[] ClassifySectors(List<BspSubsector> subsectors, List<Sector> sectors)
+    {
+        List<Island>[] islands = new List<Island>[sectors.Count];
+        var subsectorLookup = subsectors.Where(x => x.SectorId.HasValue).GroupBy(x => x.SectorId.Value).ToDictionary(x => x.Key, x => x.ToList());
+
+        for (int sectorId = 0; sectorId < islands.Length; sectorId++)
+        {
+            if (!subsectorLookup.TryGetValue(sectorId, out var sectorSubsectors))
+            {
+                islands[sectorId] = new List<Island>();
+                continue;
+            }
+
+            islands[sectorId] = Classify(sectorSubsectors, sectors, sectorId);
+        }
+
+        return islands;
+    }
+
+    public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int sectorId = -1)
     {
         List<Island> islands = new();
-        IEnumerable<BspSubsector> traverseSubsectors = sectorId == -1 ? subsectors : subsectors.Where(x => x.SectorId == sectorId);
 
-        foreach (BspSubsector subsector in traverseSubsectors)
+        foreach (BspSubsector subsector in subsectors)
         {
             if (ProcessedSubsectors.Contains(subsector)) 
                 continue;
 
             Island island = new(sectorId == -1 ? IslandId++ : SectorIslandId);
             islands.Add(island);
-            TraverseSubsectors(subsector, island, ProcessedSubsectors, sectors, lines, sectorId);
+            TraverseSubsectors(subsector, island, ProcessedSubsectors, sectors, sectorId);
         }
 
         foreach (var island in islands)
@@ -54,7 +72,7 @@ public static class IslandClassifier
     }
 
     private static void TraverseSubsectors(BspSubsector initialSubsector, Island island, HashSet<BspSubsector> processedSubsectors, 
-        List<Sector> sectors, List<Line> lines, int sectorId)
+        List<Sector> sectors, int sectorId)
     {
         HashSet<int> visitedLines = new();
         Stack<BspSubsector> subsectorsToVisit = new();

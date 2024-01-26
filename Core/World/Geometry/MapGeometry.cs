@@ -8,6 +8,7 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using NLog;
 
@@ -18,11 +19,13 @@ public struct IslandGeometry
     public IslandGeometry()
     {
         BadSubsectors = new();
+        FloodSectors = new();
         Islands = new();
         SectorIslands = Array.Empty<List<Island>>();
     }
 
     public HashSet<int> BadSubsectors;
+    public HashSet<int> FloodSectors;
     public List<Island> Islands;
     public List<Island>[] SectorIslands;
 }
@@ -59,11 +62,8 @@ public class MapGeometry
 
     public void ClassifyIslands()
     {
-        IslandGeometry.Islands = IslandClassifier.Classify(BspTree.Subsectors, Sectors, Lines);
-
-        IslandGeometry.SectorIslands = new List<Island>[Sectors.Count];
-        foreach (var sector in Sectors)
-            IslandGeometry.SectorIslands[sector.Id] = IslandClassifier.Classify(BspTree.Subsectors, Sectors, Lines, sector.Id);
+        IslandGeometry.Islands = IslandClassifier.Classify(BspTree.Subsectors, Sectors);
+        IslandGeometry.SectorIslands = IslandClassifier.ClassifySectors(BspTree.Subsectors, Sectors);
 
         foreach (var subsector in BspTree.Subsectors)
             SetSegs(subsector);
@@ -72,6 +72,7 @@ public class MapGeometry
         {
             foreach (var island in IslandGeometry.SectorIslands[sectorId])
             {
+                bool islandFlooded = false;
                 foreach (var subsector in island.Subsectors)
                 {
                     if (subsector.SelfReferenceSegs >= subsector.LineSegs && subsector.LineSegs > 0)
@@ -79,17 +80,62 @@ public class MapGeometry
                         if (subsector.LineSegs == 1 && !IsPartnerSubsectorBad(subsector))
                             continue;
 
+                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
                         IslandGeometry.BadSubsectors.Add(subsector.Id);
+                        if (!islandFlooded)
+                        {
+                            SetContainingSectorsToFlood(subsector);
+                            islandFlooded = true;
+                        }
                     }
 
                     if (subsector.Segments.Count >= 3)
                         continue;
 
                     IslandGeometry.BadSubsectors.Add(subsector.Id);
+                    IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
+
+                    if (!islandFlooded)
+                    {
+                        SetContainingSectorsToFlood(subsector);
+                        islandFlooded = true;
+                    }
                 }
             }
         }
+
+        foreach (var sectorId in IslandGeometry.FloodSectors)
+            Log.Info($"Flood sector {sectorId}");
     }
+
+    private void SetContainingSectorsToFlood(BspSubsector subsector)
+    {
+        for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
+        {
+            var islands = IslandGeometry.SectorIslands[sectorId];
+            if (islands.Count == 0 || subsector.SectorId == sectorId)
+                continue;
+
+            double? smallestFloodPerimeter = null;
+            int? smallestFloodSector = null;
+            foreach (var island in islands)
+            {
+                if (island.Box.Contains(subsector.Box.Min) && island.Box.Contains(subsector.Box.Max))
+                {
+                    double perimeter = (island.Box.Width + island.Box.Height) * 2;
+                    if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
+                    {
+                        smallestFloodPerimeter = perimeter;
+                        smallestFloodSector = sectorId;
+                    }
+                }
+            }
+
+            if (smallestFloodSector != null)
+                IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
+        }
+    }
+
 
     // Bsp will split on one sided lines and can generate subsectors with a single self-referencing seg that isn't actually 'bad'.
     // Check if the partner subsectors are valid before condemning this subsector.

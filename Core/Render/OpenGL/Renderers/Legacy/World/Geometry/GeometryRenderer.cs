@@ -161,7 +161,6 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
-            subsector.Flood = world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
 
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
@@ -191,7 +190,14 @@ public class GeometryRenderer : IDisposable
             }
         }
 
-        SetFloodSectors(world);
+        if (m_vanillaFlood)
+        {
+            foreach (var sector in world.Sectors)
+                sector.Flood = world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
+
+            foreach (var subsector in world.BspTree.Subsectors)
+                subsector.Flood = world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
+        }
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -209,83 +215,7 @@ public class GeometryRenderer : IDisposable
             RenderFlat(subsectors, renderSector.Ceiling, false, out _, out _);
         }
     }
-
-    static HashSet<int> LastFloodSectors = new();
-
-    private void SetFloodSectors(IWorld world)
-    {
-        if (!world.Config.Render.VanillaFloodFill)
-            return;
-
-        if (world.SameAsPreviousMap)
-        {
-            foreach (var sectorId in LastFloodSectors)
-            {
-                if (world.IsSectorIdValid(sectorId))
-                    world.Sectors[sectorId].Flood = true;
-            }
-            return;
-        }
-
-        LastFloodSectors.Clear();
-        for (int sectorId = 0; sectorId < m_subsectors.Length; sectorId++)
-        {
-            var sector = world.Sectors[sectorId];
-            DynamicArray<Subsector> subsectors = m_subsectors[sectorId];
-            if (subsectors.Length == 0 || sector.Flood)
-                continue;
-
-            for (int i = 0; i < subsectors.Length; i++)
-            {
-                var subsector = subsectors[i];
-                if (!subsector.Flood)
-                    continue;
-
-                LastFloodSectors.Add(sectorId);
-                sector.Flood = true;
-                SetContainingSectorsToFlood(world, subsector, world.Sectors[sectorId]);
-            }
-        }
-
-        foreach (var sectorId in LastFloodSectors)
-            Log.Info($"Flood sector {sectorId}");
-    }
-
-    private void SetContainingSectorsToFlood(IWorld world, Subsector subsector, Sector sector)
-    {
-        for (int sectorId = 0; sectorId < world.Geometry.IslandGeometry.SectorIslands.Length; sectorId++)
-        {
-            var islands = world.Geometry.IslandGeometry.SectorIslands[sectorId];
-            if (islands.Count == 0 || world.Sectors[sectorId].Flood || sector.Id == sectorId)
-                continue;
-
-            var sectorBox = world.Sectors[sectorId].GetBoundingBox();
-            if (!sectorBox.Contains(subsector.BoundingBox.Min) && !sectorBox.Contains(subsector.BoundingBox.Max))
-                continue;
-
-            double? smallestFloodPerimeter = null;
-            int? smallestFloodSector = null;
-            foreach (var island in islands)
-            {
-                if (island.Box.Contains(subsector.BoundingBox.Min) && island.Box.Contains(subsector.BoundingBox.Max))
-                {
-                    double perimeter = (island.Box.Width + island.Box.Height) * 2;
-                    if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
-                    {
-                        smallestFloodPerimeter = perimeter;
-                        smallestFloodSector = sectorId;
-                    }
-                }
-            }
-
-            if (smallestFloodSector != null)
-            {
-                LastFloodSectors.Add(smallestFloodSector.Value);
-                world.Sectors[smallestFloodSector.Value].Flood = true;
-            }
-        }
-    }
-
+        
     public void Clear(double tickFraction, bool newTick)
     {
         m_tickFraction = tickFraction;
