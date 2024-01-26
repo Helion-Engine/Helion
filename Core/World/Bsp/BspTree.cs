@@ -38,7 +38,10 @@ public class BspSubsector
     public readonly int? SectorId;
     public readonly List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
-    public Island Island { get; internal set; } = null!;
+    public int IslandId;
+    public int SectorIslandId;
+    public int LineSegs;
+    public int SelfReferenceSegs;
 
     public BspSubsector(int id, int? sectorId, List<BspSubsectorSeg> segs)
     {

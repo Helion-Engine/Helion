@@ -9,11 +9,13 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using NLog;
 
 namespace Helion.World.Geometry;
 
 public class MapGeometry
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
     public readonly List<Wall> Walls;
@@ -22,8 +24,10 @@ public class MapGeometry
     public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
     public readonly List<Island> Islands;
+    public readonly List<Island>[] SectorIslands;
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
     private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
+    public readonly HashSet<int> BadSubsectors = new();
 
     internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
@@ -41,7 +45,71 @@ public class MapGeometry
 
         // Requires geometry to be attached to each other before classifying.
         Islands = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines);
-        AttachIslandsToGeometry(Islands);
+
+        SectorIslands = new List<Island>[Sectors.Count];
+        foreach (var sector in Sectors)
+            SectorIslands[sector.Id] = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines, sector.Id);
+
+        foreach (var subsector in bspTreeNew.Subsectors)
+            SetSegs(subsector);
+
+        for (int sectorId = 0; sectorId < SectorIslands.Length; sectorId++)
+        {
+            foreach (var island in SectorIslands[sectorId])
+            {
+                foreach (var subsector in island.Subsectors)
+                {
+                    if (subsector.SelfReferenceSegs >= subsector.LineSegs && subsector.LineSegs > 0)
+                    {
+                        if (subsector.LineSegs == 1 && !IsPartnerSubsectorBad(subsector))
+                            continue;
+
+                        BadSubsectors.Add(subsector.Id);
+                    }
+
+                    if (subsector.Segments.Count >= 3)
+                        continue;
+
+                    BadSubsectors.Add(subsector.Id);
+                }
+            }
+        }
+    }
+
+    // Bsp will split on one sided lines and can generate subsectors with a single self-referencing seg that isn't actually 'bad'.
+    // Check if the partner subsectors are valid before condemning this subsector.
+    private bool IsPartnerSubsectorBad(BspSubsector subsector)
+    {
+        for (int i = 0; i < subsector.Segments.Count;i++)
+        {
+            var seg = subsector.Segments[i];
+            if (!seg.LineId.HasValue)
+                continue;
+
+            if (seg.Partner.Subsector.SelfReferenceSegs >= seg.Partner.Subsector.LineSegs)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void SetSegs(BspSubsector subsector)
+    {
+        for (int i = 0; i < subsector.Segments.Count; i++)
+        {
+            var seg = subsector.Segments[i];
+            if (!seg.LineId.HasValue)
+                continue;
+
+            subsector.LineSegs++;
+
+            var line = Lines[seg.LineId.Value];
+            if (line.Back == null)
+                continue;
+
+            if (ReferenceEquals(line.Front.Sector, line.Back.Sector))
+                subsector.SelfReferenceSegs++;
+        }
     }
 
     public IList<Sector> FindBySectorTag(int tag)
@@ -99,12 +167,5 @@ public class MapGeometry
         foreach (BspSubsectorSeg seg in bspTree.Segments)
             if (seg.LineId.HasValue)
                 Lines[seg.LineId.Value].SubsectorSegs.Add(seg);
-    }
-
-    private void AttachIslandsToGeometry(List<Island> islands)
-    {
-        foreach (Island island in islands)
-            foreach (BspSubsector subsector in island.Subsectors)
-                subsector.Island = island;
     }
 }

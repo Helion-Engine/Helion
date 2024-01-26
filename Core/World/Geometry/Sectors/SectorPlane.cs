@@ -29,6 +29,8 @@ public class SectorPlane : ISoundSource
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
 
+    public bool NoRender;
+
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;
 

@@ -10,6 +10,7 @@ namespace Helion.Maps.Bsp.Node;
 /// </summary>
 public class BspNode
 {
+    public int Id;
     /// <summary>
     /// The left node. This is null if its a degenerate or leaf node.
     /// </summary>
@@ -73,8 +74,9 @@ public class BspNode
     /// clockwise edges.
     /// </summary>
     /// <param name="edges">The clockwise edges for this subsector.</param>
-    public BspNode(List<SubsectorEdge> edges)
+    public BspNode(int id, List<SubsectorEdge> edges)
     {
+        Id = id;
         Precondition(edges.Count >= 3, "Cannot create a child that is not at least a triangle");
         Precondition(EdgesAreHeadToTail(edges), "BSP node subsector edges are not closed");
 

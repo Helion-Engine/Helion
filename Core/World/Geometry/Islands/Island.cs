@@ -1,4 +1,5 @@
-﻿using Helion.World.Bsp;
+﻿using Helion.Geometry.Boxes;
+using Helion.World.Bsp;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;
@@ -15,6 +16,7 @@ public class Island
     public bool IsMonsterCloset;
     public bool IsVooDooCloset;
     public int InitialMonsterCount;
+    public Box2D Box;
 
     public Island(int id)
     {

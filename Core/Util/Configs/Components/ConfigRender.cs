@@ -111,4 +111,12 @@ public class ConfigRender
     [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render null textures")]
     public readonly ConfigValue<bool> NullTexture = new(false);
+
+    [ConfigInfo("Enable detection for mid textures that clip the ceiling/floor. Experimental", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Mid texture hack")]
+    public readonly ConfigValue<bool> MidTextureHack = new(false);
+
+    [ConfigInfo("Enable vanilla flat flood filling. Experimental", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Vanilla flood fill")]
+    public readonly ConfigValue<bool> VanillaFloodFill = new(false);
 }

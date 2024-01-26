@@ -14,6 +14,7 @@ public class Subsector
     public readonly Box2D BoundingBox;
     public readonly List<SubsectorSegment> ClockwiseEdges;
     public readonly LinkableList<Entity> Entities = new();
+    public bool Flood;
 
     public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
     {

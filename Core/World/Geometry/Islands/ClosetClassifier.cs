@@ -18,31 +18,31 @@ public static class ClosetClassifier
         for (int i = 0; i < world.Geometry.Islands.Count; i++)
         {
             Island island = world.Geometry.Islands[i];
-            if (!islandToEntities.TryGetValue(island, out var entities))
+            if (!islandToEntities.TryGetValue(island.Id, out var entities))
                 continue;
 
             SetCloset(island, world, entities, entityToSubsector);      
 
             if (island.IsMonsterCloset)
             {
-                foreach (Entity entity in islandToEntities[island])
+                foreach (Entity entity in islandToEntities[island.Id])
                     entity.InMonsterCloset = true;
             }
         }
     }
 
-    private static void PopulateLookups(WorldBase world, out Dictionary<Island, List<Entity>> islandToEntity, 
+    private static void PopulateLookups(WorldBase world, out Dictionary<int, List<Entity>> islandToEntity, 
         out Dictionary<int, BspSubsector> entityToSubsector)
     {
         islandToEntity = new();
         entityToSubsector = new();
         foreach (Island island in world.Geometry.Islands)
-            islandToEntity[island] = new();
+            islandToEntity[island.Id] = new();
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
-            List<Entity> entities = islandToEntity[subsector.Island];
+            List<Entity> entities = islandToEntity[subsector.IslandId];
             entities.Add(entity);
             entityToSubsector[entity.Id] = subsector;
         }

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -17,6 +20,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -24,6 +28,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using NLog;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -32,6 +37,7 @@ public class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public readonly List<IRenderObject> AlphaSides = new();
     public readonly PortalRenderer Portals;
@@ -55,6 +61,7 @@ public class GeometryRenderer : IDisposable
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
     private bool m_cacheOverride;
+    private bool m_vanillaFlood;
     private Vec3D m_viewPosition;
     private Vec3D m_prevViewPosition;
     private Sector m_viewSector;
@@ -154,6 +161,8 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
+            subsector.Flood = world.Geometry.BadSubsectors.Contains(subsector.Id);
+
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
 
@@ -162,6 +171,7 @@ public class GeometryRenderer : IDisposable
 
             m_viewSector = subsector.Sector;
             List<SubsectorSegment> edges = subsector.ClockwiseEdges;
+
             for (int j = 0; j < edges.Count; j++)
             {
                 SubsectorSegment edge = edges[j];
@@ -169,16 +179,19 @@ public class GeometryRenderer : IDisposable
                     continue;
 
                 var side = m_world.Sides[edge.SideId.Value];
+
                 if (side.IsTwoSided)
                 {
                     RenderSide(side, side.IsFront);
                     RenderSide(side.PartnerSide!, side.PartnerSide!.IsFront);
                     continue;
                 }
-                
+
                 RenderSide(side, true);
             }
         }
+
+        SetFloodSectors(world);
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -197,6 +210,65 @@ public class GeometryRenderer : IDisposable
         }
     }
 
+    private void SetFloodSectors(IWorld world)
+    {
+        if (!world.Config.Render.VanillaFloodFill)
+            return;
+
+        for (int sectorId = 0; sectorId < m_subsectors.Length; sectorId++)
+        {
+            var sector = world.Sectors[sectorId];
+            DynamicArray<Subsector> subsectors = m_subsectors[sectorId];
+            if (subsectors.Length == 0 || sector.Flood)
+                continue;
+
+            for (int i = 0; i < subsectors.Length; i++)
+            {
+                var subsector = subsectors[i];
+                if (!subsector.Flood)
+                    continue;
+
+                sector.Flood = true;
+                SetContainingSectorsToFlood(world, subsector, world.Sectors[sectorId]);
+            }
+        }
+
+        foreach (var sector in world.Sectors.Where(x => x.Flood))
+            Log.Info($"Flood sector {sector.Id}");
+    }
+
+    private void SetContainingSectorsToFlood(IWorld world, Subsector subsector, Sector sector)
+    {
+        for (int sectorId = 0; sectorId < world.Geometry.SectorIslands.Length; sectorId++)
+        {
+            var islands = world.Geometry.SectorIslands[sectorId];
+            if (islands.Count == 0 || world.Sectors[sectorId].Flood || sector.Id == sectorId)
+                continue;
+
+            var sectorBox = world.Sectors[sectorId].GetBoundingBox();
+            if (!sectorBox.Contains(subsector.BoundingBox.Min) && !sectorBox.Contains(subsector.BoundingBox.Max))
+                continue;
+
+            double? smallestFloodPerimeter = null;
+            int? smallestFloodSector = null;
+            foreach (var island in islands)
+            {
+                if (island.Box.Contains(subsector.BoundingBox.Min) && island.Box.Contains(subsector.BoundingBox.Max))
+                {
+                    double perimeter = (island.Box.Width + island.Box.Height) * 2;
+                    if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
+                    {
+                        smallestFloodPerimeter = perimeter;
+                        smallestFloodSector = sectorId;
+                    }
+                }
+            }
+
+            if (smallestFloodSector != null)
+                world.Sectors[smallestFloodSector.Value].Flood = true;
+        }
+    }
+
     public void Clear(double tickFraction, bool newTick)
     {
         m_tickFraction = tickFraction;
@@ -206,6 +278,7 @@ public class GeometryRenderer : IDisposable
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
         m_maxDistanceSquared = m_config.Render.MaxDistance * m_config.Render.MaxDistance;
+        m_vanillaFlood = m_world.Config.Render.VanillaFloodFill.Value;
     }
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
@@ -479,6 +552,12 @@ public class GeometryRenderer : IDisposable
     public void RenderSide(Side side, bool isFrontSide)
     {
         m_skyOverride = false;
+
+        if (side.FloorFloodKey > 0)
+            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlaneFace.Floor, isFrontSide);
+        if (side.CeilingFloodKey > 0)
+            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlaneFace.Ceiling, isFrontSide);
+
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
         else
@@ -1027,7 +1106,6 @@ public class GeometryRenderer : IDisposable
         else
         {
             LegacyVertex[]? lookupData = GetSectorVerticies(subsectors, floor, id, out bool generate);
-
             if (generate || flatChanged)
             {
                 int indexStart = 0;
@@ -1036,7 +1114,11 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
+                    if (subsector.Flood)
+                        continue;
+
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
+
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_vertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)

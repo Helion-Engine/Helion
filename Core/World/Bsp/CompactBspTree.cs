@@ -215,7 +215,7 @@ public class CompactBspTree
         Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
 
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new((int)m_nextSubsectorIndex, sector, bbox, clockwiseSegments);
+        Subsector subsector = new(node.Id, sector, bbox, clockwiseSegments);
         Subsectors[m_nextSubsectorIndex] = subsector;
 
         return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);

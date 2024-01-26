@@ -98,6 +98,8 @@ public class GLBspBuilder : IBspBuilder
         IBspUsableLine? FindLine(uint? index) => index == null ? null : lines[(int)index.Value];
     }
 
+    private int m_nodeId;
+
     private void CreateSubsectors(List<GLSubsector> subsectors)
     {
         foreach (GLSubsector glSubsector in subsectors)
@@ -111,7 +113,7 @@ public class GLBspBuilder : IBspBuilder
             if (edges.Count < 3)
                 FixMalformedSubsectorEdges(edges);
 
-            BspNode subsector = new(edges);
+            BspNode subsector = new(m_nodeId++, edges);
             m_subsectors.Add(subsector);
         }
     }

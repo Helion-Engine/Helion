@@ -21,6 +21,10 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using NLog;
 using OpenTK.Graphics.OpenGL;
+using Helion.Render.OpenGL.Shared.World;
+using Helion.Resources;
+using Helion.Geometry.Vectors;
+using static Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.GeometryRenderer;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -50,6 +54,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
+
+    private readonly MidTextureHack m_midTextureHack = new();
 
     private bool m_disposed;
     private IWorld? m_world;
@@ -118,6 +124,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.SetViewSector(DefaultSector);
         m_geometryRenderer.SetBuffer(false);
 
+        SetRenderCompatibility(world);
+
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
@@ -153,6 +161,54 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
+    }
+
+    private void SetRenderCompatibility(IWorld world)
+    {
+        var def = world.Map.CompatibilityDefinition;
+        if (def == null)
+        {
+            ApplyMidTextureHack(world);
+            return;
+        }
+
+        foreach (var sectorId in def.NoRenderFloorSectors)
+        {
+            if (world.IsSectorIdValid(sectorId))
+                world.Sectors[sectorId].Floor.NoRender = true;
+        }
+
+        foreach (var sectorId in def.NoRenderCeilingSectors)
+        {
+            if (world.IsSectorIdValid(sectorId))
+                world.Sectors[sectorId].Ceiling.NoRender = true;
+        }
+
+        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_textureManager, m_geometryRenderer);
+
+        if (def.MidTextureHackSectors.Count == 0)
+            ApplyMidTextureHack(world);
+    }
+
+    private void ApplyMidTextureHack(IWorld world)
+    {
+        if (world.Config.Render.MidTextureHack.Value)
+            m_midTextureHack.Apply(world, m_textureManager, m_geometryRenderer);
+    }
+
+    private void UpdateSectorPlaneFloodFill(Line line)
+    {
+        UpdateSectorPlaneFloodFill(line.Front, line.Front.Sector, true);
+        if (line.Back != null)
+            UpdateSectorPlaneFloodFill(line.Back, line.Back.Sector, false);
+    }
+
+    private void UpdateSectorPlaneFloodFill(Side facingSide, Sector facingSector, bool isFront)
+    {
+        if (facingSide.FloorFloodKey > 0)
+            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlaneFace.Floor, isFront);
+        if (facingSide.CeilingFloodKey > 0)
+            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlaneFace.Ceiling, isFront);
     }
 
     public void CheckForFloodFill(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFront)
@@ -280,10 +336,12 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             m_geometryRenderer.SetRenderOneSided(line.Front);
             m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
+
             AddSkyGeometry(line.Front, WallLocation.Middle, null, skyVertices, line.Front.Sector, update);
 
             if (sideVertices != null)
             {
+                AddFloodFillPlane(line.Front, sector, true);
                 var wall = line.Front.Middle;
                 UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
                     null, line.Front, wall, true);
@@ -295,6 +353,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         AddSide(line.Front, true, update);
         if (line.Back != null)
             AddSide(line.Back, false, update);
+    }
+
+    private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
+    {
+        if (!m_world.Config.Render.VanillaFloodFill || !sector.Flood)
+            return;
+
+        if (side.PartnerSide != null && side.Sector.Id == side.PartnerSide.Sector.Id)
+            return;
+
+        bool skyHack = false;
+        if (side.PartnerSide != null)
+            GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, side.Sector, side.PartnerSide.Sector, out skyHack);
+
+        if (side.FloorFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Floor.TextureHandle))
+            m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Floor, isFrontSide);
+        if (!skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
+            m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Ceiling, isFrontSide);
     }
 
     private void AddSide(Side side, bool isFrontSide, bool update)
@@ -313,6 +389,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic) && (side.Middle.Dynamic & m_sideDynamicIgnore) == 0;
 
         m_geometryRenderer.SetRenderTwoSided(side);
+
+        AddFloodFillPlane(side, facingSector, isFrontSide);      
 
         bool upperVisible = GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, facingSector, otherSector, out bool skyHack);
         if (upper && upperVisible)
@@ -528,6 +606,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)
     {
+        if ((floor && sector.Floor.NoRender) || (!floor && sector.Ceiling.NoRender))
+            return;
+
         var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
         var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
         // Need to set to actual plane, not potential transfer heights plane.
@@ -719,6 +800,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
         {
             var line = plane.Sector.Lines[i];
+            UpdateSectorPlaneFloodFill(line);
+
             if (line.Front.Upper.IsDynamic || line.Front.Upper.Sky)
             {
                 ClearGeometryVertices(line.Front.Upper.Static);
@@ -790,6 +873,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var line = plane.Sector.Lines[i];
             AddLine(line, true);
+
+            UpdateSectorPlaneFloodFill(line);
 
             if (line.Back == null)
                 continue;

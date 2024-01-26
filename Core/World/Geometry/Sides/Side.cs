@@ -45,6 +45,8 @@ public class Side : IRenderObject
     public int LowerFloodKey;
     public int UpperFloodKey2;
     public int LowerFloodKey2;
+    public int FloorFloodKey;
+    public int CeilingFloodKey;
     public bool BlockmapLinked;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)

@@ -37,7 +37,8 @@ public class Sector
     public readonly LinkableList<Entity> Entities = new();
     public readonly List<BspSubsector> Subsectors = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
-    public Island Island = null!; 
+    public Island Island = null!;
+
     public short LightLevel { get; set; }
     public TransferHeights? TransferHeights;
     public SectorMoveSpecial? ActiveFloorMove;
@@ -65,6 +66,7 @@ public class Sector
     public int SoundBlock;
     public int CheckCount;
     public bool MarkAutomap;
+    public bool Flood;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public InstantKillEffect KillEffect { get; private set; }
