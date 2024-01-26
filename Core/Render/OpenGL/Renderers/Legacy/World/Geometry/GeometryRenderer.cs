@@ -161,7 +161,7 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.BspTree.Subsectors.Length; i++)
         {
             Subsector subsector = world.BspTree.Subsectors[i];
-            subsector.Flood = world.Geometry.BadSubsectors.Contains(subsector.Id);
+            subsector.Flood = world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
 
             DynamicArray<Subsector> subsectors = m_subsectors[subsector.Sector.Id];
             subsectors.Add(subsector);
@@ -210,11 +210,24 @@ public class GeometryRenderer : IDisposable
         }
     }
 
+    static HashSet<int> LastFloodSectors = new();
+
     private void SetFloodSectors(IWorld world)
     {
         if (!world.Config.Render.VanillaFloodFill)
             return;
 
+        if (world.SameAsPreviousMap)
+        {
+            foreach (var sectorId in LastFloodSectors)
+            {
+                if (world.IsSectorIdValid(sectorId))
+                    world.Sectors[sectorId].Flood = true;
+            }
+            return;
+        }
+
+        LastFloodSectors.Clear();
         for (int sectorId = 0; sectorId < m_subsectors.Length; sectorId++)
         {
             var sector = world.Sectors[sectorId];
@@ -228,20 +241,21 @@ public class GeometryRenderer : IDisposable
                 if (!subsector.Flood)
                     continue;
 
+                LastFloodSectors.Add(sectorId);
                 sector.Flood = true;
                 SetContainingSectorsToFlood(world, subsector, world.Sectors[sectorId]);
             }
         }
 
-        foreach (var sector in world.Sectors.Where(x => x.Flood))
-            Log.Info($"Flood sector {sector.Id}");
+        foreach (var sectorId in LastFloodSectors)
+            Log.Info($"Flood sector {sectorId}");
     }
 
     private void SetContainingSectorsToFlood(IWorld world, Subsector subsector, Sector sector)
     {
-        for (int sectorId = 0; sectorId < world.Geometry.SectorIslands.Length; sectorId++)
+        for (int sectorId = 0; sectorId < world.Geometry.IslandGeometry.SectorIslands.Length; sectorId++)
         {
-            var islands = world.Geometry.SectorIslands[sectorId];
+            var islands = world.Geometry.IslandGeometry.SectorIslands[sectorId];
             if (islands.Count == 0 || world.Sectors[sectorId].Flood || sector.Id == sectorId)
                 continue;
 

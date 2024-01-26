@@ -13,6 +13,20 @@ using NLog;
 
 namespace Helion.World.Geometry;
 
+public struct IslandGeometry
+{
+    public IslandGeometry()
+    {
+        BadSubsectors = new();
+        Islands = new();
+        SectorIslands = Array.Empty<List<Island>>();
+    }
+
+    public HashSet<int> BadSubsectors;
+    public List<Island> Islands;
+    public List<Island>[] SectorIslands;
+}
+
 public class MapGeometry
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -23,11 +37,11 @@ public class MapGeometry
     public readonly List<SectorPlane> SectorPlanes;
     public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
-    public readonly List<Island> Islands;
-    public readonly List<Island>[] SectorIslands;
+
+    public IslandGeometry IslandGeometry = new();
+
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
     private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
-    public readonly HashSet<int> BadSubsectors = new();
 
     internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
@@ -41,19 +55,22 @@ public class MapGeometry
 
         TrackSectorsByTag();
         TrackLinesByLineId();
+    }
 
-        Islands = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines);
+    public void ClassifyIslands()
+    {
+        IslandGeometry.Islands = IslandClassifier.Classify(BspTree.Subsectors, Sectors, Lines);
 
-        SectorIslands = new List<Island>[Sectors.Count];
+        IslandGeometry.SectorIslands = new List<Island>[Sectors.Count];
         foreach (var sector in Sectors)
-            SectorIslands[sector.Id] = IslandClassifier.Classify(bspTreeNew.Subsectors, Sectors, Lines, sector.Id);
+            IslandGeometry.SectorIslands[sector.Id] = IslandClassifier.Classify(BspTree.Subsectors, Sectors, Lines, sector.Id);
 
-        foreach (var subsector in bspTreeNew.Subsectors)
+        foreach (var subsector in BspTree.Subsectors)
             SetSegs(subsector);
 
-        for (int sectorId = 0; sectorId < SectorIslands.Length; sectorId++)
+        for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
-            foreach (var island in SectorIslands[sectorId])
+            foreach (var island in IslandGeometry.SectorIslands[sectorId])
             {
                 foreach (var subsector in island.Subsectors)
                 {
@@ -62,13 +79,13 @@ public class MapGeometry
                         if (subsector.LineSegs == 1 && !IsPartnerSubsectorBad(subsector))
                             continue;
 
-                        BadSubsectors.Add(subsector.Id);
+                        IslandGeometry.BadSubsectors.Add(subsector.Id);
                     }
 
                     if (subsector.Segments.Count >= 3)
                         continue;
 
-                    BadSubsectors.Add(subsector.Id);
+                    IslandGeometry.BadSubsectors.Add(subsector.Id);
                 }
             }
         }

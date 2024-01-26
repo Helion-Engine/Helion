@@ -37,7 +37,7 @@ public partial class Client
             return;
 
         var world = m_layerManager.WorldLayer.World;
-        var islands = m_layerManager.WorldLayer.World.Geometry.Islands;
+        var islands = m_layerManager.WorldLayer.World.Geometry.IslandGeometry.Islands;
         List<MonsterClosetInfo> infoList = new();
 
         int count = 0;

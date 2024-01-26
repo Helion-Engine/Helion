@@ -24,9 +24,11 @@ using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
 using Helion.World;
+using Helion.World.Bsp;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
+using Helion.World.Geometry.Islands;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
 using NLog;
@@ -39,6 +41,7 @@ public partial class WorldLayer : IGameLayerParent
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static string LastMapName = string.Empty;
+    private static IslandGeometry LastIslandGeometry = new();
 
     record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
 
@@ -142,12 +145,14 @@ public partial class WorldLayer : IGameLayerParent
         string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
         Log.Info(displayName);
 
+        bool sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName);
+
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
-            mapInfoDef, skillDef, map, existingPlayer, worldModel, random);
+            mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
         if (world == null)
             return null;
 
-        if (mapInfoDef.MapName.EqualsIgnoreCase(LastMapName))
+        if (sameAsPreviousMap)
             world.SameAsPreviousMap = true;
         else if (archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
             SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
@@ -213,15 +218,25 @@ public partial class WorldLayer : IGameLayerParent
 
         config.ApplyConfiguration(worldModel.ConfigValues);
     }
-
+    
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false, bool sameAsPreviousMap = false)
     {
         archiveCollection.InitTextureManager(mapDef, unitTest);
         MapGeometry? geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
         if (geometry == null)
             return null;
+
+        if (sameAsPreviousMap)
+        {
+            geometry.IslandGeometry = LastIslandGeometry;
+        }
+        else
+        {
+            geometry.ClassifyIslands();
+            LastIslandGeometry = geometry.IslandGeometry;
+        }
 
         try
         {

@@ -13,11 +13,14 @@ public static class ClosetClassifier
     // a final post-processing step.
     public static void Classify(WorldBase world)
     {
+        if (world.SameAsPreviousMap)
+            return;
+
         PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
 
-        for (int i = 0; i < world.Geometry.Islands.Count; i++)
+        for (int i = 0; i < world.Geometry.IslandGeometry.Islands.Count; i++)
         {
-            Island island = world.Geometry.Islands[i];
+            Island island = world.Geometry.IslandGeometry.Islands[i];
             if (!islandToEntities.TryGetValue(island.Id, out var entities))
                 continue;
 
@@ -36,7 +39,7 @@ public static class ClosetClassifier
     {
         islandToEntity = new();
         entityToSubsector = new();
-        foreach (Island island in world.Geometry.Islands)
+        foreach (Island island in world.Geometry.IslandGeometry.Islands)
             islandToEntity[island.Id] = new();
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
