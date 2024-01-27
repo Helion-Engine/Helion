@@ -604,16 +604,28 @@ public class GeometryRenderer : IDisposable
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 
-    public bool LowerIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
+    public static bool LowerIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ ||
             facingSide.LowerFloodKey > 0;
     }
 
-    public bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    public static bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ ||
             facingSide.UpperFloodKey > 0;
+    }
+
+    public static bool UpperIsVisibleOrFlood(TextureManager textureManager, Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    {
+        bool isSky = textureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        bool isOtherSky = textureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
+
+        bool upperVisible = GeometryRenderer.UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out bool skyHack);
+        if (!upperVisible && !skyHack && !isOtherSky && isSky)
+            return true;
+
+        return upperVisible;
     }
 
     public static bool UpperOrSkySideIsVisible(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector, out bool skyHack)
@@ -799,11 +811,10 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null || 
+            if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVerticies2 != null ||
                 !UpperIsVisible(facingSide, otherSide, facingSector, otherSector))
             {
                 // This isn't the best spot for this but separating this logic would be difficult. (Sector 72 in skyshowcase.wad)
-                facingSide.FloodTextures &= ~SideTexture.Upper;
                 verticies = null;
                 skyVerticies = null;
                 return;

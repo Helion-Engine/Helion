@@ -96,7 +96,7 @@ public class StaticDataApplier
 
         if (facingSide.Upper.TextureHandle <= Constants.NullCompatibilityTextureIndex && 
             (facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ) &&
-            GeometryRenderer.UpperOrSkySideIsVisible(world.ArchiveCollection.TextureManager, facingSide, facingSector, otherSector, out bool skyHack) && !skyHack)
+            GeometryRenderer.UpperIsVisibleOrFlood(world.ArchiveCollection.TextureManager, facingSide, otherSide, facingSector, otherSector))
             facingSide.FloodTextures |= SideTexture.Upper;
         else
             facingSide.FloodTextures &= ~SideTexture.Upper;

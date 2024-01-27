@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
@@ -20,7 +21,8 @@ public class FloodFillRenderer : IDisposable
 {
     const int VerticesPerWall = 6;
 
-    private readonly LegacyGLTextureManager m_textureManager;
+    private readonly LegacyGLTextureManager m_glTextureManager;
+    private TextureManager? m_textureManager;
     private readonly FloodFillProgram m_program = new();
     private readonly List<FloodFillInfo> m_floodFillInfos = new();
     private readonly Dictionary<int, int> m_textureHandleToFloodFillInfoIndex = new();
@@ -28,9 +30,9 @@ public class FloodFillRenderer : IDisposable
     private readonly List<FloodGeometry> m_freeData = new();
     private bool m_disposed;
 
-    public FloodFillRenderer(LegacyGLTextureManager textureManager)
+    public FloodFillRenderer(LegacyGLTextureManager glTextureManager)
     {
-        m_textureManager = textureManager;
+        m_glTextureManager = glTextureManager;
     }
 
     ~FloodFillRenderer()
@@ -40,6 +42,7 @@ public class FloodFillRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
+        m_textureManager = world.ArchiveCollection.TextureManager;
         ClearData();
     }
 
@@ -115,6 +118,9 @@ public class FloodFillRenderer : IDisposable
 
     public int AddStaticWall(SectorPlane sectorPlane, WallVertices vertices, double minPlaneZ, double maxPlaneZ)
     {
+        if (m_textureManager != null && m_textureManager.IsSkyTexture(sectorPlane.TextureHandle))
+            return 0;
+
         float minZ = (float)minPlaneZ;
         float maxZ = (float)maxPlaneZ;
         float planeZ = (float)sectorPlane.Z;
@@ -216,7 +222,7 @@ public class FloodFillRenderer : IDisposable
             if (info.Vertices.Vbo.Empty)
                 continue;
 
-            GLLegacyTexture texture = m_textureManager.GetTexture(info.TextureHandle);
+            GLLegacyTexture texture = m_glTextureManager.GetTexture(info.TextureHandle);
             texture.Bind();
 
             info.Vertices.Vbo.UploadIfNeeded();

@@ -403,9 +403,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
-        AddFloodFillPlane(side, facingSector, isFrontSide);      
+        AddFloodFillPlane(side, facingSector, isFrontSide);
 
-        bool upperVisible = GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, facingSector, otherSector, out bool skyHack);
+        bool upperVisible = GeometryRenderer.UpperIsVisibleOrFlood(m_world.ArchiveCollection.TextureManager, side, otherSide, facingSector, otherSector);
         if (upper && upperVisible)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
@@ -421,11 +421,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
-            if (!update && !skyHack && (side.FloodTextures & SideTexture.Upper) != 0)
+            if (!update && (side.FloodTextures & SideTexture.Upper) != 0)
                 m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
         }
 
-        bool lowerVisible = m_geometryRenderer.LowerIsVisible(side, facingSector, otherSector);
+        bool lowerVisible = GeometryRenderer.LowerIsVisible(side, facingSector, otherSector);
         if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
