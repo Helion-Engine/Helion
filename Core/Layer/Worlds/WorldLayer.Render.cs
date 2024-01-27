@@ -1,7 +1,10 @@
+using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
+using Helion.World.StatusBar;
 using System;
 
 namespace Helion.Layer.Worlds;
@@ -18,7 +21,20 @@ public partial class WorldLayer
 
     public void Render(IRenderableSurfaceContext ctx)
     {
+        var offset = GetViewPortOffset(ctx.Surface.Dimension);
+        bool viewportOffset = offset.X != 0 || offset.Y != 0;
+
+        if (viewportOffset)
+        {
+            var box = new Box2I((offset.X, offset.Y), (ctx.Surface.Dimension.Width + offset.X, ctx.Surface.Dimension.Height + offset.Y));
+            ctx.Viewport(box);
+        }
+ 
         DrawWorld(ctx);
+
+        if (viewportOffset)
+            ctx.Viewport(ctx.Surface.Dimension.Box);
+
         DrawAutomapAndHud(ctx);
     }
 
@@ -42,7 +58,6 @@ public partial class WorldLayer
     {
         context.Draw(World);
     }
-
 
     private void DrawAutomapAndHud(IRenderableSurfaceContext ctx)
     {
@@ -68,5 +83,12 @@ public partial class WorldLayer
 
         m_renderableHudContext.ClearDepth();
         DrawHud(m_hudContext, hud, m_drawAutomap);
+    }
+
+    private Vec2I GetViewPortOffset(Dimension viewport)
+    {
+        if (m_config.Hud.StatusBarSize == StatusBarSizeType.Full)
+            return (0, (int)(viewport.Height / 200.0 * 16));
+        return (0, 0);
     }
 }
