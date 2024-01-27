@@ -472,6 +472,8 @@ public partial class WorldLayer
             totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
+        center -= GetViewPortOffset(m_viewport);
+
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
 
