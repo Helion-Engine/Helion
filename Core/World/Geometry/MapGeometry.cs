@@ -80,13 +80,16 @@ public class MapGeometry
                         if (subsector.LineSegs == 1 && !IsPartnerSubsectorBad(subsector))
                             continue;
 
-                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
                         IslandGeometry.BadSubsectors.Add(subsector.Id);
+                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
+
                         if (!islandFlooded)
                         {
                             SetContainingSectorsToFlood(subsector);
                             islandFlooded = true;
                         }
+
+                        continue;
                     }
 
                     if (subsector.Segments.Count >= 3)
@@ -132,16 +135,19 @@ public class MapGeometry
             }
 
             if (smallestFloodSector != null)
+            {
+                var sector = Sectors[subsector.SectorId.Value];
+                var floodSector = Sectors[smallestFloodSector.Value];
                 IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
+            }
         }
     }
-
 
     // Bsp will split on one sided lines and can generate subsectors with a single self-referencing seg that isn't actually 'bad'.
     // Check if the partner subsectors are valid before condemning this subsector.
     private bool IsPartnerSubsectorBad(BspSubsector subsector)
     {
-        for (int i = 0; i < subsector.Segments.Count;i++)
+        for (int i = 0; i < subsector.Segments.Count; i++)
         {
             var seg = subsector.Segments[i];
             if (!seg.LineId.HasValue)

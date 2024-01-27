@@ -874,6 +874,24 @@ public class GeometryRenderer : IDisposable
         skyVerticies = m_skyWallVertices;
     }
 
+    public void RenderSkySide(Side facingSide, Sector facingSector, SectorPlaneFace face, bool isFront, out SkyGeometryVertex[]? skyVerticies)
+    {
+        WallVertices wall;
+        if (face == SectorPlaneFace.Floor)
+        {
+            wall = WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, 
+                overrideFloor: facingSector.Floor.Z - MaxSky, overrideCeiling: facingSector.Floor.Z, isFront: isFront);
+        }
+        else
+        {
+            wall = WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero,
+                overrideFloor: facingSector.Ceiling.Z, overrideCeiling: facingSector.Ceiling.Z + MaxSky, isFront: isFront);
+        }
+
+        SetSkyWallVertices(m_skyWallVertices, wall);
+        skyVerticies = m_skyWallVertices;
+    }
+
     private bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
     {
         if (twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
@@ -1030,6 +1048,9 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
+                    if (subsector.Flood)
+                        continue;
+
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
