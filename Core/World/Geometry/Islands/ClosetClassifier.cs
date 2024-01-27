@@ -14,7 +14,18 @@ public static class ClosetClassifier
     public static void Classify(WorldBase world)
     {
         if (world.SameAsPreviousMap)
+        {
+            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+            {
+                var subsector = world.Geometry.BspTree.Find(entity.Position);
+                if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
+                    continue;
+                var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
+                if (island.IsMonsterCloset)
+                    entity.InMonsterCloset = true;
+            }
             return;
+        }
 
         PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
 
@@ -44,7 +55,7 @@ public static class ClosetClassifier
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
+            BspSubsector subsector = world.Geometry.BspTree.Find(entity.Position);
             List<Entity> entities = islandToEntity[subsector.IslandId];
             entities.Add(entity);
             entityToSubsector[entity.Id] = subsector;

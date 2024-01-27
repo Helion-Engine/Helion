@@ -50,9 +50,11 @@ public class SinglePlayerWorld : WorldBase
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
-        IMap map, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null)
+        IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random)
     {
+        SameAsPreviousMap = sameAsPreviousMap;
+
         if (worldModel == null)
         {
             EntityManager.PopulateFrom(map, LevelStats);

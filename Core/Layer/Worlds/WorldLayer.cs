@@ -152,9 +152,7 @@ public partial class WorldLayer : IGameLayerParent
         if (world == null)
             return null;
 
-        if (sameAsPreviousMap)
-            world.SameAsPreviousMap = true;
-        else if (archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
+        if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
             SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
         archiveCollection.TextureManager.InitSprites(world);
@@ -241,7 +239,7 @@ public partial class WorldLayer : IGameLayerParent
         try
         {
             return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
-                mapDef, skillDef, map,existingPlayer, worldModel, random);
+                mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random);
         }
         catch (HelionException e)
         {
