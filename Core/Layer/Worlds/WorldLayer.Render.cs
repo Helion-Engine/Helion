@@ -19,6 +19,8 @@ public partial class WorldLayer
     private Action<IHudRenderContext> m_drawAutomapAndHudAction;
     private readonly Action<IWorldRenderContext> m_renderWorldAction;
 
+    const int FullSizeHudOffsetY = 16;
+
     public void Render(IRenderableSurfaceContext ctx)
     {
         var offset = GetViewPortOffset(ctx.Surface.Dimension);
@@ -88,7 +90,7 @@ public partial class WorldLayer
     private Vec2I GetViewPortOffset(Dimension viewport)
     {
         if (m_config.Hud.StatusBarSize == StatusBarSizeType.Full)
-            return (0, (int)(viewport.Height / 200.0 * 16));
+            return (0, (int)(viewport.Height / 200.0 * FullSizeHudOffsetY));
         return (0, 0);
     }
 }
