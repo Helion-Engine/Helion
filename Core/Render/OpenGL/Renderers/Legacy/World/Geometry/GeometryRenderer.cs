@@ -1048,7 +1048,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (subsector.Flood)
+                    if (floor && subsector.Flood)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,

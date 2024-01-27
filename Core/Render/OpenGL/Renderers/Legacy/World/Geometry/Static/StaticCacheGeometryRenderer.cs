@@ -377,23 +377,13 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 m_geometryRenderer.RenderSkySide(side, sector, SectorPlaneFace.Floor, isFrontSide,
                     out var renderedSkyVertices);
-                AddSkyGeometry(null, WallLocation.None, sector.Floor, renderedSkyVertices, sector, false);
+                AddSkyGeometry(side, WallLocation.Lower, null, renderedSkyVertices, sector, false);
             }
         }
 
-        if (side.CeilingFloodKey == 0)
-        {
-            if (!skyHack && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
-            {
-                m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Ceiling, isFrontSide);
-            }
-            else
-            {
-                m_geometryRenderer.RenderSkySide(side, sector, SectorPlaneFace.Ceiling, isFrontSide,
-                    out var renderedSkyVertices);
-                AddSkyGeometry(null, WallLocation.None, sector.Ceiling, renderedSkyVertices, sector, false);
-            }
-        }
+        // Sky ceilings are handled differently
+        if (!skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
+            m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Ceiling, isFrontSide);
     }
 
     private void AddSide(Side side, bool isFrontSide, bool update)
