@@ -148,7 +148,7 @@ public class MidTextureHack
         {
             foreach (var checkIsland in check)
             {
-                if (searchIsland.Box.Contains(checkIsland.Box.Min) && searchIsland.Box.Contains(checkIsland.Box.Max))
+                if (searchIsland.Contains(checkIsland.Box))
                     return true;
             }
         }

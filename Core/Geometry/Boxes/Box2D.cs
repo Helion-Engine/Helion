@@ -125,6 +125,7 @@ namespace Helion.Geometry.Boxes
         public static Box2D operator -(Box2D self, Vec2D offset) => new(self.Min - offset, self.Max - offset);
         public static Box2D operator -(Box2D self, Vector2D offset) => new(self.Min - offset, self.Max - offset);
 
+        public bool ContainsInclusive(Vec2D point) => point.X >= Min.X && point.X <= Max.X && point.Y >= Min.Y && point.Y <= Max.Y;
         public bool Contains(Vec2D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         public bool Contains(Vector2D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         public bool Contains(Vec3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;

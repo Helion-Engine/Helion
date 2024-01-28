@@ -22,4 +22,10 @@ public class Island
     {
         Id = id;
     }
+
+    // Box is contained in this island box. Does not include where min or max are equal.
+    public bool Contains(in Box2D box) => Box.Contains(box.Min) && Box.Contains(box.Max);
+
+    // Box is contained in this island box. Allows inclusive checks where min or max are equal.
+    public bool ContainsInclusive(in Box2D box) => Box.ContainsInclusive(box.Min) && Box.ContainsInclusive(box.Max);
 }

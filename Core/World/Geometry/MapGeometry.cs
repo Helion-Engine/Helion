@@ -65,9 +65,6 @@ public class MapGeometry
         IslandGeometry.Islands = IslandClassifier.Classify(BspTree.Subsectors, Sectors);
         IslandGeometry.SectorIslands = IslandClassifier.ClassifySectors(BspTree.Subsectors, Sectors);
 
-        foreach (var subsector in BspTree.Subsectors)
-            SetSegs(subsector);
-
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
             foreach (var island in IslandGeometry.SectorIslands[sectorId])
@@ -75,23 +72,6 @@ public class MapGeometry
                 bool islandFlooded = false;
                 foreach (var subsector in island.Subsectors)
                 {
-                    if (subsector.SelfReferenceSegs >= subsector.LineSegs && subsector.LineSegs > 0)
-                    {
-                        if (subsector.LineSegs == 1 && !IsPartnerSubsectorBad(subsector))
-                            continue;
-
-                        IslandGeometry.BadSubsectors.Add(subsector.Id);
-                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
-
-                        if (!islandFlooded)
-                        {
-                            SetContainingSectorsToFlood(subsector);
-                            islandFlooded = true;
-                        }
-
-                        continue;
-                    }
-
                     if (subsector.Segments.Count >= 3)
                         continue;
 
@@ -116,15 +96,18 @@ public class MapGeometry
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
             var islands = IslandGeometry.SectorIslands[sectorId];
-            if (islands.Count == 0 || subsector.SectorId == sectorId)
+            if (islands.Count == 0)
                 continue;
 
             double? smallestFloodPerimeter = null;
             int? smallestFloodSector = null;
             foreach (var island in islands)
             {
-                if (island.Box.Contains(subsector.Box.Min) && island.Box.Contains(subsector.Box.Max))
+                if (island.ContainsInclusive(subsector.Box))
                 {
+                    if (sectorId == subsector.SectorId)
+                        SetIslandFlooded(island);
+
                     double perimeter = (island.Box.Width + island.Box.Height) * 2;
                     if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
                     {
@@ -143,40 +126,10 @@ public class MapGeometry
         }
     }
 
-    // Bsp will split on one sided lines and can generate subsectors with a single self-referencing seg that isn't actually 'bad'.
-    // Check if the partner subsectors are valid before condemning this subsector.
-    private bool IsPartnerSubsectorBad(BspSubsector subsector)
+    private void SetIslandFlooded(Island floodedIsland)
     {
-        for (int i = 0; i < subsector.Segments.Count; i++)
-        {
-            var seg = subsector.Segments[i];
-            if (!seg.LineId.HasValue)
-                continue;
-
-            if (seg.Partner.Subsector.SelfReferenceSegs >= seg.Partner.Subsector.LineSegs)
-                return true;
-        }
-
-        return false;
-    }
-
-    private void SetSegs(BspSubsector subsector)
-    {
-        for (int i = 0; i < subsector.Segments.Count; i++)
-        {
-            var seg = subsector.Segments[i];
-            if (!seg.LineId.HasValue)
-                continue;
-
-            subsector.LineSegs++;
-
-            var line = Lines[seg.LineId.Value];
-            if (line.Back == null)
-                continue;
-
-            if (ReferenceEquals(line.Front.Sector, line.Back.Sector))
-                subsector.SelfReferenceSegs++;
-        }
+        foreach (var subsector in floodedIsland.Subsectors)
+            IslandGeometry.BadSubsectors.Add(subsector.Id);
     }
 
     public IList<Sector> FindBySectorTag(int tag)

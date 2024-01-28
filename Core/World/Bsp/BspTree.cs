@@ -40,8 +40,6 @@ public class BspSubsector
     public readonly Box2D Box;
     public int IslandId;
     public int SectorIslandId;
-    public int LineSegs;
-    public int SelfReferenceSegs;
 
     public BspSubsector(int id, int? sectorId, List<BspSubsectorSeg> segs)
     {
