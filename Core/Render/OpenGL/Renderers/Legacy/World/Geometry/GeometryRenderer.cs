@@ -161,6 +161,9 @@ public class GeometryRenderer : IDisposable
     private void SetRenderCompatibility(IWorld world)
     {
         var def = world.Map.CompatibilityDefinition;
+        if (def == null)
+            return;
+
         foreach (var sectorId in def.NoRenderFloorSectors)
         {
             if (world.IsSectorIdValid(sectorId))
