@@ -24,7 +24,7 @@ using OpenTK.Graphics.OpenGL;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Resources;
 using Helion.Geometry.Vectors;
-using static Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.GeometryRenderer;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -54,8 +54,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
-
-    private readonly MidTextureHack m_midTextureHack = new();
 
     private bool m_disposed;
     private IWorld? m_world;
@@ -124,8 +122,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.SetViewSector(DefaultSector);
         m_geometryRenderer.SetBuffer(false);
 
-        SetRenderCompatibility(world);
-
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sector = world.Sectors[i];
@@ -161,39 +157,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
-    }
-
-    private void SetRenderCompatibility(IWorld world)
-    {
-        var def = world.Map.CompatibilityDefinition;
-        if (def == null)
-        {
-            ApplyMidTextureHack(world);
-            return;
-        }
-
-        foreach (var sectorId in def.NoRenderFloorSectors)
-        {
-            if (world.IsSectorIdValid(sectorId))
-                world.Sectors[sectorId].Floor.NoRender = true;
-        }
-
-        foreach (var sectorId in def.NoRenderCeilingSectors)
-        {
-            if (world.IsSectorIdValid(sectorId))
-                world.Sectors[sectorId].Ceiling.NoRender = true;
-        }
-
-        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_textureManager, m_geometryRenderer);
-
-        if (def.MidTextureHackSectors.Count == 0)
-            ApplyMidTextureHack(world);
-    }
-
-    private void ApplyMidTextureHack(IWorld world)
-    {
-        if (world.Config.Render.MidTextureHack.Value)
-            m_midTextureHack.Apply(world, m_textureManager, m_geometryRenderer);
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)
@@ -357,21 +320,24 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
     {
-        if (!m_world.Config.Render.VanillaFloodFill || !sector.Flood)
+        if ((!m_world.Config.Render.VanillaFloodFill || !sector.Flood) && side.MidTextureFlood == SectorPlanes.None)
             return;
 
         if (side.PartnerSide != null && side.Sector.Id == side.PartnerSide.Sector.Id)
             return;
 
+        bool floodFloor = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
+        bool floodCeiling = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
+
         bool skyHack = false;
         if (side.PartnerSide != null)
             GeometryRenderer.UpperOrSkySideIsVisible(m_world.ArchiveCollection.TextureManager, side, side.Sector, side.PartnerSide.Sector, out skyHack);
 
-        if (side.FloorFloodKey == 0)
+        if (floodFloor && side.FloorFloodKey == 0)
         {
             if (!m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Floor.TextureHandle))
             {
-                m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Floor, isFrontSide);
+                AddFloodFillPlane(side, sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide);
             }
             else
             {
@@ -382,8 +348,33 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         // Sky ceilings are handled differently
-        if (!skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
-            m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlaneFace.Ceiling, isFrontSide);
+        if (floodCeiling && !skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
+            AddFloodFillPlane(side, sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
+    }
+
+    private void AddFloodFillPlane(Side facingSide, Sector sector, SectorPlanes planes, SectorPlaneFace face, bool isFrontSide)
+    {
+        if ((facingSide.MidTextureFlood & planes) != 0)
+        {
+            var line = facingSide.Line;
+            var saveStart = line.Segment.Start;
+            var saveEnd = line.Segment.End;
+
+            // Push it out to prevent potential z-fighting
+            var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
+            var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * 0.05;
+
+            line.Segment.Start += unit;
+            line.Segment.End += unit;
+
+            m_geometryRenderer.Portals.AddFloodFillPlane(facingSide, sector, face, isFrontSide);
+
+            line.Segment.Start = saveStart;
+            line.Segment.End = saveEnd;
+            return;
+        }
+
+        m_geometryRenderer.Portals.AddFloodFillPlane(facingSide, sector, face, isFrontSide);
     }
 
     private void AddSide(Side side, bool isFrontSide, bool update)

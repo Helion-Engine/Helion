@@ -12,6 +12,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
+using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
@@ -54,6 +55,7 @@ public class GeometryRenderer : IDisposable
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly MidTextureHack m_midTextureHack = new();
     private GLBufferTexture? m_lightBuffer;
     private double m_tickFraction;
     private bool m_skyOverride;
@@ -149,10 +151,29 @@ public class GeometryRenderer : IDisposable
             m_drawnSides[i] = -1;
 
         Clear(m_tickFraction, true);
+        SetRenderCompatibility(world);
         CacheData(world);
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
+    }
+
+    private void SetRenderCompatibility(IWorld world)
+    {
+        var def = world.Map.CompatibilityDefinition;
+        foreach (var sectorId in def.NoRenderFloorSectors)
+        {
+            if (world.IsSectorIdValid(sectorId))
+                world.Sectors[sectorId].Floor.NoRender = true;
+        }
+
+        foreach (var sectorId in def.NoRenderCeilingSectors)
+        {
+            if (world.IsSectorIdValid(sectorId))
+                world.Sectors[sectorId].Ceiling.NoRender = true;
+        }
+
+        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, this);
     }
 
     private void CacheData(IWorld world)
@@ -193,10 +214,10 @@ public class GeometryRenderer : IDisposable
         if (m_vanillaFlood)
         {
             foreach (var sector in world.Sectors)
-                sector.Flood = world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
+                sector.Flood = !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
 
             foreach (var subsector in world.BspTree.Subsectors)
-                subsector.Flood = world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
+                subsector.Flood = !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
         }
 
         for (int i = 0; i < m_subsectors.Length; i++)
@@ -1059,7 +1080,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (floor && subsector.Flood)
+                    if (floor && subsector.Flood && !flat.Sector.MidTextureHack)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,
@@ -1093,7 +1114,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (subsector.Flood)
+                    if (subsector.Flood && !flat.Sector.MidTextureHack)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);

@@ -1,23 +1,33 @@
-﻿using Helion.Geometry.Vectors;
+﻿using Helion;
+using Helion.Geometry.Vectors;
+using Helion.Render;
+using Helion.Render.OpenGL;
+using Helion.Render.OpenGL.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.World;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 
-namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public class MidTextureHack
 {
     private readonly HashSet<int> m_midTextureHackLines = new(128);
     private readonly HashSet<int> m_floodLineSet = new(128);
     private readonly HashSet<int> m_midTextureHackSectors = new(128);
+    private readonly List<Sector> m_containingSectors = new(128);
 
     public void Apply(IWorld world, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer)
     {
-        return;
         for (int i = 0; i < world.Sectors.Count; i++)
             ApplyToSector(world, textureManager, geometryRenderer, world.Sectors[i]);
 
@@ -28,7 +38,6 @@ public class MidTextureHack
 
     public void Apply(IWorld world, IList<int> sectorIds, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer)
     {
-        return;
         foreach (var sectorId in sectorIds)
         {
             if (world.IsSectorIdValid(sectorId))
@@ -88,10 +97,63 @@ public class MidTextureHack
         if (clippedFloor || clippedCeiling)
             m_midTextureHackSectors.Add(sector.Id);
 
+        SetSectorForMidTextureHack(sector, clippedFloor, clippedCeiling);
+        FindContainingFloodSectors(world, sector, m_containingSectors, clippedFloor, clippedCeiling);
+
+        foreach (var containingsector in m_containingSectors)
+            SetSectorForMidTextureHack(containingsector, clippedFloor, clippedCeiling);
+
+        m_containingSectors.Clear();
+        m_midTextureHackLines.Clear();
+    }
+
+    private static void SetSectorForMidTextureHack(Sector sector, bool clippedFloor, bool clippedCeiling)
+    {
+        sector.MidTextureHack = true;
         sector.Floor.NoRender = sector.Floor.NoRender || clippedFloor;
         sector.Ceiling.NoRender = sector.Ceiling.NoRender || clippedCeiling;
+    }
 
-        m_midTextureHackLines.Clear();
+    private void FindContainingFloodSectors(IWorld world, Sector sector, List<Sector> sectors, bool floor, bool ceiling)
+    {
+        if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
+            return;
+
+        var searchIslands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
+        for (int sectorId = 0; sectorId < world.Geometry.IslandGeometry.SectorIslands.Length; sectorId++)
+        {
+            if (sectorId == sector.Id)
+                continue;
+
+            if (!world.IsSectorIdValid(sectorId))
+                continue;
+
+            // Only flood matching planes
+            var checkSector = world.Sectors[sectorId];
+            if (floor && (checkSector.Floor.Z != sector.Floor.Z || checkSector.Floor.TextureHandle != sector.Floor.TextureHandle))
+                continue;
+
+            if (ceiling && (checkSector.Ceiling.Z != sector.Ceiling.Z || checkSector.Ceiling.TextureHandle != sector.Ceiling.TextureHandle))
+                continue;
+
+            var checkIslands = world.Geometry.IslandGeometry.SectorIslands[sectorId];
+            if (AnyBoxContains(searchIslands, checkIslands))
+                sectors.Add(checkSector);
+        }
+    }
+
+    private static bool AnyBoxContains(IList<Island> search, IList<Island> check)
+    {
+        foreach (var searchIsland in search)
+        {
+            foreach (var checkIsland in check)
+            {
+                if (searchIsland.Box.Contains(checkIsland.Box.Min) && searchIsland.Box.Contains(checkIsland.Box.Max))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     private void SetSectorLinesForMidTextureHack(IWorld world, GeometryRenderer geometryRenderer, Sector sector, SectorPlaneFace face)
@@ -117,20 +179,10 @@ public class MidTextureHack
                 continue;
 
             m_floodLineSet.Add(line.Id);
-            var saveStart = line.Segment.Start;
-            var saveEnd = line.Segment.End;
-
-            // Push it out to prevent potential z-fighting
-            var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
-            var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * 0.05;
-
-            line.Segment.Start += unit;
-            line.Segment.End += unit;
-
-            geometryRenderer.Portals.AddFloodFillPlane(facingSide, sector, face, facingSide.Id == line.Front.Id);
-
-            line.Segment.Start = saveStart;
-            line.Segment.End = saveEnd;
+            if (face == SectorPlaneFace.Floor)
+                facingSide.MidTextureFlood |= SectorPlanes.Floor;
+            else if (face == SectorPlaneFace.Ceiling)
+                facingSide.MidTextureFlood |= SectorPlanes.Ceiling;
         }
     }
 }

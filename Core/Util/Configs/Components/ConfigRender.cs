@@ -112,11 +112,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Render null textures")]
     public readonly ConfigValue<bool> NullTexture = new(false);
 
-    [ConfigInfo("Enable detection for mid textures that clip the ceiling/floor. Experimental", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Mid texture hack")]
-    public readonly ConfigValue<bool> MidTextureHack = new(false);
-
-    [ConfigInfo("Enable vanilla flat flood filling. Experimental", mapRestartRequired: true)]
+    [ConfigInfo("Enable vanilla flat flood filling for self-referencing sectors.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Vanilla flood fill")]
-    public readonly ConfigValue<bool> VanillaFloodFill = new(false);
+    public readonly ConfigValue<bool> VanillaFloodFill = new(true);
 }

@@ -66,6 +66,7 @@ public class Sector
     public int CheckCount;
     public bool MarkAutomap;
     public bool Flood;
+    public bool MidTextureHack;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
     public InstantKillEffect KillEffect { get; private set; }
