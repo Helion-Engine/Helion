@@ -86,9 +86,6 @@ public class MapGeometry
                 }
             }
         }
-
-        foreach (var sectorId in IslandGeometry.FloodSectors)
-            Log.Info($"Flood sector {sectorId}");
     }
 
     private void SetContainingSectorsToFlood(BspSubsector subsector)
