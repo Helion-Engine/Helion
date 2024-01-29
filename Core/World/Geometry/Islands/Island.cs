@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using System.Collections.Generic;
@@ -30,23 +31,33 @@ public class Island
     // Box is contained in this island box. Allows inclusive checks where min or max are equal.
     public bool ContainsInclusive(in Box2D box) => Box.ContainsInclusive(box.Min) && Box.ContainsInclusive(box.Max);
 
-    public bool OnRightOfSectorLines(IList<Line> lines, int sectorId, in Box2D box)
+    public bool BoxInsideSector(in Box2D box)
     {
-        for (int i = 0; i < LineIds.Count; i++)
+        bool hitBottomLeft = false;
+        bool hitBottomRight = false;
+        bool hitTopLeft = false;
+        bool hitTopRight = false;
+
+        var bottomLeft = box.BottomLeft;
+        var bottomRight = box.BottomRight;
+        var topLeft = box.TopLeft;
+        var topRight = box.TopRight;
+
+        foreach (var subsector in Subsectors)
         {
-            var lineId = LineIds[i];
-            if (lineId < 0 || lineId >= lines.Count)
-                continue;
+            if (!hitBottomLeft && subsector.Box.ContainsInclusive(bottomLeft))
+                hitBottomLeft = true;
+            if (!hitBottomRight && subsector.Box.ContainsInclusive(bottomRight))
+                hitBottomRight = true;
+            if (!hitTopLeft && subsector.Box.ContainsInclusive(topLeft))
+                hitTopLeft = true;
+            if (!hitTopRight && subsector.Box.ContainsInclusive(topRight))
+                hitTopRight = true;
 
-            var line = lines[lineId];
-            if (line.Back != null && ReferenceEquals(line.Front.Sector, line.Back.Sector))
-                continue;
-
-            bool onRight = line.Front.Sector.Id == sectorId;
-            if (!line.Segment.OnRight(box.Min) != onRight || !line.Segment.OnRight(box.Max))
-                return false;
+            if (hitBottomLeft && hitBottomRight && hitTopLeft && hitTopRight)
+                return true;
         }
 
-        return true;
+        return false;
     }
 }

@@ -102,7 +102,7 @@ public class MapGeometry
                 if (!island.ContainsInclusive(subsector.Box))
                     continue;
                 
-                if (sectorId != subsector.SectorId && !island.OnRightOfSectorLines(Lines, subsector.SectorId.Value, subsector.Box))
+                if (sectorId != subsector.SectorId && !island.BoxInsideSector(subsector.Box))
                     continue;
 
                 if (sectorId == subsector.SectorId)

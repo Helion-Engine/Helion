@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <Folder Include="Resources\" />
+      <Folder Include="Unit\MapGeometry\" />
     </ItemGroup>
 
     <ItemGroup>
@@ -81,6 +82,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="Resources\playermovement.zip">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\sectorisland.zip">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
       <None Update="Resources\sectorsound.zip">
