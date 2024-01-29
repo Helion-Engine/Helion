@@ -88,7 +88,8 @@
     }
 }
 
-"KDiKDi_A.wad"
+//kdikdizd 1.7.1
+"7343bc51d8b640e8f63bea8e87888b20"
 {
 	map "MAP13"
 	{
@@ -98,11 +99,17 @@
 	map "MAP14"
 	{
 		midtexturehacksector 655;
+		midtexturehacksector 567;
 	}
 
 	map "MAP17"
 	{
 		midtexturehacksector 501;
+	}
+
+	map "MAP19"
+	{
+		midtexturehacksector 972;
 	}
 	
 	map "MAP20"
