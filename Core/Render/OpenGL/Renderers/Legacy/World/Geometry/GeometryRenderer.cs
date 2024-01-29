@@ -214,14 +214,11 @@ public class GeometryRenderer : IDisposable
             }
         }
 
-        if (m_vanillaFlood)
-        {
-            foreach (var sector in world.Sectors)
-                sector.Flood = !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
+        foreach (var sector in world.Sectors)
+            sector.Flood = m_vanillaFlood && !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
 
-            foreach (var subsector in world.BspTree.Subsectors)
-                subsector.Flood = !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
-        }
+        foreach (var subsector in world.BspTree.Subsectors)
+            subsector.Flood = m_vanillaFlood && !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
